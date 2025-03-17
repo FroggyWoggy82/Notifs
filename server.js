@@ -18,7 +18,7 @@ const vapidKeys = {
 };
 
 webpush.setVapidDetails(
-  'mailto:youremail@example.com',
+  'mailto:kevinguyen022@gmail.com',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
