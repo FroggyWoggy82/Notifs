@@ -244,7 +244,7 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// Add support for background notifications
+// Store scheduled notifications
 self.scheduledNotifications = [];
 
 // Handle messages from the client
@@ -253,7 +253,13 @@ self.addEventListener('message', (event) => {
     console.log('Service worker received notifications setup', event.data.notifications);
     
     // Store the notifications in the service worker
-    self.scheduledNotifications = event.data.notifications;
+    self.scheduledNotifications = event.data.notifications || [];
+    
+    // Log the notifications for debugging
+    console.log('Current notifications in service worker:', self.scheduledNotifications.length);
+    self.scheduledNotifications.forEach(notification => {
+      console.log(`- "${notification.title}" at ${new Date(notification.time).toLocaleString()}`);
+    });
     
     // Set up periodic checks
     setUpPeriodicChecks();
@@ -276,8 +282,8 @@ function setUpPeriodicChecks() {
       console.log('Current notifications in SW:', self.scheduledNotifications.length);
       
       self.scheduledNotifications.forEach((notification, index) => {
-        // If it's time to show the notification
-        if (notification.time <= now) {
+        // Check if the notification should be triggered (within a 1-minute window)
+        if (notification.time <= now && notification.time > now - 60000) {
           console.log('Service worker triggering notification:', notification.title);
           
           // Show the notification
@@ -286,13 +292,17 @@ function setUpPeriodicChecks() {
             icon: '/icon-192x192.png',
             badge: '/icon-192x192.png',
             vibrate: [100, 50, 100],
-            tag: notification.id, // Use tag to prevent duplicate notifications
+            tag: 'scheduled-' + notification.id,
             renotify: true,
             requireInteraction: true,
             data: {
               notificationId: notification.id,
               timestamp: now
             }
+          }).then(() => {
+            console.log('Notification shown successfully');
+          }).catch(err => {
+            console.error('Error showing notification:', err);
           });
           
           // Handle repeating notifications
@@ -309,15 +319,64 @@ function setUpPeriodicChecks() {
             
             // Update the notification time
             self.scheduledNotifications[index].time = nextTime;
+            self.scheduledNotifications[index].processed = false;
           } else {
-            // Mark this notification to be removed
+            // Mark this notification as processed
             self.scheduledNotifications[index].processed = true;
           }
         }
       });
       
       // Remove processed one-time notifications
-      self.scheduledNotifications = self.scheduledNotifications.filter(n => !n.processed);
+      self.scheduledNotifications = self.scheduledNotifications.filter(n => 
+        n.repeat !== 'none' || !n.processed
+      );
     }
-  }, 10000); // Check every 10 seconds for reliability
+  }, 5000); // Check every 5 seconds for more reliability
 }
+
+// Make sure to handle push events properly
+self.addEventListener('push', event => {
+  console.log('Push received:', event);
+  
+  let notificationData = {
+    title: 'New Notification',
+    body: 'You have a new notification',
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    vibrate: [100, 50, 100],
+    tag: 'push-' + Date.now(),
+    renotify: true,
+    requireInteraction: true,
+    data: {
+      dateOfArrival: Date.now()
+    }
+  };
+  
+  // Parse data if available
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      notificationData = {
+        title: data.title || notificationData.title,
+        body: data.body || notificationData.body,
+        icon: '/icon-192x192.png',
+        badge: '/icon-192x192.png',
+        vibrate: [100, 50, 100],
+        tag: 'push-' + Date.now(),
+        renotify: true,
+        requireInteraction: true,
+        data: {
+          dateOfArrival: Date.now(),
+          ...data.data
+        }
+      };
+    } catch (e) {
+      console.error('Error parsing push data:', e);
+    }
+  }
+  
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, notificationData)
+  );
+});
