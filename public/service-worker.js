@@ -95,8 +95,8 @@ self.addEventListener('push', event => {
       notificationData = {
         title: data.title || notificationData.title,
         body: data.body || notificationData.body,
-        icon: './icon-192x192.png',
-        badge: './icon-192x192.png',
+        icon: './icons/icon-192x192.png',
+        badge: './icons/icon-192x192.png',
         data: {
           dateOfArrival: Date.now(),
           ...data.data
@@ -121,8 +121,8 @@ self.addEventListener('message', event => {
     
     self.registration.showNotification(notificationData.title, {
       body: notificationData.body,
-      icon: './icon-192x192.png',
-      badge: './icon-192x192.png',
+      icon: './icons/icon-192x192.png',
+      badge: './icons/icon-192x192.png',
       vibrate: [100, 50, 100],
       data: {
         id: notificationData.id,
@@ -137,8 +137,8 @@ self.addEventListener('message', event => {
     if (notificationData) {
       self.registration.showNotification(notificationData.title, {
         body: notificationData.body,
-        icon: './icon-192x192.png',
-        badge: './icon-192x192.png',
+        icon: './icons/icon-192x192.png',
+        badge: './icons/icon-192x192.png',
         vibrate: [100, 50, 100],
         data: {
           id: notificationData.id,

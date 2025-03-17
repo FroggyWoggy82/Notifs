@@ -169,7 +169,7 @@
             })
             .then(newSubscription => {
             // Send the subscription to your server
-            return fetch('/api/save-subscription', {
+            return fetch('http://localhost:3000/api/save-subscription', {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',
