@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification PWA</title>
+    <meta name="description" content="A simple PWA that sends notifications">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0b7dda;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>Notification PWA</h1>
+    <p>Click the button to receive a notification</p>
+    <button id="notifyBtn">Send Notification</button>
+    <div id="status"></div>
+
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+
+        // Notification functionality
+        document.getElementById('notifyBtn').addEventListener('click', function() {
+            const statusElement = document.getElementById('status');
+            
+            // Check if browser supports notifications
+            if (!('Notification' in window)) {
+                statusElement.className = 'status error';
+                statusElement.textContent = 'This browser does not support notifications';
+                return;
+            }
+
+            // Request permission and send notification
+            if (Notification.permission === 'granted') {
+                sendNotification();
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        sendNotification();
+                    } else {
+                        statusElement.className = 'status error';
+                        statusElement.textContent = 'Notification permission denied';
+                    }
+                });
+            } else {
+                statusElement.className = 'status error';
+                statusElement.textContent = 'Notification permission denied. Please enable notifications in your browser settings.';
+            }
+        });
+
+        function sendNotification() {
+            const statusElement = document.getElementById('status');
+            const options = {
+                body: 'This is a notification from your PWA',
+                icon: 'icon-192x192.png',
+                vibrate: [100, 50, 100],
+                data: {
+                    dateOfArrival: Date.now(),
+                    primaryKey: 1
+                }
+            };
+
+            // Use service worker to send notification if available
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification('PWA Notification', options);
+                    statusElement.className = 'status success';
+                    statusElement.textContent = 'Notification sent successfully!';
+                });
+            } else {
+                // Fallback to regular notification
+                new Notification('PWA Notification', options);
+                statusElement.className = 'status success';
+                statusElement.textContent = 'Notification sent successfully!';
+            }
+        }
+    </script>
+</body>
+</html>
