@@ -323,6 +323,9 @@ function setupPushSubscription() {
           }
           // Register background sync
           registerBackgroundSync();
+          
+          // Setup iOS notifications if needed
+          setupIOSNotifications(registration);
         })
         .catch(function(error) {
           console.error('ServiceWorker registration failed: ', error);
@@ -399,3 +402,51 @@ function setupPushSubscription() {
       initScheduledNotifications();
     });
   }
+  
+  // Setup iOS notifications
+  function setupIOSNotifications(registration) {
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIOS) {
+      console.log('iOS device detected, setting up iOS-specific notifications');
+      
+      // Send scheduled notifications to the service worker for iOS
+      if (scheduledNotifications && scheduledNotifications.length > 0) {
+        registration.active.postMessage({
+          type: 'SETUP_IOS_NOTIFICATIONS',
+          notifications: scheduledNotifications
+        });
+        console.log('Sent scheduled notifications to service worker for iOS handling');
+      }
+      
+      // Listen for messages from the service worker
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'NOTIFICATION_CLICKED') {
+          console.log('Notification clicked:', event.data.notificationId);
+          // Handle notification click if needed
+        }
+      });
+    }
+  }
+  
+  // Override the scheduleNotification function to handle iOS differently
+  const originalScheduleNotification = scheduleNotification;
+  scheduleNotification = function(notification) {
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIOS) {
+      // For iOS, we'll rely on the service worker to handle the notification
+      // Just make sure the service worker has the latest notifications
+      navigator.serviceWorker.ready.then(registration => {
+        registration.active.postMessage({
+          type: 'SETUP_IOS_NOTIFICATIONS',
+          notifications: scheduledNotifications
+        });
+      });
+    } else {
+      // For non-iOS devices, use the original implementation
+      originalScheduleNotification(notification);
+    }
+  };

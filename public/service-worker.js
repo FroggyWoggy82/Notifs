@@ -1,5 +1,5 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v7';
+const CACHE_NAME = 'notification-pwa-v6';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -24,8 +24,6 @@ self.addEventListener('install', event => {
         );
       })
   );
-  // Skip waiting to ensure the new service worker activates immediately
-  self.skipWaiting();
 });
 
 // Activate and clean up old caches
@@ -41,17 +39,13 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    }).then(() => {
-      // Take control of all clients immediately
-      return self.clients.claim();
     })
   );
+  return self.clients.claim();
 });
 
 // Fetch from cache first, then network
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
-  
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -77,197 +71,6 @@ self.addEventListener('fetch', event => {
       })
   );
 });
-
-// Handle background sync for scheduled notifications
-self.addEventListener('sync', event => {
-  console.log('Background sync event:', event);
-  
-  if (event.tag === 'check-scheduled-notifications') {
-    event.waitUntil(checkScheduledNotifications());
-  }
-});
-
-// Handle periodic background sync for recurring checks
-self.addEventListener('periodicsync', event => {
-  console.log('Periodic background sync event:', event);
-  
-  if (event.tag === 'periodic-notification-check') {
-    event.waitUntil(checkScheduledNotifications());
-  }
-});
-
-// Function to check if any notifications should be shown
-async function checkScheduledNotifications() {
-  console.log('Checking for scheduled notifications...');
-  
-  try {
-    // First try to get from the server
-    const response = await fetch('/api/get-scheduled-notifications', {
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (response.ok) {
-      const notifications = await response.json();
-      console.log('Fetched notifications from server:', notifications);
-      processScheduledNotifications(notifications);
-    } else {
-      console.warn('Failed to fetch from server, using IndexedDB');
-      // Fall back to local IndexedDB
-      const db = await openNotificationsDB();
-      const notifications = await getNotificationsFromDB(db);
-      processScheduledNotifications(notifications);
-    }
-  } catch (error) {
-    console.error('Error checking scheduled notifications:', error);
-    // Fall back to local IndexedDB
-    try {
-      const db = await openNotificationsDB();
-      const notifications = await getNotificationsFromDB(db);
-      processScheduledNotifications(notifications);
-    } catch (dbError) {
-      console.error('Error accessing local notification storage:', dbError);
-    }
-  }
-}
-
-// Process scheduled notifications
-function processScheduledNotifications(notifications) {
-  const now = Date.now();
-  
-  notifications.forEach(notification => {
-    // Check if notification should be triggered now
-    if (notification.scheduledTime <= now && !notification.triggered) {
-      // Display the notification
-      self.registration.showNotification(notification.title, {
-        body: notification.body,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
-        data: {
-          notificationId: notification.id,
-          dateOfArrival: now
-        }
-      });
-      
-      // Mark as triggered for one-time notifications
-      if (notification.repeat === 'none') {
-        markNotificationAsTriggered(notification.id);
-      } else {
-        // Update the next trigger time for recurring notifications
-        const nextTriggerTime = calculateNextTriggerTime(
-          notification.scheduledTime,
-          notification.repeat
-        );
-        updateNotificationSchedule(notification.id, nextTriggerTime);
-      }
-    }
-  });
-}
-
-// Calculate next trigger time based on repeat pattern
-function calculateNextTriggerTime(lastTriggerTime, repeatPattern) {
-  const lastDate = new Date(lastTriggerTime);
-  let nextDate;
-  
-  switch (repeatPattern) {
-    case 'daily':
-      nextDate = new Date(lastDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      break;
-    case 'weekly':
-      nextDate = new Date(lastDate);
-      nextDate.setDate(nextDate.getDate() + 7);
-      break;
-    default:
-      return null;
-  }
-  
-  return nextDate.getTime();
-}
-
-// IndexedDB functions for local storage
-function openNotificationsDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('NotificationsDB', 1);
-    
-    request.onerror = event => {
-      reject('Error opening IndexedDB');
-    };
-    
-    request.onsuccess = event => {
-      resolve(event.target.result);
-    };
-    
-    request.onupgradeneeded = event => {
-      const db = event.target.result;
-      const objectStore = db.createObjectStore('notifications', { keyPath: 'id' });
-      objectStore.createIndex('scheduledTime', 'scheduledTime', { unique: false });
-      objectStore.createIndex('triggered', 'triggered', { unique: false });
-    };
-  });
-}
-
-function getNotificationsFromDB(db) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['notifications'], 'readonly');
-    const objectStore = transaction.objectStore('notifications');
-    const request = objectStore.getAll();
-    
-    request.onerror = event => {
-      reject('Error fetching notifications from IndexedDB');
-    };
-    
-    request.onsuccess = event => {
-      resolve(event.target.result);
-    };
-  });
-}
-
-function markNotificationAsTriggered(notificationId) {
-  fetch(`/api/mark-triggered/${notificationId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }).catch(error => {
-    console.error('Error marking notification as triggered on server:', error);
-    // Also update local IndexedDB
-    updateNotificationInDB(notificationId, { triggered: true });
-  });
-}
-
-function updateNotificationSchedule(notificationId, nextTriggerTime) {
-  fetch(`/api/update-schedule/${notificationId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ scheduledTime: nextTriggerTime })
-  }).catch(error => {
-    console.error('Error updating notification schedule on server:', error);
-    // Also update local IndexedDB
-    updateNotificationInDB(notificationId, { scheduledTime: nextTriggerTime });
-  });
-}
-
-function updateNotificationInDB(notificationId, updateData) {
-  openNotificationsDB().then(db => {
-    const transaction = db.transaction(['notifications'], 'readwrite');
-    const objectStore = transaction.objectStore('notifications');
-    const request = objectStore.get(notificationId);
-    
-    request.onsuccess = event => {
-      const notification = event.target.result;
-      if (notification) {
-        const updatedNotification = { ...notification, ...updateData };
-        objectStore.put(updatedNotification);
-      }
-    };
-  }).catch(error => {
-    console.error('Error updating notification in IndexedDB:', error);
-  });
-}
 
 // Handle push notifications from server
 self.addEventListener('push', event => {
@@ -307,6 +110,67 @@ self.addEventListener('push', event => {
   );
 });
 
+// Handle background sync
+self.addEventListener('sync', event => {
+  console.log('Background sync event received:', event.tag);
+  if (event.tag === 'check-scheduled-notifications') {
+    event.waitUntil(checkScheduledNotifications());
+  }
+});
+
+// Handle periodic sync
+self.addEventListener('periodicsync', event => {
+  console.log('Periodic sync event received:', event.tag);
+  if (event.tag === 'periodic-notification-check') {
+    event.waitUntil(checkScheduledNotifications());
+  }
+});
+
+// Function to check for scheduled notifications
+async function checkScheduledNotifications() {
+  try {
+    console.log('Checking for scheduled notifications');
+    const response = await fetch('/api/get-scheduled-notifications');
+    if (!response.ok) {
+      throw new Error('Failed to fetch scheduled notifications');
+    }
+    
+    const notifications = await response.json();
+    console.log('Retrieved scheduled notifications:', notifications);
+    
+    // Process any notifications that should be triggered now
+    const now = Date.now();
+    for (const notification of notifications) {
+      // Check if notification is due to be shown
+      if (notification.scheduledTime <= now) {
+        console.log('Showing notification:', notification.title);
+        
+        await self.registration.showNotification(notification.title, {
+          body: notification.body,
+          icon: '/icon-192x192.png',
+          badge: '/icon-192x192.png',
+          data: {
+            notificationId: notification.id
+          }
+        });
+        
+        // For one-time notifications, delete from server
+        if (notification.repeat === 'none') {
+          console.log('Deleting one-time notification:', notification.id);
+          await fetch(`/api/delete-notification/${notification.id}`, {
+            method: 'DELETE'
+          });
+        }
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking scheduled notifications:', error);
+    return false;
+  }
+}
+
 // Handle notification clicks
 self.addEventListener('notificationclick', event => {
   console.log('Notification clicked:', event.notification);
@@ -339,4 +203,94 @@ self.addEventListener('notificationclick', event => {
       }
     })
   );
+});
+
+// Add support for iOS background notifications
+self.scheduledNotifications = [];
+
+// Handle messages from the client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SETUP_IOS_NOTIFICATIONS') {
+    console.log('Service worker received iOS notifications setup', event.data.notifications);
+    
+    // Store the notifications in the service worker
+    self.scheduledNotifications = event.data.notifications;
+    
+    // Set up periodic checks
+    setUpPeriodicChecks();
+  }
+});
+
+// Set up periodic checks for notifications
+function setUpPeriodicChecks() {
+  // Clear any existing interval
+  if (self.notificationCheckInterval) {
+    clearInterval(self.notificationCheckInterval);
+  }
+  
+  // Use setInterval in the service worker to check for notifications
+  const checkInterval = setInterval(() => {
+    const now = Date.now();
+    console.log('Service worker checking notifications at:', new Date(now).toLocaleString());
+    
+    if (self.scheduledNotifications && self.scheduledNotifications.length > 0) {
+      console.log('Current notifications in SW:', self.scheduledNotifications.length);
+      
+      self.scheduledNotifications.forEach(notification => {
+        // If it's time to show the notification (within 2 minutes to account for wake-up delays)
+        if (notification.time <= now && notification.time > now - 120000) {
+          console.log('Service worker triggering notification:', notification.title);
+          
+          // Show the notification
+          self.registration.showNotification(notification.title, {
+            body: notification.body,
+            icon: '/icon-192x192.png',
+            badge: '/icon-192x192.png',
+            tag: notification.id, // Use tag to prevent duplicate notifications
+            data: {
+              notificationId: notification.id,
+              timestamp: now
+            }
+          });
+          
+          // Handle repeating notifications
+          if (notification.repeat !== 'none') {
+            let nextTime;
+            
+            if (notification.repeat === 'daily') {
+              // 24 hours in milliseconds
+              nextTime = notification.time + (24 * 60 * 60 * 1000);
+            } else if (notification.repeat === 'weekly') {
+              // 7 days in milliseconds
+              nextTime = notification.time + (7 * 24 * 60 * 60 * 1000);
+            }
+            
+            // Update the notification time
+            notification.time = nextTime;
+          } else {
+            // Remove one-time notifications after they're sent
+            self.scheduledNotifications = self.scheduledNotifications.filter(n => 
+              n.id !== notification.id
+            );
+          }
+        }
+      });
+    }
+  }, 15000); // Check every 15 seconds for more reliability
+  
+  // Store the interval ID to be able to clear it later if needed
+  self.notificationCheckInterval = checkInterval;
+}
+
+// When the service worker activates, set up the periodic checks
+self.addEventListener('activate', (event) => {
+  console.log('Service worker activated');
+  
+  // Ensure the service worker takes control immediately
+  event.waitUntil(self.clients.claim());
+  
+  // Set up periodic checks if there are any notifications
+  if (self.scheduledNotifications && self.scheduledNotifications.length > 0) {
+    setUpPeriodicChecks();
+  }
 });
