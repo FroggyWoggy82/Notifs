@@ -1,13 +1,11 @@
-// 3. SERVICE WORKER UPDATE
-// Update your service-worker.js
-
+// Service Worker for PWA Notifications
 const CACHE_NAME = 'notification-pwa-v6';
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon-192x192.png',
-  './icon-512x512.png'
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon-192x192.png',
+  '/icon-512x512.png'
 ];
 
 // Install service worker and cache assets
@@ -81,8 +79,8 @@ self.addEventListener('push', event => {
   let notificationData = {
     title: 'New Notification',
     body: 'You have a new notification',
-    icon: './icon-192x192.png',
-    badge: './icon-192x192.png',
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
     data: {
       dateOfArrival: Date.now()
     }
@@ -95,8 +93,8 @@ self.addEventListener('push', event => {
       notificationData = {
         title: data.title || notificationData.title,
         body: data.body || notificationData.body,
-        icon: './icons/icon-192x192.png',
-        badge: './icons/icon-192x192.png',
+        icon: '/icon-192x192.png',
+        badge: '/icon-192x192.png',
         data: {
           dateOfArrival: Date.now(),
           ...data.data
@@ -110,44 +108,6 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(notificationData.title, notificationData)
   );
-});
-
-// Handle local notifications
-self.addEventListener('message', event => {
-  console.log('Message received in SW:', event.data);
-  
-  if (event.data && event.data.type === 'SCHEDULE_NOTIFICATION') {
-    const notificationData = event.data.notification;
-    
-    self.registration.showNotification(notificationData.title, {
-      body: notificationData.body,
-      icon: './icons/icon-192x192.png',
-      badge: './icons/icon-192x192.png',
-      vibrate: [100, 50, 100],
-      data: {
-        id: notificationData.id,
-        dateOfArrival: Date.now(),
-        ...notificationData.data
-      }
-    });
-  } 
-  else if (event.data && event.data.type === 'NOTIFICATION_DETAILS_RESPONSE') {
-    const notificationData = event.data.notification;
-    
-    if (notificationData) {
-      self.registration.showNotification(notificationData.title, {
-        body: notificationData.body,
-        icon: './icons/icon-192x192.png',
-        badge: './icons/icon-192x192.png',
-        vibrate: [100, 50, 100],
-        data: {
-          id: notificationData.id,
-          dateOfArrival: Date.now(),
-          ...notificationData.data
-        }
-      });
-    }
-  }
 });
 
 // Handle notification clicks
@@ -178,7 +138,7 @@ self.addEventListener('notificationclick', event => {
       
       // No window open, open a new one
       if (clients.openWindow) {
-        return clients.openWindow('./');
+        return clients.openWindow('/');
       }
     })
   );
