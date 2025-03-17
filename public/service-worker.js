@@ -1,9 +1,10 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v6';
+const CACHE_NAME = 'notification-pwa-v7';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/script.js',
   '/icon-192x192.png',
   '/icon-512x512.png'
 ];
@@ -11,6 +12,7 @@ const urlsToCache = [
 // Install service worker and cache assets
 self.addEventListener('install', event => {
   console.log('Service Worker installing');
+  self.skipWaiting(); // Take control immediately
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -39,9 +41,11 @@ self.addEventListener('activate', event => {
           }
         })
       );
+    }).then(() => {
+      // Immediately claim clients to ensure the service worker takes control
+      return self.clients.claim();
     })
   );
-  return self.clients.claim();
 });
 
 // Fetch from cache first, then network
@@ -72,7 +76,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Handle push notifications from server
+// CRITICAL: Handle push notifications from server
 self.addEventListener('push', event => {
   console.log('Push received:', event);
   
@@ -83,7 +87,12 @@ self.addEventListener('push', event => {
     badge: '/icon-192x192.png',
     data: {
       dateOfArrival: Date.now()
-    }
+    },
+    // Add these for more reliable notifications
+    vibrate: [100, 50, 100],
+    tag: 'notification-' + Date.now(),
+    renotify: true,
+    requireInteraction: true
   };
   
   // Parse data if available
@@ -95,6 +104,10 @@ self.addEventListener('push', event => {
         body: data.body || notificationData.body,
         icon: '/icon-192x192.png',
         badge: '/icon-192x192.png',
+        vibrate: [100, 50, 100],
+        tag: 'notification-' + Date.now(),
+        renotify: true,
+        requireInteraction: true,
         data: {
           dateOfArrival: Date.now(),
           ...data.data
@@ -105,8 +118,27 @@ self.addEventListener('push', event => {
     }
   }
   
+  // This is crucial for background notifications
   event.waitUntil(
     self.registration.showNotification(notificationData.title, notificationData)
+      .then(() => {
+        console.log('Notification shown successfully');
+        // Clients may be empty if app is closed, that's OK
+        return self.clients.matchAll();
+      })
+      .then(clients => {
+        if (clients && clients.length > 0) {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'NOTIFICATION_RECEIVED',
+              notification: notificationData
+            });
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error showing notification:', error);
+      })
   );
 });
 
@@ -126,11 +158,14 @@ self.addEventListener('periodicsync', event => {
   }
 });
 
-// Function to check for scheduled notifications
+// Check for scheduled notifications
 async function checkScheduledNotifications() {
   try {
     console.log('Checking for scheduled notifications');
-    const response = await fetch('/api/get-scheduled-notifications');
+    const response = await fetch('/api/get-scheduled-notifications', {
+      cache: 'no-store' // Ensure fresh data
+    });
+    
     if (!response.ok) {
       throw new Error('Failed to fetch scheduled notifications');
     }
@@ -149,6 +184,10 @@ async function checkScheduledNotifications() {
           body: notification.body,
           icon: '/icon-192x192.png',
           badge: '/icon-192x192.png',
+          vibrate: [100, 50, 100],
+          tag: 'scheduled-' + notification.id,
+          renotify: true,
+          requireInteraction: true,
           data: {
             notificationId: notification.id
           }
@@ -205,13 +244,13 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// Add support for iOS background notifications
+// Add support for background notifications
 self.scheduledNotifications = [];
 
 // Handle messages from the client
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SETUP_IOS_NOTIFICATIONS') {
-    console.log('Service worker received iOS notifications setup', event.data.notifications);
+  if (event.data && event.data.type === 'SETUP_NOTIFICATIONS') {
+    console.log('Service worker received notifications setup', event.data.notifications);
     
     // Store the notifications in the service worker
     self.scheduledNotifications = event.data.notifications;
@@ -229,16 +268,16 @@ function setUpPeriodicChecks() {
   }
   
   // Use setInterval in the service worker to check for notifications
-  const checkInterval = setInterval(() => {
+  self.notificationCheckInterval = setInterval(() => {
     const now = Date.now();
     console.log('Service worker checking notifications at:', new Date(now).toLocaleString());
     
     if (self.scheduledNotifications && self.scheduledNotifications.length > 0) {
       console.log('Current notifications in SW:', self.scheduledNotifications.length);
       
-      self.scheduledNotifications.forEach(notification => {
-        // If it's time to show the notification (within 2 minutes to account for wake-up delays)
-        if (notification.time <= now && notification.time > now - 120000) {
+      self.scheduledNotifications.forEach((notification, index) => {
+        // If it's time to show the notification
+        if (notification.time <= now) {
           console.log('Service worker triggering notification:', notification.title);
           
           // Show the notification
@@ -246,7 +285,10 @@ function setUpPeriodicChecks() {
             body: notification.body,
             icon: '/icon-192x192.png',
             badge: '/icon-192x192.png',
+            vibrate: [100, 50, 100],
             tag: notification.id, // Use tag to prevent duplicate notifications
+            renotify: true,
+            requireInteraction: true,
             data: {
               notificationId: notification.id,
               timestamp: now
@@ -266,31 +308,16 @@ function setUpPeriodicChecks() {
             }
             
             // Update the notification time
-            notification.time = nextTime;
+            self.scheduledNotifications[index].time = nextTime;
           } else {
-            // Remove one-time notifications after they're sent
-            self.scheduledNotifications = self.scheduledNotifications.filter(n => 
-              n.id !== notification.id
-            );
+            // Mark this notification to be removed
+            self.scheduledNotifications[index].processed = true;
           }
         }
       });
+      
+      // Remove processed one-time notifications
+      self.scheduledNotifications = self.scheduledNotifications.filter(n => !n.processed);
     }
-  }, 15000); // Check every 15 seconds for more reliability
-  
-  // Store the interval ID to be able to clear it later if needed
-  self.notificationCheckInterval = checkInterval;
+  }, 10000); // Check every 10 seconds for reliability
 }
-
-// When the service worker activates, set up the periodic checks
-self.addEventListener('activate', (event) => {
-  console.log('Service worker activated');
-  
-  // Ensure the service worker takes control immediately
-  event.waitUntil(self.clients.claim());
-  
-  // Set up periodic checks if there are any notifications
-  if (self.scheduledNotifications && self.scheduledNotifications.length > 0) {
-    setUpPeriodicChecks();
-  }
-});

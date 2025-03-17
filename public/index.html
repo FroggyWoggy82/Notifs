@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notification PWA</title>
-    <meta name="description" content="A simple PWA that sends notifications">
+    <meta name="description" content="A simple PWA that sends notifications even in the background">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2196F3">
     <style>
@@ -92,13 +92,55 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        .info-box {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+        .notifications-status {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .permission-granted {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .permission-denied {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .permission-default {
+            background-color: #fff3cd;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
     <h1>Notification PWA</h1>
-    <p>Click the button to receive a notification</p>
-    <button id="notifyBtn">Send Notification</button>
-    <div id="status"></div>
+    <p>Send and schedule notifications that work even when the app is closed</p>
+    
+    <div id="permissionStatus" class="notifications-status">
+        Checking notification permission...
+    </div>
+    
+    <button id="notifyBtn">Enable Background Notifications</button>
+    <div id="status" class="status"></div>
+    
+    <div class="info-box">
+        <p><strong>How Background Notifications Work:</strong></p>
+        <ol>
+            <li>Enable notifications when prompted</li>
+            <li>Notifications will work even when this app is closed</li>
+            <li>You can schedule recurring notifications</li>
+            <li>For best results, install this PWA to your home screen</li>
+        </ol>
+    </div>
     
     <div class="notification-controls">
         <h2>Schedule Notifications</h2>
@@ -135,196 +177,35 @@
         <button id="installBtn">Install App</button>
     </div>
 
+    <!-- Include script.js only once -->
+    <script src="script.js"></script>
+    
     <script>
-        // 1. FRONTEND - Add to your index.html
-
-// Add subscription management to your existing script
-        function setupPushSubscription() {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').textContent = 'Push notifications not supported';
-            return;
-        }
-
-        let reg;
-        navigator.serviceWorker.ready
-            .then(swreg => {
-            reg = swreg;
-            return swreg.pushManager.getSubscription();
-            })
-            .then(subscription => {
-            if (subscription === null) {
-                // Create a new subscription
-                const vapidPublicKey = 'BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0';
-                const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-                
-                return reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: convertedVapidKey
-                });
-            } else {
-                // We already have a subscription
-                return subscription;
-            }
-            })
-            .then(newSubscription => {
-            // Send the subscription to your server
-            return fetch('http://localhost:3000/api/save-subscription', {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-                },
-                body: JSON.stringify(newSubscription)
-            });
-            })
-            .then(response => {
-            if (response.ok) {
-                document.getElementById('status').className = 'status success';
-                document.getElementById('status').textContent = 'Push notification setup complete!';
-                enableSchedulingUI();
-            }
-            })
-            .catch(err => {
-            console.error('Failed to subscribe for push', err);
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').textContent = 'Push notification setup failed';
-            });
-        }
-
-        // Helper function to convert base64 to Uint8Array
-        function urlBase64ToUint8Array(base64String) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-            .replace(/\-/g, '+')
-            .replace(/_/g, '/');
-
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-        }
-
-        // Modified schedule button function to send to server
-        document.getElementById('scheduleBtn').addEventListener('click', function() {
-        const title = document.getElementById('notificationTitle').value || 'Scheduled Notification';
-        const body = document.getElementById('notificationMessage').value || 'Your scheduled notification';
-        const timeString = document.getElementById('notificationTime').value;
-        const repeat = document.getElementById('notificationRepeat').value;
-        const statusElement = document.getElementById('status');
-        
-        if (!timeString) {
-            statusElement.className = 'status error';
-            statusElement.textContent = 'Please select a valid time';
-            return;
-        }
-        
-        const time = new Date(timeString).getTime();
-        
-        if (time <= Date.now()) {
-            statusElement.className = 'status error';
-            statusElement.textContent = 'Please select a future time';
-            return;
-        }
-        
-        // Create notification object
-        const notification = {
-            id: Date.now().toString(),
-            title: title,
-            body: body,
-            scheduledTime: time,
-            repeat: repeat
-        };
-        
-        // Send to server for scheduling
-        fetch('/api/schedule-notification', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-            },
-            body: JSON.stringify(notification)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-            // Also add to local storage for UI purposes
-            notification.serverId = data.id; // Store server ID
-            scheduledNotifications.push(notification);
-            saveScheduledNotifications();
+        // Update permission status UI
+        function updatePermissionStatus() {
+            const permStatus = document.getElementById('permissionStatus');
             
-            statusElement.className = 'status success';
-            statusElement.textContent = 'Notification scheduled on server!';
+            if (!('Notification' in window)) {
+                permStatus.textContent = 'Notifications are not supported in this browser';
+                permStatus.className = 'notifications-status permission-denied';
+                return;
+            }
             
-            // Reset form to defaults
-            document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
-            document.getElementById('notificationMessage').value = 'This is your scheduled notification';
-            document.getElementById('notificationTime').value = new Date(Date.now() + 60000).toISOString().slice(0, 16);
-            } else {
-            statusElement.className = 'status error';
-            statusElement.textContent = 'Failed to schedule: ' + (data.message || 'Unknown error');
+            switch(Notification.permission) {
+                case 'granted':
+                    permStatus.textContent = 'Notification permission granted! Background notifications are enabled.';
+                    permStatus.className = 'notifications-status permission-granted';
+                    break;
+                case 'denied':
+                    permStatus.textContent = 'Notification permission denied. Please enable notifications in your browser settings.';
+                    permStatus.className = 'notifications-status permission-denied';
+                    break;
+                default:
+                    permStatus.textContent = 'Please enable notifications for background functionality.';
+                    permStatus.className = 'notifications-status permission-default';
             }
-        })
-        .catch(error => {
-            console.error('Error scheduling notification:', error);
-            statusElement.className = 'status error';
-            statusElement.textContent = 'Error connecting to server';
-        });
-        });
-
-        // Add this to initialization code
-        window.addEventListener('load', function() {
-        // Request notification permission
-        if ('Notification' in window) {
-            Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                setupPushSubscription();
-            }
-            });
         }
         
-        // Load existing scheduled notifications from server
-        fetch('/api/get-scheduled-notifications')
-            .then(response => response.json())
-            .then(notifications => {
-            scheduledNotifications = notifications;
-            updateScheduledNotificationsUI();
-            })
-            .catch(err => {
-            console.error('Failed to load scheduled notifications', err);
-            });
-        });
-
-        // Update delete function to call server
-        function removeScheduledNotification(index) {
-        const notification = scheduledNotifications[index];
-        
-        // Delete from server
-        fetch(`/api/delete-notification/${notification.serverId}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-            scheduledNotifications.splice(index, 1);
-            saveScheduledNotifications();
-            
-            document.getElementById('status').className = 'status success';
-            document.getElementById('status').textContent = 'Notification removed';
-            } else {
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').textContent = 'Failed to remove: ' + (data.message || 'Unknown error');
-            }
-        })
-        .catch(error => {
-            console.error('Error removing notification:', error);
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').textContent = 'Error connecting to server';
-        });
-        }
         // Set default date time to current time + 1 minute
         const defaultDateTime = new Date(Date.now() + 60000);
         document.getElementById('notificationTime').value = defaultDateTime.toISOString().slice(0, 16);
@@ -351,290 +232,10 @@
             }
         });
         
-        // Register service worker - works for both iOS and other platforms
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(function(registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(function(error) {
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            });
-        }
-
-        // Notification functionality
-        document.getElementById('notifyBtn').addEventListener('click', function() {
-            const statusElement = document.getElementById('status');
-            
-            // Check if browser supports notifications
-            if (!('Notification' in window)) {
-                statusElement.className = 'status error';
-                statusElement.textContent = 'This browser does not support notifications';
-                return;
-            }
-
-            // Request permission and send notification
-            if (Notification.permission === 'granted') {
-                sendNotification();
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(function(permission) {
-                    if (permission === 'granted') {
-                        sendNotification();
-                    } else {
-                        statusElement.className = 'status error';
-                        statusElement.textContent = 'Notification permission denied';
-                    }
-                });
-            } else {
-                statusElement.className = 'status error';
-                statusElement.textContent = 'Notification permission denied. Please enable notifications in your browser settings.';
-            }
-        });
-
-        function sendNotification(title = 'PWA Notification', body = 'This is a notification from your PWA') {
-            const statusElement = document.getElementById('status');
-            const options = {
-                body: body,
-                icon: './icon-192x192.png',
-                vibrate: [100, 50, 100],
-                data: {
-                    dateOfArrival: Date.now(),
-                    primaryKey: 1
-                }
-            };
-
-            // iOS-specific handling
-            if (isIOS) {
-                console.log("Using iOS notification method");
-                if (navigator.serviceWorker.controller) {
-                    // If service worker is active
-                    navigator.serviceWorker.ready.then(function(registration) {
-                        registration.showNotification(title, options);
-                        statusElement.className = 'status success';
-                        statusElement.textContent = 'iOS notification sent!';
-                    });
-                } else {
-                    // Fallback for iOS
-                    alert(`This would be a notification: ${title} - ${body}`);
-                    statusElement.className = 'status success';
-                    statusElement.textContent = 'iOS notification simulated!';
-                }
-                return;
-            }
-
-            // Standard approach for other platforms
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                navigator.serviceWorker.ready.then(function(registration) {
-                    registration.showNotification(title, options);
-                    statusElement.className = 'status success';
-                    statusElement.textContent = 'Notification sent successfully!';
-                });
-            } else {
-                // Fallback to regular notification
-                try {
-                    new Notification(title, options);
-                    statusElement.className = 'status success';
-                    statusElement.textContent = 'Notification sent successfully!';
-                } catch (error) {
-                    console.error('Error sending notification:', error);
-                    statusElement.className = 'status error';
-                    statusElement.textContent = 'Error sending notification: ' + error.message;
-                }
-            }
-        }
-
-        // Scheduled notifications functionality
-        let scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications')) || [];
-        
-        // Update the UI with scheduled notifications
-        function updateScheduledNotificationsUI() {
-            const container = document.getElementById('scheduledNotifications');
-            container.innerHTML = '';
-            
-            if (scheduledNotifications.length === 0) {
-                container.innerHTML = '<p>No scheduled notifications</p>';
-                return;
-            }
-            
-            scheduledNotifications.forEach((notification, index) => {
-                const notificationTime = new Date(notification.time);
-                const item = document.createElement('div');
-                item.className = 'scheduled-item';
-                
-                let repeatText = '';
-                switch(notification.repeat) {
-                    case 'daily': repeatText = ' (Repeats Daily)'; break;
-                    case 'weekly': repeatText = ' (Repeats Weekly)'; break;
-                    default: repeatText = ' (One-time)';
-                }
-                
-                item.innerHTML = `
-                    <div>
-                        <strong>${notification.title}</strong>
-                        <p>${notification.body}</p>
-                        <p>${notificationTime.toLocaleString()}${repeatText}</p>
-                    </div>
-                    <button class="delete-btn" data-index="${index}">Delete</button>
-                `;
-                container.appendChild(item);
-            });
-            
-            // Add event listeners to delete buttons
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    removeScheduledNotification(index);
-                });
-            });
-        }
-        
-        // Schedule a new notification
-        document.getElementById('scheduleBtn').addEventListener('click', function() {
-            const title = document.getElementById('notificationTitle').value || 'Scheduled PWA Notification';
-            const body = document.getElementById('notificationMessage').value || 'This is your scheduled notification';
-            const timeString = document.getElementById('notificationTime').value;
-            const repeat = document.getElementById('notificationRepeat').value;
-            
-            if (!timeString) {
-                document.getElementById('status').className = 'status error';
-                document.getElementById('status').textContent = 'Please select a valid time';
-                return;
-            }
-            
-            const time = new Date(timeString).getTime();
-            
-            if (time <= Date.now()) {
-                document.getElementById('status').className = 'status error';
-                document.getElementById('status').textContent = 'Please select a future time';
-                return;
-            }
-            
-            // Add notification to schedule
-            const notification = {
-                id: Date.now().toString(),  // Unique ID
-                title: title,
-                body: body,
-                time: time,
-                repeat: repeat
-            };
-            
-            scheduledNotifications.push(notification);
-            saveScheduledNotifications();
-            
-            // Schedule the notification
-            scheduleNotification(notification);
-            
-            document.getElementById('status').className = 'status success';
-            document.getElementById('status').textContent = 'Notification scheduled!';
-            
-            // Reset form
-            document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
-            document.getElementById('notificationMessage').value = 'This is your scheduled notification';
-            const newDefault = new Date(Date.now() + 60000);
-            document.getElementById('notificationTime').value = newDefault.toISOString().slice(0, 16);
-        });
-        
-        // Remove a scheduled notification
-        function removeScheduledNotification(index) {
-            const notification = scheduledNotifications[index];
-            // Cancel any pending timeouts for this notification
-            if (notification.timeoutId) {
-                clearTimeout(notification.timeoutId);
-            }
-            
-            scheduledNotifications.splice(index, 1);
-            saveScheduledNotifications();
-            updateScheduledNotificationsUI();
-            
-            document.getElementById('status').className = 'status success';
-            document.getElementById('status').textContent = 'Scheduled notification removed';
-        }
-        
-        // Save scheduled notifications to localStorage
-        function saveScheduledNotifications() {
-            localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
-            updateScheduledNotificationsUI();
-        }
-        
-        // Schedule a notification using setTimeout
-        function scheduleNotification(notification) {
-            const now = Date.now();
-            const delay = notification.time - now;
-            
-            if (delay <= 0) return;
-            
-            // Set a timeout to trigger the notification
-            const timeoutId = setTimeout(() => {
-                // Send the notification
-                sendNotification(notification.title, notification.body);
-                
-                // Handle repeating notifications
-                if (notification.repeat !== 'none') {
-                    let nextTime;
-                    
-                    if (notification.repeat === 'daily') {
-                        // 24 hours in milliseconds
-                        nextTime = notification.time + (24 * 60 * 60 * 1000);
-                    } else if (notification.repeat === 'weekly') {
-                        // 7 days in milliseconds
-                        nextTime = notification.time + (7 * 24 * 60 * 60 * 1000);
-                    }
-                    
-                    // Update the notification time and reschedule
-                    const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-                    if (index !== -1) {
-                        scheduledNotifications[index].time = nextTime;
-                        saveScheduledNotifications();
-                        scheduleNotification(scheduledNotifications[index]);
-                    }
-                } else {
-                    // Remove one-time notifications after they're sent
-                    const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-                    if (index !== -1) {
-                        scheduledNotifications.splice(index, 1);
-                        saveScheduledNotifications();
-                    }
-                }
-            }, delay);
-            
-            // Store the timeout ID to allow for cancellation
-            const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-            if (index !== -1) {
-                scheduledNotifications[index].timeoutId = timeoutId;
-            }
-        }
-        
-        // Initialize the scheduled notifications
-        function initScheduledNotifications() {
-            // Check all scheduled notifications and set timeouts
-            scheduledNotifications.forEach(notification => {
-                scheduleNotification(notification);
-            });
-            
-            // Update the UI
-            updateScheduledNotificationsUI();
-        }
-        
-        // Initialize scheduled notifications when page loads
+        // Update permission status on load
         window.addEventListener('load', function() {
-            // First request notification permission if not already granted
-            if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                Notification.requestPermission();
-            }
-            
-            initScheduledNotifications();
-        });
-        
-        // Handle visibility change to reschedule notifications
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                // Re-initialize when page becomes visible again
-                initScheduledNotifications();
-            }
+            updatePermissionStatus();
         });
     </script>
-    <script src="script.js"></script>
 </body>
 </html>

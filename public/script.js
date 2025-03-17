@@ -1,61 +1,83 @@
-// Push notification setup function
+// Push notification setup function - IMPROVED VERSION
 function setupPushSubscription() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       document.getElementById('status').className = 'status error';
-      document.getElementById('status').textContent = 'Push notifications not supported';
-      return;
+      document.getElementById('status').textContent = 'Push notifications not supported in this browser';
+      return Promise.reject(new Error('Push notifications not supported'));
     }
-  
-    let reg;
-    navigator.serviceWorker.ready
-      .then(swreg => {
-        reg = swreg;
-        return swreg.pushManager.getSubscription();
+    
+    let swRegistration;
+    return navigator.serviceWorker.ready
+      .then(registration => {
+        swRegistration = registration;
+        console.log('Service Worker is ready:', registration);
+        
+        // Check existing subscription
+        return registration.pushManager.getSubscription();
       })
       .then(subscription => {
-        if (subscription === null) {
-          // Create a new subscription
-          const vapidPublicKey = 'BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0';
-          const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-          
-          return reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: convertedVapidKey
-          });
-        } else {
+        if (subscription) {
           // We already have a subscription
+          console.log('Existing push subscription found');
           return subscription;
         }
+        
+        // We need to create a new subscription
+        console.log('Creating new push subscription...');
+        
+        // Your VAPID public key
+        const vapidPublicKey = 'BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0';
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+        
+        // Create new subscription with increased reliability options
+        return swRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        });
       })
-      .then(newSubscription => {
-        // Send the subscription to your server
-        // Use relative URL instead of absolute for local development
+      .then(subscription => {
+        // Log the subscription for debugging
+        console.log('Push subscription details:', JSON.stringify(subscription));
+        
+        // Send to server
         return fetch('/api/save-subscription', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
-          body: JSON.stringify(newSubscription)
+          body: JSON.stringify(subscription)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to save subscription on server');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Subscription saved successfully:', data);
+          
+          // Update UI
+          document.getElementById('status').className = 'status success';
+          document.getElementById('status').textContent = 'Push notifications enabled! You will receive notifications even when the app is closed.';
+          
+          // Make sure to send all scheduled notifications to service worker
+          syncScheduledNotificationsWithSW(swRegistration);
+          
+          return { success: true, subscription };
         });
       })
-      .then(response => {
-        if (response.ok) {
-          document.getElementById('status').className = 'status success';
-          document.getElementById('status').textContent = 'Push notification setup complete!';
-          enableSchedulingUI();
-        } else {
-          throw new Error('Server response not OK');
-        }
-      })
-      .catch(err => {
-        console.error('Failed to subscribe for push', err);
+      .catch(error => {
+        console.error('Push subscription setup failed:', error);
+        
         document.getElementById('status').className = 'status error';
-        document.getElementById('status').textContent = 'Push notification setup failed: ' + err.message;
+        document.getElementById('status').textContent = 'Push notification setup failed: ' + error.message;
+        
+        return { success: false, error };
       });
   }
   
-  // Helper function to convert base64 to Uint8Array
+  // Helper function to convert base64 to Uint8Array (VAPID key format)
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
@@ -71,107 +93,86 @@ function setupPushSubscription() {
     return outputArray;
   }
   
-  // Enable scheduling UI after successful push subscription
-  function enableSchedulingUI() {
-    const controls = document.querySelector('.notification-controls');
-    if (controls) {
-      controls.style.opacity = '1';
-      controls.style.pointerEvents = 'auto';
-    }
-  }
-  
-  // Background sync registration
-  async function registerBackgroundSync() {
-    if (!('serviceWorker' in navigator) || !('SyncManager' in window)) {
-      console.warn('Background sync not supported');
-      return false;
-    }
-    
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      // Register one-time background sync
-      await registration.sync.register('check-scheduled-notifications');
-      console.log('Background sync registered');
-      
-      // Register periodic background sync if supported
-      if ('periodicSync' in registration) {
-        try {
-          // Check permission
-          const status = await navigator.permissions.query({
-            name: 'periodic-background-sync',
-          });
-          
-          if (status.state === 'granted') {
-            // Register periodic sync - check every 15 minutes minimum
-            await registration.periodicSync.register('periodic-notification-check', {
-              minInterval: 15 * 60 * 1000, // 15 minutes in milliseconds
-            });
-            console.log('Periodic background sync registered');
-            return true;
-          }
-        } catch (err) {
-          console.error('Periodic background sync error:', err);
-        }
-      }
-      return true;
-    } catch (err) {
-      console.error('Background sync registration failed:', err);
-      return false;
-    }
-  }
-  
-  // Scheduled notifications functionality
-  let scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications')) || [];
-  
-  // Update the UI with scheduled notifications
-  function updateScheduledNotificationsUI() {
-    const container = document.getElementById('scheduledNotifications');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    if (scheduledNotifications.length === 0) {
-      container.innerHTML = '<p>No scheduled notifications</p>';
+  // Sync scheduled notifications with service worker
+  function syncScheduledNotificationsWithSW(registration) {
+    if (!registration || !registration.active) {
+      console.error('No active service worker registration available');
       return;
     }
     
-    scheduledNotifications.forEach((notification, index) => {
-      const notificationTime = new Date(notification.time);
-      const item = document.createElement('div');
-      item.className = 'scheduled-item';
-      
-      let repeatText = '';
-      switch(notification.repeat) {
-        case 'daily': repeatText = ' (Repeats Daily)'; break;
-        case 'weekly': repeatText = ' (Repeats Weekly)'; break;
-        default: repeatText = ' (One-time)';
-      }
-      
-      const timeString = notificationTime > new Date() ? 
-        notificationTime.toLocaleString() : 
-        'Invalid Date (One-time)';
-      
-      item.innerHTML = `
-        <div>
-          <strong>${notification.title}</strong>
-          <p>${notification.body}</p>
-          <p>${timeString}${repeatText}</p>
-        </div>
-        <button class="delete-btn" data-index="${index}">Delete</button>
-      `;
-      container.appendChild(item);
-    });
+    // Load notifications from localStorage
+    const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications')) || [];
     
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'));
-        removeScheduledNotification(index);
+    if (scheduledNotifications.length > 0) {
+      console.log('Syncing notifications with service worker:', scheduledNotifications.length);
+      
+      // Send to service worker
+      registration.active.postMessage({
+        type: 'SETUP_NOTIFICATIONS',
+        notifications: scheduledNotifications
       });
+    }
+  }
+  
+  // Request notification permission and setup push
+  function requestNotificationPermission() {
+    // Check if browser supports notifications
+    if (!('Notification' in window)) {
+      console.error('This browser does not support notifications');
+      alert('This browser does not support notifications');
+      return Promise.reject(new Error('Notifications not supported'));
+    }
+    
+    console.log('Requesting notification permission...');
+    
+    // Request permission
+    return Notification.requestPermission()
+      .then(permission => {
+        if (permission === 'granted') {
+          console.log('Notification permission granted');
+          
+          // Set up push subscription
+          return setupPushSubscription();
+        } else {
+          console.log('Notification permission denied');
+          
+          document.getElementById('status').className = 'status error';
+          document.getElementById('status').textContent = 'Notification permission denied. Please enable notifications in browser settings.';
+          
+          return { success: false, error: 'Permission denied' };
+        }
+      });
+  }
+  
+  // Function to test push notifications
+  function testPushNotification() {
+    fetch('/api/send-test-notification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Test notification result:', data);
+      
+      if (data.success) {
+        document.getElementById('status').className = 'status success';
+        document.getElementById('status').textContent = 'Test notification sent! You should receive it shortly, even with the app closed.';
+      } else {
+        document.getElementById('status').className = 'status error';
+        document.getElementById('status').textContent = 'Failed to send test notification: ' + (data.message || 'Unknown error');
+      }
+    })
+    .catch(error => {
+      console.error('Error sending test notification:', error);
+      document.getElementById('status').className = 'status error';
+      document.getElementById('status').textContent = 'Error sending test notification: ' + error.message;
     });
   }
   
-  // Send notification function
+  // Send notification function (improved for better delivery)
   function sendNotification(title = 'PWA Notification', body = 'This is a notification from your PWA') {
     const statusElement = document.getElementById('status');
     const options = {
@@ -179,9 +180,12 @@ function setupPushSubscription() {
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
       vibrate: [100, 50, 100],
+      tag: 'notification-' + Date.now(),
+      renotify: true,
+      requireInteraction: true,
       data: {
         dateOfArrival: Date.now(),
-        primaryKey: 1
+        primaryKey: Date.now()
       }
     };
   
@@ -213,240 +217,65 @@ function setupPushSubscription() {
     }
   }
   
-  // Schedule a notification using setTimeout
-  function scheduleNotification(notification) {
-    const now = Date.now();
-    const delay = notification.time - now;
+  // Add a test push notification button
+  function addTestPushButton() {
+    const container = document.querySelector('.notification-controls');
+    if (!container) return;
     
-    if (delay <= 0) return;
-    
-    // Set a timeout to trigger the notification
-    const timeoutId = setTimeout(() => {
-      // Send the notification
-      sendNotification(notification.title, notification.body);
+    // Create test button if it doesn't exist
+    if (!document.getElementById('testPushBtn')) {
+      const testButton = document.createElement('button');
+      testButton.id = 'testPushBtn';
+      testButton.innerText = 'Test Background Push';
+      testButton.style.marginTop = '15px';
+      testButton.style.backgroundColor = '#9C27B0';
       
-      // Handle repeating notifications
-      if (notification.repeat !== 'none') {
-        let nextTime;
-        
-        if (notification.repeat === 'daily') {
-          // 24 hours in milliseconds
-          nextTime = notification.time + (24 * 60 * 60 * 1000);
-        } else if (notification.repeat === 'weekly') {
-          // 7 days in milliseconds
-          nextTime = notification.time + (7 * 24 * 60 * 60 * 1000);
-        }
-        
-        // Update the notification time and reschedule
-        const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-        if (index !== -1) {
-          scheduledNotifications[index].time = nextTime;
-          saveScheduledNotifications();
-          scheduleNotification(scheduledNotifications[index]);
-        }
-      } else {
-        // Remove one-time notifications after they're sent
-        const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-        if (index !== -1) {
-          scheduledNotifications.splice(index, 1);
-          saveScheduledNotifications();
-        }
-      }
-    }, delay);
-    
-    // Store the timeout ID to allow for cancellation
-    const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-    if (index !== -1) {
-      scheduledNotifications[index].timeoutId = timeoutId;
+      testButton.addEventListener('click', testPushNotification);
+      container.appendChild(testButton);
     }
   }
   
-  // Save scheduled notifications to localStorage
-  function saveScheduledNotifications() {
-    localStorage.setItem('scheduledNotifications', JSON.stringify(scheduledNotifications));
-    updateScheduledNotificationsUI();
-  }
-  
-  // Initialize the scheduled notifications
-  function initScheduledNotifications() {
-    // Check all scheduled notifications and set timeouts
-    scheduledNotifications.forEach(notification => {
-      scheduleNotification(notification);
-    });
-    
-    // Update the UI
-    updateScheduledNotificationsUI();
-  }
-  
-  // Remove a scheduled notification
-  function removeScheduledNotification(index) {
-    const notification = scheduledNotifications[index];
-    // Cancel any pending timeouts for this notification
-    if (notification.timeoutId) {
-      clearTimeout(notification.timeoutId);
-    }
-    
-    // If we have a server ID, also try to delete from the server
-    if (notification.serverId) {
-      fetch(`/api/delete-notification/${notification.serverId}`, {
-        method: 'DELETE'
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Server notification deleted:', data);
-      })
-      .catch(error => {
-        console.error('Error removing notification from server:', error);
-      });
-    }
-    
-    scheduledNotifications.splice(index, 1);
-    saveScheduledNotifications();
-    
-    document.getElementById('status').className = 'status success';
-    document.getElementById('status').textContent = 'Scheduled notification removed';
-  }
-  
-  // Initialize service worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
+  // Initialize everything when the page loads
+  window.addEventListener('load', function() {
+    // Register service worker first
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
         .then(function(registration) {
           console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          // Only proceed with notification permission after SW registration
-          if ('Notification' in window) {
-            Notification.requestPermission().then(permission => {
-              if (permission === 'granted') {
-                setupPushSubscription();
-              }
-            });
-          }
-          // Register background sync
-          registerBackgroundSync();
           
-          // Setup iOS notifications if needed
-          setupIOSNotifications(registration);
+          // Request notification permission after SW is registered
+          if (Notification.permission === 'granted') {
+            // Permission already granted, setup subscription
+            setupPushSubscription()
+              .then(() => {
+                // Add test button after successful setup
+                addTestPushButton();
+              });
+          } else if (Notification.permission !== 'denied') {
+            // We need to request permission
+            const askPermissionBtn = document.getElementById('notifyBtn');
+            if (askPermissionBtn) {
+              askPermissionBtn.textContent = 'Enable Background Notifications';
+              
+              // Replace click handler
+              askPermissionBtn.addEventListener('click', function() {
+                requestNotificationPermission()
+                  .then(result => {
+                    if (result.success) {
+                      addTestPushButton();
+                    }
+                  });
+              });
+            }
+          }
+          
+          // Initialize scheduled notifications
+          initScheduledNotifications(registration);
         })
         .catch(function(error) {
           console.error('ServiceWorker registration failed: ', error);
           document.getElementById('status').className = 'status error';
-          document.getElementById('status').textContent = 'ServiceWorker registration failed: ' + error.message;
+          document.getElementById('status').textContent = 'Failed to register service worker: ' + error.message;
         });
-        
-      // Initialize notification buttons
-      const notifyBtn = document.getElementById('notifyBtn');
-      if (notifyBtn) {
-        notifyBtn.addEventListener('click', function() {
-          if (Notification.permission === 'granted') {
-            sendNotification();
-          } else if (Notification.permission !== 'denied') {
-            Notification.requestPermission().then(function(permission) {
-              if (permission === 'granted') {
-                sendNotification();
-              }
-            });
-          }
-        });
-      }
-      
-      // Initialize schedule button
-      const scheduleBtn = document.getElementById('scheduleBtn');
-      if (scheduleBtn) {
-        scheduleBtn.addEventListener('click', function() {
-          const title = document.getElementById('notificationTitle').value || 'Scheduled PWA Notification';
-          const body = document.getElementById('notificationMessage').value || 'This is your scheduled notification';
-          const timeString = document.getElementById('notificationTime').value;
-          const repeat = document.getElementById('notificationRepeat').value;
-          
-          if (!timeString) {
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').textContent = 'Please select a valid time';
-            return;
-          }
-          
-          const time = new Date(timeString).getTime();
-          
-          if (time <= Date.now()) {
-            document.getElementById('status').className = 'status error';
-            document.getElementById('status').textContent = 'Please select a future time';
-            return;
-          }
-          
-          // Add notification to schedule
-          const notification = {
-            id: Date.now().toString(),  // Unique ID
-            title: title,
-            body: body,
-            time: time,
-            repeat: repeat
-          };
-          
-          scheduledNotifications.push(notification);
-          saveScheduledNotifications();
-          
-          // Schedule the notification
-          scheduleNotification(notification);
-          
-          document.getElementById('status').className = 'status success';
-          document.getElementById('status').textContent = 'Notification scheduled!';
-          
-          // Reset form
-          document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
-          document.getElementById('notificationMessage').value = 'This is your scheduled notification';
-          const newDefault = new Date(Date.now() + 60000);
-          document.getElementById('notificationTime').value = newDefault.toISOString().slice(0, 16);
-        });
-      }
-      
-      // Initialize scheduled notifications
-      initScheduledNotifications();
-    });
-  }
-  
-  // Setup iOS notifications
-  function setupIOSNotifications(registration) {
-    // Detect iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
-    if (isIOS) {
-      console.log('iOS device detected, setting up iOS-specific notifications');
-      
-      // Send scheduled notifications to the service worker for iOS
-      if (scheduledNotifications && scheduledNotifications.length > 0) {
-        registration.active.postMessage({
-          type: 'SETUP_IOS_NOTIFICATIONS',
-          notifications: scheduledNotifications
-        });
-        console.log('Sent scheduled notifications to service worker for iOS handling');
-      }
-      
-      // Listen for messages from the service worker
-      navigator.serviceWorker.addEventListener('message', event => {
-        if (event.data && event.data.type === 'NOTIFICATION_CLICKED') {
-          console.log('Notification clicked:', event.data.notificationId);
-          // Handle notification click if needed
-        }
-      });
     }
-  }
-  
-  // Override the scheduleNotification function to handle iOS differently
-  const originalScheduleNotification = scheduleNotification;
-  scheduleNotification = function(notification) {
-    // Detect iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
-    if (isIOS) {
-      // For iOS, we'll rely on the service worker to handle the notification
-      // Just make sure the service worker has the latest notifications
-      navigator.serviceWorker.ready.then(registration => {
-        registration.active.postMessage({
-          type: 'SETUP_IOS_NOTIFICATIONS',
-          notifications: scheduledNotifications
-        });
-      });
-    } else {
-      // For non-iOS devices, use the original implementation
-      originalScheduleNotification(notification);
-    }
-  };
+  });
