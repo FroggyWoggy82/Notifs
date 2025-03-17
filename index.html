@@ -41,6 +41,13 @@
             background-color: #f2dede;
             color: #a94442;
         }
+        #installPrompt {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -48,9 +55,36 @@
     <p>Click the button to receive a notification</p>
     <button id="notifyBtn">Send Notification</button>
     <div id="status"></div>
+    
+    <div id="installPrompt">
+        <p>Install this app on your device for the best experience</p>
+        <button id="installBtn">Install App</button>
+    </div>
 
     <script>
-        // Register service worker
+        // Detect iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        console.log("Is iOS device:", isIOS);
+        
+        // Install prompt handlers
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'block';
+        });
+        
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User ${outcome} the installation`);
+                deferredPrompt = null;
+                document.getElementById('installPrompt').style.display = 'none';
+            }
+        });
+        
+        // Register service worker - works for both iOS and other platforms
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('service-worker.js')
@@ -94,30 +128,55 @@
 
         function sendNotification() {
             const statusElement = document.getElementById('status');
-            
-            if ('Notification' in window) {
-                if (Notification.permission === 'granted') {
-                // Create notification directly without service worker
-                const notification = new Notification('PWA Notification', {
-                    body: 'This is a notification from your PWA',
-                    icon: '/Notifs/icon-192x192.png'
-                });
-                
-                statusElement.textContent = 'Notification sent!';
-                } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                    const notification = new Notification('PWA Notification', {
-                        body: 'This is a notification from your PWA',
-                        icon: '/Notifs/icon-192x192.png'
+            const options = {
+                body: 'This is a notification from your PWA',
+                icon: './icon-192x192.png',
+                vibrate: [100, 50, 100],
+                data: {
+                    dateOfArrival: Date.now(),
+                    primaryKey: 1
+                }
+            };
+
+            // iOS-specific handling
+            if (isIOS) {
+                console.log("Using iOS notification method");
+                if (navigator.serviceWorker.controller) {
+                    // If service worker is active
+                    navigator.serviceWorker.ready.then(function(registration) {
+                        registration.showNotification('PWA Notification for iOS', options);
+                        statusElement.className = 'status success';
+                        statusElement.textContent = 'iOS notification sent!';
                     });
-                    
-                    statusElement.textContent = 'Notification sent!';
-                    }
+                } else {
+                    // Fallback for iOS
+                    alert('This would be a notification: PWA Notification for iOS');
+                    statusElement.className = 'status success';
+                    statusElement.textContent = 'iOS notification simulated!';
+                }
+                return;
+            }
+
+            // Standard approach for other platforms
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification('PWA Notification', options);
+                    statusElement.className = 'status success';
+                    statusElement.textContent = 'Notification sent successfully!';
                 });
+            } else {
+                // Fallback to regular notification
+                try {
+                    new Notification('PWA Notification', options);
+                    statusElement.className = 'status success';
+                    statusElement.textContent = 'Notification sent successfully!';
+                } catch (error) {
+                    console.error('Error sending notification:', error);
+                    statusElement.className = 'status error';
+                    statusElement.textContent = 'Error sending notification: ' + error.message;
                 }
             }
-}
+        }
     </script>
 </body>
 </html>
