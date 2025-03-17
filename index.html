@@ -94,30 +94,30 @@
 
         function sendNotification() {
             const statusElement = document.getElementById('status');
-            const options = {
-                body: 'This is a notification from your PWA',
-                icon: 'icon-192x192.png',
-                vibrate: [100, 50, 100],
-                data: {
-                    dateOfArrival: Date.now(),
-                    primaryKey: 1
-                }
-            };
-
-            // Use service worker to send notification if available
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                navigator.serviceWorker.ready.then(function(registration) {
-                    registration.showNotification('PWA Notification', options);
-                    statusElement.className = 'status success';
-                    statusElement.textContent = 'Notification sent successfully!';
+            
+            if ('Notification' in window) {
+                if (Notification.permission === 'granted') {
+                // Create notification directly without service worker
+                const notification = new Notification('PWA Notification', {
+                    body: 'This is a notification from your PWA',
+                    icon: '/Notifs/icon-192x192.png'
                 });
-            } else {
-                // Fallback to regular notification
-                new Notification('PWA Notification', options);
-                statusElement.className = 'status success';
-                statusElement.textContent = 'Notification sent successfully!';
+                
+                statusElement.textContent = 'Notification sent!';
+                } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                    const notification = new Notification('PWA Notification', {
+                        body: 'This is a notification from your PWA',
+                        icon: '/Notifs/icon-192x192.png'
+                    });
+                    
+                    statusElement.textContent = 'Notification sent!';
+                    }
+                });
+                }
             }
-        }
+}
     </script>
 </body>
 </html>
