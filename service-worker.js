@@ -36,7 +36,7 @@ self.addEventListener('push', event => {
   const title = 'Notification PWA';
   const options = {
     body: event.data ? event.data.text() : 'New notification',
-    icon: 'icon-192x192.png',
+    icon: './icon-192x192.png',
     badge: 'icon-192x192.png'
   };
   
