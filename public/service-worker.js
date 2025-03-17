@@ -76,72 +76,6 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// CRITICAL: Handle push notifications from server
-self.addEventListener('push', event => {
-  console.log('Push received:', event);
-  
-  let notificationData = {
-    title: 'New Notification',
-    body: 'You have a new notification',
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
-    data: {
-      dateOfArrival: Date.now()
-    },
-    // Add these for more reliable notifications
-    vibrate: [100, 50, 100],
-    tag: 'notification-' + Date.now(),
-    renotify: true,
-    requireInteraction: true
-  };
-  
-  // Parse data if available
-  if (event.data) {
-    try {
-      const data = event.data.json();
-      notificationData = {
-        title: data.title || notificationData.title,
-        body: data.body || notificationData.body,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
-        vibrate: [100, 50, 100],
-        tag: 'notification-' + Date.now(),
-        renotify: true,
-        requireInteraction: true,
-        data: {
-          dateOfArrival: Date.now(),
-          ...data.data
-        }
-      };
-    } catch (e) {
-      console.error('Error parsing push data:', e);
-    }
-  }
-  
-  // This is crucial for background notifications
-  event.waitUntil(
-    self.registration.showNotification(notificationData.title, notificationData)
-      .then(() => {
-        console.log('Notification shown successfully');
-        // Clients may be empty if app is closed, that's OK
-        return self.clients.matchAll();
-      })
-      .then(clients => {
-        if (clients && clients.length > 0) {
-          clients.forEach(client => {
-            client.postMessage({
-              type: 'NOTIFICATION_RECEIVED',
-              notification: notificationData
-            });
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error showing notification:', error);
-      })
-  );
-});
-
 // Handle background sync
 self.addEventListener('sync', event => {
   console.log('Background sync event received:', event.tag);
@@ -335,7 +269,7 @@ function setUpPeriodicChecks() {
   }, 5000); // Check every 5 seconds for more reliability
 }
 
-// Make sure to handle push events properly
+// This is the ONLY push event listener - removed duplicate
 self.addEventListener('push', event => {
   console.log('Push received:', event);
   

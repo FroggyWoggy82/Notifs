@@ -236,54 +236,102 @@ function setupPushSubscription() {
   }
   
   // Scheduled notifications functionality
-  let scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications')) || [];
+  let scheduledNotifications = [];
+
+  // Initialize scheduled notifications
+  function initScheduledNotifications() {
+    console.log('Initializing scheduled notifications');
+    // Load from localStorage first
+    const savedNotifications = localStorage.getItem('scheduledNotifications');
+    if (savedNotifications) {
+      try {
+        scheduledNotifications = JSON.parse(savedNotifications);
+        console.log(`Loaded ${scheduledNotifications.length} notifications from localStorage`);
+      } catch (error) {
+        console.error('Error parsing stored notifications:', error);
+        scheduledNotifications = [];
+      }
+    }
+
+    // Check for expired one-time notifications
+    const now = Date.now();
+    scheduledNotifications = scheduledNotifications.filter(notification => {
+      // Keep all repeating notifications
+      if (notification.repeat && notification.repeat !== 'none') {
+        return true;
+      }
+      // For one-time notifications, only keep future ones
+      return notification.time > now;
+    });
+
+    // Update UI immediately
+    updateScheduledNotificationsUI();
+
+    // Schedule all notifications
+    for (const notification of scheduledNotifications) {
+      scheduleNotification(notification, false); // Don't re-save to avoid loop
+    }
+
+    // Send to service worker
+    syncWithServiceWorker();
+  }
 
   // Schedule a notification
-  function scheduleNotification(notification) {
+  function scheduleNotification(notification, shouldSave = true) {
+    // Log scheduling
+    console.log(`Scheduling notification "${notification.title}" for ${new Date(notification.time).toLocaleString()}`);
+    
+    // For immediate UI feedback
+    if (shouldSave) {
+      // Add to array if new
+      if (!scheduledNotifications.find(n => n.id === notification.id)) {
+        scheduledNotifications.push(notification);
+      }
+      // Save to localStorage
+      saveScheduledNotifications();
+    }
+    
+    // Calculate delay
     const now = Date.now();
     const delay = notification.time - now;
     
+    // Skip past notifications
     if (delay <= 0) return;
     
-    console.log(`Scheduling notification "${notification.title}" for ${new Date(notification.time).toLocaleString()}`);
-    
-    // Store in local storage first
-    const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-    if (index === -1) {
-      scheduledNotifications.push(notification);
-    } else {
-      scheduledNotifications[index] = notification;
-    }
-    saveScheduledNotifications();
-    
-    // Set a timeout to trigger the notification
+    // Set timeout for browser context
     const timeoutId = setTimeout(() => {
-      console.log(`Triggering notification: ${notification.title}`);
+      console.log(`Time to show notification: ${notification.title}`);
       
-      // Send the notification
+      // Show the notification
       sendNotification(notification.title, notification.body);
       
-      // Handle repeating notifications
-      if (notification.repeat !== 'none') {
-        let nextTime;
+      // Handle repeating
+      if (notification.repeat === 'daily') {
+        // Schedule next day
+        const nextTime = notification.time + (24 * 60 * 60 * 1000);
+        const updatedNotification = { ...notification, time: nextTime };
         
-        if (notification.repeat === 'daily') {
-          // 24 hours in milliseconds
-          nextTime = notification.time + (24 * 60 * 60 * 1000);
-        } else if (notification.repeat === 'weekly') {
-          // 7 days in milliseconds
-          nextTime = notification.time + (7 * 24 * 60 * 60 * 1000);
-        }
-        
-        // Update the notification time and reschedule
+        // Update in array
         const index = scheduledNotifications.findIndex(n => n.id === notification.id);
         if (index !== -1) {
-          scheduledNotifications[index].time = nextTime;
+          scheduledNotifications[index] = updatedNotification;
           saveScheduledNotifications();
-          scheduleNotification(scheduledNotifications[index]);
+          scheduleNotification(updatedNotification, false);
+        }
+      } else if (notification.repeat === 'weekly') {
+        // Schedule next week
+        const nextTime = notification.time + (7 * 24 * 60 * 60 * 1000);
+        const updatedNotification = { ...notification, time: nextTime };
+        
+        // Update in array
+        const index = scheduledNotifications.findIndex(n => n.id === notification.id);
+        if (index !== -1) {
+          scheduledNotifications[index] = updatedNotification;
+          saveScheduledNotifications();
+          scheduleNotification(updatedNotification, false);
         }
       } else {
-        // Remove one-time notifications after they're sent
+        // One-time notification - remove it
         const index = scheduledNotifications.findIndex(n => n.id === notification.id);
         if (index !== -1) {
           scheduledNotifications.splice(index, 1);
@@ -292,32 +340,19 @@ function setupPushSubscription() {
       }
     }, delay);
     
-    // Store the timeout ID to allow for cancellation
-    const storageIndex = scheduledNotifications.findIndex(n => n.id === notification.id);
-    if (storageIndex !== -1) {
-      scheduledNotifications[storageIndex].timeoutId = timeoutId;
+    // Store timeout ID for cleanup
+    const index = scheduledNotifications.findIndex(n => n.id === notification.id);
+    if (index !== -1) {
+      // Store as a property
+      scheduledNotifications[index]._timeoutId = timeoutId;
     }
     
-    // Also send to service worker for background handling
-    navigator.serviceWorker.ready.then(registration => {
-      if (registration.active) {
-        console.log('Sending notification to service worker for background handling');
-        registration.active.postMessage({
-          type: 'SETUP_NOTIFICATIONS',
-          notifications: scheduledNotifications
-        });
-      }
-    }).catch(err => {
-      console.error('Error sending notification to service worker:', err);
-    });
-    
-    // Try server scheduling as well if available
+    // Try to schedule on server
     try {
       fetch('/api/schedule-notification', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           title: notification.title,
@@ -329,9 +364,8 @@ function setupPushSubscription() {
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          console.log('Notification scheduled on server:', data.id);
-          
-          // Store server ID
+          console.log('Server scheduling successful:', data.id);
+          // Store server ID reference
           const index = scheduledNotifications.findIndex(n => n.id === notification.id);
           if (index !== -1) {
             scheduledNotifications[index].serverId = data.id;
@@ -340,26 +374,37 @@ function setupPushSubscription() {
         }
       })
       .catch(error => {
-        console.error('Error scheduling on server:', error);
+        console.error('Error scheduling with server:', error);
       });
     } catch (e) {
-      console.log('Server scheduling not available:', e);
+      console.warn('Server scheduling failed:', e);
     }
+    
+    // Sync with service worker
+    syncWithServiceWorker();
   }
 
   // Save scheduled notifications to localStorage
   function saveScheduledNotifications() {
-    // Make a clean copy without timeout IDs (can't serialize functions)
-    const cleanNotifications = scheduledNotifications.map(notification => {
-      const { timeoutId, ...cleanNotification } = notification;
-      return cleanNotification;
-    });
-    
-    localStorage.setItem('scheduledNotifications', JSON.stringify(cleanNotifications));
-    updateScheduledNotificationsUI();
+    try {
+      // Create a clean copy without timeout IDs (which can't be serialized)
+      const cleanNotifications = scheduledNotifications.map(notification => {
+        // Create a new object without the timeout ID
+        const { _timeoutId, ...cleanNotification } = notification;
+        return cleanNotification;
+      });
+      
+      localStorage.setItem('scheduledNotifications', JSON.stringify(cleanNotifications));
+      console.log(`Saved ${cleanNotifications.length} notifications to localStorage`);
+      
+      // Update UI
+      updateScheduledNotificationsUI();
+    } catch (error) {
+      console.error('Error saving notifications:', error);
+    }
   }
 
-  // Update the UI with scheduled notifications
+  // Update UI with scheduled notifications
   function updateScheduledNotificationsUI() {
     const container = document.getElementById('scheduledNotifications');
     if (!container) {
@@ -416,8 +461,8 @@ function setupPushSubscription() {
     const notification = scheduledNotifications[index];
     
     // Clear the timeout if it exists
-    if (notification.timeoutId) {
-      clearTimeout(notification.timeoutId);
+    if (notification._timeoutId) {
+      clearTimeout(notification._timeoutId);
     }
     
     // Remove from server if it has a server ID
@@ -434,34 +479,31 @@ function setupPushSubscription() {
     saveScheduledNotifications();
     
     // Update service worker
-    navigator.serviceWorker.ready.then(registration => {
-      if (registration.active) {
-        registration.active.postMessage({
-          type: 'SETUP_NOTIFICATIONS',
-          notifications: scheduledNotifications
-        });
-      }
-    });
+    syncWithServiceWorker();
   }
 
-  // Initialize scheduled notifications
-  function initScheduledNotifications(registration) {
-    // Clear any existing timeouts
-    scheduledNotifications.forEach(notification => {
-      if (notification.timeoutId) {
-        clearTimeout(notification.timeoutId);
+  // Sync with service worker
+  function syncWithServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    
+    navigator.serviceWorker.ready.then(registration => {
+      if (registration.active) {
+        console.log('Syncing notifications with service worker');
+        
+        // Create a clean copy for the service worker
+        const cleanNotifications = scheduledNotifications.map(notification => {
+          const { _timeoutId, ...cleanNotification } = notification;
+          return cleanNotification;
+        });
+        
+        registration.active.postMessage({
+          type: 'SETUP_NOTIFICATIONS',
+          notifications: cleanNotifications
+        });
       }
+    }).catch(err => {
+      console.error('Error syncing with service worker:', err);
     });
-    
-    // Schedule all notifications
-    scheduledNotifications.forEach(notification => {
-      scheduleNotification(notification);
-    });
-    
-    // Sync with service worker
-    if (registration && registration.active) {
-      syncScheduledNotificationsWithSW(registration);
-    }
   }
   
   // Initialize everything when the page loads

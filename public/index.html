@@ -237,5 +237,55 @@
             updatePermissionStatus();
         });
     </script>
+    
+    <script>
+    // Fix the schedule button event listener
+    document.getElementById('scheduleBtn').addEventListener('click', function() {
+      const title = document.getElementById('notificationTitle').value || 'Scheduled PWA Notification';
+      const body = document.getElementById('notificationMessage').value || 'This is your scheduled notification';
+      const timeString = document.getElementById('notificationTime').value;
+      const repeat = document.getElementById('notificationRepeat').value;
+      const statusElement = document.getElementById('status');
+      
+      if (!timeString) {
+        statusElement.className = 'status error';
+        statusElement.textContent = 'Please select a valid time';
+        return;
+      }
+      
+      const time = new Date(timeString).getTime();
+      
+      if (time <= Date.now()) {
+        statusElement.className = 'status error';
+        statusElement.textContent = 'Please select a future time';
+        return;
+      }
+      
+      // Add notification to schedule
+      const notification = {
+        id: Date.now().toString(),  // Unique ID
+        title: title,
+        body: body,
+        time: time,
+        repeat: repeat
+      };
+      
+      // Add to the scheduledNotifications array
+      scheduledNotifications.push(notification);
+      
+      // Save and schedule
+      saveScheduledNotifications();
+      scheduleNotification(notification);
+      
+      statusElement.className = 'status success';
+      statusElement.textContent = 'Notification scheduled! Check the list below.';
+      
+      // Reset form
+      document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
+      document.getElementById('notificationMessage').value = 'This is your scheduled notification';
+      const newDefault = new Date(Date.now() + 60000);
+      document.getElementById('notificationTime').value = newDefault.toISOString().slice(0, 16);
+    });
+    </script>
 </body>
 </html>
