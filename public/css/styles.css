@@ -1,0 +1,157 @@
+
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    button {
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+    button:hover {
+        background-color: #0b7dda;
+    }
+    .status {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .success {
+        background-color: #dff0d8;
+        color: #3c763d;
+    }
+    .error {
+        background-color: #f2dede;
+        color: #a94442;
+    }
+    #installPrompt {
+        display: none;
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e3f2fd;
+        border-radius: 5px;
+    }
+    .notification-controls {
+        margin-top: 30px;
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    .form-group {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    input, select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .scheduled-list {
+        margin-top: 20px;
+        text-align: left;
+    }
+    .scheduled-item {
+        background-color: #e3f2fd;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .delete-btn {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .info-box {
+        background-color: #fff3cd;
+        color: #856404;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+        text-align: left;
+        font-size: 14px;
+    }
+    .notifications-status {
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    .permission-granted {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .permission-denied {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .permission-default {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+     /* Bottom Navigation Bar Styles */
+     .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #fff;
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+    
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #777;
+        text-decoration: none;
+        font-size: 12px;
+    }
+    
+    .nav-item.active {
+        color: #2196F3;
+    }
+    
+    .nav-icon {
+        font-size: 24px;
+        margin-bottom: 2px;
+    }
+    
+    /* Add padding to main content to prevent overlap with navigation bar */
+    body {
+        padding-bottom: 70px;
+    }
+    
+    /* Page/View system */
+    .page {
+        display: none;
+    }
+    
+    .page.active {
+        display: block;
+    }

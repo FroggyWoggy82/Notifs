@@ -6,120 +6,9 @@
     <title>Notification PWA</title>
     <meta name="description" content="A simple PWA that sends notifications even in the background">
     <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/styles.css">
     <meta name="theme-color" content="#2196F3">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-        }
-        button {
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        button:hover {
-            background-color: #0b7dda;
-        }
-        .status {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .success {
-            background-color: #dff0d8;
-            color: #3c763d;
-        }
-        .error {
-            background-color: #f2dede;
-            color: #a94442;
-        }
-        #installPrompt {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e3f2fd;
-            border-radius: 5px;
-        }
-        .notification-controls {
-            margin-top: 30px;
-            border: 1px solid #ccc;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .scheduled-list {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .scheduled-item {
-            background-color: #e3f2fd;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .delete-btn {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .info-box {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 20px;
-            text-align: left;
-            font-size: 14px;
-        }
-        .notifications-status {
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .permission-granted {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .permission-denied {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .permission-default {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-    </style>
+    
 </head>
 <body>
     <h1>Notification PWA</h1>
@@ -172,9 +61,25 @@
         </div>
     </div>
     
-    <div id="installPrompt">
-        <p>Install this app on your device for the best experience</p>
-        <button id="installBtn">Install App</button>
+
+    </div>
+    <div class="bottom-nav">
+        <a href="#home" class="nav-item active" data-page="home-page">
+            <div class="nav-icon">🏠</div>
+            <span>Home</span>
+        </a>
+        <a href="#schedule" class="nav-item" data-page="schedule-page">
+            <div class="nav-icon">🕒</div>
+            <span>Schedule</span>
+        </a>
+        <a href="#settings" class="nav-item" data-page="settings-page">
+            <div class="nav-icon">⚙️</div>
+            <span>Settings</span>
+        </a>
+        <a href="#profile" class="nav-item" data-page="profile-page">
+            <div class="nav-icon">👤</div>
+            <span>Profile</span>
+        </a>
     </div>
 
     <!-- Include script.js only once -->
