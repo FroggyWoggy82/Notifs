@@ -1,109 +1,109 @@
 
-// Fix the schedule button event listener
-document.getElementById('scheduleBtn').addEventListener('click', function() {
-  const title = document.getElementById('notificationTitle').value || 'Scheduled PWA Notification';
-  const body = document.getElementById('notificationMessage').value || 'This is your scheduled notification';
-  const timeString = document.getElementById('notificationTime').value;
-  const repeat = document.getElementById('notificationRepeat').value;
-  const statusElement = document.getElementById('status');
-  
-  if (!timeString) {
-    statusElement.className = 'status error';
-    statusElement.textContent = 'Please select a valid time';
-    return;
-  }
-  
-  const time = new Date(timeString).getTime();
-  
-  if (time <= Date.now()) {
-    statusElement.className = 'status error';
-    statusElement.textContent = 'Please select a future time';
-    return;
-  }
-  
-  // Add notification to schedule
-  const notification = {
-    id: Date.now().toString(),  // Unique ID
-    title: title,
-    body: body,
-    time: time,
-    repeat: repeat
-  };
-  
-  // Add to the scheduledNotifications array
-  scheduledNotifications.push(notification);
-  
-  // Save and schedule
-  saveScheduledNotifications();
-  scheduleNotification(notification);
-  
-  statusElement.className = 'status success';
-  statusElement.textContent = 'Notification scheduled! Check the list below.';
-  
-  // Reset form
-  document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
-  document.getElementById('notificationMessage').value = 'This is your scheduled notification';
-  const newDefault = new Date(Date.now() + 60000);
-  document.getElementById('notificationTime').value = newDefault.toISOString().slice(0, 16);
-});
-
-
-// Update permission status UI
-function updatePermissionStatus() {
-    const permStatus = document.getElementById('permissionStatus');
-    
-    if (!('Notification' in window)) {
-        permStatus.textContent = 'Notifications are not supported in this browser';
-        permStatus.className = 'notifications-status permission-denied';
-        return;
-    }
-    
-    switch(Notification.permission) {
-        case 'granted':
-            permStatus.textContent = 'Notification permission granted! Background notifications are enabled.';
-            permStatus.className = 'notifications-status permission-granted';
-            break;
-        case 'denied':
-            permStatus.textContent = 'Notification permission denied. Please enable notifications in your browser settings.';
-            permStatus.className = 'notifications-status permission-denied';
-            break;
-        default:
-            permStatus.textContent = 'Please enable notifications for background functionality.';
-            permStatus.className = 'notifications-status permission-default';
-    }
-}
-
-// Set default date time to current time + 1 minute
-const defaultDateTime = new Date(Date.now() + 60000);
-document.getElementById('notificationTime').value = defaultDateTime.toISOString().slice(0, 16);
-
-// Detect iOS
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-console.log("Is iOS device:", isIOS);
-
-// Install prompt handlers
+// Initialize variables at the top
+let scheduledNotifications = [];
 let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    document.getElementById('installPrompt').style.display = 'block';
-});
 
-document.getElementById('installBtn').addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User ${outcome} the installation`);
-        deferredPrompt = null;
-        document.getElementById('installPrompt').style.display = 'none';
+// Wrap all DOM operations in DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize notifications
+    initScheduledNotifications();
+
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    console.log("Is iOS device:", isIOS);
+
+    // Get DOM elements - add null checks
+    const scheduleBtn = document.getElementById('scheduleBtn');
+    const installPrompt = document.getElementById('installPrompt');
+
+    if (scheduleBtn) {
+        scheduleBtn.addEventListener('click', function() {
+            const title = document.getElementById('notificationTitle')?.value || 'Scheduled PWA Notification';
+            const body = document.getElementById('notificationMessage')?.value || 'This is your scheduled notification';
+            const timeString = document.getElementById('notificationTime')?.value;
+            const repeat = document.getElementById('notificationRepeat')?.value;
+            const statusElement = document.getElementById('status');
+
+            if (!timeString) {
+                if (statusElement) {
+                    statusElement.className = 'status error';
+                    statusElement.textContent = 'Please select a valid time';
+                }
+                return;
+            }
+
+            const time = new Date(timeString).getTime();
+  
+            if (time <= Date.now()) {
+                if (statusElement) {
+                    statusElement.className = 'status error';
+                    statusElement.textContent = 'Please select a future time';
+                }
+                return;
+            }
+  
+            // Add notification to schedule
+            const notification = {
+                id: Date.now().toString(),  // Unique ID
+                title: title,
+                body: body,
+                time: time,
+                repeat: repeat
+            };
+  
+            // Add to the scheduledNotifications array
+            scheduledNotifications.push(notification);
+  
+            // Save and schedule
+            saveScheduledNotifications();
+            scheduleNotification(notification);
+  
+            if (statusElement) {
+                statusElement.className = 'status success';
+                statusElement.textContent = 'Notification scheduled! Check the list below.';
+            }
+  
+            // Reset form
+            document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
+            document.getElementById('notificationMessage').value = 'This is your scheduled notification';
+            const newDefault = new Date(Date.now() + 60000);
+            document.getElementById('notificationTime').value = newDefault.toISOString().slice(0, 16);
+        });
     }
-});
 
-// Update permission status on load
-window.addEventListener('load', function() {
-    updatePermissionStatus();
-});
+    // Set default date time
+    const notificationTimeInput = document.getElementById('notificationTime');
+    if (notificationTimeInput) {
+        const defaultDateTime = new Date(Date.now() + 60000);
+        notificationTimeInput.value = defaultDateTime.toISOString().slice(0, 16);
+    }
 
+    // Install prompt handlers
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installPrompt) {
+            installPrompt.style.display = 'block';
+        }
+    });
+
+    document.getElementById('installBtn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User ${outcome} the installation`);
+            deferredPrompt = null;
+            if (installPrompt) {
+                installPrompt.style.display = 'none';
+            }
+        }
+    });
+
+    // Update permission status on load
+    window.addEventListener('load', function() {
+        updatePermissionStatus();
+    });
+}); // End of DOMContentLoaded
 
 // Push notification setup function - IMPROVED VERSION
 function setupPushSubscription() {
@@ -343,8 +343,6 @@ function setupPushSubscription() {
   }
   
   // Scheduled notifications functionality
-  let scheduledNotifications = [];
-
   // Initialize scheduled notifications
   function initScheduledNotifications() {
     console.log('Initializing scheduled notifications');
