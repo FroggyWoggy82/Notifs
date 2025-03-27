@@ -6,7 +6,7 @@
     <title>Notification PWA</title>
     <meta name="description" content="A simple PWA that sends notifications even in the background">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/index.css">
     <meta name="theme-color" content="#2196F3">
     
 </head>
@@ -21,15 +21,7 @@
     <button id="notifyBtn">Enable Background Notifications</button>
     <div id="status" class="status"></div>
     
-    <div class="info-box">
-        <p><strong>How Background Notifications Work:</strong></p>
-        <ol>
-            <li>Enable notifications when prompted</li>
-            <li>Notifications will work even when this app is closed</li>
-            <li>You can schedule recurring notifications</li>
-            <li>For best results, install this PWA to your home screen</li>
-        </ol>
-    </div>
+    
     
     <div class="notification-controls">
         <h2>Schedule Notifications</h2>
@@ -64,133 +56,21 @@
 
     </div>
     <div class="bottom-nav">
-        <a href="#home" class="nav-item active" data-page="home-page">
+        <a href="/pages/index.html" class="nav-item active" data-page="home-page">
             <div class="nav-icon">🏠</div>
             <span>Home</span>
         </a>
-        <a href="#schedule" class="nav-item" data-page="schedule-page">
-            <div class="nav-icon">🕒</div>
-            <span>Schedule</span>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon">⭐</div>
+            <span>Goals</span>
         </a>
-        <a href="#settings" class="nav-item" data-page="settings-page">
-            <div class="nav-icon">⚙️</div>
-            <span>Settings</span>
-        </a>
-        <a href="#profile" class="nav-item" data-page="profile-page">
-            <div class="nav-icon">👤</div>
-            <span>Profile</span>
-        </a>
+    
     </div>
 
-    <!-- Include script.js only once -->
     <script src="script.js"></script>
     
-    <script>
-        // Update permission status UI
-        function updatePermissionStatus() {
-            const permStatus = document.getElementById('permissionStatus');
-            
-            if (!('Notification' in window)) {
-                permStatus.textContent = 'Notifications are not supported in this browser';
-                permStatus.className = 'notifications-status permission-denied';
-                return;
-            }
-            
-            switch(Notification.permission) {
-                case 'granted':
-                    permStatus.textContent = 'Notification permission granted! Background notifications are enabled.';
-                    permStatus.className = 'notifications-status permission-granted';
-                    break;
-                case 'denied':
-                    permStatus.textContent = 'Notification permission denied. Please enable notifications in your browser settings.';
-                    permStatus.className = 'notifications-status permission-denied';
-                    break;
-                default:
-                    permStatus.textContent = 'Please enable notifications for background functionality.';
-                    permStatus.className = 'notifications-status permission-default';
-            }
-        }
-        
-        // Set default date time to current time + 1 minute
-        const defaultDateTime = new Date(Date.now() + 60000);
-        document.getElementById('notificationTime').value = defaultDateTime.toISOString().slice(0, 16);
-        
-        // Detect iOS
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        console.log("Is iOS device:", isIOS);
-        
-        // Install prompt handlers
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installPrompt').style.display = 'block';
-        });
-        
-        document.getElementById('installBtn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User ${outcome} the installation`);
-                deferredPrompt = null;
-                document.getElementById('installPrompt').style.display = 'none';
-            }
-        });
-        
-        // Update permission status on load
-        window.addEventListener('load', function() {
-            updatePermissionStatus();
-        });
-    </script>
+  
     
-    <script>
-    // Fix the schedule button event listener
-    document.getElementById('scheduleBtn').addEventListener('click', function() {
-      const title = document.getElementById('notificationTitle').value || 'Scheduled PWA Notification';
-      const body = document.getElementById('notificationMessage').value || 'This is your scheduled notification';
-      const timeString = document.getElementById('notificationTime').value;
-      const repeat = document.getElementById('notificationRepeat').value;
-      const statusElement = document.getElementById('status');
-      
-      if (!timeString) {
-        statusElement.className = 'status error';
-        statusElement.textContent = 'Please select a valid time';
-        return;
-      }
-      
-      const time = new Date(timeString).getTime();
-      
-      if (time <= Date.now()) {
-        statusElement.className = 'status error';
-        statusElement.textContent = 'Please select a future time';
-        return;
-      }
-      
-      // Add notification to schedule
-      const notification = {
-        id: Date.now().toString(),  // Unique ID
-        title: title,
-        body: body,
-        time: time,
-        repeat: repeat
-      };
-      
-      // Add to the scheduledNotifications array
-      scheduledNotifications.push(notification);
-      
-      // Save and schedule
-      saveScheduledNotifications();
-      scheduleNotification(notification);
-      
-      statusElement.className = 'status success';
-      statusElement.textContent = 'Notification scheduled! Check the list below.';
-      
-      // Reset form
-      document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
-      document.getElementById('notificationMessage').value = 'This is your scheduled notification';
-      const newDefault = new Date(Date.now() + 60000);
-      document.getElementById('notificationTime').value = newDefault.toISOString().slice(0, 16);
-    });
-    </script>
+  
 </body>
 </html>

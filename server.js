@@ -4,9 +4,25 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const cron = require('node-cron');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Create database connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Test database connection on startup
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Database connection error:', err.stack);
+  } else {
+    console.log('Database connected successfully:', res.rows[0]);
+  }
+});
 
 // Set VAPID keys (these should be your existing keys)
 const vapidKeys = {
@@ -23,10 +39,153 @@ webpush.setVapidDetails(
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'pages')));
 
 // In-memory storage (replace with database in production)
 let subscriptions = [];
 let scheduledNotifications = [];
+
+// Programmatically create database tables
+async function initializeDatabase() {
+  try {
+    // Goals table - stores the goal hierarchy
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS goals (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        is_main BOOLEAN DEFAULT FALSE,
+        parent_id INTEGER REFERENCES goals(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    console.log('Goals table initialized');
+    return true;
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    return false;
+  }
+}
+
+// Goal API Routes
+// Get all goals
+app.get('/api/goals', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM goals ORDER BY is_main DESC, id ASC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching goals:', error);
+    res.status(500).json({ error: 'Failed to fetch goals' });
+  }
+});
+
+// Create main goal (only one allowed)
+app.post('/api/goals/main', async (req, res) => {
+  const { name } = req.body;
+  
+  if (!name || name.trim() === '') {
+    return res.status(400).json({ error: 'Goal name is required' });
+  }
+  
+  try {
+    // Start a transaction
+    await pool.query('BEGIN');
+    
+    // Delete any existing main goals
+    await pool.query('DELETE FROM goals WHERE is_main = true');
+    
+    // Create new main goal
+    const result = await pool.query(
+      'INSERT INTO goals (name, is_main) VALUES ($1, true) RETURNING *',
+      [name]
+    );
+    
+    // Commit the transaction
+    await pool.query('COMMIT');
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    // Rollback in case of error
+    await pool.query('ROLLBACK');
+    console.error('Error creating main goal:', error);
+    res.status(500).json({ error: 'Failed to create main goal' });
+  }
+});
+
+// Create sub-goal
+app.post('/api/goals', async (req, res) => {
+  const { name, parentId } = req.body;
+  
+  if (!name || name.trim() === '') {
+    return res.status(400).json({ error: 'Goal name is required' });
+  }
+  
+  if (!parentId) {
+    return res.status(400).json({ error: 'Parent goal ID is required' });
+  }
+  
+  try {
+    // Verify parent goal exists
+    const parentCheck = await pool.query('SELECT id FROM goals WHERE id = $1', [parentId]);
+    
+    if (parentCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Parent goal not found' });
+    }
+    
+    // Create sub-goal
+    const result = await pool.query(
+      'INSERT INTO goals (name, parent_id, is_main) VALUES ($1, $2, false) RETURNING *',
+      [name, parentId]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating sub-goal:', error);
+    res.status(500).json({ error: 'Failed to create sub-goal' });
+  }
+});
+
+// Delete goal and its children
+app.delete('/api/goals/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    // Start a transaction
+    await pool.query('BEGIN');
+    
+    // Check if the goal is the main goal
+    const goalCheck = await pool.query('SELECT is_main FROM goals WHERE id = $1', [id]);
+    
+    if (goalCheck.rows.length === 0) {
+      await pool.query('ROLLBACK');
+      return res.status(404).json({ error: 'Goal not found' });
+    }
+    
+    // Delete the goal (cascade will delete children automatically because of ON DELETE CASCADE)
+    await pool.query('DELETE FROM goals WHERE id = $1', [id]);
+    
+    // Commit the transaction
+    await pool.query('COMMIT');
+    
+    res.status(200).json({ message: 'Goal deleted successfully' });
+  } catch (error) {
+    // Rollback in case of error
+    await pool.query('ROLLBACK');
+    console.error('Error deleting goal:', error);
+    res.status(500).json({ error: 'Failed to delete goal' });
+  }
+});
+
+// Clear all goals
+app.delete('/api/goals', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM goals');
+    res.status(200).json({ message: 'All goals deleted successfully' });
+  } catch (error) {
+    console.error('Error clearing goals:', error);
+    res.status(500).json({ error: 'Failed to clear goals' });
+  }
+});
 
 // Save subscription route with better error handling
 app.post('/api/save-subscription', (req, res) => {
@@ -361,8 +520,11 @@ app.post('/api/send-test-notification', (req, res) => {
 });
 
 // Initialize server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Initialize database tables
+  await initializeDatabase();
   
   // Load saved data
   loadFromFiles();
