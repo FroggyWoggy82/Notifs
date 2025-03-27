@@ -8,17 +8,9 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     background-color: white;
-    padding: 30px;
-    padding-left: 50px;
-    padding-right: 50px;
+    padding: 30px 50px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow-x: auto;
-}
-
-/* For the top goal centering and styling */
-.main-goal-node {
-    margin-bottom: 60px !important;
 }
 
 h1 {
@@ -54,6 +46,7 @@ button:hover {
     background-color: #45a049;
 }
 
+/* Goal Tree Structure */
 .goal-tree {
     margin-top: 30px;
     display: flex;
@@ -63,141 +56,113 @@ button:hover {
 
 .goal-node {
     position: relative;
-    margin-bottom: 45px;
+    margin-bottom: 25px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.goal-box {
-    background-color: #e9f7ef;
-    border: 2px solid #4CAF50;
-    border-radius: 6px;
-    padding: 15px;
-    display: inline-block;
-    min-width: 200px;
-    position: relative;
-    margin-bottom: 25px;
-}
-
-.main-goal {
-    background-color: #ff9966;
-    border-color: #ff7733;
-    color: black;
-    /* Added stronger box shadow for the main goal */
-    box-shadow: 0 3px 7px rgba(0,0,0,0.2);
-}
-
-.sub-goals-container {
-    display: flex;
-    justify-content: center;
-    /* Increased gap between sibling goals for better spacing */
-    gap: 50px;
-    position: relative;
-    width: 100%;
-}
-
-/* Vertical line from parent to children - made thicker and more visible */
-.goal-node::after {
+/* Vertical connector lines */
+.goal-node:not(:first-child)::before {
     content: '';
     position: absolute;
-    top: 100%;
+    top: -25px;
     left: 50%;
-    /* Increased height to match the new spacing */
-    height: 45px;
-    /* Made line thicker */
-    width: 3px;
-    /* Darker color for better visibility */
-    background-color: #2E8B57;
+    height: 25px;
+    width: 2px;
+    background: #2E8B57;
     transform: translateX(-50%);
+    z-index: -1;
 }
 
-.goal-node:last-child::after {
+/* Hide connectors for main goal */
+.goal-tree > .goal-node::before,
+.goal-tree > .goal-node::after {
     display: none;
 }
 
-/* Horizontal line above children */
-.sub-goals-container::before {
+/* Arrow styling */
+.goal-arrow {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #2E8B57;
+    border-width: 2px 2px 0 0;
+    transform: translateX(-50%) rotate(-45deg);
+}
+
+/* Sub-goals container */
+.sub-goals {
+    position: relative;
+    display: flex;
+    gap: 40px;
+    margin-top: 25px;
+    padding-top: 15px;
+}
+
+.sub-goals::before {
     content: '';
     position: absolute;
     top: -15px;
     left: 50%;
-    transform: translateX(-50%);
     height: 2px;
     width: calc(100% - 40px);
-    max-width: 800px;
-    background-color: #4CAF50;
+    background: #4CAF50;
+    transform: translateX(-50%);
 }
 
-.goal-name {
-    font-weight: bold;
-    color: #333;
+/* Goal box styling */
+.goal-box {
+    background-color: #e9f7ef;
+    border: 2px solid #4CAF50;
+    border-radius: 6px;
+    padding: 15px 50px 15px 15px;
+    min-width: 200px;
+    position: relative;
+    margin: 10px 0;
 }
 
+/* Action buttons */
 .goal-actions {
-    margin-top: 10px;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     gap: 5px;
 }
 
-.add-sub-goal-btn {
-    background-color: #007bff;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-}
-
-.add-sub-goal-btn:hover {
-    background-color: #0069d9;
-}
-
-.add-sub-goal-btn[style*="background-color: #6f42c1"]:hover {
-    background-color: #5e35b1 !important;
-}
-
-.delete-btn {
-    background-color: #dc3545;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-}
-
-.delete-btn:hover {
-    background-color: #c82333;
-}
-
-.sub-goal-form {
-    margin-top: 10px;
+.action-button {
+    width: 24px;
+    height: 24px;
     display: flex;
-    gap: 5px;
     align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
 }
 
-.sub-goal-input {
-    flex-grow: 1;
-    padding: 5px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
+.plus-button {
+    background-color: #121111;
+    color: white;
 }
 
-.confirm-sub-goal-btn {
-    background-color: #28a745;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-size: 12px;
+.delete-button {
+    background-color: #eee;
+    color: #c00;
 }
 
-.cancel-sub-goal-btn {
-    background-color: #6c757d;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-size: 12px;
+.action-button:hover {
+    background-color: #ddd;
 }
 
-
-
- /* Bottom Navigation Bar Styles */
- .bottom-nav {
+/* Bottom Navigation (unchanged) */
+.bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -228,25 +193,10 @@ button:hover {
     margin-bottom: 2px;
 }
 
-.goal-box {
-    position: relative;
-    padding-top: 25px;
+.page {
+    display: none;
 }
-.level-badge, .position-badge {
-    position: absolute;
-    top: 5px;
-    font-size: 12px;
-    border-radius: 3px;
-    padding: 2px 5px;
-}
-.level-badge {
-    left: 5px;
-    background-color: #e0e0e0;
-    color: #333;
-}
-.position-badge {
-    right: 5px;
-    background-color: #ffc107;
-    font-weight: bold;
-    color: #333;
+
+.page.active {
+    display: block;
 }
