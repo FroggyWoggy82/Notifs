@@ -3,55 +3,58 @@ const express = require('express');
 const db = require('../db'); // Adjust path if needed
 const router = express.Router();
 
-// --- Helper function to build the tree ---
+// --- Helper function to build the tree (REVISED VERSION) ---
 function buildGoalTree(goals) {
-    console.log('--- buildGoalTree START ---'); // Log start
-    console.log('Raw goals received from DB:', goals); // Log raw data
+    console.log('--- buildGoalTree START ---');
+    console.log('Raw goals received from DB:', goals);
 
-    const map = {};
-    const roots = [];
+    const map = {}; // Use object for faster lookups by id
 
-    // First pass: Create a map of nodes
+    // 1. Create nodes in the map, adding a children array
     goals.forEach(goal => {
-        // Log each goal being added to map
         console.log(`Mapping goal ${goal.id} ('${goal.text}')`);
-        map[goal.id] = { ...goal, children: [] };
+        map[goal.id] = {
+            ...goal, // Copy all properties from the goal row
+            children: [] // Add an empty children array
+        };
     });
-    console.log('Map created:', map); // Log the map after first pass
+     console.log('Map created:', map);
 
-    // Second pass: Build the tree structure
-    console.log('Starting tree build (second pass)...');
+    // 2. Link children to parents using the map
+    console.log('Linking children to parents...');
     goals.forEach(goal => {
-        const node = map[goal.id];
-        // Log which node is being processed for parenting
-        console.log(`Processing node ${node.id} for parenting. Parent ID: ${goal.parent_id}`);
-
+        // Check if this goal has a parent AND if that parent exists in our map
         if (goal.parent_id !== null && map[goal.parent_id]) {
-            // Log when a child IS being added
-            console.log(`  -> Found parent ${goal.parent_id} in map. Adding node ${node.id} to parent's children.`);
-            map[goal.parent_id].children.push(node);
+            console.log(`  -> Linking child ${goal.id} to parent ${goal.parent_id}`);
+            // Push the child node (retrieved from map) onto parent's children array
+            map[goal.parent_id].children.push(map[goal.id]);
         } else if (goal.parent_id !== null && !map[goal.parent_id]) {
-            // Log if the parent ID exists but WASN'T in the map (shouldn't happen with current query)
-             console.warn(`  -> WARNING: Parent ID ${goal.parent_id} specified for node ${node.id}, but parent not found in map!`);
-        }
-         else {
-            // Log when a root node is identified
-            console.log(`  -> Node ${node.id} is a root node (parent_id is null). Adding to roots.`);
-            roots.push(node);
+             // This case should be rare if all goals are fetched, but good to log
+             console.warn(`  -> WARNING: Parent ID ${goal.parent_id} specified for node ${goal.id}, but parent not found in map!`);
         }
     });
 
-    console.log('Tree build complete. Roots:', JSON.stringify(roots, null, 2)); // Log the final structure
-    console.log('--- buildGoalTree END ---'); // Log end
-    return roots; // Return only the root nodes
+    // 3. Find the root nodes (those whose parent_id is null) by filtering the map's values
+    const roots = Object.values(map).filter(node => {
+        const isRoot = node.parent_id === null;
+        if (isRoot) {
+            console.log(`Identified root node: ${node.id}`);
+        }
+        return isRoot;
+    });
+
+    console.log('Tree build complete. Roots:', JSON.stringify(roots, null, 2)); // Log final roots
+    console.log('--- buildGoalTree END ---');
+    return roots;
 }
 // --- ---
 
 // GET /api/goals - Fetch the entire goal tree
 router.get('/', async (req, res) => {
     try {
-        // Fetch all goals, ordered to potentially help tree building
+        // Fetch all goals, ordering might help but new buildGoalTree is less reliant
         const result = await db.query('SELECT * FROM goals ORDER BY parent_id ASC NULLS FIRST, id ASC');
+        // Use the revised buildGoalTree function
         const tree = buildGoalTree(result.rows);
         res.json(tree);
     } catch (err) {
@@ -71,7 +74,7 @@ router.post('/', async (req, res) => {
     try {
         const result = await db.query(
             'INSERT INTO goals (text, parent_id) VALUES ($1, $2) RETURNING *',
-            [text.trim(), parentId] // Use null if parentId is undefined/null
+            [text.trim(), parentId === "" ? null : parentId] // Ensure empty string parentId becomes null
         );
         // Return the newly created goal object (including its ID)
         res.status(201).json(result.rows[0]);
@@ -86,7 +89,8 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
 
-    if (!/^\d+$/.test(id)) { // Basic validation for integer ID
+    // Basic validation: check if id is a positive integer string
+    if (!/^[1-9]\d*$/.test(id)) {
          return res.status(400).json({ error: 'Invalid goal ID format' });
     }
 
@@ -94,10 +98,12 @@ router.delete('/:id', async (req, res) => {
         const result = await db.query('DELETE FROM goals WHERE id = $1 RETURNING id', [id]);
 
         if (result.rowCount === 0) {
+            // If no rows were deleted, the goal wasn't found
             return res.status(404).json({ error: 'Goal not found' });
         }
 
-        res.status(200).json({ message: `Goal ${id} deleted successfully`, id: parseInt(id) }); // Send back ID for client confirmation
+        // Send back the ID of the deleted goal for confirmation
+        res.status(200).json({ message: `Goal ${id} deleted successfully`, id: parseInt(id) });
     } catch (err) {
         console.error(`Error deleting goal ${id}:`, err);
         res.status(500).json({ error: 'Failed to delete goal' });
