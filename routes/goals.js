@@ -233,5 +233,39 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// PUT /api/goals/:id - Update goal text
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { text } = req.body;
+    console.log(`Received PUT /api/goals/${id} request: text='${text}'`); // Log request
+
+    // Validate ID
+    if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({ error: 'Invalid goal ID format' });
+    }
+    // Validate Text
+    if (!text || text.trim() === '') {
+        return res.status(400).json({ error: 'Goal text cannot be empty' });
+    }
+
+    try {
+        const result = await db.query(
+            'UPDATE goals SET text = $1 WHERE id = $2 RETURNING *',
+            [text.trim(), id]
+        );
+
+        if (result.rowCount === 0) {
+            console.log(`Update: Goal ${id} not found.`);
+            return res.status(404).json({ error: 'Goal not found' });
+        }
+
+        console.log(`Goal ${id} updated successfully.`);
+        res.status(200).json(result.rows[0]); // Return the updated goal object
+
+    } catch (err) {
+        console.error(`Error updating goal ${id}:`, err);
+        res.status(500).json({ error: 'Failed to update goal' });
+    }
+});
 
 module.exports = router; // Make sure router is exported

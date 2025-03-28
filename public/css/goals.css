@@ -94,16 +94,36 @@ button:hover {
     background-color: #e9f7ef;
     border: 2px solid #4CAF50;
     border-radius: 6px;
-    padding: 15px 50px 15px 15px;
+    padding: 15px 60px 15px 15px;
     min-width: 200px;
     text-align: center;
     position: relative;
     z-index: 2;
     display: inline-block;
-    /* --- FIX: Restore font size --- */
-    font-size: 1rem; /* Or 16px, or your preferred size */
-    /* --- FIX: Increase vertical gap --- */
-    margin-bottom: 70px; /* Increased gap */
+    font-size: 1rem;
+    margin-bottom: 70px;
+}
+
+/* Text span inside the box */
+.goal-text {
+    display: inline;
+}
+
+/* Edit input field styling */
+.goal-edit-input {
+    display: none;
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+/* Style for when the box is in editing mode */
+.goal-box.editing {
+    border-color: #ff9800;
 }
 
 /* Sub-goals container */
@@ -111,13 +131,12 @@ button:hover {
     display: block;
     text-align: center;
     position: relative;
-    /* --- FIX: Adjust padding/margin for new gap --- */
-    padding-top: 35px; /* Half the new gap (70px / 2) */
-    margin-top: -70px; /* Pull container up by the full gap */
+    padding-top: 35px;
+    margin-top: -70px;
     white-space: nowrap;
     margin-left: auto;
     margin-right: auto;
-    font-size: 0; /* Keep for inline-block spacing */
+    font-size: 0;
 }
 
 /* --- Connecting Lines --- */
@@ -128,12 +147,11 @@ button:hover {
     content: '';
     position: absolute;
     top: 100%;
-    height: 34x; /* Half the gap */
+    height: 34x;
     left: 50%;
     transform: translateX(-50%);
     width: 2px;
     background-color: #2E8B57;
-    /* --- FIX: Ensure it's behind horizontal line --- */
     z-index: 0;
 }
 
@@ -142,12 +160,11 @@ button:hover {
     content: '';
     position: absolute;
     bottom: 100%;
-    height: 35px; /* Half the gap */
+    height: 35px;
     left: 50%;
     transform: translateX(-50%);
     width: 2px;
     background-color: #2E8B57;
-    /* --- FIX: Ensure it's behind horizontal line --- */
     z-index: 0;
 }
 
@@ -157,10 +174,9 @@ button:hover {
 .sub-goals > .goal-node::before {
     content: '';
     position: absolute;
-    top: -35px; /* Align with vertical line meeting point */
+    top: -35px;
     height: 2px;
     background-color: #2E8B57;
-    /* --- FIX: Ensure it's ON TOP of vertical lines --- */
     z-index: 1;
 }
 
@@ -189,15 +205,14 @@ button:hover {
 
 
 .insert-parent-button {
-     background-color: #ffeb3b; /* Example: Yellow */
+     background-color: #ffeb3b;
      color: #333; 
 }
 
 
 
 .delete-promote-button {
-    /* Add specific styles, maybe different color? */
-     background-color: #ff9800; /* Example: Orange */
+     background-color: #ff9800;
      color: white;
      border-color: #fb8c00;
 }
@@ -222,6 +237,27 @@ button:hover {
 .delete-button { background-color: #f44336; color: white; border-color: #f44336; }
 .delete-button:hover { background-color: #d32f2f; }
 
+/* Styling for Edit, Save, Cancel buttons */
+.edit-button {
+    background-color: #2196F3;
+    color: white;
+    border-color: #1976D2;
+}
+.edit-button:hover { background-color: #1976D2; }
+
+.save-button {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #388E3C;
+}
+.save-button:hover { background-color: #388E3C; }
+
+.cancel-button {
+    background-color: #f44336;
+    color: white;
+    border-color: #D32F2F;
+}
+.cancel-button:hover { background-color: #D32F2F; }
 
 /* Bottom Navigation (Keep existing styles) */
 .bottom-nav {

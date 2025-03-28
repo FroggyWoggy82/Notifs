@@ -7,11 +7,33 @@ document.addEventListener('DOMContentLoaded', function() {
     function createGoalElement(goal) { // Receive the full goal object from backend
         const goalBox = document.createElement('div');
         goalBox.className = 'goal-box';
-        goalBox.textContent = goal.text;
         goalBox.setAttribute('data-id', goal.id);
 
+        // --- Text Display ---
+        const goalTextSpan = document.createElement('span');
+        goalTextSpan.className = 'goal-text';
+        goalTextSpan.textContent = goal.text;
+        goalBox.appendChild(goalTextSpan);
+
+        // --- Edit Input (Initially Hidden) ---
+        const goalEditInput = document.createElement('input');
+        goalEditInput.type = 'text';
+        goalEditInput.className = 'goal-edit-input';
+        goalEditInput.style.display = 'none'; // Hide initially
+        goalBox.appendChild(goalEditInput);
+
+        // --- Action Buttons Container ---
         const goalActions = document.createElement('div');
         goalActions.className = 'goal-actions';
+
+        // --- Edit Button ---
+        const editButton = document.createElement('button');
+        editButton.innerHTML = '&#9998;'; // Pencil icon
+        editButton.className = 'edit-button action-button';
+        editButton.title = "Edit this goal's text";
+        editButton.style.display = 'none'; // Initially hidden
+        editButton.addEventListener('click', handleEditGoal);
+        goalActions.appendChild(editButton);
 
         // --- Insert Parent Button ---
         // Only add if it's NOT a root node (parent_id exists and is not null)
@@ -57,19 +79,40 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteButton.addEventListener('click', handleDeleteGoal); // Original cascade handler
         goalActions.appendChild(deleteButton);
 
+        // --- Save Button (for editing) ---
+        const saveButton = document.createElement('button');
+        saveButton.innerHTML = '&#10004;'; // Checkmark icon
+        saveButton.className = 'save-button action-button';
+        saveButton.title = 'Save changes';
+        saveButton.style.display = 'none'; // Hidden initially
+        saveButton.addEventListener('click', handleSaveGoal);
+        goalActions.appendChild(saveButton);
+
+        // --- Cancel Button (for editing) ---
+        const cancelButton = document.createElement('button');
+        cancelButton.innerHTML = '&#10006;'; // Cross icon
+        cancelButton.className = 'cancel-button action-button';
+        cancelButton.title = 'Cancel edit';
+        cancelButton.style.display = 'none'; // Hidden initially
+        cancelButton.addEventListener('click', handleCancelEdit);
+        goalActions.appendChild(cancelButton);
+
         goalBox.appendChild(goalActions);
 
-        // Event listeners for showing/hiding buttons
+        // Event listeners for showing/hiding buttons on hover (only when NOT editing)
         goalBox.addEventListener('mouseenter', () => {
-            // Select ALL buttons within this goalActions container
-            goalActions.querySelectorAll('.action-button').forEach(btn => {
-                 btn.style.display = 'inline-flex';
-            });
+            if (!goalBox.classList.contains('editing')) {
+                 goalActions.querySelectorAll('.action-button:not(.save-button):not(.cancel-button)').forEach(btn => {
+                      btn.style.display = 'inline-flex';
+                 });
+            }
         });
         goalBox.addEventListener('mouseleave', () => {
-            goalActions.querySelectorAll('.action-button').forEach(btn => {
-                 btn.style.display = 'none';
-            });
+            if (!goalBox.classList.contains('editing')) {
+                goalActions.querySelectorAll('.action-button').forEach(btn => {
+                     btn.style.display = 'none';
+                });
+            }
         });
 
         // Wrap in goal-node
@@ -348,6 +391,118 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.log(`Delete/promote cancelled for goal ID: ${goalId}`);
         }
+    }
+
+    // --- NEW: Handle initiating the edit mode ---
+    function handleEditGoal(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalTextSpan = goalNode.querySelector('.goal-text');
+        const goalEditInput = goalNode.querySelector('.goal-edit-input');
+        const goalActions = goalNode.querySelector('.goal-actions');
+
+        // Store original text in case of cancel
+        goalEditInput.setAttribute('data-original-text', goalTextSpan.textContent);
+        goalEditInput.value = goalTextSpan.textContent;
+
+        // Switch UI elements
+        goalTextSpan.style.display = 'none';
+        goalEditInput.style.display = 'inline-block'; // Or block
+        goalEditInput.focus(); // Focus the input field
+        goalEditInput.select(); // Select the text
+
+        // Hide normal action buttons, show save/cancel
+        goalActions.querySelectorAll('.action-button').forEach(btn => {
+            if (btn.classList.contains('save-button') || btn.classList.contains('cancel-button')) {
+                btn.style.display = 'inline-flex';
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+
+        // Add editing class for styling/state tracking
+        goalBox.classList.add('editing');
+    }
+
+    // --- NEW: Handle saving the edited goal ---
+    async function handleSaveGoal(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalId = goalNode.getAttribute('data-id');
+        const goalEditInput = goalNode.querySelector('.goal-edit-input');
+        const newText = goalEditInput.value.trim();
+
+        if (!goalId) { console.error('Could not find goal ID to save'); return; }
+        if (newText === '') { alert('Goal text cannot be empty.'); return; }
+
+        console.log(`Attempting to save goal ${goalId} with new text: ${newText}`);
+        try {
+            const response = await fetch(`/api/goals/${goalId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: newText })
+            });
+            console.log(`PUT /api/goals/${goalId} response status: ${response.status}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                throw new Error(`HTTP error! status: ${response.status} - ${errorData.error || 'Unknown server error'}`);
+            }
+            const updatedGoal = await response.json(); // Get updated goal data from server
+            console.log(`Goal ${goalId} updated successfully on server:`, updatedGoal);
+
+            // Update UI text and switch back to view mode
+            switchToViewMode(goalNode, updatedGoal.text);
+
+        } catch (error) {
+            console.error(`Error saving goal ${goalId}:`, error);
+            alert(`Failed to save goal: ${error.message}`);
+            // Optionally, could revert the input to original text on error
+            // goalEditInput.value = goalEditInput.getAttribute('data-original-text');
+            // Or just leave it in edit mode for user to retry/cancel
+        }
+    }
+
+    // --- NEW: Handle canceling the edit ---
+    function handleCancelEdit(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalEditInput = goalNode.querySelector('.goal-edit-input');
+        const originalText = goalEditInput.getAttribute('data-original-text'); // Get original text
+
+        console.log(`Canceling edit for goal ${goalNode.getAttribute('data-id')}`);
+        switchToViewMode(goalNode, originalText); // Revert to original text
+    }
+
+    // --- NEW: Helper function to switch back to view mode ---
+    function switchToViewMode(goalNode, newText) {
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalTextSpan = goalNode.querySelector('.goal-text');
+        const goalEditInput = goalNode.querySelector('.goal-edit-input');
+        const goalActions = goalNode.querySelector('.goal-actions');
+
+        // Update text display
+        goalTextSpan.textContent = newText;
+
+        // Switch UI elements
+        goalEditInput.style.display = 'none';
+        goalTextSpan.style.display = 'inline'; // Or block if needed
+
+        // Hide save/cancel, show normal action buttons (but keep them hidden initially)
+        goalActions.querySelectorAll('.action-button').forEach(btn => {
+            if (btn.classList.contains('save-button') || btn.classList.contains('cancel-button')) {
+                btn.style.display = 'none';
+            } else {
+                 // Don't immediately show them, let hover handle it
+                 btn.style.display = 'none';
+            }
+        });
+
+        // Remove editing class
+        goalBox.classList.remove('editing');
+        // Clean up attribute used for cancel
+        goalEditInput.removeAttribute('data-original-text');
     }
 
 
