@@ -219,53 +219,69 @@ document.addEventListener('DOMContentLoaded', function() {
         const goalBox = goalNode.querySelector('.goal-box');
         const goalName = goalBox ? goalBox.textContent.split('+')[0].trim() : 'this goal';
 
-
         if (!goalId) {
             console.error('Could not find goal ID to delete');
             return;
         }
 
-        // Add cascade warning if appropriate
+        // Add logging to see which ID is being targeted
+        console.log(`Attempting to delete goal with ID: ${goalId}`);
+
         const hasChildren = goalNode.querySelector('.sub-goals .goal-node');
         const confirmMessage = hasChildren
              ? `Delete "${goalName}" and ALL its sub-goals? This cannot be undone.`
              : `Delete "${goalName}"?`;
 
         if (confirm(confirmMessage)) {
+            let shouldRemoveElement = false; // Flag to control DOM removal
+
             try {
                 const response = await fetch(`/api/goals/${goalId}`, {
                     method: 'DELETE'
                 });
 
-                if (!response.ok) {
-                     const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                console.log(`DELETE /api/goals/${goalId} response status: ${response.status}`); // Log status
+
+                if (response.ok) { // Status 200-299 (e.g., 200 OK, 204 No Content)
+                    console.log(`Goal ${goalId} deleted successfully on server.`);
+                    shouldRemoveElement = true; // Mark for removal on success
+                } else if (response.status === 404) {
+                    // --- NEW: Handle 404 ---
+                    console.warn(`Goal ${goalId} not found on server (already deleted?). Removing from UI.`);
+                    shouldRemoveElement = true; // Mark for removal as it's already gone server-side
+                    // Don't throw an error here, just log a warning
+                } else {
+                    // Handle other errors (like 500)
+                    const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                    console.error(`Failed to delete goal ${goalId} on server. Status: ${response.status}`);
                     throw new Error(`HTTP error! status: ${response.status} - ${errorData.error || 'Unknown error'}`);
                 }
 
-                // --- Remove the element directly from the DOM ---
-                const parentSubGoals = goalNode.parentElement;
+            } catch (error) {
+                // Catch errors from fetch itself or thrown above (like 500)
+                console.error(`>>> Error during handleDeleteGoal for ID ${goalId} <<<:`, error);
+                alert(`Failed to delete goal: ${error.message}`);
+                // Do NOT set shouldRemoveElement = true here, as deletion failed
+            }
+
+            // --- Remove Element Outside Try/Catch ---
+            // Only remove if deletion was successful OR if it was already gone (404)
+            if (shouldRemoveElement) {
+                 console.log(`Removing goal node element for ID: ${goalId} from DOM.`);
                  goalNode.remove();
-                // If the parent container is now empty, remove it? (Depends on CSS)
+
+                 // Optional cleanup for empty containers (same as before)
+                 const parentSubGoals = goalNode.parentElement;
                  if (parentSubGoals && parentSubGoals.classList.contains('sub-goals') && parentSubGoals.childElementCount === 0) {
-                     // If your CSS relies on the empty container for lines, DON'T remove it.
-                     // If your CSS hides lines for empty containers, you CAN remove it.
+                     // Consider if removing the container breaks CSS lines
                      // parentSubGoals.remove();
                  }
-                // If removing the last root node, clear the tree container display?
                  if (goalTree.childElementCount === 0) {
-                    // Maybe display a placeholder
-                    // goalTree.innerHTML = '<p>No goals set yet.</p>';
+                     // goalTree.innerHTML = '<p>No goals set yet.</p>';
                  }
-
-
-                // --- OR ---
-                // Re-fetch the whole tree for simplicity
-                // await fetchAndRenderGoals();
-
-            } catch (error) {
-                console.error('Error deleting goal:', error);
-                 alert(`Failed to delete goal: ${error.message}`);
             }
+        } else {
+            console.log(`Deletion cancelled for goal ID: ${goalId}`);
         }
     }
 
