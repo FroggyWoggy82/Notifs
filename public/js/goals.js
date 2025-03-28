@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const setMainGoalBtn = document.getElementById('setMainGoalBtn');
     const goalTree = document.getElementById('goalTree');
 
-    // --- Reusable function to create a goal box ---
     function createGoalBox(goalName, isSubGoal = false) {
         const goalBox = document.createElement('div');
         goalBox.className = 'goal-box';
@@ -31,11 +30,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         goalBox.appendChild(goalActions);
 
-        // Add arrow only to sub-goals (CORRECTED PLACEMENT)
+        // Add arrow for sub-goals
         if (isSubGoal) {
-            const arrowContainer = document.createElement('div');
-            arrowContainer.className = 'goal-arrow';
-            goalBox.prepend(arrowContainer);
+            const goalArrow = document.createElement('div');
+            goalArrow.className = 'goal-arrow';
+            goalBox.prepend(goalArrow);
         }
 
         // Event listeners
@@ -54,18 +53,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const subGoalName = prompt("Enter sub-goal:");
             
             if (subGoalName) {
-                const parentGoalBox = this.closest('.goal-box');
+                const parentGoalNode = this.closest('.goal-node');
                 const subGoalElement = createGoalBox(subGoalName.trim(), true);
                 
-                let subGoalsContainer = parentGoalBox.querySelector('.sub-goals');
+                let subGoalsContainer = parentGoalNode.querySelector('.sub-goals');
                 if (!subGoalsContainer) {
                     subGoalsContainer = document.createElement('div');
                     subGoalsContainer.className = 'sub-goals';
-                    
-                    const subNode = document.createElement('div');
-                    subNode.className = 'goal-node';
-                    subNode.appendChild(subGoalsContainer);
-                    parentGoalBox.after(subNode);
+                    parentGoalNode.appendChild(subGoalsContainer);
                 }
                 
                 const subNode = document.createElement('div');
@@ -82,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Main goal container (REMOVED ARROW FROM HERE)
+        // Wrap main goal in goal-node
         if (!isSubGoal) {
             const goalNode = document.createElement('div');
             goalNode.className = 'goal-node';

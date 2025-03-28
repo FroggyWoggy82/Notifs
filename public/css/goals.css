@@ -81,16 +81,28 @@ button:hover {
     display: none;
 }
 
-/* Arrow styling */
 .goal-arrow {
     position: absolute;
-    top: -15px;
     left: 50%;
-    width: 10px;
-    height: 10px;
-    border: 2px solid #2E8B57;
-    border-width: 2px 2px 0 0;
-    transform: translateX(-50%) rotate(-45deg);
+    bottom: 100%;
+    width: 0;
+    height: 62px;
+    border-left: 2px solid #2E8B57;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.goal-arrow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -5px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 10px solid #2E8B57;
+    z-index: 1;
 }
 
 /* Sub-goals container */
@@ -102,16 +114,6 @@ button:hover {
     padding-top: 15px;
 }
 
-.sub-goals::before {
-    content: '';
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    height: 2px;
-    width: calc(100% - 40px);
-    background: #4CAF50;
-    transform: translateX(-50%);
-}
 
 /* Goal box styling */
 .goal-box {
