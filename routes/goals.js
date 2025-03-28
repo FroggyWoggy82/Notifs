@@ -52,13 +52,21 @@ function buildGoalTree(goals) {
 // GET /api/goals - Fetch the entire goal tree
 router.get('/', async (req, res) => {
     try {
-        // Fetch all goals, ordering might help but new buildGoalTree is less reliant
         const result = await db.query('SELECT * FROM goals ORDER BY parent_id ASC NULLS FIRST, id ASC');
-        // Use the revised buildGoalTree function
         const tree = buildGoalTree(result.rows);
-        res.json(tree);
+
+        // --- ADD CACHE-CONTROL HEADERS ---
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache'); // For older HTTP/1.0 caches
+        res.setHeader('Expires', '0'); // Proxies
+        // --- ---
+
+        res.json(tree); // Send the data AFTER setting headers
+
     } catch (err) {
         console.error('Error fetching goals:', err);
+        // Add cache control even on error? Maybe not necessary but doesn't hurt.
+        res.setHeader('Cache-Control', 'no-store');
         res.status(500).json({ error: 'Failed to fetch goals' });
     }
 });
