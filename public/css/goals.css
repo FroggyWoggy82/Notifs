@@ -1,7 +1,16 @@
 body {
     font-family: Arial, sans-serif;
-    padding: 20px;
+    padding: 20px 20px 80px 20px;
     background-color: #f5f5f5;
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
 }
 
 .container {
@@ -11,6 +20,7 @@ body {
     padding: 30px 50px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-height: calc(100vh - 100px);
 }
 
 h1 {
@@ -24,7 +34,7 @@ h1 {
     margin-bottom: 20px;
 }
 
-input {
+input[type="text"] {
     flex-grow: 1;
     padding: 10px;
     border: 1px solid #ddd;
@@ -37,81 +47,45 @@ button {
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 0 4px 4px 0;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    line-height: 1.2;
 }
 
 button:hover {
     background-color: #45a049;
 }
 
-/* Goal Tree Structure */
+.input-section button {
+    border-radius: 0 4px 4px 0;
+}
+
+/* --- Goal Tree Structure --- */
 .goal-tree {
     margin-top: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: 50px;
+    overflow-x: auto;
 }
 
 .goal-node {
     position: relative;
-    margin-bottom: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    margin: 0 20px; /* Horizontal space between sibling nodes */
+    white-space: normal; /* Allow text wrap inside box */
 }
 
-/* Vertical connector lines */
-.goal-node:not(:first-child)::before {
-    content: '';
-    position: absolute;
-    top: -25px;
-    left: 50%;
-    height: 25px;
-    width: 2px;
-    background: #2E8B57;
-    transform: translateX(-50%);
-    z-index: -1;
-}
-
-/* Hide connectors for main goal */
-.goal-tree > .goal-node::before,
-.goal-tree > .goal-node::after {
-    display: none;
-}
-
-.goal-arrow {
-    position: absolute;
-    left: 50%;
-    bottom: 100%;
-    width: 0;
-    height: 62px;
-    border-left: 2px solid #2E8B57;
-    transform: translateX(-50%);
-    z-index: 1;
-}
-
-.goal-arrow::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -5px;
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 10px solid #2E8B57;
-    z-index: 1;
-}
-
-/* Sub-goals container */
-.sub-goals {
-    position: relative;
-    display: flex;
-    gap: 40px;
-    margin-top: 25px;
-    padding-top: 15px;
+/* Ensure first node is block centered */
+.goal-tree > .goal-node:first-child {
+   display: block;
+   margin-left: auto;
+   margin-right: auto;
+   width: fit-content; /* Adjust width to content */
 }
 
 
@@ -122,83 +96,127 @@ button:hover {
     border-radius: 6px;
     padding: 15px 50px 15px 15px;
     min-width: 200px;
+    text-align: center;
     position: relative;
-    margin: 10px 0;
+    z-index: 2;
+    display: inline-block;
+    /* --- FIX: Restore font size --- */
+    font-size: 1rem; /* Or 16px, or your preferred size */
+    /* --- FIX: Increase vertical gap --- */
+    margin-bottom: 70px; /* Increased gap */
 }
 
-/* Action buttons */
-.goal-actions {
+/* Sub-goals container */
+.sub-goals {
+    display: block;
+    text-align: center;
+    position: relative;
+    /* --- FIX: Adjust padding/margin for new gap --- */
+    padding-top: 35px; /* Half the new gap (70px / 2) */
+    margin-top: -70px; /* Pull container up by the full gap */
+    white-space: nowrap;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0; /* Keep for inline-block spacing */
+}
+
+/* --- Connecting Lines --- */
+
+/* Vertical line DOWN from PARENT box */
+/* Applied ONLY if sub-goals exist */
+.goal-node:has(.sub-goals) > .goal-box::after {
+    content: '';
     position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    gap: 5px;
+    top: 100%;
+    height: 34x; /* Half the gap */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    background-color: #2E8B57;
+    /* --- FIX: Ensure it's behind horizontal line --- */
+    z-index: 0;
 }
 
-.action-button {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 14px;
+/* Vertical line UP from CHILD box */
+.sub-goals .goal-node .goal-box::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    height: 35px; /* Half the gap */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    background-color: #2E8B57;
+    /* --- FIX: Ensure it's behind horizontal line --- */
+    z-index: 0;
 }
 
-.plus-button {
-    background-color: #121111;
-    color: white;
+
+/* Horizontal Connector Line(s) */
+/* Attached to the ::before of the child GOAL-NODE */
+.sub-goals > .goal-node::before {
+    content: '';
+    position: absolute;
+    top: -35px; /* Align with vertical line meeting point */
+    height: 2px;
+    background-color: #2E8B57;
+    /* --- FIX: Ensure it's ON TOP of vertical lines --- */
+    z-index: 1;
 }
 
-.delete-button {
-    background-color: #eee;
-    color: #c00;
+/* First child node */
+.sub-goals > .goal-node:first-child:not(:only-child)::before {
+    left: 50%;
+    width: calc(50% + 20px);
 }
 
-.action-button:hover {
-    background-color: #ddd;
+/* Last child node */
+.sub-goals > .goal-node:last-child:not(:only-child)::before {
+    width: calc(50% + 20px);
+    left: -20px;
 }
 
-/* Bottom Navigation (unchanged) */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #fff;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+/* Middle child node(s) */
+.sub-goals > .goal-node:not(:first-child):not(:last-child)::before {
+   width: calc(100% + 40px);
+   left: -20px;
 }
 
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #777;
-    text-decoration: none;
-    font-size: 12px;
-}
-
-.nav-item.active {
-    color: #2196F3;
-}
-
-.nav-icon {
-    font-size: 24px;
-    margin-bottom: 2px;
-}
-
-.page {
+/* Only child node - hide line */
+.sub-goals > .goal-node:only-child::before {
     display: none;
 }
 
-.page.active {
-    display: block;
+/* --- Action Buttons --- */
+/* (Keep styles from previous version) */
+.goal-actions {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 5px; z-index: 3;
 }
+.action-button {
+    width: 24px; height: 24px; display: inline-flex; align-items: center;
+    justify-content: center; padding: 0; border: 1px solid #ccc;
+    border-radius: 3px; cursor: pointer; font-size: 14px; background-color: #f0f0f0;
+}
+.plus-button { background-color: #4CAF50; color: white; border-color: #4CAF50; }
+.plus-button:hover { background-color: #45a049; }
+.delete-button { background-color: #f44336; color: white; border-color: #f44336; }
+.delete-button:hover { background-color: #d32f2f; }
+
+
+/* Bottom Navigation (Keep existing styles) */
+.bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; background-color: #fff;
+    display: flex; justify-content: space-around; padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); z-index: 1000;
+}
+.nav-item {
+    display: flex; flex-direction: column; align-items: center; color: #777;
+    text-decoration: none; font-size: 12px;
+}
+.nav-item.active { color: #2196F3; }
+.nav-icon { font-size: 24px; margin-bottom: 2px; }
+
+/* Page visibility (Keep existing styles) */
+.page { display: none; }
+.page.active { display: block; }
