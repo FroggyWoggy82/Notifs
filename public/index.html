@@ -3,63 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notification PWA</title>
-    <meta name="description" content="A simple PWA that sends notifications even in the background">
+    <title>PWA Task List</title>
+    <meta name="description" content="A simple PWA To-Do list with background notifications">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/index.css">
-    <meta name="theme-color" content="#2196F3">
+    <meta name="theme-color" content="#4db6ac">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
     
 </head>
 <body>
-    <h1>Notification PWA</h1>
-    <p>Send and schedule notifications that work even when the app is closed</p>
-    
+    <h1>My Tasks</h1>
     <div id="permissionStatus" class="notifications-status">
         Checking notification permission...
     </div>
     
-    <button id="notifyBtn">Enable Background Notifications</button>
+    <button id="notifyBtn">Enable Background Reminders</button>
     <div id="status" class="status"></div>
     
+    <section class="task-input-section">
+        <h2>Add New Task</h2>
+        <form id="addTaskForm">
+            <div class="form-group">
+                <label for="taskTitle">Title:</label>
+                <input type="text" id="taskTitle" placeholder="What needs to be done?" required>
+            </div>
+            <div class="form-group">
+                <label for="taskDescription">Description (Optional):</label>
+                <textarea id="taskDescription" placeholder="Add more details..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="taskReminderTime">Reminder Time (Optional):</label>
+                <input type="datetime-local" id="taskReminderTime">
+            </div>
+            <button type="submit" id="addTaskBtn">Add Task</button>
+        </form>
+        <div id="addTaskStatus" class="status"></div>
+    </section>
     
+    <section class="task-list-section">
+        <h2>Task List</h2>
+        <div id="taskList">
+            <p>Loading tasks...</p>
+        </div>
+        <div id="taskListStatus" class="status"></div>
+    </section>
     
-    <div class="notification-controls">
-        <h2>Schedule Notifications</h2>
-        <div class="form-group">
-            <label for="notificationTitle">Title:</label>
-            <input type="text" id="notificationTitle" placeholder="Notification Title" value="Scheduled PWA Notification">
-        </div>
-        <div class="form-group">
-            <label for="notificationMessage">Message:</label>
-            <input type="text" id="notificationMessage" placeholder="Notification Message" value="This is your scheduled notification">
-        </div>
-        <div class="form-group">
-            <label for="notificationTime">Time:</label>
-            <input type="datetime-local" id="notificationTime">
-        </div>
-        <div class="form-group">
-            <label for="notificationRepeat">Repeat:</label>
-            <select id="notificationRepeat">
-                <option value="none">None (Once)</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-            </select>
-        </div>
-        <button id="scheduleBtn">Schedule Notification</button>
-        
-        <div class="scheduled-list">
-            <h3>Scheduled Notifications</h3>
-            <div id="scheduledNotifications"></div>
-        </div>
-    </div>
-    
-
-    </div>
     <div class="bottom-nav">
         <a href="/index.html" class="nav-item active" data-page="home-page">
-            <div class="nav-icon">🏠</div>
-            <span>Home</span>
+            <div class="nav-icon">✓</div>
+            <span>Tasks</span>
         </a>
         <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
             <div class="nav-icon">⭐</div>

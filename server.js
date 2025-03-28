@@ -50,6 +50,142 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Mount the goal routes - ALL requests starting with /api/goals go here
 app.use('/api/goals', goalRoutes);
 
+// --- NEW Task API Routes ---
+
+// GET /api/tasks - Fetch all tasks (ordered by creation date)
+app.get('/api/tasks', async (req, res) => {
+    console.log("Received GET /api/tasks request");
+    try {
+        // Order by completion status (incomplete first), then creation date
+        const result = await db.query('SELECT * FROM tasks ORDER BY is_complete ASC, created_at DESC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching tasks:', err);
+        res.status(500).json({ error: 'Failed to fetch tasks' });
+    }
+});
+
+// POST /api/tasks - Create a new task
+app.post('/api/tasks', async (req, res) => {
+    const { title, description, reminderTime } = req.body;
+    console.log(`Received POST /api/tasks: title='${title}', reminder='${reminderTime}'`);
+
+    if (!title || title.trim() === '') {
+        return res.status(400).json({ error: 'Task title cannot be empty' });
+    }
+
+    // Basic validation for reminderTime if provided
+    let reminderTimestamp = null;
+    let isReminderActive = false;
+    if (reminderTime) {
+        try {
+            reminderTimestamp = new Date(reminderTime);
+            if (isNaN(reminderTimestamp.getTime())) {
+                throw new Error('Invalid date format');
+            }
+            // Only set active if the time is in the future
+            if (reminderTimestamp > new Date()) {
+                isReminderActive = true;
+            } else {
+                 console.warn("Reminder time provided is in the past, not setting as active.");
+                 // Optionally clear the timestamp or keep it for reference?
+                 // reminderTimestamp = null; 
+            }
+        } catch (dateError) {
+            console.error("Invalid reminder time format received:", reminderTime, dateError);
+            return res.status(400).json({ error: 'Invalid reminder time format. Please use ISO 8601 format (e.g., YYYY-MM-DDTHH:mm).' });
+        }
+    }
+
+    try {
+        const result = await db.query(
+            'INSERT INTO tasks (title, description, reminder_time, is_reminder_active) VALUES ($1, $2, $3, $4) RETURNING *',
+            [title.trim(), description ? description.trim() : null, reminderTimestamp, isReminderActive]
+        );
+        console.log(`Task created successfully with ID: ${result.rows[0].id}`);
+        res.status(201).json(result.rows[0]); // Return the newly created task
+    } catch (err) {
+        // --- Enhanced Logging --- 
+        console.error('--- ERROR CREATING TASK ---');
+        console.error('Timestamp:', new Date().toISOString());
+        console.error('Request Body:', req.body);
+        console.error('Parsed Values:', { title: title.trim(), description: description ? description.trim() : null, reminderTimestamp, isReminderActive });
+        console.error('Database Error Code:', err.code); // Log Postgres error code if available
+        console.error('Database Error Detail:', err.detail); // Log Postgres error detail if available
+        console.error('Full Error Stack:', err.stack); 
+        console.error('--- END ERROR ---');
+        // --- End Enhanced Logging ---
+        
+        // Send a more informative generic error, but the details are in the log
+        res.status(500).json({ error: 'Failed to create task due to server error.' }); 
+    }
+});
+
+// PUT /api/tasks/:id - Update a task (e.g., toggle completion)
+app.put('/api/tasks/:id', async (req, res) => {
+    const { id } = req.params;
+    const { is_complete } = req.body; // Only handling completion toggle for now
+    console.log(`Received PUT /api/tasks/${id}: is_complete=${is_complete}`);
+
+    if (typeof is_complete !== 'boolean') {
+        return res.status(400).json({ error: 'Invalid value for is_complete, must be boolean.' });
+    }
+
+    // Validate ID format (simple integer check)
+    if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({ error: 'Invalid task ID format' });
+    }
+
+    try {
+        const result = await db.query(
+            'UPDATE tasks SET is_complete = $1 WHERE id = $2 RETURNING *',
+            [is_complete, id]
+        );
+
+        if (result.rowCount === 0) {
+            console.log(`Update Task: Task ${id} not found.`);
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        console.log(`Task ${id} updated successfully.`);
+        res.status(200).json(result.rows[0]); // Return the updated task
+
+    } catch (err) {
+        console.error(`Error updating task ${id}:`, err);
+        res.status(500).json({ error: 'Failed to update task' });
+    }
+});
+
+// DELETE /api/tasks/:id - Delete a task
+app.delete('/api/tasks/:id', async (req, res) => {
+    const { id } = req.params;
+    console.log(`Received DELETE /api/tasks/${id}`);
+
+    // Validate ID format
+    if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({ error: 'Invalid task ID format' });
+    }
+
+    try {
+        const result = await db.query('DELETE FROM tasks WHERE id = $1 RETURNING id', [id]);
+
+        if (result.rowCount === 0) {
+            console.log(`Delete Task: Task ${id} not found.`);
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        console.log(`Task ${id} deleted successfully.`);
+        res.status(200).json({ message: `Task ${id} deleted successfully`, id: parseInt(id) });
+
+    } catch (err) {
+        console.error(`Error deleting task ${id}:`, err);
+        res.status(500).json({ error: 'Failed to delete task' });
+    }
+});
+
+// --- End of Task API Routes ---
+
+
 // Keep existing Notification Routes
 app.post('/api/save-subscription', (req, res) => {
   try {
@@ -227,6 +363,54 @@ function processBatch(subscriptionBatch, payload) { /* ...keep implementation...
   });
 }
 // --- End of Helper Functions ---
+
+
+// --- NEW Cron Job for Task Reminders ---
+// Runs every minute to check for due task reminders
+cron.schedule('* * * * *', async () => {
+    console.log('Cron Job: Checking for due task reminders...');
+    try {
+        const now = new Date();
+        // Find active, non-complete tasks whose reminder time is in the past
+        const result = await db.query(
+            'SELECT id, title FROM tasks WHERE is_complete = false AND is_reminder_active = true AND reminder_time <= $1',
+            [now]
+        );
+
+        if (result.rows.length > 0) {
+            console.log(`Found ${result.rows.length} tasks due for reminders.`);
+            for (const task of result.rows) {
+                console.log(` - Sending reminder for Task ID: ${task.id}, Title: ${task.title}`);
+
+                // Prepare notification payload
+                const notificationPayload = {
+                    title: 'Task Reminder', // Or use task.title?
+                    body: task.title, // Use task title as body
+                    data: { taskId: task.id, url: '/index.html' } // Add URL to open app
+                    // Add icon, badge, vibrate etc. if desired
+                };
+
+                // Send push notification to all subscribed clients
+                sendNotificationToAll(notificationPayload);
+
+                // Mark the reminder as inactive so it doesn't send again
+                await db.query(
+                    'UPDATE tasks SET is_reminder_active = false WHERE id = $1',
+                    [task.id]
+                );
+                console.log(`   - Marked reminder as inactive for Task ID: ${task.id}`);
+
+                // Add a small delay between processing tasks if sending many notifications
+                // await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        } else {
+             // console.log('Cron Job: No task reminders due.'); // Can comment out for less noise
+        }
+
+    } catch (err) {
+        console.error('Cron Job Error checking task reminders:', err);
+    }
+});
 
 
 // --- Fallback Routes (Optional - place AFTER all API routes) ---

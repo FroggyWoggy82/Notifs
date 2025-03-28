@@ -1,157 +1,378 @@
+/* Import a suitable font (Optional, but recommended for consistency) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
-    body {
-        font-family: Arial, sans-serif;
-        max-width: 500px;
-        margin: 0 auto;
-        padding: 20px;
-        text-align: center;
-    }
-    button {
-        background-color: #2196F3;
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        font-size: 18px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-top: 20px;
-    }
-    button:hover {
-        background-color: #0b7dda;
-    }
-    .status {
-        margin-top: 20px;
-        padding: 10px;
-        border-radius: 5px;
-    }
-    .success {
-        background-color: #dff0d8;
-        color: #3c763d;
-    }
-    .error {
-        background-color: #f2dede;
-        color: #a94442;
-    }
-    #installPrompt {
-        display: none;
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #e3f2fd;
-        border-radius: 5px;
-    }
-    .notification-controls {
-        margin-top: 30px;
-        border: 1px solid #ccc;
-        padding: 15px;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-    }
-    .form-group {
-        margin-bottom: 15px;
-        text-align: left;
-    }
-    label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-    input, select {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-    .scheduled-list {
-        margin-top: 20px;
-        text-align: left;
-    }
-    .scheduled-item {
-        background-color: #e3f2fd;
-        padding: 10px;
-        margin-bottom: 8px;
-        border-radius: 4px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .delete-btn {
-        background-color: #f44336;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    .info-box {
-        background-color: #fff3cd;
-        color: #856404;
-        padding: 10px;
-        border-radius: 5px;
-        margin-top: 20px;
-        text-align: left;
-        font-size: 14px;
-    }
-    .notifications-status {
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 5px;
-        font-weight: bold;
-    }
-    .permission-granted {
-        background-color: #d4edda;
-        color: #155724;
-    }
-    .permission-denied {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-    .permission-default {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-     /* Bottom Navigation Bar Styles */
-     .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: #fff;
-        display: flex;
-        justify-content: space-around;
-        padding: 10px 0;
-        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-    }
-    
-    .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: #777;
-        text-decoration: none;
-        font-size: 12px;
-    }
-    
-    .nav-item.active {
-        color: #2196F3;
-    }
-    
-    .nav-icon {
-        font-size: 24px;
-        margin-bottom: 2px;
-    }
-    
-    /* Add padding to main content to prevent overlap with navigation bar */
-    body {
-        padding-bottom: 70px;
-    }
-    
-    /* Page/View system */
-    .page {
-        display: none;
-    }
-    
-    .page.active {
-        display: block;
-    }
+body {
+    /* Font */
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    /* Background & Text Color */
+    background-color: #e8eef2; /* Lighter, slightly blue-grey background */
+    color: #2c3e50; /* Dark slate blue/grey text */
+    /* Layout */
+    max-width: 600px; /* Slightly wider max-width */
+    margin: 0 auto;
+    padding: 30px 20px 80px 20px; /* Increased top padding, kept bottom for nav */
+    text-align: left; /* Default to left align */
+    line-height: 1.6;
+}
+
+h1 {
+    text-align: center;
+    color: #1f2933; /* Slightly darker heading */
+    font-weight: 500; /* Medium weight */
+    margin-bottom: 10px; /* Reduced margin */
+    font-size: 2em; /* Larger heading */
+}
+
+p {
+    text-align: center;
+    color: #566573; /* Softer grey for paragraphs */
+    margin-bottom: 30px; /* Space below intro paragraph */
+    font-size: 1em;
+}
+
+button {
+    /* Severance-style button */
+    background-color: #2c3e50; /* Dark slate blue/grey */
+    color: #ffffff;
+    border: none;
+    padding: 12px 25px; /* Adjusted padding */
+    font-size: 0.95em; /* Slightly smaller font */
+    font-weight: 500;
+    border-radius: 4px; /* Subtle rounding */
+    cursor: pointer;
+    margin-top: 15px; /* Adjusted margin */
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+    display: block; /* Make buttons block level */
+    width: 100%; /* Full width buttons */
+    box-sizing: border-box;
+    text-align: center;
+}
+
+button:hover {
+    background-color: #3e5062; /* Slightly lighter on hover */
+}
+
+button:active {
+    transform: scale(0.98); /* Subtle press effect */
+}
+
+/* Specific Button Styles */
+#notifyBtn {
+    /* Optional: Different style for primary action? */
+    background-color: #4db6ac; /* Muted Teal Accent */
+    margin-bottom: 20px;
+}
+#notifyBtn:hover {
+    background-color: #5dc1b5;
+}
+
+#scheduleBtn {
+    margin-top: 20px; /* More space before schedule button */
+}
+
+.delete-btn {
+    background-color: #c0392b; /* Muted Red for delete */
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Smaller padding */
+    font-size: 0.8em;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0; /* Remove default margins */
+    width: auto; /* Allow shrink */
+    display: inline-block; /* Align with text */
+    margin-left: 10px; /* Space from item text */
+}
+.delete-btn:hover {
+    background-color: #a93226;
+}
+
+.status, .notifications-status {
+    margin-top: 20px;
+    padding: 12px 15px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+/* Permission Status Specific Styles */
+.permission-granted {
+    background-color: #d1f2eb; /* Light teal */
+    color: #117a65; /* Darker teal text */
+    border-color: #a3e4d7;
+}
+.permission-denied {
+    background-color: #f5b7b1; /* Light red */
+    color: #a93226; /* Darker red text */
+    border-color: #eeb8b3;
+}
+.permission-default {
+    background-color: #fdebd0; /* Light yellow/orange */
+    color: #b9770e; /* Darker yellow/orange text */
+    border-color: #fbe3c6;
+}
+
+/* Status Message Specific Styles (for general success/error) */
+.success {
+    background-color: #d1f2eb;
+    color: #117a65;
+    border-color: #a3e4d7;
+}
+.error {
+    background-color: #f5b7b1;
+    color: #a93226;
+    border-color: #eeb8b3;
+}
+
+#installPrompt {
+    display: none;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #dde5eb; /* Light grey-blue */
+    border-radius: 4px;
+    border: 1px solid #c8d0d7;
+    text-align: center;
+}
+#installPrompt button {
+    margin-top: 10px;
+    display: inline-block; /* Allow side-by-side if needed */
+    width: auto; /* Don't force full width */
+}
+
+/* --- Sections --- */
+.task-input-section, .task-list-section {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+}
+
+/* --- Forms --- */
+/* Removed general styles for .notification-controls, apply to new section */
+.task-input-section h2, .task-list-section h2 {
+    font-weight: 500;
+    color: #1f2933;
+    margin-bottom: 20px; /* Space below heading */
+    padding-bottom: 10px; /* Space under heading text */
+    border-bottom: 1px solid #c8d0d7; /* Subtle separator line */
+    text-align: left;
+    font-size: 1.3em;
+}
+
+.form-group {
+    margin-bottom: 18px; /* Increased space between form fields */
+    text-align: left;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px; /* Space between label and input */
+    font-weight: 500; /* Medium weight labels */
+    font-size: 0.9em;
+    color: #3e5062; /* Slightly lighter label color */
+}
+
+/* Added textarea styling */
+input[type="text"], input[type="datetime-local"], select, textarea {
+    width: 100%;
+    padding: 10px 12px; /* Adjusted padding */
+    border: 1px solid #bdc3c7; /* Grey border */
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #ffffff; /* White background */
+    color: #2c3e50;
+    font-size: 0.95em;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #4db6ac; /* Teal border on focus */
+    box-shadow: 0 0 0 2px rgba(77, 182, 172, 0.2); /* Subtle teal glow */
+}
+
+/* Specific style for textarea */
+textarea {
+    min-height: 80px; /* Give textarea some initial height */
+    resize: vertical; /* Allow vertical resize */
+    line-height: 1.5; /* Improve readability */
+}
+
+/* --- Task List --- */
+/* Removed .scheduled-list styles */
+
+/* Style for the task list container */
+#taskList {
+    margin-top: 20px; /* Space above the first task */
+    list-style: none; /* Remove default list styles if using ul/li */
+    padding: 0;
+}
+
+/* Individual Task Item */
+.task-item {
+    background-color: #f8f9fa; /* Slightly off-white background */
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    border: 1px solid #e8eef2; /* Match body background subtly */
+    display: flex;
+    align-items: flex-start; /* Align items top for long descriptions */
+    gap: 15px; /* Space between checkbox and content */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.task-item.complete {
+    background-color: #e8f5e9; /* Light green when complete */
+    border-color: #c8e6c9;
+}
+
+.task-item.complete .task-content .task-title,
+.task-item.complete .task-content .task-description {
+    text-decoration: line-through;
+    color: #757575; /* Grey out text when complete */
+}
+
+/* Checkbox styling */
+.task-item input[type="checkbox"] {
+    /* Custom checkbox appearance */
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #fff;
+    margin: 0;
+    margin-top: 3px; /* Align with first line of text */
+    font: inherit;
+    color: #bdc3c7;
+    width: 1.15em;
+    height: 1.15em;
+    border: 1px solid #bdc3c7;
+    border-radius: 3px;
+    transform: translateY(-0.075em);
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    flex-shrink: 0; /* Prevent checkbox from shrinking */
+}
+
+.task-item input[type="checkbox"]::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em #4db6ac; /* Teal checkmark */
+    /* Clip path for checkmark shape */
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.task-item input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+.task-item input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(77, 182, 172, 0.2); /* Focus ring */
+}
+
+/* Task Content Area */
+.task-content {
+    flex-grow: 1; /* Take remaining space */
+}
+
+.task-title {
+    font-weight: 500;
+    margin-bottom: 4px; /* Space between title and description/reminder */
+    color: #2c3e50;
+    font-size: 1em;
+}
+
+.task-description {
+    font-size: 0.85em;
+    color: #566573; /* Softer grey */
+    margin-bottom: 6px;
+    white-space: pre-wrap; /* Respect newlines in description */
+}
+
+.task-reminder {
+    font-size: 0.8em;
+    color: #4db6ac; /* Teal for reminder */
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.task-reminder::before {
+    content: '⏰'; /* Clock emoji */
+    font-size: 0.9em;
+}
+
+/* Task Actions (Delete Button) */
+.task-actions {
+    margin-left: auto; /* Push actions to the right */
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Use existing .delete-btn style, no change needed */
+
+
+/* Removed .scheduled-item styles */
+
+.info-box { /* Kept similar, adjusted colors */
+    background-color: #fdebd0;
+    color: #b9770e;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 20px;
+    text-align: left;
+    font-size: 0.9em;
+    border: 1px solid #fbe3c6;
+}
+
+
+/* Bottom Navigation Bar Styles */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #ffffff; /* White background */
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0; /* Adjusted padding */
+    box-shadow: 0 -1px 3px rgba(44, 62, 80, 0.1); /* Softer shadow */
+    z-index: 1000;
+    border-top: 1px solid #dde5eb; /* Subtle top border */
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #566573; /* Grey inactive color */
+    text-decoration: none;
+    font-size: 11px; /* Smaller font */
+    padding: 5px 10px; /* Padding for tap target */
+    transition: color 0.2s ease;
+}
+
+.nav-item.active {
+    color: #4db6ac; /* Teal active color */
+}
+.nav-item:hover {
+     color: #2c3e50; /* Darker hover */
+}
+
+.nav-icon {
+    font-size: 22px; /* Slightly smaller icons */
+    margin-bottom: 3px;
+}
+
+/* Add padding to main content to prevent overlap with navigation bar */
+/* Body padding-bottom adjusted earlier */
+
+/* Page/View system (No changes needed here) */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Remove max-width for mobile? Add media query if needed */
+/* @media (max-width: 600px) { body { max-width: none; } } */

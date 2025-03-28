@@ -1,657 +1,471 @@
-
 // Initialize variables at the top
 let scheduledNotifications = [];
 let deferredPrompt;
 
 // Wrap all DOM operations in DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize notifications
-    initScheduledNotifications();
+document.addEventListener('DOMContentLoaded', () => {
+    const notifyBtn = document.getElementById('notifyBtn');
+    const statusDiv = document.getElementById('status');
+    const permissionStatusDiv = document.getElementById('permissionStatus');
 
-    // Detect iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    console.log("Is iOS device:", isIOS);
+    // --- NEW Task Elements ---
+    const addTaskForm = document.getElementById('addTaskForm');
+    const taskTitleInput = document.getElementById('taskTitle');
+    const taskDescriptionInput = document.getElementById('taskDescription');
+    const taskReminderTimeInput = document.getElementById('taskReminderTime');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const taskListDiv = document.getElementById('taskList');
+    const addTaskStatusDiv = document.getElementById('addTaskStatus');
+    const taskListStatusDiv = document.getElementById('taskListStatus');
+    // --- End Task Elements ---
 
-    // Get DOM elements - add null checks
-    const scheduleBtn = document.getElementById('scheduleBtn');
-    const installPrompt = document.getElementById('installPrompt');
+    let swRegistration = null;
 
-    if (scheduleBtn) {
-        scheduleBtn.addEventListener('click', function() {
-            const title = document.getElementById('notificationTitle')?.value || 'Scheduled PWA Notification';
-            const body = document.getElementById('notificationMessage')?.value || 'This is your scheduled notification';
-            const timeString = document.getElementById('notificationTime')?.value;
-            const repeat = document.getElementById('notificationRepeat')?.value;
-            const statusElement = document.getElementById('status');
+    // --- PWA & Notification Permission Handling (Keep Existing) ---
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        console.log('Service Worker and Push is supported');
 
-            if (!timeString) {
-                if (statusElement) {
-                    statusElement.className = 'status error';
-                    statusElement.textContent = 'Please select a valid time';
-                }
-                return;
-            }
-
-            const time = new Date(timeString).getTime();
-  
-            if (time <= Date.now()) {
-                if (statusElement) {
-                    statusElement.className = 'status error';
-                    statusElement.textContent = 'Please select a future time';
-                }
-                return;
-            }
-  
-            // Add notification to schedule
-            const notification = {
-                id: Date.now().toString(),  // Unique ID
-                title: title,
-                body: body,
-                time: time,
-                repeat: repeat
-            };
-  
-            // Add to the scheduledNotifications array
-            scheduledNotifications.push(notification);
-  
-            // Save and schedule
-            saveScheduledNotifications();
-            scheduleNotification(notification);
-  
-            if (statusElement) {
-                statusElement.className = 'status success';
-                statusElement.textContent = 'Notification scheduled! Check the list below.';
-            }
-  
-            // Reset form
-            document.getElementById('notificationTitle').value = 'Scheduled PWA Notification';
-            document.getElementById('notificationMessage').value = 'This is your scheduled notification';
-            const newDefault = new Date(Date.now() + 60000);
-            document.getElementById('notificationTime').value = newDefault.toISOString().slice(0, 16);
-        });
-    }
-
-    // Set default date time
-    const notificationTimeInput = document.getElementById('notificationTime');
-    if (notificationTimeInput) {
-        const defaultDateTime = new Date(Date.now() + 60000);
-        notificationTimeInput.value = defaultDateTime.toISOString().slice(0, 16);
-    }
-
-    // Install prompt handlers
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        if (installPrompt) {
-            installPrompt.style.display = 'block';
-        }
-    });
-
-    document.getElementById('installBtn').addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User ${outcome} the installation`);
-            deferredPrompt = null;
-            if (installPrompt) {
-                installPrompt.style.display = 'none';
-            }
-        }
-    });
-
-    // Update permission status on load
-    window.addEventListener('load', function() {
-        updatePermissionStatus();
-    });
-}); // End of DOMContentLoaded
-
-// Push notification setup function - IMPROVED VERSION
-function setupPushSubscription() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      document.getElementById('status').className = 'status error';
-      document.getElementById('status').textContent = 'Push notifications not supported in this browser';
-      return Promise.reject(new Error('Push notifications not supported'));
-    }
-    
-    let swRegistration;
-    return navigator.serviceWorker.ready
-      .then(registration => {
-        swRegistration = registration;
-        console.log('Service Worker is ready:', registration);
-        
-        // Check existing subscription
-        return registration.pushManager.getSubscription();
-      })
-      .then(subscription => {
-        if (subscription) {
-          // We already have a subscription
-          console.log('Existing push subscription found');
-          return subscription;
-        }
-        
-        // We need to create a new subscription
-        console.log('Creating new push subscription...');
-        
-        // Your VAPID public key
-        const vapidPublicKey = 'BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0';
-        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-        
-        // Create new subscription with increased reliability options
-        return swRegistration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedVapidKey
-        });
-      })
-      .then(subscription => {
-        // Log the subscription for debugging
-        console.log('Push subscription details:', JSON.stringify(subscription));
-        
-        // Send to server
-        return fetch('/api/save-subscription', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(subscription)
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to save subscription on server');
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Subscription saved successfully:', data);
-          
-          // Update UI
-          document.getElementById('status').className = 'status success';
-          document.getElementById('status').textContent = 'Push notifications enabled! You will receive notifications even when the app is closed.';
-          
-          // Make sure to send all scheduled notifications to service worker
-          syncScheduledNotificationsWithSW(swRegistration);
-          
-          return { success: true, subscription };
-        });
-      })
-      .catch(error => {
-        console.error('Push subscription setup failed:', error);
-        
-        document.getElementById('status').className = 'status error';
-        document.getElementById('status').textContent = 'Push notification setup failed: ' + error.message;
-        
-        return { success: false, error };
-      });
-  }
-  
-  // Helper function to convert base64 to Uint8Array (VAPID key format)
-  function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-  
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-  
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
-  
-  // Sync scheduled notifications with service worker
-  function syncScheduledNotificationsWithSW(registration) {
-    if (!registration || !registration.active) {
-      console.error('No active service worker registration available');
-      return;
-    }
-    
-    // Load notifications from localStorage
-    const scheduledNotifications = JSON.parse(localStorage.getItem('scheduledNotifications')) || [];
-    
-    if (scheduledNotifications.length > 0) {
-      console.log('Syncing notifications with service worker:', scheduledNotifications.length);
-      
-      // Send to service worker
-      registration.active.postMessage({
-        type: 'SETUP_NOTIFICATIONS',
-        notifications: scheduledNotifications
-      });
-    }
-  }
-  
-  // Request notification permission and setup push
-  function requestNotificationPermission() {
-    // Check if browser supports notifications
-    if (!('Notification' in window)) {
-      console.error('This browser does not support notifications');
-      alert('This browser does not support notifications');
-      return Promise.reject(new Error('Notifications not supported'));
-    }
-    
-    console.log('Requesting notification permission...');
-    
-    // Request permission
-    return Notification.requestPermission()
-      .then(permission => {
-        if (permission === 'granted') {
-          console.log('Notification permission granted');
-          
-          // Set up push subscription
-          return setupPushSubscription();
-        } else {
-          console.log('Notification permission denied');
-          
-          document.getElementById('status').className = 'status error';
-          document.getElementById('status').textContent = 'Notification permission denied. Please enable notifications in browser settings.';
-          
-          return { success: false, error: 'Permission denied' };
-        }
-      });
-  }
-  
-  // Function to test push notifications
-  function testPushNotification() {
-    fetch('/api/send-test-notification', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({})
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Test notification result:', data);
-      
-      if (data.success) {
-        document.getElementById('status').className = 'status success';
-        document.getElementById('status').textContent = 'Test notification sent! You should receive it shortly, even with the app closed.';
-      } else {
-        document.getElementById('status').className = 'status error';
-        document.getElementById('status').textContent = 'Failed to send test notification: ' + (data.message || 'Unknown error');
-      }
-    })
-    .catch(error => {
-      console.error('Error sending test notification:', error);
-      document.getElementById('status').className = 'status error';
-      document.getElementById('status').textContent = 'Error sending test notification: ' + error.message;
-    });
-  }
-  
-  // Send notification function (improved for better delivery)
-  function sendNotification(title = 'PWA Notification', body = 'This is a notification from your PWA') {
-    const statusElement = document.getElementById('status');
-    const options = {
-      body: body,
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
-      vibrate: [100, 50, 100],
-      tag: 'notification-' + Date.now(),
-      renotify: true,
-      requireInteraction: true,
-      data: {
-        dateOfArrival: Date.now(),
-        primaryKey: Date.now()
-      }
-    };
-  
-    // Check if service worker is active
-    if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.ready.then(function(registration) {
-        registration.showNotification(title, options)
-          .then(() => {
-            statusElement.className = 'status success';
-            statusElement.textContent = 'Notification sent successfully!';
-          })
-          .catch(error => {
-            console.error('Error showing notification:', error);
-            statusElement.className = 'status error';
-            statusElement.textContent = 'Error sending notification: ' + error.message;
-          });
-      });
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(swReg => {
+                console.log('Service Worker is registered', swReg);
+                swRegistration = swReg;
+                // Setup push subscription if permission is already granted
+                checkNotificationPermission(true); // Check permission silently first
+                 // --- NEW: Load tasks after SW is ready ---
+                loadTasks();
+            })
+            .catch(error => {
+                console.error('Service Worker Error', error);
+                updateStatus('Service Worker registration failed', true);
+            });
     } else {
-      // Fallback to regular notification
-      try {
-        new Notification(title, options);
-        statusElement.className = 'status success';
-        statusElement.textContent = 'Notification sent successfully!';
-      } catch (error) {
-        console.error('Error sending notification:', error);
-        statusElement.className = 'status error';
-        statusElement.textContent = 'Error sending notification: ' + error.message;
-      }
-    }
-  }
-  
-  // Add test push notification button
-  function addTestPushButton() {
-    const container = document.querySelector('.notification-controls');
-    if (!container) return;
-    
-    // Create test button if it doesn't exist
-    if (!document.getElementById('testPushBtn')) {
-      const testButton = document.createElement('button');
-      testButton.id = 'testPushBtn';
-      testButton.innerText = 'Test Background Push';
-      testButton.style.marginTop = '15px';
-      testButton.style.backgroundColor = '#9C27B0';
-      
-      testButton.addEventListener('click', testPushNotification);
-      container.appendChild(testButton);
-    }
-  }
-  
-  // Scheduled notifications functionality
-  // Initialize scheduled notifications
-  function initScheduledNotifications() {
-    console.log('Initializing scheduled notifications');
-    // Load from localStorage first
-    const savedNotifications = localStorage.getItem('scheduledNotifications');
-    if (savedNotifications) {
-      try {
-        scheduledNotifications = JSON.parse(savedNotifications);
-        console.log(`Loaded ${scheduledNotifications.length} notifications from localStorage`);
-      } catch (error) {
-        console.error('Error parsing stored notifications:', error);
-        scheduledNotifications = [];
-      }
+        console.warn('Push messaging is not supported');
+        notifyBtn.textContent = 'Push Not Supported';
+        notifyBtn.disabled = true;
+        permissionStatusDiv.textContent = 'Push messaging is not supported by this browser.';
+        permissionStatusDiv.className = 'notifications-status permission-denied';
+         // --- NEW: Still load tasks even if push is not supported ---
+         loadTasks();
     }
 
-    // Check for expired one-time notifications
-    const now = Date.now();
-    scheduledNotifications = scheduledNotifications.filter(notification => {
-      // Keep all repeating notifications
-      if (notification.repeat && notification.repeat !== 'none') {
-        return true;
-      }
-      // For one-time notifications, only keep future ones
-      return notification.time > now;
+    notifyBtn.addEventListener('click', () => {
+        if (Notification.permission === 'granted') {
+             console.log('Permission already granted, checking subscription...');
+             setupPushSubscription(); // Re-check/setup subscription
+        } else if (Notification.permission === 'denied') {
+             updateStatus('Notification permission was previously denied. Please enable it in browser settings.', true);
+        } else {
+            requestNotificationPermission();
+        }
     });
 
-    // Update UI immediately
-    updateScheduledNotificationsUI();
-
-    // Schedule all notifications
-    for (const notification of scheduledNotifications) {
-      scheduleNotification(notification, false); // Don't re-save to avoid loop
-    }
-
-    // Send to service worker
-    syncWithServiceWorker();
-  }
-
-  // Schedule a notification
-  function scheduleNotification(notification, shouldSave = true) {
-    // Log scheduling
-    console.log(`Scheduling notification "${notification.title}" for ${new Date(notification.time).toLocaleString()}`);
-    
-    // For immediate UI feedback
-    if (shouldSave) {
-      // Add to array if new
-      if (!scheduledNotifications.find(n => n.id === notification.id)) {
-        scheduledNotifications.push(notification);
-      }
-      // Save to localStorage
-      saveScheduledNotifications();
-    }
-    
-    // Calculate delay
-    const now = Date.now();
-    const delay = notification.time - now;
-    
-    // Skip past notifications
-    if (delay <= 0) return;
-    
-    // Set timeout for browser context
-    const timeoutId = setTimeout(() => {
-      console.log(`Time to show notification: ${notification.title}`);
-      
-      // Show the notification
-      sendNotification(notification.title, notification.body);
-      
-      // Handle repeating
-      if (notification.repeat === 'daily') {
-        // Schedule next day
-        const nextTime = notification.time + (24 * 60 * 60 * 1000);
-        const updatedNotification = { ...notification, time: nextTime };
-        
-        // Update in array
-        const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-        if (index !== -1) {
-          scheduledNotifications[index] = updatedNotification;
-          saveScheduledNotifications();
-          scheduleNotification(updatedNotification, false);
+    function checkNotificationPermission(silent = false) {
+        if (!('Notification' in window)) {
+            permissionStatusDiv.textContent = 'Notifications not supported.';
+            permissionStatusDiv.className = 'notifications-status permission-denied';
+            notifyBtn.disabled = true;
+            return;
         }
-      } else if (notification.repeat === 'weekly') {
-        // Schedule next week
-        const nextTime = notification.time + (7 * 24 * 60 * 60 * 1000);
-        const updatedNotification = { ...notification, time: nextTime };
-        
-        // Update in array
-        const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-        if (index !== -1) {
-          scheduledNotifications[index] = updatedNotification;
-          saveScheduledNotifications();
-          scheduleNotification(updatedNotification, false);
+
+        const permission = Notification.permission;
+        permissionStatusDiv.textContent = `Notification Permission: ${permission.toUpperCase()}`;
+        permissionStatusDiv.classList.remove('permission-granted', 'permission-denied', 'permission-default');
+
+        if (permission === 'granted') {
+            permissionStatusDiv.classList.add('permission-granted');
+            notifyBtn.textContent = 'Background Reminders Enabled';
+            notifyBtn.disabled = true; // Or change to 'Refresh Subscription'?
+             // If granted, ensure subscription is set up
+             if (!silent) setupPushSubscription();
+        } else if (permission === 'denied') {
+            permissionStatusDiv.classList.add('permission-denied');
+            notifyBtn.textContent = 'Enable Background Reminders';
+            notifyBtn.disabled = false;
+            if (!silent) updateStatus('Enable notifications in browser settings to use reminders.', true);
+        } else {
+            permissionStatusDiv.classList.add('permission-default');
+            notifyBtn.textContent = 'Enable Background Reminders';
+            notifyBtn.disabled = false;
         }
-      } else {
-        // One-time notification - remove it
-        const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-        if (index !== -1) {
-          scheduledNotifications.splice(index, 1);
-          saveScheduledNotifications();
+    }
+
+     async function requestNotificationPermission() {
+         try {
+             const permissionResult = await Notification.requestPermission();
+             checkNotificationPermission(); // Update UI based on new permission
+             if (permissionResult === 'granted') {
+                 console.log('Notification permission granted.');
+                 updateStatus('Permission granted! Setting up background sync...', false);
+                 await setupPushSubscription();
+                 updateStatus('Background reminders enabled!', false);
+             } else {
+                 console.log('Notification permission denied.');
+                 updateStatus('Permission denied. Reminders will not work in the background.', true);
+             }
+         } catch (error) {
+             console.error('Error requesting notification permission:', error);
+             updateStatus('Error requesting permission.', true);
+         }
+     }
+
+    async function setupPushSubscription() {
+        if (!swRegistration) {
+            console.error('Service worker registration not found.');
+            updateStatus('Service Worker not ready.', true);
+            return;
         }
-      }
-    }, delay);
-    
-    // Store timeout ID for cleanup
-    const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-    if (index !== -1) {
-      // Store as a property
-      scheduledNotifications[index]._timeoutId = timeoutId;
-    }
-    
-    // Try to schedule on server
-    try {
-      fetch('/api/schedule-notification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: notification.title,
-          body: notification.body,
-          scheduledTime: notification.time,
-          repeat: notification.repeat
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          console.log('Server scheduling successful:', data.id);
-          // Store server ID reference
-          const index = scheduledNotifications.findIndex(n => n.id === notification.id);
-          if (index !== -1) {
-            scheduledNotifications[index].serverId = data.id;
-            saveScheduledNotifications();
-          }
-        }
-      })
-      .catch(error => {
-        console.error('Error scheduling with server:', error);
-      });
-    } catch (e) {
-      console.warn('Server scheduling failed:', e);
-    }
-    
-    // Sync with service worker
-    syncWithServiceWorker();
-  }
 
-  // Save scheduled notifications to localStorage
-  function saveScheduledNotifications() {
-    try {
-      // Create a clean copy without timeout IDs (which can't be serialized)
-      const cleanNotifications = scheduledNotifications.map(notification => {
-        // Create a new object without the timeout ID
-        const { _timeoutId, ...cleanNotification } = notification;
-        return cleanNotification;
-      });
-      
-      localStorage.setItem('scheduledNotifications', JSON.stringify(cleanNotifications));
-      console.log(`Saved ${cleanNotifications.length} notifications to localStorage`);
-      
-      // Update UI
-      updateScheduledNotificationsUI();
-    } catch (error) {
-      console.error('Error saving notifications:', error);
-    }
-  }
-
-  // Update UI with scheduled notifications
-  function updateScheduledNotificationsUI() {
-    const container = document.getElementById('scheduledNotifications');
-    if (!container) {
-      console.error('Scheduled notifications container not found');
-      return;
-    }
-    
-    container.innerHTML = '';
-    
-    if (scheduledNotifications.length === 0) {
-      container.innerHTML = '<p>No scheduled notifications</p>';
-      return;
-    }
-    
-    // Sort by time
-    const sortedNotifications = [...scheduledNotifications].sort((a, b) => a.time - b.time);
-    
-    sortedNotifications.forEach((notification, index) => {
-      const notificationTime = new Date(notification.time);
-      const item = document.createElement('div');
-      item.className = 'scheduled-item';
-      
-      let repeatText = '';
-      switch(notification.repeat) {
-        case 'daily': repeatText = ' (Repeats Daily)'; break;
-        case 'weekly': repeatText = ' (Repeats Weekly)'; break;
-        default: repeatText = ' (One-time)';
-      }
-      
-      item.innerHTML = `
-        <div>
-          <strong>${notification.title}</strong>
-          <p>${notification.body}</p>
-          <p>${notificationTime.toLocaleString()}${repeatText}</p>
-        </div>
-        <button class="delete-btn" data-index="${index}">Delete</button>
-      `;
-      container.appendChild(item);
-    });
-    
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'));
-        removeScheduledNotification(index);
-      });
-    });
-  }
-
-  // Remove a scheduled notification
-  function removeScheduledNotification(index) {
-    if (index < 0 || index >= scheduledNotifications.length) return;
-    
-    const notification = scheduledNotifications[index];
-    
-    // Clear the timeout if it exists
-    if (notification._timeoutId) {
-      clearTimeout(notification._timeoutId);
-    }
-    
-    // Remove from server if it has a server ID
-    if (notification.serverId) {
-      fetch(`/api/delete-notification/${notification.serverId}`, {
-        method: 'DELETE'
-      }).catch(err => {
-        console.error('Error deleting notification from server:', err);
-      });
-    }
-    
-    // Remove from array and save
-    scheduledNotifications.splice(index, 1);
-    saveScheduledNotifications();
-    
-    // Update service worker
-    syncWithServiceWorker();
-  }
-
-  // Sync with service worker
-  function syncWithServiceWorker() {
-    if (!('serviceWorker' in navigator)) return;
-    
-    navigator.serviceWorker.ready.then(registration => {
-      if (registration.active) {
-        console.log('Syncing notifications with service worker');
-        
-        // Create a clean copy for the service worker
-        const cleanNotifications = scheduledNotifications.map(notification => {
-          const { _timeoutId, ...cleanNotification } = notification;
-          return cleanNotification;
-        });
-        
-        registration.active.postMessage({
-          type: 'SETUP_NOTIFICATIONS',
-          notifications: cleanNotifications
-        });
-      }
-    }).catch(err => {
-      console.error('Error syncing with service worker:', err);
-    });
-  }
-  
-  // Initialize everything when the page loads
-  window.addEventListener('load', function() {
-    // Register service worker first
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(function(registration) {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          
-          // Request notification permission after SW is registered
-          if (Notification.permission === 'granted') {
-            // Permission already granted, setup subscription
-            setupPushSubscription()
-              .then(() => {
-                // Add test button after successful setup
-                addTestPushButton();
-              });
-          } else if (Notification.permission !== 'denied') {
-            // We need to request permission
-            const askPermissionBtn = document.getElementById('notifyBtn');
-            if (askPermissionBtn) {
-              askPermissionBtn.textContent = 'Enable Background Notifications';
-              
-              // Replace click handler
-              askPermissionBtn.addEventListener('click', function() {
-                requestNotificationPermission()
-                  .then(result => {
-                    if (result.success) {
-                      addTestPushButton();
-                    }
-                  });
-              });
+        try {
+            let subscription = await swRegistration.pushManager.getSubscription();
+            if (subscription) {
+                console.log('User IS already subscribed.');
+                 // Optional: Update server with latest subscription info? Might be redundant.
+                 // sendSubscriptionToServer(subscription);
+                 updateStatus('Already subscribed for background reminders.', false);
+                 notifyBtn.disabled = true;
+                 notifyBtn.textContent = 'Reminders Enabled';
+            } else {
+                console.log('User is NOT subscribed. Subscribing...');
+                const applicationServerKey = urlBase64ToUint8Array('BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0'); // Your public VAPID key
+                subscription = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey
+                });
+                console.log('User subscribed:', subscription);
+                await sendSubscriptionToServer(subscription);
+                updateStatus('Successfully subscribed for background reminders!', false);
+                notifyBtn.disabled = true;
+                notifyBtn.textContent = 'Reminders Enabled';
             }
-          }
-          
-          // Initialize scheduled notifications
-          initScheduledNotifications(registration);
-        })
-        .catch(function(error) {
-          console.error('ServiceWorker registration failed: ', error);
-          document.getElementById('status').className = 'status error';
-          document.getElementById('status').textContent = 'Failed to register service worker: ' + error.message;
+        } catch (err) {
+            console.error('Failed to subscribe the user: ', err);
+            if (Notification.permission === 'denied') {
+                updateStatus('Subscription failed: Permission denied.', true);
+            } else {
+                 updateStatus('Failed to subscribe for background reminders.', true);
+            }
+            notifyBtn.disabled = false; // Allow retry
+            notifyBtn.textContent = 'Enable Background Reminders';
+        }
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
+        return outputArray;
+    }
+
+    async function sendSubscriptionToServer(subscription) {
+        try {
+            const response = await fetch('/api/save-subscription', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) { throw new Error(`Server error: ${response.status}`); }
+            const data = await response.json();
+            console.log('Subscription save response:', data);
+        } catch (error) {
+            console.error('Error sending subscription to server:', error);
+             updateStatus('Failed to save subscription state.', true);
+        }
+    }
+
+    // --- General Status Update Function ---
+    function updateStatus(message, isError = false) {
+        console.log(`Status Update: ${message} (Error: ${isError})`);
+        statusDiv.textContent = message;
+        statusDiv.className = `status ${isError ? 'error' : 'success'}`;
+        statusDiv.style.display = 'block';
+        setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+    }
+
+    // --- Task Specific Status Update Functions ---
+    function updateAddTaskStatus(message, isError = false) {
+        console.log(`Add Task Status: ${message} (Error: ${isError})`);
+        addTaskStatusDiv.textContent = message;
+        addTaskStatusDiv.className = `status ${isError ? 'error' : 'success'}`;
+        addTaskStatusDiv.style.display = 'block';
+        setTimeout(() => { addTaskStatusDiv.style.display = 'none'; }, 4000);
+    }
+
+    function updateTaskListStatus(message, isError = false) {
+        console.log(`Task List Status: ${message} (Error: ${isError})`);
+        taskListStatusDiv.textContent = message;
+        taskListStatusDiv.className = `status ${isError ? 'error' : 'success'}`;
+        taskListStatusDiv.style.display = 'block';
+         // Make list status messages less transient
+         // setTimeout(() => { taskListStatusDiv.style.display = 'none'; }, 5000);
+    }
+
+    // --- Task Management Functions ---
+
+    // Load tasks from the server
+    async function loadTasks() {
+        console.log("Loading tasks...");
+        updateTaskListStatus("Loading tasks...", false);
+        try {
+            const response = await fetch('/api/tasks');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const tasks = await response.json();
+            console.log("Tasks loaded:", tasks);
+            renderTaskList(tasks);
+            updateTaskListStatus("", false); // Clear loading message
+            taskListStatusDiv.style.display = 'none'; // Hide if successful
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+            taskListDiv.innerHTML = '<p class="error">Failed to load tasks. Please try refreshing.</p>';
+            updateTaskListStatus("Error loading tasks.", true);
+        }
+    }
+
+    // Render the list of tasks
+    function renderTaskList(tasks) {
+        taskListDiv.innerHTML = ''; // Clear current list
+        if (!tasks || tasks.length === 0) {
+            taskListDiv.innerHTML = '<p>No tasks yet. Add one above!</p>';
+            return;
+        }
+
+        tasks.forEach(task => {
+            const taskElement = createTaskElement(task);
+            taskListDiv.appendChild(taskElement);
         });
     }
-  });
+
+    // Create DOM element for a single task
+    function createTaskElement(task) {
+        const div = document.createElement('div');
+        div.className = `task-item ${task.is_complete ? 'complete' : ''}`;
+        div.setAttribute('data-task-id', task.id);
+
+        // Checkbox
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = task.is_complete;
+        checkbox.addEventListener('change', handleToggleComplete);
+        div.appendChild(checkbox);
+
+        // Task Content
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'task-content';
+
+        const titleP = document.createElement('p');
+        titleP.className = 'task-title';
+        titleP.textContent = task.title;
+        contentDiv.appendChild(titleP);
+
+        if (task.description) {
+            const descP = document.createElement('p');
+            descP.className = 'task-description';
+            descP.textContent = task.description;
+            contentDiv.appendChild(descP);
+        }
+
+        // Display Reminder Time if active and exists
+        if (task.reminder_time) {
+             try {
+                const reminderDate = new Date(task.reminder_time);
+                // Only show active reminders or completed task reminders
+                if (task.is_reminder_active || task.is_complete) {
+                    const reminderP = document.createElement('p');
+                    reminderP.className = 'task-reminder';
+                    reminderP.textContent = ` ${reminderDate.toLocaleString()}`;
+                     if (!task.is_reminder_active && task.is_complete) {
+                         reminderP.style.textDecoration = 'line-through';
+                         reminderP.style.opacity = '0.7';
+                     }
+                     contentDiv.appendChild(reminderP);
+                 }
+            } catch (e) { console.error("Error parsing reminder date for display:", task.reminder_time, e); }
+        }
+
+        div.appendChild(contentDiv);
+
+        // Task Actions (Delete Button)
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'task-actions';
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn'; // Use existing style
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', handleDeleteTask);
+        actionsDiv.appendChild(deleteBtn);
+        div.appendChild(actionsDiv);
+
+        return div;
+    }
+
+    // Handle form submission to add a new task
+    addTaskForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        addTaskBtn.disabled = true;
+        addTaskBtn.textContent = 'Adding...';
+        updateAddTaskStatus("Adding task...", false);
+
+        const title = taskTitleInput.value.trim();
+        const description = taskDescriptionInput.value.trim();
+        const reminderTime = taskReminderTimeInput.value;
+
+        if (!title) {
+            updateAddTaskStatus("Task title cannot be empty.", true);
+            addTaskBtn.disabled = false;
+            addTaskBtn.textContent = 'Add Task';
+            return;
+        }
+
+        const taskData = {
+            title: title,
+            description: description || null, // Send null if empty
+            reminderTime: reminderTime || null // Send null if empty
+        };
+
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Server error adding task' }));
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const newTask = await response.json();
+            console.log("Task added:", newTask);
+
+            // Add to top of UI optimistically (or reload all)
+            // Option 1: Add directly
+            const taskElement = createTaskElement(newTask);
+            // Insert incomplete tasks before the first complete task, or at the end
+            const firstCompleted = taskListDiv.querySelector('.task-item.complete');
+            taskListDiv.insertBefore(taskElement, firstCompleted); // If firstCompleted is null, it appends to end
+
+            if (taskListDiv.querySelector('p')) { // Remove 'No tasks yet' message if present
+                 taskListDiv.querySelector('p').remove();
+            }
+            // Option 2: Reload all tasks (simpler but less smooth)
+            // await loadTasks();
+
+            // Clear form
+            addTaskForm.reset();
+            updateAddTaskStatus("Task added successfully!", false);
+
+        } catch (error) {
+            console.error('Error adding task:', error);
+            updateAddTaskStatus(`Error adding task: ${error.message}`, true);
+        } finally {
+            addTaskBtn.disabled = false;
+            addTaskBtn.textContent = 'Add Task';
+        }
+    });
+
+    // Handle clicking the checkbox to toggle completion
+    async function handleToggleComplete(event) {
+        const checkbox = event.target;
+        const taskItem = checkbox.closest('.task-item');
+        const taskId = taskItem.getAttribute('data-task-id');
+        const isComplete = checkbox.checked;
+
+        console.log(`Toggling task ${taskId} to complete=${isComplete}`);
+        taskItem.style.opacity = '0.7'; // Optimistic UI feedback
+
+        try {
+            const response = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_complete: isComplete })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const updatedTask = await response.json();
+            console.log("Task updated:", updatedTask);
+
+            // Update UI definitively
+            taskItem.classList.toggle('complete', updatedTask.is_complete);
+             // Re-render reminder state if needed (e.g., line-through)
+             const reminderP = taskItem.querySelector('.task-reminder');
+             if (reminderP && updatedTask.is_complete && !updatedTask.is_reminder_active) {
+                 reminderP.style.textDecoration = 'line-through';
+                 reminderP.style.opacity = '0.7';
+             } else if (reminderP) {
+                 reminderP.style.textDecoration = 'none';
+                 reminderP.style.opacity = '1';
+             }
+
+            // OPTIONAL: Move completed task to the bottom / re-sort list
+            // This makes the UI jump a bit, but keeps lists ordered.
+            // Uncomment if desired:
+            /*
+            if (updatedTask.is_complete) {
+                taskListDiv.appendChild(taskItem); // Move to end
+            } else {
+                // Move back to top or before first complete item
+                const firstCompleted = taskListDiv.querySelector('.task-item.complete');
+                taskListDiv.insertBefore(taskItem, firstCompleted);
+            }
+            */
+
+        } catch (error) {
+            console.error('Error updating task completion:', error);
+            updateTaskListStatus("Error updating task status.", true);
+            // Revert UI on error
+            checkbox.checked = !isComplete;
+            taskItem.classList.toggle('complete', !isComplete);
+        } finally {
+             taskItem.style.opacity = '1';
+        }
+    }
+
+    // Handle clicking the delete button
+    async function handleDeleteTask(event) {
+        const deleteBtn = event.target;
+        const taskItem = deleteBtn.closest('.task-item');
+        const taskId = taskItem.getAttribute('data-task-id');
+        const taskTitle = taskItem.querySelector('.task-title').textContent;
+
+        if (!taskId) { console.error("Could not find task ID to delete"); return; }
+
+        if (confirm(`Are you sure you want to delete task "${taskTitle}"?`)) {
+            console.log(`Deleting task ${taskId}`);
+            taskItem.style.opacity = '0.5'; // Optimistic UI feedback
+            deleteBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                     const errorData = await response.json().catch(() => ({ error: 'Server error deleting task' }));
+                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                console.log(`Task ${taskId} deleted successfully on server.`);
+                taskItem.remove(); // Remove from UI
+                updateTaskListStatus("Task deleted.", false);
+                 if (taskListDiv.childElementCount === 0) {
+                     taskListDiv.innerHTML = '<p>No tasks yet. Add one above!</p>';
+                 }
+
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                updateTaskListStatus(`Error deleting task: ${error.message}`, true);
+                taskItem.style.opacity = '1'; // Restore UI on error
+                 deleteBtn.disabled = false;
+            }
+        }
+    }
+
+    // Initial check for notification permission on load
+    checkNotificationPermission(true);
+
+}); // End DOMContentLoaded
