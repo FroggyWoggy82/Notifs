@@ -5,25 +5,44 @@ const router = express.Router();
 
 // --- Helper function to build the tree ---
 function buildGoalTree(goals) {
+    console.log('--- buildGoalTree START ---'); // Log start
+    console.log('Raw goals received from DB:', goals); // Log raw data
+
     const map = {};
     const roots = [];
 
     // First pass: Create a map of nodes
     goals.forEach(goal => {
-        map[goal.id] = { ...goal, children: [] }; // Copy goal and add children array
+        // Log each goal being added to map
+        console.log(`Mapping goal ${goal.id} ('${goal.text}')`);
+        map[goal.id] = { ...goal, children: [] };
     });
+    console.log('Map created:', map); // Log the map after first pass
 
     // Second pass: Build the tree structure
+    console.log('Starting tree build (second pass)...');
     goals.forEach(goal => {
         const node = map[goal.id];
+        // Log which node is being processed for parenting
+        console.log(`Processing node ${node.id} for parenting. Parent ID: ${goal.parent_id}`);
+
         if (goal.parent_id !== null && map[goal.parent_id]) {
-            // It's a child, add it to the parent's children array
+            // Log when a child IS being added
+            console.log(`  -> Found parent ${goal.parent_id} in map. Adding node ${node.id} to parent's children.`);
             map[goal.parent_id].children.push(node);
-        } else {
-            // It's a root node
+        } else if (goal.parent_id !== null && !map[goal.parent_id]) {
+            // Log if the parent ID exists but WASN'T in the map (shouldn't happen with current query)
+             console.warn(`  -> WARNING: Parent ID ${goal.parent_id} specified for node ${node.id}, but parent not found in map!`);
+        }
+         else {
+            // Log when a root node is identified
+            console.log(`  -> Node ${node.id} is a root node (parent_id is null). Adding to roots.`);
             roots.push(node);
         }
     });
+
+    console.log('Tree build complete. Roots:', JSON.stringify(roots, null, 2)); // Log the final structure
+    console.log('--- buildGoalTree END ---'); // Log end
     return roots; // Return only the root nodes
 }
 // --- ---
