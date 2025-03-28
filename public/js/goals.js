@@ -3,138 +3,248 @@ document.addEventListener('DOMContentLoaded', function() {
     const setMainGoalBtn = document.getElementById('setMainGoalBtn');
     const goalTree = document.getElementById('goalTree');
 
-    function createGoalBox(goalName, isSubGoal = false) {
+    // --- Function to create the DOM element for a goal ---
+    // Takes the goal object from the DB (or API response)
+    function createGoalElement(goal) {
         const goalBox = document.createElement('div');
         goalBox.className = 'goal-box';
-        goalBox.textContent = goalName;
+        goalBox.textContent = goal.text;
+        goalBox.setAttribute('data-id', goal.id); // Store DB ID on the element
 
-        // Create the goal-actions container
+        // Actions container
         const goalActions = document.createElement('div');
         goalActions.className = 'goal-actions';
 
-        // Create the plus button
+        // Plus button
         const plusButton = document.createElement('button');
         plusButton.textContent = '+';
         plusButton.className = 'plus-button action-button';
         plusButton.title = "Add sub-goal";
-        plusButton.style.display = 'none'; // Initially hidden
+        plusButton.style.display = 'none';
+        plusButton.addEventListener('click', handleAddSubGoal); // Use named handler
         goalActions.appendChild(plusButton);
 
-        // Create the DELETE button
+        // Delete button
         const deleteButton = document.createElement('button');
-        deleteButton.textContent = '✕'; // Using a cross symbol
+        deleteButton.textContent = '✕';
         deleteButton.className = 'delete-button action-button';
         deleteButton.title = "Delete goal";
-        deleteButton.style.display = 'none'; // Initially hidden
+        deleteButton.style.display = 'none';
+        deleteButton.addEventListener('click', handleDeleteGoal); // Use named handler
         goalActions.appendChild(deleteButton);
 
         goalBox.appendChild(goalActions);
 
-        // REMOVED: No need to manually add goal-arrow div
-        // if (isSubGoal) {
-        //     const goalArrow = document.createElement('div');
-        //     goalArrow.className = 'goal-arrow';
-        //     goalBox.prepend(goalArrow); // Prepend puts it before text
-        // }
-
-        // Event listeners
-        goalBox.addEventListener('mouseenter', function() { // Use mouseenter/mouseleave for better handling
-            plusButton.style.display = 'inline-flex'; // Use flex for consistency
+        // Event listeners for showing/hiding buttons
+        goalBox.addEventListener('mouseenter', () => {
+            plusButton.style.display = 'inline-flex';
             deleteButton.style.display = 'inline-flex';
         });
-
-        goalBox.addEventListener('mouseleave', function() {
+        goalBox.addEventListener('mouseleave', () => {
             plusButton.style.display = 'none';
             deleteButton.style.display = 'none';
         });
 
-        plusButton.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevent triggering parent listeners
-            const subGoalName = prompt("Enter sub-goal:");
+        // Wrap in goal-node
+        const goalNode = document.createElement('div');
+        goalNode.className = 'goal-node';
+        goalNode.setAttribute('data-id', goal.id); // Also store ID on node for easier selection
+        goalNode.appendChild(goalBox);
 
-            if (subGoalName && subGoalName.trim()) { // Ensure input is not empty
-                // Find the goal-node containing the clicked button's goal-box
-                const parentGoalNode = this.closest('.goal-node');
-                if (!parentGoalNode) return; // Safety check
-
-                // Create the sub-goal *box* (isSubGoal is true implicitly)
-                const subGoalBoxElement = createGoalBox(subGoalName.trim(), true); // Pass true
-
-                // Find or create the sub-goals container within the parent node
-                let subGoalsContainer = parentGoalNode.querySelector('.sub-goals');
-                if (!subGoalsContainer) {
-                    subGoalsContainer = document.createElement('div');
-                    subGoalsContainer.className = 'sub-goals';
-                    // Insert sub-goals container *after* the parent goal-box
-                    parentGoalNode.appendChild(subGoalsContainer);
-                }
-
-                // Create the new goal-node wrapper for the sub-goal
-                const subGoalNode = document.createElement('div');
-                subGoalNode.className = 'goal-node';
-                subGoalNode.appendChild(subGoalBoxElement); // Add the box to the node
-
-                // Add the new goal-node to the container
-                subGoalsContainer.appendChild(subGoalNode);
-            }
-        });
+        // Container for sub-goals (will be populated later if needed)
+        const subGoalsContainer = document.createElement('div');
+        subGoalsContainer.className = 'sub-goals';
+        // Check if goal HAS children, if so, append container immediately
+        // (Alternatively, always append and let CSS hide empty ones if preferred)
+        goalNode.appendChild(subGoalsContainer);
 
 
-        deleteButton.addEventListener('click', function(event) {
-            event.stopPropagation();
-            // Find the closest goal-node to remove the entire branch/node
-            const goalNodeToRemove = event.target.closest('.goal-node');
-            if (goalNodeToRemove) {
-                // Get goal name for confirmation (optional)
-                const goalBox = goalNodeToRemove.querySelector('.goal-box');
-                const goalNameConfirm = goalBox ? goalBox.textContent.split('+')[0].trim() : 'this goal'; // Basic name extraction
-
-                if (confirm(`Delete "${goalNameConfirm}" and all its sub-goals?`)) {
-                   // Check if this node is inside a sub-goals container and if it's the last one
-                   const parentSubGoals = goalNodeToRemove.parentElement;
-                   if (parentSubGoals && parentSubGoals.classList.contains('sub-goals')) {
-                       goalNodeToRemove.remove();
-                       // If the container is now empty, remove it
-                       if (parentSubGoals.childElementCount === 0) {
-                           parentSubGoals.remove();
-                       }
-                   } else {
-                       // If it's the main goal or structure is different
-                       goalNodeToRemove.remove();
-                       // If removing the main goal, clear the tree?
-                       if (!document.querySelector('#goalTree .goal-node')) {
-                           goalTree.innerHTML = ''; // Clear tree if main goal removed
-                       }
-                   }
-                }
-            } else {
-                // Fallback for potential structure issues (e.g., deleting main box directly? Should be in node)
-                 const goalBoxToRemove = event.target.closest('.goal-box');
-                 if (goalBoxToRemove && confirm(`Delete "${goalName}"?`)) {
-                      goalBoxToRemove.remove();
-                 }
-            }
-        });
-
-        // Wrap ONLY the main goal in a goal-node initially
-        // Sub-goals get wrapped when added in the plusButton listener
-        if (!isSubGoal) {
-            const goalNode = document.createElement('div');
-            goalNode.className = 'goal-node';
-            goalNode.appendChild(goalBox);
-            return goalNode; // Return the node wrapper
-        }
-        
-        return goalBox; // Return just the box for sub-goals (will be wrapped later)
+        return goalNode; // Return the whole node wrapper
     }
 
-    setMainGoalBtn.addEventListener('click', function() {
+    // --- Recursive function to render the tree from API data ---
+    function renderTree(nodes, parentElement) {
+         // Clear existing children before rendering (important for updates)
+         parentElement.innerHTML = '';
+
+        nodes.forEach(nodeData => {
+            const goalNodeElement = createGoalElement(nodeData);
+            parentElement.appendChild(goalNodeElement);
+
+            // If the node has children, recursively render them
+            if (nodeData.children && nodeData.children.length > 0) {
+                const subGoalsContainer = goalNodeElement.querySelector('.sub-goals');
+                // Only render children if subGoalsContainer exists
+                 if (subGoalsContainer) {
+                     renderTree(nodeData.children, subGoalsContainer);
+                 } else {
+                     console.warn("Sub-goals container not found for node:", nodeData.id);
+                 }
+            }
+             // If subGoalsContainer exists but nodeData.children is empty,
+             // CSS should handle the appearance of the empty container/lines.
+             // Or remove the empty container here if preferred:
+            // else {
+            //     const subGoalsContainer = goalNodeElement.querySelector('.sub-goals');
+            //     if (subGoalsContainer) subGoalsContainer.remove();
+            // }
+        });
+    }
+
+
+    // --- Fetch initial tree data ---
+    async function fetchAndRenderGoals() {
+        try {
+            const response = await fetch('/api/goals'); // Your backend endpoint
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const goalData = await response.json();
+            renderTree(goalData, goalTree); // Render root nodes into goalTree container
+        } catch (error) {
+            console.error('Error fetching goals:', error);
+            goalTree.innerHTML = '<p style="color: red;">Error loading goals. Please try again.</p>';
+        }
+    }
+
+    // --- Event Handlers ---
+
+    // Handle setting the main (root) goal
+    async function handleSetMainGoal() {
         const goalName = mainGoalInput.value.trim();
         if (goalName) {
-            goalTree.innerHTML = ''; // Clear previous tree
-            const mainGoalNode = createGoalBox(goalName, false); // isSubGoal = false
-            goalTree.appendChild(mainGoalNode);
-            mainGoalInput.value = '';
+            try {
+                const response = await fetch('/api/goals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: goalName, parentId: null }) // null parentId for root
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                // Don't need the response data necessarily, just refetch the whole tree
+                // const newGoal = await response.json();
+                mainGoalInput.value = '';
+                await fetchAndRenderGoals(); // Re-fetch and render the updated tree
+            } catch (error) {
+                console.error('Error setting main goal:', error);
+                alert('Failed to set main goal. Please try again.');
+            }
         }
-    });
+    }
+
+    // Handle adding a sub-goal
+    async function handleAddSubGoal(event) {
+        event.stopPropagation();
+        const parentGoalBox = this.closest('.goal-box');
+        const parentGoalNode = this.closest('.goal-node'); // Or goal-box
+        const parentId = parentGoalNode.getAttribute('data-id');
+
+        if (!parentId) {
+            console.error('Could not find parent goal ID');
+            return;
+        }
+
+        const subGoalName = prompt("Enter sub-goal:");
+        if (subGoalName && subGoalName.trim()) {
+            try {
+                const response = await fetch('/api/goals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: subGoalName.trim(), parentId: parseInt(parentId) })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorData.error || 'Unknown error'}`);
+                }
+
+                const newSubGoal = await response.json(); // Get the new goal with its ID
+
+                // --- Append the new element directly to the DOM ---
+                // Find the correct sub-goals container for this parent
+                 const subGoalsContainer = parentGoalNode.querySelector('.sub-goals');
+                 if (!subGoalsContainer) {
+                     console.error("Sub-goals container missing for parent:", parentId);
+                     // Optionally refetch tree if DOM structure is uncertain
+                     // await fetchAndRenderGoals();
+                     return;
+                 }
+
+                 const newGoalElement = createGoalElement(newSubGoal);
+                 subGoalsContainer.appendChild(newGoalElement);
+
+                // --- OR ---
+                // Re-fetch the whole tree for simplicity (less efficient but robust)
+                // await fetchAndRenderGoals();
+
+            } catch (error) {
+                console.error('Error adding sub-goal:', error);
+                alert(`Failed to add sub-goal: ${error.message}`);
+            }
+        }
+    }
+
+    // Handle deleting a goal
+    async function handleDeleteGoal(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalId = goalNode.getAttribute('data-id');
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalName = goalBox ? goalBox.textContent.split('+')[0].trim() : 'this goal';
+
+
+        if (!goalId) {
+            console.error('Could not find goal ID to delete');
+            return;
+        }
+
+        // Add cascade warning if appropriate
+        const hasChildren = goalNode.querySelector('.sub-goals .goal-node');
+        const confirmMessage = hasChildren
+             ? `Delete "${goalName}" and ALL its sub-goals? This cannot be undone.`
+             : `Delete "${goalName}"?`;
+
+        if (confirm(confirmMessage)) {
+            try {
+                const response = await fetch(`/api/goals/${goalId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                     const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorData.error || 'Unknown error'}`);
+                }
+
+                // --- Remove the element directly from the DOM ---
+                const parentSubGoals = goalNode.parentElement;
+                 goalNode.remove();
+                // If the parent container is now empty, remove it? (Depends on CSS)
+                 if (parentSubGoals && parentSubGoals.classList.contains('sub-goals') && parentSubGoals.childElementCount === 0) {
+                     // If your CSS relies on the empty container for lines, DON'T remove it.
+                     // If your CSS hides lines for empty containers, you CAN remove it.
+                     // parentSubGoals.remove();
+                 }
+                // If removing the last root node, clear the tree container display?
+                 if (goalTree.childElementCount === 0) {
+                    // Maybe display a placeholder
+                    // goalTree.innerHTML = '<p>No goals set yet.</p>';
+                 }
+
+
+                // --- OR ---
+                // Re-fetch the whole tree for simplicity
+                // await fetchAndRenderGoals();
+
+            } catch (error) {
+                console.error('Error deleting goal:', error);
+                 alert(`Failed to delete goal: ${error.message}`);
+            }
+        }
+    }
+
+    // --- Initial Setup ---
+    setMainGoalBtn.addEventListener('click', handleSetMainGoal);
+    fetchAndRenderGoals(); // Load goals when the page loads
+
 });
