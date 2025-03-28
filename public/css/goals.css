@@ -187,6 +187,25 @@ button:hover {
     display: none;
 }
 
+
+.insert-parent-button {
+     background-color: #ffeb3b; /* Example: Yellow */
+     color: #333; 
+}
+
+
+
+.delete-promote-button {
+    /* Add specific styles, maybe different color? */
+     background-color: #ff9800; /* Example: Orange */
+     color: white;
+     border-color: #fb8c00;
+}
+.delete-promote-button:hover {
+    background-color: #f57c00;
+}
+
+
 /* --- Action Buttons --- */
 /* (Keep styles from previous version) */
 .goal-actions {
