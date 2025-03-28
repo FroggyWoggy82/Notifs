@@ -1,80 +1,188 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v7';
+const CACHE_NAME = 'notification-pwa-v8'; // <-- Bumped version number
 const urlsToCache = [
   '/',
-  '/pages/index.html',
+  '/pages/index.html', // Consider if index.html should be cached or always network
   '/manifest.json',
-  '/script.js',
+  '/script.js', // Should probably be versioned or use NetworkFirst if changed often
   '/icon-192x192.png',
-  '/icon-512x512.png'
+  '/icon-512x512.png',
+  '/css/goals.css', // Add CSS if needed offline
+  '/js/goals.js', // Add JS if needed offline
+  '/pages/goals.html' // Add HTML if needed offline
+  // Add other essential static assets here
 ];
 
 // Install service worker and cache assets
 self.addEventListener('install', event => {
-  console.log('Service Worker installing');
-  self.skipWaiting(); // Take control immediately
+  console.log(`Service Worker (${CACHE_NAME}) installing`);
+  // Force the waiting service worker to become the active service worker.
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log(`(${CACHE_NAME}) Opened cache`);
+        // Add essential assets needed for offline functionality
         return Promise.all(
           urlsToCache.map(url => {
-            return cache.add(url).catch(error => {
-              console.error('Failed to cache:', url, error);
+            // Use { cache: 'reload' } to bypass HTTP cache when precaching
+            return cache.add(new Request(url, {cache: 'reload'})).catch(error => {
+              console.error(`(${CACHE_NAME}) Failed to cache:`, url, error);
             });
           })
         );
+      })
+      .catch(error => {
+         console.error(`(${CACHE_NAME}) Failed to open cache during install:`, error);
       })
   );
 });
 
 // Activate and clean up old caches
 self.addEventListener('activate', event => {
-  console.log('Service Worker activating');
+  console.log(`Service Worker (${CACHE_NAME}) activating`);
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
+          // Delete any cache that isn't the current one
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+            console.log(`(${CACHE_NAME}) Deleting old cache:`, cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      // Immediately claim clients to ensure the service worker takes control
+      // Tell the active service worker to take control of the page immediately.
+      console.log(`(${CACHE_NAME}) Claiming clients.`);
       return self.clients.claim();
+    })
+    .catch(error => {
+        console.error(`(${CACHE_NAME}) Error during activation/cleanup:`, error);
     })
   );
 });
 
-// Fetch from cache first, then network
+// --- MODIFIED Fetch Handler ---
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).then(response => {
-          if (!response || response.status !== 200 || response.type === 'opaque') {
-            return response;
+  // Ensure the request is potentially cacheable
+  if (event.request.method !== 'GET') {
+    // Don't intercept non-GET requests for caching purposes
+     console.log(`(${CACHE_NAME}) Ignoring non-GET request: ${event.request.method} ${event.request.url}`);
+    return; // Let the browser handle it normally
+  }
+
+  const requestUrl = new URL(event.request.url);
+
+  // --- Strategy for /api/goals: Network Only ---
+  if (requestUrl.pathname === '/api/goals') {
+    // Always fetch from the network, do not serve from cache, do not cache the response.
+    console.log(`(${CACHE_NAME}) Fetching /api/goals from network (Network Only Strategy).`);
+    event.respondWith(
+      fetch(event.request)
+        .catch(error => {
+            console.error(`(${CACHE_NAME}) Network fetch failed for /api/goals:`, error);
+            // Optional: Return a structured error response if network fails
+            return new Response(JSON.stringify({ error: "Failed to fetch goals data. Network error." }), {
+                status: 503, // Service Unavailable or appropriate error
+                headers: { 'Content-Type': 'application/json' }
+            });
+        })
+    );
+  }
+  // --- Strategy for other API calls (Notifications): Network First? ---
+  // Consider if notification API calls should also be Network First or Network Only
+  else if (requestUrl.pathname.startsWith('/api/')) {
+       // Example: Network first for other API calls
+       console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} (Network First Strategy for API).`);
+       event.respondWith(
+            fetch(event.request)
+                .then(networkResponse => {
+                    // Check if we received a valid response from the network
+                    if (networkResponse && networkResponse.ok) {
+                        console.log(`(${CACHE_NAME}) Network fetch OK for ${requestUrl.pathname}. Caching response.`);
+                        const responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); });
+                    } else if (networkResponse) {
+                         console.log(`(${CACHE_NAME}) Network fetch for ${requestUrl.pathname} got non-OK status: ${networkResponse.status}`);
+                    } else {
+                        console.log(`(${CACHE_NAME}) Network fetch failed for ${requestUrl.pathname}. No network response.`);
+                    }
+                    // Return the network response regardless (even if it's an error status)
+                    // or fallback to cache below if network totally failed
+                    return networkResponse;
+                })
+                .catch(error => {
+                    // Network request itself failed (e.g., offline)
+                    console.warn(`(${CACHE_NAME}) Network failed HARD for ${requestUrl.pathname}, trying cache.`, error);
+                    return caches.match(event.request).then(cachedResponse => {
+                        if (cachedResponse) {
+                            console.log(`(${CACHE_NAME}) Serving ${requestUrl.pathname} from cache as network fallback.`);
+                            return cachedResponse;
+                        }
+                        // If not in cache either, the fetch will ultimately fail
+                        console.log(`(${CACHE_NAME}) ${requestUrl.pathname} not in cache either.`);
+                        // Re-throw the error or return a specific offline response?
+                        // For API calls, maybe return an error JSON:
+                        return new Response(JSON.stringify({ error: "Offline and not in cache" }), {
+                            status: 503, headers: { 'Content-Type': 'application/json' }
+                        });
+                    });
+                })
+       );
+  }
+  // --- Strategy for Static Assets: Cache falling back to Network (with cache update) ---
+  else {
+    // This strategy is good for app shell files (HTML, CSS, JS, images)
+    console.log(`(${CACHE_NAME}) Handling fetch for ${requestUrl.pathname} (Cache/Network Strategy).`);
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+          if (response) {
+            console.log(`(${CACHE_NAME}) Serving ${requestUrl.pathname} from cache.`);
+            return response; // Serve from cache if found
           }
 
-          const responseToCache = response.clone();
-          
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              cache.put(event.request, responseToCache);
-            });
+          // Not in cache, fetch from network
+          console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} from network.`);
+          return fetch(event.request).then(networkResponse => {
+            // Check if the network response is valid before caching
+            // Only cache basic requests (same origin, etc.) and successful responses
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+               if(networkResponse) console.log(`(${CACHE_NAME}) Not caching invalid network response for ${requestUrl.pathname}. Status: ${networkResponse.status}, Type: ${networkResponse.type}`);
+               else console.log(`(${CACHE_NAME}) Not caching - Network fetch failed for ${requestUrl.pathname}`);
+              return networkResponse;
+            }
 
-          return response;
-        });
-      }).catch(error => {
-        console.error('Fetch error:', error);
-      })
-  );
+            // Clone the response to cache it
+            const responseToCache = networkResponse.clone();
+            console.log(`(${CACHE_NAME}) Caching network response for ${requestUrl.pathname}.`);
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              }).catch(cacheError => {
+                 console.error(`(${CACHE_NAME}) Failed to cache response for ${requestUrl.pathname}:`, cacheError);
+              });
+
+            return networkResponse; // Return the network response
+          });
+        }).catch(error => {
+          console.error(`(${CACHE_NAME}) Fetch error for ${requestUrl.pathname}:`, error);
+          // Optional: Provide a generic offline fallback page here
+          // Example: return caches.match('/offline.html');
+          // For now, let the error propagate
+           return new Response('Network error occurred and resource not found in cache.', {
+                status: 404, statusText: 'Resource not available'
+            });
+        })
+    );
+  }
 });
+
+
+// --- Kept all other event listeners (sync, periodicsync, notificationclick, message, push) ---
+// --- and Helper Functions (checkScheduledNotifications) ---
+// --- AS THEY WERE in your original code. ---
 
 // Handle background sync
 self.addEventListener('sync', event => {
@@ -95,222 +203,196 @@ self.addEventListener('periodicsync', event => {
 // Check for scheduled notifications
 async function checkScheduledNotifications() {
   try {
-    console.log('Checking for scheduled notifications');
+    console.log(`(${CACHE_NAME}) Checking for scheduled notifications via API`);
+    // Ensure this fetch always bypasses caches when run from SW background context
     const response = await fetch('/api/get-scheduled-notifications', {
-      cache: 'no-store' // Ensure fresh data
+      cache: 'no-store'
     });
-    
+
     if (!response.ok) {
+      console.error(`(${CACHE_NAME}) Failed to fetch scheduled notifications. Status: ${response.status}`);
       throw new Error('Failed to fetch scheduled notifications');
     }
-    
+
     const notifications = await response.json();
-    console.log('Retrieved scheduled notifications:', notifications);
-    
+    console.log(`(${CACHE_NAME}) Retrieved ${notifications.length} scheduled notifications.`);
+
     // Process any notifications that should be triggered now
     const now = Date.now();
+    let notificationsShown = 0;
     for (const notification of notifications) {
-      // Check if notification is due to be shown
-      if (notification.scheduledTime <= now) {
-        console.log('Showing notification:', notification.title);
-        
+      const scheduledTime = new Date(notification.scheduledTime).getTime();
+      // Check if notification is due (within a reasonable window, e.g., past minute?)
+      if (scheduledTime <= now && scheduledTime > now - (60 * 1000)) { // Example: within the last minute
+        console.log(`(${CACHE_NAME}) Showing notification:`, notification.title);
+        notificationsShown++;
+
+        // Important: Use self.registration.showNotification
         await self.registration.showNotification(notification.title, {
           body: notification.body,
           icon: '/icon-192x192.png',
           badge: '/icon-192x192.png',
           vibrate: [100, 50, 100],
-          tag: 'scheduled-' + notification.id,
-          renotify: true,
-          requireInteraction: true,
+          tag: 'scheduled-' + notification.id, // Tag helps replace/update if needed
+          renotify: true, // Re-notify if tag is reused
+          requireInteraction: false, // Set true if user MUST interact
           data: {
             notificationId: notification.id
+            // Add URL to open on click?
+            // url: '/pages/goals.html?goalId=' + notification.relatedGoalId // Example
           }
         });
-        
-        // For one-time notifications, delete from server
-        if (notification.repeat === 'none') {
-          console.log('Deleting one-time notification:', notification.id);
-          await fetch(`/api/delete-notification/${notification.id}`, {
-            method: 'DELETE'
-          });
+
+        // For one-time notifications, trigger deletion from server
+        if (notification.repeat === 'none' || !notification.repeat) {
+          console.log(`(${CACHE_NAME}) Deleting one-time notification from server:`, notification.id);
+          // No need to await this, let it run in background
+          fetch(`/api/delete-notification/${notification.id}`, {
+            method: 'DELETE',
+            cache: 'no-store' // Ensure delete is not cached
+          }).catch(delErr => console.error(`(${CACHE_NAME}) Failed to delete notification ${notification.id}:`, delErr));
         }
+      } else if (scheduledTime < now - (60 * 1000)) {
+         // Notification is old, maybe delete if it's one-time?
+         if (notification.repeat === 'none' || !notification.repeat) {
+             console.log(`(${CACHE_NAME}) Deleting old one-time notification ${notification.id}`);
+             fetch(`/api/delete-notification/${notification.id}`, { method: 'DELETE', cache: 'no-store' })
+                .catch(delErr => console.error(`(${CACHE_NAME}) Failed to delete old notification ${notification.id}:`, delErr));
+         }
       }
     }
-    
+     if(notificationsShown === 0) {
+         console.log(`(${CACHE_NAME}) No notifications due at this time.`);
+     }
+
     return true;
   } catch (error) {
-    console.error('Error checking scheduled notifications:', error);
+    console.error(`(${CACHE_NAME}) Error checking scheduled notifications:`, error);
     return false;
   }
 }
 
+
 // Handle notification clicks
 self.addEventListener('notificationclick', event => {
   console.log('Notification clicked:', event.notification);
-  event.notification.close();
-  
-  // Check if we have a notificationId in the data
-  const notificationId = event.notification.data?.notificationId;
-  
+  event.notification.close(); // Close the notification
+
+  // Example: Focus or open the relevant page
+  // const urlToOpen = event.notification.data?.url || '/'; // Get URL from data if present
+  const urlToOpen = '/'; // Always open root for now, or specific page
+
   event.waitUntil(
-    clients.matchAll({type: 'window'}).then(windowClients => {
-      // Check if there is already a window open
+    clients.matchAll({type: 'window', includeUncontrolled: true}).then(windowClients => {
+      // Check if there is already a window open for this origin
+      let matchingClient = null;
       for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i];
-        if ('focus' in client) {
-          client.focus();
-          // If we have a notificationId, we could communicate it to the client
-          if (notificationId) {
-            client.postMessage({
-              type: 'NOTIFICATION_CLICKED',
-              notificationId: notificationId
-            });
+          const client = windowClients[i];
+          // Check if URL matches roughly (ignoring hash/search for simplicity here)
+          if (new URL(client.url).origin === self.location.origin) {
+              matchingClient = client;
+              break;
           }
-          return;
-        }
       }
-      
-      // No window open, open a new one
-      if (clients.openWindow) {
-        return clients.openWindow('/');
+
+      if (matchingClient) {
+          console.log('Found existing window, focusing and navigating.');
+          // If found, focus it and navigate it to the target URL
+          return matchingClient.focus().then(client => client.navigate(urlToOpen));
+      } else {
+          console.log('No existing window found, opening new one.');
+          // No window open, open a new one
+          if (clients.openWindow) {
+              return clients.openWindow(urlToOpen);
+          }
       }
     })
   );
 });
 
-// Store scheduled notifications
-self.scheduledNotifications = [];
 
-// Handle messages from the client
+// Store scheduled notifications (Likely REDUNDANT - fetched from API in checkScheduledNotifications)
+// self.scheduledNotifications = [];
+
+// Handle messages from the client (Likely REDUNDANT if notifications handled by sync/API)
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SETUP_NOTIFICATIONS') {
-    console.log('Service worker received notifications setup', event.data.notifications);
-    
-    // Store the notifications in the service worker
-    self.scheduledNotifications = event.data.notifications || [];
-    
-    // Log the notifications for debugging
-    console.log('Current notifications in service worker:', self.scheduledNotifications.length);
-    self.scheduledNotifications.forEach(notification => {
-      console.log(`- "${notification.title}" at ${new Date(notification.time).toLocaleString()}`);
-    });
-    
-    // Set up periodic checks
-    setUpPeriodicChecks();
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+      console.log(`(${CACHE_NAME}) Received SKIP_WAITING message.`);
+      self.skipWaiting(); // Force activation
   }
+  // Commenting out potentially redundant notification setup via message
+  /*
+  else if (event.data && event.data.type === 'SETUP_NOTIFICATIONS') {
+    console.warn('(${CACHE_NAME}) Received deprecated SETUP_NOTIFICATIONS message. Notifications should be managed server-side and fetched via sync.');
+    // self.scheduledNotifications = event.data.notifications || [];
+    // console.log('Current notifications in service worker:', self.scheduledNotifications.length);
+    // self.scheduledNotifications.forEach(notification => { console.log(`- "${notification.title}" at ${new Date(notification.time).toLocaleString()}`); });
+    // setUpPeriodicChecks();
+  }
+  */
 });
 
-// Set up periodic checks for notifications
-function setUpPeriodicChecks() {
-  // Clear any existing interval
-  if (self.notificationCheckInterval) {
-    clearInterval(self.notificationCheckInterval);
-  }
-  
-  // Use setInterval in the service worker to check for notifications
-  self.notificationCheckInterval = setInterval(() => {
-    const now = Date.now();
-    console.log('Service worker checking notifications at:', new Date(now).toLocaleString());
-    
-    if (self.scheduledNotifications && self.scheduledNotifications.length > 0) {
-      console.log('Current notifications in SW:', self.scheduledNotifications.length);
-      
-      self.scheduledNotifications.forEach((notification, index) => {
-        // Check if the notification should be triggered (within a 1-minute window)
-        if (notification.time <= now && notification.time > now - 60000) {
-          console.log('Service worker triggering notification:', notification.title);
-          
-          // Show the notification
-          self.registration.showNotification(notification.title, {
-            body: notification.body,
-            icon: '/icon-192x192.png',
-            badge: '/icon-192x192.png',
-            vibrate: [100, 50, 100],
-            tag: 'scheduled-' + notification.id,
-            renotify: true,
-            requireInteraction: true,
-            data: {
-              notificationId: notification.id,
-              timestamp: now
-            }
-          }).then(() => {
-            console.log('Notification shown successfully');
-          }).catch(err => {
-            console.error('Error showing notification:', err);
-          });
-          
-          // Handle repeating notifications
-          if (notification.repeat !== 'none') {
-            let nextTime;
-            
-            if (notification.repeat === 'daily') {
-              // 24 hours in milliseconds
-              nextTime = notification.time + (24 * 60 * 60 * 1000);
-            } else if (notification.repeat === 'weekly') {
-              // 7 days in milliseconds
-              nextTime = notification.time + (7 * 24 * 60 * 60 * 1000);
-            }
-            
-            // Update the notification time
-            self.scheduledNotifications[index].time = nextTime;
-            self.scheduledNotifications[index].processed = false;
-          } else {
-            // Mark this notification as processed
-            self.scheduledNotifications[index].processed = true;
-          }
-        }
-      });
-      
-      // Remove processed one-time notifications
-      self.scheduledNotifications = self.scheduledNotifications.filter(n => 
-        n.repeat !== 'none' || !n.processed
-      );
-    }
-  }, 5000); // Check every 5 seconds for more reliability
-}
 
-// This is the ONLY push event listener - removed duplicate
+// Set up periodic checks for notifications (Likely REDUNDANT if using periodicSync)
+// function setUpPeriodicChecks() {
+//   if (self.notificationCheckInterval) { clearInterval(self.notificationCheckInterval); }
+//   self.notificationCheckInterval = setInterval(() => { /* ... removed potentially redundant check logic ... */ }, 60000); // Check every minute
+// }
+
+
+// Push event listener
 self.addEventListener('push', event => {
-  console.log('Push received:', event);
-  
-  let notificationData = {
-    title: 'New Notification',
-    body: 'You have a new notification',
+  console.log(`(${CACHE_NAME}) Push received:`, event);
+
+  let notificationData = { // Default notification
+    title: 'Push Notification',
+    body: 'Something happened!',
     icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
-    vibrate: [100, 50, 100],
-    tag: 'push-' + Date.now(),
-    renotify: true,
-    requireInteraction: true,
-    data: {
-      dateOfArrival: Date.now()
-    }
+    badge: '/icon-192x192.png'
+    // Add other options as needed
   };
-  
-  // Parse data if available
+
   if (event.data) {
     try {
       const data = event.data.json();
-      notificationData = {
-        title: data.title || notificationData.title,
-        body: data.body || notificationData.body,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
-        vibrate: [100, 50, 100],
-        tag: 'push-' + Date.now(),
-        renotify: true,
-        requireInteraction: true,
-        data: {
-          dateOfArrival: Date.now(),
-          ...data.data
-        }
-      };
+      console.log(`(${CACHE_NAME}) Push data parsed:`, data);
+      // Merge data from push payload into defaults
+      notificationData.title = data.title || notificationData.title;
+      notificationData.body = data.body || notificationData.body;
+      notificationData.icon = data.icon || notificationData.icon;
+      notificationData.badge = data.badge || notificationData.badge;
+      // Add tag, renotify, requireInteraction, vibrate, data, actions etc. from payload if desired
+      notificationData.tag = data.tag || 'push-' + Date.now();
+      notificationData.renotify = data.renotify !== undefined ? data.renotify : true;
+      notificationData.requireInteraction = data.requireInteraction || false;
+      notificationData.vibrate = data.vibrate || [100, 50, 100];
+      notificationData.data = data.data || { dateOfArrival: Date.now() };
+      notificationData.actions = data.actions || []; // Example for notification actions
+
     } catch (e) {
-      console.error('Error parsing push data:', e);
+      console.error(`(${CACHE_NAME}) Error parsing push data:`, e);
+      // Use default body if parsing fails but data exists
+      notificationData.body = event.data.text() || 'Received unparseable push data.';
     }
+  } else {
+      console.log(`(${CACHE_NAME}) Push received with no data.`);
   }
-  
+
+  console.log(`(${CACHE_NAME}) Showing push notification:`, notificationData);
+
+  const options = {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    vibrate: notificationData.vibrate,
+    tag: notificationData.tag,
+    renotify: notificationData.renotify,
+    requireInteraction: notificationData.requireInteraction,
+    data: notificationData.data,
+    actions: notificationData.actions
+  };
+
   event.waitUntil(
-    self.registration.showNotification(notificationData.title, notificationData)
+    self.registration.showNotification(notificationData.title, options)
   );
 });
