@@ -94,17 +94,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Fetch initial tree data ---
     async function fetchAndRenderGoals() {
+        // Log when the function starts
+        console.log('fetchAndRenderGoals CALLED.');
         try {
+            // Log before the fetch call
+            console.log('fetchAndRenderGoals: Attempting GET /api/goals...');
             const response = await fetch('/api/goals'); // Your backend endpoint
+
+            // Log after the fetch call, showing status
+            console.log('fetchAndRenderGoals: GET response received. Status:', response.status, 'ok:', response.ok);
+
             if (!response.ok) {
+                 // Log if the response status is not OK
+                console.error('fetchAndRenderGoals: Response not OK.');
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            // Log before parsing JSON
+            console.log('fetchAndRenderGoals: Attempting to parse JSON...');
             const goalData = await response.json();
+
+            // Log the data received
+            console.log('fetchAndRenderGoals: JSON parsed successfully. Data:', goalData);
+
+            // Log before calling renderTree
+            console.log('fetchAndRenderGoals: Calling renderTree...');
             renderTree(goalData, goalTree); // Render root nodes into goalTree container
+
+             // Log after renderTree finishes (if it doesn't throw an error)
+            console.log('fetchAndRenderGoals: renderTree completed.');
+
         } catch (error) {
-            console.error('Error fetching goals:', error);
+             // Log ANY error caught within this function
+            console.error('>>> ERROR within fetchAndRenderGoals <<<:', error);
             goalTree.innerHTML = '<p style="color: red;">Error loading goals. Please try again.</p>';
         }
+        // Log when the function finishes
+         console.log('fetchAndRenderGoals FINISHED.');
     }
 
     // --- Event Handlers ---
