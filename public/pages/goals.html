@@ -36,36 +36,20 @@
         </nav>
     </div>
 
-    <h1>Goals</h1>
-    
-    <section class="goals-input-section">
-        <h2>Add New Goal</h2>
-        <form id="addGoalForm">
-            <div class="form-group">
-                <label for="goalTitle">Goal Title:</label>
-                <input type="text" id="goalTitle" placeholder="What's your goal?" required>
+    <div class="content-wrapper">
+        <div class="center-container">
+            <h1>Goal Tree</h1>
+            <div class="input-container">
+                <input type="text" id="mainGoalInput" placeholder="Enter your main goal">
+                <button id="setMainGoalBtn">Set Main Goal</button>
             </div>
-            <div class="form-group">
-                <label for="goalDescription">Description (Optional):</label>
-                <textarea id="goalDescription" placeholder="Add more details..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="goalDeadline">Target Date:</label>
-                <input type="date" id="goalDeadline" required>
-            </div>
-            <button type="submit" id="addGoalBtn">Add Goal</button>
-        </form>
-        <div id="addGoalStatus" class="status"></div>
-    </section>
-    
-    <section class="goals-list-section">
-        <h2>Your Goals</h2>
-        <div id="goalsList">
+        </div>
+
+        <div id="goalTree" class="goal-tree">
             <p>Loading goals...</p>
         </div>
-        <div id="goalsListStatus" class="status"></div>
-    </section>
-    
+    </div>
+
     <div class="bottom-nav">
         <a href="/index.html" class="nav-item" data-page="home-page">
             <div class="nav-icon">✓</div>
@@ -78,6 +62,10 @@
         <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
             <div class="nav-icon">📅</div>
             <span>Calendar</span>
+        </a>
+        <a href="/pages/days-since.html" class="nav-item" data-page="days-since-page">
+            <div class="nav-icon">⏱️</div>
+            <span>Days Since</span>
         </a>
     </div>
 

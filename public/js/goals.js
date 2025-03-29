@@ -1,7 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+    
     const mainGoalInput = document.getElementById('mainGoalInput');
     const setMainGoalBtn = document.getElementById('setMainGoalBtn');
     const goalTree = document.getElementById('goalTree');
+
+    console.log('Elements found:', {
+        mainGoalInput: !!mainGoalInput,
+        setMainGoalBtn: !!setMainGoalBtn,
+        goalTree: !!goalTree
+    });
+
+    if (!mainGoalInput || !setMainGoalBtn || !goalTree) {
+        console.error('Required elements not found!');
+        return;
+    }
 
     // --- Function to create the DOM element for a goal ---
     function createGoalElement(goal) { // Receive the full goal object from backend
@@ -508,6 +521,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Initial Setup ---
     setMainGoalBtn.addEventListener('click', handleSetMainGoal);
-    fetchAndRenderGoals(); // Load goals when the page loads
+    console.log('Event listeners attached');
 
+    // Initial load of goals
+    console.log('Initiating initial load of goals');
+    fetchAndRenderGoals();
 });
