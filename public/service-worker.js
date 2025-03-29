@@ -1,5 +1,5 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v8'; // <-- Bumped version number
+const CACHE_NAME = 'notification-pwa-v9'; // <-- Bumped version number
 const urlsToCache = [
   '/',
   '/pages/index.html', // Consider if index.html should be cached or always network
@@ -74,8 +74,22 @@ self.addEventListener('fetch', event => {
 
   const requestUrl = new URL(event.request.url);
 
-  // --- Strategy for /api/goals: Network Only ---
-  if (requestUrl.pathname === '/api/goals') {
+  // Network Only strategy for /api/days-since endpoints
+  if (requestUrl.pathname.startsWith('/api/days-since')) {
+    console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} from network (Network Only Strategy).`);
+    event.respondWith(
+      fetch(event.request)
+        .catch(error => {
+          console.error(`(${CACHE_NAME}) Network fetch failed for ${requestUrl.pathname}:`, error);
+          return new Response(JSON.stringify({ error: "Failed to fetch data. Network error." }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        })
+    );
+  }
+  // Network Only strategy for /api/goals
+  else if (requestUrl.pathname === '/api/goals') {
     // Always fetch from the network, do not serve from cache, do not cache the response.
     console.log(`(${CACHE_NAME}) Fetching /api/goals from network (Network Only Strategy).`);
     event.respondWith(

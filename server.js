@@ -9,6 +9,7 @@ const cron = require('node-cron');
 // --- Database and Goal Route Imports ---
 const db = require('./db'); // <-- Added DB module import
 const goalRoutes = require('./routes/goals'); // <-- Added Goal routes import
+const daysSinceRouter = require('./routes/daysSince');
 // --- ---
 
 const app = express();
@@ -49,6 +50,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- API Routes ---
 // Mount the goal routes - ALL requests starting with /api/goals go here
 app.use('/api/goals', goalRoutes);
+
+// Add routes
+app.use('/api/days-since', daysSinceRouter);
 
 // --- NEW Task API Routes ---
 

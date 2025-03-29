@@ -7,11 +7,38 @@
     <meta name="description" content="A simple PWA To-Do list with background notifications">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <meta name="theme-color" content="#4db6ac">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
-    
 </head>
 <body>
+    <button class="menu-button">☰</button>
+    
+    <div class="sidebar-overlay"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon">✓</span>
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon">⭐</span>
+                <span>Goals</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon">📅</span>
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon">⏱️</span>
+                <span>Days Since</span>
+            </a>
+        </nav>
+    </div>
+
     <h1>My Tasks</h1>
     <div id="permissionStatus" class="notifications-status">
         Checking notification permission...
@@ -90,6 +117,7 @@
         </a>
     </div>
 
+    <script src="js/sidebar.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>

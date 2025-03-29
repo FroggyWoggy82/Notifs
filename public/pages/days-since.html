@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goals - Task List</title>
+    <title>Days Since - Task List</title>
+    <meta name="description" content="Track days since important events">
     <link rel="stylesheet" href="../css/index.css">
-    <link rel="stylesheet" href="../css/goals.css">
+    <link rel="stylesheet" href="../css/days-since.css">
     <link rel="stylesheet" href="../css/sidebar.css">
 </head>
 <body>
@@ -36,34 +37,30 @@
         </nav>
     </div>
 
-    <h1>Goals</h1>
+    <h1>Days Since</h1>
     
-    <section class="goals-input-section">
-        <h2>Add New Goal</h2>
-        <form id="addGoalForm">
+    <section class="days-since-input-section">
+        <h2>Add New Event</h2>
+        <form id="addEventForm">
             <div class="form-group">
-                <label for="goalTitle">Goal Title:</label>
-                <input type="text" id="goalTitle" placeholder="What's your goal?" required>
+                <label for="eventName">Event Name:</label>
+                <input type="text" id="eventName" placeholder="What event to track?" required>
             </div>
             <div class="form-group">
-                <label for="goalDescription">Description (Optional):</label>
-                <textarea id="goalDescription" placeholder="Add more details..."></textarea>
+                <label for="eventStartDate">Start Date:</label>
+                <input type="datetime-local" id="eventStartDate" required>
             </div>
-            <div class="form-group">
-                <label for="goalDeadline">Target Date:</label>
-                <input type="date" id="goalDeadline" required>
-            </div>
-            <button type="submit" id="addGoalBtn">Add Goal</button>
+            <button type="submit" id="addEventBtn">Add Event</button>
         </form>
-        <div id="addGoalStatus" class="status"></div>
+        <div id="addEventStatus" class="status"></div>
     </section>
     
-    <section class="goals-list-section">
-        <h2>Your Goals</h2>
-        <div id="goalsList">
-            <p>Loading goals...</p>
+    <section class="days-since-list-section">
+        <h2>Events</h2>
+        <div id="daysSinceList">
+            <p>Loading events...</p>
         </div>
-        <div id="goalsListStatus" class="status"></div>
+        <div id="daysSinceListStatus" class="status"></div>
     </section>
     
     <div class="bottom-nav">
@@ -71,7 +68,7 @@
             <div class="nav-icon">✓</div>
             <span>Tasks</span>
         </a>
-        <a href="/pages/goals.html" class="nav-item active" data-page="goal-page">
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
             <div class="nav-icon">⭐</div>
             <span>Goals</span>
         </a>
@@ -82,6 +79,6 @@
     </div>
 
     <script src="../js/sidebar.js"></script>
-    <script src="../js/goals.js"></script>
+    <script src="../js/days-since.js"></script>
 </body>
-</html>
+</html> 
