@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Calendar</title>
+    <meta name="description" content="Calendar view for PWA Task List">
+    <link rel="manifest" href="/manifest.json"> <!-- Root manifest -->
+    <link rel="stylesheet" href="/css/index.css"> <!-- Base styles -->
+    <link rel="stylesheet" href="/css/calendar.css"> <!-- Calendar specific styles -->
+    <meta name="theme-color" content="#4db6ac">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+</head>
+<body>
+    <div class="container">
+        <h1>Task Calendar</h1>
+
+        <div class="calendar-controls">
+            <button id="prevMonthBtn">&lt; Prev</button>
+            <h2 id="currentMonthYear">Loading...</h2>
+            <button id="nextMonthBtn">Next &gt;</button>
+        </div>
+
+        <div class="calendar-grid">
+            <div class="calendar-header">Sun</div>
+            <div class="calendar-header">Mon</div>
+            <div class="calendar-header">Tue</div>
+            <div class="calendar-header">Wed</div>
+            <div class="calendar-header">Thu</div>
+            <div class="calendar-header">Fri</div>
+            <div class="calendar-header">Sat</div>
+            <!-- Calendar days will be populated here by JS -->
+        </div>
+        <div id="calendarStatus" class="status"></div>
+
+        <!-- Optional: Add a section to display tasks for a selected date -->
+        <div id="selectedDateTasks" style="display: none;">
+             <h3>Tasks for <span id="selectedDateDisplay"></span></h3>
+             <ul id="selectedTaskList"></ul>
+             <button id="closeSelectedDateView">Close</button>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon">✓</div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon">⭐</div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item active" data-page="calendar-page">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
+    </div>
+
+    <!-- JS Dependencies - Consider a library like date-fns later if needed -->
+    <script src="/js/calendar.js"></script>
+</body>
+</html> 

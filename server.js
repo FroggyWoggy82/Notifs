@@ -52,12 +52,12 @@ app.use('/api/goals', goalRoutes);
 
 // --- NEW Task API Routes ---
 
-// GET /api/tasks - Fetch all tasks (ordered by creation date)
+// GET /api/tasks - Fetch all tasks
 app.get('/api/tasks', async (req, res) => {
     console.log("Received GET /api/tasks request");
     try {
-        // Order by completion status (incomplete first), then creation date
-        const result = await db.query('SELECT * FROM tasks ORDER BY is_complete ASC, created_at DESC');
+        // Order by completion status, then assigned date, then creation date
+        const result = await db.query('SELECT * FROM tasks ORDER BY is_complete ASC, assigned_date ASC, created_at DESC');
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching tasks:', err);
@@ -67,40 +67,85 @@ app.get('/api/tasks', async (req, res) => {
 
 // POST /api/tasks - Create a new task
 app.post('/api/tasks', async (req, res) => {
-    const { title, description, reminderTime } = req.body;
-    console.log(`Received POST /api/tasks: title='${title}', reminder='${reminderTime}'`);
+    // Destructure new fields from req.body
+    const { title, description, reminderTime, assignedDate, dueDate, recurrenceType, recurrenceInterval } = req.body;
+    
+    // Log received data including new fields
+    console.log(`Received POST /api/tasks: title='${title}', assigned='${assignedDate}', due='${dueDate}', recurrence='${recurrenceType}', interval='${recurrenceInterval}', reminder='${reminderTime}'`);
 
     if (!title || title.trim() === '') {
         return res.status(400).json({ error: 'Task title cannot be empty' });
     }
 
-    // Basic validation for reminderTime if provided
-    let reminderTimestamp = null;
-    let isReminderActive = false;
+    // --- Validate Dates (Assigned, Due, Reminder) ---
+    let p_assignedDate = new Date(); // Default to today
+    if (assignedDate) {
+        try {
+            p_assignedDate = new Date(assignedDate);
+            if (isNaN(p_assignedDate.getTime())) throw new Error('Invalid Assigned Date');
+            // Set to start of day in UTC for consistency? Or keep local?
+            // Let's keep local for now, assuming user input is local.
+        } catch { return res.status(400).json({ error: 'Invalid Assigned Date format. Use YYYY-MM-DD.' }); }
+    } else {
+         // Use default (today), log it
+         console.log("No assignedDate provided, defaulting to today.");
+         p_assignedDate.setHours(0,0,0,0); // Ensure it's just the date part
+    }
+
+    let p_dueDate = null;
+    if (dueDate) {
+        try {
+            p_dueDate = new Date(dueDate);
+            if (isNaN(p_dueDate.getTime())) throw new Error('Invalid Due Date');
+        } catch { return res.status(400).json({ error: 'Invalid Due Date format. Use YYYY-MM-DD.' }); }
+    }
+
+    let p_reminderTimestamp = null;
+    let p_isReminderActive = false;
     if (reminderTime) {
         try {
-            reminderTimestamp = new Date(reminderTime);
-            if (isNaN(reminderTimestamp.getTime())) {
-                throw new Error('Invalid date format');
-            }
-            // Only set active if the time is in the future
-            if (reminderTimestamp > new Date()) {
-                isReminderActive = true;
-            } else {
-                 console.warn("Reminder time provided is in the past, not setting as active.");
-                 // Optionally clear the timestamp or keep it for reference?
-                 // reminderTimestamp = null; 
-            }
-        } catch (dateError) {
-            console.error("Invalid reminder time format received:", reminderTime, dateError);
-            return res.status(400).json({ error: 'Invalid reminder time format. Please use ISO 8601 format (e.g., YYYY-MM-DDTHH:mm).' });
-        }
+            p_reminderTimestamp = new Date(reminderTime);
+            if (isNaN(p_reminderTimestamp.getTime())) throw new Error('Invalid Reminder Time');
+            if (p_reminderTimestamp > new Date()) {
+                p_isReminderActive = true;
+            } else { console.warn("Reminder time is in the past, not setting as active."); }
+        } catch { return res.status(400).json({ error: 'Invalid Reminder Time format. Use datetime-local format.' }); }
     }
+    // --- End Date Validation ---
+    
+    // --- Validate Recurrence ---
+    const validRecurrenceTypes = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
+    const p_recurrenceType = recurrenceType && validRecurrenceTypes.includes(recurrenceType) ? recurrenceType : 'none';
+    let p_recurrenceInterval = 1;
+    if (p_recurrenceType !== 'none' && recurrenceInterval) {
+         try {
+             p_recurrenceInterval = parseInt(recurrenceInterval, 10);
+             if (isNaN(p_recurrenceInterval) || p_recurrenceInterval < 1) {
+                 console.warn(`Invalid recurrenceInterval '${recurrenceInterval}', defaulting to 1.`);
+                 p_recurrenceInterval = 1;
+             }
+         } catch { p_recurrenceInterval = 1; } 
+    } 
+    if (p_recurrenceType === 'none') { // Ensure interval is 1 if recurrence is none
+        p_recurrenceInterval = 1;
+    }
+    // --- End Recurrence Validation ---
 
     try {
         const result = await db.query(
-            'INSERT INTO tasks (title, description, reminder_time, is_reminder_active) VALUES ($1, $2, $3, $4) RETURNING *',
-            [title.trim(), description ? description.trim() : null, reminderTimestamp, isReminderActive]
+            `INSERT INTO tasks (title, description, reminder_time, is_reminder_active, 
+                             assigned_date, due_date, recurrence_type, recurrence_interval)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [
+                title.trim(), 
+                description ? description.trim() : null, 
+                p_reminderTimestamp, 
+                p_isReminderActive,
+                p_assignedDate.toISOString().split('T')[0], // Send date part only as YYYY-MM-DD
+                p_dueDate ? p_dueDate.toISOString().split('T')[0] : null, // Send date part only or null
+                p_recurrenceType, 
+                p_recurrenceInterval
+            ]
         );
         console.log(`Task created successfully with ID: ${result.rows[0].id}`);
         res.status(201).json(result.rows[0]); // Return the newly created task
@@ -109,7 +154,7 @@ app.post('/api/tasks', async (req, res) => {
         console.error('--- ERROR CREATING TASK ---');
         console.error('Timestamp:', new Date().toISOString());
         console.error('Request Body:', req.body);
-        console.error('Parsed Values:', { title: title.trim(), description: description ? description.trim() : null, reminderTimestamp, isReminderActive });
+        console.error('Parsed Values:', { title: title.trim(), description: description ? description.trim() : null, reminderTimestamp: p_reminderTimestamp, isReminderActive: p_isReminderActive, assignedDate: p_assignedDate.toISOString().split('T')[0], dueDate: p_dueDate ? p_dueDate.toISOString().split('T')[0] : null, recurrenceType: p_recurrenceType, recurrenceInterval: p_recurrenceInterval });
         console.error('Database Error Code:', err.code); // Log Postgres error code if available
         console.error('Database Error Detail:', err.detail); // Log Postgres error detail if available
         console.error('Full Error Stack:', err.stack); 

@@ -17,6 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskListDiv = document.getElementById('taskList');
     const addTaskStatusDiv = document.getElementById('addTaskStatus');
     const taskListStatusDiv = document.getElementById('taskListStatus');
+    // New form fields
+    const taskAssignedDateInput = document.getElementById('taskAssignedDate');
+    const taskDueDateInput = document.getElementById('taskDueDate');
+    const taskRecurrenceTypeInput = document.getElementById('taskRecurrenceType');
+    const taskRecurrenceIntervalInput = document.getElementById('taskRecurrenceInterval');
+    const recurrenceIntervalGroup = document.getElementById('recurrenceIntervalGroup');
+    const recurrenceIntervalUnit = document.getElementById('recurrenceIntervalUnit');
     // --- End Task Elements ---
 
     let swRegistration = null;
@@ -310,6 +317,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = taskTitleInput.value.trim();
         const description = taskDescriptionInput.value.trim();
         const reminderTime = taskReminderTimeInput.value;
+        // Get values from new fields
+        const assignedDate = taskAssignedDateInput.value;
+        const dueDate = taskDueDateInput.value;
+        const recurrenceType = taskRecurrenceTypeInput.value;
+        const recurrenceInterval = taskRecurrenceIntervalInput.value;
 
         if (!title) {
             updateAddTaskStatus("Task title cannot be empty.", true);
@@ -321,7 +333,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskData = {
             title: title,
             description: description || null, // Send null if empty
-            reminderTime: reminderTime || null // Send null if empty
+            reminderTime: reminderTime || null, // Send null if empty
+            // Add new fields to the payload
+            assignedDate: assignedDate || null, // Send null if empty
+            dueDate: dueDate || null,           // Send null if empty
+            recurrenceType: recurrenceType,
+            recurrenceInterval: recurrenceType !== 'none' ? parseInt(recurrenceInterval, 10) : null // Send interval only if recurrence is set
         };
 
         try {
@@ -354,6 +371,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Clear form
             addTaskForm.reset();
+            // Hide recurrence interval group after reset
+            recurrenceIntervalGroup.style.display = 'none';
             updateAddTaskStatus("Task added successfully!", false);
 
         } catch (error) {
@@ -362,6 +381,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             addTaskBtn.disabled = false;
             addTaskBtn.textContent = 'Add Task';
+        }
+    });
+
+    // --- NEW: Add listener for recurrence type change ---
+    taskRecurrenceTypeInput.addEventListener('change', function() {
+        const type = this.value;
+        if (type === 'none') {
+            recurrenceIntervalGroup.style.display = 'none';
+        } else {
+            recurrenceIntervalGroup.style.display = 'flex'; // Or 'block' depending on your layout
+            // Update unit text based on type
+            switch(type) {
+                case 'daily': recurrenceIntervalUnit.textContent = 'days'; break;
+                case 'weekly': recurrenceIntervalUnit.textContent = 'weeks'; break;
+                case 'monthly': recurrenceIntervalUnit.textContent = 'months'; break;
+                case 'yearly': recurrenceIntervalUnit.textContent = 'years'; break;
+                default: recurrenceIntervalUnit.textContent = 'interval';
+            }
+            taskRecurrenceIntervalInput.value = '1'; // Reset interval to 1 when type changes
         }
     });
 

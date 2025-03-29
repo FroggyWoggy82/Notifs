@@ -1,0 +1,190 @@
+/* /public/css/calendar.css */
+
+/* Basic container and control styling (leverages index.css mostly) */
+.container h1 {
+    margin-bottom: 20px;
+}
+
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f8f9fa; /* Light background for controls */
+    border-radius: 4px;
+    border: 1px solid #dde5eb;
+}
+
+.calendar-controls h2 {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.calendar-controls button {
+    background-color: #4db6ac; /* Teal */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    cursor: pointer;
+    width: auto; /* Override full width */
+    margin: 0; /* Override margin */
+}
+
+.calendar-controls button:hover {
+    background-color: #3a9d91;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px; /* Gap between cells */
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+}
+
+.calendar-header {
+    font-weight: 500;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 0.9em;
+    color: #566573;
+}
+
+.calendar-day {
+    border: 1px solid #e8eef2; /* Light border for each day */
+    background-color: #fdfefe;
+    min-height: 100px; /* Minimum height for cells */
+    padding: 8px;
+    font-size: 0.85em;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    flex-direction: column; /* Stack day number and tasks */
+}
+
+.calendar-day:hover {
+    background-color: #f1f5f8;
+}
+
+.calendar-day.other-month {
+    background-color: #f8f9fa;
+    color: #adb5bd; /* Grey out numbers from other months */
+    cursor: default;
+}
+.calendar-day.other-month:hover {
+    background-color: #f8f9fa; /* No hover effect */
+}
+
+.calendar-day.today {
+    border-color: #4db6ac; /* Highlight today's border */
+    background-color: #e0f2f1; /* Slightly different background for today */
+}
+
+.day-number {
+    font-weight: 500;
+    margin-bottom: 5px;
+    text-align: right;
+}
+
+.calendar-day.today .day-number {
+    color: #117a65; /* Darker teal for today's number */
+}
+
+/* Task Items within Calendar Day */
+.calendar-tasks {
+    flex-grow: 1;
+    overflow-y: auto; /* Allow scrolling if many tasks */
+    max-height: 70px; /* Limit initial visible height */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #bdc3c7 #e8eef2; /* Firefox */
+}
+/* Webkit scrollbar styling */
+.calendar-tasks::-webkit-scrollbar {
+  width: 5px;
+}
+.calendar-tasks::-webkit-scrollbar-track {
+  background: #e8eef2;
+  border-radius: 3px;
+}
+.calendar-tasks::-webkit-scrollbar-thumb {
+  background-color: #bdc3c7;
+  border-radius: 3px;
+}
+
+
+.calendar-task-item {
+    background-color: #e9f7ef; /* Light green background */
+    color: #13523e;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    border: 1px solid #a6dabc;
+}
+
+.calendar-task-item.complete {
+    background-color: #e0e0e0;
+    color: #757575;
+    text-decoration: line-through;
+    border-color: #cccccc;
+}
+
+/* Styling for the selected date task list popup/section */
+#selectedDateTasks {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #dde5eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(44, 62, 80, 0.1);
+}
+
+#selectedDateTasks h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #1f2933;
+}
+
+#selectedTaskList {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+}
+
+#selectedTaskList li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #e8eef2;
+    font-size: 0.95em;
+}
+#selectedTaskList li:last-child {
+    border-bottom: none;
+}
+#selectedTaskList li.complete {
+     text-decoration: line-through;
+     color: #757575;
+}
+
+#closeSelectedDateView {
+     display: block;
+     margin: 15px auto 0 auto; /* Center button */
+     width: auto;
+     background-color: #566573;
+}
+#closeSelectedDateView:hover {
+     background-color: #3e5062;
+} 

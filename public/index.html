@@ -35,6 +35,33 @@
                 <label for="taskReminderTime">Reminder Time (Optional):</label>
                 <input type="datetime-local" id="taskReminderTime">
             </div>
+            <div class="form-row">
+                <div class="form-group form-group-half">
+                    <label for="taskAssignedDate">Assigned Date:</label>
+                    <input type="date" id="taskAssignedDate">
+                </div>
+                <div class="form-group form-group-half">
+                    <label for="taskDueDate">Due Date (Optional):</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group form-group-half">
+                    <label for="taskRecurrenceType">Recurrence:</label>
+                    <select id="taskRecurrenceType">
+                        <option value="none" selected>None</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div class="form-group form-group-half" id="recurrenceIntervalGroup" style="display: none;"> 
+                    <label for="taskRecurrenceInterval">Every:</label>
+                    <input type="number" id="taskRecurrenceInterval" value="1" min="1" step="1" style="width: 60px;">
+                    <span id="recurrenceIntervalUnit">days</span>
+                </div>
+            </div>
             <button type="submit" id="addTaskBtn">Add Task</button>
         </form>
         <div id="addTaskStatus" class="status"></div>
@@ -57,7 +84,10 @@
             <div class="nav-icon">⭐</div>
             <span>Goals</span>
         </a>
-    
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
     </div>
 
     <script src="js/script.js"></script>

@@ -200,6 +200,41 @@ textarea {
     line-height: 1.5; /* Improve readability */
 }
 
+/* Style for side-by-side form groups */
+.form-row {
+    display: flex;
+    gap: 15px; /* Space between fields */
+    align-items: flex-end; /* Align bottom edges if labels wrap */
+}
+
+.form-group-half {
+    flex: 1; /* Each takes half the space */
+    min-width: 0; /* Allow shrinking */
+}
+
+/* Adjust label/input alignment in half groups if needed */
+.form-group-half label {
+    /* Optional: Adjustments if needed */
+}
+
+/* Recurrence interval alignment */
+#recurrenceIntervalGroup {
+    display: flex;
+    align-items: center; /* Vertically align label, input, span */
+    gap: 8px;
+}
+#recurrenceIntervalGroup label {
+     margin-bottom: 0; /* Remove bottom margin for inline alignment */
+}
+#recurrenceIntervalGroup input[type="number"] {
+     width: 60px; /* Keep specific width */
+     flex-grow: 0; /* Don't allow it to grow */
+}
+#recurrenceIntervalGroup span {
+     font-size: 0.9em;
+     color: #566573;
+}
+
 /* --- Task List --- */
 /* Removed .scheduled-list styles */
 
