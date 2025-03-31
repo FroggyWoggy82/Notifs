@@ -108,6 +108,7 @@ h1, h2 {
     background-color: #222;
     color: #f5f5f5;
     font-size: 1rem;
+    max-width: 500px; /* Added max-width to match history search */
 }
 
 .card-list {
@@ -273,19 +274,18 @@ h1, h2 {
 
 /* Style for set rows within an exercise */
 /* Target ONLY set rows directly inside .exercise-list (Active Workout), NOT .template-editor-list */
-#current-exercise-list > .exercise-item > .sets-container > .set-row {
+#current-exercise-list .set-row {
     display: grid;
-    /* Set#, Previous, Weight, Reps, Notes, Check */
-    /* grid-template-columns: auto auto 1fr 1fr 1fr auto; */
-    /* Set#, Previous, Weight, Reps, Check (Notes removed) */
-    grid-template-columns: auto auto 1fr 1fr auto;
+    /* Set#, Previous, Weight, Reps, Toggle */
+    grid-template-columns: auto 90px 1fr 1fr auto; /* Fixed width for Previous */
     gap: 10px;
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #333;
     font-size: 0.95rem;
+    transition: background-color 0.3s ease; /* Added from highlight rule */
 }
-#current-exercise-list > .exercise-item > .sets-container > .set-row:last-child {
+#current-exercise-list .set-row:last-child {
     border-bottom: none;
 }
 
@@ -293,8 +293,11 @@ h1, h2 {
 .previous-log {
     color: #aaa;
     font-size: 0.85rem;
-    text-align: center; /* Or adjust as needed */
-    white-space: nowrap;
+    text-align: right; /* Align to the right within its column */
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Show ... if overflow */
+    padding-right: 5px; /* Add a little space before next column */
 }
 
 .set-number {
@@ -353,9 +356,6 @@ h1, h2 {
     background-color: #4CAF50;
     border-color: #4CAF50;
     color: #fff; /* White check on green background */
-}
-.set-complete-toggle.completed::before {
-    content: '\\2713'; /* Checkmark symbol */
 }
 
 /* Highlight the row when the set is completed */
@@ -633,6 +633,21 @@ h1, h2 {
     grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps (Notes removed) */
 }
 
+/* Update to match active workout layout */
+.template-editor-list .set-row {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps */
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+    font-size: 0.95rem;
+}
+
+.template-editor-list .set-row:last-child {
+    border-bottom: none;
+}
+
 .exercise-notes-group {
     margin-top: 10px;
     margin-bottom: 15px;
@@ -728,4 +743,268 @@ h1, h2 {
 .btn-delete-template-exercise:focus-visible { /* ADDING TEMPLATE EDITOR BUTTON HERE */
      outline: 2px solid #bb86fc; /* Match theme focus */
      outline-offset: 1px;
+}
+
+/* Template Editor List Styles */
+.template-editor-list {
+    margin: 20px 0;
+}
+
+/* Drag and Drop Styles */
+.template-editor-list .exercise-item {
+    cursor: move; /* Indicate draggable */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.template-editor-list .exercise-item.dragging {
+    opacity: 0.5;
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    background: #2a2a2a;
+}
+
+.template-editor-list .exercise-item.drag-over {
+    border-top: 2px solid #4CAF50;
+}
+
+/* Exercise Notes Group */
+.exercise-notes-group {
+    margin-top: 10px;
+}
+
+/* Style disabled inputs in completed set rows */
+.set-row:has(.set-complete-toggle.completed) .weight-input:disabled,
+.set-row:has(.set-complete-toggle.completed) .reps-input:disabled,
+.set-row:has(.set-complete-toggle.completed) .unit-select:disabled {
+    background-color: #3a3a3a; /* Darker background */
+    color: #aaa; /* Lighter text color */
+    opacity: 0.7; /* Slightly transparent */
+    cursor: not-allowed; /* Indicate non-interactive */
+}
+
+/* Shared styles for input fields */
+.text-input {
+    padding: 10px;
+    margin: 5px 0 15px 0;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #333;
+    color: #eee;
+    width: 95%; /* Default width */
+    font-size: 1rem;
+}
+
+/* More specific width for history search */
+.history-search-input {
+    /* width: 60%; /* Removed fixed percentage */
+    /* max-width: 400px; */
+    /* Width will be controlled by flex container now */
+}
+
+/* New container for history search+filter */
+.history-search-filter-container {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: center; /* Center items */
+}
+
+/* History Search Specific Styles */
+.history-search-group {
+    position: relative; /* Needed for absolute positioning of results */
+    flex-grow: 1; /* Allow search to take more space */
+    max-width: 350px; /* Reduced max width */
+    margin-bottom: 0; /* Remove bottom margin */
+}
+
+.history-category-group {
+     flex-shrink: 0; /* Prevent dropdown from shrinking */
+     margin-bottom: 0; /* Remove bottom margin */
+}
+
+.history-category-group select {
+    padding: 10px;
+    margin-top: 5px; /* Align with text input margin */
+    height: 43px; /* Match typical input height */
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #333;
+    color: #eee;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Style for visually hidden labels (accessibility) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.search-results-list {
+    display: none; /* Hidden by default */
+    position: absolute;
+    left: 0;
+    top: 100%; /* Position below the input group */
+    background-color: #444;
+    border: 1px solid #555;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    width: 100%; /* Match the width of the search input group */
+    /* width: 60%; Match history input width */
+    /* max-width: 400px; Match history input width */
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000; /* Significantly increased z-index */
+}
+
+.search-results-list div {
+    padding: 10px;
+    cursor: pointer;
+    color: #eee;
+    border-bottom: 1px solid #555;
+}
+
+.search-results-list div:last-child {
+    border-bottom: none;
+}
+
+.search-results-list div:hover {
+    background-color: #5a5a5a;
+}
+
+/* Specific style for smaller Add Past Log button */
+#history-edit-btn { /* Renamed from #history-add-log-btn */
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    max-width: 80px; /* Reduced width further */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 43px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Manual Log Modal Styles */
+#manual-log-modal .modal-content {
+    max-width: 450px; /* Slightly narrower */
+}
+
+#manual-log-form .form-group {
+    margin-bottom: 12px;
+}
+
+#manual-log-form label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+#manual-log-form input[type="text"],
+#manual-log-form input[type="date"],
+#manual-log-form select,
+#manual-log-form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #eee;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95rem;
+}
+
+#manual-log-modal h3 {
+    text-align: center;
+    color: #bbb;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: normal;
+}
+
+#manual-log-modal .modal-actions {
+     margin-top: 20px;
+     display: flex;
+     justify-content: flex-end; /* Align buttons to the right */
+     gap: 10px;
+}
+
+/* Style the set rows specifically within the manual log modal */
+.history-edit-set-row {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr; /* Set#, Weight Group, Reps Input */
+    gap: 10px;
+    align-items: center;
+    padding: 6px 0; /* Slightly less padding than active workout */
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.history-edit-set-row:last-child {
+    border-bottom: none;
+}
+
+/* Ensure inputs in history edit take full width of their grid cell */
+.history-edit-set-row .weight-input-group,
+.history-edit-set-row .reps-input {
+    width: 100%;
+}
+
+/* Adjust spacing within the weight group if needed */
+.history-edit-set-row .weight-input-group {
+    /* display: flex; */
+    /* gap: 5px; */
+}
+
+/* Existing Log List in Modal */
+#history-edit-log-list {
+    margin-top: 15px;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+.log-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #444;
+}
+
+.log-list-item:last-child {
+    border-bottom: none;
+}
+
+.log-item-details {
+    display: flex;
+    flex-direction: column; /* Stack date and summary */
+    gap: 2px;
+}
+
+.log-item-date {
+    font-size: 0.85rem;
+    color: #ccc;
+}
+
+.log-item-summary {
+    font-size: 0.95rem;
+    color: #eee;
+}
+
+.btn-tiny {
+    padding: 2px 6px;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    min-width: auto;
 }

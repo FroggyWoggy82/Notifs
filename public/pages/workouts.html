@@ -35,10 +35,6 @@
                 <span class="nav-icon">📅</span> <!-- Calendar -->
                 <span>Calendar</span>
             </a>
-            <a href="/pages/days-since.html" class="sidebar-nav-item">
-                <span class="nav-icon">⏱️</span> <!-- Stopwatch -->
-                <span>Days Since</span>
-            </a>
         </nav>
     </div>
 
@@ -62,6 +58,40 @@
                 </div>
                  <button id="create-template-btn" class="btn btn-secondary">Create New Template</button>
             </div>
+
+            <hr class="page-divider">
+
+            <!-- New Exercise History Section -->
+            <div class="history-section">
+                <h2>Exercise History</h2>
+                <div class="history-search-filter-container">
+                    <div class="form-group history-search-group">
+                        <label for="history-exercise-search" class="sr-only">Search Exercise:</label>
+                        <input type="text" id="history-exercise-search" class="text-input history-search-input" placeholder="Search exercises...">
+                        <div id="history-search-results" class="search-results-list"></div>
+                    </div>
+                     <div class="form-group history-category-group">
+                         <label for="history-category-filter-select" class="sr-only">Filter by Category:</label>
+                        <select id="history-category-filter-select" class="category-filter">
+                            <option value="all">All Categories</option>
+                            <option value="core">Core</option>
+                            <option value="arms">Arms</option>
+                            <option value="shoulders">Shoulders</option>
+                            <option value="chest">Chest</option>
+                            <option value="legs">Legs</option>
+                            <option value="back">Back</option>
+                            <option value="other">Other</option>
+                        </select>
+                     </div>
+                 <button id="history-edit-btn" class="btn btn-secondary btn-small" style="display: none; margin-left: 10px;">Edit History</button>
+                </div>
+                <div class="chart-container" style="position: relative; height:40vh; width:80vw; margin: 20px auto;">
+                     <canvas id="exercise-history-chart"></canvas>
+                     <p id="history-message" style="text-align: center; margin-top: 20px;"></p> <!-- Message area -->
+                </div>
+            </div>
+            <!-- End New Exercise History Section -->
+
         </div>
 
         <!-- Active Workout View (Initially Hidden) -->
@@ -121,47 +151,50 @@
             <h2>Add Exercise</h2>
             <div class="modal-search-filter">
                 <input type="text" id="exercise-search-input" placeholder="Search exercises...">
-                <select id="exercise-category-filter">
-                    <option value="all">All Categories</option>
+                <select id="exercise-category-filter" class="category-filter">
+                    <option value="">All Categories</option>
                     <option value="core">Core</option>
                     <option value="arms">Arms</option>
                     <option value="shoulders">Shoulders</option>
                     <option value="chest">Chest</option>
                     <option value="legs">Legs</option>
                     <option value="back">Back</option>
-                    <option value="cardio">Cardio</option>
                     <option value="other">Other</option>
                 </select>
             </div>
-            <div id="available-exercise-list" class="modal-list">
-                <!-- Available exercises loaded from DB will appear here -->
+            <div class="modal-list" id="available-exercise-list">
+                <!-- Exercises will be loaded here -->
                 <p>Loading exercises...</p>
             </div>
-            <hr class="modal-divider">
-            <!-- New Exercise Definition Section (Initially Hidden) -->
-            <div id="define-new-exercise-section" style="display: none;">
+
+            <!-- Section to Define New Exercise -->
+            <div id="define-new-exercise-section" style="display: none; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
                 <h4>Define New Exercise</h4>
                 <div class="form-group">
-                    <label for="new-exercise-name">Exercise Name:</label>
-                    <input type="text" id="new-exercise-name" placeholder="e.g., Bench Press">
+                    <label for="new-exercise-name">Name:</label>
+                    <input type="text" id="new-exercise-name" required>
                 </div>
-                 <div class="form-group">
+                <div class="form-group">
                     <label for="new-exercise-category">Category:</label>
-                    <select id="new-exercise-category">
-                        <option value="" disabled selected>Select Category</option>
+                    <select id="new-exercise-category" required>
+                        <option value="">Select Category...</option>
                         <option value="core">Core</option>
                         <option value="arms">Arms</option>
                         <option value="shoulders">Shoulders</option>
                         <option value="chest">Chest</option>
                         <option value="legs">Legs</option>
                         <option value="back">Back</option>
-                        <option value="cardio">Cardio</option>
                         <option value="other">Other</option>
                     </select>
                 </div>
-                 <button type="button" id="save-new-exercise-btn" class="btn btn-success btn-small">Save New Exercise</button>
+                <button id="save-new-exercise-btn" class="btn btn-primary">Save New Exercise</button>
             </div>
-             <button type="button" id="toggle-define-exercise-btn" class="btn btn-secondary btn-small">Define New Exercise</button>
+            <!-- End New Exercise Definition -->
+
+             <div class="modal-actions">
+                <button id="toggle-define-exercise-btn" class="btn btn-secondary">Define New Exercise</button>
+                 <button id="add-selected-exercises-btn" class="btn btn-primary">Add Selected</button>
+            </div>
         </div>
     </div>
 
@@ -183,13 +216,58 @@
             <div class="nav-icon">📅</div>
             <span>Calendar</span>
         </a>
-        <a href="/pages/days-since.html" class="nav-item" data-page="days-since-page">
-            <div class="nav-icon">⏱️</div>
-            <span>Days Since</span>
-        </a>
+
     </div>
 
     <script src="../js/sidebar.js"></script>
-    <script src="../js/workouts.js"></script> <!-- Link to the new JS file -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/workouts.js"></script>
+
+    <!-- History Edit Modal (Renamed) -->
+    <div id="history-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('history-edit-modal').style.display='none'">&times;</span>
+            <h2>Edit Exercise History</h2>
+            <h3 id="history-edit-exercise-name">Exercise Name</h3>
+
+            <!-- Section for Adding New Log -->
+            <h4>Add New Past Log Entry</h4>
+            <form id="history-edit-add-form">
+                <input type="hidden" id="history-edit-exercise-id">
+                <div class="form-group">
+                    <label for="history-edit-date">Date:</label>
+                    <input type="date" id="history-edit-date" required>
+                </div>
+                <div id="history-edit-sets-container" class="sets-container">
+                    <!-- Set rows will be rendered here by JS -->
+                </div>
+                 <div class="set-actions-container" style="margin-top: 10px;">
+                     <button type="button" id="history-edit-remove-set" class="btn btn-danger btn-small">- Remove Set</button>
+                     <button type="button" id="history-edit-add-set" class="btn btn-secondary btn-small">+ Add Set</button>
+                </div>
+                <div class="form-group">
+                    <label for="history-edit-notes">Notes (optional):</label>
+                    <textarea id="history-edit-notes" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save New Entry</button>
+                 </div>
+             </form>
+
+             <hr class="page-divider">
+
+             <!-- Section for Existing Logs -->
+            <h4>Existing Log Entries</h4>
+            <div id="history-edit-log-list" class="modal-list" style="max-height: 250px; overflow-y: auto;">
+                <!-- Existing logs will be listed here -->
+                <p>Loading existing logs...</p>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('history-edit-modal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

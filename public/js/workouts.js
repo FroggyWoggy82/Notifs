@@ -7,6 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentWorkout = [];     // Array of exercise objects being performed { exercise_id, name, category, sets, reps, weight, weight_unit, order_position, notes, completedSets: [], lastLog: null }
     let workoutStartTime = null;
     let workoutTimerInterval = null;
+    let editingTemplateId = null; // To track which template is being edited
+    let currentTemplateExercises = []; // Array for exercises in the template editor
+    let exerciseHistoryChart = null; // To hold the Chart.js instance
+    let currentHistoryCategoryFilter = 'all'; // State for history category filter
+    const historyMessageEl = document.getElementById('history-message');
+    const historyEditBtn = document.getElementById('history-edit-btn'); // Renamed button reference
+    let currentHistoryExerciseId = null; // Store the currently selected exercise ID
+    let currentHistoryExerciseName = null; // Store the name
 
     // --- DOM Element References ---
     const workoutLandingPage = document.getElementById('workout-landing-page');
@@ -28,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const exerciseSearchInput = document.getElementById('exercise-search-input');
     const exerciseCategoryFilter = document.getElementById('exercise-category-filter');
     const availableExerciseListEl = document.getElementById('available-exercise-list');
+    const addSelectedExercisesBtn = document.getElementById('add-selected-exercises-btn'); // Added reference
 
     // --- New Exercise Definition Modal Elements ---
     const defineNewExerciseSection = document.getElementById('define-new-exercise-section');
@@ -47,9 +56,80 @@ document.addEventListener('DOMContentLoaded', function() {
     const templateAddExerciseBtn = document.getElementById('template-add-exercise-btn');
     const templateCancelBtn = document.getElementById('template-cancel-btn');
     const templateSaveBtn = document.getElementById('template-save-btn');
-    let currentTemplateExercises = []; // Temporary array for exercises in the editor
-    let editingTemplateId = null; // To track if we are editing an existing template
     // --- End Template Editor Elements ---
+
+    // --- History Section Elements (Updated for Search) ---
+    const historyExerciseSearchInput = document.getElementById('history-exercise-search');
+    const historySearchResultsEl = document.getElementById('history-search-results');
+    const historyCategoryFilterSelect = document.getElementById('history-category-filter-select');
+    const historyChartCanvas = document.getElementById('exercise-history-chart');
+
+    // --- History Edit Modal Elements (Renamed) ---
+    const historyEditModal = document.getElementById('history-edit-modal'); // Renamed modal ref
+    const historyEditAddForm = document.getElementById('history-edit-add-form'); // Renamed form ref
+    const historyEditExerciseNameEl = document.getElementById('history-edit-exercise-name'); // Renamed element ref
+    const historyEditExerciseIdInput = document.getElementById('history-edit-exercise-id'); // Renamed element ref
+    const historyEditDateInput = document.getElementById('history-edit-date'); // Renamed element ref
+    const historyEditSetsContainer = document.getElementById('history-edit-sets-container'); // Renamed element ref
+    const historyEditAddSetBtn = document.getElementById('history-edit-add-set'); // Renamed element ref
+    const historyEditRemoveSetBtn = document.getElementById('history-edit-remove-set'); // Renamed element ref
+    const historyEditNotesInput = document.getElementById('history-edit-notes'); // Renamed element ref
+    const historyEditLogListEl = document.getElementById('history-edit-log-list'); // New ref for log list
+    let historyEditSets = []; // Renamed state variable
+
+    // --- Helper function to generate HTML for set rows ---
+    function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
+        let setRowsHtml = '';
+        const numSets = parseInt(exerciseData.sets) || 1;
+        const lastLogData = isTemplate ? null : exerciseData.lastLog;
+
+        // Parse previous log data into arrays (if available)
+        let prevRepsArray = [];
+        let prevWeightsArray = [];
+        let prevUnit = 'kg'; // Default unit
+        if (!isTemplate && lastLogData && lastLogData.reps_completed && lastLogData.weight_used) {
+            prevRepsArray = lastLogData.reps_completed.split(',');
+            prevWeightsArray = lastLogData.weight_used.split(',');
+            prevUnit = lastLogData.weight_unit || 'kg';
+        }
+
+        // Removed calculation of single previousLogText here
+
+        for (let i = 0; i < numSets; i++) {
+             // Determine if this specific set was completed (only for active workouts)
+             const isCompleted = !isTemplate && exerciseData.completedSets && exerciseData.completedSets[i];
+
+            // --- Get previous data for THIS specific set index (i) ---
+            let previousLogText = '- kg x -'; // Default placeholder for this set
+            if (prevRepsArray.length > i && prevWeightsArray.length > i) {
+                 const prevRep = prevRepsArray[i]?.trim() || '-';
+                 const prevWeight = prevWeightsArray[i]?.trim() || '-';
+                 previousLogText = `${prevWeight} ${prevUnit} x ${prevRep}`; // Construct text for this set
+            } else if (!isTemplate && lastLogData && lastLogData.message) {
+                // Handle overall fetch error/no data message if needed (optional)
+                 // previousLogText = 'N/A';
+            }
+            // --- End getting previous data for set index i ---
+
+            setRowsHtml += `
+                <div class="set-row" data-set-index="${i}">
+                    <span class="set-number">${i + 1}</span>
+                    ${!isTemplate ? `<span class="previous-log" title="Last Session Set ${i + 1}">${previousLogText}</span>` : ''} <!-- Show previous data specific to this set index -->
+                    <div class="weight-input-group">
+                        <input type="number" class="weight-input" placeholder="Wt" value="${exerciseData.weight != null ? exerciseData.weight : ''}" step="0.5">
+                        <select class="unit-select">
+                            <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                            <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
+                            <option value="bodyweight">bw</option>
+                        </select>
+                    </div>
+                    <input type="text" class="reps-input" placeholder="Reps" value="${exerciseData.reps || ''}">
+                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}"></button>` : ''} <!-- Completion toggle only in active workout -->
+                </div>
+            `;
+        }
+        return setRowsHtml;
+    }
 
     // --- API Fetch Functions ---
     async function fetchExercises() {
@@ -141,19 +221,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         filtered.forEach(ex => {
-            const item = document.createElement('div');
-            item.className = 'modal-list-item';
-            item.textContent = ex.name;
-            item.dataset.exerciseId = ex.exercise_id; // Store ID for adding
+            // Create a label element instead of a div
+            const label = document.createElement('label');
+            label.className = 'modal-list-item checkbox-item'; // Add class for styling
 
-            const categorySpan = document.createElement('span');
-            categorySpan.textContent = `(${ex.category || 'N/A'})`; // Show category
-            item.appendChild(categorySpan);
+            // Create the checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = ex.exercise_id; // Store ID in value
+            checkbox.id = `ex-select-${ex.exercise_id}`;
+            checkbox.name = 'selectedExercises';
 
-            // Event listener to add this exercise to the current workout
-            item.addEventListener('click', () => addExerciseToWorkout(ex.exercise_id));
+            // Create span for the text content
+            const textSpan = document.createElement('span');
+            textSpan.textContent = `${ex.name} (${ex.category || 'N/A'})`;
 
-            availableExerciseListEl.appendChild(item);
+            // Append checkbox and text span to the label
+            label.appendChild(checkbox);
+            label.appendChild(textSpan);
+            label.htmlFor = checkbox.id;
+
+            // Remove the old single-click listener
+            // item.addEventListener('click', () => addExerciseToWorkout(ex.exercise_id));
+
+            availableExerciseListEl.appendChild(label);
         });
     }
 
@@ -217,45 +308,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Reworked function to render a single exercise item (lastLogData now part of exerciseData) ---
     function renderSingleExerciseItem(exerciseItemElement, exerciseData, index) {
-        let setRowsHtml = '';
         const numSets = parseInt(exerciseData.sets) || 1;
         const lastLogData = exerciseData.lastLog; // Get stored last log data
 
-        // Prepare previous log display data (simplistic: use first value)
-        let prevWeight = '-';
-        let prevReps = '-';
-        let prevUnit = 'kg';
-        if (lastLogData && lastLogData.weight_used && lastLogData.reps_completed) {
-            prevWeight = lastLogData.weight_used.split(',')[0].trim() || '-';
-            prevReps = lastLogData.reps_completed.split(',')[0].trim() || '-';
-            prevUnit = lastLogData.weight_unit || 'kg';
-        }
-        const previousLogText = `${prevWeight}${prevUnit} x ${prevReps}`;
-
-        for (let i = 0; i < numSets; i++) {
-            const defaultReps = exerciseData.reps || '';
-            const defaultWeight = exerciseData.weight != null ? exerciseData.weight : '';
-            const defaultUnit = exerciseData.weight_unit || 'kg';
-            const isSetCompleted = exerciseData.completedSets && exerciseData.completedSets[i];
-
-            // Add the 'previous-log' span
-            setRowsHtml += `
-                <div class="set-row" data-set-index="${i}">
-                    <span class="set-number">${i + 1}</span>
-                    <span class="previous-log" title="Previous session">${previousLogText}</span>
-                    <div class="weight-input-group">
-                       <input type="number" class="weight-input" placeholder="Wt" value="${defaultWeight}" step="0.5">
-                       <select class="unit-select">
-                          <option value="kg" ${defaultUnit === 'kg' ? 'selected' : ''}>kg</option>
-                          <option value="lbs" ${defaultUnit === 'lbs' ? 'selected' : ''}>lbs</option>
-                          <option value="bodyweight">bw</option>
-                       </select>
-                    </div>
-                    <input type="text" class="reps-input" placeholder="Reps" value="${defaultReps}">
-                    <button class="set-complete-toggle ${isSetCompleted ? 'completed' : ''}" title="Mark Set Complete"></button>
-                </div>
-            `;
-        }
+        // Generate set rows HTML using the helper function
+        const setRowsHtml = generateSetRowsHtml(exerciseData, index, false); // Pass false for isTemplate
 
         // Update the existing exerciseItemElement
         exerciseItemElement.innerHTML = `
@@ -263,9 +320,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h4>${exerciseData.name}</h4>
                 <button class="btn-delete-exercise" title="Remove Exercise" data-workout-index="${index}">&times;</button>
             </div>
-            <!-- Added Exercise Notes Textarea for Active Workout -->
+            <!-- Removed the label for the notes textarea -->
             <div class="form-group exercise-notes-group">
-               <label for="active-exercise-notes-${index}" class="sr-only">Notes for ${exerciseData.name}:</label> <!-- Screen-reader only label? -->
                <textarea id="active-exercise-notes-${index}" class="exercise-notes-textarea active-notes" rows="2" placeholder="Notes for this exercise..."></textarea>
             </div>
             <div class="sets-container">
@@ -359,8 +415,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    function addExerciseToWorkout(exerciseId) {
-        const targetList = exerciseModal.dataset.targetList || 'active'; // Default to active
+    function addExerciseToWorkout(exerciseId, targetList) { // Added targetList parameter
+        // Removed reading targetList from modal dataset here
         const exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
         if (!exercise) {
             console.error('Exercise not found in available list', exerciseId);
@@ -439,6 +495,24 @@ document.addEventListener('DOMContentLoaded', function() {
         currentWorkout[exerciseIndex].completedSets[setIndex] = isCompleted;
 
         console.log(`Exercise ${exerciseIndex}, Set ${setIndex} completion: ${isCompleted}`);
+
+        // --- Added: Disable/Enable inputs based on completion state ---
+        const weightInput = setRow.querySelector('.weight-input');
+        const repsInput = setRow.querySelector('.reps-input');
+        const unitSelect = setRow.querySelector('.unit-select');
+
+        if (weightInput && repsInput && unitSelect) {
+            weightInput.disabled = isCompleted;
+            repsInput.disabled = isCompleted;
+            unitSelect.disabled = isCompleted;
+        }
+
+        // Add/Remove actual checkmark character
+        if (isCompleted) {
+            toggleButton.innerHTML = '&#10003;'; // Checkmark HTML entity
+        } else {
+            toggleButton.innerHTML = ''; // Clear checkmark
+        }
     }
 
     async function handleCompleteWorkout() {
@@ -616,84 +690,93 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderTemplateExerciseList() {
-        templateExerciseListEl.innerHTML = ''; // Clear previous
-        if (currentTemplateExercises.length === 0) {
-            templateExerciseListEl.innerHTML = '<p>Add exercises using the button below.</p>';
-            return;
-        }
+        const templateExerciseListEl = document.getElementById('template-exercise-list');
+        templateExerciseListEl.innerHTML = '';
 
-        // Similar to renderCurrentWorkout, but without completion toggles
-        // and maybe with reordering handles later
         currentTemplateExercises.forEach((exercise, index) => {
-             exercise.order_position = index; // Ensure order is up-to-date
-             const exerciseItem = document.createElement('div');
-             exerciseItem.className = 'exercise-item'; // Reuse class
-             exerciseItem.dataset.templateIndex = index; // Use different dataset attribute
+            const exerciseItem = document.createElement('div');
+            exerciseItem.className = 'exercise-item';
+            exerciseItem.draggable = true; // Make the item draggable
+            exerciseItem.dataset.index = index; // Store the current index
 
-             let setRowsHtml = '';
-             const numSets = parseInt(exercise.sets) || 1;
-             for (let i = 0; i < numSets; i++) {
-                 setRowsHtml += `
-                     <div class="set-row" data-set-index="${i}">
-                         <span class="set-number">${i + 1}</span>
-                         <div class="weight-input-group">
-                            <input type="number" class="weight-input" placeholder="Wt" value="${exercise.weight != null ? exercise.weight : ''}" step="0.5">
-                            <select class="unit-select">
-                               <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                               <option value="lbs" ${exercise.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
-                               <option value="bodyweight">bw</option>
-                            </select>
-                         </div>
-                         <input type="text" class="reps-input" placeholder="Reps" value="${exercise.reps || ''}">
-                         <!-- No toggle here -->
-                     </div>
-                 `;
-             }
+            // Add drag event listeners
+            exerciseItem.addEventListener('dragstart', handleDragStart);
+            exerciseItem.addEventListener('dragend', handleDragEnd);
+            exerciseItem.addEventListener('dragover', handleDragOver);
+            exerciseItem.addEventListener('drop', handleDrop);
 
-             exerciseItem.innerHTML = `
-                 <div class="exercise-item-header">
-                     <h4>${exercise.name}</h4>
-                     <button type="button" class="btn-delete-template-exercise" title="Remove Exercise" data-template-index="${index}">&times;</button>
-                 </div>
-                 <div class="form-group exercise-notes-group">
+            // Call helper function
+            const setRowsHtml = generateSetRowsHtml(exercise, index, true); // Pass true for isTemplate
+
+            exerciseItem.innerHTML = `
+                <div class="exercise-item-header">
+                    <h4>${exercise.name}</h4>
+                    <button class="btn-delete-exercise" title="Remove Exercise" data-index="${index}">&times;</button>
+                </div>
+                <div class="sets-container">
+                    ${setRowsHtml}
+                </div>
+                <div class="exercise-notes-group">
                     <label for="exercise-notes-${index}">Notes:</label>
-                    <textarea id="exercise-notes-${index}" class="exercise-notes-textarea" rows="2" placeholder="Exercise specific notes...">${exercise.notes || ''}</textarea>
-                 </div>
-                 <div class="sets-container">
-                     ${setRowsHtml}
-                 </div>
-             `;
+                    <textarea id="exercise-notes-${index}" class="exercise-notes" rows="2">${exercise.notes || ''}</textarea>
+                </div>
+            `;
 
-             // Add listener for deleting exercise from template
-              exerciseItem.querySelector('.btn-delete-template-exercise').addEventListener('click', handleDeleteTemplateExercise);
-
-             templateExerciseListEl.appendChild(exerciseItem);
-         });
+            templateExerciseListEl.appendChild(exerciseItem);
+        });
     }
 
-    function handleOpenTemplateExerciseModal() {
-        // We need to modify how exercises are added - specify the target list
-        // For now, modify the listener directly when showing the editor?
-        // Or have a state variable? Let's use a state variable.
+    // --- Drag and Drop Handlers ---
+    function handleDragStart(e) {
+        this.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', this.dataset.index);
     }
 
-     function handleDeleteTemplateExercise(event) {
-        const indexToRemove = parseInt(event.target.dataset.templateIndex, 10);
-         if (!isNaN(indexToRemove) && indexToRemove >= 0 && indexToRemove < currentTemplateExercises.length) {
-             currentTemplateExercises.splice(indexToRemove, 1);
-             renderTemplateExerciseList(); // Re-render
-         }
-     }
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+    }
 
-     function handleChangeTemplateSetCount(event) {
-        const indexToChange = parseInt(event.target.dataset.templateIndex, 10);
-        const newSetCount = parseInt(event.target.value, 10);
-        if (!isNaN(indexToChange) && indexToChange >= 0 && indexToChange < currentTemplateExercises.length && !isNaN(newSetCount) && newSetCount > 0) {
-            currentTemplateExercises[indexToChange].sets = newSetCount;
-            renderTemplateExerciseList(); // Re-render to show correct number of set rows
-        }
-     }
+    function handleDragOver(e) {
+        e.preventDefault(); // Necessary to allow dropping
+        const draggingElement = document.querySelector('.dragging');
+        if (draggingElement === this) return;
 
+        const rect = this.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const dropPosition = e.clientY < midY ? 'before' : 'after';
+
+        // Remove drag-over class from all elements
+        document.querySelectorAll('.exercise-item').forEach(item => {
+            item.classList.remove('drag-over');
+        });
+
+        // Add drag-over class to current element
+        this.classList.add('drag-over');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+
+        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const toIndex = parseInt(this.dataset.index);
+        
+        if (fromIndex === toIndex) return;
+
+        // Reorder the exercises array
+        const [movedExercise] = currentTemplateExercises.splice(fromIndex, 1);
+        currentTemplateExercises.splice(toIndex, 0, movedExercise);
+
+        // Update order_position for all exercises
+        currentTemplateExercises.forEach((exercise, index) => {
+            exercise.order_position = index;
+        });
+
+        // Re-render the list
+        renderTemplateExerciseList();
+    }
+
+    // --- Template Save Handler ---
     async function handleSaveTemplate(event) {
         event.preventDefault(); // Prevent default form submission
         console.log('Saving template...');
@@ -707,26 +790,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Collect exercise data from the currentTemplateExercises array,
-        // ensuring data from inputs is captured correctly.
+        // Collect exercise data from the currentTemplateExercises array
         const exercisesToSave = currentTemplateExercises.map((exercise, index) => {
-            // REMOVED reading values from DOM inputs for template save
-            // Only send the essential info: exercise ID and order
-             const simplifiedExercise = {
-                 exercise_id: exercise.exercise_id,
-                 order_position: index,
-                 // We CAN optionally include default/placeholder values if desired,
-                 // but the backend now handles defaults if these are missing/null.
-                 sets: exercise.sets || 1, // Send current sets value or default
-                 reps: exercise.reps || '', // Send current reps or default
-                 weight: exercise.weight,
-                 weight_unit: exercise.weight_unit,
-                 notes: exercise.notes
-             };
-              // REMOVED validation here, backend handles it now
-             return simplifiedExercise;
-        }); //.filter(ex => ex !== null); -- No longer needed
-
+            const simplifiedExercise = {
+                exercise_id: exercise.exercise_id,
+                order_position: index,
+                sets: parseInt(exercise.sets) || 1, // Ensure sets is a number, default to 1
+                reps: exercise.reps || '', // Default empty string if not set
+                weight: exercise.weight,
+                weight_unit: exercise.weight_unit || 'kg', // Default to kg if not set
+                notes: exercise.notes || '' // Default empty string if not set
+            };
+            return simplifiedExercise;
+        });
 
         const templateData = {
             name: templateName,
@@ -759,7 +835,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
             console.log('Template saved successfully:', result);
-            // alert(`Template ${editingTemplateId ? 'updated' : 'created'} successfully!`); // REMOVED ALERT
 
             // Reset state and go back to landing page
             editingTemplateId = null;
@@ -775,8 +850,6 @@ document.addEventListener('DOMContentLoaded', function() {
             templateSaveBtn.textContent = 'Save Template';
         }
     }
-
-    // --- End Template Editor Specific Functions ---
 
     function handleToggleDefineExercise() {
         const isHidden = defineNewExerciseSection.style.display === 'none';
@@ -943,6 +1016,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         exerciseSearchInput.addEventListener('input', handleFilterChange);
         exerciseCategoryFilter.addEventListener('change', handleFilterChange);
+        addSelectedExercisesBtn.addEventListener('click', handleAddSelectedExercises); // Added listener
 
         // Active workout listeners
         cancelWorkoutBtn.addEventListener('click', handleCancelWorkout);
@@ -992,6 +1066,53 @@ document.addEventListener('DOMContentLoaded', function() {
                  }
             }
         });
+
+        // History Search Listener
+        if (historyExerciseSearchInput) { // Check if element exists
+             historyExerciseSearchInput.addEventListener('input', handleHistorySearchInput);
+             // Add listener to hide results when clicking outside
+             document.addEventListener('click', (event) => {
+                 if (!historyExerciseSearchInput.contains(event.target) && !historySearchResultsEl.contains(event.target)) {
+                     historySearchResultsEl.style.display = 'none';
+                 }
+             });
+            // Add focus listener to show results
+             historyExerciseSearchInput.addEventListener('focus', () => {
+                  // Show all exercises matching current category filter when focused (if input empty)
+                 if (historyExerciseSearchInput.value.trim() === '') {
+                     handleHistorySearchInput();
+                 }
+             });
+
+            // Add listener for new category dropdown
+            if (historyCategoryFilterSelect) {
+                historyCategoryFilterSelect.addEventListener('change', () => {
+                    currentHistoryCategoryFilter = historyCategoryFilterSelect.value;
+                    console.log('History category filter changed to:', currentHistoryCategoryFilter);
+                    // Clear selected exercise and hide button when filter changes
+                    currentHistoryExerciseId = null;
+                    currentHistoryExerciseName = null;
+                    historyEditBtn.style.display = 'none';
+                    historyExerciseSearchInput.value = ''; // Clear search input
+                    if (exerciseHistoryChart) { // Clear chart
+                         exerciseHistoryChart.destroy();
+                         exerciseHistoryChart = null;
+                    }
+                    historyMessageEl.textContent = 'Select an exercise.';
+                    // Re-filter search results based on new category
+                    handleHistorySearchInput();
+                 });
+            }
+
+            // --- NEW: Event delegation listener for results container ---
+            historySearchResultsEl.addEventListener('click', handleHistoryResultClick);
+            // --- END NEW ---
+
+            // Add listener for the new Add Past Log button
+            if (historyEditBtn) {
+                historyEditBtn.addEventListener('click', openHistoryEditModal);
+            }
+        }
 
         // Initial page state
         switchPage('landing'); // Start on the landing page
@@ -1069,6 +1190,474 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Workout cancellation aborted.');
             startTimer(); // Resume timer if cancelled the cancellation
         }
+    }
+
+    // --- New Handler for Adding Multiple Selected Exercises ---
+    function handleAddSelectedExercises() {
+        const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
+        const selectedCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]:checked');
+
+        if (selectedCheckboxes.length === 0) {
+            alert('Please select at least one exercise to add.');
+            return;
+        }
+
+        console.log(`Adding ${selectedCheckboxes.length} selected exercises to ${targetList}`);
+
+        selectedCheckboxes.forEach(checkbox => {
+            const exerciseId = parseInt(checkbox.value, 10);
+            if (!isNaN(exerciseId)) {
+                addExerciseToWorkout(exerciseId, targetList); // Pass targetList
+            }
+        });
+
+        closeExerciseModal(); // Close modal after adding all
+    }
+
+    // --- History Chart Functions (Updated for Search) ---
+    function handleHistorySearchInput() {
+        const searchTerm = historyExerciseSearchInput.value.toLowerCase().trim();
+        const category = currentHistoryCategoryFilter; // Use state variable
+
+        if (searchTerm.length < 1 && category === 'all') { // Hide if input is empty and category is 'all'
+             historySearchResultsEl.style.display = 'none';
+             return;
+        }
+
+        const filteredExercises = availableExercises.filter(ex => {
+            const nameMatch = ex.name.toLowerCase().includes(searchTerm);
+            const categoryMatch = category === 'all' || ex.category === category;
+            return nameMatch && categoryMatch;
+        });
+
+        renderHistorySearchResults(filteredExercises);
+    }
+
+    function renderHistorySearchResults(results) {
+        historySearchResultsEl.innerHTML = ''; // Clear previous results
+
+        if (results.length === 0) {
+            historySearchResultsEl.style.display = 'none'; // Hide if no results
+            return;
+        }
+
+        results.forEach(ex => {
+            const div = document.createElement('div');
+            div.textContent = ex.name;
+            div.dataset.exerciseId = ex.exercise_id;
+            div.dataset.exerciseName = ex.name; // Store name for setting input later
+            historySearchResultsEl.appendChild(div);
+        });
+
+        historySearchResultsEl.style.display = 'block'; // Show results list
+    }
+
+    function handleHistoryResultClick(event) {
+        console.log("handleHistoryResultClick triggered. event.target:", event.target); // Log the actual element clicked
+
+        // Check if the clicked element is a direct child div of the results list
+        const clickedResultDiv = event.target.closest('#history-search-results > div');
+        console.log("Closest result div found:", clickedResultDiv); // Log the result of closest()
+
+        if (!clickedResultDiv) {
+             console.log('Click was not on a result item.');
+             return; // Click wasn't on a result div
+        }
+
+        // Use the found div (clickedResultDiv) to get data
+        const selectedId = clickedResultDiv.dataset.exerciseId;
+        const selectedName = clickedResultDiv.dataset.exerciseName;
+        console.log(`Attempting to use ID=${selectedId}, Name=${selectedName}`); // Log the data extracted
+
+        if (!selectedId || !selectedName) {
+            console.error('Could not get exercise ID or name from clicked result div:', clickedResultDiv);
+            // Clear button state if selection fails
+            currentHistoryExerciseId = null;
+            currentHistoryExerciseName = null;
+            historyEditBtn.style.display = 'none';
+            return; // Exit if data attributes are missing
+        }
+
+        console.log(`Result clicked and processed: ID=${selectedId}, Name=${selectedName}`); // Log successful processing before action
+
+        historyExerciseSearchInput.value = selectedName; // Set input value to selection
+        historySearchResultsEl.innerHTML = ''; // Clear results
+        historySearchResultsEl.style.display = 'none'; // Hide results list
+
+        fetchAndRenderHistoryChart(selectedId); // Fetch and render chart for the selected ID
+
+        // Store selected exercise and show Edit button
+        currentHistoryExerciseId = selectedId;
+        currentHistoryExerciseName = selectedName;
+        historyEditBtn.style.display = 'inline-block';
+    }
+
+    async function fetchAndRenderHistoryChart(exerciseId) { // Renamed function
+        historyMessageEl.textContent = ''; // Clear previous messages
+
+        if (!exerciseId) {
+            historyMessageEl.textContent = 'Please select an exercise to view its history.';
+            return;
+        }
+
+        historyMessageEl.textContent = 'Loading history...';
+
+        try {
+            const response = await fetch(`/api/workouts/exercises/${exerciseId}/history`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const historyData = await response.json();
+
+            if (historyData.length === 0) {
+                historyMessageEl.textContent = 'No logged history found for this exercise.';
+                return;
+            }
+
+            // Process data for chart
+            const labels = historyData.map(log => new Date(log.date_performed).toLocaleDateString());
+            const volumes = historyData.map(log => {
+                // Calculate volume (Sum of Weight * Reps for each set)
+                if (!log.reps_completed || !log.weight_used) return 0;
+                
+                const repsArray = log.reps_completed.split(',').map(Number);
+                const weightsArray = log.weight_used.split(',').map(Number);
+                let totalVolume = 0;
+
+                // Use the shorter length to avoid errors if arrays mismatch
+                const numSets = Math.min(repsArray.length, weightsArray.length);
+
+                for (let i = 0; i < numSets; i++) {
+                    const reps = isNaN(repsArray[i]) ? 0 : repsArray[i];
+                    const weight = isNaN(weightsArray[i]) ? 0 : weightsArray[i];
+                    // Basic calculation: weight * reps. Ignores bodyweight sets for simplicity.
+                    // Ignores unit conversion (kg/lbs) for now.
+                    if (log.weight_unit !== 'bodyweight') {
+                        totalVolume += weight * reps;
+                    }
+                }
+                return totalVolume;
+            });
+
+            historyMessageEl.textContent = ''; // Clear loading message
+            // Update chart label
+            renderHistoryChart(labels, volumes, 'Volume (Weight * Reps)');
+
+        } catch (error) {
+            console.error('Error fetching or processing exercise history:', error);
+            historyMessageEl.textContent = `Error loading history: ${error.message}`;
+        }
+    }
+
+    function renderHistoryChart(labels, data, chartLabel = 'Volume') {
+        if (!historyChartCanvas) return;
+        const ctx = historyChartCanvas.getContext('2d');
+
+        // Destroy existing chart before creating new one
+        if (exerciseHistoryChart) {
+            exerciseHistoryChart.destroy();
+        }
+
+        exerciseHistoryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: chartLabel,
+                    data: data,
+                    borderColor: '#4CAF50', // Green line
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)', // Light green fill
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: chartLabel
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                     // Use locale string for better number formatting
+                                     label += context.parsed.y.toLocaleString();
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- History Edit Modal Functions (Renamed) ---
+    function openHistoryEditModal() { // Renamed function
+        if (!currentHistoryExerciseId || !currentHistoryExerciseName) {
+            alert('Please select an exercise from the search first.');
+            return;
+        }
+
+        // Pre-fill modal add section
+        historyEditExerciseNameEl.textContent = currentHistoryExerciseName;
+        historyEditExerciseIdInput.value = currentHistoryExerciseId;
+        historyEditAddForm.reset(); // Clear previous add form entries
+        historyEditDateInput.valueAsDate = new Date(); // Default to today
+
+        // Reset and render initial set row for adding
+        historyEditSets = [{ reps: '', weight: '', unit: 'kg' }]; // Renamed state var
+        renderHistoryEditSets(); // Renamed render function
+
+        // Fetch and display existing logs
+        fetchAndRenderExistingLogs(currentHistoryExerciseId);
+
+        historyEditModal.style.display = 'block'; // Use renamed modal ID
+    }
+
+    function renderHistoryEditSets() { // Renamed function
+        historyEditSetsContainer.innerHTML = ''; // Use renamed container ref
+        historyEditSets.forEach((set, index) => { // Use renamed state var
+            // Generate HTML similar to generateSetRowsHtml, but simpler
+            const setRow = document.createElement('div');
+            setRow.className = 'set-row history-edit-set-row'; // Specific class
+            setRow.dataset.setIndex = index;
+            setRow.innerHTML = `
+                <span class="set-number">${index + 1}</span>
+                <!-- Weight input group first -->
+                <div class="weight-input-group">
+                    <input type="number" class="weight-input history-edit-weight" placeholder="Wt" value="${set.weight}" step="0.5">
+                    <select class="unit-select history-edit-unit">
+                        <option value="kg" ${set.unit === 'kg' ? 'selected' : ''}>kg</option>
+                        <option value="lbs" ${set.unit === 'lbs' ? 'selected' : ''}>lbs</option>
+                        <option value="bodyweight">bw</option>
+                    </select>
+                </div>
+                <!-- Reps input second -->
+                <input type="text" class="reps-input history-edit-reps" placeholder="Reps" value="${set.reps}">
+             `; // No previous, no toggle
+            historyEditSetsContainer.appendChild(setRow);
+        });
+        // Disable remove button if only one set left
+        historyEditRemoveSetBtn.disabled = historyEditSets.length <= 1; // Use renamed button ref
+    }
+
+    function handleHistoryEditAddSet() { // Renamed function
+        // --- Save current state from DOM before adding --- 
+        const currentSetRows = historyEditSetsContainer.querySelectorAll('.set-row'); // Use renamed ref
+        currentSetRows.forEach((row, index) => {
+            if (historyEditSets[index]) { // Use renamed state var
+                const weightInput = row.querySelector('.history-edit-weight');
+                const repsInput = row.querySelector('.history-edit-reps');
+                const unitSelect = row.querySelector('.history-edit-unit');
+                historyEditSets[index].weight = weightInput ? weightInput.value : '';
+                historyEditSets[index].reps = repsInput ? repsInput.value : '';
+                historyEditSets[index].unit = unitSelect ? unitSelect.value : 'kg';
+            }
+        });
+        // --- End save state ---
+
+        historyEditSets.push({ reps: '', weight: '', unit: 'kg' }); // Use renamed state var
+        renderHistoryEditSets(); // Renamed render function
+    }
+
+    function handleHistoryEditRemoveSet() { // Renamed function
+        if (historyEditSets.length > 1) { // Use renamed state var
+            historyEditSets.pop(); // Use renamed state var
+            renderHistoryEditSets(); // Renamed render function
+        }
+    }
+
+    async function handleHistoryEditAddSubmit(event) { // Renamed function
+        event.preventDefault();
+        console.log('Submitting new past log...');
+
+        const logData = {
+            exercise_id: parseInt(historyEditExerciseIdInput.value, 10),
+            date_performed: historyEditDateInput.value,
+            notes: historyEditNotesInput.value.trim()
+        };
+
+        // Collect data from dynamic set rows
+        const setRows = historyEditSetsContainer.querySelectorAll('.set-row');
+
+        let isValid = true;
+        setRows.forEach((row, index) => {
+            const repsInput = row.querySelector('.history-edit-reps');
+            const weightInput = row.querySelector('.history-edit-weight');
+            const unitSelect = row.querySelector('.history-edit-unit');
+
+            const reps = repsInput.value.trim();
+            const weight = weightInput.value.trim();
+            const unit = unitSelect.value;
+
+            // Basic validation per row
+            if (reps === '' || weight === '') {
+                isValid = false;
+            }
+
+            logData.reps_completed = reps || '0';
+            logData.weight_used = weight || '0';
+            logData.weight_unit = unit;
+        });
+
+        if (!isValid) {
+            alert('Please fill in both weight and reps for all sets.');
+            return;
+        }
+
+        console.log('New Past Log Data to Send:', logData);
+        const submitButton = historyEditAddForm.querySelector('button[type="submit"]'); // Target correct form
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+
+        try {
+            const response = await fetch('/api/workouts/log/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(logData)
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || `HTTP error! Status: ${response.status}`);
+            }
+
+            console.log('New past log saved:', result);
+            // alert('Past log entry saved successfully!'); // Removed alert
+            // Don't close modal, just refresh lists
+
+            // Refresh the existing logs list in the modal
+             fetchAndRenderExistingLogs(logData.exercise_id);
+             // Refresh the history chart in the background
+             fetchAndRenderHistoryChart(logData.exercise_id);
+            // Clear the add form
+             historyEditAddForm.reset();
+             historyEditSets = [{ reps: '', weight: '', unit: 'kg' }];
+             renderHistoryEditSets();
+             historyEditDateInput.valueAsDate = new Date();
+
+        } catch (error) {
+            console.error('Error saving new past log:', error);
+            alert(`Failed to save new past log: ${error.message}`);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save Log Entry';
+        }
+    }
+
+    // --- NEW: Fetch and render existing logs in the modal ---
+    async function fetchAndRenderExistingLogs(exerciseId) {
+        if (!exerciseId || !historyEditLogListEl) return;
+
+        historyEditLogListEl.innerHTML = '<p>Loading existing logs...</p>';
+
+        try {
+            const response = await fetch(`/api/workouts/exercises/${exerciseId}/history`); // Reuse history route
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const logs = await response.json();
+
+            historyEditLogListEl.innerHTML = ''; // Clear loading message
+            if (logs.length === 0) {
+                historyEditLogListEl.innerHTML = '<p>No past logs found for this exercise.</p>';
+                return;
+            }
+
+            // Sort logs newest first for display
+            logs.sort((a, b) => new Date(b.date_performed) - new Date(a.date_performed));
+
+            logs.forEach(log => {
+                const logItem = document.createElement('div');
+                logItem.className = 'log-list-item';
+
+                // Combine reps and weights for display
+                 const repsArray = log.reps_completed ? log.reps_completed.split(',') : [];
+                 const weightsArray = log.weight_used ? log.weight_used.split(',') : [];
+                 const unit = log.weight_unit || 'kg';
+                 let summary = repsArray.map((rep, index) => {
+                     const weight = weightsArray[index] || '-';
+                     return `${weight}${unit} x ${rep}`;
+                 }).join(', ');
+
+                logItem.innerHTML = `
+                    <div class="log-item-details">
+                        <span class="log-item-date">${new Date(log.date_performed).toLocaleDateString()}</span>
+                        <span class="log-item-summary">${summary}</span>
+                    </div>
+                    <button class="btn-delete-log btn-danger btn-tiny" data-log-id="${log.workout_log_id}" title="Delete this log entry">&times;</button>
+                `; // Assuming workout_log_id is unique identifier
+
+                 // Add listener for delete button
+                 logItem.querySelector('.btn-delete-log').addEventListener('click', handleDeleteExistingLog);
+
+                historyEditLogListEl.appendChild(logItem);
+            });
+
+        } catch (error) {
+            console.error('Error fetching existing logs:', error);
+            historyEditLogListEl.innerHTML = '<p style="color: red;">Error loading logs.</p>';
+        }
+    }
+
+    // --- NEW: Handle deleting an existing log entry ---
+    async function handleDeleteExistingLog(event) {
+        const button = event.target;
+        const workoutLogId = button.dataset.logId;
+        const exerciseId = historyEditExerciseIdInput.value; // Get current exercise ID
+
+        if (!workoutLogId) {
+            console.error('Missing log ID on delete button');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to permanently delete this log entry? This cannot be undone.')) {
+            return;
+        }
+
+        console.log(`Attempting to delete workout log ID: ${workoutLogId}`);
+        button.disabled = true; // Disable button during deletion
+
+        try {
+            // Need a backend route to delete a specific workout_log and its associated exercise_logs
+            const response = await fetch(`/api/workouts/logs/${workoutLogId}`, { method: 'DELETE' });
+
+            if (!response.ok) {
+                 const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                 throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Log deleted:', result);
+
+            // Refresh the list in the modal
+            fetchAndRenderExistingLogs(exerciseId);
+            // Refresh the chart in the background
+            fetchAndRenderHistoryChart(exerciseId);
+
+        } catch (error) {
+            console.error('Error deleting log:', error);
+            alert(`Failed to delete log entry: ${error.message}`);
+            button.disabled = false; // Re-enable button on error
+        }
+
     }
 
     initialize(); // Run initialization

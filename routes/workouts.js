@@ -147,9 +147,9 @@ router.post('/exercises', async (req, res) => {
     if (!name || name.trim() === '') {
         return res.status(400).json({ error: 'Exercise name cannot be empty' });
     }
-    const validCategories = ['core', 'arms', 'shoulders', 'chest', 'legs', 'back', 'cardio', 'other'];
+    const validCategories = ['core', 'arms', 'shoulders', 'chest', 'legs', 'back', 'other'];
     if (!category || !validCategories.includes(category)) {
-        return res.status(400).json({ error: 'Invalid or missing category' });
+        return res.status(400).json({ error: 'Invalid category' });
     }
 
     try {
@@ -206,6 +206,121 @@ router.get('/exercises/:id/lastlog', async (req, res) => {
     } catch (err) {
         console.error(`Error fetching last log for exercise ${exerciseId}:`, err);
         res.status(500).json({ error: 'Failed to fetch last exercise log' });
+    }
+});
+
+// GET /api/workouts/exercises/:id/history - Fetch all log history for a specific exercise
+router.get('/exercises/:id/history', async (req, res) => {
+    const { id: exerciseId } = req.params;
+    console.log(`Received GET /api/workouts/exercises/${exerciseId}/history request`);
+
+    if (!/^[1-9]\d*$/.test(exerciseId)) {
+        return res.status(400).json({ error: 'Invalid exercise ID format' });
+    }
+
+    try {
+        // Fetch relevant log data, ordered by date
+        const query = `
+            SELECT
+                wl.log_id AS workout_log_id,
+                el.sets_completed,
+                el.reps_completed, -- Comma-separated string e.g., "10,9,8"
+                el.weight_used,   -- Comma-separated string e.g., "50,50,55"
+                el.weight_unit,
+                wl.date_performed
+            FROM exercise_logs el
+            JOIN workout_logs wl ON el.workout_log_id = wl.log_id
+            WHERE el.exercise_id = $1
+            ORDER BY wl.date_performed ASC; -- Order oldest to newest for charting
+        `;
+        const result = await db.query(query, [exerciseId]);
+
+        // Send back all rows found
+        console.log(`Found ${result.rows.length} history logs for exercise ${exerciseId}.`);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(`Error fetching history for exercise ${exerciseId}:`, err);
+        res.status(500).json({ error: 'Failed to fetch exercise history' });
+    }
+});
+
+// POST /api/workouts/log/manual - Manually add a historical exercise log entry
+router.post('/log/manual', async (req, res) => {
+    const { exercise_id, date_performed, reps_completed, weight_used, weight_unit, notes } = req.body;
+    console.log(`Received POST /api/workouts/log/manual for exercise_id: ${exercise_id}`);
+
+    // --- Basic Validation --- 
+    if (!exercise_id || !date_performed || !reps_completed || !weight_used || !weight_unit) {
+        return res.status(400).json({ error: 'Missing required fields (exercise_id, date_performed, reps_completed, weight_used, weight_unit)' });
+    }
+     // Potential further validation: check exercise_id exists, date format, reps/weight format?
+
+    const client = await db.pool.connect();
+    console.log('Manual Log: DB client acquired');
+    try {
+        await client.query('BEGIN');
+        console.log('Manual Log: BEGIN transaction');
+
+        // 1. Get exercise name for the workout log name
+        const exerciseResult = await client.query('SELECT name FROM exercises WHERE exercise_id = $1', [exercise_id]);
+        if (exerciseResult.rows.length === 0) {
+            throw new Error(`Exercise with ID ${exercise_id} not found.`);
+        }
+        const exerciseName = exerciseResult.rows[0].name;
+        const workoutName = `Manual Log - ${exerciseName}`; // Generic workout name
+
+        // 2. Insert minimal workout_log entry
+        console.log('Manual Log: Inserting into workout_logs...');
+        const logInsertResult = await client.query(
+            'INSERT INTO workout_logs (workout_name, date_performed, notes, duration) VALUES ($1, $2, $3, $4) RETURNING log_id',
+            [workoutName, date_performed, `Manually added on ${new Date().toLocaleDateString()}`, null] // No duration
+        );
+        const newLogId = logInsertResult.rows[0].log_id;
+        console.log(`Manual Log: Inserted workout_log with ID: ${newLogId}`);
+
+        // 3. Calculate sets_completed (count comma-separated reps)
+        const setsCompleted = reps_completed.split(',').length;
+
+        // 4. Insert the exercise_log entry
+        console.log('Manual Log: Inserting into exercise_logs...');
+        await client.query(
+            `INSERT INTO exercise_logs
+                (workout_log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [
+                newLogId,
+                exercise_id,
+                exerciseName, // Use fetched name
+                setsCompleted,
+                reps_completed, // Store as passed string
+                weight_used,    // Store as passed string
+                weight_unit,
+                notes || null   // Optional notes
+            ]
+        );
+        console.log('Manual Log: Finished inserting exercise_log.');
+
+        // 5. Commit Transaction
+        await client.query('COMMIT');
+        console.log('Manual Log: COMMIT transaction');
+        res.status(201).json({ message: 'Manual log added successfully', log_id: newLogId });
+
+    } catch (err) {
+        // 6. Rollback on any error
+        console.error('Error during manual log insertion, rolling back:', err);
+        // Ensure rollback happens before sending response
+        if (client) {
+            await client.query('ROLLBACK').catch(rbErr => console.error('Manual Log Rollback error:', rbErr));
+        }
+        console.log('Manual Log: ROLLBACK transaction');
+        res.status(500).json({ error: `Failed to add manual log: ${err.message || 'Server error'}` });
+    } finally {
+        // 7. ALWAYS release the client
+        if (client) {
+            client.release();
+            console.log('Manual Log: DB client released');
+        }
     }
 });
 
@@ -302,9 +417,102 @@ router.post('/templates', async (req, res) => {
 
 // PUT /api/workouts/templates/:id - Update template
 router.put('/templates/:id', async (req, res) => {
-    // Implementation for updating a template
-    // This route is not implemented in the original file or the code block
-    // It's assumed to exist as it's called in the delete route
+    const { id: templateId } = req.params;
+    const { name, description, exercises } = req.body;
+    console.log(`Received PUT /api/workouts/templates/${templateId} request: Name='${name}'`);
+
+    // --- Validation ---
+     if (!/^[1-9]\d*$/.test(templateId)) {
+         return res.status(400).json({ error: 'Invalid template ID format' });
+     }
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Template name cannot be empty' });
+    }
+    if (!Array.isArray(exercises)) { // Allow empty templates
+        return res.status(400).json({ error: 'Exercises must be an array' });
+    }
+
+    const client = await db.pool.connect();
+    console.log(`Update Template ${templateId}: DB client acquired`);
+    try {
+        await client.query('BEGIN');
+        console.log(`Update Template ${templateId}: BEGIN transaction`);
+
+        // 1. Update the workouts table
+        console.log(`Update Template ${templateId}: Updating workout details...`);
+        const updateWorkoutResult = await client.query(
+            'UPDATE workouts SET name = $1, description = $2 WHERE workout_id = $3 AND is_template = true RETURNING workout_id',
+            [name.trim(), description || null, templateId]
+        );
+
+        // Check if the template existed and was updated
+        if (updateWorkoutResult.rowCount === 0) {
+             console.log(`Update Template ${templateId}: Template not found or not a template.`);
+             // Rollback before throwing error
+             await client.query('ROLLBACK');
+             return res.status(404).json({ error: 'Template not found or cannot be updated.' });
+        }
+
+        // 2. Delete existing exercises for this template
+        console.log(`Update Template ${templateId}: Deleting existing workout_exercises...`);
+        await client.query('DELETE FROM workout_exercises WHERE workout_id = $1', [templateId]);
+
+        // 3. Insert the new set of exercises
+        console.log(`Update Template ${templateId}: Inserting ${exercises.length} new workout_exercises...`);
+        for (const exercise of exercises) {
+            if (exercise.exercise_id == null || exercise.order_position == null) {
+                throw new Error('Invalid exercise data within template. Required: exercise_id, order_position.');
+            }
+            // Ensure numbers are valid IF PROVIDED, otherwise use defaults
+            const sets = parseInt(exercise.sets) || 1;
+            const order_position = parseInt(exercise.order_position);
+            const weight = exercise.weight != null ? parseFloat(exercise.weight) : null;
+            if (isNaN(order_position)) {
+                 throw new Error('Invalid numeric value for order_position.');
+            }
+             if (exercise.weight != null && isNaN(weight)) {
+                 throw new Error('Invalid numeric value for weight.');
+             }
+
+            await client.query(
+                `INSERT INTO workout_exercises
+                    (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [
+                    templateId, // Use the ID from the route param
+                    exercise.exercise_id,
+                    sets,
+                    exercise.reps || '',
+                    weight,
+                    exercise.weight_unit || 'kg',
+                    order_position,
+                    exercise.notes || null
+                ]
+            );
+        }
+        console.log(`Update Template ${templateId}: Finished inserting workout_exercises.`);
+
+        // 4. Commit Transaction
+        await client.query('COMMIT');
+        console.log(`Update Template ${templateId}: COMMIT transaction`);
+        res.status(200).json({ message: 'Workout template updated successfully', workout_id: parseInt(templateId) });
+
+    } catch (err) {
+        // 5. Rollback on any error
+        console.error(`Error during template update ${templateId}, rolling back:`, err);
+        // Ensure rollback happens before sending response
+         if (client) {
+             await client.query('ROLLBACK').catch(rbErr => console.error('Rollback error:', rbErr));
+         }
+        console.log(`Update Template ${templateId}: ROLLBACK transaction`);
+        res.status(500).json({ error: `Failed to update template: ${err.message || 'Server error'}` });
+    } finally {
+        // 6. ALWAYS release the client
+        if (client) {
+            client.release();
+            console.log(`Update Template ${templateId}: DB client released`);
+        }
+    }
 });
 
 // DELETE /api/workouts/templates/:id - Delete template
@@ -332,6 +540,38 @@ router.delete('/templates/:id', async (req, res) => {
     } catch (err) {
         console.error(`Error deleting template ${id}:`, err);
         res.status(500).json({ error: 'Failed to delete template' });
+    }
+});
+
+// DELETE /api/workouts/logs/:id - Delete a specific workout log entry
+router.delete('/logs/:id', async (req, res) => {
+    const { id: workoutLogId } = req.params;
+    console.log(`Received DELETE /api/workouts/logs/${workoutLogId}`);
+
+    if (!/^[1-9]\d*$/.test(workoutLogId)) {
+        return res.status(400).json({ error: 'Invalid log ID format' });
+    }
+
+    try {
+        // Deleting from workout_logs should cascade to exercise_logs if FK constraint is set up with ON DELETE CASCADE
+        // Otherwise, you would need to delete from exercise_logs first in a transaction.
+        const result = await db.query('DELETE FROM workout_logs WHERE log_id = $1 RETURNING log_id', [workoutLogId]);
+
+        if (result.rowCount === 0) {
+            console.log(`Delete Log: Log ID ${workoutLogId} not found.`);
+            return res.status(404).json({ error: 'Log entry not found' });
+        }
+
+        console.log(`Workout Log ${workoutLogId} deleted successfully.`);
+        res.status(200).json({ message: `Log entry ${workoutLogId} deleted successfully`, id: parseInt(workoutLogId) });
+
+    } catch (err) {
+        console.error(`Error deleting workout log ${workoutLogId}:`, err);
+         // Handle potential foreign key constraints if cascade delete is not set
+        if (err.code === '23503') { // Foreign key violation
+            return res.status(409).json({ error: 'Cannot delete log entry due to related data. Ensure cascade delete is configured or delete related exercise logs first.' });
+        }
+        res.status(500).json({ error: 'Failed to delete log entry' });
     }
 });
 
