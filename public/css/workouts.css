@@ -130,11 +130,11 @@ h1, h2 {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    width: 100%;
     max-width: 380px;
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
+    position: relative;
 }
 .workout-template-card:hover {
     background-color: #333;
@@ -1022,13 +1022,13 @@ h1, h2 {
         grid-template-columns: 1fr; /* Force single column */
         padding: 0 20px; /* Symmetrical horizontal padding */
         gap: 15px;
-        justify-items: center; /* <<<< ADD THIS */
+        justify-items: center; /* Keep this grid container centering */
     }
 
     .workout-template-card {
-        /* Keep the percentage max-width for responsive sizing */
-        max-width: 90%; /* Or 95%, adjust as needed */
-        /* margin-left/right: auto is still good practice but */
-        /* justify-items on the container is more direct for grid */
+        /* Override the fixed max-width with a percentage */
+        max-width: 90%; /* Adjust as needed (e.g., 95%) */
+        /* width: auto; /* Ensure width isn't fixed if set elsewhere */
+        /* margin-left/right: auto are inherited and should work with justify-items */
     }
 }

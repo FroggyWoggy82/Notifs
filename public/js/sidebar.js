@@ -7,16 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to open sidebar
     function openSidebar() {
-        sidebar.classList.add('open');
-        overlay.classList.add('open');
-        body.classList.add('sidebar-open');
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        body.classList.add('sidebar-active');
     }
 
     // Function to close sidebar
     function closeSidebar() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('open');
-        body.classList.remove('sidebar-open');
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        body.classList.remove('sidebar-active');
     }
 
     // Event listeners
