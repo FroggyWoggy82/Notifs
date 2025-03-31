@@ -130,11 +130,11 @@ h1, h2 {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    width: 100%;
     max-width: 380px;
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
-    position: relative;
 }
 .workout-template-card:hover {
     background-color: #333;
@@ -1018,17 +1018,38 @@ h1, h2 {
 
 /* Add media query for smaller screens */
 @media screen and (max-width: 600px) {
-    .card-list {
-        grid-template-columns: 1fr; /* Force single column */
-        padding: 0 20px; /* Symmetrical horizontal padding */
-        gap: 15px;
-        justify-items: center; /* Keep this grid container centering */
+    .my-workouts-section {
+        width: 100%;
+        max-width: none;     /* Override the 80% limit */
+        margin-left: 0;      /* Override auto margins */
+        margin-right: 0;
+        /* Ensure padding doesn't add extra width if box-sizing isn't global */
+        box-sizing: border-box;
+        /* Keep padding inside the section if needed, or rely on card-list padding */
+        /* padding-left: 15px; */
+        /* padding-right: 15px; */
     }
 
-    .workout-template-card {
-        /* Override the fixed max-width with a percentage */
-        max-width: 90%; /* Adjust as needed (e.g., 95%) */
-        /* width: auto; /* Ensure width isn't fixed if set elsewhere */
-        /* margin-left/right: auto are inherited and should work with justify-items */
+    .card-list {
+        grid-template-columns: 1fr; /* Keep single column */
+        /* Adjust padding as needed. Example: 15px top/bottom, 20px left/right */
+        padding: 15px 20px;
+        gap: 15px;
+        width: 100%;           /* Ensure list fills the now full-width section */
+        max-width: none;       /* Ensure list can fill width */
+        box-sizing: border-box;/* Include padding in width calculation */
+        margin: 0;             /* Remove auto margins from the list itself */
+        /* justify-items: center; /* Can likely remove this now */
     }
+
+    /* --- REVERT PREVIOUS CARD FIX ATTEMPT --- */
+    /* Remove the max-width override for the card within this media query */
+    /* The card will now use its base styles (e.g., max-width: 380px; margin: auto;) */
+    /* Delete or comment out the block below if it exists */
+    /*
+    .workout-template-card {
+        max-width: 40%; // <-- REMOVE/COMMENT THIS
+    }
+    */
+    /* --- --- --- --- */
 }
