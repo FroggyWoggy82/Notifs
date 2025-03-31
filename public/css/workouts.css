@@ -1020,13 +1020,15 @@ h1, h2 {
 @media screen and (max-width: 600px) {
     .card-list {
         grid-template-columns: 1fr; /* Force single column */
-        padding: 0 20px; /* <<<< Increased from 10px */
+        padding: 0 20px; /* Symmetrical horizontal padding */
         gap: 15px;
+        justify-items: center; /* <<<< ADD THIS */
     }
 
     .workout-template-card {
-        /* Reduce the percentage further */
-        max-width: 40%; /* <<<< Reduced from 95% (try 85% if still too big) */
-        /* margin-left/right: auto should still center it */
+        /* Keep the percentage max-width for responsive sizing */
+        max-width: 90%; /* Or 95%, adjust as needed */
+        /* margin-left/right: auto is still good practice but */
+        /* justify-items on the container is more direct for grid */
     }
 }
