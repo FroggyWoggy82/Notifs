@@ -130,32 +130,41 @@ h1, h2 {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    width: 100%;
     max-width: 380px;
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
 }
 .workout-template-card:hover {
     background-color: #333;
 }
 
+/* Ensure text inside the card can wrap */
+.workout-template-card h3,
+.workout-template-card p,
+.workout-template-card .exercise-summary {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding-right: 40px;
+}
+
 /* Container for buttons in the top-right corner of the card */
 .card-corner-actions {
     position: absolute;
-    top: 5px; /* Adjust as needed */
-    right: 5px; /* Adjust as needed */
+    top: 8px;
+    right: 8px;
     display: flex;
-    gap: 5px; /* Space between edit/delete */
-    z-index: 3; /* Ensure buttons are clickable */
+    gap: 5px;
+    z-index: 3;
+    max-width: 60px;
 }
 
 /* Style for the delete button on the card */
 .btn-delete-template,
 .btn-edit-template { /* Apply similar styles to edit button */
-    /* position: absolute; -- Positioned by container now */
-    /* top: 8px; */
-    /* right: 8px; */
     background: none;
     border: none;
     color: #aaa;
@@ -164,8 +173,6 @@ h1, h2 {
     cursor: pointer;
     padding: 0;
     line-height: 1;
-    /* z-index: 2; -- Set on container */
-    /* Explicit sizing and centering */
     width: 24px;
     height: 24px;
     display: inline-flex;
@@ -201,8 +208,6 @@ h1, h2 {
     margin-top: 0;
     margin-bottom: 8px;
     color: #03dac6;
-    padding-right: 50px;
-    box-sizing: border-box;
 }
 
 /* ALSO add padding to other text elements inside the card */
@@ -214,8 +219,6 @@ h1, h2 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-right: 50px;
-    box-sizing: border-box;
 }
 .workout-template-card .exercise-summary {
     font-size: 0.8rem;
@@ -1034,14 +1037,11 @@ h1, h2 {
         max-width: none;
         box-sizing: border-box;
         margin: 0;
-        /* justify-items: center; /* Keep or remove, margin:auto on card should handle it */
     }
 
-    /* --- Add back max-width for the card, using a percentage --- */
+    /* --- Reduce max-width percentage further --- */
     .workout-template-card {
-        /* Override base max-width with a percentage for mobile */
-        max-width: 90%; /* Adjust this % as needed (e.g., 85%, 95%) */
-        /* margin-left/right: auto; will be inherited/applied */
+        max-width: 85%; /* Reduced percentage */
     }
     /* --- --- --- --- */
 }
