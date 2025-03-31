@@ -1026,7 +1026,7 @@ h1, h2 {
 
     .workout-template-card {
         /* Reduce the percentage further */
-        max-width: 90%; /* <<<< Reduced from 95% (try 85% if still too big) */
+        max-width: 70%; /* <<<< Reduced from 95% (try 85% if still too big) */
         /* margin-left/right: auto should still center it */
     }
 }
