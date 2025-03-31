@@ -1020,36 +1020,28 @@ h1, h2 {
 @media screen and (max-width: 600px) {
     .my-workouts-section {
         width: 100%;
-        max-width: none;     /* Override the 80% limit */
-        margin-left: 0;      /* Override auto margins */
+        max-width: none;
+        margin-left: 0;
         margin-right: 0;
-        /* Ensure padding doesn't add extra width if box-sizing isn't global */
         box-sizing: border-box;
-        /* Keep padding inside the section if needed, or rely on card-list padding */
-        /* padding-left: 15px; */
-        /* padding-right: 15px; */
     }
 
     .card-list {
-        grid-template-columns: 1fr; /* Keep single column */
-        /* Adjust padding as needed. Example: 15px top/bottom, 20px left/right */
-        padding: 15px 20px;
+        grid-template-columns: 1fr;
+        padding: 15px 20px; /* Symmetrical padding */
         gap: 15px;
-        width: 100%;           /* Ensure list fills the now full-width section */
-        max-width: none;       /* Ensure list can fill width */
-        box-sizing: border-box;/* Include padding in width calculation */
-        margin: 0;             /* Remove auto margins from the list itself */
-        /* justify-items: center; /* Can likely remove this now */
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        margin: 0;
+        /* justify-items: center; /* Keep or remove, margin:auto on card should handle it */
     }
 
-    /* --- REVERT PREVIOUS CARD FIX ATTEMPT --- */
-    /* Remove the max-width override for the card within this media query */
-    /* The card will now use its base styles (e.g., max-width: 380px; margin: auto;) */
-    /* Delete or comment out the block below if it exists */
-    /*
+    /* --- Add back max-width for the card, using a percentage --- */
     .workout-template-card {
-        max-width: 40%; // <-- REMOVE/COMMENT THIS
+        /* Override base max-width with a percentage for mobile */
+        max-width: 90%; /* Adjust this % as needed (e.g., 85%, 95%) */
+        /* margin-left/right: auto; will be inherited/applied */
     }
-    */
     /* --- --- --- --- */
 }
