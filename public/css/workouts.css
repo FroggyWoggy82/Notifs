@@ -125,9 +125,15 @@ h1, h2 {
     background-color: #2a2a2a;
     border-radius: 8px;
     padding: 15px;
+    border: 1px solid #444;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
     box-sizing: border-box;
 }
 .workout-template-card:hover {
@@ -1013,15 +1019,23 @@ h1, h2 {
 /* Add media query for smaller screens */
 @media screen and (max-width: 600px) {
     .card-list {
-        grid-template-columns: 1fr; /* Single column on mobile */
-        padding: 10px; /* Reduce padding on mobile */
+        grid-template-columns: 1fr; /* Force single column */
+        padding: 0 10px; /* Add horizontal padding within the list if needed */
+        gap: 15px; /* Adjust gap for mobile */
     }
 
-    /* Remove the max-width: 100% rule for the card inside the media query */
-    /* This allows the default max-width and centering (margin: auto) to apply */
+    /* Ensure the rule overriding max-width remains removed/commented */
     /*
     .workout-template-card {
-        max-width: 100%; // This line is removed/commented out
+        max-width: 100%; // This line MUST be removed/commented
+    }
+    */
+
+    /* Optional: If 380px is still too wide on very small phones, */
+    /* you could uncomment and adjust this: */
+    /*
+    .workout-template-card {
+        max-width: 95%; // Or a smaller px value like 320px
     }
     */
 }
