@@ -1024,18 +1024,19 @@ h1, h2 {
         gap: 15px; /* Adjust gap for mobile */
     }
 
+    /* Override fixed max-width with a percentage for mobile */
+    .workout-template-card {
+        /* Use a percentage to ensure it fits within screen width */
+        /* Adjust 90% or 95% as needed for desired padding */
+        max-width: 95%;
+        /* margin-left: auto; and margin-right: auto; are inherited */
+        /* No need to repeat them unless there's a conflicting rule */
+    }
+
     /* Ensure the rule overriding max-width remains removed/commented */
     /*
     .workout-template-card {
         max-width: 100%; // This line MUST be removed/commented
-    }
-    */
-
-    /* Optional: If 380px is still too wide on very small phones, */
-    /* you could uncomment and adjust this: */
-    /*
-    .workout-template-card {
-        max-width: 95%; // Or a smaller px value like 320px
     }
     */
 }
