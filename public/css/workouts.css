@@ -1017,7 +1017,11 @@ h1, h2 {
         padding: 10px; /* Reduce padding on mobile */
     }
 
+    /* Remove the max-width: 100% rule for the card inside the media query */
+    /* This allows the default max-width and centering (margin: auto) to apply */
+    /*
     .workout-template-card {
-        max-width: 100%; /* Allow cards to fill screen width minus padding */
+        max-width: 100%; // This line is removed/commented out
     }
+    */
 }
