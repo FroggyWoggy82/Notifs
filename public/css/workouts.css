@@ -512,7 +512,7 @@ h1, h2 {
 .modal-list-item span {
     font-size: 0.85rem;
     color: #aaa;
-    margin-left: 8px;
+    margin-left: 0px;
 }
 
 .modal-divider {
