@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Tracker - Task List</title>
+    <link rel="stylesheet" href="../css/index.css">   <!-- Shared styles -->
+    <link rel="stylesheet" href="../css/sidebar.css"> <!-- Sidebar styles -->
+    <link rel="stylesheet" href="../css/workouts.css"> <!-- Specific workout styles -->
+    <!-- Link to an icon library if needed for FAB/icons, e.g., Font Awesome -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> -->
+</head>
+<body>
+    <button class="menu-button">☰</button> <!-- Hamburger Icon -->
+
+    <div class="sidebar-overlay"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon">✓</span> <!-- Checkmark -->
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon">⭐</span> <!-- Star -->
+                <span>Goals</span>
+            </a>
+             <a href="/pages/workouts.html" class="sidebar-nav-item active"> <!-- Mark as active -->
+                <span class="nav-icon">💪</span> <!-- Dumbbell -->
+                <span>Workouts</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon">📅</span> <!-- Calendar -->
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon">⏱️</span> <!-- Stopwatch -->
+                <span>Days Since</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="content-wrapper workout-content">
+
+        <!-- Landing Page View (Initially Visible) -->
+        <div id="workout-landing-page" class="page active">
+            <h1>Workout Tracker</h1>
+            <div class="button-container">
+                <button id="start-empty-workout-btn" class="btn btn-primary">Start Empty Workout</button>
+            </div>
+            <div class="my-workouts-section">
+                <h2>My Workout Templates</h2>
+                <div class="search-filter-container">
+                     <input type="text" id="template-search" placeholder="Search templates...">
+                     <!-- Add filter options if needed -->
+                </div>
+                <div id="workout-template-list" class="card-list">
+                    <!-- Workout template cards will be loaded here -->
+                    <p>Loading templates...</p>
+                </div>
+                 <button id="create-template-btn" class="btn btn-secondary">Create New Template</button>
+            </div>
+        </div>
+
+        <!-- Active Workout View (Initially Hidden) -->
+        <div id="active-workout-page" class="page">
+            <div class="workout-header">
+                <h2 id="current-workout-name">New Workout</h2>
+                <div id="workout-timer">00:00:00</div>
+            </div>
+            <div id="current-exercise-list" class="exercise-list">
+                <!-- Exercises added during the workout will appear here -->
+                <p>Add exercises to begin...</p>
+            </div>
+            <div class="active-workout-actions">
+                 <button id="cancel-workout-btn" class="btn btn-danger">Cancel Workout</button>
+                 <button id="complete-workout-btn" class="btn btn-success">Complete Workout</button>
+            </div>
+        </div>
+
+        <!-- Template Editor View (Initially Hidden) -->
+        <div id="template-editor-page" class="page">
+            <h2 id="template-editor-title">Create New Workout Template</h2>
+            <form id="template-editor-form">
+                <div class="form-group">
+                    <label for="template-name">Template Name:</label>
+                    <input type="text" id="template-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="template-description">Description (Optional):</label>
+                    <textarea id="template-description" rows="3"></textarea>
+                </div>
+
+                <h3>Exercises</h3>
+                <div id="template-exercise-list" class="exercise-list template-editor-list">
+                    <p>Add exercises using the button below.</p>
+                    <!-- Exercises added to the template will appear here -->
+                </div>
+
+                <div class="template-editor-actions">
+                     <button type="button" id="template-add-exercise-btn" class="btn btn-secondary">Add Exercise to Template</button>
+                     <div class="save-cancel-group">
+                         <button type="button" id="template-cancel-btn" class="btn btn-danger">Cancel</button>
+                         <button type="submit" id="template-save-btn" class="btn btn-success">Save Template</button>
+                     </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Floating Action Button (FAB) for Adding Exercises - Show only on active workout page -->
+        <button id="add-exercise-fab" class="fab" title="Add Exercise">+</button>
+
+    </div>
+
+    <!-- Exercise Selection Modal (Initially Hidden) -->
+    <div id="exercise-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Add Exercise</h2>
+            <div class="modal-search-filter">
+                <input type="text" id="exercise-search-input" placeholder="Search exercises...">
+                <select id="exercise-category-filter">
+                    <option value="all">All Categories</option>
+                    <option value="core">Core</option>
+                    <option value="arms">Arms</option>
+                    <option value="shoulders">Shoulders</option>
+                    <option value="chest">Chest</option>
+                    <option value="legs">Legs</option>
+                    <option value="back">Back</option>
+                    <option value="cardio">Cardio</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div id="available-exercise-list" class="modal-list">
+                <!-- Available exercises loaded from DB will appear here -->
+                <p>Loading exercises...</p>
+            </div>
+            <hr class="modal-divider">
+            <!-- New Exercise Definition Section (Initially Hidden) -->
+            <div id="define-new-exercise-section" style="display: none;">
+                <h4>Define New Exercise</h4>
+                <div class="form-group">
+                    <label for="new-exercise-name">Exercise Name:</label>
+                    <input type="text" id="new-exercise-name" placeholder="e.g., Bench Press">
+                </div>
+                 <div class="form-group">
+                    <label for="new-exercise-category">Category:</label>
+                    <select id="new-exercise-category">
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="core">Core</option>
+                        <option value="arms">Arms</option>
+                        <option value="shoulders">Shoulders</option>
+                        <option value="chest">Chest</option>
+                        <option value="legs">Legs</option>
+                        <option value="back">Back</option>
+                        <option value="cardio">Cardio</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                 <button type="button" id="save-new-exercise-btn" class="btn btn-success btn-small">Save New Exercise</button>
+            </div>
+             <button type="button" id="toggle-define-exercise-btn" class="btn btn-secondary btn-small">Define New Exercise</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon">✓</div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon">⭐</div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item active" data-page="workout-page"> <!-- Mark as active -->
+            <div class="nav-icon">💪</div> <!-- Dumbbell -->
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/days-since.html" class="nav-item" data-page="days-since-page">
+            <div class="nav-icon">⏱️</div>
+            <span>Days Since</span>
+        </a>
+    </div>
+
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/workouts.js"></script> <!-- Link to the new JS file -->
+</body>
+</html>

@@ -212,10 +212,6 @@ textarea {
     min-width: 0; /* Allow shrinking */
 }
 
-/* Adjust label/input alignment in half groups if needed */
-.form-group-half label {
-    /* Optional: Adjustments if needed */
-}
 
 /* Recurrence interval alignment */
 #recurrenceIntervalGroup {

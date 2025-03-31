@@ -1,0 +1,731 @@
+/* public/css/workouts.css */
+
+/* --- Dark Theme & Base Styles --- */
+body {
+    /* Assuming dark theme is applied globally or via a class */
+    background-color: #121212; /* Example dark background */
+    color: #e0e0e0; /* Example light text */
+    /* If theme is specific to this page, apply here or on a wrapper */
+}
+
+.workout-content {
+    padding: 15px;
+    padding-bottom: 80px; /* Space for bottom nav */
+    background-color: #1a1a1a; /* Dark background for workout area */
+    color: #f5f5f5; /* Light text */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Page Visibility */
+.page {
+    display: none; /* Hidden by default */
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+}
+.page.active {
+    display: flex; /* Show active page */
+}
+
+h1, h2 {
+    text-align: center;
+    color: #03dac6; /* Teal accent color */
+    margin-bottom: 20px;
+}
+
+/* --- Buttons --- */
+.btn {
+    display: inline-block;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 5px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: #03dac6; /* Teal */
+    color: #121212; /* Dark text */
+}
+.btn-primary:hover {
+    background-color: #01c4b3;
+}
+
+.btn-secondary {
+    background-color: #333;
+    color: #e0e0e0;
+    border: 1px solid #555;
+}
+.btn-secondary:hover {
+    background-color: #444;
+}
+
+.btn-success {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+.btn-success:hover {
+    background-color: #45a049;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+/* --- Landing Page --- */
+#workout-landing-page {
+    gap: 25px; /* Space between elements */
+}
+
+.my-workouts-section {
+    width: 100%;
+    max-width: 80%; /* Using percentage for better responsiveness */
+    margin: 0 auto;
+}
+
+.search-filter-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-filter-container input[type="text"] {
+    flex-grow: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    background-color: #222;
+    color: #f5f5f5;
+    font-size: 1rem;
+}
+
+.card-list {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: 1fr; /* Single column mobile-first */
+    margin-bottom: 20px;
+}
+
+/* Workout Template Card */
+.workout-template-card {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+    transition: background-color 0.2s ease;
+    position: relative;
+    overflow-wrap: break-word; /* Added to handle long words */
+}
+.workout-template-card:hover {
+    background-color: #333;
+}
+
+/* Container for buttons in the top-right corner of the card */
+.card-corner-actions {
+    position: absolute;
+    top: 5px; /* Adjust as needed */
+    right: 5px; /* Adjust as needed */
+    display: flex;
+    gap: 5px; /* Space between edit/delete */
+    z-index: 3; /* Ensure buttons are clickable */
+}
+
+/* Style for the delete button on the card */
+.btn-delete-template,
+.btn-edit-template { /* Apply similar styles to edit button */
+    /* position: absolute; -- Positioned by container now */
+    /* top: 8px; */
+    /* right: 8px; */
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    /* z-index: 2; -- Set on container */
+    /* Explicit sizing and centering */
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease; /* Smooth color transition */
+}
+
+/* Combine focus and hover for consistent styling, remove default outline */
+.btn-delete-template:focus,
+.btn-delete-template:hover,
+.btn-edit-template:focus,
+.btn-edit-template:hover { /* Apply hover/focus to edit button */
+    color: #f44336; /* Red text for delete */
+    outline: none;
+}
+
+/* Different hover/focus color for edit button */
+.btn-edit-template:focus,
+.btn-edit-template:hover {
+    color: #2196F3; /* Blue for edit */
+}
+
+/* Ensure outline is visible for keyboard navigation (accessibility) */
+.btn-delete-template:focus-visible,
+.btn-edit-template:focus-visible { /* Apply focus-visible to edit */
+     outline: 2px solid #bb86fc; /* Use theme accent color */
+     outline-offset: 1px;
+}
+
+/* Add padding to the right of the title to push text away */
+.workout-template-card h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #03dac6;
+    padding-right: 50px;
+    box-sizing: border-box;
+}
+
+/* ALSO add padding to other text elements inside the card */
+.workout-template-card p,
+.workout-template-card .exercise-summary {
+    font-size: 0.9rem;
+    color: #bbb;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 50px;
+    box-sizing: border-box;
+}
+.workout-template-card .exercise-summary {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* --- Active Workout Page --- */
+#active-workout-page {
+    width: 100%;
+}
+
+.workout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #2a2a2a;
+    border-radius: 5px;
+}
+
+#current-workout-name {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #f5f5f5;
+}
+
+#workout-timer {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #03dac6; /* Teal */
+}
+
+.exercise-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between exercise items */
+    margin-bottom: 20px;
+}
+
+/* Individual Exercise Item (in active workout) */
+.exercise-item {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+    position: relative; /* For potential absolute elements like delete */
+}
+
+.exercise-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.exercise-item-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #03dac6;
+}
+
+/* Style for set rows within an exercise */
+/* Target ONLY set rows directly inside .exercise-list (Active Workout), NOT .template-editor-list */
+#current-exercise-list > .exercise-item > .sets-container > .set-row {
+    display: grid;
+    /* Set#, Previous, Weight, Reps, Notes, Check */
+    /* grid-template-columns: auto auto 1fr 1fr 1fr auto; */
+    /* Set#, Previous, Weight, Reps, Check (Notes removed) */
+    grid-template-columns: auto auto 1fr 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+    font-size: 0.95rem;
+}
+#current-exercise-list > .exercise-item > .sets-container > .set-row:last-child {
+    border-bottom: none;
+}
+
+/* Style for the new 'Previous Log' span */
+.previous-log {
+    color: #aaa;
+    font-size: 0.85rem;
+    text-align: center; /* Or adjust as needed */
+    white-space: nowrap;
+}
+
+.set-number {
+    font-weight: bold;
+    color: #bbb;
+}
+
+.set-row input[type="number"],
+.set-row input[type="text"],
+.set-row select {
+    width: 100%;
+    padding: 6px;
+    background-color: #333;
+    border: 1px solid #555;
+    color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    box-sizing: border-box; /* Include padding in width */
+    -moz-appearance: textfield; /* Hide number input spinners FF */
+    appearance: textfield; /* Standard property */
+}
+.set-row input[type="number"]::-webkit-outer-spin-button,
+.set-row input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none; /* Hide number input spinners Chrome */
+  margin: 0;
+}
+
+.set-row .weight-input-group {
+    display: flex;
+    gap: 5px;
+}
+.set-row .weight-input-group input {
+     flex-grow: 1;
+}
+.set-row .weight-input-group select {
+    flex-basis: 60px; /* Adjust as needed */
+}
+
+.set-complete-toggle {
+    /* Style as a checkmark button */
+    width: 25px;
+    height: 25px;
+    border: 2px solid #555;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4CAF50; /* Green check */
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0;
+}
+.set-complete-toggle.completed {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+    color: #fff; /* White check on green background */
+}
+.set-complete-toggle.completed::before {
+    content: '\\2713'; /* Checkmark symbol */
+}
+
+/* Highlight the row when the set is completed */
+.set-row:has(.set-complete-toggle.completed) {
+    background-color: #2e4a2e; /* Subtle dark green background */
+    /* Add transition for smoother effect */
+    transition: background-color 0.3s ease;
+}
+
+.btn-complete {
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto; /* Center button */
+}
+
+.active-workout-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Ensure buttons within the container don't take full width */
+.active-workout-actions .btn {
+    width: auto;
+    max-width: 200px; /* Adjust as needed */
+}
+
+/* --- Floating Action Button (FAB) --- */
+.fab {
+    position: fixed;
+    bottom: 100px; /* Adjusted based on ~80px nav + 20px margin */
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background-color: #bb86fc; /* Purple accent */
+    color: white;
+    border-radius: 50%;
+    border: none;
+    font-size: 24px;
+    line-height: 56px; /* Center '+' vertically */
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 100;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: none; /* Hide by default, show with JS on active workout page */
+}
+.fab:active {
+    transform: scale(0.95);
+}
+/* #active-workout-page.active + .fab { */ /* REMOVING this rule - relying on JS */
+/*    display: block; */
+/* } */
+
+
+/* --- Exercise Selection Modal --- */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1001; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #2a2a2a; /* Dark background */
+    color: #f5f5f5;
+    margin: 10% auto; /* Centered vertically & horizontally */
+    padding: 25px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    width: 90%; /* Responsive width */
+    max-width: 500px; /* Max width */
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh; /* Limit height, allow scrolling */
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-button:hover,
+.close-button:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    text-align: center;
+    color: #03dac6; /* Teal */
+}
+
+.modal-search-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.modal-search-filter input,
+.modal-search-filter select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: #f5f5f5;
+    font-size: 1rem;
+}
+.modal-search-filter input { flex-grow: 1; }
+.modal-search-filter select { flex-basis: 150px; }
+
+.modal-list {
+    flex-grow: 1; /* Allow list to take available space */
+    overflow-y: auto; /* Enable scrolling for list */
+    margin-bottom: 15px;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #444;
+    padding: 10px 0;
+}
+
+.modal-list-item {
+    padding: 12px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    transition: background-color 0.1s ease;
+}
+.modal-list-item:last-child {
+    border-bottom: none;
+}
+.modal-list-item:hover {
+    background-color: #383838;
+}
+.modal-list-item span {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-left: 8px;
+}
+
+.modal-divider {
+    border: none;
+    border-top: 1px solid #444;
+    margin: 20px 0;
+}
+
+#define-new-exercise-section {
+    padding-top: 15px;
+}
+
+#define-new-exercise-section h4 {
+    color: #bbb;
+    margin-bottom: 10px;
+}
+
+#define-new-exercise-section .form-group {
+    margin-bottom: 10px;
+}
+
+#define-new-exercise-section label {
+     display: block;
+     margin-bottom: 4px;
+     font-size: 0.9rem;
+     color: #aaa;
+}
+
+#define-new-exercise-section input,
+#define-new-exercise-section select {
+     width: 100%;
+     padding: 8px;
+     border-radius: 4px;
+     border: 1px solid #555;
+     background-color: #333;
+     color: #f5f5f5;
+     font-size: 0.95rem;
+     box-sizing: border-box;
+}
+
+/* Make modal buttons smaller */
+.modal-content .btn-small {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+
+/* --- Media Queries for Larger Screens --- */
+
+@media screen and (min-width: 600px) {
+    .card-list {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .fab {
+        bottom: 100px; /* Increased to clear ~80px nav bar */
+        right: 30px; /* Keep right adjustment */
+    }
+}
+
+@media screen and (min-width: 900px) {
+    .card-list {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    .set-row {
+        /* Potentially adjust grid layout for more space */
+    }
+}
+
+/* Add styles for swipe actions if implemented via JS library or custom */
+/* Example placeholder - Removed empty ruleset */
+/* .swipe-delete {
+}
+*/
+
+/* --- Template Editor Styles --- */
+#template-editor-page {
+    width: 100%;
+    max-width: 700px; /* Slightly wider for editor */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#template-editor-form .form-group {
+    margin-bottom: 15px;
+}
+
+#template-editor-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: #bbb;
+    font-weight: bold;
+}
+
+#template-editor-form input[type="text"],
+#template-editor-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    background-color: #222;
+    color: #f5f5f5;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+#template-editor-form h3 {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: #03dac6;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+
+.template-editor-list .exercise-item {
+    /* Reuse existing .exercise-item styles, maybe add specific adjustments */
+    background-color: #303030; /* Slightly different background? */
+}
+
+/* Remove completion toggle in editor view */
+.template-editor-list .set-complete-toggle {
+    display: none;
+}
+.template-editor-list .set-row {
+     /* Adjust grid if toggle is removed */
+    grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps (Notes removed) */
+}
+
+.exercise-notes-group {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.exercise-notes-textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #222;
+    color: #f5f5f5;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    resize: vertical; /* Allow vertical resize */
+}
+
+/* Container for Add/Remove Set buttons */
+.set-actions-container {
+    display: flex; /* Arrange buttons side-by-side */
+    justify-content: center; /* Center the buttons */
+    gap: 15px; /* Space between buttons */
+    margin-top: 15px;
+}
+
+/* Remove set button specific styles */
+.btn-remove-set:disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.template-editor-actions {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column; /* Stack Add button above Save/Cancel */
+    align-items: center;
+    gap: 15px;
+}
+
+.template-editor-actions .save-cancel-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+}
+
+#template-add-exercise-btn {
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Adjust button danger color */
+.btn-danger {
+    background-color: #f44336;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #d32f2f;
+}
+
+/* Style for the delete button within an active exercise item */
+.btn-delete-exercise,
+.btn-delete-template-exercise { /* ADDING TEMPLATE EDITOR BUTTON HERE */
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.2rem; /* Match template delete button */
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0; /* Match */
+    line-height: 1;
+    /* Explicit sizing to match */
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+/* Hover/Focus for active exercise delete */
+.btn-delete-exercise:focus,
+.btn-delete-exercise:hover,
+.btn-delete-template-exercise:focus, /* ADDING TEMPLATE EDITOR BUTTON HERE */
+.btn-delete-template-exercise:hover { /* ADDING TEMPLATE EDITOR BUTTON HERE */
+    color: #f44336; /* Red */
+    outline: none;
+}
+
+.btn-delete-exercise:focus-visible,
+.btn-delete-template-exercise:focus-visible { /* ADDING TEMPLATE EDITOR BUTTON HERE */
+     outline: 2px solid #bb86fc; /* Match theme focus */
+     outline-offset: 1px;
+}
