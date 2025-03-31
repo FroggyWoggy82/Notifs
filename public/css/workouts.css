@@ -1020,23 +1020,13 @@ h1, h2 {
 @media screen and (max-width: 600px) {
     .card-list {
         grid-template-columns: 1fr; /* Force single column */
-        padding: 0 10px; /* Add horizontal padding within the list if needed */
-        gap: 15px; /* Adjust gap for mobile */
+        padding: 0 20px; /* <<<< Increased from 10px */
+        gap: 15px;
     }
 
-    /* Override fixed max-width with a percentage for mobile */
     .workout-template-card {
-        /* Use a percentage to ensure it fits within screen width */
-        /* Adjust 90% or 95% as needed for desired padding */
-        max-width: 95%;
-        /* margin-left: auto; and margin-right: auto; are inherited */
-        /* No need to repeat them unless there's a conflicting rule */
+        /* Reduce the percentage further */
+        max-width: 90%; /* <<<< Reduced from 95% (try 85% if still too big) */
+        /* margin-left/right: auto should still center it */
     }
-
-    /* Ensure the rule overriding max-width remains removed/commented */
-    /*
-    .workout-template-card {
-        max-width: 100%; // This line MUST be removed/commented
-    }
-    */
 }
