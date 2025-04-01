@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- History Edit Modal Elements (Renamed) ---
     const historyEditModal = document.getElementById('history-edit-modal'); // Renamed modal ref
-    const historyEditAddForm = document.getElementById('history-edit-add-form'); // Renamed form ref
-    const historyEditExerciseNameEl = document.getElementById('history-edit-exercise-name'); // Renamed element ref
+    const historyEditAddForm = document.getElementById('history-edit-form'); // Renamed form ref
+    const historyEditExerciseNameEl = document.getElementById('history-edit-modal-title-name'); // Renamed element ref
     const historyEditExerciseIdInput = document.getElementById('history-edit-exercise-id'); // Renamed element ref
     const historyEditDateInput = document.getElementById('history-edit-date'); // Renamed element ref
     const historyEditSetsContainer = document.getElementById('history-edit-sets-container'); // Renamed element ref
@@ -207,34 +207,42 @@ document.addEventListener('DOMContentLoaded', function() {
             card.className = 'workout-template-card';
             card.dataset.templateId = template.workout_id;
 
-            // Generate summary of first few exercises
-            let exerciseSummary = 'No exercises defined';
+            // --- Generate vertical exercise list HTML (Show up to 6) ---
+            let exerciseListHtml = '<p class="no-exercises">No exercises defined</p>'; // Default message
             if (template.exercises && template.exercises.length > 0) {
-                exerciseSummary = template.exercises.map(ex => ex.name).slice(0, 3).join(', ');
-                if (template.exercises.length > 3) exerciseSummary += ', ...';
+                // Take the first 6 exercises
+                exerciseListHtml = template.exercises
+                    .slice(0, 6) // <<<< Changed from slice(0, 3)
+                    .map(ex => `<div class="exercise-list-item">${escapeHtml(ex.name)}</div>`)
+                    .join('');
+
+                if (template.exercises.length > 6) { // <<<< Changed from > 3
+                    exerciseListHtml += '<div class="exercise-list-item">...</div>'; // Add ellipsis if more exist
+                }
             }
+            // --- --- --- ---
 
             card.innerHTML = `
                 <div class="card-corner-actions">
                     <button class="btn-edit-template" data-template-id="${template.workout_id}" title="Edit Template">&#9998;</button>
                     <button class="btn-delete-template" data-template-id="${template.workout_id}" title="Delete Template">&times;</button>
                 </div>
-                <h3>${template.name}</h3>
-                ${template.description ? `<p>${template.description}</p>` : ''}
-                <div class="exercise-summary">${exerciseSummary}</div>
+                <h3>${escapeHtml(template.name)}</h3>
+                ${template.description ? `<p class="template-description">${escapeHtml(template.description)}</p>` : ''}
+                <div class="exercise-summary-vertical">
+                    ${exerciseListHtml}
+                </div>
                 <div class="template-actions">
-                   <!-- Add Edit button later if needed -->
                    <button class="btn-start-template btn btn-primary btn-small">Start Workout</button>
                 </div>
             `;
             templateListContainer.appendChild(card);
 
-            // Add event listener for starting workout from this template card
+            // Add event listener for starting workout
             card.querySelector('.btn-start-template').addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent card click if needed
+                e.stopPropagation();
                 startWorkoutFromTemplate(template.workout_id);
             });
-            // Delete button listener handled by delegation
         });
     }
 
@@ -1147,30 +1155,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // --- NEW: Progress Photo Form Listener ---
-        if (photoForm) {
-            photoForm.addEventListener('submit', handlePhotoUpload);
-        }
-        // --- END NEW ---
-
-        // --- NEW: Add Photo Button Listener ---
-        if (addPhotoBtn) {
-            addPhotoBtn.addEventListener('click', openPhotoUploadModal);
-        }
-        // Close modal listener (delegation or direct)
-        if (photoModalCloseBtn) {
-            photoModalCloseBtn.addEventListener('click', closePhotoUploadModal);
-        }
-        // Also close on backdrop click
-        if (photoUploadModal) {
-            photoUploadModal.addEventListener('click', (event) => {
-                if (event.target === photoUploadModal) {
-                    closePhotoUploadModal();
-                }
-            });
-        }
-        // --- END NEW ---
-
         // Initial page state
         switchPage('landing'); // Start on the landing page
 
@@ -1379,9 +1363,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchAndRenderHistoryChart(exerciseId) { // Renamed function
         historyMessageEl.textContent = ''; // Clear previous messages
+        console.log(`[DEBUG] fetchAndRenderHistoryChart called for ID: ${exerciseId}`); // <<< Log function call
 
         if (!exerciseId) {
             historyMessageEl.textContent = 'Please select an exercise to view its history.';
+            console.warn("[DEBUG] fetchAndRenderHistoryChart - No exercise ID provided."); // <<< Log warning
             return;
         }
 
@@ -1393,106 +1379,138 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const historyData = await response.json();
+            console.log("[DEBUG] Raw History Data Received:", JSON.stringify(historyData)); // <<< Log raw data
 
             if (historyData.length === 0) {
                 historyMessageEl.textContent = 'No logged history found for this exercise.';
+                 if (exerciseHistoryChart) { // Clear chart if no data
+                     exerciseHistoryChart.destroy();
+                     exerciseHistoryChart = null;
+                 }
                 return;
             }
 
             // Process data for chart
             const labels = historyData.map(log => new Date(log.date_performed).toLocaleDateString());
-            const volumes = historyData.map(log => {
+            const volumes = historyData.map((log, index) => { // <<< Add index for logging
                 // Calculate volume (Sum of Weight * Reps for each set)
-                if (!log.reps_completed || !log.weight_used) return 0;
-                
+                if (!log.reps_completed || !log.weight_used) {
+                    console.warn(`[DEBUG] Log index ${index} missing reps/weight:`, log); // <<< Log problematic log
+                    return 0;
+                }
+
                 const repsArray = log.reps_completed.split(',').map(Number);
                 const weightsArray = log.weight_used.split(',').map(Number);
                 let totalVolume = 0;
 
-                // Use the shorter length to avoid errors if arrays mismatch
                 const numSets = Math.min(repsArray.length, weightsArray.length);
+                 if (repsArray.length !== weightsArray.length) {
+                     console.warn(`[DEBUG] Log index ${index} has mismatched reps (${repsArray.length}) and weights (${weightsArray.length}):`, log); // <<< Log mismatch
+                 }
 
                 for (let i = 0; i < numSets; i++) {
-                    const reps = isNaN(repsArray[i]) ? 0 : repsArray[i];
-                    const weight = isNaN(weightsArray[i]) ? 0 : weightsArray[i];
-                    // Basic calculation: weight * reps. Ignores bodyweight sets for simplicity.
-                    // Ignores unit conversion (kg/lbs) for now.
+                    const reps = repsArray[i];
+                    const weight = weightsArray[i];
+                    // Check for NaN
+                    if (isNaN(reps) || isNaN(weight)) {
+                         console.warn(`[DEBUG] Log index ${index}, Set ${i + 1} has NaN reps (${repsArray[i]}) or weight (${weightsArray[i]}):`, log); // <<< Log NaN issues
+                         continue; // Skip this set in calculation
+                    }
+
                     if (log.weight_unit !== 'bodyweight') {
                         totalVolume += weight * reps;
                     }
                 }
+                 console.log(`[DEBUG] Log index ${index} calculated volume: ${totalVolume}`); // <<< Log calculated volume
                 return totalVolume;
             });
 
             historyMessageEl.textContent = ''; // Clear loading message
-            // Update chart label
+            console.log("[DEBUG] Data for Chart - Labels:", labels); // <<< Log chart labels
+            console.log("[DEBUG] Data for Chart - Volumes:", volumes); // <<< Log chart volumes
             renderHistoryChart(labels, volumes, 'Volume (Weight * Reps)');
 
         } catch (error) {
-            console.error('Error fetching or processing exercise history:', error);
+            console.error('[DEBUG] Error fetching or processing exercise history:', error); // <<< Log full error
             historyMessageEl.textContent = `Error loading history: ${error.message}`;
+             if (exerciseHistoryChart) { // Clear chart on error
+                 exerciseHistoryChart.destroy();
+                 exerciseHistoryChart = null;
+            }
         }
     }
 
     function renderHistoryChart(labels, data, chartLabel = 'Volume') {
         if (!historyChartCanvas) return;
         const ctx = historyChartCanvas.getContext('2d');
+        console.log("[DEBUG] Rendering chart with Labels:", labels, "Data:", data); // <<< Log data before rendering
 
         // Destroy existing chart before creating new one
         if (exerciseHistoryChart) {
+            console.log("[DEBUG] Destroying existing chart instance."); // <<< Log destruction
             exerciseHistoryChart.destroy();
+             exerciseHistoryChart = null; // Explicitly nullify
+        } else {
+             console.log("[DEBUG] No existing chart instance to destroy.");
         }
 
-        exerciseHistoryChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: chartLabel,
-                    data: data,
-                    borderColor: '#4CAF50', // Green line
-                    backgroundColor: 'rgba(76, 175, 80, 0.1)', // Light green fill
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: chartLabel
+
+        try { // <<< Add try-catch around chart creation
+            exerciseHistoryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: chartLabel,
+                        data: data,
+                        borderColor: '#4CAF50', // Green line
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)', // Light green fill
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: chartLabel
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
                         }
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                         // Use locale string for better number formatting
+                                         label += context.parsed.y.toLocaleString();
+                                    }
+                                    return label;
                                 }
-                                if (context.parsed.y !== null) {
-                                     // Use locale string for better number formatting
-                                     label += context.parsed.y.toLocaleString();
-                                }
-                                return label;
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+             console.log("[DEBUG] Chart instance created successfully."); // <<< Log success
+        } catch (chartError) {
+             console.error("[DEBUG] Error creating Chart.js instance:", chartError); // <<< Log chart creation errors
+             historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
+        }
     }
 
     // --- History Edit Modal Functions (Renamed) ---
@@ -1571,9 +1589,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function handleHistoryEditAddSubmit(event) { // Renamed function
-        event.preventDefault();
-        console.log('Submitting new past log...');
+    async function handleHistoryEditAddSubmit(event) { // Ensure event parameter is accepted
+        // ---> ADD Log at start of handler <---
+        console.log("[DEBUG] handleHistoryEditAddSubmit function STARTED."); // <<< ADDED
+        event.preventDefault(); // Keep this line
+        console.log('Submitting new past log...'); // <<< Existing log (keep)
 
         const logData = {
             exercise_id: parseInt(historyEditExerciseIdInput.value, 10),
@@ -1583,6 +1603,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Collect data from dynamic set rows
         const setRows = historyEditSetsContainer.querySelectorAll('.set-row');
+
+        let repsCompletedArray = []; // <<< Initialize arrays
+        let weightUsedArray = []; // <<< Initialize arrays
+        let weightUnit = 'kg'; // <<< Initialize default unit
 
         let isValid = true;
         setRows.forEach((row, index) => {
@@ -1596,20 +1620,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Basic validation per row
             if (reps === '' || weight === '') {
+                console.warn(`Set ${index + 1} is missing reps or weight.`); // <<< Log missing data
                 isValid = false;
             }
 
-            logData.reps_completed = reps || '0';
-            logData.weight_used = weight || '0';
-            logData.weight_unit = unit;
+            repsCompletedArray.push(reps || '0'); // <<< Push to array
+            weightUsedArray.push(weight || '0'); // <<< Push to array
+            if (index === 0) weightUnit = unit; // <<< Capture unit from first set
         });
+
+        // Assign collected arrays to logData AFTER the loop
+        logData.reps_completed = repsCompletedArray.join(',');
+        logData.weight_used = weightUsedArray.join(',');
+        logData.weight_unit = weightUnit;
+
 
         if (!isValid) {
             alert('Please fill in both weight and reps for all sets.');
             return;
         }
 
-        console.log('New Past Log Data to Send:', logData);
+        console.log('[DEBUG] New Past Log Data to Send:', JSON.stringify(logData)); // <<< MODIFIED: Log data clearly
         const submitButton = historyEditAddForm.querySelector('button[type="submit"]'); // Target correct form
         submitButton.disabled = true;
         submitButton.textContent = 'Saving...';
@@ -1623,16 +1654,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
             if (!response.ok) {
+                console.error("[DEBUG] Save Error Response:", result); // <<< Log error response
                 throw new Error(result.error || `HTTP error! Status: ${response.status}`);
             }
 
             console.log('New past log saved:', result);
-            // alert('Past log entry saved successfully!'); // Removed alert
-            // Don't close modal, just refresh lists
 
             // Refresh the existing logs list in the modal
              fetchAndRenderExistingLogs(logData.exercise_id);
              // Refresh the history chart in the background
+             console.log(`[DEBUG] Triggering chart refresh for exercise ID: ${logData.exercise_id}`); // <<< Log before chart refresh
              fetchAndRenderHistoryChart(logData.exercise_id);
             // Clear the add form
              historyEditAddForm.reset();
@@ -1641,7 +1672,7 @@ document.addEventListener('DOMContentLoaded', function() {
              historyEditDateInput.valueAsDate = new Date();
 
         } catch (error) {
-            console.error('Error saving new past log:', error);
+            console.error('[DEBUG] Error saving new past log:', error); // <<< Log full error
             alert(`Failed to save new past log: ${error.message}`);
         } finally {
             submitButton.disabled = false;
@@ -2074,3 +2105,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initialize(); // Run initialization
 });
+
+// Helper function (if not already present globally)
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return unsafe;
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}

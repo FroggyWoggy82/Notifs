@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Workout Tracker - Task List</title>
     <link rel="stylesheet" href="../css/index.css">   <!-- Shared styles -->
     <link rel="stylesheet" href="../css/sidebar.css"> <!-- Sidebar styles -->
@@ -44,7 +44,7 @@
         <div id="workout-landing-page" class="page active">
             <h1>Workout Tracker</h1>
 
-            <!-- ===== New Progress Photos Section ===== -->
+            <!-- Photo Sections (Slider + Comparison) -->
             <div class="progress-photos-section">
                 <div class="progress-section-header">
                     <h2>Progress Photos</h2>
@@ -59,15 +59,15 @@
                         <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" disabled>&lt;</button>
                         <div class="photo-viewport"> <!-- Clipping container -->
                             <div class="photo-reel"> <!-- Image strip that moves -->
-                                <img id="photo-prev-preview" class="photo-preview prev" src="" alt="Previous photo preview">
-                                <img id="current-photo-display" class="photo-main" src="" alt="Progress Photo">
-                                <img id="photo-next-preview" class="photo-preview next" src="" alt="Next photo preview">
+                                <!-- Images will be dynamically loaded here by JavaScript -->
                             </div>
                         </div>
                         <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" disabled>&gt;</button>
                     </div>
-                    <!-- Moved date display below slider -->
-                    <span id="current-photo-date" class="photo-date-display">No photos yet</span>
+                    <!-- ADDED Pagination Dots Container -->
+                    <div class="pagination-dots">
+                        <!-- Dots will be added here by JS -->
+                    </div>
                 </div>
             </div>
              <!-- ===== End Progress Photos Section ===== -->
@@ -99,16 +99,16 @@
              <hr class="page-divider"> <!-- Divider between Progress and Templates -->
 
             <div class="my-workouts-section">
+                <div class="template-actions-header">
+                    <button id="start-empty-workout-btn" class="btn btn-primary">Start Empty Workout</button>
+                    <button id="create-template-btn" class="btn btn-secondary">Create New Template</button>
+                </div>
                 <div class="search-filter-container">
-                     <button id="start-empty-workout-btn" class="btn btn-primary">Start Empty Workout</button>
                      <input type="text" id="template-search" placeholder="Search templates...">
-                     <!-- Add filter options if needed -->
                 </div>
                 <div id="workout-template-list" class="card-list">
-                    <!-- Workout template cards will be loaded here -->
                     <p>Loading templates...</p>
                 </div>
-                 <button id="create-template-btn" class="btn btn-secondary">Create New Template</button>
             </div>
 
             <hr class="page-divider">
@@ -279,13 +279,12 @@
     <div id="history-edit-modal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="document.getElementById('history-edit-modal').style.display='none'">&times;</span>
-            <h2>Edit Exercise History</h2>
-            <h3 id="history-edit-exercise-name">Exercise Name</h3>
+            <h2>Edit Exercise History: <span id="history-edit-modal-title-name"></span></h2>
 
-            <!-- Section for Adding New Log -->
-            <h4>Add New Past Log Entry</h4>
-            <form id="history-edit-add-form">
+            <!-- Form Section -->
+            <form id="history-edit-form" novalidate>
                 <input type="hidden" id="history-edit-exercise-id">
+
                 <div class="form-group">
                     <label for="history-edit-date">Date:</label>
                     <input type="date" id="history-edit-date" required>
@@ -308,9 +307,9 @@
 
              <hr class="page-divider">
 
-             <!-- Section for Existing Logs -->
+             <!-- Existing Logs Section -->
             <h4>Existing Log Entries</h4>
-            <div id="history-edit-log-list" class="modal-list" style="max-height: 250px; overflow-y: auto;">
+            <div id="history-edit-log-list" class="modal-list">
                 <!-- Existing logs will be listed here -->
                 <p>Loading existing logs...</p>
             </div>

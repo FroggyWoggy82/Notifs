@@ -90,17 +90,20 @@ h1, h2 {
 
 .my-workouts-section {
     width: 100%;
-    max-width: 80%; /* Using percentage for better responsiveness */
+    /* max-width: 80%; */ /* Keep this potentially, or adjust if needed */
     margin: 0 auto;
+    display: flex; /* Use flexbox for centering button */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center children horizontally */
 }
 
 .search-filter-container {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
-    align-items: center; /* Vertically align button and input */
-    /* max-width: 650px; /* Remove max-width, let parent control */
-    /* margin: 0 auto; */
+    width: 100%; /* Allow container to take width */
+    max-width: 500px; /* Limit container width (adjust as needed) */
+    /* Removed justify-content, align-items centers the input */
 }
 
 .search-filter-container #start-empty-workout-btn {
@@ -114,55 +117,151 @@ h1, h2 {
      text-overflow: ellipsis;
 }
 
+/* Input takes available space within the limited container */
 .search-filter-container input[type="text"] {
-    /* flex-grow: 1; /* Remove grow property */
+    flex-grow: 1; /* Allow input to take available space */
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #444;
     background-color: #222;
     color: #f5f5f5;
     font-size: 1rem;
-    flex-basis: 74%; /* Set basis to ~75% */
-    min-width: 0; /* Allow input to shrink if needed */
+    /* Removed max-width here, container handles it */
 }
+
+/* --- Style the new button container --- */
+.template-actions-header {
+    display: flex;
+    /* Remove justify-content: center; Buttons will now fill the space */
+    gap: 15px; /* Space between buttons */
+    margin-bottom: 20px; /* Space below the buttons */
+    width: 100%; /* Take full width */
+    max-width: 500px; /* <<<< ADDED: Match the search container max-width */
+}
+/* --- END button container --- */
+
+/* --- NEW: Style for buttons inside the header --- */
+.template-actions-header .btn {
+    flex-grow: 1; /* Allow buttons to grow equally */
+    margin: 0; /* Remove default btn margin if needed */
+    /* Remove specific width/padding if they interfere */
+     padding-left: 15px; /* Adjust padding as needed */
+     padding-right: 15px;
+}
+/* --- END button styling --- */
 
 .card-list {
     display: grid;
-    gap: 15px;
-    grid-template-columns: 1fr; /* Single column mobile-first */
-    margin-bottom: 20px;
+    /* --- Force columns to be exactly the card max-width --- */
+    grid-template-columns: repeat(auto-fit, 250px); /* Removed minmax, using fixed size */
+    /* --- --- --- --- --- --- --- --- --- --- --- --- --- */
+    gap: 5px; /* Keep minimal gap */
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    align-items: stretch; /* Keep items stretching vertically */
+    width: 100%;
+    justify-content: center; /* Keep centering the group of columns */
+    /* justify-items: center; */ /* Ensure this is not active */
 }
 
-/* Workout Template Card */
+/* Workout Template Card - Keep size */
 .workout-template-card {
     background-color: #2a2a2a;
-    border: 1px solid #444;
     border-radius: 8px;
     padding: 15px;
-    transition: background-color 0.2s ease;
+    border: 1px solid #444;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* --- Keep the smaller max-width --- */
+    max-width: 250px;
+    /* --- --- --- --- --- --- --- --- --- */
+    /* margin-left: auto; */ /* Ensure this remains commented out */
+    /* margin-right: auto; */ /* Ensure this remains commented out */
+    box-sizing: border-box;
     position: relative;
-    overflow-wrap: break-word; /* Added to handle long words */
+    overflow: hidden;
+    margin-bottom: 0;
 }
 .workout-template-card:hover {
     background-color: #333;
 }
 
+/* Title Ellipsis */
+.workout-template-card h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #03dac6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 40px;
+    flex-shrink: 0;
+}
+
+/* Description styling */
+.workout-template-card .template-description {
+    font-size: 0.9rem;
+    color: #bbb;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: break-word;
+    flex-shrink: 0;
+}
+
+/* Vertical Exercise Summary Container */
+.exercise-summary-vertical {
+    font-size: 0.85rem;
+    color: #aaa;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    flex-grow: 1;
+}
+
+/* Individual exercise item in the vertical list */
+.exercise-summary-vertical .exercise-list-item {
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Default message style */
+.exercise-summary-vertical .no-exercises {
+    color: #888;
+    font-style: italic;
+}
+
+/* Actions pushed to the bottom */
+.template-actions {
+    margin-top: auto;
+    padding-top: 10px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.template-actions .btn-start-template {
+    width: auto;
+    padding: 8px 15px;
+}
+
 /* Container for buttons in the top-right corner of the card */
 .card-corner-actions {
     position: absolute;
-    top: 5px; /* Adjust as needed */
-    right: 5px; /* Adjust as needed */
+    top: 8px;
+    right: 8px;
     display: flex;
-    gap: 5px; /* Space between edit/delete */
-    z-index: 3; /* Ensure buttons are clickable */
+    gap: 5px;
+    z-index: 3;
+    max-width: 60px;
 }
 
 /* Style for the delete button on the card */
 .btn-delete-template,
-.btn-edit-template { /* Apply similar styles to edit button */
-    /* position: absolute; -- Positioned by container now */
-    /* top: 8px; */
-    /* right: 8px; */
+.btn-edit-template {
     background: none;
     border: none;
     color: #aaa;
@@ -171,35 +270,33 @@ h1, h2 {
     cursor: pointer;
     padding: 0;
     line-height: 1;
-    /* z-index: 2; -- Set on container */
-    /* Explicit sizing and centering */
     width: 24px;
     height: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s ease; /* Smooth color transition */
+    transition: color 0.2s ease;
 }
 
 /* Combine focus and hover for consistent styling, remove default outline */
 .btn-delete-template:focus,
 .btn-delete-template:hover,
 .btn-edit-template:focus,
-.btn-edit-template:hover { /* Apply hover/focus to edit button */
-    color: #f44336; /* Red text for delete */
+.btn-edit-template:hover {
+    color: #f44336;
     outline: none;
 }
 
 /* Different hover/focus color for edit button */
 .btn-edit-template:focus,
 .btn-edit-template:hover {
-    color: #2196F3; /* Blue for edit */
+    color: #2196F3;
 }
 
 /* Ensure outline is visible for keyboard navigation (accessibility) */
 .btn-delete-template:focus-visible,
-.btn-edit-template:focus-visible { /* Apply focus-visible to edit */
-     outline: 2px solid #bb86fc; /* Use theme accent color */
+.btn-edit-template:focus-visible {
+     outline: 2px solid #bb86fc;
      outline-offset: 1px;
 }
 
@@ -208,8 +305,6 @@ h1, h2 {
     margin-top: 0;
     margin-bottom: 8px;
     color: #03dac6;
-    padding-right: 50px;
-    box-sizing: border-box;
 }
 
 /* ALSO add padding to other text elements inside the card */
@@ -221,8 +316,6 @@ h1, h2 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-right: 50px;
-    box-sizing: border-box;
 }
 .workout-template-card .exercise-summary {
     font-size: 0.8rem;
@@ -519,7 +612,7 @@ h1, h2 {
 .modal-list-item span {
     font-size: 0.85rem;
     color: #aaa;
-    margin-left: 8px;
+    margin-left: 0px;
 }
 
 .modal-divider {
@@ -571,9 +664,10 @@ h1, h2 {
 /* --- Media Queries for Larger Screens --- */
 
 @media screen and (min-width: 600px) {
-    .card-list {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    }
+    /* Removed grid-template-columns rule - base rule is now sufficient */
+    /* .card-list { */
+    /*     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); */
+    /* } */
     .fab {
         bottom: 100px; /* Increased to clear ~80px nav bar */
         right: 30px; /* Keep right adjustment */
@@ -581,9 +675,10 @@ h1, h2 {
 }
 
 @media screen and (min-width: 900px) {
-    .card-list {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    }
+    /* Removed grid-template-columns rule - base rule is now sufficient */
+    /* .card-list { */
+    /*     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
+    /* } */
     .set-row {
         /* Potentially adjust grid layout for more space */
     }
@@ -986,6 +1081,10 @@ h1, h2 {
     margin-top: 15px;
     border: 1px solid #555;
     border-radius: 4px;
+    /* --- Try a fixed pixel height --- */
+    max-height: 450px; /* Changed from 60vh (Adjust if needed) */
+    overflow-y: auto; /* Ensure scrolling is enabled */
+    /* --- --- --- --- --- --- --- --- */
 }
 
 .log-list-item {
@@ -1023,294 +1122,92 @@ h1, h2 {
     min-width: auto;
 }
 
-/* === Progress Photos Section (on Workouts Page) === */
-.progress-photos-section {
-    width: 100%;
-    max-width: 80%; /* Match my-workouts-section width */
-    margin: 0 auto 25px auto; /* Center and add bottom margin */
-    background-color: #2a2a2a;
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 20px;
-}
-
-/* NEW: Style the header containing H2 and button */
-.progress-section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #444;
-    padding-bottom: 0;
-}
-
-.progress-section-header h2 {
-    margin-top: 0;
-    margin-bottom: 0; /* Remove bottom margin as header controls spacing */
-    border-bottom: none; /* Remove border from h2 */
-    padding-bottom: 0;
-}
-
-/* Style the add photo button */
-#add-photo-btn {
-    /* Reuse btn-small styles or define specifically */
-    padding: 8px 5px; /* Increase vertical, decrease horizontal padding */
-    font-size: 0.8rem;
-    flex-shrink: 0; /* Prevent button from shrinking */
-    margin-left: 15px; /* Space between title and button */
-    max-width: 80px; /* Make it wider again */
-    line-height: 1.2; /* Adjust line height for vertical text centering */
-    text-align: center; /* Ensure text is centered */
-}
-
-.progress-photos-section h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #ccc;
-    /* border: 1px solid #444; /* REMOVED border */
-}
-
-/* Update upload section styles (now in modal) */
-/* Removed .upload-section wrapper rules */
-
-/* Target form inputs within the modal */
-#photo-upload-modal .form-group {
-    margin-bottom: 15px;
-    display: flex;
-    flex-direction: column; /* Stack label and input */
-}
-
-#photo-upload-modal label {
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-    color: #aaa;
-}
-
-#photo-upload-modal input[type="date"],
-#photo-upload-modal input[type="file"] {
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #555;
-    background-color: #333;
-    color: #eee;
-    font-size: 0.95rem;
-    /* Ensure file input button is somewhat styled */
-}
-
-#photo-upload-modal input[type="file"]::-webkit-file-upload-button {
-  padding: 6px 12px;
-  border: 1px solid #555;
-  border-radius: 4px;
-  background-color: #444;
-  color: #eee;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-#photo-upload-modal input[type="file"]::-webkit-file-upload-button:hover {
-  background-color: #555;
-}
-
-/* Adjust modal action button alignment if needed */
-#photo-upload-modal .modal-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end; /* Align button to the right */
-}
-
-#photo-upload-modal button[type="submit"] {
-    /* margin-top: 10px; */ /* Removed top margin, handled by modal-actions */
-    width: auto;
-}
-
-/* Ensure upload status message looks okay in modal */
-#photo-upload-modal #upload-status {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    min-height: 1.2em; /* Prevent layout shift */
-    text-align: right; /* Align with button */
-}
-
-.gallery-section {
-    margin-top: 0; /* Remove top margin as header handles spacing */
-}
-
-/* === NEW: Photo Slider Styles === */
+/* === Main Photo Slider Styles === */
 .photo-slider-container {
-    display: flex;
-    align-items: center;
-    justify-content: center; 
-    gap: 10px; 
-    margin-top: 15px;
-    overflow: hidden; /* ADD: Clip edges here */
-    /* You might need to adjust max-width or width here depending on overall page layout */
-     max-width: 600px; /* Example max-width */
-     margin-left: auto;
-     margin-right: auto;
+    position: relative; /* Needed for absolute positioning of buttons */
+    width: 100%;
+    max-width: 400px; /* Or your desired max width */
+    margin: 20px auto; /* Center the slider */
+    overflow: hidden; /* Clip contents to the container bounds */
 }
 
-/* NEW: Viewport for clipping */
 .photo-viewport {
-    /* width: 70%; /* REMOVE fixed width */
-    width: 100%; /* CHANGE: Make viewport fill container */
-    max-width: 500px; /* Keep max-width if desired */
-    /* overflow: hidden; /* REMOVE clipping from viewport */
-    position: relative;
-    /* No border needed */
+    width: 100%;
+    aspect-ratio: 4 / 3; /* Maintain a 4:3 aspect ratio */
+    overflow: hidden; /* Clip the reel */
+    position: relative; /* For positioning the reel */
+    border-radius: 8px; /* Optional: rounded corners */
+    background-color: #2a2a2a; /* Dark background */
 }
 
-/* NEW: Reel holding the images */
 .photo-reel {
-    display: block; 
-    width: 300%; 
-    height: 350px; 
-    position: relative;
-    left: -100%; 
-    transition: transform 0.5s ease-in-out; /* RESTORE transition */
+    position: relative; /* Changed from absolute for simpler transform */
+    /* width: 300%; */ /* REMOVED - No longer needed */
+    height: 100%;
+    /* display: flex; */ /* REMOVED - Simpler layout */
+    /* Start with the middle image centered */
+    /* left: -100%; */ /* REMOVED - No longer needed */
+    /* transition: left 0.5s ease-in-out; */ /* REMOVED - No animation */
 }
 
-/* Styles for all images in the reel - NOW ABSOLUTELY POSITIONED */
 .photo-reel img {
-    flex-shrink: 0; 
-    width: calc(100% / 3);
-    max-height: 350px; 
-    height: 100%; 
-    display: block; /* REMOVED !important */
-    border-radius: 6px;
-    object-fit: cover;
-    background-color: #333; 
-    
-    position: absolute;
-    top: 0;
+    /* Each image takes 1/3 of the reel width */
+    /* width: 33.333%; */ /* REMOVED - Let JS control visibility */
+    width: 100%; /* Make images fill the viewport width */
+    height: 100%;
+    display: block; /* Keep this */
+    object-fit: contain; /* Keep this */
+    background-color: #333; /* Keep this */
+    /* No absolute positioning needed with flex */
 
-    /* border: 3px dashed magenta; /* REMOVE DEBUG BORDER */
+    /* Preview Styling (Restored) */
+    opacity: 1.0; /* Keep Default opacity */
+    transform: scale(1.0); /* Keep Default scale */
+    /* transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; */ /* REMOVED - No animation */
 }
 
-/* --- REMOVE DEBUG Background colors --- */
+/* Style for the non-active preview images */
+/* REMOVE this rule entirely - JS handles hiding/showing previews */
 /*
-#photo-prev-preview { background-color: rgba(255, 0, 0, 0.5); } 
-#current-photo-display { background-color: rgba(0, 255, 0, 0.5); }
-#photo-next-preview { background-color: rgba(0, 0, 255, 0.5); }
+.photo-reel img.photo-preview {
+    opacity: 0.6;
+    transform: scale(0.9);
+}
 */
 
-/* --- NEW: Explicit Left Positions --- */
-#photo-prev-preview {
-    left: 0;
-    /* border: 2px solid red; /* REMOVE DEBUG */
-}
-#current-photo-display {
-    left: calc(100% / 3);
-    /* border: 2px solid lime; /* REMOVE DEBUG */
-}
-#photo-next-preview {
-    left: calc(200% / 3);
-    /* border: 2px solid blue; /* REMOVE DEBUG */
-}
-
-
-/* Center image specific styles - RESTORED without !important */
-.photo-main {
-    opacity: 1.0; 
-    transform: scale(1.0); 
-    z-index: 2; 
-}
-
-/* Preview image specific styles - RESTORED */
-.photo-preview {
-    opacity: 0.6; 
-    transform: scale(0.9); 
-    z-index: 1;
-    transition: opacity 0.5s ease, transform 0.5s ease; /* Ensure transition is restored */
-}
-
-/* Date display below the slider */
-.photo-date-display {
-    display: block; /* Take full width */
-    text-align: center;
-    margin-top: 10px; /* Space above date */
-    font-size: 0.9rem;
-    color: #bbb;
-    min-height: 1.2em;
-}
-
+/* Slider Navigation Buttons */
 .slider-nav-btn {
-    background: none;
-    border: 2px solid #555;
-    color: #bbb;
-    font-size: 1.8rem;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 5px 10px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
     border-radius: 50%;
     width: 40px;
     height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 3; /* Ensure buttons are above images */
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    position: relative; /* Ensure z-index applies */
-    z-index: 3; /* Bring buttons above image reel (z-index 1 and 2) */
+    transition: background-color 0.2s ease;
 }
 
-.slider-nav-btn:hover:not(:disabled) {
-    background-color: #444;
-    color: #eee;
+.slider-nav-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
-.slider-nav-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+.slider-nav-btn.prev {
+    left: 10px;
 }
 
-/* === Remove Old Grid/Thumbnail Styles === */
-/*
-#progress-photos-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 10px;
+.slider-nav-btn.next {
+    right: 10px;
 }
+/* === END Main Photo Slider Styles === */
 
-.photo-date-group h3 {
-    font-size: 1rem;
-    margin-bottom: 8px;
-}
-
-.progress-thumbnail {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 4px;
-    cursor: pointer;
-    border: 1px solid #444;
-}
-*/
-
-.section-divider {
-    border: none;
-    border-top: 1px solid #333;
-    margin: 25px 0;
-}
-
-/* Style the page divider differently maybe */
-.page-divider {
-    border: none;
-    border-top: 2px dashed #444; /* More prominent page divider */
-    margin: 30px 0;
-}
-
-/* NEW: Container for buttons in header */
-.header-buttons {
-    display: flex;
-    gap: 10px; /* Space between buttons */
-}
-
-/* NEW: Animation states */
-/*
-.photo-reel.sliding-left .photo-main,
-.photo-reel.sliding-right .photo-main {
-    opacity: 0.5; 
-}
-*/
 
 /* === NEW Photo Comparison Section Styles === */
 #photo-comparison-section {
@@ -1365,3 +1262,38 @@ h1, h2 {
 }
 
 /* ============================================ */
+
+/* Mobile Adjustments for Template List */
+@media screen and (max-width: 600px) {
+    .my-workouts-section {
+        /* Keep existing styles */
+    }
+
+    .search-filter-container {
+        /* Adjust max-width for mobile if needed */
+        max-width: 95%;
+    }
+
+    .card-list {
+        grid-template-columns: 1fr; /* Mobile remains single column */
+        padding: 15px 15px;
+        gap: 5px; /* Keep mobile gap minimal */
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        margin: 15px 0;
+    }
+
+    .workout-template-card {
+        /* Keep percentage max-width for mobile flexibility */
+        max-width: 95%; /* Mobile width remains responsive */
+    }
+
+    /* Adjust button header for mobile if needed */
+    .template-actions-header {
+        max-width: 95%; /* Example: Use percentage on mobile */
+    }
+}
+
+/* Cleaned up removed button style */
+/* #create-template-btn { ... } */
