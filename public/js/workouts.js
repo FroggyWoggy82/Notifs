@@ -1993,70 +1993,93 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- NEW: Progress Photo Upload Handler ---
     async function handlePhotoUpload(event) {
         event.preventDefault();
-        console.log('[Photo Upload Client] handlePhotoUpload triggered.'); // Log function start
+        console.log('[Photo Upload Client] handlePhotoUpload triggered.');
 
         const form = event.target;
-        const formData = new FormData(form);
-        const statusElement = document.getElementById('upload-status');
-        const modal = document.getElementById('photo-upload-modal');
-        const submitButton = form.querySelector('button[type="submit"]');
+        // --- MODIFIED: Create FormData manually to control field order ---
+        const formData = new FormData(); 
+        const dateInput = form.querySelector('#modal-photo-date');
+        const fileInput = form.querySelector('#modal-photo-upload');
+        
+        if (!dateInput || !fileInput) {
+            console.error('[Photo Upload Client] Cannot find date or file input elements in the form.');
+            statusElement.textContent = 'Error: Form elements missing.';
+            statusElement.style.color = '#f44336';
+            return;
+        }
 
-        // Ensure files exist
-        const files = formData.getAll('photos');
+        const dateValue = dateInput.value;
+        const files = fileInput.files;
+        
+        // 1. Append date field FIRST
+        if (dateValue) {
+            formData.append('date', dateValue);
+            console.log(`[Photo Upload Client] Appended date: ${dateValue}`);
+        } else {
+            statusElement.textContent = 'Please select a date.';
+            statusElement.style.color = 'orange';
+            console.warn('[Photo Upload Client] Date not selected.');
+            return; // Need a date
+        }
+        
+        // 2. Append file fields LAST
         if (!files || files.length === 0) {
             statusElement.textContent = 'Please select at least one photo.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] No files selected.');
+            console.warn('[Photo Upload Client] No files selected in file input.');
             return;
         }
-        console.log(`[Photo Upload Client] Found ${files.length} file(s) in form data.`);
+        console.log(`[Photo Upload Client] Appending ${files.length} file(s)...`);
+        for (let i = 0; i < files.length; i++) {
+            formData.append('photos', files[i], files[i].name);
+            console.log(`[Photo Upload Client]   - Appended file: ${files[i].name} (${files[i].size} bytes)`);
+        }
+        // --- END FormData Modification ---
+        
+        const statusElement = document.getElementById('upload-status');
+        const modal = document.getElementById('photo-upload-modal');
+        const submitButton = form.querySelector('button[type="submit"]');
 
         statusElement.textContent = 'Uploading...';
         statusElement.style.color = '#03dac6'; // Teal accent
         submitButton.disabled = true; // Disable button during upload
 
-        console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos'); // Log before fetch
+        console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos'); 
         let response;
         try {
             response = await fetch('/api/workouts/progress-photos', {
                 method: 'POST',
-                body: formData, // FormData handles headers automatically
-                // headers: { 'Content-Type': 'multipart/form-data' }, // Don't set Content-Type manually with FormData
+                body: formData, 
             });
 
-            console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`); // Log immediately after fetch resolves
+            console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`); 
 
             if (!response.ok) {
-                // Attempt to get error details from response body
-                let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` }; // Default error
+                let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
                 try {
-                    const text = await response.text(); // Read raw text first
+                    const text = await response.text(); 
                     console.log(`[Photo Upload Client] Raw error response text: ${text}`);
-                    errorData = JSON.parse(text); // Try parsing as JSON
+                    errorData = JSON.parse(text); 
                     console.log('[Photo Upload Client] Parsed JSON error response:', errorData);
                 } catch (parseError) {
                     console.error('[Photo Upload Client] Failed to parse error response as JSON:', parseError);
-                    // Keep the default HTTP error message in errorData
                 }
-                // Throw an error object to be caught below
                 const error = new Error(errorData.error || `HTTP error ${response.status}`);
                 error.status = response.status;
                 error.data = errorData;
                 throw error;
             }
 
-            // If response IS ok
             const result = await response.json();
             console.log('[Photo Upload Client] Upload successful:', result);
             statusElement.textContent = result.message || 'Upload successful!';
             statusElement.style.color = '#4CAF50'; // Green
-            form.reset();
-            fetchAndDisplayPhotos(); // Refresh the gallery
+            form.reset(); // Reset the original form element
+            fetchAndDisplayPhotos(); 
 
-            // Close modal after a short delay
             setTimeout(() => {
                 modal.style.display = 'none';
-                statusElement.textContent = ''; // Clear status on close
+                statusElement.textContent = '';
             }, 1500);
 
         } catch (error) {
@@ -2075,10 +2098,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
             statusElement.style.color = '#f44336'; // Red
-            // Keep modal open on error
 
         } finally {
-            submitButton.disabled = false; // Re-enable button
+            submitButton.disabled = false; 
             console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
         }
     }
