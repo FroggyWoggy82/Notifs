@@ -2,6 +2,42 @@
 const express = require('express');
 const db = require('../db'); // Assuming db setup is in ../db/index.js or similar
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs'); // Required for checking directory existence
+
+// --- Multer Configuration for Progress Photos ---
+const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+
+// Ensure the upload directory exists
+if (!fs.existsSync(progressPhotosDir)){
+    console.log(`Creating directory: ${progressPhotosDir}`);
+    fs.mkdirSync(progressPhotosDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, progressPhotosDir); // Use the absolute path
+    },
+    filename: function (req, file, cb) {
+        // Create a unique filename: fieldname-timestamp.extension
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Not an image! Please upload only images.'), false);
+    }
+};
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+// Use upload.array('photos', 10) to accept up to 10 files with the field name 'photos'
+const uploadPhotosMiddleware = upload.array('photos', 10); // Match the input name attribute
 
 // --- API Routes ---
 
@@ -572,6 +608,152 @@ router.delete('/logs/:id', async (req, res) => {
             return res.status(409).json({ error: 'Cannot delete log entry due to related data. Ensure cascade delete is configured or delete related exercise logs first.' });
         }
         res.status(500).json({ error: 'Failed to delete log entry' });
+    }
+});
+
+// --- Progress Photo Routes ---
+
+// POST /api/progress-photos - Upload new progress photos
+router.post('/progress-photos', (req, res) => {
+    uploadPhotosMiddleware(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading.
+            console.error('Multer Error:', err);
+            return res.status(500).json({ error: `File upload error: ${err.message}` });
+        } else if (err) {
+            // An unknown error occurred (e.g., file type filter).
+            console.error('Unknown Upload Error:', err);
+            return res.status(400).json({ error: err.message || 'Invalid file type.' });
+        }
+
+        // Files uploaded successfully at this point.
+        const { date } = req.body; // Date from the form
+        const files = req.files;
+
+        if (!date) {
+            // Should ideally be caught by frontend, but double-check
+            return res.status(400).json({ error: 'Date is required.' });
+        }
+        if (!files || files.length === 0) {
+            return res.status(400).json({ error: 'No photos uploaded.' });
+        }
+
+        console.log(`Received ${files.length} photos for date: ${date}`);
+
+        const client = await db.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const insertedPhotos = [];
+            for (const file of files) {
+                // Construct the relative path for DB storage and URL access
+                const relativePath = `/uploads/progress_photos/${file.filename}`;
+                console.log(`Inserting DB record for: ${relativePath}, Date: ${date}`);
+
+                const result = await client.query(
+                    'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id, date_taken, file_path',
+                    [date, relativePath]
+                );
+                insertedPhotos.push(result.rows[0]);
+            }
+
+            await client.query('COMMIT');
+            console.log('Successfully inserted photo records into DB.');
+            res.status(201).json({ message: 'Photos uploaded successfully!', photos: insertedPhotos });
+
+        } catch (dbErr) {
+            await client.query('ROLLBACK');
+            console.error('Database Error during photo upload:', dbErr);
+            // Attempt to clean up uploaded files if DB insert fails?
+            files.forEach(file => {
+                fs.unlink(file.path, unlinkErr => {
+                    if (unlinkErr) console.error(`Error deleting file ${file.path} after DB error:`, unlinkErr);
+                });
+            });
+            res.status(500).json({ error: 'Database error saving photo information.' });
+        } finally {
+            client.release();
+        }
+    });
+});
+
+// GET /api/progress-photos - Fetch all progress photo records
+router.get('/progress-photos', async (req, res) => {
+    console.log("Received GET /api/progress-photos request");
+    try {
+        // Fetch records, ordered by date taken (most recent first)
+        const result = await db.query(
+            'SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC'
+        );
+        // Map date_taken to YYYY-MM-DD format for consistency if needed
+        const photos = result.rows.map(photo => ({
+            ...photo,
+            date_taken: photo.date_taken.toISOString().split('T')[0] // Format as YYYY-MM-DD
+        }));
+
+        res.json(photos);
+    } catch (err) {
+        console.error('Error fetching progress photos:', err);
+        res.status(500).json({ error: 'Failed to fetch progress photos' });
+    }
+});
+
+// DELETE /api/progress-photos/:photo_id - Delete a specific photo
+router.delete('/progress-photos/:photo_id', async (req, res) => {
+    const { photo_id } = req.params;
+    console.log(`Received DELETE /api/workouts/progress-photos/${photo_id}`);
+
+    if (!/^[1-9]\d*$/.test(photo_id)) {
+        return res.status(400).json({ error: 'Invalid photo ID format' });
+    }
+
+    const client = await db.pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Find the photo record to get the file path
+        const selectResult = await client.query('SELECT file_path FROM progress_photos WHERE photo_id = $1', [photo_id]);
+        if (selectResult.rowCount === 0) {
+            await client.query('ROLLBACK'); // No record found, rollback
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+        const relativeFilePath = selectResult.rows[0].file_path;
+        const absoluteFilePath = path.join(__dirname, '..', 'public', relativeFilePath);
+
+        // 2. Delete the photo record from the database
+        const deleteResult = await client.query('DELETE FROM progress_photos WHERE photo_id = $1 RETURNING photo_id', [photo_id]);
+        if (deleteResult.rowCount === 0) {
+             // Should not happen if select worked, but good practice
+             await client.query('ROLLBACK');
+             return res.status(404).json({ error: 'Photo not found during delete attempt' });
+        }
+
+        // 3. Delete the actual file from the filesystem
+        try {
+            if (fs.existsSync(absoluteFilePath)) {
+                fs.unlinkSync(absoluteFilePath);
+                console.log(`Deleted file: ${absoluteFilePath}`);
+            } else {
+                console.warn(`File not found for deletion, but DB record removed: ${absoluteFilePath}`);
+            }
+        } catch (fileErr) {
+            // Log the file deletion error, but COMMIT the DB change anyway
+            // as the primary goal is removing the DB record.
+            // Alternatively, you could ROLLBACK here if file deletion MUST succeed.
+            console.error(`Error deleting file ${absoluteFilePath}, but DB record was deleted:`, fileErr);
+        }
+
+        // 4. Commit the transaction
+        await client.query('COMMIT');
+        console.log(`Progress Photo ${photo_id} deleted successfully.`);
+        res.status(200).json({ message: `Photo ${photo_id} deleted successfully`, id: parseInt(photo_id) });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(`Error deleting progress photo ${photo_id}:`, err);
+        res.status(500).json({ error: 'Failed to delete photo' });
+    } finally {
+        client.release();
     }
 });
 

@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentHistoryExerciseId = null; // Store the currently selected exercise ID
     let currentHistoryExerciseName = null; // Store the name
 
+    // --- NEW: Progress Photo Slider State ---
+    let progressPhotosData = []; // Holds the array of { photo_id, date_taken, file_path, ... }
+    let currentPhotoIndex = 0;
+
     // --- DOM Element References ---
     const workoutLandingPage = document.getElementById('workout-landing-page');
     const activeWorkoutPage = document.getElementById('active-workout-page');
@@ -76,6 +80,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const historyEditNotesInput = document.getElementById('history-edit-notes'); // Renamed element ref
     const historyEditLogListEl = document.getElementById('history-edit-log-list'); // New ref for log list
     let historyEditSets = []; // Renamed state variable
+
+    // --- Progress Photos Elements ---
+    const photoForm = document.getElementById('progress-photo-form');
+    const photoDateInput = document.getElementById('photo-date');
+    const photoUploadInput = document.getElementById('photo-upload');
+    const uploadStatusEl = document.getElementById('upload-status');
+    const photoGalleryEl = document.getElementById('progress-photos-gallery');
+
+    // --- New Button/Modal References for Photo Upload ---
+    const addPhotoBtn = document.getElementById('add-photo-btn');
+    const photoUploadModal = document.getElementById('photo-upload-modal');
+    const photoModalCloseBtn = photoUploadModal ? photoUploadModal.querySelector('.close-button') : null;
+
+    // --- NEW: Slider DOM References ---
+    const currentPhotoDisplay = document.getElementById('current-photo-display');
+    const currentPhotoDate = document.getElementById('current-photo-date');
+    const photoPrevBtn = document.getElementById('photo-prev-btn');
+    const photoNextBtn = document.getElementById('photo-next-btn');
+    const deletePhotoBtn = document.getElementById('delete-photo-btn'); // NEW: Delete button reference
+    const photoReel = document.querySelector('.photo-reel'); // Reel container
+    const photoPrevPreview = document.getElementById('photo-prev-preview');
+    const photoNextPreview = document.getElementById('photo-next-preview');
+    console.log('photoNextBtn element:', photoNextBtn);
 
     // --- Helper function to generate HTML for set rows ---
     function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
@@ -1114,8 +1141,52 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // --- NEW: Progress Photo Form Listener ---
+        if (photoForm) {
+            photoForm.addEventListener('submit', handlePhotoUpload);
+        }
+        // --- END NEW ---
+
+        // --- NEW: Add Photo Button Listener ---
+        if (addPhotoBtn) {
+            addPhotoBtn.addEventListener('click', openPhotoUploadModal);
+        }
+        // Close modal listener (delegation or direct)
+        if (photoModalCloseBtn) {
+            photoModalCloseBtn.addEventListener('click', closePhotoUploadModal);
+        }
+        // Also close on backdrop click
+        if (photoUploadModal) {
+            photoUploadModal.addEventListener('click', (event) => {
+                if (event.target === photoUploadModal) {
+                    closePhotoUploadModal();
+                }
+            });
+        }
+        // --- END NEW ---
+
         // Initial page state
         switchPage('landing'); // Start on the landing page
+
+        // --- NEW: Initial Photo Load ---
+        fetchAndDisplayPhotos();
+        // --- END NEW ---
+
+        if (photoPrevBtn) {
+            console.log('Attaching listener to photoPrevBtn'); // DEBUG: Verify listener attachment attempt
+            photoPrevBtn.addEventListener('click', showPreviousPhoto);
+        }
+        if (photoNextBtn) {
+            console.log('Attaching listener to photoNextBtn'); // DEBUG: Verify listener attachment attempt
+            photoNextBtn.addEventListener('click', showNextPhoto);
+        }
+        // --- END NEW ---
+
+        // --- NEW: Delete Photo Button Listener ---
+        if (deletePhotoBtn) {
+            deletePhotoBtn.addEventListener('click', handleDeletePhoto);
+        }
+        // --- END NEW ---
     }
 
     async function handleDeleteTemplate(templateId) {
@@ -1659,6 +1730,288 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
     }
+
+    // --- NEW: Progress Photo Upload Handler ---
+    async function handlePhotoUpload(event) {
+        event.preventDefault(); // Prevent default form submission
+        // Update references to point inside the modal
+        const modalPhotoDateInput = document.getElementById('modal-photo-date');
+        const modalPhotoUploadInput = document.getElementById('modal-photo-upload');
+        const modalUploadStatusEl = photoUploadModal ? photoUploadModal.querySelector('#upload-status') : null;
+
+        if (!modalUploadStatusEl || !modalPhotoDateInput || !modalPhotoUploadInput || !photoForm) return; // Ensure elements exist
+
+        modalUploadStatusEl.textContent = 'Uploading...';
+
+        const date = modalPhotoDateInput.value;
+        const files = modalPhotoUploadInput.files;
+
+        if (!date || files.length === 0) {
+            modalUploadStatusEl.textContent = 'Please select a date and at least one photo.';
+            modalUploadStatusEl.style.color = 'red';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('date', date);
+        for (let i = 0; i < files.length; i++) {
+            formData.append('photos', files[i]);
+        }
+
+        console.log('Uploading photos for date:', date, 'Files:', files.length);
+        const submitButton = photoForm.querySelector('button[type="submit"]');
+        if(submitButton) submitButton.disabled = true;
+
+        // ** Backend call **
+        try {
+            const response = await fetch('/api/workouts/progress-photos', {
+                method: 'POST',
+                body: formData // FormData handles headers automatically
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Upload successful:', result);
+            modalUploadStatusEl.textContent = result.message || 'Upload successful!';
+            modalUploadStatusEl.style.color = 'green';
+            photoForm.reset();
+            fetchAndDisplayPhotos(); // Refresh the gallery
+
+            // Close modal after a short delay to show message
+            setTimeout(closePhotoUploadModal, 1500);
+
+        } catch (error) {
+            console.error('Error uploading photos:', error);
+            modalUploadStatusEl.textContent = `Upload failed: ${error.message}`;
+            modalUploadStatusEl.style.color = 'red';
+        } finally {
+             if(submitButton) submitButton.disabled = false;
+        }
+    }
+    // --- END NEW ---
+
+    // --- NEW: Open/Close Photo Upload Modal Functions ---
+    function openPhotoUploadModal() {
+        if (photoUploadModal) {
+            // Reset form and status message on open
+            const form = photoUploadModal.querySelector('#progress-photo-form');
+            const statusEl = photoUploadModal.querySelector('#upload-status');
+            if(form) form.reset();
+            if(statusEl) statusEl.textContent = '';
+
+            photoUploadModal.style.display = 'block';
+        }
+    }
+
+    function closePhotoUploadModal() {
+        if (photoUploadModal) {
+            photoUploadModal.style.display = 'none';
+        }
+    }
+    // --- END NEW ---
+
+    // --- NEW: Fetch and Display Photos Function (for Slider) ---
+    async function fetchAndDisplayPhotos() {
+        // Use the slider container elements, not the old galleryEl
+        if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn) return;
+
+        currentPhotoDisplay.style.display = 'none'; // Hide image while loading
+        currentPhotoDate.textContent = 'Loading photos...';
+        photoPrevBtn.disabled = true;
+        photoNextBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/workouts/progress-photos');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // Store fetched data in state
+            progressPhotosData = await response.json(); // Expecting array like [{photo_id, date_taken, file_path, uploaded_at}]
+
+            console.log('Fetched progress photos:', progressPhotosData); // DEBUG: Log fetched data
+
+            if (progressPhotosData.length === 0) {
+                currentPhotoDisplay.style.display = 'none';
+                currentPhotoDate.textContent = 'No progress photos uploaded yet.';
+                photoPrevBtn.disabled = true;
+                photoNextBtn.disabled = true;
+                return;
+            }
+
+            // Data is ready, display the first photo (most recent)
+            currentPhotoIndex = 0;
+            displayCurrentPhoto();
+
+        } catch (error) {
+            console.error('Error fetching photos:', error);
+            currentPhotoDisplay.style.display = 'none';
+            currentPhotoDate.textContent = `Error loading photos: ${error.message}`;
+            currentPhotoDate.style.color = 'red';
+            photoPrevBtn.disabled = true;
+            photoNextBtn.disabled = true;
+        }
+    }
+    // --- END NEW ---
+
+    // --- NEW: Display Current Photo in Slider (Instant Update Sources Only) ---
+    function displayCurrentPhoto() {
+        if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn || !photoReel || !photoPrevPreview || !photoNextPreview) return;
+
+        const numPhotos = progressPhotosData.length;
+        let currentPhoto, prevPhoto, nextPhoto;
+
+        // --- Handle Empty State --- 
+        if (numPhotos === 0) {
+            currentPhotoDisplay.style.display = 'none';
+            photoPrevPreview.style.display = 'none';
+            photoNextPreview.style.display = 'none';
+            currentPhotoDate.textContent = 'No photos yet';
+            photoPrevBtn.disabled = true;
+            photoNextBtn.disabled = true;
+            deletePhotoBtn.disabled = true;
+            return;
+        }
+
+        // --- Ensure index is valid --- 
+        if (currentPhotoIndex < 0 || currentPhotoIndex >= numPhotos) {
+            console.error('Invalid photo index:', currentPhotoIndex);
+            currentPhotoIndex = 0; // Reset to first photo
+        }
+
+        // --- Get Photos for Display --- 
+        currentPhoto = progressPhotosData[currentPhotoIndex];
+        prevPhoto = (currentPhotoIndex > 0) ? progressPhotosData[currentPhotoIndex - 1] : null;
+        nextPhoto = (currentPhotoIndex < numPhotos - 1) ? progressPhotosData[currentPhotoIndex + 1] : null;
+
+        // --- Update Image Sources & Visibility --- 
+        console.log(`Setting sources: Prev=${prevPhoto?.file_path}, Current=${currentPhoto?.file_path}, Next=${nextPhoto?.file_path}`); // DEBUG
+        
+        // Current photo always visible (if one exists)
+        currentPhotoDisplay.src = currentPhoto.file_path;
+        currentPhotoDisplay.alt = `Progress photo from ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
+        currentPhotoDisplay.style.display = 'block'; 
+        
+        // Previous Preview
+        if (prevPhoto) {
+            photoPrevPreview.src = prevPhoto.file_path;
+            photoPrevPreview.alt = `Preview: ${new Date(prevPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
+            photoPrevPreview.style.display = 'block'; // Make visible
+        } else {
+            photoPrevPreview.src = ''; // Clear src just in case
+            photoPrevPreview.style.display = 'none'; // Hide element
+        }
+        
+        // Next Preview
+        if (nextPhoto) {
+            photoNextPreview.src = nextPhoto.file_path;
+            photoNextPreview.alt = nextPhoto ? `Preview: ${new Date(nextPhoto.date_taken + 'T00:00:00').toLocaleDateString()}` : '';
+            photoNextPreview.style.display = 'block'; // Make visible
+        } else {
+            photoNextPreview.src = ''; // Clear src just in case
+            photoNextPreview.style.display = 'none'; // Hide element
+        }
+
+        // --- Update Date Display --- 
+        currentPhotoDate.textContent = `Date: ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
+        currentPhotoDate.style.color = '';
+
+        // --- Update Button States --- 
+        photoPrevBtn.disabled = !prevPhoto;
+        photoNextBtn.disabled = !nextPhoto;
+        deletePhotoBtn.disabled = false;
+
+        // --- Reset Reel Position (No Transition) --- 
+        // This reset now happens AFTER animation in the event listener
+        /* 
+        photoReel.style.transition = 'none'; // Disable transition temporarily
+        photoReel.style.transform = 'translateX(-100%)'; // Reset to center instantly
+        // Force reflow to ensure the reset applies before re-enabling transition
+        photoReel.offsetHeight; 
+        // Restore transition (removed timeout)
+        photoReel.style.transition = 'transform 0.5s ease-in-out'; 
+        */
+
+        console.log(`Displayed photo index: ${currentPhotoIndex}, Path: ${currentPhoto.file_path}`);
+    }
+    // --- END NEW ---
+
+    // --- Slider Navigation Functions (NO ANIMATION) ---
+    function showPreviousPhoto() {
+        console.log("Previous button clicked (no animation)");
+        if (currentPhotoIndex > 0) {
+            currentPhotoIndex--;
+            displayCurrentPhoto(); // Update sources and display instantly
+        }
+    }
+
+    function showNextPhoto() {
+        console.log("Next button clicked (no animation)");
+        if (currentPhotoIndex < progressPhotosData.length - 1) {
+            currentPhotoIndex++;
+            displayCurrentPhoto(); // Update sources and display instantly
+        }
+    }
+    // --- END Slider Navigation Functions ---
+
+    // --- NEW: Delete Photo Handler ---
+    async function handleDeletePhoto() {
+        if (!deletePhotoBtn || deletePhotoBtn.disabled) return;
+        if (progressPhotosData.length === 0 || currentPhotoIndex < 0 || currentPhotoIndex >= progressPhotosData.length) {
+            console.error('No photo selected or invalid index for deletion.');
+            return;
+        }
+
+        const photoToDelete = progressPhotosData[currentPhotoIndex];
+        const photoId = photoToDelete.photo_id;
+        const photoDate = new Date(photoToDelete.date_taken + 'T00:00:00').toLocaleDateString();
+
+        if (!confirm(`Are you sure you want to delete the photo from ${photoDate}? This cannot be undone.`)) {
+            return;
+        }
+
+        console.log(`Attempting to delete photo ID: ${photoId}`);
+        deletePhotoBtn.disabled = true; // Disable button during delete
+        // Optionally show a status message
+        // currentPhotoDate.textContent = 'Deleting...';
+
+        try {
+            const response = await fetch(`/api/workouts/progress-photos/${photoId}`, { method: 'DELETE' });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response'}));
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Photo deleted:', result);
+
+            // Remove photo from local array
+            progressPhotosData.splice(currentPhotoIndex, 1);
+
+            // Adjust index if we deleted the last remaining photo or the last photo in the list
+            if (progressPhotosData.length === 0) {
+                currentPhotoIndex = 0; // Reset
+            } else if (currentPhotoIndex >= progressPhotosData.length) {
+                 // If we deleted the last one, move index back
+                 currentPhotoIndex = progressPhotosData.length - 1;
+            }
+            // Else, the index remains the same, showing the *next* photo automatically
+
+            // Refresh the display
+            displayCurrentPhoto(); // This will handle the case of 0 photos left
+
+        } catch (error) {
+            console.error('Error deleting photo:', error);
+            alert(`Failed to delete photo: ${error.message}`);
+            // Re-enable button on error, maybe refresh state?
+            deletePhotoBtn.disabled = false;
+        }
+    }
+    // --- END NEW ---
 
     initialize(); // Run initialization
 });

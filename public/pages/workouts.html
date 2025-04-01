@@ -27,7 +27,7 @@
                 <span class="nav-icon">⭐</span> <!-- Star -->
                 <span>Goals</span>
             </a>
-             <a href="/pages/workouts.html" class="sidebar-nav-item active"> <!-- Mark as active -->
+             <a href="/pages/workouts.html" class="sidebar-nav-item active"> <!-- Mark workouts active -->
                 <span class="nav-icon">💪</span> <!-- Dumbbell -->
                 <span>Workouts</span>
             </a>
@@ -43,12 +43,40 @@
         <!-- Landing Page View (Initially Visible) -->
         <div id="workout-landing-page" class="page active">
             <h1>Workout Tracker</h1>
-            <div class="button-container">
-                <button id="start-empty-workout-btn" class="btn btn-primary">Start Empty Workout</button>
+
+            <!-- ===== New Progress Photos Section ===== -->
+            <div class="progress-photos-section">
+                <div class="progress-section-header">
+                    <h2>Progress Photos</h2>
+                    <div class="header-buttons">
+                        <button id="add-photo-btn" class="btn btn-secondary btn-small">+ Add Photo</button>
+                        <button id="delete-photo-btn" class="btn btn-danger btn-small" title="Delete Current Photo" disabled>Delete</button>
+                    </div>
+                </div>
+                <!-- Photo Gallery Display -->
+                <div class="gallery-section">
+                    <div class="photo-slider-container">
+                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" disabled>&lt;</button>
+                        <div class="photo-viewport"> <!-- Clipping container -->
+                            <div class="photo-reel"> <!-- Image strip that moves -->
+                                <img id="photo-prev-preview" class="photo-preview prev" src="" alt="Previous photo preview">
+                                <img id="current-photo-display" class="photo-main" src="" alt="Progress Photo">
+                                <img id="photo-next-preview" class="photo-preview next" src="" alt="Next photo preview">
+                            </div>
+                        </div>
+                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" disabled>&gt;</button>
+                    </div>
+                    <!-- Moved date display below slider -->
+                    <span id="current-photo-date" class="photo-date-display">No photos yet</span>
+                </div>
             </div>
+             <!-- ===== End Progress Photos Section ===== -->
+
+             <hr class="page-divider"> <!-- Divider between Progress and Templates -->
+
             <div class="my-workouts-section">
-                <h2>My Workout Templates</h2>
                 <div class="search-filter-container">
+                     <button id="start-empty-workout-btn" class="btn btn-primary">Start Empty Workout</button>
                      <input type="text" id="template-search" placeholder="Search templates...">
                      <!-- Add filter options if needed -->
                 </div>
@@ -208,7 +236,7 @@
             <div class="nav-icon">⭐</div>
             <span>Goals</span>
         </a>
-        <a href="/pages/workouts.html" class="nav-item active" data-page="workout-page"> <!-- Mark as active -->
+        <a href="/pages/workouts.html" class="nav-item active" data-page="workout-page"> <!-- Mark workouts active -->
             <div class="nav-icon">💪</div> <!-- Dumbbell -->
             <span>Workouts</span>
         </a>
@@ -268,6 +296,31 @@
             </div>
         </div>
     </div>
+
+    <!-- ===== New Photo Upload Modal ===== -->
+    <div id="photo-upload-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('photo-upload-modal').style.display='none'">&times;</span>
+            <h2>Upload Progress Photos</h2>
+            <form id="progress-photo-form">
+                 <div class="form-group">
+                     <label for="modal-photo-date">Date Taken:</label>
+                     <!-- Changed ID to avoid conflict -->
+                     <input type="date" id="modal-photo-date" name="photo-date" required>
+                 </div>
+                 <div class="form-group">
+                     <label for="modal-photo-upload">Select Photos:</label>
+                     <!-- Changed ID to avoid conflict -->
+                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required>
+                 </div>
+                 <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Upload Photos</button>
+                 </div>
+            </form>
+            <p id="upload-status" style="margin-top: 15px;"></p> <!-- Status message inside modal -->
+        </div>
+    </div>
+    <!-- ===== End Photo Upload Modal ===== -->
 
 </body>
 </html>

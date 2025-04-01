@@ -98,17 +98,32 @@ h1, h2 {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
+    align-items: center; /* Vertically align button and input */
+    /* max-width: 650px; /* Remove max-width, let parent control */
+    /* margin: 0 auto; */
+}
+
+.search-filter-container #start-empty-workout-btn {
+    /* flex-shrink: 0; /* Remove shrink property */
+    margin: 0; /* Remove default btn margins */
+    padding: 10px 15px; /* Match input padding height */
+    flex-basis: 24%; /* Set basis to ~25% */
+    /* Ensure button text doesn't cause overflow */
+     white-space: nowrap;
+     overflow: hidden;
+     text-overflow: ellipsis;
 }
 
 .search-filter-container input[type="text"] {
-    flex-grow: 1;
+    /* flex-grow: 1; /* Remove grow property */
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #444;
     background-color: #222;
     color: #f5f5f5;
     font-size: 1rem;
-    max-width: 500px; /* Added max-width to match history search */
+    flex-basis: 74%; /* Set basis to ~75% */
+    min-width: 0; /* Allow input to shrink if needed */
 }
 
 .card-list {
@@ -641,7 +656,6 @@ h1, h2 {
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #333;
-    font-size: 0.95rem;
 }
 
 .template-editor-list .set-row:last-child {
@@ -1008,3 +1022,292 @@ h1, h2 {
     line-height: 1.2;
     min-width: auto;
 }
+
+/* === Progress Photos Section (on Workouts Page) === */
+.progress-photos-section {
+    width: 100%;
+    max-width: 80%; /* Match my-workouts-section width */
+    margin: 0 auto 25px auto; /* Center and add bottom margin */
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+/* NEW: Style the header containing H2 and button */
+.progress-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0;
+}
+
+.progress-section-header h2 {
+    margin-top: 0;
+    margin-bottom: 0; /* Remove bottom margin as header controls spacing */
+    border-bottom: none; /* Remove border from h2 */
+    padding-bottom: 0;
+}
+
+/* Style the add photo button */
+#add-photo-btn {
+    /* Reuse btn-small styles or define specifically */
+    padding: 8px 5px; /* Increase vertical, decrease horizontal padding */
+    font-size: 0.8rem;
+    flex-shrink: 0; /* Prevent button from shrinking */
+    margin-left: 15px; /* Space between title and button */
+    max-width: 80px; /* Make it wider again */
+    line-height: 1.2; /* Adjust line height for vertical text centering */
+    text-align: center; /* Ensure text is centered */
+}
+
+.progress-photos-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #ccc;
+    /* border: 1px solid #444; /* REMOVED border */
+}
+
+/* Update upload section styles (now in modal) */
+/* Removed .upload-section wrapper rules */
+
+/* Target form inputs within the modal */
+#photo-upload-modal .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column; /* Stack label and input */
+}
+
+#photo-upload-modal label {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+#photo-upload-modal input[type="date"],
+#photo-upload-modal input[type="file"] {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #eee;
+    font-size: 0.95rem;
+    /* Ensure file input button is somewhat styled */
+}
+
+#photo-upload-modal input[type="file"]::-webkit-file-upload-button {
+  padding: 6px 12px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background-color: #444;
+  color: #eee;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#photo-upload-modal input[type="file"]::-webkit-file-upload-button:hover {
+  background-color: #555;
+}
+
+/* Adjust modal action button alignment if needed */
+#photo-upload-modal .modal-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end; /* Align button to the right */
+}
+
+#photo-upload-modal button[type="submit"] {
+    /* margin-top: 10px; */ /* Removed top margin, handled by modal-actions */
+    width: auto;
+}
+
+/* Ensure upload status message looks okay in modal */
+#photo-upload-modal #upload-status {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    min-height: 1.2em; /* Prevent layout shift */
+    text-align: right; /* Align with button */
+}
+
+.gallery-section {
+    margin-top: 0; /* Remove top margin as header handles spacing */
+}
+
+/* === NEW: Photo Slider Styles === */
+.photo-slider-container {
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    gap: 10px; 
+    margin-top: 15px;
+    overflow: hidden; /* ADD: Clip edges here */
+    /* You might need to adjust max-width or width here depending on overall page layout */
+     max-width: 600px; /* Example max-width */
+     margin-left: auto;
+     margin-right: auto;
+}
+
+/* NEW: Viewport for clipping */
+.photo-viewport {
+    /* width: 70%; /* REMOVE fixed width */
+    width: 100%; /* CHANGE: Make viewport fill container */
+    max-width: 500px; /* Keep max-width if desired */
+    /* overflow: hidden; /* REMOVE clipping from viewport */
+    position: relative;
+    /* No border needed */
+}
+
+/* NEW: Reel holding the images */
+.photo-reel {
+    display: block; 
+    width: 300%; 
+    height: 350px; 
+    position: relative;
+    left: -100%; 
+    transition: transform 0.5s ease-in-out; /* RESTORE transition */
+}
+
+/* Styles for all images in the reel - NOW ABSOLUTELY POSITIONED */
+.photo-reel img {
+    flex-shrink: 0; 
+    width: calc(100% / 3);
+    max-height: 350px; 
+    height: 100%; 
+    display: block; /* REMOVED !important */
+    border-radius: 6px;
+    object-fit: cover;
+    background-color: #333; 
+    
+    position: absolute;
+    top: 0;
+
+    /* border: 3px dashed magenta; /* REMOVE DEBUG BORDER */
+}
+
+/* --- REMOVE DEBUG Background colors --- */
+/*
+#photo-prev-preview { background-color: rgba(255, 0, 0, 0.5); } 
+#current-photo-display { background-color: rgba(0, 255, 0, 0.5); }
+#photo-next-preview { background-color: rgba(0, 0, 255, 0.5); }
+*/
+
+/* --- NEW: Explicit Left Positions --- */
+#photo-prev-preview {
+    left: 0;
+    /* border: 2px solid red; /* REMOVE DEBUG */
+}
+#current-photo-display {
+    left: calc(100% / 3);
+    /* border: 2px solid lime; /* REMOVE DEBUG */
+}
+#photo-next-preview {
+    left: calc(200% / 3);
+    /* border: 2px solid blue; /* REMOVE DEBUG */
+}
+
+
+/* Center image specific styles - RESTORED without !important */
+.photo-main {
+    opacity: 1.0; 
+    transform: scale(1.0); 
+    z-index: 2; 
+}
+
+/* Preview image specific styles - RESTORED */
+.photo-preview {
+    opacity: 0.6; 
+    transform: scale(0.9); 
+    z-index: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease; /* Ensure transition is restored */
+}
+
+/* Date display below the slider */
+.photo-date-display {
+    display: block; /* Take full width */
+    text-align: center;
+    margin-top: 10px; /* Space above date */
+    font-size: 0.9rem;
+    color: #bbb;
+    min-height: 1.2em;
+}
+
+.slider-nav-btn {
+    background: none;
+    border: 2px solid #555;
+    color: #bbb;
+    font-size: 1.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    position: relative; /* Ensure z-index applies */
+    z-index: 3; /* Bring buttons above image reel (z-index 1 and 2) */
+}
+
+.slider-nav-btn:hover:not(:disabled) {
+    background-color: #444;
+    color: #eee;
+}
+
+.slider-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* === Remove Old Grid/Thumbnail Styles === */
+/*
+#progress-photos-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+}
+
+.photo-date-group h3 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.progress-thumbnail {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #444;
+}
+*/
+
+.section-divider {
+    border: none;
+    border-top: 1px solid #333;
+    margin: 25px 0;
+}
+
+/* Style the page divider differently maybe */
+.page-divider {
+    border: none;
+    border-top: 2px dashed #444; /* More prominent page divider */
+    margin: 30px 0;
+}
+
+/* NEW: Container for buttons in header */
+.header-buttons {
+    display: flex;
+    gap: 10px; /* Space between buttons */
+}
+
+/* NEW: Animation states */
+/*
+.photo-reel.sliding-left .photo-main,
+.photo-reel.sliding-right .photo-main {
+    opacity: 0.5; 
+}
+*/
