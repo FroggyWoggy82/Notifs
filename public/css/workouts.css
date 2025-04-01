@@ -1311,3 +1311,57 @@ h1, h2 {
     opacity: 0.5; 
 }
 */
+
+/* === NEW Photo Comparison Section Styles === */
+#photo-comparison-section {
+    /* Inherits padding/background from .progress-photos-section */
+    margin-top: 10px; /* FURTHER REDUCED top margin */
+    margin-bottom: 10px; /* FURTHER REDUCED bottom margin */
+}
+
+.comparison-controls {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: space-around; /* Space out the dropdowns */
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.comparison-select-group {
+    display: flex;
+    flex-direction: column; /* Stack label above select */
+    gap: 5px;
+}
+
+.comparison-select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #eee;
+    font-size: 0.95rem;
+    min-width: 150px; /* Give dropdowns some width */
+}
+
+#comparison-images-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 200px; /* Ensure container has height even if images aren't loaded */
+    background-color: #1f1f1f; /* Slightly different background for contrast */
+    padding: 10px;
+    border-radius: 4px;
+}
+
+#comparison-images-container img {
+    width: 49%; /* Slightly less than 50% to account for gap */
+    height: auto; /* Maintain aspect ratio */
+    max-height: 400px; /* Limit max height */
+    object-fit: contain; /* Show whole image, scale down if needed */
+    background-color: #333; /* Placeholder background */
+    border-radius: 4px;
+    border: 1px solid #444;
+}
+
+/* ============================================ */

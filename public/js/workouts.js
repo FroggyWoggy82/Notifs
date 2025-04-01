@@ -104,6 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoNextPreview = document.getElementById('photo-next-preview');
     console.log('photoNextBtn element:', photoNextBtn);
 
+    // --- NEW: Comparison DOM References ---
+    const comparisonPhotoSelect1 = document.getElementById('comparison-photo-select-1');
+    const comparisonPhotoSelect2 = document.getElementById('comparison-photo-select-2');
+    const comparisonImage1 = document.getElementById('comparison-image-1');
+    const comparisonImage2 = document.getElementById('comparison-image-2');
+
     // --- Helper function to generate HTML for set rows ---
     function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
         let setRowsHtml = '';
@@ -1187,6 +1193,14 @@ document.addEventListener('DOMContentLoaded', function() {
             deletePhotoBtn.addEventListener('click', handleDeletePhoto);
         }
         // --- END NEW ---
+
+        // --- NEW: Comparison Dropdown Listeners ---
+        if (comparisonPhotoSelect1) {
+            comparisonPhotoSelect1.addEventListener('change', updateComparisonImages);
+        }
+        if (comparisonPhotoSelect2) {
+            comparisonPhotoSelect2.addEventListener('change', updateComparisonImages);
+        }
     }
 
     async function handleDeleteTemplate(templateId) {
@@ -1834,6 +1848,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log('Fetched progress photos:', progressPhotosData); // DEBUG: Log fetched data
 
+            // --- NEW: Populate Comparison Dropdowns ---
+            populateComparisonDropdowns();
+
             if (progressPhotosData.length === 0) {
                 currentPhotoDisplay.style.display = 'none';
                 currentPhotoDate.textContent = 'No progress photos uploaded yet.';
@@ -2012,6 +2029,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     // --- END NEW ---
+
+    // --- NEW: Populate Comparison Dropdowns Function ---
+    function populateComparisonDropdowns() {
+        if (!comparisonPhotoSelect1 || !comparisonPhotoSelect2) return;
+
+        // Clear existing options (keep the default placeholder)
+        comparisonPhotoSelect1.innerHTML = '<option value="">-- Select Date --</option>';
+        comparisonPhotoSelect2.innerHTML = '<option value="">-- Select Date --</option>';
+
+        if (progressPhotosData.length > 0) {
+            // Sort photos by date (oldest first for dropdown might be better)
+            const sortedPhotos = [...progressPhotosData].sort((a, b) => new Date(a.date_taken) - new Date(b.date_taken));
+
+            sortedPhotos.forEach(photo => {
+                const option1 = document.createElement('option');
+                option1.value = photo.photo_id; // Use photo_id as value
+                option1.textContent = new Date(photo.date_taken + 'T00:00:00').toLocaleDateString();
+
+                const option2 = option1.cloneNode(true); // Clone for the second dropdown
+
+                comparisonPhotoSelect1.appendChild(option1);
+                comparisonPhotoSelect2.appendChild(option2);
+            });
+        }
+    }
+
+    // --- NEW: Update Comparison Images Function ---
+    function updateComparisonImages() {
+        if (!comparisonImage1 || !comparisonImage2 || !comparisonPhotoSelect1 || !comparisonPhotoSelect2) return;
+
+        const selectedId1 = comparisonPhotoSelect1.value;
+        const selectedId2 = comparisonPhotoSelect2.value;
+
+        const photo1 = selectedId1 ? progressPhotosData.find(p => p.photo_id == selectedId1) : null;
+        const photo2 = selectedId2 ? progressPhotosData.find(p => p.photo_id == selectedId2) : null;
+
+        comparisonImage1.src = photo1 ? photo1.file_path : '';
+        comparisonImage1.alt = photo1 ? `Comparison Photo 1: ${new Date(photo1.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 1';
+
+        comparisonImage2.src = photo2 ? photo2.file_path : '';
+        comparisonImage2.alt = photo2 ? `Comparison Photo 2: ${new Date(photo2.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 2';
+    }
 
     initialize(); // Run initialization
 });
