@@ -2026,33 +2026,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ** Backend call **
         try {
+            console.log(`[Photo Upload] Attempting to POST to /api/workouts/progress-photos with ${files.length} files.`); // Log before fetch
             const response = await fetch('/api/workouts/progress-photos', {
                 method: 'POST',
                 body: formData // FormData handles headers automatically
             });
 
+            console.log(`[Photo Upload] Response Status: ${response.status}`); // Log status code
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                let errorMsg = `HTTP error! status: ${response.status}`;
+                try {
+                    // Attempt to parse potential JSON error body
+                    const errorData = await response.json();
+                    console.error("[Photo Upload] Server Error Response (JSON):", errorData);
+                    errorMsg = errorData.error || JSON.stringify(errorData); // Use specific error or stringify
+                } catch (parseError) {
+                    // If parsing fails, get text response instead
+                    try {
+                        const textResponse = await response.text();
+                        console.error("[Photo Upload] Server Error Response (Non-JSON):", textResponse);
+                        errorMsg += " (Non-JSON response received)";
+                    } catch (textError) {
+                         console.error("[Photo Upload] Could not read error response text.");
+                    }
+                }
+                throw new Error(errorMsg);
             }
 
             const result = await response.json();
-            console.log('Upload successful:', result);
+            console.log('[Photo Upload] Upload successful:', result);
             modalUploadStatusEl.textContent = result.message || 'Upload successful!';
             modalUploadStatusEl.style.color = 'green';
             // Reset the correct form
             if (modalPhotoForm instanceof HTMLFormElement) modalPhotoForm.reset();
             fetchAndDisplayPhotos(); // Refresh the gallery
 
-            // Close modal after a short delay to show message
+            // Close modal ONLY on success after a short delay
             setTimeout(closePhotoUploadModal, 1500);
 
         } catch (error) {
-            console.error('Error uploading photos:', error);
+            console.error('[Photo Upload] Error during upload process:', error);
             modalUploadStatusEl.textContent = `Upload failed: ${error.message}`;
             modalUploadStatusEl.style.color = 'red';
+            // DO NOT close modal automatically on error
         } finally {
              if(submitButton) submitButton.disabled = false;
+             console.log("[Photo Upload] Upload process finished (success or error)."); // Log completion
         }
     }
     // --- END NEW ---
@@ -2086,6 +2106,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Fetch and Display Photos Function (Redesigned for Carousel) ---
     async function fetchAndDisplayPhotos() {
+        console.log('[Photo Load] fetchAndDisplayPhotos STARTED.'); // Log start
         // Use the slider container elements, not the old galleryEl
         // if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn) return; // Updated condition
         if (!photoReel || !paginationDotsContainer || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
@@ -2093,6 +2114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        console.log('[Photo Load] Setting loading state...'); // Log before UI update
         // currentPhotoDisplay.style.display = 'none'; // Hide image while loading
         // currentPhotoDate.textContent = 'Loading photos...';
         photoReel.innerHTML = '<p>Loading photos...</p>'; // Show loading in reel
@@ -2102,31 +2124,38 @@ document.addEventListener('DOMContentLoaded', function() {
         deletePhotoBtn.disabled = true;
 
         try {
+            console.log('[Photo Load] Fetching photos from API...'); // Log before fetch
             const response = await fetch('/api/workouts/progress-photos');
+            console.log(`[Photo Load] API Response Status: ${response.status}`); // Log status
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             // Store fetched data in state
             progressPhotosData = await response.json(); // Expecting array like [{photo_id, date_taken, file_path, uploaded_at}]
 
-            console.log('Fetched progress photos:', progressPhotosData.length); // DEBUG: Log fetched data count
+            console.log(`[Photo Load] Fetched progress photos count: ${progressPhotosData.length}`);
 
             // --- Populate Comparison Dropdowns --- (Keep this)
             populateComparisonDropdowns();
 
+            console.log('[Photo Load] Clearing loading message from photoReel...'); // Log before clearing
             photoReel.innerHTML = ''; // Clear loading message
 
             if (progressPhotosData.length === 0) {
+                console.log('[Photo Load] No photos found. Displaying empty message.'); // Log empty case
                 // currentPhotoDisplay.style.display = 'none';
                 // currentPhotoDate.textContent = 'No progress photos uploaded yet.';
                 photoReel.innerHTML = '<p>No progress photos uploaded yet.</p>';
                 photoPrevBtn.disabled = true;
                 photoNextBtn.disabled = true;
                 deletePhotoBtn.disabled = true;
-                return;
+                 // Ensure date display is also cleared
+                 if (currentPhotoDateDisplay) currentPhotoDateDisplay.textContent = '';
+                return; // Exit early if no photos
             }
 
             // --- Populate the Reel and Dots --- 
+            console.log('[Photo Load] Populating photo reel and pagination dots...'); // Log before loop
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
                 const img = document.createElement('img');
@@ -2158,10 +2187,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Data is ready, display the first photo (most recent)
             currentPhotoIndex = 0;
+            console.log('[Photo Load] Calling displayCurrentPhoto() to show first image...'); // Log before display call
             displayCurrentPhoto(); // Initial display
 
         } catch (error) {
-            console.error('Error fetching photos:', error);
+            console.error('[Photo Load] Error fetching or processing photos:', error);
             // currentPhotoDisplay.style.display = 'none';
             // currentPhotoDate.textContent = `Error loading photos: ${error.message}`; // Removed
             // currentPhotoDate.style.color = 'red'; // Removed
@@ -2169,6 +2199,10 @@ document.addEventListener('DOMContentLoaded', function() {
             photoPrevBtn.disabled = true;
             photoNextBtn.disabled = true;
             deletePhotoBtn.disabled = true;
+             // Ensure date display is also cleared on error
+            if (currentPhotoDateDisplay) currentPhotoDateDisplay.textContent = '';
+        } finally {
+            console.log('[Photo Load] fetchAndDisplayPhotos FINISHED.'); // Log finish
         }
     }
     // --- END NEW ---
@@ -2310,65 +2344,33 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        console.log(`Attempting to delete photo ID: ${photoId}`);
+        console.log(`[Photo Delete] Attempting to delete photo ID: ${photoId}`);
         deletePhotoBtn.disabled = true; // Disable button during delete
 
         try {
             const response = await fetch(`/api/workouts/progress-photos/${photoId}`, { method: 'DELETE' });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response'}));
-                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                // ... (existing error handling) ...
+                throw new Error(errorMsg);
             }
 
             const result = await response.json();
-            console.log('Photo deleted:', result);
+            console.log('[Photo Delete] Photo deleted successfully via API:', result);
 
             // --- Refresh the entire slider after deletion --- 
-            fetchAndDisplayPhotos(); // Simplest way to handle index changes and UI update
-
-            /* // Manual state update (more complex, keep fetchAndDisplayPhotos for now)
-            // Remove photo from local array
-            progressPhotosData.splice(currentPhotoIndex, 1);
-
-            // Adjust index if needed
-            if (progressPhotosData.length === 0) {
-                currentPhotoIndex = 0; // Reset
-            } else if (currentPhotoIndex >= progressPhotosData.length) {
-                 currentPhotoIndex = progressPhotosData.length - 1;
-            }
-
-            // Re-render the reel and dots
-            photoReel.innerHTML = '';
-            paginationDotsContainer.innerHTML = '';
-            if(progressPhotosData.length > 0) {
-                progressPhotosData.forEach((photo, index) => {
-                    const img = document.createElement('img');
-                    img.src = photo.file_path;
-                    img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
-                    photoReel.appendChild(img);
-                    const dot = document.createElement('span');
-                    dot.classList.add('dot');
-                    dot.dataset.index = index;
-                    dot.addEventListener('click', () => goToPhoto(index));
-                    paginationDotsContainer.appendChild(dot);
-                });
-                displayCurrentPhoto(); // Update transform and active dot
-            } else {
-                 photoReel.innerHTML = '<p>No progress photos uploaded yet.</p>';
-                 photoPrevBtn.disabled = true;
-                 photoNextBtn.disabled = true;
-                 deletePhotoBtn.disabled = true;
-            }
-            */
+            console.log('[Photo Delete] Calling fetchAndDisplayPhotos() to refresh gallery...');
+            await fetchAndDisplayPhotos(); // Wait for the refresh to attempt completion
+            console.log('[Photo Delete] fetchAndDisplayPhotos() call finished.');
 
         } catch (error) {
-            console.error('Error deleting photo:', error);
+            console.error('[Photo Delete] Error deleting photo:', error);
             alert(`Failed to delete photo: ${error.message}`);
             // Re-enable button on error, maybe refresh state?
-            deletePhotoBtn.disabled = false;
+            deletePhotoBtn.disabled = false; 
         } finally {
-             // Re-enable delete button happens in displayCurrentPhoto or if error occurs
+             // Button state should be handled by fetchAndDisplayPhotos completion or error handling above
+             console.log('[Photo Delete] Delete process finished.');
         }
     }
     // --- END NEW ---
