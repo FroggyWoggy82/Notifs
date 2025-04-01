@@ -8,6 +8,8 @@ const fs = require('fs'); // Required for checking directory existence
 
 // --- Multer Configuration for Progress Photos ---
 const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+const MAX_FILE_SIZE_MB = 25;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Ensure the upload directory exists
 if (!fs.existsSync(progressPhotosDir)){
@@ -31,11 +33,21 @@ const fileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
         cb(null, true);
     } else {
+        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype})`);
         cb(new Error('Not an image! Please upload only images.'), false);
     }
 };
 
-const upload = multer({ storage: storage, fileFilter: fileFilter });
+// Configure Multer with limits
+console.log(`[Server Config] Multer configured with file size limit: ${MAX_FILE_SIZE_MB} MB`);
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: MAX_FILE_SIZE_BYTES // Set file size limit
+    }
+});
+
 // Use upload.array('photos', 10) to accept up to 10 files with the field name 'photos'
 const uploadPhotosMiddleware = upload.array('photos', 10); // Match the input name attribute
 
@@ -617,22 +629,27 @@ router.delete('/logs/:id', async (req, res) => {
 router.post('/progress-photos', (req, res) => {
     console.log(`[Photo Upload Route] Received POST request.`); // Log route hit
     uploadPhotosMiddleware(req, res, async (err) => {
-        console.log(`[Photo Upload Route] Middleware callback started.`); // Log middleware start
-        if (err instanceof multer.MulterError) {
-            // A Multer error occurred when uploading.
-            console.error('[Photo Upload Route] Multer Error:', err.code, err.message, err.field);
-            return res.status(500).json({ error: `File upload error: ${err.message}` });
-        } else if (err) {
-            // An unknown error occurred (e.g., file type filter).
-            console.error('[Photo Upload Route] Unknown Upload Error:', err.message);
-            return res.status(400).json({ error: err.message || 'Invalid file type.' });
+        console.log(`[Photo Upload Route] Middleware callback entered.`);
+        
+        if (err) {
+             console.log(`[Photo Upload Route] Middleware received error object:`, err.code || err.message);
         }
 
-        // Files theoretically uploaded by Multer at this point.
-        const { date } = req.body; // Date from the form
+        if (err instanceof multer.MulterError) {
+            console.error('[Photo Upload Route] Multer Error:', err.code, err.message, err.field);
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(413).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });
+            }
+            return res.status(500).json({ error: `File upload error: ${err.message}` });
+        } else if (err) {
+            console.error('[Photo Upload Route] Non-Multer Upload Error:', err.message);
+            return res.status(400).json({ error: err.message || 'Invalid file type or other upload error.' });
+        }
+
+        const { date } = req.body;
         const files = req.files;
 
-        console.log(`[Photo Upload Route] Middleware processing successful. Date: ${date}`); // Log success
+        console.log(`[Photo Upload Route] Middleware processing successful (no initial error). Date: ${date}`);
         if (files && files.length > 0) {
             files.forEach((file, index) => {
                 console.log(`[Photo Upload Route] File ${index}: Name=${file.filename}, Size=${file.size}, MimeType=${file.mimetype}, Path=${file.path}`);
@@ -653,14 +670,13 @@ router.post('/progress-photos', (req, res) => {
         console.log(`[Photo Upload Route] Proceeding with DB operations for ${files.length} photos.`);
 
         const client = await db.pool.connect();
-        console.log('[Photo Upload Route] DB Client acquired.'); // Log DB connect
+        console.log('[Photo Upload Route] DB Client acquired.');
         try {
             await client.query('BEGIN');
-            console.log('[Photo Upload Route] DB Transaction BEGIN.'); // Log BEGIN
+            console.log('[Photo Upload Route] DB Transaction BEGIN.');
 
             const insertedPhotos = [];
             for (const file of files) {
-                // Construct the relative path for DB storage and URL access
                 const relativePath = `/uploads/progress_photos/${file.filename}`;
                 console.log(`[Photo Upload Route] Inserting DB record for: ${relativePath}, Date: ${date}`);
 
@@ -672,18 +688,17 @@ router.post('/progress-photos', (req, res) => {
             }
 
             await client.query('COMMIT');
-            console.log('[Photo Upload Route] DB Transaction COMMIT successful.'); // Log COMMIT
+            console.log('[Photo Upload Route] DB Transaction COMMIT successful.');
             res.status(201).json({ message: 'Photos uploaded successfully!', photos: insertedPhotos });
 
         } catch (dbErr) {
             console.error('[Photo Upload Route] Database Error during photo upload transaction:', dbErr.message, dbErr.stack);
             try {
                 await client.query('ROLLBACK');
-                console.log('[Photo Upload Route] DB Transaction ROLLBACK successful.'); // Log ROLLBACK
+                console.log('[Photo Upload Route] DB Transaction ROLLBACK successful.');
             } catch (rbErr) {
                  console.error('[Photo Upload Route] Error during ROLLBACK after initial error:', rbErr);
             }
-            // Attempt to clean up uploaded files if DB insert fails
             console.log('[Photo Upload Route] Attempting to delete uploaded files due to DB error...');
             files.forEach(file => {
                 fs.unlink(file.path, unlinkErr => {
@@ -694,7 +709,7 @@ router.post('/progress-photos', (req, res) => {
             res.status(500).json({ error: 'Database error saving photo information.' });
         } finally {
             client.release();
-            console.log('[Photo Upload Route] DB Client released.'); // Log release
+            console.log('[Photo Upload Route] DB Client released.');
         }
     });
 });
