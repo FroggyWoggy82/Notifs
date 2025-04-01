@@ -1,6 +1,37 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Workout Tracker JS loaded');
 
+    // --- Debounce Helper ---
+    function debounce(func, wait) {
+        let timeout = null; // Initialize timeout as null
+        // Add a unique identifier for each debounced function instance for clearer logging
+        const debounceId = Math.random().toString(36).substring(2, 7);
+        // console.log(`[Debounce ${debounceId}] Created for function: ${func.name || 'anonymous'}`); // Less verbose creation log
+
+        return function executedFunction(...args) {
+            const functionName = func.name || 'anonymous'; // Get function name for logs
+            const context = this;
+            console.log(`[Debounce ${debounceId} | ${functionName}] Event triggered. Current timeout: ${timeout !== null}`); // Log event trigger
+
+            const later = () => {
+                console.log(`[Debounce ${debounceId} | ${functionName}] -------> EXECUTING <-------`); // Clearer execution log
+                timeout = null; // Reset timeout ID *before* executing
+                func.apply(context, args); // Use apply to preserve context and arguments
+            };
+
+            // Log clearing existing timeout
+            if (timeout) {
+                console.log(`[Debounce ${debounceId} | ${functionName}] Clearing existing timeout ID: ${timeout}`);
+                clearTimeout(timeout);
+            }
+
+            // Log setting new timeout
+            timeout = setTimeout(later, wait);
+            console.log(`[Debounce ${debounceId} | ${functionName}] Setting new timeout ID: ${timeout} for ${wait}ms`);
+        };
+    }
+    const navigationDebounceTime = 100; // Milliseconds to wait
+
     // --- State Variables ---
     let availableExercises = []; // Populated from API
     let workoutTemplates = [];   // Populated from API
@@ -93,16 +124,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoUploadModal = document.getElementById('photo-upload-modal');
     const photoModalCloseBtn = photoUploadModal ? photoUploadModal.querySelector('.close-button') : null;
 
-    // --- NEW: Slider DOM References ---
-    const currentPhotoDisplay = document.getElementById('current-photo-display');
-    const currentPhotoDate = document.getElementById('current-photo-date');
+    // --- NEW: Slider DOM References (Updated for Redesign) ---
+    // const currentPhotoDisplay = document.getElementById('current-photo-display'); // Removed
+    // const currentPhotoDate = document.getElementById('current-photo-date'); // Removed
     const photoPrevBtn = document.getElementById('photo-prev-btn');
     const photoNextBtn = document.getElementById('photo-next-btn');
-    const deletePhotoBtn = document.getElementById('delete-photo-btn'); // NEW: Delete button reference
+    const deletePhotoBtn = document.getElementById('delete-photo-btn');
     const photoReel = document.querySelector('.photo-reel'); // Reel container
-    const photoPrevPreview = document.getElementById('photo-prev-preview');
-    const photoNextPreview = document.getElementById('photo-next-preview');
+    const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
+    const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
+    // const photoPrevPreview = document.getElementById('photo-prev-preview'); // Removed
+    // const photoNextPreview = document.getElementById('photo-next-preview'); // Removed
     console.log('photoNextBtn element:', photoNextBtn);
+
+    // --- NEW: Get container for delegation ---
+    const photoSliderContainer = document.querySelector('.photo-slider-container');
 
     // --- NEW: Comparison DOM References ---
     const comparisonPhotoSelect1 = document.getElementById('comparison-photo-select-1');
@@ -1023,9 +1059,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Initializing Workout Tracker...');
         fetchExercises(); // Fetch exercises for the modal
         fetchTemplates(); // Fetch templates for the landing page
+        fetchAndDisplayPhotos(); // Fetch photos for the slider
 
         // Page switching listeners
-        startEmptyWorkoutBtn.addEventListener('click', startEmptyWorkout);
+        startEmptyWorkoutBtn?.addEventListener('click', startEmptyWorkout);
 
         // Log the button element
         console.log('Create Template Button Element:', createTemplateBtn);
@@ -1039,158 +1076,322 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Modal listeners
-        addExerciseFab.addEventListener('click', () => {
+        addExerciseFab?.addEventListener('click', () => {
              // Determine context: Are we in active workout or template editor?
-             const targetList = templateEditorPage.classList.contains('active') ? 'editor' : 'active';
-             // Modify the modal's behavior or pass context if needed
+             const targetList = templateEditorPage?.classList.contains('active') ? 'editor' : 'active';
              console.log(`Opening exercise modal for target: ${targetList}`);
-             // We need a way for addExerciseToWorkout to know the target.
-             // Let's modify the modal item click listener generation temporarily.
-
-             // Temporarily store target context
-             exerciseModal.dataset.targetList = targetList;
+             // Temporarily store target context on the modal itself
+             if (exerciseModal) exerciseModal.dataset.targetList = targetList;
              openExerciseModal();
         });
-        closeExerciseModalBtn.addEventListener('click', closeExerciseModal);
-        exerciseModal.addEventListener('click', (event) => { // Close on backdrop click
+        closeExerciseModalBtn?.addEventListener('click', closeExerciseModal);
+        exerciseModal?.addEventListener('click', (event) => { // Close on backdrop click
             if (event.target === exerciseModal) closeExerciseModal();
         });
-        exerciseSearchInput.addEventListener('input', handleFilterChange);
-        exerciseCategoryFilter.addEventListener('change', handleFilterChange);
-        addSelectedExercisesBtn.addEventListener('click', handleAddSelectedExercises); // Added listener
+        // Safely cast elements before adding listeners
+        const searchInputEl = document.getElementById('exercise-search-input');
+        const categoryFilterEl = document.getElementById('exercise-category-filter');
+        const addSelectedBtnEl = document.getElementById('add-selected-exercises-btn');
+        if (searchInputEl) searchInputEl.addEventListener('input', handleFilterChange);
+        if (categoryFilterEl) categoryFilterEl.addEventListener('change', handleFilterChange);
+        if (addSelectedBtnEl) addSelectedBtnEl.addEventListener('click', handleAddSelectedExercises);
 
         // Active workout listeners
-        cancelWorkoutBtn.addEventListener('click', handleCancelWorkout);
-        completeWorkoutBtn.addEventListener('click', handleCompleteWorkout);
-        // Add listener for Add Set button using delegation
-        currentExerciseListEl.addEventListener('click', (event) => {
-            if (event.target.classList.contains('btn-add-set')) {
-                handleAddSet(event);
-            } else if (event.target.classList.contains('btn-remove-set')) { // Add listener for Remove Set
-                handleRemoveSet(event);
+        cancelWorkoutBtn?.addEventListener('click', handleCancelWorkout);
+        completeWorkoutBtn?.addEventListener('click', handleCompleteWorkout);
+        // Add listener for Add/Remove Set buttons using delegation
+        currentExerciseListEl?.addEventListener('click', (event) => {
+            const target = event.target;
+            // Check if target is an HTMLElement and has classList before accessing it
+            if (target instanceof HTMLElement) {
+                if (target.classList.contains('btn-add-set')) {
+                    handleAddSet(event);
+                } else if (target.classList.contains('btn-remove-set')) {
+                    handleRemoveSet(event);
+                }
             }
         });
 
         // Template search listener
-        templateSearchInput.addEventListener('input', () => {
-            const searchTerm = templateSearchInput.value.toLowerCase();
-            const filtered = workoutTemplates.filter(t => t.name.toLowerCase().includes(searchTerm));
-            renderWorkoutTemplates(filtered);
-        });
+        const templateSearchInputEl = document.getElementById('template-search');
+        if (templateSearchInputEl instanceof HTMLInputElement) {
+            templateSearchInputEl.addEventListener('input', () => {
+                const searchTerm = templateSearchInputEl.value.toLowerCase();
+                const filtered = workoutTemplates.filter(t => t.name.toLowerCase().includes(searchTerm));
+                renderWorkoutTemplates(filtered);
+            });
+        }
 
         // Template Editor
-        templateEditorForm.addEventListener('submit', handleSaveTemplate);
-        templateCancelBtn.addEventListener('click', () => switchPage('landing'));
-        templateAddExerciseBtn.addEventListener('click', () => {
+        templateEditorForm?.addEventListener('submit', handleSaveTemplate);
+        templateCancelBtn?.addEventListener('click', () => switchPage('landing'));
+        templateAddExerciseBtn?.addEventListener('click', () => {
              // Open modal specifically for adding to template
-             exerciseModal.dataset.targetList = 'editor';
+             if(exerciseModal) exerciseModal.dataset.targetList = 'editor';
              openExerciseModal();
         });
 
         // New Exercise Definition Listeners in Modal
-        toggleDefineExerciseBtn.addEventListener('click', handleToggleDefineExercise);
-        saveNewExerciseBtn.addEventListener('click', handleSaveNewExercise);
+        toggleDefineExerciseBtn?.addEventListener('click', handleToggleDefineExercise);
+        saveNewExerciseBtn?.addEventListener('click', handleSaveNewExercise);
 
-        // Use event delegation for delete buttons on template list
-        templateListContainer.addEventListener('click', (event) => {
-            if (event.target.classList.contains('btn-delete-template')) {
-                const templateId = event.target.dataset.templateId;
-                handleDeleteTemplate(templateId);
-            } else if (event.target.classList.contains('btn-edit-template')) { // Added condition for edit
-                 const templateId = event.target.dataset.templateId;
-                 const templateToEdit = workoutTemplates.find(t => t.workout_id === parseInt(templateId));
-                 if (templateToEdit) {
-                    showTemplateEditor(templateToEdit);
-                 } else {
-                     console.error('Could not find template to edit with ID:', templateId);
-                     alert('Error: Could not find template data to edit.');
+        // Use event delegation for delete/edit buttons on template list
+        templateListContainer?.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return; // Ensure target is an element
+
+            if (target.classList.contains('btn-delete-template')) {
+                const templateIdStr = target.dataset.templateId;
+                if(templateIdStr) {
+                    const templateId = parseInt(templateIdStr);
+                    if (!isNaN(templateId)) handleDeleteTemplate(templateId);
+                }
+            } else if (target.classList.contains('btn-edit-template')) {
+                 const templateIdStr = target.dataset.templateId;
+                 if(templateIdStr){
+                     const templateId = parseInt(templateIdStr);
+                     if (!isNaN(templateId)) {
+                        const templateToEdit = workoutTemplates.find(t => t.workout_id === templateId);
+                        if (templateToEdit) {
+                            showTemplateEditor(templateToEdit);
+                        } else {
+                            console.error('Could not find template to edit with ID:', templateId);
+                            alert('Error: Could not find template data to edit.');
+                        }
+                     }
                  }
             }
         });
 
         // History Search Listener
-        if (historyExerciseSearchInput) { // Check if element exists
-             historyExerciseSearchInput.addEventListener('input', handleHistorySearchInput);
+        const historySearchInputEl = document.getElementById('history-exercise-search');
+        const historyResultsEl = document.getElementById('history-search-results');
+        const historyCategorySelectEl = document.getElementById('history-category-filter-select');
+        const historyEditButtonEl = document.getElementById('history-edit-btn'); // Get button element
+        const historyMessageElement = document.getElementById('history-message'); // Get message element
+
+        if (historySearchInputEl instanceof HTMLInputElement && historyResultsEl && historyCategorySelectEl) { // Check if elements exist and are correct type
+             historySearchInputEl.addEventListener('input', handleHistorySearchInput);
              // Add listener to hide results when clicking outside
              document.addEventListener('click', (event) => {
-                 if (!historyExerciseSearchInput.contains(event.target) && !historySearchResultsEl.contains(event.target)) {
-                     historySearchResultsEl.style.display = 'none';
+                 if (historyResultsEl && // Check results element exists
+                     !historySearchInputEl.contains(event.target) && // Check not clicking inside input
+                     !historyResultsEl.contains(event.target)) { // Check not clicking inside results
+                     historyResultsEl.style.display = 'none';
                  }
              });
             // Add focus listener to show results
-             historyExerciseSearchInput.addEventListener('focus', () => {
-                  // Show all exercises matching current category filter when focused (if input empty)
-                 if (historyExerciseSearchInput.value.trim() === '') {
-                     handleHistorySearchInput();
+             historySearchInputEl.addEventListener('focus', () => {
+                 if (historySearchInputEl.value.trim() === '') {
+                     handleHistorySearchInput(); // Re-trigger search on focus if empty
                  }
              });
 
             // Add listener for new category dropdown
-            if (historyCategoryFilterSelect) {
-                historyCategoryFilterSelect.addEventListener('change', () => {
-                    currentHistoryCategoryFilter = historyCategoryFilterSelect.value;
+            if (historyCategorySelectEl instanceof HTMLSelectElement) {
+                historyCategorySelectEl.addEventListener('change', () => {
+                    currentHistoryCategoryFilter = historyCategorySelectEl.value;
                     console.log('History category filter changed to:', currentHistoryCategoryFilter);
                     // Clear selected exercise and hide button when filter changes
                     currentHistoryExerciseId = null;
                     currentHistoryExerciseName = null;
-                    historyEditBtn.style.display = 'none';
-                    historyExerciseSearchInput.value = ''; // Clear search input
+                    if (historyEditButtonEl) historyEditButtonEl.style.display = 'none';
+                    historySearchInputEl.value = ''; // Clear search input
                     if (exerciseHistoryChart) { // Clear chart
                          exerciseHistoryChart.destroy();
                          exerciseHistoryChart = null;
                     }
-                    historyMessageEl.textContent = 'Select an exercise.';
+                    if(historyMessageElement) historyMessageElement.textContent = 'Select an exercise.';
                     // Re-filter search results based on new category
                     handleHistorySearchInput();
                  });
             }
 
-            // --- NEW: Event delegation listener for results container ---
-            historySearchResultsEl.addEventListener('click', handleHistoryResultClick);
-            // --- END NEW ---
+            // Event delegation listener for results container
+            historyResultsEl.addEventListener('click', (event) => {
+                 const target = event.target;
+                 if (!(target instanceof HTMLElement)) return;
+                 const listItem = target.closest('.history-search-item'); // Find closest item
 
-            // Add listener for the new Add Past Log button
-            if (historyEditBtn) {
-                historyEditBtn.addEventListener('click', openHistoryEditModal);
+                 if (listItem instanceof HTMLElement && listItem.dataset.exerciseId) { // Check if listItem is element and has dataset
+                     const exerciseId = parseInt(listItem.dataset.exerciseId);
+                     if (!isNaN(exerciseId)) {
+                         currentHistoryExerciseId = exerciseId;
+                         currentHistoryExerciseName = listItem.dataset.exerciseName || 'Selected Exercise';
+                         console.log(`History Exercise Selected: ID=${currentHistoryExerciseId}, Name=${currentHistoryExerciseName}`);
+                         historySearchInputEl.value = currentHistoryExerciseName; // Fill input
+                         historyResultsEl.style.display = 'none'; // Hide results
+                         // Fetch and display history for the selected exercise
+                         fetchAndDisplayHistory(currentHistoryExerciseId);
+                         if(historyEditButtonEl) historyEditButtonEl.style.display = 'inline-block'; // Show edit button
+                         if(historyMessageElement) historyMessageElement.textContent = ''; // Clear message
+                     }
+                 }
+             });
+
+            // History Edit Modal Trigger
+            if(historyEditButtonEl) {
+                historyEditButtonEl.addEventListener('click', showHistoryEditModal);
+            } else {
+                console.error("History Edit Button not found.");
             }
-        }
-
-        // Initial page state
-        switchPage('landing'); // Start on the landing page
-
-        // --- NEW: Initial Photo Load ---
-        fetchAndDisplayPhotos();
-        // --- END NEW ---
-
-        if (photoPrevBtn) {
-            console.log('[Initialize] Attaching listener to photoPrevBtn'); // DEBUG: Verify listener attachment attempt
-            photoPrevBtn.removeEventListener('click', showPreviousPhoto); // Remove first to be safe
-            photoPrevBtn.addEventListener('click', showPreviousPhoto);
         } else {
-            console.error('[Initialize] photoPrevBtn not found!');
+            console.log('History search components not found on this page.');
         }
-        if (photoNextBtn) {
-            console.log('[Initialize] Attaching listener to photoNextBtn'); // DEBUG: Verify listener attachment attempt
-            photoNextBtn.removeEventListener('click', showNextPhoto); // Remove first to be safe
-            photoNextBtn.addEventListener('click', showNextPhoto);
-        } else {
-             console.error('[Initialize] photoNextBtn not found!');
-        }
-        // --- END NEW ---
 
-        // --- NEW: Delete Photo Button Listener ---
+        // History Edit Modal - Save/Cancel/Add/Remove Set
+        const historyEditModalEl = document.getElementById('history-edit-modal');
+        const historyEditLogListContainer = document.getElementById('history-edit-log-list');
+        const historyEditModalCloseBtn = historyEditModalEl?.querySelector('.close-button');
+        historyEditModalCloseBtn?.addEventListener('click', hideHistoryEditModal); // Use moved function
+        historyEditModalEl?.addEventListener('click', (event) => {
+            if (event.target === historyEditModalEl) hideHistoryEditModal(); // Use moved function
+        });
+        historyEditAddForm?.addEventListener('submit', handleSaveManualLog); // Use moved function
+        historyEditAddSetBtn?.addEventListener('click', handleAddManualSetRow); // Use moved function
+        historyEditRemoveSetBtn?.addEventListener('click', handleRemoveManualSetRow); // Use moved function
+        // Delegate log deletion within the list
+        historyEditLogListContainer?.addEventListener('click', (event) => {
+            const target = event.target;
+            // Updated class name check
+            if (target instanceof HTMLElement && target.classList.contains('btn-delete-log-entry')) {
+                const logIdStr = target.dataset.logId;
+                 if (logIdStr && confirm('Are you sure you want to delete this log entry? This cannot be undone.')) {
+                     const logId = parseInt(logIdStr);
+                     if (!isNaN(logId)) handleDeleteLogEntry(logId); // Use moved function
+                 }
+            }
+        });
+
+
+        // --- PROGRESS PHOTOS ---
+        const photoUploadModalEl = document.getElementById('photo-upload-modal');
+        const photoModalCloseButton = photoUploadModalEl?.querySelector('.close-button');
+        const photoFormEl = document.getElementById('progress-photo-form');
+        const photoDateInputEl = document.getElementById('photo-date')
+        const uploadStatusElement = document.getElementById('upload-status');
+        const photoUploadInputElement = document.getElementById('photo-upload');
+
+        // Open Modal Listener
+        addPhotoBtn?.addEventListener('click', () => {
+            if (photoUploadModalEl) {
+                 // Reset form fields when opening
+                 if (photoFormEl instanceof HTMLFormElement) photoFormEl.reset();
+                 if (photoDateInputEl instanceof HTMLInputElement) {
+                     photoDateInputEl.value = new Date().toISOString().split('T')[0]; // Set default date to today
+                 }
+                 if (uploadStatusElement) uploadStatusElement.textContent = ''
+                 if (uploadStatusElement) uploadStatusElement.className = '';
+                 if (photoUploadInputElement instanceof HTMLInputElement) {
+                     photoUploadInputElement.value = ''; // Clear file selection
+                 }
+                 photoUploadModalEl.style.display = 'block';
+            } else {
+                 console.error('Photo upload modal not found!');
+            }
+        });
+
+        // Close Modal Listener
+        photoModalCloseButton?.addEventListener('click', () => {
+            if (photoUploadModalEl) photoUploadModalEl.style.display = 'none';
+        });
+        photoUploadModalEl?.addEventListener('click', (event) => { // Close on backdrop click
+            if (event.target === photoUploadModalEl) {
+                if (photoUploadModalEl) photoUploadModalEl.style.display = 'none';
+            }
+        });
+
+        // Form Submission Listener
+        if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
+
+        // --- NEW: Event Delegation for Slider Buttons ---
+        if (photoSliderContainer) {
+            console.log('[Initialize] Attaching DELEGATED listener to photoSliderContainer');
+            // Create debounced functions once - REMOVED
+            // const debouncedShowPrevious = debounce(showPreviousPhoto, navigationDebounceTime);
+            // const debouncedShowNext = debounce(showNextPhoto, navigationDebounceTime);
+
+            photoSliderContainer.addEventListener('click', (event) => {
+                // We already have references to photoPrevBtn and photoNextBtn from initialize
+                if (!photoPrevBtn || !photoNextBtn) {
+                    console.error("[Delegated Click] Button references are missing!");
+                    return;
+                }
+
+                const clickX = event.clientX;
+                const clickY = event.clientY;
+                // console.log(`[Delegated Click] Coords: X=${clickX}, Y=${clickY}`); // REMOVED DEBUG LOG
+
+                // Get button boundaries
+                const prevBtnRect = photoPrevBtn.getBoundingClientRect();
+                const nextBtnRect = photoNextBtn.getBoundingClientRect();
+
+                // Check if click is within Previous Button bounds
+                if (
+                    clickX >= prevBtnRect.left &&
+                    clickX <= prevBtnRect.right &&
+                    clickY >= prevBtnRect.top &&
+                    clickY <= prevBtnRect.bottom
+                ) {
+                    // console.log('[Delegated Click] Click coordinates are within Previous Button bounds.'); // REMOVED DEBUG LOG
+                    if (!photoPrevBtn.disabled) {
+                        // console.log('[Delegated Click] Previous button is enabled. Calling DIRECT function...'); // REMOVED DEBUG LOG
+                        showPreviousPhoto();
+                    } else {
+                        // console.log('[Delegated Click] Previous button is disabled.'); // REMOVED DEBUG LOG
+                    }
+                    return; // Click handled (or ignored due to disabled state)
+                }
+
+                // Check if click is within Next Button bounds
+                if (
+                    clickX >= nextBtnRect.left &&
+                    clickX <= nextBtnRect.right &&
+                    clickY >= nextBtnRect.top &&
+                    clickY <= nextBtnRect.bottom
+                ) {
+                    // console.log('[Delegated Click] Click coordinates are within Next Button bounds.'); // REMOVED DEBUG LOG
+                    if (!photoNextBtn.disabled) {
+                        // console.log('[Delegated Click] Next button is enabled. Calling DIRECT function...'); // REMOVED DEBUG LOG
+                        showNextPhoto();
+                    } else {
+                        // console.log('[Delegated Click] Next button is disabled.'); // REMOVED DEBUG LOG
+                    }
+                    return; // Click handled (or ignored due to disabled state)
+                }
+
+                // If the code reaches here, the click was outside both button bounds
+                // console.log('[Delegated Click] Click coordinates were outside known button bounds. Target was:', event.target); // REMOVED DEBUG LOG
+
+            });
+        } else {
+            console.error('[Initialize] photoSliderContainer not found for delegation!');
+        }
+
+        // Delete Photo Listener (Keep this direct)
         if (deletePhotoBtn) {
             deletePhotoBtn.addEventListener('click', handleDeletePhoto);
+        } else {
+             console.error('[Initialize] deletePhotoBtn not found!');
         }
-        // --- END NEW ---
 
-        // --- NEW: Comparison Dropdown Listeners ---
-        if (comparisonPhotoSelect1) {
-            comparisonPhotoSelect1.addEventListener('change', updateComparisonImages);
+        // Comparison Select Listeners
+        const compSelect1 = document.getElementById('comparison-photo-select-1');
+        const compSelect2 = document.getElementById('comparison-photo-select-2');
+        if (compSelect1 && compSelect2) {
+            compSelect1.addEventListener('change', updateComparisonImages);
+            compSelect2.addEventListener('change', updateComparisonImages);
+        } else {
+             console.warn('[Initialize] Comparison select elements not found.');
         }
-        if (comparisonPhotoSelect2) {
-            comparisonPhotoSelect2.addEventListener('change', updateComparisonImages);
-        }
+
+        // Set initial state
+        switchPage('landing');
+        // Render empty lists initially if needed (e.g., if API fetch fails)
+        if (!workoutTemplates.length && templateListContainer) renderWorkoutTemplates();
+        if (!availableExercises.length && availableExerciseListEl) renderAvailableExercises(); // Check for availableExerciseListEl existence
+
+        // REMOVED setTimeout block
     }
 
     async function handleDeleteTemplate(templateId) {
@@ -1519,8 +1720,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- History Edit Modal Functions (Renamed) ---
-    function openHistoryEditModal() { // Renamed function
+    // --- History Edit Modal Functions (Renamed & Moved Before Initialize) ---
+    function showHistoryEditModal() { // Renamed function & Moved Up
         if (!currentHistoryExerciseId || !currentHistoryExerciseName) {
             alert('Please select an exercise from the search first.');
             return;
@@ -1542,6 +1743,13 @@ document.addEventListener('DOMContentLoaded', function() {
         historyEditModal.style.display = 'block'; // Use renamed modal ID
     }
 
+    // Moved Up
+    function hideHistoryEditModal() {
+        if(historyEditModal) historyEditModal.style.display = 'none';
+    }
+
+
+    // Moved Up
     function renderHistoryEditSets() { // Renamed function
         historyEditSetsContainer.innerHTML = ''; // Use renamed container ref
         historyEditSets.forEach((set, index) => { // Use renamed state var
@@ -1569,8 +1777,9 @@ document.addEventListener('DOMContentLoaded', function() {
         historyEditRemoveSetBtn.disabled = historyEditSets.length <= 1; // Use renamed button ref
     }
 
-    function handleHistoryEditAddSet() { // Renamed function
-        // --- Save current state from DOM before adding --- 
+    // Moved Up
+    function handleAddManualSetRow() { // Renamed function
+        // --- Save current state from DOM before adding ---
         const currentSetRows = historyEditSetsContainer.querySelectorAll('.set-row'); // Use renamed ref
         currentSetRows.forEach((row, index) => {
             if (historyEditSets[index]) { // Use renamed state var
@@ -1588,16 +1797,18 @@ document.addEventListener('DOMContentLoaded', function() {
         renderHistoryEditSets(); // Renamed render function
     }
 
-    function handleHistoryEditRemoveSet() { // Renamed function
+    // Moved Up
+    function handleRemoveManualSetRow() { // Renamed function
         if (historyEditSets.length > 1) { // Use renamed state var
             historyEditSets.pop(); // Use renamed state var
             renderHistoryEditSets(); // Renamed render function
         }
     }
 
-    async function handleHistoryEditAddSubmit(event) { // Ensure event parameter is accepted
+     // Moved Up - Renamed from handleHistoryEditAddSubmit
+    async function handleSaveManualLog(event) {
         // ---> ADD Log at start of handler <---
-        console.log("[DEBUG] handleHistoryEditAddSubmit function STARTED."); // <<< ADDED
+        console.log("[DEBUG] handleSaveManualLog function STARTED."); // <<< ADDED
         event.preventDefault(); // Keep this line
         console.log('Submitting new past log...'); // <<< Existing log (keep)
 
@@ -1686,7 +1897,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- NEW: Fetch and render existing logs in the modal ---
+
+    // Moved Up
     async function fetchAndRenderExistingLogs(exerciseId) {
         if (!exerciseId || !historyEditLogListEl) return;
 
@@ -1724,11 +1936,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="log-item-date">${new Date(log.date_performed).toLocaleDateString()}</span>
                         <span class="log-item-summary">${summary}</span>
                     </div>
-                    <button class="btn-delete-log btn-danger btn-tiny" data-log-id="${log.workout_log_id}" title="Delete this log entry">&times;</button>
-                `; // Assuming workout_log_id is unique identifier
-
-                 // Add listener for delete button
-                 logItem.querySelector('.btn-delete-log').addEventListener('click', handleDeleteExistingLog);
+                    <button class="btn-delete-log-entry btn-danger btn-tiny" data-log-id="${log.workout_log_id}" title="Delete this log entry">&times;</button>
+                `; // Renamed delete button class
 
                 historyEditLogListEl.appendChild(logItem);
             });
@@ -1739,27 +1948,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- NEW: Handle deleting an existing log entry ---
-    async function handleDeleteExistingLog(event) {
-        const button = event.target;
-        const workoutLogId = button.dataset.logId;
+     // Moved Up - Renamed from handleDeleteExistingLog
+    async function handleDeleteLogEntry(logId) {
+        // const button = event.target; // No event passed
+        // const workoutLogId = button.dataset.logId; // Passed directly
         const exerciseId = historyEditExerciseIdInput.value; // Get current exercise ID
 
-        if (!workoutLogId) {
-            console.error('Missing log ID on delete button');
+        if (!logId) {
+            console.error('handleDeleteLogEntry called without log ID');
             return;
         }
 
-        if (!confirm('Are you sure you want to permanently delete this log entry? This cannot be undone.')) {
-            return;
-        }
+        // Confirmation is handled before calling this function now
 
-        console.log(`Attempting to delete workout log ID: ${workoutLogId}`);
-        button.disabled = true; // Disable button during deletion
+        console.log(`Attempting to delete workout log ID: ${logId}`);
+        // Disable button? Hard to do without the event target.
 
         try {
             // Need a backend route to delete a specific workout_log and its associated exercise_logs
-            const response = await fetch(`/api/workouts/logs/${workoutLogId}`, { method: 'DELETE' });
+            const response = await fetch(`/api/workouts/logs/${logId}`, { method: 'DELETE' });
 
             if (!response.ok) {
                  const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
@@ -1777,10 +1984,11 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error deleting log:', error);
             alert(`Failed to delete log entry: ${error.message}`);
-            button.disabled = false; // Re-enable button on error
+            // button.disabled = false; // Re-enable button on error
         }
 
     }
+    // --- End History Edit Modal Functions ---
 
     // --- NEW: Progress Photo Upload Handler ---
     async function handlePhotoUpload(event) {
@@ -1790,7 +1998,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const modalPhotoUploadInput = document.getElementById('modal-photo-upload');
         const modalUploadStatusEl = photoUploadModal ? photoUploadModal.querySelector('#upload-status') : null;
 
-        if (!modalUploadStatusEl || !modalPhotoDateInput || !modalPhotoUploadInput || !photoForm) return; // Ensure elements exist
+        // Corrected reference to the form inside the modal
+        const modalPhotoForm = document.getElementById('progress-photo-form');
+
+        if (!modalUploadStatusEl || !modalPhotoDateInput || !modalPhotoUploadInput || !modalPhotoForm) return; // Ensure elements exist
 
         modalUploadStatusEl.textContent = 'Uploading...';
 
@@ -1810,7 +2021,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         console.log('Uploading photos for date:', date, 'Files:', files.length);
-        const submitButton = photoForm.querySelector('button[type="submit"]');
+        const submitButton = modalPhotoForm.querySelector('button[type="submit"]');
         if(submitButton) submitButton.disabled = true;
 
         // ** Backend call **
@@ -1829,7 +2040,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Upload successful:', result);
             modalUploadStatusEl.textContent = result.message || 'Upload successful!';
             modalUploadStatusEl.style.color = 'green';
-            photoForm.reset();
+            // Reset the correct form
+            if (modalPhotoForm instanceof HTMLFormElement) modalPhotoForm.reset();
             fetchAndDisplayPhotos(); // Refresh the gallery
 
             // Close modal after a short delay to show message
@@ -1851,8 +2063,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset form and status message on open
             const form = photoUploadModal.querySelector('#progress-photo-form');
             const statusEl = photoUploadModal.querySelector('#upload-status');
+            // Changed IDs for modal inputs
+            const modalDateInput = photoUploadModal.querySelector('#modal-photo-date');
+            const modalFileInput = photoUploadModal.querySelector('#modal-photo-upload');
+
             if(form) form.reset();
             if(statusEl) statusEl.textContent = '';
+            if (modalDateInput) modalDateInput.value = new Date().toISOString().split('T')[0]; // Default date
+            if (modalFileInput) modalFileInput.value = ''; // Clear file selection
+
 
             photoUploadModal.style.display = 'block';
         }
@@ -1865,15 +2084,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END NEW ---
 
-    // --- NEW: Fetch and Display Photos Function (for Slider) ---
+    // --- NEW: Fetch and Display Photos Function (Redesigned for Carousel) ---
     async function fetchAndDisplayPhotos() {
         // Use the slider container elements, not the old galleryEl
-        if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn) return;
+        // if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn) return; // Updated condition
+        if (!photoReel || !paginationDotsContainer || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
+            console.error("[Photo Load] Missing required slider elements (reel, dots container, nav buttons, delete button).");
+            return;
+        }
 
-        currentPhotoDisplay.style.display = 'none'; // Hide image while loading
-        currentPhotoDate.textContent = 'Loading photos...';
+        // currentPhotoDisplay.style.display = 'none'; // Hide image while loading
+        // currentPhotoDate.textContent = 'Loading photos...';
+        photoReel.innerHTML = '<p>Loading photos...</p>'; // Show loading in reel
+        paginationDotsContainer.innerHTML = ''; // Clear dots
         photoPrevBtn.disabled = true;
         photoNextBtn.disabled = true;
+        deletePhotoBtn.disabled = true;
 
         try {
             const response = await fetch('/api/workouts/progress-photos');
@@ -1883,190 +2109,192 @@ document.addEventListener('DOMContentLoaded', function() {
             // Store fetched data in state
             progressPhotosData = await response.json(); // Expecting array like [{photo_id, date_taken, file_path, uploaded_at}]
 
-            console.log('Fetched progress photos:', progressPhotosData); // DEBUG: Log fetched data
+            console.log('Fetched progress photos:', progressPhotosData.length); // DEBUG: Log fetched data count
 
-            // --- NEW: Populate Comparison Dropdowns ---
+            // --- Populate Comparison Dropdowns --- (Keep this)
             populateComparisonDropdowns();
 
+            photoReel.innerHTML = ''; // Clear loading message
+
             if (progressPhotosData.length === 0) {
-                currentPhotoDisplay.style.display = 'none';
-                currentPhotoDate.textContent = 'No progress photos uploaded yet.';
+                // currentPhotoDisplay.style.display = 'none';
+                // currentPhotoDate.textContent = 'No progress photos uploaded yet.';
+                photoReel.innerHTML = '<p>No progress photos uploaded yet.</p>';
                 photoPrevBtn.disabled = true;
                 photoNextBtn.disabled = true;
+                deletePhotoBtn.disabled = true;
                 return;
             }
 
+            // --- Populate the Reel and Dots --- 
+            progressPhotosData.forEach((photo, index) => {
+                // Add Image to Reel
+                const img = document.createElement('img');
+                img.src = photo.file_path;
+                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
+                img.dataset.photoId = photo.photo_id; // Store ID if needed
+                photoReel.appendChild(img);
+
+                // Add Dot to Pagination
+                const dot = document.createElement('span');
+                dot.classList.add('dot');
+                dot.dataset.index = String(index); // Use String() explicitly
+                // === START Add check for listener ===
+                if (!dot.dataset.listenerAdded) { // Check if listener already added
+                    // Apply debounce to dot clicks
+                    const debouncedGoToPhoto = debounce(() => goToPhoto(index), navigationDebounceTime); // Store debounced func
+                    dot.addEventListener('click', () => { // Add raw click log
+                        console.log(`[Raw Click] Dot ${index} clicked.`);
+                        debouncedGoToPhoto(); // Call the debounced function
+                    });
+                    dot.dataset.listenerAdded = 'true'; // Mark as added
+                    console.log(`[Photo Init] Added DEBOUNCED dot listener for index ${index}`);
+                } else {
+                     console.warn(`[Photo Init] Dot listener ALREADY ADDED for index ${index}`);
+                }
+                 // === END Add check for listener ===
+                paginationDotsContainer.appendChild(dot);
+            });
+
             // Data is ready, display the first photo (most recent)
             currentPhotoIndex = 0;
-            displayCurrentPhoto();
+            displayCurrentPhoto(); // Initial display
 
         } catch (error) {
             console.error('Error fetching photos:', error);
-            currentPhotoDisplay.style.display = 'none';
-            currentPhotoDate.textContent = `Error loading photos: ${error.message}`;
-            currentPhotoDate.style.color = 'red';
-            photoPrevBtn.disabled = true;
-            photoNextBtn.disabled = true;
-        }
-    }
-    // --- END NEW ---
-
-    // --- NEW: Display Current Photo in Slider (Instant Update Sources Only) ---
-    function displayCurrentPhoto() {
-        console.log(`[Photo Display] Starting displayCurrentPhoto for index: ${currentPhotoIndex}`); // Log start of function
-        if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn || !photoReel || !photoPrevPreview || !photoNextPreview) {
-            console.error('[Photo Display] ERROR: One or more required DOM elements not found.');
-            return;
-        }
-
-        const numPhotos = progressPhotosData.length;
-        console.log(`[Photo Display] Total photos available: ${numPhotos}`); // Log total photos
-        let currentPhoto, prevPhoto, nextPhoto;
-
-        // --- Handle Empty State ---
-        if (numPhotos === 0) {
-            console.log('[Photo Display] No photos available, hiding elements.');
-            currentPhotoDisplay.style.display = 'none';
-            photoPrevPreview.style.display = 'none';
-            photoNextPreview.style.display = 'none';
-            currentPhotoDate.textContent = 'No photos yet';
+            // currentPhotoDisplay.style.display = 'none';
+            // currentPhotoDate.textContent = `Error loading photos: ${error.message}`; // Removed
+            // currentPhotoDate.style.color = 'red'; // Removed
+            photoReel.innerHTML = `<p style="color: red;">Error loading photos: ${error.message}</p>`;
             photoPrevBtn.disabled = true;
             photoNextBtn.disabled = true;
             deletePhotoBtn.disabled = true;
-            return;
         }
-
-        // --- Ensure index is valid --- 
-        if (currentPhotoIndex < 0 || currentPhotoIndex >= numPhotos) {
-            console.warn(`[Photo Display] Invalid photo index: ${currentPhotoIndex}. Resetting to 0.`);
-            currentPhotoIndex = 0; // Reset to first photo
-        }
-
-        // --- Get Photos for Display --- 
-        currentPhoto = progressPhotosData[currentPhotoIndex];
-        prevPhoto = (currentPhotoIndex > 0) ? progressPhotosData[currentPhotoIndex - 1] : null;
-        nextPhoto = (currentPhotoIndex < numPhotos - 1) ? progressPhotosData[currentPhotoIndex + 1] : null;
-        console.log(`[Photo Display] Calculated Photos - Prev: ${prevPhoto?.photo_id}, Current: ${currentPhoto?.photo_id}, Next: ${nextPhoto?.photo_id}`); // Log photo IDs
-
-        // --- Update Image Sources & Visibility --- 
-        console.log(`[Photo Display] Setting sources - Current: ${currentPhoto?.file_path}`); // DEBUG
-        
-        // Current photo always visible (if one exists)
-        if (currentPhoto) {
-            currentPhotoDisplay.src = currentPhoto.file_path;
-            currentPhotoDisplay.alt = `Progress photo from ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
-            currentPhotoDisplay.style.display = 'block'; 
-            console.log(`[Photo Display] Set current photo src to: ${currentPhoto.file_path}`);
-        } else {
-             console.error(`[Photo Display] ERROR: No currentPhoto found for index ${currentPhotoIndex}`);
-             currentPhotoDisplay.style.display = 'none'; // Hide if data is missing
-        }
-        
-        // Previous Preview
-        if (prevPhoto) {
-            photoPrevPreview.src = prevPhoto.file_path;
-            photoPrevPreview.alt = `Preview: ${new Date(prevPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
-            photoPrevPreview.style.display = 'block'; // Make visible
-            console.log(`[Photo Display] Set prev preview src to: ${prevPhoto.file_path}`);
-        } else {
-            console.log('[Photo Display] No previous photo, hiding prev preview.');
-            photoPrevPreview.src = ''; // Clear src just in case
-            photoPrevPreview.style.display = 'none'; // Hide element
-        }
-        
-        // Next Preview
-        if (nextPhoto) {
-            photoNextPreview.src = nextPhoto.file_path;
-            photoNextPreview.alt = nextPhoto ? `Preview: ${new Date(nextPhoto.date_taken + 'T00:00:00').toLocaleDateString()}` : '';
-            photoNextPreview.style.display = 'block'; // Make visible
-             console.log(`[Photo Display] Set next preview src to: ${nextPhoto.file_path}`);
-        } else {
-            console.log('[Photo Display] No next photo, hiding next preview.');
-            photoNextPreview.src = ''; // Clear src just in case
-            // *** Fix: Explicitly set display to none ***
-            photoNextPreview.style.display = 'none'; // Hide element
-        }
-
-        // --- Update Date Display --- 
-        if (currentPhoto) {
-            currentPhotoDate.textContent = `Date: ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
-            currentPhotoDate.style.color = '';
-        } else {
-            currentPhotoDate.textContent = 'Error loading date'; // Indicate error if no photo data
-        }
-
-        // --- Update Button States --- 
-        photoPrevBtn.disabled = !prevPhoto;
-        photoNextBtn.disabled = !nextPhoto;
-        deletePhotoBtn.disabled = false;
-
-        // --- Reset Reel Position (No Transition) --- 
-        // This reset now happens AFTER animation in the event listener
-        /* 
-        photoReel.style.transition = 'none'; // Disable transition temporarily
-        photoReel.style.transform = 'translateX(-100%)'; // Reset to center instantly
-        // Force reflow to ensure the reset applies before re-enabling transition
-        photoReel.offsetHeight; 
-        // Restore transition (removed timeout)
-        photoReel.style.transition = 'transform 0.5s ease-in-out'; 
-        */
-
-        console.log(`Displayed photo index: ${currentPhotoIndex}, Path: ${currentPhoto.file_path}`);
     }
     // --- END NEW ---
 
-    // --- Slider Navigation Functions (NO ANIMATION) ---
+    // --- NEW: Display Current Photo in Slider (Redesigned for Carousel) ---
+    function displayCurrentPhoto() {
+        const startTime = performance.now(); // Start timer
+        const numPhotos = progressPhotosData.length;
+        console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${numPhotos})`);
+
+        // NEW: Find the date display element
+        const dateDisplayEl = currentPhotoDateDisplay; // Use the reference
+
+        if (numPhotos === 0 || !photoReel || !paginationDotsContainer || !dateDisplayEl) {
+            console.warn('[Photo Display] No photos or required elements found (reel, dots, date display).');
+            if (dateDisplayEl) dateDisplayEl.textContent = ''; // Clear date if no photos
+            return; // Nothing to display
+        }
+
+        // Ensure index is valid (looping can be added later if desired)
+        if (currentPhotoIndex < 0) currentPhotoIndex = 0;
+        if (currentPhotoIndex >= numPhotos) currentPhotoIndex = numPhotos - 1;
+
+        // --- Get Current Photo Data and Format Date ---
+        const currentPhoto = progressPhotosData[currentPhotoIndex];
+        let formattedDate = '';
+        if (currentPhoto && currentPhoto.date_taken) {
+            // Assuming date_taken is 'YYYY-MM-DD'. Adding T00:00:00 ensures it's treated as local time.
+            formattedDate = new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString(undefined, {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
+        dateDisplayEl.textContent = formattedDate; // Update the date display
+
+        // --- Update Reel Position --- 
+        const offset = currentPhotoIndex * -100; // Calculate percentage offset
+        photoReel.style.transform = `translateX(${offset}%)`;
+
+        // --- Update Pagination Dots --- 
+        const dots = paginationDotsContainer.querySelectorAll('.dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentPhotoIndex);
+        });
+
+        // --- Update Button States --- 
+        // Buttons are now enabled/disabled directly in the calling functions
+        photoPrevBtn.disabled = (currentPhotoIndex === 0);
+        photoNextBtn.disabled = (currentPhotoIndex >= numPhotos - 1);
+        deletePhotoBtn.disabled = (numPhotos === 0); // Disable delete only if no photos
+
+        console.log(`[Photo Display] Reel transform set to: translateX(${offset}%)`);
+        const endTime = performance.now(); // End timer
+        console.log(`[Photo Display] displayCurrentPhoto execution time: ${(endTime - startTime).toFixed(2)} ms`); // Log duration
+    }
+    // --- END NEW ---
+
+    // --- Slider Navigation Functions (Updated for Redesign, NO ANIMATION) ---
+    // let isAnimating = false; // Flag to prevent clicks during animation - REMOVED
+    // const animationDuration = 500; // Must match CSS transition duration - REMOVED
+
     function showPreviousPhoto() {
-        console.log('[Photo Slider] Attempting Previous...'); // Log start
-        if (!photoReel || currentPhotoIndex <= 0) {
-            console.log('[Photo Slider] GUARD: Already at first photo or reel not found. Aborting.'); // Log block reason
+        console.log('[Photo Slider] Attempting Previous...');
+        // if (isAnimating || currentPhotoIndex <= 0) { - REMOVED animation check
+        if (currentPhotoIndex <= 0) { // Block only if at first photo
+            console.log(`[Photo Slider] Previous blocked: At index 0.`); // More specific log
             return;
         }
 
-        console.log(`[Photo Slider] Current index BEFORE change: ${currentPhotoIndex}`); // Log index before
+        // isAnimating = true; - REMOVED
+        // photoPrevBtn.disabled = true; // Disable immediately - REMOVED
+        // photoNextBtn.disabled = true; - REMOVED
 
-        // Disable buttons temporarily (optional, but good practice)
-        // photoPrevBtn.disabled = true;
-        // photoNextBtn.disabled = true;
-
-        // 1. Update index
         currentPhotoIndex--;
-        console.log(`[Photo Slider] Current index AFTER change: ${currentPhotoIndex}`); // Log index after
+        console.log(`[Photo Slider] Index decremented to: ${currentPhotoIndex}`); // Log index change
+        console.log(`[Photo Slider] Prev Button disabled state BEFORE displayCurrentPhoto: ${photoPrevBtn?.disabled}`); // Log button state
+        displayCurrentPhoto(); // Directly update display
 
-        // 2. Update the displayed photos (instantly sets sources)
-        displayCurrentPhoto();
-
-        // Re-enable buttons (handled by displayCurrentPhoto)
-        console.log('[Photo Slider] Previous action complete.'); // Log end
+        // Re-enable buttons after animation duration - REMOVED setTimeout block
+        console.log('[Photo Slider] Previous action complete.');
     }
 
     function showNextPhoto() {
-        console.log('[Photo Slider] Attempting Next...'); // Log start
+        console.log('[Photo Slider] Attempting Next...');
         const numPhotos = progressPhotosData.length;
-        if (!photoReel || currentPhotoIndex >= numPhotos - 1) {
-             console.log(`[Photo Slider] GUARD: Already at last photo (Index: ${currentPhotoIndex}, Total: ${numPhotos}) or reel not found. Aborting.`); // Log block reason
+        // if (isAnimating || currentPhotoIndex >= numPhotos - 1) { - REMOVED animation check
+        if (currentPhotoIndex >= numPhotos - 1) { // Block only if at last photo
+            console.log(`[Photo Slider] Next blocked: At index ${currentPhotoIndex} (Total: ${numPhotos}).`); // More specific log
             return;
         }
 
-        console.log(`[Photo Slider] Current index BEFORE change: ${currentPhotoIndex}`); // Log index before
+        // isAnimating = true; - REMOVED
+        // photoPrevBtn.disabled = true; // Disable immediately - REMOVED
+        // photoNextBtn.disabled = true; - REMOVED
 
-        // Disable buttons temporarily (optional)
-        // photoPrevBtn.disabled = true;
-        // photoNextBtn.disabled = true;
-
-        // 1. Update index
         currentPhotoIndex++;
-         console.log(`[Photo Slider] Current index AFTER change: ${currentPhotoIndex}`); // Log index after
+        console.log(`[Photo Slider] Index incremented to: ${currentPhotoIndex}`); // Log index change
+        console.log(`[Photo Slider] Next Button disabled state BEFORE displayCurrentPhoto: ${photoNextBtn?.disabled}`); // Log button state
+        displayCurrentPhoto(); // Directly update display
 
-        // 2. Update the displayed photos (instantly sets sources)
-        displayCurrentPhoto();
-
-        // Re-enable buttons (handled by displayCurrentPhoto)
-        console.log('[Photo Slider] Next action complete.'); // Log end
+        // Re-enable buttons after animation duration - REMOVED setTimeout block
+        console.log('[Photo Slider] Next action complete.');
     }
-    // --- END Slider Navigation Functions ---
 
-    // --- NEW: Delete Photo Handler ---
+    // --- NEW: Go To Specific Photo (for dots) ---
+    function goToPhoto(index) {
+        console.log(`[Photo Slider] Go to photo index: ${index}`);
+        const numPhotos = progressPhotosData.length;
+        // Prevent jump if animating or index is same/invalid - REMOVED animation check
+        if (/*isAnimating ||*/ index === currentPhotoIndex || index < 0 || index >= numPhotos) {
+            console.log(`[Photo Slider] Dot click blocked: index=${index}, currentIndex=${currentPhotoIndex}`);
+            return;
+        }
+
+        // isAnimating = true; - REMOVED
+        // photoPrevBtn.disabled = true; // Disable nav buttons - REMOVED
+        // photoNextBtn.disabled = true; - REMOVED
+
+        currentPhotoIndex = index;
+        displayCurrentPhoto(); // Directly update display
+
+        // Re-enable buttons after animation - REMOVED setTimeout block
+        console.log(`[Photo Slider] Dot action complete.`);
+    }
+    // --- END NEW ---
+
+    // --- NEW: Delete Photo Handler (Updated for Redesign) ---
     async function handleDeletePhoto() {
         if (!deletePhotoBtn || deletePhotoBtn.disabled) return;
         if (progressPhotosData.length === 0 || currentPhotoIndex < 0 || currentPhotoIndex >= progressPhotosData.length) {
@@ -2084,8 +2312,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`Attempting to delete photo ID: ${photoId}`);
         deletePhotoBtn.disabled = true; // Disable button during delete
-        // Optionally show a status message
-        // currentPhotoDate.textContent = 'Deleting...';
 
         try {
             const response = await fetch(`/api/workouts/progress-photos/${photoId}`, { method: 'DELETE' });
@@ -2098,26 +2324,51 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             console.log('Photo deleted:', result);
 
+            // --- Refresh the entire slider after deletion --- 
+            fetchAndDisplayPhotos(); // Simplest way to handle index changes and UI update
+
+            /* // Manual state update (more complex, keep fetchAndDisplayPhotos for now)
             // Remove photo from local array
             progressPhotosData.splice(currentPhotoIndex, 1);
 
-            // Adjust index if we deleted the last remaining photo or the last photo in the list
+            // Adjust index if needed
             if (progressPhotosData.length === 0) {
                 currentPhotoIndex = 0; // Reset
             } else if (currentPhotoIndex >= progressPhotosData.length) {
-                 // If we deleted the last one, move index back
                  currentPhotoIndex = progressPhotosData.length - 1;
             }
-            // Else, the index remains the same, showing the *next* photo automatically
 
-            // Refresh the display
-            displayCurrentPhoto(); // This will handle the case of 0 photos left
+            // Re-render the reel and dots
+            photoReel.innerHTML = '';
+            paginationDotsContainer.innerHTML = '';
+            if(progressPhotosData.length > 0) {
+                progressPhotosData.forEach((photo, index) => {
+                    const img = document.createElement('img');
+                    img.src = photo.file_path;
+                    img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
+                    photoReel.appendChild(img);
+                    const dot = document.createElement('span');
+                    dot.classList.add('dot');
+                    dot.dataset.index = index;
+                    dot.addEventListener('click', () => goToPhoto(index));
+                    paginationDotsContainer.appendChild(dot);
+                });
+                displayCurrentPhoto(); // Update transform and active dot
+            } else {
+                 photoReel.innerHTML = '<p>No progress photos uploaded yet.</p>';
+                 photoPrevBtn.disabled = true;
+                 photoNextBtn.disabled = true;
+                 deletePhotoBtn.disabled = true;
+            }
+            */
 
         } catch (error) {
             console.error('Error deleting photo:', error);
             alert(`Failed to delete photo: ${error.message}`);
             // Re-enable button on error, maybe refresh state?
             deletePhotoBtn.disabled = false;
+        } finally {
+             // Re-enable delete button happens in displayCurrentPhoto or if error occurs
         }
     }
     // --- END NEW ---
@@ -2177,3 +2428,30 @@ function escapeHtml(unsafe) {
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
 }
+
+/* Temporary Debug Outlines */ // REMOVE FROM HERE
+/*
+.photo-slider-container {
+    outline: 2px solid red !important;
+}
+.photo-viewport {
+    outline: 2px solid blue !important;
+}
+.photo-reel {
+     outline: 2px solid yellow !important;
+     margin-left: 50px !important;
+     margin-right: 50px !important;
+     width: calc(100% - 100px) !important;
+}
+.photo-reel img {
+    outline: 1px solid orange !important;
+}
+.slider-nav-btn {
+    outline: 3px solid limegreen !important;
+    z-index: 5 !important;
+}
+.pagination-dots {
+    outline: 2px solid cyan !important;
+}
+*/
+/* === End Temporary Debug Outlines === */ // REMOVE TO HERE

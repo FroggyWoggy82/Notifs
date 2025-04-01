@@ -1,5 +1,43 @@
 /* public/css/workouts.css */
 
+/* === Temporary Debug Outlines === */
+/*
+.photo-slider-container {
+    outline: 2px solid red !important;
+}
+.photo-viewport {
+    outline: 2px solid blue !important;
+}
+.photo-reel {
+     outline: 2px solid yellow !important;
+     pointer-events: none !important;
+}
+.photo-reel img {
+    outline: 1px solid orange !important;
+    pointer-events: none !important;
+}
+.slider-nav-btn {
+    outline: 3px solid limegreen !important;
+    z-index: 5 !important;
+}
+.pagination-dots {
+    outline: 2px solid cyan !important;
+}
+*/
+/* === End Temporary Debug Outlines === */
+
+
+/* === Page Divider === */
+.page-divider {
+    border: none; /* Remove default border */
+    height: 1px; /* Make it thin */
+    background-color: #444; /* Subtle dark line */
+    margin-top: 15px; /* Reduced top margin */
+    margin-bottom: 15px; /* Reduced bottom margin */
+}
+/* === End Page Divider === */
+
+
 /* --- Dark Theme & Base Styles --- */
 body {
     /* Assuming dark theme is applied globally or via a class */
@@ -1122,60 +1160,40 @@ h1, h2 {
     min-width: auto;
 }
 
-/* === Main Photo Slider Styles === */
+/* === Main Photo Slider Styles (Redesigned Carousel) === */
 .photo-slider-container {
-    position: relative; /* Needed for absolute positioning of buttons */
+    position: relative;
     width: 100%;
     max-width: 400px; /* Or your desired max width */
     margin: 20px auto; /* Center the slider */
-    overflow: hidden; /* Clip contents to the container bounds */
 }
 
 .photo-viewport {
     width: 100%;
-    aspect-ratio: 4 / 3; /* Maintain a 4:3 aspect ratio */
     overflow: hidden; /* Clip the reel */
-    position: relative; /* For positioning the reel */
-    border-radius: 8px; /* Optional: rounded corners */
-    background-color: #2a2a2a; /* Dark background */
+    border-radius: 8px;
+    background-color: #2a2a2a;
 }
 
 .photo-reel {
-    position: relative; /* Changed from absolute for simpler transform */
-    /* width: 300%; */ /* REMOVED - No longer needed */
-    height: 100%;
-    /* display: flex; */ /* REMOVED - Simpler layout */
-    /* Start with the middle image centered */
-    /* left: -100%; */ /* REMOVED - No longer needed */
-    /* transition: left 0.5s ease-in-out; */ /* REMOVED - No animation */
+    display: flex; /* Arrange images horizontally */
+    /* Width calculated by JS: numPhotos * 100% */
+    height: auto; /* Adjust based on image aspect ratios? Or keep fixed like viewport? */
+    /* REMOVED transition: transform 0.5s ease-in-out; */
+    /* transform: translateX(0); */ /* Initial position set by JS */
 }
 
 .photo-reel img {
-    /* Each image takes 1/3 of the reel width */
-    /* width: 33.333%; */ /* REMOVED - Let JS control visibility */
-    width: 100%; /* Make images fill the viewport width */
-    height: 100%;
-    display: block; /* Keep this */
-    object-fit: contain; /* Keep this */
-    background-color: #333; /* Keep this */
-    /* No absolute positioning needed with flex */
-
-    /* Preview Styling (Restored) */
-    opacity: 1.0; /* Keep Default opacity */
-    transform: scale(1.0); /* Keep Default scale */
-    /* transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; */ /* REMOVED - No animation */
+    width: 100%; /* Each image takes the full viewport width */
+    flex-shrink: 0; /* Prevent images from shrinking */
+    display: block;
+    height: auto;
+    aspect-ratio: 4 / 3; /* Match viewport aspect ratio */
+    object-fit: contain; /* Scale image within bounds */
+    background-color: #333; /* Placeholder background */
 }
 
-/* Style for the non-active preview images */
-/* REMOVE this rule entirely - JS handles hiding/showing previews */
-/*
-.photo-reel img.photo-preview {
-    opacity: 0.6;
-    transform: scale(0.9);
-}
-*/
-
-/* Slider Navigation Buttons */
+/* Slider Navigation Buttons (Keep existing styles) */
 .slider-nav-btn {
     position: absolute;
     top: 50%;
@@ -1188,7 +1206,7 @@ h1, h2 {
     height: 40px;
     font-size: 20px;
     cursor: pointer;
-    z-index: 3; /* Ensure buttons are above images */
+    z-index: 10; /* Increased from 3 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1206,7 +1224,29 @@ h1, h2 {
 .slider-nav-btn.next {
     right: 10px;
 }
-/* === END Main Photo Slider Styles === */
+
+/* Pagination Dots */
+.pagination-dots {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.dot {
+    cursor: pointer;
+    height: 12px;
+    width: 12px;
+    margin: 0 4px;
+    background-color: #555; /* Inactive dot color */
+    border-radius: 50%;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.dot.active,
+.dot:hover {
+    background-color: #bbb; /* Active/hover dot color */
+}
+/* === END Main Photo Slider Styles (Redesigned Carousel) === */
 
 
 /* === NEW Photo Comparison Section Styles === */
@@ -1297,3 +1337,32 @@ h1, h2 {
 
 /* Cleaned up removed button style */
 /* #create-template-btn { ... } */
+
+/* === Progress Photo Header Styles === */
+.progress-section-header {
+    /* REMOVED display: flex; */
+    /* REMOVED justify-content: space-between; */
+    /* REMOVED align-items: center; */
+    margin-bottom: 10px; /* Reduced margin */
+}
+
+.progress-section-header h2 {
+    /* REMOVED margin: 0; */
+    color: #03dac6; /* Keep color */
+    text-align: center; /* Ensure centered */
+    margin-bottom: 10px; /* Add margin below title */
+    /* REMOVED flex-grow: 1; */
+    /* REMOVED text-align: left; */
+}
+
+.header-buttons {
+    display: flex; /* Keep buttons horizontal */
+    justify-content: center; /* Center the buttons */
+    gap: 10px; /* Keep gap */
+    /* REMOVED flex-shrink: 0; */
+}
+
+.header-buttons .btn {
+    margin: 0; /* Keep margin reset */
+}
+/* === END Progress Photo Header Styles === */

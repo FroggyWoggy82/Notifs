@@ -45,7 +45,7 @@
             <h1>Workout Tracker</h1>
 
             <!-- Photo Sections (Slider + Comparison) -->
-            <div class="progress-photos-section">
+            <div class="progress-photos-section" style="margin-top: 5px;">
                 <div class="progress-section-header">
                     <h2>Progress Photos</h2>
                     <div class="header-buttons">
@@ -54,7 +54,7 @@
                     </div>
                 </div>
                 <!-- Photo Gallery Display -->
-                <div class="gallery-section">
+                <div class="gallery-section" style="margin-bottom: 5px;">
                     <div class="photo-slider-container">
                         <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" disabled>&lt;</button>
                         <div class="photo-viewport"> <!-- Clipping container -->
@@ -67,6 +67,10 @@
                     <!-- ADDED Pagination Dots Container -->
                     <div class="pagination-dots">
                         <!-- Dots will be added here by JS -->
+                    </div>
+                    <!-- NEW Element for Date Display -->
+                    <div id="current-photo-date-display" style="text-align: center; margin-top: 8px; color: #bbb; font-size: 0.9rem;">
+                        <!-- Date will be added here by JS -->
                     </div>
                 </div>
             </div>
