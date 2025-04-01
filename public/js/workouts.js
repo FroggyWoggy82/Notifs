@@ -1996,53 +1996,43 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Photo Upload Client] handlePhotoUpload triggered.');
 
         const form = event.target;
-        // --- MODIFIED: Create FormData manually to control field order ---
-        const formData = new FormData(); 
-        const dateInput = form.querySelector('#modal-photo-date');
-        const fileInput = form.querySelector('#modal-photo-upload');
-        
-        if (!dateInput || !fileInput) {
-            console.error('[Photo Upload Client] Cannot find date or file input elements in the form.');
-            statusElement.textContent = 'Error: Form elements missing.';
-            statusElement.style.color = '#f44336';
-            return;
-        }
+        // --- REVERTED: Use FormData directly from the form --- 
+        const formData = new FormData(form);
+        // --- Removed manual construction and appending --- 
 
-        const dateValue = dateInput.value;
-        const files = fileInput.files;
-        
-        // 1. Append date field FIRST
-        if (dateValue) {
-            formData.append('date', dateValue);
-            console.log(`[Photo Upload Client] Appended date: ${dateValue}`);
-        } else {
-            statusElement.textContent = 'Please select a date.';
-            statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] Date not selected.');
-            return; // Need a date
-        }
-        
-        // 2. Append file fields LAST
-        if (!files || files.length === 0) {
-            statusElement.textContent = 'Please select at least one photo.';
-            statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] No files selected in file input.');
-            return;
-        }
-        console.log(`[Photo Upload Client] Appending ${files.length} file(s)...`);
-        for (let i = 0; i < files.length; i++) {
-            formData.append('photos', files[i], files[i].name);
-            console.log(`[Photo Upload Client]   - Appended file: ${files[i].name} (${files[i].size} bytes)`);
-        }
-        // --- END FormData Modification ---
-        
         const statusElement = document.getElementById('upload-status');
         const modal = document.getElementById('photo-upload-modal');
         const submitButton = form.querySelector('button[type="submit"]');
 
+        // Add null checks for essential elements
+        if (!statusElement || !modal || !submitButton) {
+            console.error('[Photo Upload Client] Status element, modal, or submit button not found.');
+            // Optionally display an error to the user if elements are missing
+            return; 
+        }
+
+        // --- Validate directly from formData --- 
+        const dateValue = formData.get('date'); // Use 'date' which is the key we append server-side
+        const files = formData.getAll('photos'); // Use 'photos' which is the key for files
+        
+        if (!dateValue) {
+            statusElement.textContent = 'Please select a date.';
+            statusElement.style.color = 'orange';
+            console.warn('[Photo Upload Client] Date not found in FormData.');
+            return; // Need a date
+        }
+        if (!files || files.length === 0) {
+            statusElement.textContent = 'Please select at least one photo.';
+            statusElement.style.color = 'orange';
+            console.warn('[Photo Upload Client] No files found in FormData.');
+            return;
+        }
+        console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
+        // --- End validation ---
+
         statusElement.textContent = 'Uploading...';
-        statusElement.style.color = '#03dac6'; // Teal accent
-        submitButton.disabled = true; // Disable button during upload
+        statusElement.style.color = '#03dac6'; 
+        submitButton.disabled = true; 
 
         console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos'); 
         let response;
@@ -2052,6 +2042,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData, 
             });
 
+            // ... (keep existing logging and error handling for the response) ...
             console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`); 
 
             if (!response.ok) {
@@ -2074,7 +2065,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Photo Upload Client] Upload successful:', result);
             statusElement.textContent = result.message || 'Upload successful!';
             statusElement.style.color = '#4CAF50'; // Green
-            form.reset(); // Reset the original form element
+            form.reset(); 
             fetchAndDisplayPhotos(); 
 
             setTimeout(() => {
@@ -2083,6 +2074,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1500);
 
         } catch (error) {
+            // ... (keep existing detailed error logging in catch block) ...
             console.error('[Photo Upload Client] Error during photo upload fetch/processing:', error);
             console.error('[Photo Upload Client] Error Name:', error.name);
             console.error('[Photo Upload Client] Error Message:', error.message);
