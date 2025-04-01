@@ -1163,12 +1163,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- END NEW ---
 
         if (photoPrevBtn) {
-            console.log('Attaching listener to photoPrevBtn'); // DEBUG: Verify listener attachment attempt
+            console.log('[Initialize] Attaching listener to photoPrevBtn'); // DEBUG: Verify listener attachment attempt
+            photoPrevBtn.removeEventListener('click', showPreviousPhoto); // Remove first to be safe
             photoPrevBtn.addEventListener('click', showPreviousPhoto);
+        } else {
+            console.error('[Initialize] photoPrevBtn not found!');
         }
         if (photoNextBtn) {
-            console.log('Attaching listener to photoNextBtn'); // DEBUG: Verify listener attachment attempt
+            console.log('[Initialize] Attaching listener to photoNextBtn'); // DEBUG: Verify listener attachment attempt
+            photoNextBtn.removeEventListener('click', showNextPhoto); // Remove first to be safe
             photoNextBtn.addEventListener('click', showNextPhoto);
+        } else {
+             console.error('[Initialize] photoNextBtn not found!');
         }
         // --- END NEW ---
 
@@ -1907,13 +1913,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Display Current Photo in Slider (Instant Update Sources Only) ---
     function displayCurrentPhoto() {
-        if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn || !photoReel || !photoPrevPreview || !photoNextPreview) return;
+        console.log(`[Photo Display] Starting displayCurrentPhoto for index: ${currentPhotoIndex}`); // Log start of function
+        if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn || !photoReel || !photoPrevPreview || !photoNextPreview) {
+            console.error('[Photo Display] ERROR: One or more required DOM elements not found.');
+            return;
+        }
 
         const numPhotos = progressPhotosData.length;
+        console.log(`[Photo Display] Total photos available: ${numPhotos}`); // Log total photos
         let currentPhoto, prevPhoto, nextPhoto;
 
-        // --- Handle Empty State --- 
+        // --- Handle Empty State ---
         if (numPhotos === 0) {
+            console.log('[Photo Display] No photos available, hiding elements.');
             currentPhotoDisplay.style.display = 'none';
             photoPrevPreview.style.display = 'none';
             photoNextPreview.style.display = 'none';
@@ -1926,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- Ensure index is valid --- 
         if (currentPhotoIndex < 0 || currentPhotoIndex >= numPhotos) {
-            console.error('Invalid photo index:', currentPhotoIndex);
+            console.warn(`[Photo Display] Invalid photo index: ${currentPhotoIndex}. Resetting to 0.`);
             currentPhotoIndex = 0; // Reset to first photo
         }
 
@@ -1934,21 +1946,30 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPhoto = progressPhotosData[currentPhotoIndex];
         prevPhoto = (currentPhotoIndex > 0) ? progressPhotosData[currentPhotoIndex - 1] : null;
         nextPhoto = (currentPhotoIndex < numPhotos - 1) ? progressPhotosData[currentPhotoIndex + 1] : null;
+        console.log(`[Photo Display] Calculated Photos - Prev: ${prevPhoto?.photo_id}, Current: ${currentPhoto?.photo_id}, Next: ${nextPhoto?.photo_id}`); // Log photo IDs
 
         // --- Update Image Sources & Visibility --- 
-        console.log(`Setting sources: Prev=${prevPhoto?.file_path}, Current=${currentPhoto?.file_path}, Next=${nextPhoto?.file_path}`); // DEBUG
+        console.log(`[Photo Display] Setting sources - Current: ${currentPhoto?.file_path}`); // DEBUG
         
         // Current photo always visible (if one exists)
-        currentPhotoDisplay.src = currentPhoto.file_path;
-        currentPhotoDisplay.alt = `Progress photo from ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
-        currentPhotoDisplay.style.display = 'block'; 
+        if (currentPhoto) {
+            currentPhotoDisplay.src = currentPhoto.file_path;
+            currentPhotoDisplay.alt = `Progress photo from ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
+            currentPhotoDisplay.style.display = 'block'; 
+            console.log(`[Photo Display] Set current photo src to: ${currentPhoto.file_path}`);
+        } else {
+             console.error(`[Photo Display] ERROR: No currentPhoto found for index ${currentPhotoIndex}`);
+             currentPhotoDisplay.style.display = 'none'; // Hide if data is missing
+        }
         
         // Previous Preview
         if (prevPhoto) {
             photoPrevPreview.src = prevPhoto.file_path;
             photoPrevPreview.alt = `Preview: ${new Date(prevPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
             photoPrevPreview.style.display = 'block'; // Make visible
+            console.log(`[Photo Display] Set prev preview src to: ${prevPhoto.file_path}`);
         } else {
+            console.log('[Photo Display] No previous photo, hiding prev preview.');
             photoPrevPreview.src = ''; // Clear src just in case
             photoPrevPreview.style.display = 'none'; // Hide element
         }
@@ -1958,14 +1979,21 @@ document.addEventListener('DOMContentLoaded', function() {
             photoNextPreview.src = nextPhoto.file_path;
             photoNextPreview.alt = nextPhoto ? `Preview: ${new Date(nextPhoto.date_taken + 'T00:00:00').toLocaleDateString()}` : '';
             photoNextPreview.style.display = 'block'; // Make visible
+             console.log(`[Photo Display] Set next preview src to: ${nextPhoto.file_path}`);
         } else {
+            console.log('[Photo Display] No next photo, hiding next preview.');
             photoNextPreview.src = ''; // Clear src just in case
+            // *** Fix: Explicitly set display to none ***
             photoNextPreview.style.display = 'none'; // Hide element
         }
 
         // --- Update Date Display --- 
-        currentPhotoDate.textContent = `Date: ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
-        currentPhotoDate.style.color = '';
+        if (currentPhoto) {
+            currentPhotoDate.textContent = `Date: ${new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString()}`;
+            currentPhotoDate.style.color = '';
+        } else {
+            currentPhotoDate.textContent = 'Error loading date'; // Indicate error if no photo data
+        }
 
         // --- Update Button States --- 
         photoPrevBtn.disabled = !prevPhoto;
@@ -1989,19 +2017,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Slider Navigation Functions (NO ANIMATION) ---
     function showPreviousPhoto() {
-        console.log("Previous button clicked (no animation)");
-        if (currentPhotoIndex > 0) {
-            currentPhotoIndex--;
-            displayCurrentPhoto(); // Update sources and display instantly
+        console.log('[Photo Slider] Attempting Previous...'); // Log start
+        if (!photoReel || currentPhotoIndex <= 0) {
+            console.log('[Photo Slider] GUARD: Already at first photo or reel not found. Aborting.'); // Log block reason
+            return;
         }
+
+        console.log(`[Photo Slider] Current index BEFORE change: ${currentPhotoIndex}`); // Log index before
+
+        // Disable buttons temporarily (optional, but good practice)
+        // photoPrevBtn.disabled = true;
+        // photoNextBtn.disabled = true;
+
+        // 1. Update index
+        currentPhotoIndex--;
+        console.log(`[Photo Slider] Current index AFTER change: ${currentPhotoIndex}`); // Log index after
+
+        // 2. Update the displayed photos (instantly sets sources)
+        displayCurrentPhoto();
+
+        // Re-enable buttons (handled by displayCurrentPhoto)
+        console.log('[Photo Slider] Previous action complete.'); // Log end
     }
 
     function showNextPhoto() {
-        console.log("Next button clicked (no animation)");
-        if (currentPhotoIndex < progressPhotosData.length - 1) {
-            currentPhotoIndex++;
-            displayCurrentPhoto(); // Update sources and display instantly
+        console.log('[Photo Slider] Attempting Next...'); // Log start
+        const numPhotos = progressPhotosData.length;
+        if (!photoReel || currentPhotoIndex >= numPhotos - 1) {
+             console.log(`[Photo Slider] GUARD: Already at last photo (Index: ${currentPhotoIndex}, Total: ${numPhotos}) or reel not found. Aborting.`); // Log block reason
+            return;
         }
+
+        console.log(`[Photo Slider] Current index BEFORE change: ${currentPhotoIndex}`); // Log index before
+
+        // Disable buttons temporarily (optional)
+        // photoPrevBtn.disabled = true;
+        // photoNextBtn.disabled = true;
+
+        // 1. Update index
+        currentPhotoIndex++;
+         console.log(`[Photo Slider] Current index AFTER change: ${currentPhotoIndex}`); // Log index after
+
+        // 2. Update the displayed photos (instantly sets sources)
+        displayCurrentPhoto();
+
+        // Re-enable buttons (handled by displayCurrentPhoto)
+        console.log('[Photo Slider] Next action complete.'); // Log end
     }
     // --- END Slider Navigation Functions ---
 
