@@ -47,53 +47,6 @@
     <button id="notifyBtn">Enable Background Reminders</button>
     <div id="status" class="status"></div>
     
-    <section class="task-input-section">
-        <h2>Add New Task</h2>
-        <form id="addTaskForm">
-            <div class="form-group">
-                <label for="taskTitle">Title:</label>
-                <input type="text" id="taskTitle" placeholder="What needs to be done?" required>
-            </div>
-            <div class="form-group">
-                <label for="taskDescription">Description (Optional):</label>
-                <textarea id="taskDescription" placeholder="Add more details..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="taskReminderTime">Reminder Time (Optional):</label>
-                <input type="datetime-local" id="taskReminderTime">
-            </div>
-            <div class="form-row">
-                <div class="form-group form-group-half">
-                    <label for="taskAssignedDate">Assigned Date:</label>
-                    <input type="date" id="taskAssignedDate">
-                </div>
-                <div class="form-group form-group-half">
-                    <label for="taskDueDate">Due Date (Optional):</label>
-                    <input type="date" id="taskDueDate">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group form-group-half">
-                    <label for="taskRecurrenceType">Recurrence:</label>
-                    <select id="taskRecurrenceType">
-                        <option value="none" selected>None</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-                </div>
-                <div class="form-group form-group-half" id="recurrenceIntervalGroup" style="display: none;"> 
-                    <label for="taskRecurrenceInterval">Every:</label>
-                    <input type="number" id="taskRecurrenceInterval" value="1" min="1" step="1" style="width: 60px;">
-                    <span id="recurrenceIntervalUnit">days</span>
-                </div>
-            </div>
-            <button type="submit" id="addTaskBtn">Add Task</button>
-        </form>
-        <div id="addTaskStatus" class="status"></div>
-    </section>
-    
     <section class="task-list-section">
         <h2>Task List</h2>
         <div id="taskList">
@@ -101,7 +54,18 @@
         </div>
         <div id="taskListStatus" class="status"></div>
     </section>
-    
+
+    <!-- ===== Habit List Section ===== -->
+    <section class="habit-list-section">
+        <h2>Habit List</h2>
+        <div id="habitList">
+            <p>Loading habits...</p> <!-- Placeholder -->
+        </div>
+        <div id="habitListStatus" class="status"></div>
+        <button id="addHabitBtn">Add New Habit</button> <!-- Simple button for now -->
+    </section>
+    <!-- ===== End Habit List Section ===== -->
+
     <div class="bottom-nav">
         <a href="/index.html" class="nav-item active" data-page="home-page">
             <div class="nav-icon">✓</div>
@@ -120,6 +84,127 @@
             <span>Calendar</span>
         </a>
     </div>
+
+    <!-- ===== Add Task Modal ===== -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Add New Task</h2>
+            <form id="addTaskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Title:</label>
+                    <input type="text" id="taskTitle" placeholder="What needs to be done?" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description (Optional):</label>
+                    <textarea id="taskDescription" placeholder="Add more details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskReminderTime">Reminder Time (Optional):</label>
+                    <input type="datetime-local" id="taskReminderTime">
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="taskAssignedDate">Assigned Date:</label>
+                        <input type="date" id="taskAssignedDate">
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="taskDueDate">Due Date (Optional):</label>
+                        <input type="date" id="taskDueDate">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="taskRecurrenceType">Recurrence:</label>
+                        <select id="taskRecurrenceType">
+                            <option value="none" selected>None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="recurrenceIntervalGroup" style="display: none;"> 
+                        <label for="taskRecurrenceInterval">Every:</label>
+                        <input type="number" id="taskRecurrenceInterval" value="1" min="1" step="1" style="width: 60px;">
+                        <span id="recurrenceIntervalUnit">days</span>
+                    </div>
+                </div>
+                <button type="submit" id="addTaskBtn">Add Task</button>
+            </form>
+            <div id="addTaskStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Add Task Modal ===== -->
+
+    <!-- ===== Add Task FAB ===== -->
+    <button id="addTaskFab" class="fab" title="Add New Task">+</button>
+
+    <!-- ===== Add Habit Modal ===== -->
+    <div id="addHabitModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Add New Habit</h2>
+            <form id="addHabitForm">
+                <div class="form-group">
+                    <label for="habitTitle">Title:</label>
+                    <input type="text" id="habitTitle" placeholder="What habit to build?" required>
+                </div>
+                <!-- Add description later if needed -->
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="habitRecurrenceType">Frequency:</label>
+                        <select id="habitRecurrenceType">
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <!-- Add specific days of week/month later -->
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="habitCompletionsGroup">
+                        <label for="habitCompletionsPerDay">Completions per Day:</label>
+                        <input type="number" id="habitCompletionsPerDay" value="1" min="1" step="1" style="width: 60px;">
+                    </div>
+                </div>
+                <!-- Add goal/streak info later if needed -->
+                <button type="submit" id="submitHabitBtn">Add Habit</button>
+            </form>
+            <div id="addHabitStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Add Habit Modal ===== -->
+
+    <!-- ===== Edit Habit Modal ===== -->
+    <div id="editHabitModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Edit Habit</h2>
+            <form id="editHabitForm">
+                <input type="hidden" id="editHabitId"> <!-- Hidden field for ID -->
+                <div class="form-group">
+                    <label for="editHabitTitle">Title:</label>
+                    <input type="text" id="editHabitTitle" placeholder="What habit to build?" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="editHabitRecurrenceType">Frequency:</label>
+                        <select id="editHabitRecurrenceType">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="editHabitCompletionsGroup">
+                        <label for="editHabitCompletionsPerDay">Completions per Day:</label>
+                        <input type="number" id="editHabitCompletionsPerDay" value="1" min="1" step="1" style="width: 60px;">
+                    </div>
+                </div>
+                <button type="submit" id="submitEditHabitBtn">Save Changes</button>
+            </form>
+            <div id="editHabitStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Edit Habit Modal ===== -->
 
     <script src="js/sidebar.js"></script>
     <script src="js/script.js"></script>

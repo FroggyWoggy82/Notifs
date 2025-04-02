@@ -11,6 +11,7 @@ const db = require('./db'); // <-- Added DB module import
 const goalRoutes = require('./routes/goals'); // <-- Added Goal routes import
 const daysSinceRouter = require('./routes/daysSince');
 const workoutRoutes = require('./routes/workouts'); // <-- Added Workout routes import
+const habitRoutes = require('./routes/habits'); // <-- Add Habit routes import
 // --- ---
 
 const app = express();
@@ -57,6 +58,9 @@ app.use('/api/days-since', daysSinceRouter);
 
 // Mount the workout routes - ALL requests starting with /api/workouts go here
 app.use('/api/workouts', workoutRoutes);
+
+// Mount the habit routes - ALL requests starting with /api/habits go here
+app.use('/api/habits', habitRoutes);
 
 // --- NEW Task API Routes ---
 

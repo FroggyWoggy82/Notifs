@@ -26,7 +26,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const recurrenceIntervalUnit = document.getElementById('recurrenceIntervalUnit');
     // --- End Task Elements ---
 
+    // --- Habit Elements ---
+    const habitListDiv = document.getElementById('habitList');
+    const habitListStatusDiv = document.getElementById('habitListStatus');
+    const addHabitBtn = document.getElementById('addHabitBtn');
+    // --- End Habit Elements ---
+
+    // --- Add Task Modal Elements ---
+    const addTaskModal = document.getElementById('addTaskModal');
+    const addTaskFab = document.getElementById('addTaskFab');
+    const closeTaskModalBtn = addTaskModal.querySelector('.close-button');
+    // --- End Task Modal Elements ---
+
+    // --- Add Habit Modal Elements ---
+    const addHabitModal = document.getElementById('addHabitModal');
+    const closeHabitModalBtn = addHabitModal.querySelector('.close-button');
+    const addHabitForm = document.getElementById('addHabitForm');
+    const habitRecurrenceTypeInput = document.getElementById('habitRecurrenceType');
+    const habitCompletionsGroup = document.getElementById('habitCompletionsGroup');
+    // --- End Habit Modal Elements ---
+
+    // --- Edit Habit Modal Elements ---
+    const editHabitModal = document.getElementById('editHabitModal');
+    const closeEditModalBtn = editHabitModal.querySelector('.close-button');
+    const editHabitForm = document.getElementById('editHabitForm');
+    const editHabitIdInput = document.getElementById('editHabitId');
+    const editHabitTitleInput = document.getElementById('editHabitTitle');
+    const editHabitRecurrenceTypeInput = document.getElementById('editHabitRecurrenceType');
+    const editHabitCompletionsGroup = document.getElementById('editHabitCompletionsGroup');
+    const editHabitCompletionsPerDayInput = document.getElementById('editHabitCompletionsPerDay');
+    const editHabitStatusDiv = document.getElementById('editHabitStatus');
+    // --- End Edit Habit Modal Elements ---
+
     let swRegistration = null;
+    let allHabitsData = []; // Store fetched habits locally for editing
 
     // --- PWA & Notification Permission Handling (Keep Existing) ---
     if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -40,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkNotificationPermission(true); // Check permission silently first
                  // --- NEW: Load tasks after SW is ready ---
                 loadTasks();
+                loadHabits(); // Load habits too
             })
             .catch(error => {
                 console.error('Service Worker Error', error);
@@ -53,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         permissionStatusDiv.className = 'notifications-status permission-denied';
          // --- NEW: Still load tasks even if push is not supported ---
          loadTasks();
+         loadHabits(); // Load habits too
     }
 
     notifyBtn.addEventListener('click', () => {
@@ -505,5 +540,336 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial check for notification permission on load
     checkNotificationPermission(true);
+
+    // --- NEW: Add Task Modal Listeners ---
+    addTaskFab.addEventListener('click', () => {
+        addTaskModal.style.display = 'block';
+        // Optionally clear form on open?
+        // addTaskForm.reset();
+        // handleRecurrenceChange(); // Reset recurrence display too
+    });
+
+    closeTaskModalBtn.addEventListener('click', () => {
+        addTaskModal.style.display = 'none';
+    });
+
+    // Close modal if clicking outside the content
+    addTaskModal.addEventListener('click', (event) => {
+        if (event.target === addTaskModal) {
+            addTaskModal.style.display = 'none';
+        }
+    });
+    // --- END NEW ---
+
+    // --- Habit Management Functions ---
+
+    // Load habits from the server
+    async function loadHabits() {
+        habitListStatusDiv.textContent = 'Loading habits...';
+        habitListStatusDiv.className = 'status';
+        try {
+            const response = await fetch('/api/habits'); // Assuming this endpoint
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const habits = await response.json();
+            allHabitsData = habits; // Store habits locally
+            displayHabits(habits);
+            habitListStatusDiv.textContent = '';
+        } catch (error) {
+            console.error('Error loading habits:', error);
+            habitListStatusDiv.textContent = 'Error loading habits.';
+            habitListStatusDiv.className = 'status error';
+            habitListDiv.innerHTML = ''; // Clear placeholder on error
+        }
+    }
+
+    // Display habits in the list
+    function displayHabits(habits) {
+        habitListDiv.innerHTML = ''; // Clear previous list/placeholder
+        if (habits.length === 0) {
+            habitListDiv.innerHTML = '<p>No habits added yet.</p>';
+            return;
+        }
+
+        habits.forEach(habit => {
+            const habitElement = document.createElement('div');
+            habitElement.classList.add('habit-item');
+            habitElement.dataset.habitId = habit.id; // Store habit ID
+
+            // --- Update structure for completions ---
+            const completionsToday = habit.completions_today || 0;
+            const completionsTarget = habit.completions_per_day || 1;
+            const isComplete = completionsToday >= completionsTarget;
+            let progressText = '';
+            if (completionsTarget > 1) {
+                progressText = ` (${completionsToday}/${completionsTarget})`;
+            }
+
+            habitElement.innerHTML = `
+                <input type="checkbox" class="habit-checkbox" title="Mark as done" ${isComplete ? 'checked' : ''}>
+                <div class="habit-content">
+                    <span class="habit-title">${habit.title}${progressText}</span>
+                    <span class="habit-frequency">Frequency: ${habit.frequency}</span> <!-- Display frequency -->
+                </div>
+                <div class="habit-actions">
+                    <button class="edit-habit-btn small-btn">Edit</button>
+                    <button class="delete-habit-btn small-btn delete-btn">Delete</button>
+                </div>
+            `;
+
+            // Apply styling if complete
+            if (isComplete) {
+                habitElement.classList.add('complete'); // Add a CSS class for styling completed habits
+            }
+
+            // Add event listeners
+            const checkbox = habitElement.querySelector('.habit-checkbox');
+            const deleteBtn = habitElement.querySelector('.delete-habit-btn');
+            const editBtn = habitElement.querySelector('.edit-habit-btn'); // Get edit button
+
+            checkbox.addEventListener('click', (e) => handleHabitCheckboxClick(habit.id, checkbox.checked));
+            deleteBtn.addEventListener('click', () => deleteHabit(habit.id));
+            editBtn.addEventListener('click', () => openEditHabitModal(habit)); // Pass the full habit object
+
+            habitListDiv.appendChild(habitElement);
+        });
+    }
+
+    // Handle adding a new habit
+    async function addHabit(event) {
+        event.preventDefault(); // Prevent default form submission
+        const statusDiv = document.getElementById('addHabitStatus');
+        statusDiv.textContent = 'Adding habit...';
+        statusDiv.className = 'status';
+
+        const title = document.getElementById('habitTitle').value;
+        const frequency = document.getElementById('habitRecurrenceType').value;
+        const completionsPerDay = document.getElementById('habitCompletionsPerDay').value;
+
+        const habitData = {
+            title,
+            frequency,
+            // Only include completions_per_day if frequency is daily
+            completions_per_day: frequency === 'daily' ? parseInt(completionsPerDay, 10) : 1,
+            // Add other potential fields like description, goal, etc. later
+        };
+
+        try {
+            const response = await fetch('/api/habits', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(habitData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Failed to add habit. Server error.' }));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            // const newHabit = await response.json(); // Use if needed
+
+            statusDiv.textContent = 'Habit added successfully!';
+            statusDiv.className = 'status success';
+            addHabitForm.reset(); // Clear the form
+            addHabitModal.style.display = 'none'; // Close modal
+            loadHabits(); // Reload the habit list
+
+            // Clear success message after a delay
+            setTimeout(() => { statusDiv.textContent = ''; }, 3000);
+
+        } catch (error) {
+            console.error('Error adding habit:', error);
+            statusDiv.textContent = `Error: ${error.message}`;
+            statusDiv.className = 'status error';
+        }
+    }
+
+    // Handle deleting a habit
+    async function deleteHabit(habitId) {
+        // Optional: Confirm deletion
+        if (!confirm('Are you sure you want to delete this habit?')) {
+            return;
+        }
+
+        habitListStatusDiv.textContent = 'Deleting habit...';
+        habitListStatusDiv.className = 'status';
+
+        try {
+            const response = await fetch(`/api/habits/${habitId}`, { // Assuming this endpoint
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Failed to delete habit. Server error.' }));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            habitListStatusDiv.textContent = 'Habit deleted successfully.';
+            habitListStatusDiv.className = 'status success';
+            loadHabits(); // Reload the list
+
+            // Clear message after delay
+            setTimeout(() => { habitListStatusDiv.textContent = ''; }, 3000);
+
+        } catch (error) {
+            console.error('Error deleting habit:', error);
+            habitListStatusDiv.textContent = `Error: ${error.message}`;
+            habitListStatusDiv.className = 'status error';
+        }
+    }
+
+    // Handle habit checkbox click (record completion)
+    async function handleHabitCheckboxClick(habitId, isChecked) {
+        // If isChecked is false, the user might be un-checking.
+        // For simplicity now, let's assume clicking always attempts to record *one* completion.
+        // The backend should handle logic like not exceeding the target, or decrementing if needed.
+
+        console.log(`Checkbox clicked for habit ${habitId}, attempting to record completion.`);
+        habitListStatusDiv.textContent = 'Updating habit...';
+        habitListStatusDiv.className = 'status';
+
+        try {
+            // We send a POST request to mark *a* completion for today.
+            // The backend increments the counter for today.
+            const response = await fetch(`/api/habits/${habitId}/complete`, { // Assuming this endpoint
+                method: 'POST',
+                // No body needed if the endpoint just increments today's count
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Failed to update habit. Server error.' }));
+                // If error is because target is met, maybe show a specific message?
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            // Reload the list to show updated progress/state
+            loadHabits();
+            // Optional: Clear status after a delay, or maybe not needed if loadHabits clears it.
+            // setTimeout(() => { habitListStatusDiv.textContent = ''; }, 1000);
+
+        } catch (error) {
+            console.error('Error updating habit completion:', error);
+            habitListStatusDiv.textContent = `Error: ${error.message}`;
+            habitListStatusDiv.className = 'status error';
+            // Revert checkbox? Reloading handles this indirectly.
+            // loadHabits(); // Reload even on error to sync state?
+        }
+    }
+
+    // Add listener for the habit form submission
+    addHabitForm.addEventListener('submit', addHabit);
+
+    // --- NEW: Add Habit Modal Listeners ---
+    addHabitBtn.addEventListener('click', () => {
+        addHabitModal.style.display = 'block';
+        addHabitForm.reset(); // Clear form on open
+        handleHabitRecurrenceChange(); // Set initial state for completions input
+    });
+
+    closeHabitModalBtn.addEventListener('click', () => {
+        addHabitModal.style.display = 'none';
+    });
+
+    // Close modal if clicking outside the content
+    addHabitModal.addEventListener('click', (event) => {
+        if (event.target === addHabitModal) {
+            addHabitModal.style.display = 'none';
+        }
+    });
+
+    // Show/hide completions per day based on frequency
+    function handleHabitRecurrenceChange() {
+        if (habitRecurrenceTypeInput.value === 'daily') {
+            habitCompletionsGroup.style.display = 'block';
+        } else {
+            habitCompletionsGroup.style.display = 'none';
+        }
+    }
+    habitRecurrenceTypeInput.addEventListener('change', handleHabitRecurrenceChange);
+    // --- END NEW ---
+
+    // Open and populate the edit habit modal
+    function openEditHabitModal(habit) {
+        editHabitIdInput.value = habit.id;
+        editHabitTitleInput.value = habit.title;
+        editHabitRecurrenceTypeInput.value = habit.frequency;
+        editHabitCompletionsPerDayInput.value = habit.completions_per_day;
+        handleEditHabitRecurrenceChange(); // Show/hide completions input correctly
+        editHabitStatusDiv.textContent = ''; // Clear status
+        editHabitStatusDiv.className = 'status';
+        editHabitModal.style.display = 'block';
+    }
+
+    // Handle edit habit form submission
+    async function handleEditHabitSubmit(event) {
+        event.preventDefault();
+        const habitId = editHabitIdInput.value;
+        editHabitStatusDiv.textContent = 'Saving changes...';
+        editHabitStatusDiv.className = 'status';
+
+        const title = editHabitTitleInput.value;
+        const frequency = editHabitRecurrenceTypeInput.value;
+        const completionsPerDay = editHabitCompletionsPerDayInput.value;
+
+        const updatedHabitData = {
+            title,
+            frequency,
+            completions_per_day: frequency === 'daily' ? parseInt(completionsPerDay, 10) : 1,
+        };
+
+        try {
+            const response = await fetch(`/api/habits/${habitId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedHabitData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Failed to update habit. Server error.' }));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            editHabitStatusDiv.textContent = 'Habit updated successfully!';
+            editHabitStatusDiv.className = 'status success';
+            setTimeout(() => {
+                editHabitModal.style.display = 'none'; // Close modal after short delay
+                loadHabits(); // Reload the habit list
+            }, 1000);
+
+        } catch (error) {
+            console.error('Error updating habit:', error);
+            editHabitStatusDiv.textContent = `Error: ${error.message}`;
+            editHabitStatusDiv.className = 'status error';
+        }
+    }
+
+    // --- NEW: Edit Habit Modal Listeners ---
+    editHabitForm.addEventListener('submit', handleEditHabitSubmit);
+
+    closeEditModalBtn.addEventListener('click', () => {
+        editHabitModal.style.display = 'none';
+    });
+
+    editHabitModal.addEventListener('click', (event) => {
+        if (event.target === editHabitModal) {
+            editHabitModal.style.display = 'none';
+        }
+    });
+
+    // Show/hide completions per day in EDIT modal
+    function handleEditHabitRecurrenceChange() {
+        if (editHabitRecurrenceTypeInput.value === 'daily') {
+            editHabitCompletionsGroup.style.display = 'block';
+        } else {
+            editHabitCompletionsGroup.style.display = 'none';
+        }
+    }
+    editHabitRecurrenceTypeInput.addEventListener('change', handleEditHabitRecurrenceChange);
+    // --- END NEW ---
 
 }); // End DOMContentLoaded

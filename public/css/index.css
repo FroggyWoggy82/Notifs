@@ -9,8 +9,8 @@ body {
     /* Font */
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     /* Background & Text Color (Using Dark Theme from workouts.css for consistency) */
-    background-color: #121212;
-    color: #e0e0e0;
+    background-color: #ffffff; /* CHANGED: White background */
+    color: #2c3e50; /* CHANGED: Dark text for light background */
     /* Layout */
     /* max-width: 600px; */ /* <<<< REMOVED this line to allow full width */
     margin: 0 auto; /* Still centers content IF a max-width IS applied elsewhere or on a wrapper */
@@ -412,3 +412,204 @@ textarea {
 
 /* Remove max-width for mobile? Add media query if needed */
 /* @media (max-width: 600px) { body { max-width: none; } } */
+
+/* --- Add Task Modal (Adapted from workouts.css) --- */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1001; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #ffffff; /* Light background for task modal */
+    color: #2c3e50; /* Dark text */
+    margin: 10% auto; /* Centered vertically & horizontally */
+    padding: 25px;
+    border: 1px solid #dde5eb; /* Light border */
+    border-radius: 8px;
+    width: 90%; /* Responsive width */
+    max-width: 500px; /* Max width */
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh; /* Limit height, allow scrolling */
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    text-align: center;
+    color: #1f2933; /* Match section headers */
+    border-bottom: 1px solid #c8d0d7; /* Match section headers */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-button:hover,
+.close-button:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+/* Ensure form inside modal doesn't have extra padding/margin */
+.modal-content #addTaskForm,
+.modal-content #addHabitForm { /* Apply to both forms */
+    /* Add any specific overrides if needed */
+}
+
+/* --- Floating Action Button (FAB) (Adapted from workouts.css) --- */
+.fab {
+    position: fixed;
+    bottom: 80px; /* Adjusted for bottom nav height */
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background-color: #4db6ac; /* Muted Teal Accent */
+    color: white;
+    border-radius: 50%;
+    border: none;
+    font-size: 24px;
+    /* line-height: 56px; */ /* REMOVED: Replaced with flexbox */
+    text-align: center;
+    /* --- NEW: Use flexbox for centering --- */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* --- END NEW --- */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    z-index: 1000; /* Slightly lower than modal but above nav */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.fab:hover {
+    background-color: #5dc1b5;
+}
+.fab:active {
+    transform: scale(0.95);
+}
+
+/* --- Media Queries --- */
+/* Add specific media queries if needed */
+
+/* Adjust FAB position slightly on larger screens if bottom nav changes */
+@media screen and (min-width: 600px) {
+    .fab {
+        bottom: 80px; /* Keep same for now */
+        right: 30px;
+    }
+}
+
+/* --- Habit List Section (Similar to Task List) --- */
+.habit-list-section {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+}
+
+.habit-list-section h2 {
+    font-weight: 500;
+    color: #1f2933;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c8d0d7;
+    text-align: left;
+    font-size: 1.3em;
+}
+
+#habitList {
+    margin-top: 20px; /* Space above the first habit */
+    padding: 0;
+}
+
+/* Individual Habit Item (Basic styles, similar to task-item) */
+.habit-item {
+    background-color: #f8f9fa;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    border: 1px solid #e8eef2;
+    display: flex;
+    align-items: center; /* Center items vertically */
+    gap: 15px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Placeholder for habit content (like task-content) */
+.habit-content {
+    flex-grow: 1;
+}
+
+.habit-title {
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 1em;
+}
+
+/* Placeholder for habit actions (like task-actions) */
+.habit-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex; /* NEW: Arrange buttons horizontally */
+    gap: 8px;      /* NEW: Add space between buttons */
+}
+
+/* NEW: Style for edit button in habit list */
+.habit-item .edit-habit-btn {
+    background-color: #566573; /* Muted grey/blue */
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Match delete-btn */
+    font-size: 0.8em;  /* Match delete-btn */
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0; /* Remove default margins */
+    width: auto; /* Allow shrink */
+    display: inline-block;
+}
+.habit-item .edit-habit-btn:hover {
+    background-color: #6c7a89;
+}
+
+/* Style for completed habits */
+.habit-item.complete {
+    background-color: #e8f5e9; /* Light green */
+    border-color: #c8e6c9;
+}
+
+.habit-item.complete .habit-title {
+    /* Optional: Strike-through or different color */
+    /* text-decoration: line-through; */
+    /* color: #757575; */
+}
+
+/* Style for habit frequency text */
+.habit-frequency {
+    display: block; /* Put on new line */
+    font-size: 0.8em;
+    color: #566573; /* Softer grey */
+    margin-top: 4px;
+}
+
+/* Style for the Add Habit button */
+#addHabitBtn {
+    /* Use default button styles or customize */
+    margin-top: 20px;
+}

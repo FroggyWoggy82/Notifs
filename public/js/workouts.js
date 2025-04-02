@@ -2554,30 +2554,3 @@ function escapeHtml(unsafe) {
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
 }
-
-/* Temporary Debug Outlines */ // REMOVE FROM HERE
-/*
-.photo-slider-container {
-    outline: 2px solid red !important;
-}
-.photo-viewport {
-    outline: 2px solid blue !important;
-}
-.photo-reel {
-     outline: 2px solid yellow !important;
-     margin-left: 50px !important;
-     margin-right: 50px !important;
-     width: calc(100% - 100px) !important;
-}
-.photo-reel img {
-    outline: 1px solid orange !important;
-}
-.slider-nav-btn {
-    outline: 3px solid limegreen !important;
-    z-index: 5 !important;
-}
-.pagination-dots {
-    outline: 2px solid cyan !important;
-}
-*/
-/* === End Temporary Debug Outlines === */ // REMOVE TO HERE
