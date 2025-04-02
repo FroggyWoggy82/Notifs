@@ -2012,13 +2012,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // --- Validate directly from formData --- 
-        const dateValue = formData.get('date'); // Use 'date' which is the key we append server-side
-        const files = formData.getAll('photos'); // Use 'photos' which is the key for files
-        
+        // Ensure the keys used here ('date', 'photos') match the 'name' attributes in your HTML form inputs
+        const dateValue = formData.get('photo-date'); // Use 'photo-date' to match HTML name attribute
+        const files = formData.getAll('photos');
+
         if (!dateValue) {
             statusElement.textContent = 'Please select a date.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] Date not found in FormData.');
+            console.warn('[Photo Upload Client] Date not found in FormData (using key "photo-date"). Check input name attribute.'); // Updated console log key
             return; // Need a date
         }
         if (!files || files.length === 0) {
