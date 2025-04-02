@@ -291,52 +291,53 @@ document.addEventListener('DOMContentLoaded', () => {
         checkbox.type = 'checkbox';
         checkbox.checked = task.is_complete;
         checkbox.addEventListener('change', handleToggleComplete);
-        div.appendChild(checkbox);
 
         // Task Content
         const contentDiv = document.createElement('div');
         contentDiv.className = 'task-content';
 
-        const titleP = document.createElement('p');
-        titleP.className = 'task-title';
-        titleP.textContent = task.title;
-        contentDiv.appendChild(titleP);
+        const titleSpan = document.createElement('span'); // Changed from p to span
+        titleSpan.className = 'task-title';
+        titleSpan.textContent = task.title;
+        contentDiv.appendChild(titleSpan);
 
         if (task.description) {
-            const descP = document.createElement('p');
-            descP.className = 'task-description';
-            descP.textContent = task.description;
-            contentDiv.appendChild(descP);
+            const descSpan = document.createElement('span'); // Changed from p to span
+            descSpan.className = 'task-description';
+            descSpan.textContent = task.description;
+            contentDiv.appendChild(descSpan);
         }
 
         // Display Reminder Time if active and exists
         if (task.reminder_time) {
-             try {
+            try {
                 const reminderDate = new Date(task.reminder_time);
                 // Only show active reminders or completed task reminders
                 if (task.is_reminder_active || task.is_complete) {
-                    const reminderP = document.createElement('p');
-                    reminderP.className = 'task-reminder';
-                    reminderP.textContent = ` ${reminderDate.toLocaleString()}`;
-                     if (!task.is_reminder_active && task.is_complete) {
-                         reminderP.style.textDecoration = 'line-through';
-                         reminderP.style.opacity = '0.7';
-                     }
-                     contentDiv.appendChild(reminderP);
-                 }
+                    const reminderSpan = document.createElement('span'); // Changed from p to span
+                    reminderSpan.className = 'task-reminder';
+                    reminderSpan.textContent = ` ${reminderDate.toLocaleString()}`;
+                    if (!task.is_reminder_active && task.is_complete) {
+                        reminderSpan.style.textDecoration = 'line-through';
+                        reminderSpan.style.opacity = '0.7';
+                    }
+                    contentDiv.appendChild(reminderSpan);
+                }
             } catch (e) { console.error("Error parsing reminder date for display:", task.reminder_time, e); }
         }
-
-        div.appendChild(contentDiv);
 
         // Task Actions (Delete Button)
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'task-actions';
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn'; // Use existing style
+        deleteBtn.className = 'delete-btn';
         deleteBtn.textContent = 'Delete';
         deleteBtn.addEventListener('click', handleDeleteTask);
         actionsDiv.appendChild(deleteBtn);
+
+        // Assemble the task item in the correct order
+        div.appendChild(checkbox);
+        div.appendChild(contentDiv);
         div.appendChild(actionsDiv);
 
         return div;

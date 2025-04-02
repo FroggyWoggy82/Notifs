@@ -17,7 +17,7 @@ body {
     padding: 30px 20px 80px 20px; /* Kept padding, adjust as needed */
     text-align: left;
     line-height: 1.6;
-    overflow-x: hidden; /* Ensure horizontal scroll is prevented */
+    /* overflow-x: hidden; */ /* REMOVED: This was preventing goal page scroll */
 }
 
 h1 {
@@ -248,14 +248,14 @@ textarea {
 
 /* Individual Task Item */
 .task-item {
-    background-color: #f8f9fa; /* Slightly off-white background */
+    background-color: #f8f9fa;
     padding: 15px;
     margin-bottom: 12px;
     border-radius: 4px;
-    border: 1px solid #e8eef2; /* Match body background subtly */
+    border: 1px solid #e8eef2;
     display: flex;
-    align-items: flex-start; /* Align items top for long descriptions */
-    gap: 15px; /* Space between checkbox and content */
+    align-items: center; /* Change from flex-start to center for vertical alignment */
+    gap: 15px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -276,8 +276,7 @@ textarea {
     appearance: none;
     -webkit-appearance: none;
     background-color: #fff;
-    margin: 0;
-    margin-top: 3px; /* Align with first line of text */
+    margin: 0; /* Remove default margins */
     font: inherit;
     color: #bdc3c7;
     width: 1.15em;
@@ -289,6 +288,8 @@ textarea {
     place-content: center;
     cursor: pointer;
     flex-shrink: 0; /* Prevent checkbox from shrinking */
+    align-self: flex-start; /* Align with first line of text */
+    margin-top: 3px; /* Fine-tune vertical alignment if needed */
 }
 
 .task-item input[type="checkbox"]::before {
@@ -298,7 +299,6 @@ textarea {
     transform: scale(0);
     transition: 120ms transform ease-in-out;
     box-shadow: inset 1em 1em #4db6ac; /* Teal checkmark */
-    /* Clip path for checkmark shape */
     clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
 
@@ -313,43 +313,63 @@ textarea {
 
 /* Task Content Area */
 .task-content {
-    flex-grow: 1; /* Take remaining space */
+    flex-grow: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: column; /* Stack title and other content vertically */
+    gap: 4px; /* Space between elements */
 }
 
 .task-title {
     font-weight: 500;
-    margin-bottom: 4px; /* Space between title and description/reminder */
     color: #2c3e50;
     font-size: 1em;
+    text-align: left;
+    line-height: 1.2;
+    display: block; /* Ensure it takes full width */
 }
 
 .task-description {
     font-size: 0.85em;
-    color: #566573; /* Softer grey */
-    margin-bottom: 6px;
-    white-space: pre-wrap; /* Respect newlines in description */
+    color: #566573;
+    white-space: pre-wrap;
+    text-align: left;
+    display: block;
 }
 
 .task-reminder {
     font-size: 0.8em;
-    color: #4db6ac; /* Teal for reminder */
+    color: #4db6ac;
     display: flex;
     align-items: center;
     gap: 5px;
-}
-.task-reminder::before {
-    content: '⏰'; /* Clock emoji */
-    font-size: 0.9em;
+    margin-top: 2px;
 }
 
-/* Task Actions (Delete Button) */
+/* Task Actions */
 .task-actions {
-    margin-left: auto; /* Push actions to the right */
-    flex-shrink: 0; /* Prevent shrinking */
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
 }
 
-/* Use existing .delete-btn style, no change needed */
-
+/* Delete button styling (already exists, but ensure consistency) */
+.delete-btn {
+    background-color: #c0392b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 0.8em;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0;
+    width: auto;
+    display: inline-block;
+}
+.delete-btn:hover {
+    background-color: #a93226;
+}
 
 /* Removed .scheduled-item styles */
 
