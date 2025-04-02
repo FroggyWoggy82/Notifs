@@ -543,6 +543,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- NEW: Handler for Deleting Exercise from Template Editor ---
+    function handleDeleteTemplateExercise(deleteButton) { // Changed parameter to expect the button element
+        const indexToRemove = parseInt(deleteButton.dataset.index, 10); // Use dataset.index from the button
+        if (!isNaN(indexToRemove) && indexToRemove >= 0 && indexToRemove < currentTemplateExercises.length) {
+             const exerciseName = currentTemplateExercises[indexToRemove]?.name || 'this exercise';
+             if (confirm(`Are you sure you want to remove ${exerciseName} from this template?`)) {
+                 console.log(`[handleDeleteTemplateExercise] Attempting to remove index ${indexToRemove}.`); // <<< Added log
+                 console.log(`[handleDeleteTemplateExercise] Array length BEFORE splice: ${currentTemplateExercises.length}`); // <<< Added log
+                 currentTemplateExercises.splice(indexToRemove, 1); // Modifies the array
+                 console.log(`[handleDeleteTemplateExercise] Array length AFTER splice: ${currentTemplateExercises.length}`); // <<< Added log
+                 // Re-assign order_position for remaining exercises
+                 currentTemplateExercises.forEach((ex, idx) => {
+                     ex.order_position = idx;
+                 });
+                 renderTemplateExerciseList(); // Re-render the template editor list
+             }
+        } else {
+             console.error('Invalid index for template exercise deletion:', event.target.dataset.index);
+        }
+    }
+    // --- END NEW ---
+
     function handleSetToggle(event) {
         const toggleButton = event.target;
         const setRow = toggleButton.closest('.set-row');
@@ -788,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
             exerciseItem.innerHTML = `
                 <div class="exercise-item-header">
                     <h4>${exercise.name}</h4>
-                    <button class="btn-delete-exercise" title="Remove Exercise" data-index="${index}">&times;</button>
+                    <button class="btn-delete-exercise btn-delete-template-exercise" title="Remove Exercise" data-index="${index}">&times;</button> <!-- Changed class -->
                 </div>
                 <div class="sets-container">
                     ${setRowsHtml}
@@ -857,6 +879,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSaveTemplate(event) {
         event.preventDefault(); // Prevent default form submission
         console.log('Saving template...');
+        console.log(`[handleSaveTemplate] Array length AT START of save: ${currentTemplateExercises.length}`); // <<< Added log
 
         const templateName = templateNameInput.value.trim();
         const templateDescription = templateDescriptionInput.value.trim();
@@ -1130,6 +1153,19 @@ document.addEventListener('DOMContentLoaded', function() {
              if(exerciseModal) exerciseModal.dataset.targetList = 'editor';
              openExerciseModal();
         });
+        // --- NEW: Add listener for deleting exercises from template editor ---
+        templateExerciseListEl?.addEventListener('click', (event) => {
+            // ---> MODIFIED: Use closest to find the button < ---
+            const deleteButton = event.target.closest('.btn-delete-template-exercise');
+            // Check if the clicked element or its ancestor is the delete button
+            if (deleteButton) {
+                console.log('[Template Editor Delete Listener] Found delete button via closest().'); // <<< Add log
+                // Pass the event object, but the handler uses event.target.dataset which might be wrong now.
+                // We need the index from the *button* itself, not necessarily the original target.
+                handleDeleteTemplateExercise(deleteButton); // Pass the button element directly
+            }
+            // --- END MODIFICATION ---
+        });
 
         // New Exercise Definition Listeners in Modal
         toggleDefineExerciseBtn?.addEventListener('click', handleToggleDefineExercise);
@@ -1268,9 +1304,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const photoUploadModalEl = document.getElementById('photo-upload-modal');
         const photoModalCloseButton = photoUploadModalEl?.querySelector('.close-button');
         const photoFormEl = document.getElementById('progress-photo-form');
-        const photoDateInputEl = document.getElementById('photo-date')
+        const photoDateInputEl = document.getElementById('modal-photo-date') // Corrected ID
         const uploadStatusElement = document.getElementById('upload-status');
-        const photoUploadInputElement = document.getElementById('photo-upload');
+        const photoUploadInputElement = document.getElementById('modal-photo-upload'); // Corrected ID
 
         // Open Modal Listener
         addPhotoBtn?.addEventListener('click', () => {
@@ -1286,6 +1322,18 @@ document.addEventListener('DOMContentLoaded', function() {
                      photoUploadInputElement.value = ''; // Clear file selection
                  }
                  photoUploadModalEl.style.display = 'block';
+ 
+                  // ---> ADD THIS: Explicitly find and re-enable the button <---
+                  const form = photoUploadModalEl.querySelector('#progress-photo-form');
+                  if (form) {
+                      const submitButton = form.querySelector('button[type="submit"]');
+                      if (submitButton) {
+                          console.log('[Modal Open] Explicitly re-enabling upload button.');
+                          submitButton.disabled = false;
+                      }
+                  }
+                  // ---> END ADDITION <---
+ 
             } else {
                  console.error('Photo upload modal not found!');
             }
@@ -2022,10 +2070,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('[Photo Upload Client] Date not found in FormData (using key "photo-date"). Check input name attribute.'); // Updated console log key
             return; // Need a date
         }
-        if (!files || files.length === 0) {
+        if (!files || files.length === 0 || !files[0] || files[0].size === 0) { // Check if the first file has size > 0
             statusElement.textContent = 'Please select at least one photo.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] No files found in FormData.');
+            console.warn('[Photo Upload Client] No files or empty file selected.');
             return;
         }
         console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
@@ -2420,7 +2468,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/api/workouts/progress-photos/${photoId}`, { method: 'DELETE' });
 
             if (!response.ok) {
-                // ... (existing error handling) ...
+                let errorMsg = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.error || JSON.stringify(errorData);
+                } catch (parseError) {
+                    // Could not parse JSON, maybe HTML error page?
+                    errorMsg += " (Could not parse error response as JSON)";
+                }
                 throw new Error(errorMsg);
             }
 
