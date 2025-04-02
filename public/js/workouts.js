@@ -2163,6 +2163,16 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Photo Load] Clearing loading message from photoReel...'); // Log before clearing
             photoReel.innerHTML = ''; // Clear loading message
 
+            // --- BEGIN ADDED DEBUG LOG ---
+            if (progressPhotosData.length > 0) {
+                console.log('[Photo Load DEBUG] First photo data object:', JSON.stringify(progressPhotosData[0]));
+                if (progressPhotosData.length > 1) {
+                    console.log('[Photo Load DEBUG] Second photo data object:', JSON.stringify(progressPhotosData[1]));
+                }
+            }
+            // --- END ADDED DEBUG LOG ---
+
+
             if (progressPhotosData.length === 0) {
                 console.log('[Photo Load] No photos found. Displaying empty message.'); // Log empty case
                 // currentPhotoDisplay.style.display = 'none';
@@ -2181,9 +2191,12 @@ document.addEventListener('DOMContentLoaded', function() {
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
                 const img = document.createElement('img');
-                img.src = photo.file_path;
+                // img.src = photo.file_path; // <<< CHANGE THIS
+                img.dataset.src = photo.file_path; // <<< TO THIS
+                img.src = ''; // <<< ADD THIS (Set src initially empty)
                 img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
+                img.loading = 'lazy'; // Add native lazy loading attribute as well
                 photoReel.appendChild(img);
 
                 // Add Dot to Pagination
@@ -2244,12 +2257,25 @@ document.addEventListener('DOMContentLoaded', function() {
             return; // Nothing to display
         }
 
+        // --- BEGIN ADDED DEBUG LOG ---
+        console.log(`[Photo Display DEBUG] Current index before bounds check: ${currentPhotoIndex}`);
+        // --- END ADDED DEBUG LOG ---
+
         // Ensure index is valid (looping can be added later if desired)
         if (currentPhotoIndex < 0) currentPhotoIndex = 0;
         if (currentPhotoIndex >= numPhotos) currentPhotoIndex = numPhotos - 1;
 
+        // --- BEGIN ADDED DEBUG LOG ---
+        console.log(`[Photo Display DEBUG] Current index AFTER bounds check: ${currentPhotoIndex}`);
+        // --- END ADDED DEBUG LOG ---
+
+
         // --- Get Current Photo Data and Format Date ---
         const currentPhoto = progressPhotosData[currentPhotoIndex];
+        // --- BEGIN ADDED DEBUG LOG ---
+        console.log('[Photo Display DEBUG] Photo object being used:', JSON.stringify(currentPhoto));
+        // --- END ADDED DEBUG LOG ---
+        console.log(`[Photo Display] Attempting to display data:`, currentPhoto); // <<< Log the photo object
         let formattedDate = '';
         if (currentPhoto && currentPhoto.date_taken) {
             // Assuming date_taken is 'YYYY-MM-DD'. Adding T00:00:00 ensures it's treated as local time.
@@ -2258,9 +2284,30 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         dateDisplayEl.textContent = formattedDate; // Update the date display
+        
+        // --- Log the file path specifically ---
+        const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
+        console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
+
+        // --- NEW: Find the specific image element and set its src for lazy loading ---
+        const imageElements = photoReel.querySelectorAll('img');
+        if (imageElements && imageElements[currentPhotoIndex]) {
+            const currentImageElement = imageElements[currentPhotoIndex];
+            // Only set src if it's not already set or differs from data-src
+            if (currentImageElement.src !== currentImageElement.dataset.src) {
+                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
+                currentImageElement.src = currentImageElement.dataset.src; 
+            }
+        } else {
+            console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
+        }
+        // --- END NEW ---
 
         // --- Update Reel Position --- 
         const offset = currentPhotoIndex * -100; // Calculate percentage offset
+        // --- BEGIN ADDED DEBUG LOG ---
+        console.log(`[Photo Display DEBUG] Calculated reel offset: ${offset}% for index ${currentPhotoIndex}`);
+        // --- END ADDED DEBUG LOG ---
         photoReel.style.transform = `translateX(${offset}%)`;
 
         // --- Update Pagination Dots --- 

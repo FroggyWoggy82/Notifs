@@ -627,8 +627,10 @@ router.delete('/logs/:id', async (req, res) => {
 
 // POST /api/progress-photos - Upload new progress photos
 router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
-    // --- ADDED LOG HERE: This only runs if uploadPhotosMiddleware finished without fatal error --- 
-    console.log(`[Photo Upload Route] Entered main handler AFTER Multer middleware.`); 
+    // <<< DEBUG LOGS AT THE START >>>
+    console.log('[DEBUG] req.body immediately after multer:', JSON.stringify(req.body));
+    console.log('[DEBUG] req.files immediately after multer:', req.files ? req.files.length : 'undefined');
+    // <<< END DEBUG LOGS >>>
 
     // --- Check for Multer errors attached to req (might not happen if Multer crashes earlier) ---
     // Note: Multer typically calls the callback with an error, but if used as middleware,
@@ -649,18 +651,11 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
     // --- End error checking --- 
     
     // --- Main logic, previously inside the callback --- 
-    const { date } = req.body; 
-    const files = req.files; 
+    const { 'photo-date': date } = req.body;
+    const files = req.files;
 
     console.log(`[Photo Upload Route Handler] Processing request. Date: ${date}`);
-    if (files && files.length > 0) {
-        files.forEach((file, index) => {
-            console.log(`[Photo Upload Route Handler] File ${index}: Name=${file.filename}, Size=${file.size}, MimeType=${file.mimetype}, Path=${file.path}`);
-        });
-    } else {
-        console.warn('[Photo Upload Route Handler] No files found in req.files.');
-        // This case might indicate Multer finished but found no files, or an earlier issue.
-    }
+    console.log(`[Photo Upload Route Handler] Entered main handler AFTER Multer middleware.`);
 
     if (!date) {
         console.error('[Photo Upload Route Handler] Error: Date is required.');
