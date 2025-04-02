@@ -12,6 +12,7 @@ const goalRoutes = require('./routes/goals'); // <-- Added Goal routes import
 const daysSinceRouter = require('./routes/daysSince');
 const workoutRoutes = require('./routes/workouts'); // <-- Added Workout routes import
 const habitRoutes = require('./routes/habits'); // <-- Add Habit routes import
+const recipeRoutes = require('./routes/recipes'); // <-- Added Recipe routes import
 // --- ---
 
 const app = express();
@@ -61,6 +62,9 @@ app.use('/api/workouts', workoutRoutes);
 
 // Mount the habit routes - ALL requests starting with /api/habits go here
 app.use('/api/habits', habitRoutes);
+
+// Mount the recipe routes - ALL requests starting with /api/recipes go here
+app.use('/api/recipes', recipeRoutes);
 
 // --- NEW Task API Routes ---
 

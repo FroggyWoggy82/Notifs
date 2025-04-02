@@ -14,13 +14,12 @@
 <body>
     <button class="menu-button">☰</button>
     
-    <div class="sidebar-overlay"></div>
     <div class="sidebar">
         <div class="sidebar-header">
             <h2>Menu</h2>
         </div>
         <nav class="sidebar-nav">
-            <a href="/index.html" class="sidebar-nav-item">
+            <a href="/index.html" class="sidebar-nav-item active">
                 <span class="nav-icon">✓</span>
                 <span>Tasks</span>
             </a>
@@ -36,8 +35,13 @@
                 <span class="nav-icon">⏱️</span>
                 <span>Days Since</span>
             </a>
+            <a href="/pages/food.html" class="sidebar-nav-item">
+                <span class="nav-icon">🍔</span>
+                <span>Food</span>
+            </a>
         </nav>
     </div>
+    <div class="sidebar-overlay"></div>
 
     <h1>My Tasks</h1>
     <div id="permissionStatus" class="notifications-status">
@@ -82,6 +86,10 @@
         <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
             <div class="nav-icon">📅</div>
             <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon">🍔</div>
+            <span>Food</span>
         </a>
     </div>
 

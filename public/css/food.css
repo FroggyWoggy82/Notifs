@@ -1,0 +1,127 @@
+/* Food & Recipe specific styles */
+
+/* Sections */
+#recipe-creation-section,
+#recipes-display-section {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+}
+
+#recipe-creation-section h2,
+#recipes-display-section h2 {
+    font-weight: 500;
+    color: #1f2933;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c8d0d7;
+    text-align: left;
+    font-size: 1.3em;
+}
+
+#recipe-creation-section h3 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* Ingredient List Styling */
+#ingredients-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.ingredient-item {
+    display: grid;
+    grid-template-columns: 2fr repeat(6, 1fr) auto; /* Adjust columns as needed */
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e8eef2;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+/* Style inputs within the grid */
+.ingredient-item input[type="text"],
+.ingredient-item input[type="number"] {
+    width: 100%; /* Take available grid space */
+    padding: 8px 10px; /* Slightly smaller padding */
+    font-size: 0.9em; /* Slightly smaller font */
+    /* Inherit other input styles from index.css */
+}
+
+.remove-ingredient-btn {
+    background-color: #e74c3c; /* Red */
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    font-size: 0.8em;
+    border-radius: 3px;
+    cursor: pointer;
+    /* margin: 0; */ /* Remove margin if necessary */
+    width: auto; /* Fit content */
+    justify-self: end; /* Align to the end of its grid cell */
+}
+
+.remove-ingredient-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Buttons */
+#add-ingredient-btn {
+    background-color: #4db6ac; /* Teal */
+    color: white;
+    display: inline-block; /* Don't take full width */
+    width: auto;
+    padding: 10px 20px;
+    margin-top: 0;
+    margin-bottom: 20px; /* Space before save button */
+}
+
+#add-ingredient-btn:hover {
+    background-color: #45a69c;
+}
+
+/* Recipe Display List */
+#recipe-list {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.recipe-display-item { /* Placeholder */
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 4px;
+    border: 1px solid #e8eef2;
+}
+
+.recipe-display-item h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+/* Add responsive adjustments if needed */
+@media (max-width: 768px) {
+    .ingredient-item {
+        grid-template-columns: 1fr; /* Stack ingredients on smaller screens */
+        gap: 8px;
+    }
+    .ingredient-item input,
+    .ingredient-item button {
+        grid-column: 1 / -1; /* Make each element take full width */
+    }
+    .remove-ingredient-btn {
+        justify-self: center; /* Center remove button */
+        margin-top: 5px;
+    }
+} 
