@@ -1258,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          historySearchInputEl.value = currentHistoryExerciseName; // Fill input
                          historyResultsEl.style.display = 'none'; // Hide results
                          // Fetch and display history for the selected exercise
-                         fetchAndDisplayHistory(currentHistoryExerciseId);
+                         fetchAndRenderHistoryChart(currentHistoryExerciseId);
                          if(historyEditButtonEl) historyEditButtonEl.style.display = 'inline-block'; // Show edit button
                          if(historyMessageElement) historyMessageElement.textContent = ''; // Clear message
                      }
@@ -1568,6 +1568,7 @@ document.addEventListener('DOMContentLoaded', function() {
         results.forEach(ex => {
             const div = document.createElement('div');
             div.textContent = ex.name;
+            div.classList.add('history-search-item'); // <<< ADD THIS LINE
             div.dataset.exerciseId = ex.exercise_id;
             div.dataset.exerciseName = ex.name; // Store name for setting input later
             historySearchResultsEl.appendChild(div);

@@ -7,6 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipeListContainer = document.getElementById('recipe-list');
     const recipesDisplayStatus = document.getElementById('recipes-display-status');
 
+    // --- NEW: Weight Goal Elements ---
+    const weightGoalForm = document.getElementById('weight-goal-form');
+    const targetWeightInput = document.getElementById('targetWeight');
+    const weeklyGainGoalInput = document.getElementById('weeklyGainGoal');
+    const weightGoalStatus = document.getElementById('weight-goal-status');
+    const weightGoalChartCanvas = document.getElementById('weight-goal-chart');
+    const weightChartMessage = document.getElementById('weight-chart-message');
+    let weightGoalChart = null; // To hold the Chart.js instance
+    // --- End Weight Goal Elements ---
+
     // Function to create HTML for a single ingredient row
     function createIngredientRowHtml() {
         return `
@@ -118,6 +128,220 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus(createRecipeStatus, `Error saving recipe: ${error.message}`, 'error');
         }
     });
+
+    // --- NEW: Weight Goal Functions --- //
+
+    async function loadWeightGoal() {
+        showStatus(weightGoalStatus, 'Loading weight goal...', 'info');
+        try {
+            const response = await fetch('/api/weight/goal');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch goal');
+            }
+            const goalData = await response.json();
+
+            // goalData might be { target_weight: null, weekly_gain_goal: null } if not set
+            targetWeightInput.value = goalData.target_weight || '';
+            weeklyGainGoalInput.value = goalData.weekly_gain_goal || '';
+            showStatus(weightGoalStatus, '', ''); // Clear loading status
+
+        } catch (error) {
+            console.error('Error loading weight goal:', error);
+            showStatus(weightGoalStatus, `Error loading goal: ${error.message}`, 'error');
+        }
+    }
+
+    async function saveWeightGoal(event) {
+        event.preventDefault();
+        const targetWeight = parseFloat(targetWeightInput.value);
+        const weeklyGain = parseFloat(weeklyGainGoalInput.value);
+
+        if (isNaN(targetWeight) || targetWeight <= 0 || isNaN(weeklyGain) || weeklyGain <= 0) {
+            showStatus(weightGoalStatus, 'Please enter valid positive numbers for target weight and weekly gain.', 'error');
+            return;
+        }
+
+        showStatus(weightGoalStatus, 'Saving goal...', 'info');
+        try {
+            const response = await fetch('/api/weight/goal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetWeight: targetWeight, weeklyGain: weeklyGain })
+            });
+            
+            if (!response.ok) {
+                 const errorData = await response.json();
+                 throw new Error(errorData.error || 'Failed to save goal');
+            }
+            
+            const result = await response.json();
+            console.log("Goal saved:", result);
+
+            // Update inputs to reflect saved values (in case of rounding/validation on backend)
+            targetWeightInput.value = result.target_weight || '';
+            weeklyGainGoalInput.value = result.weekly_gain_goal || '';
+
+            showStatus(weightGoalStatus, 'Weight goal saved successfully!', 'success');
+            // Trigger graph update as the goal line might change
+            loadAndRenderWeightChart(); 
+
+        } catch (error) {
+            console.error('Error saving weight goal:', error);
+            showStatus(weightGoalStatus, `Error saving goal: ${error.message}`, 'error');
+        }
+    }
+
+    // --- NEW: Weight Chart Functions --- //
+    
+    // Loads actual weight data and goal line, then renders the chart
+    async function loadAndRenderWeightChart() {
+        // IMPORTANT: Make sure Chart.js library is included in food.html
+        // <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        if (!weightGoalChartCanvas) return;
+
+        weightChartMessage.textContent = 'Loading chart data...';
+        weightChartMessage.style.display = 'block';
+        weightGoalChartCanvas.style.display = 'none'; // Hide canvas while loading
+        if (weightGoalChart) weightGoalChart.destroy(); // Clear previous chart immediately
+        
+        try {
+            // Fetch both logs and goal data concurrently
+            const [logsResponse, goalResponse] = await Promise.all([
+                fetch('/api/weight/logs'),
+                fetch('/api/weight/goal')
+            ]);
+
+            if (!logsResponse.ok) {
+                const errorData = await logsResponse.json();
+                throw new Error(errorData.error || 'Failed to fetch weight logs');
+            }
+            if (!goalResponse.ok) {
+                const errorData = await goalResponse.json();
+                throw new Error(errorData.error || 'Failed to fetch weight goal');
+            }
+
+            const weightLogs = await logsResponse.json(); // Expecting [{ log_id, log_date (YYYY-MM-DD), weight }, ...]
+            const goalData = await goalResponse.json(); // Expecting { target_weight, weekly_gain_goal }
+
+            if (!Array.isArray(weightLogs)) {
+                 throw new Error('Invalid format received for weight logs.');
+            }
+
+            if (weightLogs.length === 0) {
+                weightChartMessage.textContent = 'Log your weight to see the chart.';
+                weightChartMessage.style.display = 'block';
+                weightGoalChartCanvas.style.display = 'none';
+                // No need to destroy chart again, done above
+                return;
+            }
+
+            // --- Prepare data for Chart.js --- 
+            // Ensure logs are sorted by date (API should do this, but double-check)
+            weightLogs.sort((a, b) => new Date(a.log_date) - new Date(b.log_date));
+
+            const labels = weightLogs.map(log => new Date(log.log_date + 'T00:00:00Z').toLocaleDateString()); // Parse YYYY-MM-DD as UTC date
+            const actualWeightData = weightLogs.map(log => log.weight);
+            
+            // Calculate target weight line (simple linear projection)
+            const targetWeightLine = [];
+            const startDate = new Date(weightLogs[0].log_date + 'T00:00:00Z'); // Use first log date as start
+            const startWeight = actualWeightData[0]; // Use first log weight as start
+            const targetWeight = goalData.target_weight;
+            const weeklyGain = goalData.weekly_gain_goal;
+
+            if (targetWeight !== null && weeklyGain !== null && weeklyGain > 0 && !isNaN(targetWeight) && !isNaN(weeklyGain)) {
+                weightLogs.forEach(log => {
+                    const currentDate = new Date(log.log_date + 'T00:00:00Z');
+                    const weeksDiff = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 7);
+                    const projectedWeight = startWeight + (weeksDiff * weeklyGain);
+                    // Cap projection at target weight
+                    targetWeightLine.push(Math.min(projectedWeight, targetWeight)); 
+                });
+            } else {
+                console.log("Goal not set or invalid, not drawing target line.")
+            }
+            // --- End Target Line Calculation ---
+
+            renderWeightChart(labels, actualWeightData, targetWeightLine);
+            weightChartMessage.style.display = 'none'; // Hide message
+            weightGoalChartCanvas.style.display = 'block'; // Show canvas
+
+        } catch (error) {
+            console.error("Error loading data for weight chart:", error);
+            weightChartMessage.textContent = `Error loading chart data: ${error.message}`;
+            weightChartMessage.style.color = 'red';
+            weightChartMessage.style.display = 'block';
+            weightGoalChartCanvas.style.display = 'none';
+            // No need to destroy chart again, done above
+        }
+    }
+
+    function renderWeightChart(labels, actualData, targetData) {
+        if (!weightGoalChartCanvas) return;
+        const ctx = weightGoalChartCanvas.getContext('2d');
+
+        if (weightGoalChart) {
+            weightGoalChart.destroy(); // Destroy previous instance
+        }
+
+        const datasets = [
+            {
+                label: 'Actual Weight (lbs)',
+                data: actualData,
+                borderColor: '#3498db', // Blue
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                tension: 0.1,
+                fill: false
+            }
+        ];
+
+        // Add target weight line dataset if data exists
+        if (targetData && targetData.length > 0) {
+             datasets.push({
+                 label: 'Target Weight Path (lbs)',
+                 data: targetData,
+                 borderColor: '#e74c3c', // Red
+                 borderDash: [5, 5], // Dashed line
+                 tension: 0.1,
+                 fill: false,
+                 pointRadius: 0 // Hide points on target line
+             });
+        }
+
+        weightGoalChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false, // Don't force y-axis to start at 0 for weight
+                        title: {
+                            display: true,
+                            text: 'Weight (lbs)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                }
+            }
+        });
+    }
 
     // --- Recipe Loading and Display --- //
 
@@ -408,5 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Initial Load --- //
+    loadWeightGoal(); // Load saved goal
+    loadAndRenderWeightChart(); // Attempt to load chart data
     loadRecipes();
 }); 

@@ -2,6 +2,21 @@
 let scheduledNotifications = [];
 let deferredPrompt;
 
+// Helper to check if a date string (YYYY-MM-DD or ISO) is today
+function isToday(dateString) {
+    if (!dateString) return false;
+    try {
+        const date = new Date(dateString);
+        const today = new Date();
+        return date.getFullYear() === today.getFullYear() &&
+               date.getMonth() === today.getMonth() &&
+               date.getDate() === today.getDate();
+    } catch (e) {
+        console.error("Error parsing date:", dateString, e);
+        return false;
+    }
+}
+
 // Wrap all DOM operations in DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const notifyBtn = document.getElementById('notifyBtn');
@@ -25,6 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const recurrenceIntervalGroup = document.getElementById('recurrenceIntervalGroup');
     const recurrenceIntervalUnit = document.getElementById('recurrenceIntervalUnit');
     // --- End Task Elements ---
+
+    // --- Completed Task Elements (NEW) ---
+    const completedTasksHeader = document.getElementById('completedTasksHeader');
+    const completedTaskListDiv = document.getElementById('completedTaskList');
+    // --- End Completed Task Elements ---
 
     // --- Habit Elements ---
     const habitListDiv = document.getElementById('habitList');
@@ -57,6 +77,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const editHabitCompletionsPerDayInput = document.getElementById('editHabitCompletionsPerDay');
     const editHabitStatusDiv = document.getElementById('editHabitStatus');
     // --- End Edit Habit Modal Elements ---
+
+    // --- Edit Task Modal Elements ---
+    const editTaskModal = document.getElementById('editTaskModal');
+    const editTaskForm = document.getElementById('editTaskForm');
+    const editTaskStatus = document.getElementById('editTaskStatus');
+    const editTaskIdInput = document.getElementById('editTaskId');
+    const editTaskTitleInput = document.getElementById('editTaskTitle');
+    const editTaskDescriptionInput = document.getElementById('editTaskDescription');
+    const editTaskReminderTimeInput = document.getElementById('editTaskReminderTime');
+    const editTaskAssignedDateInput = document.getElementById('editTaskAssignedDate');
+    const editTaskDueDateInput = document.getElementById('editTaskDueDate');
+    const editTaskRecurrenceTypeSelect = document.getElementById('editTaskRecurrenceType');
+    const editRecurrenceIntervalGroup = document.getElementById('editRecurrenceIntervalGroup');
+    const editTaskRecurrenceIntervalInput = document.getElementById('editTaskRecurrenceInterval');
+    const editRecurrenceIntervalUnit = document.getElementById('editRecurrenceIntervalUnit');
+    const closeEditTaskModalBtn = editTaskModal.querySelector('.close-button'); // Assuming close button exists
 
     let swRegistration = null;
     let allHabitsData = []; // Store fetched habits locally for editing
@@ -269,15 +305,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // Render the list of tasks
     function renderTaskList(tasks) {
         taskListDiv.innerHTML = ''; // Clear current list
+        completedTaskListDiv.innerHTML = ''; // Clear completed list
+        let activeTaskCount = 0;
+        let completedTodayCount = 0;
+
         if (!tasks || tasks.length === 0) {
             taskListDiv.innerHTML = '<p>No tasks yet. Add one above!</p>';
+            completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>'; // Changed message
+            updateCompletedTaskHeader(0); // Update header count
             return;
         }
 
         tasks.forEach(task => {
             const taskElement = createTaskElement(task);
-            taskListDiv.appendChild(taskElement);
+            if (task.is_complete) {
+                // --- Check if completed today using updated_at --- 
+                if (isToday(task.updated_at)) { 
+                    completedTaskListDiv.appendChild(taskElement);
+                    completedTodayCount++;
+                }
+                // --- Older completed tasks are ignored for the default view ---
+            } else {
+                taskListDiv.appendChild(taskElement);
+                activeTaskCount++;
+            }
         });
+
+        // Update placeholder messages if lists are empty
+        if (activeTaskCount === 0) {
+            taskListDiv.innerHTML = '<p>No active tasks.</p>';
+        }
+        if (completedTodayCount === 0) {
+            // Use a more specific message for the default view
+            completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>'; 
+        }
+
+        updateCompletedTaskHeader(completedTodayCount); // Update header count based on today
     }
 
     // Create DOM element for a single task
@@ -326,16 +389,25 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.error("Error parsing reminder date for display:", task.reminder_time, e); }
         }
 
-        // Task Actions (Delete Button)
+        // Task Actions (Edit and Delete Buttons - Edit First)
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'task-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-task-btn'; // Class to be styled
+        editBtn.textContent = 'Edit';
+        editBtn.style.order = '1'; // Explicitly set order
+        editBtn.addEventListener('click', () => openEditTaskModal(task)); // Pass the task data
+        actionsDiv.appendChild(editBtn); // Edit first
+
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
         deleteBtn.textContent = 'Delete';
+        deleteBtn.style.order = '2'; // Explicitly set order
         deleteBtn.addEventListener('click', handleDeleteTask);
-        actionsDiv.appendChild(deleteBtn);
+        actionsDiv.appendChild(deleteBtn); // Delete second
 
-        // Assemble the task item in the correct order
+        // Assemble the task item
         div.appendChild(checkbox);
         div.appendChild(contentDiv);
         div.appendChild(actionsDiv);
@@ -460,40 +532,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const updatedTask = await response.json();
+            const updatedTask = await response.json(); // updated_at is now current
             console.log("Task updated:", updatedTask);
 
-            // Update UI definitively
-            taskItem.classList.toggle('complete', updatedTask.is_complete);
-             // Re-render reminder state if needed (e.g., line-through)
-             const reminderP = taskItem.querySelector('.task-reminder');
-             if (reminderP && updatedTask.is_complete && !updatedTask.is_reminder_active) {
-                 reminderP.style.textDecoration = 'line-through';
-                 reminderP.style.opacity = '0.7';
-             } else if (reminderP) {
-                 reminderP.style.textDecoration = 'none';
-                 reminderP.style.opacity = '1';
-             }
-
-            // OPTIONAL: Move completed task to the bottom / re-sort list
-            // This makes the UI jump a bit, but keeps lists ordered.
-            // Uncomment if desired:
-            /*
+            // --- Update UI definitively (Move element) ---
+            taskItem.remove(); // Remove from current list
+            const newTaskElement = createTaskElement(updatedTask); // Recreate element with updated state
+            
             if (updatedTask.is_complete) {
-                taskListDiv.appendChild(taskItem); // Move to end
+                // Always add to completed list when checked (it was just completed 'today')
+                completedTaskListDiv.appendChild(newTaskElement);
+                // Remove placeholder if it exists
+                const placeholder = completedTaskListDiv.querySelector('p');
+                if (placeholder) placeholder.remove();
             } else {
-                // Move back to top or before first complete item
-                const firstCompleted = taskListDiv.querySelector('.task-item.complete');
-                taskListDiv.insertBefore(taskItem, firstCompleted);
+                 // Move back to the active list
+                taskListDiv.appendChild(newTaskElement);
+                 // Remove placeholder if it exists
+                const placeholder = taskListDiv.querySelector('p');
+                if (placeholder) placeholder.remove();
             }
-            */
+
+            // Update completed task count header (count elements *in the list*)
+            const completedCountToday = completedTaskListDiv.querySelectorAll('.task-item').length;
+            updateCompletedTaskHeader(completedCountToday);
+            
+            // Ensure placeholders are correct if lists become empty
+            if (taskListDiv.childElementCount === 0) {
+                 taskListDiv.innerHTML = '<p>No active tasks.</p>';
+            }
+             if (completedTaskListDiv.childElementCount === 0) {
+                 completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>'; // Use today's message
+             }
+            // --- End UI Update ---
 
         } catch (error) {
             console.error('Error updating task completion:', error);
             updateTaskListStatus("Error updating task status.", true);
-            // Revert UI on error
-            checkbox.checked = !isComplete;
-            taskItem.classList.toggle('complete', !isComplete);
+            // Revert UI on error (might be complex, maybe just reload?)
+            // For now, let's just log the error and restore opacity.
+            // checkbox.checked = !isComplete; // Avoid direct manipulation if state is uncertain
         } finally {
              taskItem.style.opacity = '1';
         }
@@ -872,5 +950,166 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     editHabitRecurrenceTypeInput.addEventListener('change', handleEditHabitRecurrenceChange);
     // --- END NEW ---
+
+    // --- NEW: Open and populate the edit task modal ---
+    function openEditTaskModal(task) {
+        console.log("Opening edit modal for task:", task);
+        editTaskStatus.textContent = ''; // Clear any previous status
+        editTaskStatus.className = 'status';
+
+        // Populate the form fields
+        editTaskIdInput.value = task.id;
+        editTaskTitleInput.value = task.title || '';
+        editTaskDescriptionInput.value = task.description || '';
+
+        // Format dates/times for input fields
+        editTaskReminderTimeInput.value = task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : '';
+        editTaskAssignedDateInput.value = task.assigned_date ? task.assigned_date.split('T')[0] : '';
+        editTaskDueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
+
+        // Set recurrence type and interval
+        editTaskRecurrenceTypeSelect.value = task.recurrence_type || 'none';
+        handleEditRecurrenceChange(); // Update interval display based on type
+        editTaskRecurrenceIntervalInput.value = task.recurrence_interval || '1';
+
+        // Display the modal
+        editTaskModal.style.display = 'block';
+    }
+
+    // --- NEW: Show/hide recurrence interval in EDIT modal ---
+    function handleEditRecurrenceChange() {
+        const type = editTaskRecurrenceTypeSelect.value;
+        if (type === 'none') {
+            editRecurrenceIntervalGroup.style.display = 'none';
+        } else {
+            editRecurrenceIntervalGroup.style.display = 'flex'; // Or 'block'
+            // Update unit text
+            switch(type) {
+                case 'daily': editRecurrenceIntervalUnit.textContent = 'days'; break;
+                case 'weekly': editRecurrenceIntervalUnit.textContent = 'weeks'; break;
+                case 'monthly': editRecurrenceIntervalUnit.textContent = 'months'; break;
+                case 'yearly': editRecurrenceIntervalUnit.textContent = 'years'; break;
+                default: editRecurrenceIntervalUnit.textContent = 'interval';
+            }
+        }
+    }
+    // Add listener for the change event on the edit modal's recurrence select
+    editTaskRecurrenceTypeSelect.addEventListener('change', handleEditRecurrenceChange);
+
+    // --- NEW: Add event listeners for Edit Task Modal ---
+
+    // Handle Edit Task form submission
+    editTaskForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const taskId = editTaskIdInput.value;
+        if (!taskId) {
+            console.error("No task ID found in edit form.");
+            updateEditTaskStatus("Error: Task ID missing.", true);
+            return;
+        }
+
+        const saveButton = editTaskForm.querySelector('button[type="submit"]'); // Get the save button
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+        updateEditTaskStatus("Saving changes...", false);
+
+        // Gather data from the form
+        const updatedData = {
+            title: editTaskTitleInput.value.trim(),
+            description: editTaskDescriptionInput.value.trim() || null,
+            reminderTime: editTaskReminderTimeInput.value || null,
+            assignedDate: editTaskAssignedDateInput.value || null,
+            dueDate: editTaskDueDateInput.value || null,
+            recurrenceType: editTaskRecurrenceTypeSelect.value,
+            recurrenceInterval: editTaskRecurrenceTypeSelect.value !== 'none' ? parseInt(editTaskRecurrenceIntervalInput.value, 10) : null
+        };
+
+        // Basic validation (e.g., title cannot be empty)
+        if (!updatedData.title) {
+            updateEditTaskStatus("Task title cannot be empty.", true);
+            saveButton.disabled = false;
+            saveButton.textContent = 'Save Changes';
+            return;
+        }
+
+        console.log(`Submitting PUT /api/tasks/${taskId} with data:`, updatedData);
+
+        try {
+            const response = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Server error updating task' }));
+                throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+            }
+
+            const updatedTask = await response.json();
+            console.log("Task updated successfully:", updatedTask);
+
+            // Update UI - Easiest way is to reload all tasks
+            await loadTasks();
+            // Alternative: Find and update the specific task element in the DOM (more complex)
+            /*
+            const taskElement = taskListDiv.querySelector(`.task-item[data-task-id="${taskId}"]`);
+            if (taskElement) {
+                const newTaskElement = createTaskElement(updatedTask);
+                taskListDiv.replaceChild(newTaskElement, taskElement);
+            } else {
+                 await loadTasks(); // Fallback if element not found
+            }
+            */
+
+            updateEditTaskStatus("Task updated successfully!", false);
+            setTimeout(() => {
+                 editTaskModal.style.display = 'none'; // Close modal
+            }, 1000); // Short delay to show success message
+
+        } catch (error) {
+            console.error('Error updating task:', error);
+            updateEditTaskStatus(`Error updating task: ${error.message}`, true);
+        } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Save Changes';
+        }
+    });
+
+    // Close Edit Task modal via button
+    closeEditTaskModalBtn.addEventListener('click', () => {
+        editTaskModal.style.display = 'none';
+    });
+
+    // Close Edit Task modal by clicking outside
+    editTaskModal.addEventListener('click', (event) => {
+        if (event.target === editTaskModal) {
+            editTaskModal.style.display = 'none';
+        }
+    });
+
+     // --- NEW: Helper function to update edit task modal status ---
+     function updateEditTaskStatus(message, isError = false) {
+        console.log(`Edit Task Status: ${message} (Error: ${isError})`);
+        editTaskStatus.textContent = message;
+        editTaskStatus.className = `status ${isError ? 'error' : 'success'}`;
+        editTaskStatus.style.display = 'block';
+        // Clear after a delay, unless it's persisting an error?
+        // setTimeout(() => { editTaskStatus.style.display = 'none'; }, 4000);
+    }
+
+    // --- NEW: Completed Tasks Toggle Listener ---
+    completedTasksHeader.addEventListener('click', () => {
+        const isHidden = completedTaskListDiv.style.display === 'none';
+        completedTaskListDiv.style.display = isHidden ? 'block' : 'none';
+        // Toggle arrow direction
+        completedTasksHeader.innerHTML = isHidden ? 'Completed Tasks &#9652;' : 'Completed Tasks &#9662;';
+    });
+
+    // --- NEW: Helper function to update completed task header text ---
+    function updateCompletedTaskHeader(count) {
+        const arrow = completedTaskListDiv.style.display === 'none' ? '&#9662;' : '&#9652;'; // Get current arrow state
+        completedTasksHeader.innerHTML = `Completed Tasks (${count}) ${arrow}`;
+    }
 
 }); // End DOMContentLoaded

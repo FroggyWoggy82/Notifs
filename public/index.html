@@ -59,6 +59,16 @@
         <div id="taskListStatus" class="status"></div>
     </section>
 
+    <!-- ===== Completed Tasks Section ===== -->
+    <section class="completed-tasks-section">
+        <h3 id="completedTasksHeader" class="collapsible-header">Completed Tasks &#9662;</h3> <!-- Added arrow -->
+        <div id="completedTaskList" class="collapsible-content" style="display: none;">
+            <!-- Completed tasks will be dynamically added here -->
+            <p>No completed tasks yet.</p>
+        </div>
+    </section>
+    <!-- ===== End Completed Tasks Section ===== -->
+
     <!-- ===== Habit List Section ===== -->
     <section class="habit-list-section">
         <h2>Habit List</h2>
@@ -147,6 +157,59 @@
 
     <!-- ===== Add Task FAB ===== -->
     <button id="addTaskFab" class="fab" title="Add New Task">+</button>
+
+    <!-- ===== Edit Task Modal ===== -->
+    <div id="editTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Edit Task</h2>
+            <form id="editTaskForm">
+                <input type="hidden" id="editTaskId"> <!-- Hidden field for ID -->
+                <div class="form-group">
+                    <label for="editTaskTitle">Title:</label>
+                    <input type="text" id="editTaskTitle" placeholder="What needs to be done?" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTaskDescription">Description (Optional):</label>
+                    <textarea id="editTaskDescription" placeholder="Add more details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editTaskReminderTime">Reminder Time (Optional):</label>
+                    <input type="datetime-local" id="editTaskReminderTime">
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="editTaskAssignedDate">Assigned Date:</label>
+                        <input type="date" id="editTaskAssignedDate">
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="editTaskDueDate">Due Date (Optional):</label>
+                        <input type="date" id="editTaskDueDate">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="editTaskRecurrenceType">Recurrence:</label>
+                        <select id="editTaskRecurrenceType">
+                            <option value="none">None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="editRecurrenceIntervalGroup" style="display: none;"> 
+                        <label for="editTaskRecurrenceInterval">Every:</label>
+                        <input type="number" id="editTaskRecurrenceInterval" value="1" min="1" step="1" style="width: 60px;">
+                        <span id="editRecurrenceIntervalUnit">days</span>
+                    </div>
+                </div>
+                <button type="submit" id="saveTaskBtn">Save Changes</button>
+            </form>
+            <div id="editTaskStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Edit Task Modal ===== -->
 
     <!-- ===== Add Habit Modal ===== -->
     <div id="addHabitModal" class="modal">

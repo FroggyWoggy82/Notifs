@@ -1,5 +1,39 @@
 /* Food & Recipe specific styles */
 
+/* ===== Weight Goal Section (NEW) ===== */
+#weight-goal-section {
+    margin-top: 20px; /* Add some space below header */
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+    margin-bottom: 40px; /* Space before recipe creation */
+}
+
+#weight-goal-section h2 {
+    font-weight: 500;
+    color: #1f2933;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c8d0d7;
+    text-align: left;
+    font-size: 1.3em;
+}
+
+#weight-goal-form button {
+    margin-top: 10px; /* Space between inputs and button */
+}
+
+.chart-container {
+    margin-top: 30px;
+    position: relative;
+    height: 300px; /* Adjust height as needed */
+    width: 100%;
+}
+/* ===== End Weight Goal Section ===== */
+
+
 /* Sections */
 #recipe-creation-section,
 #recipes-display-section {

@@ -66,6 +66,136 @@ app.use('/api/habits', habitRoutes);
 // Mount the recipe routes - ALL requests starting with /api/recipes go here
 app.use('/api/recipes', recipeRoutes);
 
+// --- NEW Weight Goal & Log API Routes ---
+
+// GET /api/weight/goal - Get the current weight goal
+app.get('/api/weight/goal', async (req, res) => {
+    console.log("Received GET /api/weight/goal");
+    try {
+        // Fetch the latest goal (assuming only one matters)
+        const result = await db.query('SELECT target_weight, weekly_gain_goal FROM weight_goals ORDER BY updated_at DESC LIMIT 1');
+        if (result.rows.length > 0) {
+            // Convert numeric types from string potentially returned by node-postgres to numbers
+            const goal = {
+                target_weight: parseFloat(result.rows[0].target_weight),
+                weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal)
+            };
+            res.json(goal);
+        } else {
+            res.json({ target_weight: null, weekly_gain_goal: null }); // No goal set
+        }
+    } catch (err) {
+        console.error('Error fetching weight goal:', err);
+        res.status(500).json({ error: 'Failed to fetch weight goal' });
+    }
+});
+
+// POST /api/weight/goal - Save or update the weight goal
+app.post('/api/weight/goal', async (req, res) => {
+    const { targetWeight, weeklyGain } = req.body;
+    console.log(`Received POST /api/weight/goal: target=${targetWeight}, gain=${weeklyGain}`);
+
+    const p_targetWeight = parseFloat(targetWeight);
+    const p_weeklyGain = parseFloat(weeklyGain);
+
+    if (isNaN(p_targetWeight) || p_targetWeight <= 0 || isNaN(p_weeklyGain) || p_weeklyGain <= 0) {
+        return res.status(400).json({ error: 'Invalid input. Target weight and weekly gain must be positive numbers.' });
+    }
+
+    try {
+        await db.query('BEGIN');
+        await db.query('DELETE FROM weight_goals'); // Remove old goal(s)
+        const result = await db.query(
+            'INSERT INTO weight_goals (target_weight, weekly_gain_goal) VALUES ($1, $2) RETURNING target_weight, weekly_gain_goal',
+            [p_targetWeight, p_weeklyGain]
+        );
+        await db.query('COMMIT');
+
+        const savedGoal = {
+            target_weight: parseFloat(result.rows[0].target_weight),
+            weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal)
+        };
+        console.log("Weight goal saved:", savedGoal);
+        res.status(201).json(savedGoal);
+    } catch (err) {
+        await db.query('ROLLBACK');
+        console.error('Error saving weight goal:', err);
+        res.status(500).json({ error: 'Failed to save weight goal' });
+    }
+});
+
+// GET /api/weight/logs - Get all weight logs
+app.get('/api/weight/logs', async (req, res) => {
+    console.log("Received GET /api/weight/logs");
+    try {
+        const result = await db.query('SELECT log_id, log_date, weight FROM weight_logs ORDER BY log_date ASC');
+        // Format date and weight for consistency
+        const logs = result.rows.map(row => ({
+            log_id: row.log_id,
+            log_date: row.log_date.toISOString().split('T')[0], // YYYY-MM-DD format
+            weight: parseFloat(row.weight)
+        }));
+        res.json(logs);
+    } catch (err) {
+        console.error('Error fetching weight logs:', err);
+        res.status(500).json({ error: 'Failed to fetch weight logs' });
+    }
+});
+
+// POST /api/weight/log - Add a new weight log entry (for scale shortcut)
+app.post('/api/weight/log', async (req, res) => {
+    const { weight } = req.body;
+    // Use provided date (YYYY-MM-DD) or default to today's date
+    const logDateInput = req.body.date; 
+    console.log(`Received POST /api/weight/log: weight=${weight}, date=${logDateInput}`);
+
+    const p_weight = parseFloat(weight);
+    if (isNaN(p_weight) || p_weight <= 0) {
+        return res.status(400).json({ error: 'Invalid weight value. Must be a positive number.' });
+    }
+
+    let p_logDateStr;
+    try {
+        if (logDateInput && /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(logDateInput)) {
+             // Basic validation for YYYY-MM-DD format
+            const tempDate = new Date(logDateInput + 'T00:00:00Z'); // Treat as UTC date
+            if (isNaN(tempDate.getTime())) throw new Error('Invalid date value');
+            p_logDateStr = logDateInput;
+        } else {
+            // Default to current date in YYYY-MM-DD format (consider server timezone)
+            p_logDateStr = new Date().toISOString().split('T')[0];
+            console.log(`No valid date provided, defaulting to: ${p_logDateStr}`);
+        }
+    } catch (e) {
+         return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD.' });
+    }
+
+    try {
+        const result = await db.query(
+            'INSERT INTO weight_logs (log_date, weight) VALUES ($1, $2) RETURNING log_id, log_date, weight',
+            [p_logDateStr, p_weight]
+        );
+        
+        const newLog = {
+            log_id: result.rows[0].log_id,
+            log_date: result.rows[0].log_date.toISOString().split('T')[0],
+            weight: parseFloat(result.rows[0].weight)
+        };
+
+        console.log("Weight log recorded successfully:", newLog);
+        res.status(201).json(newLog);
+    } catch (err) {
+        // Handle potential unique constraint violation if logging twice on the same day?
+        // Currently, the table allows multiple logs per day. If you want only one,
+        // add a UNIQUE constraint on log_date and handle the error code (23505) here.
+        console.error('Error recording weight log:', err);
+        res.status(500).json({ error: 'Failed to record weight log' });
+    }
+});
+
+// --- End Weight Routes ---
+
+
 // --- NEW Task API Routes ---
 
 // GET /api/tasks - Fetch all tasks
@@ -182,26 +312,142 @@ app.post('/api/tasks', async (req, res) => {
     }
 });
 
-// PUT /api/tasks/:id - Update a task (e.g., toggle completion)
+// PUT /api/tasks/:id - Update a task (including edit functionality)
 app.put('/api/tasks/:id', async (req, res) => {
     const { id } = req.params;
-    const { is_complete } = req.body; // Only handling completion toggle for now
-    console.log(`Received PUT /api/tasks/${id}: is_complete=${is_complete}`);
-
-    if (typeof is_complete !== 'boolean') {
-        return res.status(400).json({ error: 'Invalid value for is_complete, must be boolean.' });
-    }
+    // Destructure all possible fields from the body
+    const { title, description, reminderTime, is_complete, assignedDate, dueDate, recurrenceType, recurrenceInterval } = req.body;
+    
+    console.log(`Received PUT /api/tasks/${id}:`, req.body);
 
     // Validate ID format (simple integer check)
     if (!/^[1-9]\d*$/.test(id)) {
         return res.status(400).json({ error: 'Invalid task ID format' });
     }
 
+    // Build the update query dynamically based on provided fields
+    const updates = {};
+    const values = [];
+    let queryIndex = 1;
+
+    if (title !== undefined) {
+        if (typeof title !== 'string' || title.trim() === '') {
+            return res.status(400).json({ error: 'Task title cannot be empty' });
+        }
+        updates.title = title.trim();
+    }
+    if (description !== undefined) { // Allow empty string for description
+         if (typeof description !== 'string') {
+             return res.status(400).json({ error: 'Invalid description format' });
+         }
+        updates.description = description.trim();
+    }
+    if (is_complete !== undefined) {
+        if (typeof is_complete !== 'boolean') {
+            return res.status(400).json({ error: 'Invalid value for is_complete, must be boolean.' });
+        }
+        updates.is_complete = is_complete;
+    }
+
+    // --- Handle Date and Time Updates --- 
+    let p_reminderTimestamp = null;
+    let p_isReminderActive = false; // Reset reminder status unless new time is valid and in future
+    if (reminderTime !== undefined) { 
+        if (reminderTime === null || reminderTime === '') {
+            updates.reminder_time = null;
+            updates.is_reminder_active = false;
+        } else {
+            try {
+                p_reminderTimestamp = new Date(reminderTime);
+                if (isNaN(p_reminderTimestamp.getTime())) throw new Error('Invalid Reminder Time');
+                updates.reminder_time = p_reminderTimestamp;
+                if (p_reminderTimestamp > new Date()) {
+                    p_isReminderActive = true; // Set active only if valid and future
+                }
+                 updates.is_reminder_active = p_isReminderActive; 
+            } catch { return res.status(400).json({ error: 'Invalid Reminder Time format.' }); }
+        }
+    } // If reminderTime is undefined, we don't touch reminder_time or is_reminder_active
+
+    if (assignedDate !== undefined) {
+        if (assignedDate === null || assignedDate === '') {
+            updates.assigned_date = null; // Allow clearing assigned date
+        } else {
+            try {
+                const p_assignedDate = new Date(assignedDate);
+                if (isNaN(p_assignedDate.getTime())) throw new Error('Invalid Assigned Date');
+                updates.assigned_date = p_assignedDate.toISOString().split('T')[0];
+            } catch { return res.status(400).json({ error: 'Invalid Assigned Date format.' }); }
+        }
+    }
+    if (dueDate !== undefined) {
+        if (dueDate === null || dueDate === '') {
+             updates.due_date = null; // Allow clearing due date
+        } else {
+            try {
+                 const p_dueDate = new Date(dueDate);
+                if (isNaN(p_dueDate.getTime())) throw new Error('Invalid Due Date');
+                updates.due_date = p_dueDate.toISOString().split('T')[0];
+            } catch { return res.status(400).json({ error: 'Invalid Due Date format.' }); }
+        }
+    }
+    // --- End Date Handling ---
+
+    // --- Handle Recurrence Updates --- 
+    if (recurrenceType !== undefined) {
+        const validRecurrenceTypes = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
+        if (!validRecurrenceTypes.includes(recurrenceType)) {
+             return res.status(400).json({ error: 'Invalid recurrence type.' });
+        }
+        updates.recurrence_type = recurrenceType;
+        // If type changes to 'none', ensure interval is reset in the DB logic below
+    }
+    if (recurrenceInterval !== undefined) {
+         try {
+             const interval = parseInt(recurrenceInterval, 10);
+             if (isNaN(interval) || interval < 1) {
+                 return res.status(400).json({ error: 'Recurrence interval must be a positive integer.' });
+             }
+             updates.recurrence_interval = interval;
+         } catch { return res.status(400).json({ error: 'Invalid recurrence interval format.' }); }
+    }
+    // --- End Recurrence Handling ---
+
+    // --- Always update the updated_at timestamp ---
+    updates.updated_at = 'NOW()'; // Use SQL NOW() function
+
+    // --- Explicitly handle recurrence interval reset ---
+    if (updates.recurrence_type === 'none') {
+        updates.recurrence_interval = 1;
+    }
+
+    // Check if we have any actual updates besides updated_at (optional, but good practice)
+    const updateKeys = Object.keys(updates).filter(k => k !== 'updated_at');
+    if (updateKeys.length === 0) {
+        // Technically only updated_at would change. Depending on requirements,
+        // we might return early or proceed to just touch the timestamp.
+        // For now, let's proceed to update the timestamp.
+        console.log(`Task ${id}: Only updating timestamp.`);
+    }
+
+    // Build the SET part of the SQL query (Simplified)
+    const setClauses = Object.keys(updates).map(key => {
+        if (key === 'updated_at') {
+            return `${key} = NOW()`;
+        } else {
+            values.push(updates[key]); // Add the value to the array
+            return `${key} = $${queryIndex++}`; // Assign the next placeholder
+        }
+    });
+
+    values.push(id); // Add the ID for the WHERE clause
+    const sqlQuery = `UPDATE tasks SET ${setClauses.join(', ')} WHERE id = $${queryIndex} RETURNING *`;
+
+    console.log("Executing SQL:", sqlQuery);
+    console.log("With Values:", values);
+
     try {
-        const result = await db.query(
-            'UPDATE tasks SET is_complete = $1 WHERE id = $2 RETURNING *',
-            [is_complete, id]
-        );
+        const result = await db.query(sqlQuery, values);
 
         if (result.rowCount === 0) {
             console.log(`Update Task: Task ${id} not found.`);

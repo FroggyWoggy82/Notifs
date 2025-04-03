@@ -51,6 +51,12 @@ button {
     width: 100%; /* Full width buttons */
     box-sizing: border-box;
     text-align: center;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
+/* Remove tap highlight from links too */
+a {
+    -webkit-tap-highlight-color: transparent;
 }
 
 button:hover {
@@ -275,8 +281,6 @@ textarea {
     place-content: center;
     cursor: pointer;
     flex-shrink: 0; /* Prevent checkbox from shrinking */
-    align-self: flex-start; /* Align with first line of text */
-    margin-top: 3px; /* Fine-tune vertical alignment if needed */
 }
 
 .task-item input[type="checkbox"]::before {
@@ -341,6 +345,49 @@ textarea {
     gap: 8px;
 }
 
+/* NEW: Style for edit button in task list */
+.task-item .edit-task-btn {
+    order: 1 !important; /* Force order: Edit first */
+    background-color: #566573; /* Match habit list edit button color (Muted grey/blue) */
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Match habit delete-btn */
+    font-size: 0.8em;  /* Match habit delete-btn */
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0;
+    width: auto;
+    display: inline-block;
+    text-align: center;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+.task-item .edit-task-btn:hover {
+    background-color: #6c7a89; /* Match habit list edit button hover */
+}
+
+/* Apply consistent styles to delete button in task list */
+.task-item .delete-btn {
+    order: 2 !important; /* Force order: Delete second */
+    background-color: #e74c3c; /* Red */
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Match edit-btn */
+    font-size: 0.8em;  /* Match edit-btn */
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0;
+    width: auto;
+    display: inline-block;
+    text-align: center;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.task-item .delete-btn:hover {
+    background-color: #c0392b; /* Darker red */
+}
+
 /* Removed .scheduled-item styles */
 
 .info-box { /* Kept similar, adjusted colors */
@@ -354,6 +401,58 @@ textarea {
     border: 1px solid #fbe3c6;
 }
 
+/* --- Completed Tasks Section (NEW) --- */
+.completed-tasks-section {
+    margin-top: 20px; /* Space below main task list */
+    /* No background/border needed for the section itself */
+}
+
+.collapsible-header {
+    font-weight: 500;
+    color: #3e5062; /* Slightly lighter than main section headers */
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    background-color: #f8f9fa; /* Light background for header */
+    border: 1px solid #dde5eb;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none; /* Prevent text selection */
+    display: flex; /* Align text and arrow */
+    justify-content: space-between; /* Space out text and arrow */
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.collapsible-header:hover {
+    background-color: #e8eef2;
+}
+
+.collapsible-content {
+    padding: 15px;
+    border: 1px solid #dde5eb;
+    border-top: none; /* Remove top border, header has bottom border */
+    border-radius: 0 0 4px 4px; /* Round bottom corners */
+    /* display: none; is set inline in HTML initially */
+}
+
+/* Style completed tasks similarly to active tasks but maybe slightly muted */
+#completedTaskList .task-item {
+    background-color: #e8f5e9; /* Use the old 'complete' background */
+    opacity: 0.85; /* Slightly faded */
+}
+
+#completedTaskList .task-item .task-title,
+#completedTaskList .task-item .task-description {
+    text-decoration: line-through;
+    color: #757575;
+}
+
+/* Keep buttons functional */
+#completedTaskList .task-item .edit-task-btn,
+#completedTaskList .task-item .delete-btn {
+    opacity: 0.7; /* Slightly fade buttons too */
+}
+/* --- End Completed Tasks Section --- */
 
 /* Bottom Navigation Bar Styles */
 .bottom-nav {
@@ -576,6 +675,27 @@ textarea {
 }
 .habit-item .edit-habit-btn:hover {
     background-color: #6c7a89;
+}
+
+/* NEW: Style for delete button in habit list to match edit button size */
+.habit-item .delete-btn {
+    background-color: #e74c3c; /* Red */
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Match edit-btn */
+    font-size: 0.8em;  /* Match edit-btn */
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0; /* Match edit-btn */
+    width: auto; /* Match edit-btn */
+    display: inline-block; /* Match edit-btn */
+    text-align: center; /* Center text */
+    box-sizing: border-box;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.habit-item .delete-btn:hover {
+    background-color: #c0392b; /* Darker red */
 }
 
 /* Style for completed habits */
