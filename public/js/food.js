@@ -240,30 +240,76 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ensure logs are sorted by date (API should do this, but double-check)
             weightLogs.sort((a, b) => new Date(a.log_date) - new Date(b.log_date));
 
-            const labels = weightLogs.map(log => new Date(log.log_date + 'T00:00:00Z').toLocaleDateString()); // Parse YYYY-MM-DD as UTC date
+            const histLabels = weightLogs.map(log => new Date(log.log_date + 'T00:00:00Z').toLocaleDateString()); // Use UTC date for consistency
             const actualWeightData = weightLogs.map(log => log.weight);
             
-            // Calculate target weight line (simple linear projection)
+            // --- Generate Future Dates and Labels --- 
+            const futureLabels = [];
+            const WEEKS_TO_PROJECT = 6; // Project ~6 weeks into the future
+            const lastLogDate = new Date(weightLogs[weightLogs.length - 1].log_date + 'T00:00:00Z');
+            
+            for (let i = 1; i <= WEEKS_TO_PROJECT; i++) {
+                const futureDate = new Date(lastLogDate);
+                futureDate.setDate(lastLogDate.getDate() + (i * 7)); // Add weeks
+                futureLabels.push(futureDate.toLocaleDateString());
+            }
+
+            // --- Combine Labels and Pad Actual Data --- 
+            const labels = [...histLabels, ...futureLabels];
+            // Pad actual weight data with nulls for the future dates
+            const paddedActualWeightData = [...actualWeightData, ...Array(futureLabels.length).fill(null)];
+
+            // --- Calculate Full Target Weight Line (Historical + Future) --- 
             const targetWeightLine = [];
             const startDate = new Date(weightLogs[0].log_date + 'T00:00:00Z'); // Use first log date as start
             const startWeight = actualWeightData[0]; // Use first log weight as start
             const targetWeight = goalData.target_weight;
             const weeklyGain = goalData.weekly_gain_goal;
 
+            // --- Add Logging --- 
+            console.log("Chart: Received goalData:", goalData);
+            console.log("Chart: Values for target line calculation:", 
+                { targetWeight, weeklyGain, startDate, startWeight });
+            // --- End Logging ---
+
             if (targetWeight !== null && weeklyGain !== null && weeklyGain > 0 && !isNaN(targetWeight) && !isNaN(weeklyGain)) {
-                weightLogs.forEach(log => {
-                    const currentDate = new Date(log.log_date + 'T00:00:00Z');
+                console.log("Chart: Condition to draw target line met."); // Log condition met
+                // Iterate through the COMBINED labels array to calculate target for each date point
+                labels.forEach(labelStr => {
+                    // Convert label string back to Date object for calculation
+                    // This relies on toLocaleDateString and new Date() parsing it correctly - might need adjustment based on locale
+                    // A more robust way might be to store Date objects initially, then format for labels later.
+                    // Let's try parsing it directly for now.
+                    const currentDate = new Date(labelStr); // Attempt to parse the label string
+                    if (isNaN(currentDate.getTime())) {
+                        console.warn(`Could not parse date label for target line calculation: ${labelStr}`);
+                        // Decide how to handle unparseable date - push null or skip?
+                        targetWeightLine.push(null); // Push null if date is invalid
+                        return; // Skip to next iteration
+                    } 
+
+                    // Ensure currentDate uses the same time basis as startDate (e.g., UTC midnight)
+                    currentDate.setUTCHours(0, 0, 0, 0);
+
                     const weeksDiff = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 7);
-                    const projectedWeight = startWeight + (weeksDiff * weeklyGain);
-                    // Cap projection at target weight
-                    targetWeightLine.push(Math.min(projectedWeight, targetWeight)); 
+                    // Only calculate projection if weeksDiff is non-negative (i.e., date is after start)
+                    if (weeksDiff >= 0) { 
+                        const projectedWeight = startWeight + (weeksDiff * weeklyGain);
+                        // Cap projection at target weight
+                        targetWeightLine.push(Math.min(projectedWeight, targetWeight)); 
+                    } else {
+                        // If somehow a date before start date is processed, push null
+                        targetWeightLine.push(null); 
+                    }
                 });
             } else {
-                console.log("Goal not set or invalid, not drawing target line.")
+                console.log("Goal not set or invalid, not drawing target line.");
+                // Ensure targetWeightLine has the same length as labels, filled with nulls
+                for (let i = 0; i < labels.length; i++) { targetWeightLine.push(null); }
             }
             // --- End Target Line Calculation ---
 
-            renderWeightChart(labels, actualWeightData, targetWeightLine);
+            renderWeightChart(labels, paddedActualWeightData, targetWeightLine);
             weightChartMessage.style.display = 'none'; // Hide message
             weightGoalChartCanvas.style.display = 'block'; // Show canvas
 
@@ -630,6 +676,13 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchAndDisplayIngredients(recipeId, detailsDiv, target); // Pass button to toggle text
         }
     });
+
+    // --- Add Event Listener for Weight Goal Form --- //
+    if (weightGoalForm) { // Ensure the form exists before adding listener
+        weightGoalForm.addEventListener('submit', saveWeightGoal);
+    } else {
+        console.error("Could not find weight goal form element (#weight-goal-form) to attach listener.");
+    }
 
     // --- Initial Load --- //
     loadWeightGoal(); // Load saved goal

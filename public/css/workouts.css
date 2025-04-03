@@ -402,28 +402,50 @@ h1, h2 {
     border: 1px solid #444;
     border-radius: 8px;
     padding: 15px;
-    position: relative; /* For potential absolute elements like delete */
+    /* position: relative; */ /* <<< इंश्योर करें कि यह हटाया गया है या टिप्पणी की गई है */
 }
 
 .exercise-item-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    gap: 10px; /* Keep gap for spacing between title, dropdown, and button */
+    padding-top: 5px;
 }
 
 .exercise-item-header h4 {
     margin: 0;
     font-size: 1.1rem;
     color: #03dac6;
+    flex-shrink: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+}
+
+/* Style for the new header unit select */
+.exercise-unit-select {
+    padding: 4px 8px;
+    background-color: #333;
+    border: 1px solid #555;
+    color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 65px;
+    max-width: 65px;
 }
 
 /* Style for set rows within an exercise */
 /* Target ONLY set rows directly inside .exercise-list (Active Workout), NOT .template-editor-list */
 #current-exercise-list .set-row {
     display: grid;
-    /* Set#, Previous, Weight, Reps, Toggle */
-    grid-template-columns: auto 90px 1fr 1fr auto; /* Fixed width for Previous */
+    /* Set#, Previous, Weight Input, Reps Input, Toggle */
+    grid-template-columns: auto 90px 1fr 1fr auto;
     gap: 10px;
     align-items: center;
     padding: 8px 0;
@@ -451,9 +473,10 @@ h1, h2 {
     color: #bbb;
 }
 
+/* Removed .weight-input-group styles */
+
 .set-row input[type="number"],
-.set-row input[type="text"],
-.set-row select {
+.set-row input[type="text"] {
     width: 100%;
     padding: 6px;
     background-color: #333;
@@ -462,6 +485,7 @@ h1, h2 {
     border-radius: 3px;
     font-size: 0.9rem;
     box-sizing: border-box; /* Include padding in width */
+    /* For number input */
     -moz-appearance: textfield; /* Hide number input spinners FF */
     appearance: textfield; /* Standard property */
 }
@@ -471,16 +495,7 @@ h1, h2 {
   margin: 0;
 }
 
-.set-row .weight-input-group {
-    display: flex;
-    gap: 5px;
-}
-.set-row .weight-input-group input {
-     flex-grow: 1;
-}
-.set-row .weight-input-group select {
-    flex-basis: 60px; /* Adjust as needed */
-}
+/* Removed .weight-input-group specific styles */
 
 .set-complete-toggle {
     /* Style as a checkmark button */
@@ -509,6 +524,15 @@ h1, h2 {
     background-color: #2e4a2e; /* Subtle dark green background */
     /* Add transition for smoother effect */
     transition: background-color 0.3s ease;
+}
+
+/* Style disabled inputs in completed set rows */
+.set-row:has(.set-complete-toggle.completed) .weight-input:disabled,
+.set-row:has(.set-complete-toggle.completed) .reps-input:disabled {
+    background-color: #3a3a3a; /* Darker background */
+    color: #aaa; /* Lighter text color */
+    opacity: 0.7; /* Slightly transparent */
+    cursor: not-allowed; /* Indicate non-interactive */
 }
 
 .btn-complete {
@@ -858,36 +882,50 @@ h1, h2 {
 }
 
 /* Style for the delete button within an active exercise item */
-.btn-delete-exercise,
-.btn-delete-template-exercise { /* ADDING TEMPLATE EDITOR BUTTON HERE */
+/* INCREASE SPECIFICITY by adding parent context */
+.exercise-item .btn-delete-exercise,
+.exercise-item .btn-delete-template-exercise {
+    /* REMOVE Absolute Positioning */
+    /* position: absolute; */
+    /* top: 10px; */
+    /* right: 10px; */
+
+    /* Keep existing styles for appearance */
     background: none;
     border: none;
     color: #aaa;
-    font-size: 1.2rem; /* Match template delete button */
+    /* Reduce font size */
+    font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
-    padding: 0; /* Match */
+    /* Reduce padding */
+    padding: 2px 4px; /* Smaller padding (vertical horizontal) */
     line-height: 1;
-    /* Explicit sizing to match */
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     transition: color 0.2s ease;
+    z-index: 5; /* Can probably remove z-index too, but keep for now */
+
+    /* Ensure it doesn't shrink or grow unexpectedly */
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 30px; /* <<< ADD explicit basis */
+    max-width: 30px;  /* <<< ADD explicit max-width */
+
+    /* margin-left: auto; */ /* <<< REMOVE THIS */
 }
 
 /* Hover/Focus for active exercise delete */
-.btn-delete-exercise:focus,
-.btn-delete-exercise:hover,
-.btn-delete-template-exercise:focus, /* ADDING TEMPLATE EDITOR BUTTON HERE */
-.btn-delete-template-exercise:hover { /* ADDING TEMPLATE EDITOR BUTTON HERE */
+/* INCREASE SPECIFICITY */
+.exercise-item .btn-delete-exercise:focus,
+.exercise-item .btn-delete-exercise:hover,
+.exercise-item .btn-delete-template-exercise:focus,
+.exercise-item .btn-delete-template-exercise:hover {
     color: #f44336; /* Red */
     outline: none;
 }
 
-.btn-delete-exercise:focus-visible,
-.btn-delete-template-exercise:focus-visible { /* ADDING TEMPLATE EDITOR BUTTON HERE */
+/* INCREASE SPECIFICITY */
+.exercise-item .btn-delete-exercise:focus-visible,
+.exercise-item .btn-delete-template-exercise:focus-visible {
      outline: 2px solid #bb86fc; /* Match theme focus */
      outline-offset: 1px;
 }
@@ -917,16 +955,6 @@ h1, h2 {
 /* Exercise Notes Group */
 .exercise-notes-group {
     margin-top: 10px;
-}
-
-/* Style disabled inputs in completed set rows */
-.set-row:has(.set-complete-toggle.completed) .weight-input:disabled,
-.set-row:has(.set-complete-toggle.completed) .reps-input:disabled,
-.set-row:has(.set-complete-toggle.completed) .unit-select:disabled {
-    background-color: #3a3a3a; /* Darker background */
-    color: #aaa; /* Lighter text color */
-    opacity: 0.7; /* Slightly transparent */
-    cursor: not-allowed; /* Indicate non-interactive */
 }
 
 /* Shared styles for input fields */

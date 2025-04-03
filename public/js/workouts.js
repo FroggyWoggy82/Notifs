@@ -35,17 +35,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- State Variables ---
     let availableExercises = []; // Populated from API
     let workoutTemplates = [];   // Populated from API
-    let currentWorkout = [];     // Array of exercise objects being performed { exercise_id, name, category, sets, reps, weight, weight_unit, order_position, notes, completedSets: [], lastLog: null }
+    let currentWorkout = [];     // Can be an array (empty workout) or object { name, exercises: [...] } (template workout)
     let workoutStartTime = null;
     let workoutTimerInterval = null;
     let editingTemplateId = null; // To track which template is being edited
     let currentTemplateExercises = []; // Array for exercises in the template editor
     let exerciseHistoryChart = null; // To hold the Chart.js instance
     let currentHistoryCategoryFilter = 'all'; // State for history category filter
-    const historyMessageEl = document.getElementById('history-message');
-    const historyEditBtn = document.getElementById('history-edit-btn'); // Renamed button reference
     let currentHistoryExerciseId = null; // Store the currently selected exercise ID
     let currentHistoryExerciseName = null; // Store the name
+    let currentPage = 'landing'; // <<< ADDED: Declare currentPage in top-level scope
 
     // --- NEW: Progress Photo Slider State ---
     let progressPhotosData = []; // Holds the array of { photo_id, date_taken, file_path, ... }
@@ -149,51 +148,77 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Helper function to generate HTML for set rows ---
     function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
         let setRowsHtml = '';
-        const numSets = parseInt(exerciseData.sets) || 1;
-        const lastLogData = isTemplate ? null : exerciseData.lastLog;
+        // Determine the number of sets based on previously logged sets count,
+        // or fall back to the template/default 'sets' property.
+        let numSets = 1; // Default to 1 set
+        if (!isTemplate && exerciseData.lastLog && exerciseData.lastLog.reps_completed) {
+            // If we have a last log, use the number of rep entries as the set count for rendering
+            numSets = exerciseData.lastLog.reps_completed.split(',').length;
+        } else {
+            // Otherwise, use the 'sets' property from the template/exercise data
+            numSets = parseInt(exerciseData.sets) || 1;
+        }
+        // Ensure at least one set is rendered
+        numSets = Math.max(1, numSets);
 
-        // Parse previous log data into arrays (if available)
-        let prevRepsArray = [];
-        let prevWeightsArray = [];
-        let prevUnit = 'kg'; // Default unit
-        if (!isTemplate && lastLogData && lastLogData.reps_completed && lastLogData.weight_used) {
-            prevRepsArray = lastLogData.reps_completed.split(',');
-            prevWeightsArray = lastLogData.weight_used.split(',');
-            prevUnit = lastLogData.weight_unit || 'kg';
+        // Parse the *entire* previous log data ONCE, if available
+        let weightsArray = [];
+        let repsArray = [];
+        let prevUnit = 'kg';
+        if (!isTemplate && exerciseData.lastLog) {
+             console.log(`[generateSetRowsHtml] Found lastLog for ${exerciseData.name}:`, exerciseData.lastLog);
+            if (exerciseData.lastLog.weight_used) {
+                weightsArray = exerciseData.lastLog.weight_used.split(',').map(w => w.trim());
+            }
+            if (exerciseData.lastLog.reps_completed) {
+                repsArray = exerciseData.lastLog.reps_completed.split(',').map(r => r.trim());
+            }
+            prevUnit = exerciseData.lastLog.weight_unit || 'kg';
+             console.log(`[generateSetRowsHtml] Parsed arrays: weights=[${weightsArray}], reps=[${repsArray}]`);
         }
 
-        // Removed calculation of single previousLogText here
-
         for (let i = 0; i < numSets; i++) {
-             // Determine if this specific set was completed (only for active workouts)
-             const isCompleted = !isTemplate && exerciseData.completedSets && exerciseData.completedSets[i];
+            // --- Per-Set Logic --- 
+            let weightValue = ''; // Pre-fill value for weight input
+            let repsValue = '';   // Pre-fill value for reps input
+            let previousLogTextHtml = '- kg x -'; // Display text for previous log span
+            const currentUnit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
 
-            // --- Get previous data for THIS specific set index (i) ---
-            let previousLogText = '- kg x -'; // Default placeholder for this set
-            if (prevRepsArray.length > i && prevWeightsArray.length > i) {
-                 const prevRep = prevRepsArray[i]?.trim() || '-';
-                 const prevWeight = prevWeightsArray[i]?.trim() || '-';
-                 previousLogText = `${prevWeight} ${prevUnit} x ${prevRep}`; // Construct text for this set
-            } else if (!isTemplate && lastLogData && lastLogData.message) {
-                // Handle overall fetch error/no data message if needed (optional)
-                 // previousLogText = 'N/A';
+            // Check if previous log data exists for THIS specific set index (i)
+            if (!isTemplate && weightsArray.length > i && repsArray.length > i) {
+                const prevWeight = weightsArray[i];
+                const prevReps = repsArray[i];
+                
+                // Only populate if values are not empty strings
+                if (prevWeight !== '') {
+                    weightValue = prevWeight;
+                }
+                if (prevReps !== '') {
+                    repsValue = prevReps;
+                }
+                // Always update the display text if data exists for this set index
+                previousLogTextHtml = `${prevWeight || '-'} ${prevUnit} x ${prevReps || '-'}`;
+                 console.log(`[generateSetRowsHtml] Set ${i}: Pre-filling weight=${weightValue}, reps=${repsValue}. Display='${previousLogTextHtml}'`);
+            } else if (!isTemplate){
+                // If no specific data for this set index, keep inputs empty, show placeholder text
+                 console.log(`[generateSetRowsHtml] Set ${i}: No previous data found for this index.`);
             }
-            // --- End getting previous data for set index i ---
+            // --- End Per-Set Logic ---
 
+            const isCompleted = !isTemplate && exerciseData.completedSets && exerciseData.completedSets[i];
+            const isDisabled = isTemplate;
+            const weightInputType = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? 'hidden' : 'number';
+            const weightPlaceholder = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? '' : 'Wt';
+            const repsPlaceholder = 'Reps';
+
+            // Generate the HTML for this specific set row
             setRowsHtml += `
                 <div class="set-row" data-set-index="${i}">
                     <span class="set-number">${i + 1}</span>
-                    ${!isTemplate ? `<span class="previous-log" title="Last Session Set ${i + 1}">${previousLogText}</span>` : ''} <!-- Show previous data specific to this set index -->
-                    <div class="weight-input-group">
-                        <input type="number" class="weight-input" placeholder="Wt" value="${exerciseData.weight != null ? exerciseData.weight : ''}" step="0.5">
-                        <select class="unit-select">
-                            <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                            <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
-                            <option value="bodyweight">bw</option>
-                        </select>
-                    </div>
-                    <input type="text" class="reps-input" placeholder="Reps" value="${exerciseData.reps || ''}">
-                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}"></button>` : ''} <!-- Completion toggle only in active workout -->
+                    <span class="previous-log">${previousLogTextHtml}</span>
+                    <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+                    <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
                 </div>
             `;
         }
@@ -327,95 +352,123 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderCurrentWorkout() {
         currentExerciseListEl.innerHTML = ''; // Clear previous
-        if (currentWorkout.length === 0) {
+        const exercisesToRender = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+
+        if (!exercisesToRender || exercisesToRender.length === 0) {
             currentExerciseListEl.innerHTML = '<p>Add exercises using the + button.</p>';
             return;
         }
 
-        currentWorkout.forEach((exercise, index) => {
+        // Use Promise.all to handle async rendering of items
+        const renderPromises = exercisesToRender.map(async (exercise, index) => {
             const exerciseItem = document.createElement('div');
             exerciseItem.className = 'exercise-item';
-            exerciseItem.dataset.workoutIndex = index; // Index in currentWorkout array
+            // We will set dataset attributes *inside* renderSingleExerciseItem
 
-            // --- Fetch last log data and store it with the exercise --- 
-            // Check if lastLog already fetched (e.g., after add/remove set)
-            if (exercise.lastLog === undefined) { // Use undefined check to only fetch once
-                exercise.lastLog = null; // Mark as fetching or fetched
-                const fetchLastLog = async () => {
-                    try {
-                        const response = await fetch(`/api/workouts/exercises/${exercise.exercise_id}/lastlog`);
-                        if (response.ok) {
-                            exercise.lastLog = await response.json();
-                            console.log(`Last log for ${exercise.name}:`, exercise.lastLog);
-                        } else if (response.status === 404) {
-                            console.log(`No last log found for ${exercise.name}`);
-                            exercise.lastLog = { message: 'No previous log found.' }; // Indicate no log found
-                        } else {
-                            console.error(`Error fetching last log status: ${response.status}`);
-                            exercise.lastLog = { message: 'Error fetching data.' }; // Indicate error
-                        }
-                    } catch (error) {
-                        console.error(`Error fetching last log for ${exercise.name}:`, error);
-                         exercise.lastLog = { message: 'Network error fetching data.' }; // Indicate error
-                    } finally {
-                        // Re-render this specific exercise item once data (or error state) is determined
-                         renderSingleExerciseItem(exerciseItem, exercise, index);
-                    }
-                };
-                fetchLastLog(); // Initiate fetch only if not already fetched/fetching
-                 // Initial rendering (will be replaced by renderSingleExerciseItem after fetch)
-                 exerciseItem.innerHTML = `
-                     <div class="exercise-item-header">
-                         <h4>${exercise.name}</h4>
-                         <button class="btn-delete-exercise" title="Remove Exercise" data-workout-index="${index}">&times;</button>
-                     </div>
-                     <div class="sets-container">
-                         <p>Loading previous data...</p> <!-- Placeholder -->
-                     </div>
-                 `;
-            } else {
-                // If lastLog is already fetched (or fetch failed), render immediately
-                 renderSingleExerciseItem(exerciseItem, exercise, index);
+            // Directly call and await renderSingleExerciseItem.
+            // It handles its own fetching and rendering logic.
+            try {
+                await renderSingleExerciseItem(exerciseItem, exercise, index);
+                return exerciseItem; // Return the rendered element
+            } catch (error) {
+                console.error(`Error rendering exercise item for ${exercise.name}:`, error);
+                // Optionally return a placeholder error element
+                const errorItem = document.createElement('div');
+                errorItem.className = 'exercise-item error';
+                errorItem.textContent = `Error loading ${exercise.name}`;
+                return errorItem;
             }
-            // --- End fetch handling ---
+        });
 
-            currentExerciseListEl.appendChild(exerciseItem);
+        // Wait for all items to be rendered (or fail) and then append them
+        Promise.all(renderPromises).then(renderedItems => {
+            currentExerciseListEl.innerHTML = ''; // Clear again just in case
+            renderedItems.forEach(item => {
+                if (item) { // Ensure item exists (in case of error)
+                    currentExerciseListEl.appendChild(item);
+                }
+            });
+             console.log("[renderCurrentWorkout] Finished appending all rendered items.");
+        }).catch(error => {
+            console.error("Error rendering one or more workout items:", error);
+            currentExerciseListEl.innerHTML = '<p style="color: red;">Error displaying workout. Please try refreshing.</p>';
         });
     }
 
     // --- Reworked function to render a single exercise item (lastLogData now part of exerciseData) ---
-    function renderSingleExerciseItem(exerciseItemElement, exerciseData, index) {
-        const numSets = parseInt(exerciseData.sets) || 1;
-        const lastLogData = exerciseData.lastLog; // Get stored last log data
+    async function renderSingleExerciseItem(exerciseItemElement, exerciseData, index, isTemplate = false) {
+        console.log(`[Render Single] Rendering exercise '${exerciseData.name}' at index ${index}, isTemplate: ${isTemplate}`);
 
-        // Generate set rows HTML using the helper function
-        const setRowsHtml = generateSetRowsHtml(exerciseData, index, false); // Pass false for isTemplate
+        // Set data attributes for easy access later
+        exerciseItemElement.dataset.workoutIndex = index; // <<< Use workoutIndex consistently
+        exerciseItemElement.dataset.exerciseId = exerciseData.exercise_id;
 
-        // Update the existing exerciseItemElement
+        // --- Fetch Last Log --- Await this before generating HTML
+        if (!isTemplate && exerciseData.lastLog === undefined) { // Check if fetch needed
+            console.log(`[Render Single] Fetching last log for ${exerciseData.name}...`);
+            exerciseData.lastLog = null; // Set temporarily to prevent re-fetch while awaiting
+            const fetchLastLog = async () => {
+                try {
+                    const response = await fetch(`/api/workouts/exercises/${exerciseData.exercise_id}/lastlog`);
+                    if (response.ok) {
+                        const logData = await response.json();
+                        console.log(`[Render Single] Last log FETCHED for ${exerciseData.name}:`, logData);
+                        return logData; // Return the fetched data
+                    } else if (response.status === 404) {
+                         console.log(`[Render Single] No last log found for ${exerciseData.name}.`);
+                         return null; // Return null explicitly
+                     } else {
+                        console.error(`[Render Single] Error fetching last log for ${exerciseData.name}: ${response.statusText}`);
+                         return null; // Return null on error
+                     }
+                } catch (error) {
+                    console.error(`[Render Single] Network error fetching last log for ${exerciseData.name}:`, error);
+                     return null; // Return null on network error
+                }
+            };
+            // Await the result and store it back on exerciseData
+            exerciseData.lastLog = await fetchLastLog();
+            console.log(`[Render Single] Awaited fetch complete. exerciseData.lastLog is now:`, exerciseData.lastLog);
+        }
+        // --- End Fetch Last Log ---
+
+        // Now that lastLog is guaranteed to be fetched (or null), generate the HTML
+        const setsHtml = generateSetRowsHtml(exerciseData, index, isTemplate);
+
+        // Construct the inner HTML for the exercise item
+        // (Keep the existing innerHTML structure)
         exerciseItemElement.innerHTML = `
             <div class="exercise-item-header">
-                <h4>${exerciseData.name}</h4>
-                <button class="btn-delete-exercise" title="Remove Exercise" data-workout-index="${index}">&times;</button>
+                <h4>${escapeHtml(exerciseData.name)}</h4>
+                <select class="exercise-unit-select" data-workout-index="${index}">
+                    <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                    <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
+                    <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
+                    <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
+                </select>
+                <button class="${isTemplate ? 'btn-delete-template-exercise' : 'btn-delete-exercise'}" title="Remove Exercise">&times;</button>
             </div>
-            <!-- Removed the label for the notes textarea -->
-            <div class="form-group exercise-notes-group">
-               <textarea id="active-exercise-notes-${index}" class="exercise-notes-textarea active-notes" rows="2" placeholder="Notes for this exercise..."></textarea>
+            <div class="exercise-notes-group">  <!-- <<< MOVED UP -->
+                 <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
             </div>
-            <div class="sets-container">
-                ${setRowsHtml}
-            </div>
-            <!-- Add/Remove Set Buttons -->
+            <div class="sets-container"> ${setsHtml} </div>  <!-- <<< MOVED DOWN -->
             <div class="set-actions-container">
-                 <button type="button" class="btn-remove-set btn btn-danger btn-small" data-workout-index="${index}" ${numSets <= 1 ? 'disabled' : ''}>- Remove Set</button>
-                 <button type="button" class="btn-add-set btn btn-secondary btn-small" data-workout-index="${index}">+ Add Set</button>
+                <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
+                <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
             </div>
         `;
 
-        // Re-attach listeners for the updated content
-        exerciseItemElement.querySelectorAll('.set-complete-toggle').forEach(toggle => {
-            toggle.addEventListener('click', handleSetToggle);
-        });
-        exerciseItemElement.querySelector('.btn-delete-exercise').addEventListener('click', handleDeleteExercise);
+        // Initialize state for the remove button
+        const removeButton = exerciseItemElement.querySelector('.btn-remove-set');
+        const setRowsCount = exerciseItemElement.querySelectorAll('.set-row').length;
+        if (removeButton) {
+            removeButton.disabled = setRowsCount <= 1;
+        }
+
+        // Re-attach input listeners if needed, or rely on delegation
+        // Example if needed: setupSetInputListeners(exerciseItemElement);
+
+         console.log(`[Render Single] Finished rendering '${exerciseData.name}'`);
     }
 
     // --- Event Handlers ---\
@@ -440,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function switchPage(pageToShow) {
         console.log('switchPage called with:', pageToShow); // Log function call and argument
+        currentPage = pageToShow; // <<< Ensure this modifies the top-level variable (no 'let')
         workoutLandingPage.classList.remove('active');
         activeWorkoutPage.classList.remove('active');
         templateEditorPage.classList.remove('active'); // Hide editor too
@@ -468,27 +522,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function startWorkoutFromTemplate(templateId) {
-        console.log('Starting workout from template:', templateId);
         const template = workoutTemplates.find(t => t.workout_id === templateId);
         if (!template) {
-            console.error('Template not found!');
-            alert('Could not find the selected template.');
+            console.error("Template not found:", templateId);
             return;
         }
+        console.log(`Starting workout from template: ${templateId}`);
 
-        currentWorkoutNameEl.textContent = template.name;
-        // Deep copy exercises from template to currentWorkout, initializing completedSets
-        currentWorkout = template.exercises.map(ex => ({
-             ...ex,
-             completedSets: Array(ex.sets).fill(false), // Initialize completion array
-             lastLog: undefined // Mark lastLog as not yet fetched
-        }));
+        // Initialize currentWorkout as an object with name and exercises array
+        currentWorkout = {
+            name: template.name, // Store template name
+            exercises: template.exercises.map(ex => ({
+                ...ex,
+                lastLog: undefined, // Mark for fetching
+                // Initialize sets_completed based on template 'sets' count
+                sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({ weight: '', reps: '', unit: ex.weight_unit || 'kg', completed: false }))
+            }))
+        };
 
-        console.log('Current workout initialized from template:', currentWorkout);
+        console.log("Current workout initialized from template:", currentWorkout); // Log the object
 
-        renderCurrentWorkout();
+        // Set workout name display
+        currentWorkoutName = currentWorkout.name; // Use the name from the object
+        document.getElementById('current-workout-name').textContent = currentWorkoutName;
+
+        // Render the workout and switch page
+        renderCurrentWorkout(); // This function expects currentWorkout.exercises
         switchPage('active');
         startTimer();
+        // Show FAB
+        addExerciseFab.style.display = 'block';
     }
 
 
@@ -530,17 +593,76 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handleDeleteExercise(event) {
-        const indexToRemove = parseInt(event.target.dataset.workoutIndex, 10);
-        if (!isNaN(indexToRemove) && indexToRemove >= 0 && indexToRemove < currentWorkout.length) {
-             if (confirm(`Are you sure you want to remove ${currentWorkout[indexToRemove].name} from this workout?`)) {
-                 currentWorkout.splice(indexToRemove, 1);
-                 // Re-assign order_position if needed (or handle on save)
-                 // For simplicity, let's assume order is implicit for logging now
-                 renderCurrentWorkout(); // Re-render the list
-             }
-        } else {
-             console.error('Invalid index for exercise deletion:', event.target.dataset.workoutIndex);
+        const button = event.target; // Get the button that was clicked
+        console.log("[handleDeleteExercise] Clicked button:", button); // <<< ADD LOG
+        const exerciseItem = button.closest('.exercise-item'); // Find the parent exercise item
+        console.log("[handleDeleteExercise] Found parent exerciseItem:", exerciseItem); // <<< ADD LOG
+
+        if (!exerciseItem) {
+            console.error('Could not find parent exercise item for delete button.');
+            return;
         }
+
+        console.log("[handleDeleteExercise] exerciseItem.dataset:", exerciseItem.dataset); // <<< ADD LOG
+        const indexToRemove = parseInt(exerciseItem.dataset.workoutIndex, 10); // Get index from parent item
+        console.log(`[handleDeleteExercise] Parsed indexToRemove: ${indexToRemove} (Type: ${typeof indexToRemove})`); // <<< ADD LOG HERE
+
+        // Determine which list we are modifying based on context (active workout vs. template editor)
+        // REMOVED local declaration: let exercisesArray;
+        // REMOVED local declaration: let listElement;
+
+        // Check the globally defined currentPage
+        if (currentPage === 'active') {
+            exercisesArray = currentWorkout.exercises;
+            listElement = currentExerciseListEl;
+        } else if (currentPage === 'template-editor') {
+            // Assuming template exercises are stored in a variable like `templateEditorExercises`
+            // This needs to be adapted based on how template editor data is stored
+            exercisesArray = templateEditorData.exercises; // Example variable name
+            listElement = templateExerciseListEl; // Example list element
+        } else {
+            console.error("[handleDeleteExercise] Called from unknown page context:", currentPage);
+            return;
+        }
+
+        // Logging using the correct global currentPage
+        console.log(`[handleDeleteExercise] Checking index against array. Page: ${currentPage}`);
+        console.log(`[handleDeleteExercise] exercisesArray is defined: ${!!exercisesArray}`);
+        if (exercisesArray) {
+            console.log(`[handleDeleteExercise] exercisesArray length: ${exercisesArray.length}`);
+            // Optional: Log the first few elements to see if it looks correct
+            // console.log('[handleDeleteExercise] exercisesArray sample:', exercisesArray.slice(0, 2));
+        } else {
+            console.error("[handleDeleteExercise] exercisesArray is UNDEFINED or NULL!");
+        }
+
+
+        // Validate the index *after* determining the correct array
+        if (isNaN(indexToRemove) || indexToRemove < 0 || !exercisesArray || indexToRemove >= exercisesArray.length) {
+            console.error(`Invalid index for exercise deletion. Index: ${indexToRemove}, Array length: ${exercisesArray ? exercisesArray.length : 'undefined'}`);
+            return; // Stop execution if index is invalid
+        }
+
+        // === ADD CONFIRMATION ===
+        const exerciseNameToConfirm = exercisesArray[indexToRemove]?.name || 'this exercise';
+        if (!confirm(`Are you sure you want to remove ${exerciseNameToConfirm} from the workout?`)) {
+            console.log('[handleDeleteExercise] Deletion cancelled by user.');
+            return; // Stop if user cancels
+        }
+        // === END CONFIRMATION ===
+
+        // Proceed with deletion (original logic)
+        const removedExercise = exercisesArray.splice(indexToRemove, 1)[0];
+        console.log(`[handleDeleteExercise] Removed exercise at index ${indexToRemove}:`, removedExercise);
+
+        // === ADD UI REFRESH ===
+        // Re-render the appropriate list after deletion
+        if (currentPage === 'active') {
+            renderCurrentWorkout();
+        } else if (currentPage === 'template-editor') {
+            renderTemplateExerciseList();
+        }
+        // === END UI REFRESH ===
     }
 
     // --- NEW: Handler for Deleting Exercise from Template Editor ---
@@ -566,9 +688,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- END NEW ---
 
     function handleSetToggle(event) {
+        console.log("[handleSetToggle] Fired!"); // <<< Log 1: Function entry
         const toggleButton = event.target;
         const setRow = toggleButton.closest('.set-row');
         const exerciseItem = toggleButton.closest('.exercise-item');
+
+        console.log("[handleSetToggle] toggleButton:", toggleButton); // <<< Log 2: Log the button
+        console.log("[handleSetToggle] setRow:", setRow); // <<< Log 3: Log the row
+        console.log("[handleSetToggle] exerciseItem:", exerciseItem); // <<< Log 4: Log the item
 
         if (!setRow || !exerciseItem) {
             console.error('Could not find parent elements for set toggle.');
@@ -578,22 +705,41 @@ document.addEventListener('DOMContentLoaded', function() {
         const exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
         const setIndex = parseInt(setRow.dataset.setIndex, 10);
 
-        if (isNaN(exerciseIndex) || isNaN(setIndex) || !currentWorkout[exerciseIndex]) {
-             console.error('Invalid index for set toggle:', exerciseIndex, setIndex);
-             return;
+        console.log(`[handleSetToggle] exerciseIndex: ${exerciseIndex}, setIndex: ${setIndex}`); // <<< Log 5: Log indices
+
+        // --- Corrected Validation ---
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        if (isNaN(exerciseIndex) || isNaN(setIndex) || !exercises || !exercises[exerciseIndex]) {
+            console.error('Invalid index or exercise data for set toggle:', { exerciseIndex, setIndex, exerciseExists: !!(exercises && exercises[exerciseIndex]) });
+            return;
         }
+        // --- End Corrected Validation ---
 
         // Toggle visual state
         toggleButton.classList.toggle('completed');
+        console.log(`[handleSetToggle] Toggled 'completed' class. Button classes: ${toggleButton.className}`); // <<< Log 6: Log class toggle
 
         // Update internal state
         const isCompleted = toggleButton.classList.contains('completed');
-        if (!currentWorkout[exerciseIndex].completedSets) {
-             currentWorkout[exerciseIndex].completedSets = Array(currentWorkout[exerciseIndex].sets).fill(false);
-        }
-        currentWorkout[exerciseIndex].completedSets[setIndex] = isCompleted;
+        console.log(`[handleSetToggle] isCompleted state: ${isCompleted}`); // <<< Log 7: Log determined state
 
-        console.log(`Exercise ${exerciseIndex}, Set ${setIndex} completion: ${isCompleted}`);
+        // if (!exercises || !exercises[exerciseIndex]) { // Keep validation but use existing 'exercises' var
+        //      console.error('Could not find exercise data for toggle state update:', exerciseIndex); // Adjusted error message
+        //      return;
+        // }
+        const exerciseData = exercises[exerciseIndex];
+
+        if (!exerciseData.completedSets) {
+            const setRowCount = exerciseItem.querySelectorAll('.set-row').length;
+            exerciseData.completedSets = Array(setRowCount).fill(false);
+            console.log(`[handleSetToggle] Initialized completedSets for exercise ${exerciseIndex}`); // <<< Log 8: Log init
+        }
+        while (exerciseData.completedSets.length <= setIndex) {
+             exerciseData.completedSets.push(false);
+        }
+        exerciseData.completedSets[setIndex] = isCompleted;
+
+        console.log(`[handleSetToggle] Updated exerciseData.completedSets[${setIndex}] to ${isCompleted}`); // <<< Log 9: Log state update
 
         // --- Added: Disable/Enable inputs based on completion state ---
         const weightInput = setRow.querySelector('.weight-input');
@@ -604,13 +750,16 @@ document.addEventListener('DOMContentLoaded', function() {
             weightInput.disabled = isCompleted;
             repsInput.disabled = isCompleted;
             unitSelect.disabled = isCompleted;
+            console.log(`[handleSetToggle] Inputs disabled state set to: ${isCompleted}`); // <<< Log 10: Log disable state
         }
 
         // Add/Remove actual checkmark character
         if (isCompleted) {
             toggleButton.innerHTML = '&#10003;'; // Checkmark HTML entity
+            console.log("[handleSetToggle] Set innerHTML to checkmark."); // <<< Log 11a: Log checkmark add
         } else {
             toggleButton.innerHTML = ''; // Clear checkmark
+            console.log("[handleSetToggle] Cleared innerHTML."); // <<< Log 11b: Log checkmark clear
         }
     }
 
@@ -626,18 +775,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const setRows = item.querySelectorAll('.set-row');
             let repsCompletedArray = [];
             let weightUsedArray = [];
-            let weightUnit = 'kg'; // Default or get from first set
             let setsCompletedCount = 0;
+
+            // Get the unit from the header dropdown for this exercise
+            const unitSelectHeader = item.querySelector('.exercise-unit-select');
+            const weightUnit = unitSelectHeader ? unitSelectHeader.value : 'kg'; // Default to kg if not found
 
             setRows.forEach((setRow, setIndex) => {
                 const repsInput = setRow.querySelector('.reps-input').value.trim() || '0'; // Default to '0' if empty
                 const weightInput = setRow.querySelector('.weight-input').value.trim() || '0'; // Default to '0' if empty
-                const unitSelect = setRow.querySelector('.unit-select').value;
+                // const unitSelect = setRow.querySelector('.unit-select').value; // <<< REMOVED: Unit is per-exercise now
                 const isCompleted = baseExerciseData.completedSets && baseExerciseData.completedSets[setIndex];
 
                 repsCompletedArray.push(repsInput);
                 weightUsedArray.push(weightInput);
-                if (setIndex === 0) weightUnit = unitSelect; // Capture unit from first set
+                // if (setIndex === 0) weightUnit = unitSelect; // <<< REMOVED: Unit is captured above
                 if (isCompleted) setsCompletedCount++;
             });
 
@@ -809,16 +961,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
             exerciseItem.innerHTML = `
                 <div class="exercise-item-header">
-                    <h4>${exercise.name}</h4>
-                    <button class="btn-delete-exercise btn-delete-template-exercise" title="Remove Exercise" data-index="${index}">&times;</button> <!-- Changed class -->
+                    <h4>${escapeHtml(exercise.name)}</h4>
+                    <select class="exercise-unit-select" data-workout-index="${index}">
+                        <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                        <option value="lbs" ${exercise.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
+                        <option value="bodyweight" ${exercise.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
+                        <option value="assisted" ${exercise.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
+                    </select>
+                    <!-- Corrected: Hardcode class and add data-index -->
+                    <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times;</button>
+                </div>
+                <div class="exercise-notes-group">
+                    <label for="exercise-notes-${index}">Notes:</label>
+                    <textarea id="exercise-notes-${index}" class="exercise-notes" rows="2">${escapeHtml(exercise.notes || '')}</textarea>
                 </div>
                 <div class="sets-container">
                     ${setRowsHtml}
                 </div>
-                <div class="exercise-notes-group">
-                    <label for="exercise-notes-${index}">Notes:</label>
-                    <textarea id="exercise-notes-${index}" class="exercise-notes" rows="2">${exercise.notes || ''}</textarea>
+                <!-- Removed Add/Remove Set buttons from template editor items -->
+                <!--
+                <div class="set-actions-container">
+                    <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
+                    <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
                 </div>
+                -->
             `;
 
             templateExerciseListEl.appendChild(exerciseItem);
@@ -1014,72 +1180,169 @@ document.addEventListener('DOMContentLoaded', function() {
 
     }
 
+    // --- NEW Helper function to update previous log spans after fetch ---
+    function updatePreviousLogSpans(exerciseItemElement, lastLogData, isError = false) {
+         const setRows = exerciseItemElement.querySelectorAll('.sets-container .set-row');
+         let prevRepsArray = [];
+         let prevWeightsArray = [];
+         let prevUnit = 'kg';
+
+         if (lastLogData && lastLogData.reps_completed && lastLogData.weight_used) {
+             prevRepsArray = lastLogData.reps_completed.split(',');
+             prevWeightsArray = lastLogData.weight_used.split(',');
+             prevUnit = lastLogData.weight_unit || 'kg';
+         }
+
+         setRows.forEach((row, i) => {
+             const prevLogSpan = row.querySelector('.previous-log');
+             if (prevLogSpan) {
+                 let previousLogText = 'Error'; // Default error text
+                 if (!isError) {
+                     if (lastLogData && prevRepsArray.length > i && prevWeightsArray.length > i) {
+                         const prevRep = prevRepsArray[i]?.trim() || '-';
+                         const prevWeight = prevWeightsArray[i]?.trim() || '-';
+                         previousLogText = `${prevWeight} ${prevUnit} x ${prevRep}`;
+                     } else if (!lastLogData) {
+                         previousLogText = '- kg x -'; // No data placeholder
+                     } // else keep 'Error' if isError and no specific data
+                 } // else keep 'Error' if isError
+
+                 prevLogSpan.textContent = previousLogText;
+                 prevLogSpan.title = `Last Session Set ${i + 1}`; // Update title too
+             }
+         });
+    }
+    // --- END Helper ---
+
+
     // --- Add Set Handler ---
     function handleAddSet(event) {
-        const workoutIndex = parseInt(event.target.dataset.workoutIndex, 10);
-        if (isNaN(workoutIndex) || !currentWorkout[workoutIndex]) {
-            console.error("Invalid workout index for adding set:", workoutIndex);
+        const addButton = event.target; // The button that was clicked
+        const exerciseItem = addButton.closest('.exercise-item'); // Find the parent exercise item
+
+        // === VALIDATION: Ensure we found the parent item ===
+        if (!exerciseItem) {
+            console.error("handleAddSet: Could not find parent .exercise-item for the Add Set button.");
             return;
         }
 
-        const exercise = currentWorkout[workoutIndex];
-        exercise.sets = (parseInt(exercise.sets) || 0) + 1; // Increment set count
-         // Also extend the completedSets array if it exists
-         if (exercise.completedSets && Array.isArray(exercise.completedSets)) {
-            exercise.completedSets.push(false);
-         }
+        const exerciseIndexStr = exerciseItem.dataset.workoutIndex; // <<< CORRECT: Get index from parent item
+        const exerciseIndex = parseInt(exerciseIndexStr, 10);
 
-        console.log(`Added set to exercise ${workoutIndex} (${exercise.name}). New count: ${exercise.sets}`);
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
 
-        // Find the specific exercise item element to re-render
-        const exerciseItemElement = currentExerciseListEl.querySelector(`.exercise-item[data-workout-index="${workoutIndex}"]`);
-        if (exerciseItemElement) {
-            // Re-render using the updated exercise object (which includes lastLog)
-            renderSingleExerciseItem(exerciseItemElement, exercise, workoutIndex);
-        } else {
-            console.error("Could not find exercise item element to re-render for index:", workoutIndex);
+        // === VALIDATION: Check if index is valid and workout data exists ===
+        if (isNaN(exerciseIndex) || !exercises || exerciseIndex < 0 || exerciseIndex >= exercises.length) {
+            console.error("handleAddSet: Invalid exercise index or workout data.", { indexStr: exerciseIndexStr, index: exerciseIndex, workoutExists: !!currentWorkout });
+            return; // Stop execution if index is bad
         }
+        // === END VALIDATION ===
+
+        const setsContainer = exerciseItem.querySelector('.sets-container');
+        if (!setsContainer) {
+            console.error("Could not find sets container for exercise index:", exerciseIndex);
+            return;
+        }
+
+        const exerciseData = exercises[exerciseIndex]; // Now we know index is valid
+
+        // Recalculate based on current DOM state to avoid stale data
+        const currentSetCount = setsContainer.querySelectorAll('.set-row').length;
+        const newSetIndex = currentSetCount; // Index for the *new* row is the current count (0-based)
+
+        // Generate HTML for just the new row (using the correct new index)
+        // generateSingleSetRowHtml will now attempt to pre-fill based on lastLog data for this newSetIndex
+        const newSetRowHtml = generateSingleSetRowHtml(newSetIndex, exerciseData, false); // false = not template
+
+        // Append the new row to the DOM
+        setsContainer.insertAdjacentHTML('beforeend', newSetRowHtml);
+
+        // --- Corrected: Update completedSets array for the new set ---
+        if (!exerciseData.completedSets) {
+            // Initialize if it doesn't exist (size should match new total number of sets)
+            exerciseData.completedSets = Array(currentSetCount + 1).fill(false);
+        } else if (exerciseData.completedSets.length <= newSetIndex) {
+            // Append a new entry for the added set
+            exerciseData.completedSets.push(false);
+        }
+        // --- End corrected completedSets update ---
+
+        // Ensure remove button is enabled if it was disabled
+        const removeButton = exerciseItem.querySelector('.btn-remove-set');
+        if (removeButton) {
+            removeButton.disabled = false;
+        }
+
+        console.log(`Added set ${newSetIndex + 1} to exercise ${exerciseIndex}`);
     }
 
     // --- Remove Set Handler ---
      function handleRemoveSet(event) {
-        const workoutIndex = parseInt(event.target.dataset.workoutIndex, 10);
-        if (isNaN(workoutIndex) || !currentWorkout[workoutIndex]) {
-            console.error("Invalid workout index for removing set:", workoutIndex);
+        const removeButton = event.target;
+        const exerciseItem = removeButton.closest('.exercise-item'); // <<< Find parent item
+
+        if (!exerciseItem) {
+            console.error("Could not find parent exercise item for remove set button.");
             return;
         }
 
-        const exercise = currentWorkout[workoutIndex];
-        const currentSets = parseInt(exercise.sets) || 0;
+        const workoutIndex = parseInt(exerciseItem.dataset.workoutIndex, 10); // <<< Get index from item
 
-        if (currentSets <= 1) {
+        // ---> Corrected Validation < ---
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        if (isNaN(workoutIndex) || !exercises || !exercises[workoutIndex]) {
+            console.error("Invalid workout index for removing set:", workoutIndex);
+            return;
+        }
+        // ---> End Corrected Validation < ---
+
+        const exercise = exercises[workoutIndex]; // Use validated index and correct array
+
+        // Find the actual set rows currently in the DOM for this exercise
+        const setsContainer = exerciseItem.querySelector('.sets-container');
+        const setRows = setsContainer ? setsContainer.querySelectorAll('.set-row') : [];
+        const currentSetCount = setRows.length;
+
+        if (currentSetCount <= 1) {
              console.log("Cannot remove set, only 1 set remaining.");
-             // Optionally disable button visually again, though renderSingleExerciseItem should handle it
+             // Disable the button visually
+             removeButton.disabled = true;
              return; // Don't remove if only 1 set is left
         }
 
-        exercise.sets = currentSets - 1; // Decrement set count
+        // Remove the last set row from the DOM
+        if (setRows.length > 0) {
+            setRows[setRows.length - 1].remove();
+        }
+
+        // Decrement set count in the underlying data (if using a 'sets' property)
+        // This might need adjustment depending on how you track sets internally
+        // if (typeof exercise.sets === 'number') {
+        //     exercise.sets = Math.max(1, exercise.sets - 1);
+        // } else {
+        //     exercise.sets = currentSetCount - 1; // Or update based on new DOM count
+        // }
 
          // Also shorten the completedSets array if it exists
          if (exercise.completedSets && Array.isArray(exercise.completedSets)) {
              exercise.completedSets.pop(); // Remove the last entry
          }
 
-        console.log(`Removed set from exercise ${workoutIndex} (${exercise.name}). New count: ${exercise.sets}`);
+        console.log(`Removed set from exercise ${workoutIndex} (${exercise.name}). Remaining sets: ${currentSetCount - 1}`);
 
-        // Find the specific exercise item element to re-render
-        const exerciseItemElement = currentExerciseListEl.querySelector(`.exercise-item[data-workout-index="${workoutIndex}"]`);
-        if (exerciseItemElement) {
-            // Re-render using the updated exercise object (which includes lastLog)
-            renderSingleExerciseItem(exerciseItemElement, exercise, workoutIndex);
-        } else {
-            console.error("Could not find exercise item element to re-render for index:", workoutIndex);
+        // Disable the remove button again if only one set remains after removal
+        if (currentSetCount - 1 <= 1) {
+            removeButton.disabled = true;
         }
+
+        // No need to re-render the whole item, just removed the row
+        // renderSingleExerciseItem(exerciseItemElement, exercise, workoutIndex);
      }
 
     // --- Initialization ---\
     function initialize() {
         console.log('Initializing Workout Tracker...');
+        // REMOVED: let currentPage = 'landing'; // Remove local declaration if it existed
         fetchExercises(); // Fetch exercises for the modal
         fetchTemplates(); // Fetch templates for the landing page
         fetchAndDisplayPhotos(); // Fetch photos for the slider
@@ -1131,6 +1394,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleAddSet(event);
                 } else if (target.classList.contains('btn-remove-set')) {
                     handleRemoveSet(event);
+                } else if (target.classList.contains('set-complete-toggle')) { // <<< ADD THIS CHECK
+                    handleSetToggle(event);                             // <<< CALL THE HANDLER
+                } else if (target.classList.contains('exercise-unit-select')) { // <<< NEW: Handle header unit change
+                    handleExerciseUnitChange(event);
+                } else if (target.classList.contains('btn-delete-exercise')) { // <<< ADD THIS CHECK
+                    handleDeleteExercise(event);                          // <<< CALL THE HANDLER
                 }
             }
         });
@@ -1434,7 +1703,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Set initial state
-        switchPage('landing');
+        switchPage(currentPage); // Use the existing top-level value
         // Render empty lists initially if needed (e.g., if API fetch fails)
         if (!workoutTemplates.length && templateListContainer) renderWorkoutTemplates();
         if (!availableExercises.length && availableExerciseListEl) renderAvailableExercises(); // Check for availableExerciseListEl existence
@@ -2543,6 +2812,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     initialize(); // Run initialization
+
+    // --- NEW: Handler for Exercise Unit Change ---
+    function handleExerciseUnitChange(event) {
+        const selectElement = event.target;
+        const exerciseItem = selectElement.closest('.exercise-item');
+        if (!exerciseItem) {
+            console.error("Could not find parent exercise item for unit select.");
+            return;
+        }
+
+        const exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
+        const newUnit = selectElement.value;
+
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        if (isNaN(exerciseIndex) || !exercises || !exercises[exerciseIndex]) {
+            console.error("Invalid exercise index for unit change:", exerciseIndex);
+            return;
+        }
+
+        // Update the weight_unit in the underlying data
+        exercises[exerciseIndex].weight_unit = newUnit;
+        console.log(`Updated unit for exercise ${exerciseIndex} to: ${newUnit}`);
+
+        // Optional: Update any visual display linked to the unit if needed elsewhere
+        // (Currently, only affects how data is saved)
+    }
+    // --- END NEW ---
 });
 
 // Helper function (if not already present globally)
@@ -2554,4 +2850,57 @@ function escapeHtml(unsafe) {
          .replace(/>/g, "&gt;")
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
+}
+
+// Helper function to generate HTML for a single set row
+function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
+    // Default values
+    let weightValue = '';
+    let repsValue = '';
+    const unit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
+
+    // Check if this is the first set (index 0) and if last log data exists
+    if (setIndex === 0 && exerciseData.lastLog) {
+        console.log(`[generateSingleSetRowHtml] Prefill check for Set 0, Exercise: ${exerciseData.name}, LastLog:`, exerciseData.lastLog);
+        // Parse the first weight value from the comma-separated string
+        if (exerciseData.lastLog.weight_used) {
+            const weights = exerciseData.lastLog.weight_used.split(',');
+            if (weights.length > 0 && weights[0].trim() !== '') {
+                weightValue = weights[0].trim();
+                console.log(`[generateSingleSetRowHtml] Prefilling weight: ${weightValue}`);
+            }
+        }
+        // Parse the first reps value from the comma-separated string
+        if (exerciseData.lastLog.reps_completed) {
+            const reps = exerciseData.lastLog.reps_completed.split(',');
+            if (reps.length > 0 && reps[0].trim() !== '') {
+                repsValue = reps[0].trim();
+                console.log(`[generateSingleSetRowHtml] Prefilling reps: ${repsValue}`);
+            }
+        }
+        // Note: We are pre-filling with the value, but NOT changing the unit dropdown.
+        // The unit dropdown reflects the exercise's *current* setting.
+    }
+
+    // Determine if inputs should be disabled (for templates or future use)
+    const isDisabled = isTemplate;
+    const weightInputType = (unit === 'bodyweight' || unit === 'assisted') ? 'hidden' : 'number';
+    const weightPlaceholder = (unit === 'bodyweight' || unit === 'assisted') ? '' : 'Wt';
+    const repsPlaceholder = 'Reps';
+
+    // Generate the text for the previous log span (only for the first set if data exists)
+    const previousLogTextHtml = (setIndex === 0 && exerciseData.lastLog)
+        ? `${exerciseData.lastLog.weight_used || 'N/A'} ${exerciseData.lastLog.weight_unit || ''} x ${exerciseData.lastLog.reps_completed || 'N/A'}`
+        : '';
+
+    // Generate the HTML for a single set row - CORRECTED RETURN STATEMENT
+    return `
+        <div class="set-row" data-set-index="${setIndex}">
+            <span class="set-number">${setIndex + 1}</span> <!-- Corrected to setIndex + 1 -->
+            <span class="previous-log">${previousLogTextHtml}</span> <!-- Corrected previous log display -->
+            <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal"> <!-- Uses weightValue -->
+            <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*"> <!-- Uses repsValue -->
+            ${!isTemplate ? '<button class="set-complete-toggle" title="Mark Set Complete"></button>' : ''}
+        </div>
+    `;
 }
