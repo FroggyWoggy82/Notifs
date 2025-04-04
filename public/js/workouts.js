@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         for (let i = 0; i < numSets; i++) {
-            // --- Per-Set Logic --- 
+            // --- Per-Set Logic ---
             let weightValue = ''; // Pre-fill value for weight input
             let repsValue = '';   // Pre-fill value for reps input
             let previousLogTextHtml = '- kg x -'; // Display text for previous log span
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isTemplate && weightsArray.length > i && repsArray.length > i) {
                 const prevWeight = weightsArray[i];
                 const prevReps = repsArray[i];
-                
+
                 // Only populate if values are not empty strings
                 if (prevWeight !== '') {
                     weightValue = prevWeight;
@@ -543,8 +543,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Current workout initialized from template:", currentWorkout); // Log the object
 
         // Set workout name display
-        currentWorkoutName = currentWorkout.name; // Use the name from the object
-        document.getElementById('current-workout-name').textContent = currentWorkoutName;
+        const workoutName = currentWorkout.name; // Use the name from the object
+        currentWorkoutNameEl.textContent = workoutName;
 
         // Render the workout and switch page
         renderCurrentWorkout(); // This function expects currentWorkout.exercises
@@ -744,13 +744,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- Added: Disable/Enable inputs based on completion state ---
         const weightInput = setRow.querySelector('.weight-input');
         const repsInput = setRow.querySelector('.reps-input');
-        const unitSelect = setRow.querySelector('.unit-select');
 
-        if (weightInput && repsInput && unitSelect) {
+        // The unit select is in the exercise header, not in each set row
+        if (weightInput && repsInput) {
             weightInput.disabled = isCompleted;
             repsInput.disabled = isCompleted;
-            unitSelect.disabled = isCompleted;
             console.log(`[handleSetToggle] Inputs disabled state set to: ${isCompleted}`); // <<< Log 10: Log disable state
+
+            // Add visual indication that inputs are disabled
+            if (isCompleted) {
+                weightInput.classList.add('completed');
+                repsInput.classList.add('completed');
+            } else {
+                weightInput.classList.remove('completed');
+                repsInput.classList.remove('completed');
+            }
         }
 
         // Add/Remove actual checkmark character
@@ -770,8 +778,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const loggedExercises = [];
         const exerciseItems = currentExerciseListEl.querySelectorAll('.exercise-item');
 
+        // Determine if currentWorkout is an array or an object with exercises property
+        const exercisesArray = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        console.log(`Completing workout with ${exercisesArray.length} exercises`);
+
         exerciseItems.forEach((item, exerciseIndex) => {
-            const baseExerciseData = currentWorkout[exerciseIndex]; // Get original data
+            // Safely get the exercise data
+            const baseExerciseData = exercisesArray[exerciseIndex];
+            if (!baseExerciseData) {
+                console.error(`No exercise data found at index ${exerciseIndex}`);
+                return; // Skip this iteration if no data found
+            }
+
             const setRows = item.querySelectorAll('.set-row');
             let repsCompletedArray = [];
             let weightUsedArray = [];
@@ -785,7 +803,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const repsInput = setRow.querySelector('.reps-input').value.trim() || '0'; // Default to '0' if empty
                 const weightInput = setRow.querySelector('.weight-input').value.trim() || '0'; // Default to '0' if empty
                 // const unitSelect = setRow.querySelector('.unit-select').value; // <<< REMOVED: Unit is per-exercise now
-                const isCompleted = baseExerciseData.completedSets && baseExerciseData.completedSets[setIndex];
+
+                // Safely check if completedSets exists and has the right index
+                const isCompleted = baseExerciseData.completedSets &&
+                                   Array.isArray(baseExerciseData.completedSets) &&
+                                   baseExerciseData.completedSets[setIndex];
 
                 repsCompletedArray.push(repsInput);
                 weightUsedArray.push(weightInput);
@@ -793,8 +815,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isCompleted) setsCompletedCount++;
             });
 
-            // Get notes from the single textarea for the exercise
-            const exerciseNotes = item.querySelector('.active-notes')?.value.trim() || null;
+            // Get notes from the exercise notes textarea
+            const exerciseNotes = item.querySelector('.exercise-notes-textarea')?.value.trim() || null;
 
             loggedExercises.push({
                 exercise_id: baseExerciseData.exercise_id,
@@ -850,13 +872,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
             console.log('Workout logged successfully:', result);
-            alert('Workout saved successfully!');
-            // Reset state and go back to landing page
-            currentWorkout = [];
-            workoutStartTime = null;
-            switchPage('landing');
-            // Optionally fetch history or update landing page view
-            fetchTemplates(); // Refresh templates list
+
+            // Show a brief visual success indicator on the button before redirecting
+            completeWorkoutBtn.textContent = '✓ Complete';
+            completeWorkoutBtn.classList.add('success');
+
+            // Short delay before redirecting to landing page
+            setTimeout(() => {
+                // Reset state and go back to landing page
+                currentWorkout = [];
+                workoutStartTime = null;
+                switchPage('landing');
+                // Refresh templates list
+                fetchTemplates();
+            }, 500); // Half-second delay for visual feedback
 
         } catch (error) {
             console.error('Error saving workout:', error);
@@ -1025,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
         const toIndex = parseInt(this.dataset.index);
-        
+
         if (fromIndex === toIndex) return;
 
         // Reorder the exercises array
@@ -1591,7 +1620,7 @@ document.addEventListener('DOMContentLoaded', function() {
                      photoUploadInputElement.value = ''; // Clear file selection
                  }
                  photoUploadModalEl.style.display = 'block';
- 
+
                   // ---> ADD THIS: Explicitly find and re-enable the button <---
                   const form = photoUploadModalEl.querySelector('#progress-photo-form');
                   if (form) {
@@ -1602,7 +1631,7 @@ document.addEventListener('DOMContentLoaded', function() {
                       }
                   }
                   // ---> END ADDITION <---
- 
+
             } else {
                  console.error('Photo upload modal not found!');
             }
@@ -1887,6 +1916,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function fetchAndRenderHistoryChart(exerciseId) { // Renamed function
+        // Get the history message element
+        const historyMessageEl = document.getElementById('history-message');
+
+        if (!historyMessageEl) {
+            console.error("[ERROR] History message element not found!");
+            return;
+        }
+
         historyMessageEl.textContent = ''; // Clear previous messages
         console.log(`[DEBUG] fetchAndRenderHistoryChart called for ID: ${exerciseId}`); // <<< Log function call
 
@@ -1907,7 +1944,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("[DEBUG] Raw History Data Received:", JSON.stringify(historyData)); // <<< Log raw data
 
             if (historyData.length === 0) {
-                historyMessageEl.textContent = 'No logged history found for this exercise.';
+                const historyMessageEl = document.getElementById('history-message');
+                if (historyMessageEl) {
+                    historyMessageEl.textContent = 'No logged history found for this exercise.'
+                }
                  if (exerciseHistoryChart) { // Clear chart if no data
                      exerciseHistoryChart.destroy();
                      exerciseHistoryChart = null;
@@ -1950,14 +1990,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 return totalVolume;
             });
 
-            historyMessageEl.textContent = ''; // Clear loading message
+            // Clear loading message
+            const historyMessageEl = document.getElementById('history-message');
+            if (historyMessageEl) {
+                historyMessageEl.textContent = ''; // Clear loading message
+            }
+
             console.log("[DEBUG] Data for Chart - Labels:", labels); // <<< Log chart labels
             console.log("[DEBUG] Data for Chart - Volumes:", volumes); // <<< Log chart volumes
             renderHistoryChart(labels, volumes, 'Volume (Weight * Reps)');
 
         } catch (error) {
             console.error('[DEBUG] Error fetching or processing exercise history:', error); // <<< Log full error
-            historyMessageEl.textContent = `Error loading history: ${error.message}`;
+
+            // Display error message
+            const historyMessageEl = document.getElementById('history-message');
+            if (historyMessageEl) {
+                historyMessageEl.textContent = `Error loading history: ${error.message}`;
+            }
              if (exerciseHistoryChart) { // Clear chart on error
                  exerciseHistoryChart.destroy();
                  exerciseHistoryChart = null;
@@ -2034,7 +2084,12 @@ document.addEventListener('DOMContentLoaded', function() {
              console.log("[DEBUG] Chart instance created successfully."); // <<< Log success
         } catch (chartError) {
              console.error("[DEBUG] Error creating Chart.js instance:", chartError); // <<< Log chart creation errors
-             historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
+
+             // Display error message
+             const historyMessageEl = document.getElementById('history-message');
+             if (historyMessageEl) {
+                 historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
+             }
         }
     }
 
@@ -2314,9 +2369,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Photo Upload Client] handlePhotoUpload triggered.');
 
         const form = event.target;
-        // --- REVERTED: Use FormData directly from the form --- 
+        // --- REVERTED: Use FormData directly from the form ---
         const formData = new FormData(form);
-        // --- Removed manual construction and appending --- 
+        // --- Removed manual construction and appending ---
 
         const statusElement = document.getElementById('upload-status');
         const modal = document.getElementById('photo-upload-modal');
@@ -2326,10 +2381,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!statusElement || !modal || !submitButton) {
             console.error('[Photo Upload Client] Status element, modal, or submit button not found.');
             // Optionally display an error to the user if elements are missing
-            return; 
+            return;
         }
 
-        // --- Validate directly from formData --- 
+        // --- Validate directly from formData ---
         // Ensure the keys used here ('date', 'photos') match the 'name' attributes in your HTML form inputs
         const dateValue = formData.get('photo-date'); // Use 'photo-date' to match HTML name attribute
         const files = formData.getAll('photos');
@@ -2350,26 +2405,26 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- End validation ---
 
         statusElement.textContent = 'Uploading...';
-        statusElement.style.color = '#03dac6'; 
-        submitButton.disabled = true; 
+        statusElement.style.color = '#03dac6';
+        submitButton.disabled = true;
 
-        console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos'); 
+        console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
         let response;
         try {
             response = await fetch('/api/workouts/progress-photos', {
                 method: 'POST',
-                body: formData, 
+                body: formData,
             });
 
             // ... (keep existing logging and error handling for the response) ...
-            console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`); 
+            console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
 
             if (!response.ok) {
                 let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
                 try {
-                    const text = await response.text(); 
+                    const text = await response.text();
                     console.log(`[Photo Upload Client] Raw error response text: ${text}`);
-                    errorData = JSON.parse(text); 
+                    errorData = JSON.parse(text);
                     console.log('[Photo Upload Client] Parsed JSON error response:', errorData);
                 } catch (parseError) {
                     console.error('[Photo Upload Client] Failed to parse error response as JSON:', parseError);
@@ -2384,8 +2439,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Photo Upload Client] Upload successful:', result);
             statusElement.textContent = result.message || 'Upload successful!';
             statusElement.style.color = '#4CAF50'; // Green
-            form.reset(); 
-            fetchAndDisplayPhotos(); 
+            form.reset();
+            fetchAndDisplayPhotos();
 
             setTimeout(() => {
                 modal.style.display = 'none';
@@ -2411,7 +2466,7 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.style.color = '#f44336'; // Red
 
         } finally {
-            submitButton.disabled = false; 
+            submitButton.disabled = false;
             console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
         }
     }
@@ -2504,7 +2559,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return; // Exit early if no photos
             }
 
-            // --- Populate the Reel and Dots --- 
+            // --- Populate the Reel and Dots ---
             console.log('[Photo Load] Populating photo reel and pagination dots...'); // Log before loop
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
@@ -2602,7 +2657,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         dateDisplayEl.textContent = formattedDate; // Update the date display
-        
+
         // --- Log the file path specifically ---
         const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
         console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
@@ -2614,27 +2669,27 @@ document.addEventListener('DOMContentLoaded', function() {
             // Only set src if it's not already set or differs from data-src
             if (currentImageElement.src !== currentImageElement.dataset.src) {
                 console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
-                currentImageElement.src = currentImageElement.dataset.src; 
+                currentImageElement.src = currentImageElement.dataset.src;
             }
         } else {
             console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
         }
         // --- END NEW ---
 
-        // --- Update Reel Position --- 
+        // --- Update Reel Position ---
         const offset = currentPhotoIndex * -100; // Calculate percentage offset
         // --- BEGIN ADDED DEBUG LOG ---
         console.log(`[Photo Display DEBUG] Calculated reel offset: ${offset}% for index ${currentPhotoIndex}`);
         // --- END ADDED DEBUG LOG ---
         photoReel.style.transform = `translateX(${offset}%)`;
 
-        // --- Update Pagination Dots --- 
+        // --- Update Pagination Dots ---
         const dots = paginationDotsContainer.querySelectorAll('.dot');
         dots.forEach((dot, index) => {
             dot.classList.toggle('active', index === currentPhotoIndex);
         });
 
-        // --- Update Button States --- 
+        // --- Update Button States ---
         // Buttons are now enabled/disabled directly in the calling functions
         photoPrevBtn.disabled = (currentPhotoIndex === 0);
         photoNextBtn.disabled = (currentPhotoIndex >= numPhotos - 1);
@@ -2705,7 +2760,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // isAnimating = true; - REMOVED
         // photoPrevBtn.disabled = true; // Disable nav buttons - REMOVED
-        // photoNextBtn.disabled = true; - REMOVED
+        // photoNextBtn.disabled = true; // Disable nav buttons - REMOVED
 
         currentPhotoIndex = index;
         displayCurrentPhoto(); // Directly update display
@@ -2752,7 +2807,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             console.log('[Photo Delete] Photo deleted successfully via API:', result);
 
-            // --- Refresh the entire slider after deletion --- 
+            // --- Refresh the entire slider after deletion ---
             console.log('[Photo Delete] Calling fetchAndDisplayPhotos() to refresh gallery...');
             await fetchAndDisplayPhotos(); // Wait for the refresh to attempt completion
             console.log('[Photo Delete] fetchAndDisplayPhotos() call finished.');
@@ -2761,7 +2816,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('[Photo Delete] Error deleting photo:', error);
             alert(`Failed to delete photo: ${error.message}`);
             // Re-enable button on error, maybe refresh state?
-            deletePhotoBtn.disabled = false; 
+            deletePhotoBtn.disabled = false;
         } finally {
              // Button state should be handled by fetchAndDisplayPhotos completion or error handling above
              console.log('[Photo Delete] Delete process finished.');
@@ -2857,50 +2912,43 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     // Default values
     let weightValue = '';
     let repsValue = '';
-    const unit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
+    const unit = exerciseData.weight_unit || 'kg';
 
     // Check if this is the first set (index 0) and if last log data exists
     if (setIndex === 0 && exerciseData.lastLog) {
-        console.log(`[generateSingleSetRowHtml] Prefill check for Set 0, Exercise: ${exerciseData.name}, LastLog:`, exerciseData.lastLog);
-        // Parse the first weight value from the comma-separated string
         if (exerciseData.lastLog.weight_used) {
             const weights = exerciseData.lastLog.weight_used.split(',');
             if (weights.length > 0 && weights[0].trim() !== '') {
                 weightValue = weights[0].trim();
-                console.log(`[generateSingleSetRowHtml] Prefilling weight: ${weightValue}`);
             }
         }
-        // Parse the first reps value from the comma-separated string
         if (exerciseData.lastLog.reps_completed) {
             const reps = exerciseData.lastLog.reps_completed.split(',');
             if (reps.length > 0 && reps[0].trim() !== '') {
                 repsValue = reps[0].trim();
-                console.log(`[generateSingleSetRowHtml] Prefilling reps: ${repsValue}`);
             }
         }
-        // Note: We are pre-filling with the value, but NOT changing the unit dropdown.
-        // The unit dropdown reflects the exercise's *current* setting.
     }
 
-    // Determine if inputs should be disabled (for templates or future use)
     const isDisabled = isTemplate;
     const weightInputType = (unit === 'bodyweight' || unit === 'assisted') ? 'hidden' : 'number';
     const weightPlaceholder = (unit === 'bodyweight' || unit === 'assisted') ? '' : 'Wt';
     const repsPlaceholder = 'Reps';
 
-    // Generate the text for the previous log span (only for the first set if data exists)
-    const previousLogTextHtml = (setIndex === 0 && exerciseData.lastLog)
-        ? `${exerciseData.lastLog.weight_used || 'N/A'} ${exerciseData.lastLog.weight_unit || ''} x ${exerciseData.lastLog.reps_completed || 'N/A'}`
-        : '';
+    // Always show "- kg x -" for previous log when there's no data
+    const previousLogTextHtml = '- kg x -';
 
-    // Generate the HTML for a single set row - CORRECTED RETURN STATEMENT
     return `
         <div class="set-row" data-set-index="${setIndex}">
-            <span class="set-number">${setIndex + 1}</span> <!-- Corrected to setIndex + 1 -->
-            <span class="previous-log">${previousLogTextHtml}</span> <!-- Corrected previous log display -->
-            <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal"> <!-- Uses weightValue -->
-            <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*"> <!-- Uses repsValue -->
-            ${!isTemplate ? '<button class="set-complete-toggle" title="Mark Set Complete"></button>' : ''}
+            <span class="set-number">${setIndex + 1}</span>
+            <span class="previous-log">${previousLogTextHtml}</span>
+            <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+            <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+            ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
         </div>
     `;
 }
+
+
+
+

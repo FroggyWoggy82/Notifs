@@ -143,6 +143,31 @@
     border-color: #cccccc;
 }
 
+/* Style for recurring task instances */
+.calendar-task-item.recurring {
+    background-color: #e1f5fe; /* Light blue background */
+    color: #0277bd;
+    border-color: #81d4fa;
+    position: relative;
+}
+
+.calendar-task-item.recurring::after {
+    content: '↻'; /* Recurrence symbol */
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+    font-weight: bold;
+    animation: spin 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    50% { transform: translateY(-50%) rotate(180deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
 /* Styling for the selected date task list popup/section */
 #selectedDateTasks {
     margin-top: 20px;
@@ -187,4 +212,4 @@
 }
 #closeSelectedDateView:hover {
      background-color: #3e5062;
-} 
+}

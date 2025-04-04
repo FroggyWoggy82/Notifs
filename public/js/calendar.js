@@ -30,6 +30,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${year}-${month}-${day}`;
     }
 
+    // Calculate the next occurrence date for a recurring task
+    function calculateNextOccurrence(task) {
+        if (!task.recurrence_type || task.recurrence_type === 'none' || !task.assigned_date) {
+            return null;
+        }
+
+        // Parse the assigned date
+        const assignedDate = new Date(task.assigned_date);
+        if (isNaN(assignedDate.getTime())) {
+            console.warn(`Invalid assigned_date for task ${task.id}: ${task.assigned_date}`);
+            return null;
+        }
+
+        // Get the recurrence interval (default to 1 if not specified)
+        const interval = task.recurrence_interval || 1;
+
+        // Calculate the next occurrence based on recurrence type
+        const nextDate = new Date(assignedDate);
+
+        switch (task.recurrence_type) {
+            case 'daily':
+                nextDate.setDate(nextDate.getDate() + interval);
+                break;
+            case 'weekly':
+                nextDate.setDate(nextDate.getDate() + (interval * 7));
+                break;
+            case 'monthly':
+                nextDate.setMonth(nextDate.getMonth() + interval);
+                break;
+            case 'yearly':
+                nextDate.setFullYear(nextDate.getFullYear() + interval);
+                break;
+            default:
+                return null;
+        }
+
+        return nextDate;
+    }
+
     // Fetch all tasks (or potentially filter by date range later)
     async function fetchTasks() {
         updateStatus("Loading tasks...", false);
@@ -72,27 +111,57 @@ document.addEventListener('DOMContentLoaded', () => {
         const tasksByDate = {};
         allTasks.forEach(task => {
             const dates = [];
+
+            // For completed recurring tasks, calculate and show the next occurrence
+            if (task.is_complete && task.recurrence_type && task.recurrence_type !== 'none') {
+                const nextOccurrence = calculateNextOccurrence(task);
+                if (nextOccurrence) {
+                    // Create a copy of the task for the next occurrence
+                    const nextTask = { ...task };
+                    nextTask.assigned_date = formatDateKey(nextOccurrence);
+                    nextTask.is_complete = false; // Next occurrence is not complete
+                    nextTask.isRecurring = true;  // Mark as a recurring instance
+
+                    // Add the next occurrence date
+                    const nextDateKey = formatDateKey(nextOccurrence);
+                    dates.push(nextDateKey);
+
+                    // Check if the next occurrence is within the current month view
+                    const isInCurrentMonth = (
+                        nextOccurrence.getFullYear() === year &&
+                        nextOccurrence.getMonth() === month
+                    );
+
+                    if (isInCurrentMonth) {
+                        console.log(`Adding next occurrence of task ${task.id} on ${nextDateKey}`);
+
+                        // Store the next occurrence task
+                        if (!tasksByDate[nextDateKey]) {
+                            tasksByDate[nextDateKey] = [];
+                        }
+                        tasksByDate[nextDateKey].push(nextTask);
+                    }
+                }
+            }
+
             // Use assigned_date as the primary date for calendar view
             if (task.assigned_date) {
                 try {
                     // Extract YYYY-MM-DD part
                     const assignedDateKey = task.assigned_date.split('T')[0];
                     dates.push(assignedDateKey);
-                } catch (e) { console.warn(`Invalid assigned_date format for task ${task.id}: ${task.assigned_date}`) }
-            }
-            // We could also add due_date here if needed, maybe with different styling
-            // if (task.due_date) { ... }
 
-            dates.forEach(dateKey => {
-                if (!tasksByDate[dateKey]) {
-                    tasksByDate[dateKey] = [];
+                    // Only add non-recurring instances or incomplete tasks to their original date
+                    if (!task.is_complete || !task.recurrence_type || task.recurrence_type === 'none') {
+                        if (!tasksByDate[assignedDateKey]) {
+                            tasksByDate[assignedDateKey] = [];
+                        }
+                        tasksByDate[assignedDateKey].push(task);
+                    }
+                } catch (e) {
+                    console.warn(`Invalid assigned_date format for task ${task.id}: ${task.assigned_date}`);
                 }
-                 tasksByDate[dateKey].push(task);
-            });
-
-            // TODO: Handle recurring tasks - this requires more complex logic
-            // based on task.recurrence_type and task.recurrence_interval
-            // to calculate occurrences within the current month view.
+            }
         });
 
         // --- Fill in days from previous month --- //
@@ -145,9 +214,47 @@ document.addEventListener('DOMContentLoaded', () => {
             tasks.slice(0, 3).forEach(task => { // Limit visible tasks initially
                 const taskEl = document.createElement('div');
                 taskEl.className = 'calendar-task-item';
+
+                // Apply appropriate classes based on task state
                 if (task.is_complete) taskEl.classList.add('complete');
+                if (task.isRecurring) taskEl.classList.add('recurring');
+
+                // Set the task title
                 taskEl.textContent = task.title;
-                taskEl.title = task.title; // Tooltip for full title
+
+                // Add tooltip with additional information
+                let tooltipText = task.title;
+                if (task.isRecurring) {
+                    tooltipText += ' (Next occurrence)';
+                }
+
+                // Add recurrence information with interval if applicable
+                if (task.recurrence_type && task.recurrence_type !== 'none') {
+                    const interval = task.recurrence_interval || 1;
+                    if (interval === 1) {
+                        tooltipText += ` (Repeats ${task.recurrence_type})`;
+                    } else {
+                        // Add custom interval information
+                        switch(task.recurrence_type) {
+                            case 'daily':
+                                tooltipText += ` (Repeats every ${interval} days)`;
+                                break;
+                            case 'weekly':
+                                tooltipText += ` (Repeats every ${interval} weeks)`;
+                                break;
+                            case 'monthly':
+                                tooltipText += ` (Repeats every ${interval} months)`;
+                                break;
+                            case 'yearly':
+                                tooltipText += ` (Repeats every ${interval} years)`;
+                                break;
+                            default:
+                                tooltipText += ` (Repeats ${task.recurrence_type})`;
+                        }
+                    }
+                }
+                taskEl.title = tooltipText;
+
                 tasksDiv.appendChild(taskEl);
             });
              if (tasks.length > 3) {
@@ -194,24 +301,98 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tasksOnDate = tasks.filter(task => {
             // Match based on assigned_date for now
-             const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
-            // Add due_date matching later if needed
-            // const dueDateKey = task.due_date ? task.due_date.split('T')[0] : null;
-            return assignedDateKey === dateKey; // || dueDateKey === dateKey;
-        });
+            const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
 
-        // TODO: Include recurring task instances for this date
+            // Check if this is a recurring task instance for this date
+            const isRecurringOnDate = task.isRecurring && assignedDateKey === dateKey;
+
+            // Check if this is a regular task for this date
+            const isRegularTaskOnDate = assignedDateKey === dateKey &&
+                                       (!task.is_complete || !task.recurrence_type || task.recurrence_type === 'none');
+
+            return isRecurringOnDate || isRegularTaskOnDate;
+        });
 
         if (tasksOnDate.length === 0) {
             selectedTaskListEl.innerHTML = '<li>No tasks assigned for this date.</li>';
         } else {
             tasksOnDate.forEach(task => {
                 const li = document.createElement('li');
-                li.textContent = task.title;
+
+                // Create a container for the task title and badge
+                const titleContainer = document.createElement('div');
+                titleContainer.style.display = 'flex';
+                titleContainer.style.justifyContent = 'space-between';
+                titleContainer.style.alignItems = 'center';
+
+                // Create the task title element
+                const titleSpan = document.createElement('span');
+                titleSpan.textContent = task.title;
+                titleContainer.appendChild(titleSpan);
+
+                // Add badge for recurring tasks
+                if (task.isRecurring || (task.recurrence_type && task.recurrence_type !== 'none')) {
+                    const badgeSpan = document.createElement('span');
+                    badgeSpan.style.backgroundColor = task.isRecurring ? '#81d4fa' : '#a5d6a7';
+                    badgeSpan.style.color = task.isRecurring ? '#0277bd' : '#2e7d32';
+                    badgeSpan.style.padding = '2px 6px';
+                    badgeSpan.style.borderRadius = '10px';
+                    badgeSpan.style.fontSize = '0.75em';
+                    badgeSpan.style.fontWeight = 'bold';
+                    badgeSpan.style.marginLeft = '8px';
+
+                    if (task.isRecurring) {
+                        badgeSpan.textContent = 'Next';
+                        badgeSpan.title = 'Next occurrence of a recurring task';
+                    } else {
+                        const interval = task.recurrence_interval || 1;
+                        if (interval === 1) {
+                            badgeSpan.textContent = `Repeats ${task.recurrence_type}`;
+                            badgeSpan.title = `This task repeats ${task.recurrence_type}`;
+                        } else {
+                            // Show the interval in the badge
+                            badgeSpan.textContent = `Every ${interval} ${task.recurrence_type.slice(0, -2)}s`;
+
+                            // Add detailed information in the tooltip
+                            switch(task.recurrence_type) {
+                                case 'daily':
+                                    badgeSpan.title = `This task repeats every ${interval} days`;
+                                    break;
+                                case 'weekly':
+                                    badgeSpan.title = `This task repeats every ${interval} weeks`;
+                                    break;
+                                case 'monthly':
+                                    badgeSpan.title = `This task repeats every ${interval} months`;
+                                    break;
+                                case 'yearly':
+                                    badgeSpan.title = `This task repeats every ${interval} years`;
+                                    break;
+                                default:
+                                    badgeSpan.title = `This task repeats ${task.recurrence_type}`;
+                            }
+                        }
+                    }
+
+                    titleContainer.appendChild(badgeSpan);
+                }
+
+                li.appendChild(titleContainer);
+
+                // Add description if available
+                if (task.description) {
+                    const descDiv = document.createElement('div');
+                    descDiv.textContent = task.description;
+                    descDiv.style.fontSize = '0.85em';
+                    descDiv.style.color = '#666';
+                    descDiv.style.marginTop = '3px';
+                    li.appendChild(descDiv);
+                }
+
+                // Apply complete class if needed
                 if (task.is_complete) {
                     li.classList.add('complete');
                 }
-                // Add more details if needed (e.g., description, time)
+
                 selectedTaskListEl.appendChild(li);
             });
         }
@@ -246,4 +427,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeCalendar();
 
-}); // End DOMContentLoaded 
+}); // End DOMContentLoaded

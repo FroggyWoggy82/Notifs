@@ -146,7 +146,7 @@ app.get('/api/weight/logs', async (req, res) => {
 app.post('/api/weight/log', async (req, res) => {
     const { weight } = req.body;
     // Use provided date (YYYY-MM-DD) or default to today's date
-    const logDateInput = req.body.date; 
+    const logDateInput = req.body.date;
     console.log(`Received POST /api/weight/log: weight=${weight}, date=${logDateInput}`);
 
     const p_weight = parseFloat(weight);
@@ -175,7 +175,7 @@ app.post('/api/weight/log', async (req, res) => {
             'INSERT INTO weight_logs (log_date, weight) VALUES ($1, $2) RETURNING log_id, log_date, weight',
             [p_logDateStr, p_weight]
         );
-        
+
         const newLog = {
             log_id: result.rows[0].log_id,
             log_date: result.rows[0].log_date.toISOString().split('T')[0],
@@ -215,7 +215,7 @@ app.get('/api/tasks', async (req, res) => {
 app.post('/api/tasks', async (req, res) => {
     // Destructure new fields from req.body
     const { title, description, reminderTime, assignedDate, dueDate, recurrenceType, recurrenceInterval } = req.body;
-    
+
     // Log received data including new fields
     console.log(`Received POST /api/tasks: title='${title}', assigned='${assignedDate}', due='${dueDate}', recurrence='${recurrenceType}', interval='${recurrenceInterval}', reminder='${reminderTime}'`);
 
@@ -258,7 +258,7 @@ app.post('/api/tasks', async (req, res) => {
         } catch { return res.status(400).json({ error: 'Invalid Reminder Time format. Use datetime-local format.' }); }
     }
     // --- End Date Validation ---
-    
+
     // --- Validate Recurrence ---
     const validRecurrenceTypes = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
     const p_recurrenceType = recurrenceType && validRecurrenceTypes.includes(recurrenceType) ? recurrenceType : 'none';
@@ -270,8 +270,8 @@ app.post('/api/tasks', async (req, res) => {
                  console.warn(`Invalid recurrenceInterval '${recurrenceInterval}', defaulting to 1.`);
                  p_recurrenceInterval = 1;
              }
-         } catch { p_recurrenceInterval = 1; } 
-    } 
+         } catch { p_recurrenceInterval = 1; }
+    }
     if (p_recurrenceType === 'none') { // Ensure interval is 1 if recurrence is none
         p_recurrenceInterval = 1;
     }
@@ -279,36 +279,36 @@ app.post('/api/tasks', async (req, res) => {
 
     try {
         const result = await db.query(
-            `INSERT INTO tasks (title, description, reminder_time, is_reminder_active, 
+            `INSERT INTO tasks (title, description, reminder_time, is_reminder_active,
                              assigned_date, due_date, recurrence_type, recurrence_interval)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
             [
-                title.trim(), 
-                description ? description.trim() : null, 
-                p_reminderTimestamp, 
+                title.trim(),
+                description ? description.trim() : null,
+                p_reminderTimestamp,
                 p_isReminderActive,
                 p_assignedDate.toISOString().split('T')[0], // Send date part only as YYYY-MM-DD
                 p_dueDate ? p_dueDate.toISOString().split('T')[0] : null, // Send date part only or null
-                p_recurrenceType, 
+                p_recurrenceType,
                 p_recurrenceInterval
             ]
         );
         console.log(`Task created successfully with ID: ${result.rows[0].id}`);
         res.status(201).json(result.rows[0]); // Return the newly created task
     } catch (err) {
-        // --- Enhanced Logging --- 
+        // --- Enhanced Logging ---
         console.error('--- ERROR CREATING TASK ---');
         console.error('Timestamp:', new Date().toISOString());
         console.error('Request Body:', req.body);
         console.error('Parsed Values:', { title: title.trim(), description: description ? description.trim() : null, reminderTimestamp: p_reminderTimestamp, isReminderActive: p_isReminderActive, assignedDate: p_assignedDate.toISOString().split('T')[0], dueDate: p_dueDate ? p_dueDate.toISOString().split('T')[0] : null, recurrenceType: p_recurrenceType, recurrenceInterval: p_recurrenceInterval });
         console.error('Database Error Code:', err.code); // Log Postgres error code if available
         console.error('Database Error Detail:', err.detail); // Log Postgres error detail if available
-        console.error('Full Error Stack:', err.stack); 
+        console.error('Full Error Stack:', err.stack);
         console.error('--- END ERROR ---');
         // --- End Enhanced Logging ---
-        
+
         // Send a more informative generic error, but the details are in the log
-        res.status(500).json({ error: 'Failed to create task due to server error.' }); 
+        res.status(500).json({ error: 'Failed to create task due to server error.' });
     }
 });
 
@@ -317,7 +317,7 @@ app.put('/api/tasks/:id', async (req, res) => {
     const { id } = req.params;
     // Destructure all possible fields from the body
     const { title, description, reminderTime, is_complete, assignedDate, dueDate, recurrenceType, recurrenceInterval } = req.body;
-    
+
     console.log(`Received PUT /api/tasks/${id}:`, req.body);
 
     // Validate ID format (simple integer check)
@@ -349,10 +349,10 @@ app.put('/api/tasks/:id', async (req, res) => {
         updates.is_complete = is_complete;
     }
 
-    // --- Handle Date and Time Updates --- 
+    // --- Handle Date and Time Updates ---
     let p_reminderTimestamp = null;
     let p_isReminderActive = false; // Reset reminder status unless new time is valid and in future
-    if (reminderTime !== undefined) { 
+    if (reminderTime !== undefined) {
         if (reminderTime === null || reminderTime === '') {
             updates.reminder_time = null;
             updates.is_reminder_active = false;
@@ -364,7 +364,7 @@ app.put('/api/tasks/:id', async (req, res) => {
                 if (p_reminderTimestamp > new Date()) {
                     p_isReminderActive = true; // Set active only if valid and future
                 }
-                 updates.is_reminder_active = p_isReminderActive; 
+                 updates.is_reminder_active = p_isReminderActive;
             } catch { return res.status(400).json({ error: 'Invalid Reminder Time format.' }); }
         }
     } // If reminderTime is undefined, we don't touch reminder_time or is_reminder_active
@@ -393,7 +393,7 @@ app.put('/api/tasks/:id', async (req, res) => {
     }
     // --- End Date Handling ---
 
-    // --- Handle Recurrence Updates --- 
+    // --- Handle Recurrence Updates ---
     if (recurrenceType !== undefined) {
         const validRecurrenceTypes = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
         if (!validRecurrenceTypes.includes(recurrenceType)) {
@@ -487,6 +487,90 @@ app.delete('/api/tasks/:id', async (req, res) => {
     } catch (err) {
         console.error(`Error deleting task ${id}:`, err);
         res.status(500).json({ error: 'Failed to delete task' });
+    }
+});
+
+// POST /api/tasks/:id/next-occurrence - Create the next occurrence of a recurring task
+app.post('/api/tasks/:id/next-occurrence', async (req, res) => {
+    const { id } = req.params;
+    console.log(`Received POST /api/tasks/${id}/next-occurrence`);
+
+    // Validate ID format
+    if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({ error: 'Invalid task ID format' });
+    }
+
+    try {
+        // 1. Get the task details
+        const taskResult = await db.query(
+            `SELECT id, title, description, assigned_date, due_date,
+                    recurrence_type, recurrence_interval
+             FROM tasks WHERE id = $1`,
+            [id]
+        );
+
+        if (taskResult.rowCount === 0) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        const task = taskResult.rows[0];
+
+        // 2. Check if this is a recurring task
+        if (!task.recurrence_type || task.recurrence_type === 'none') {
+            return res.status(400).json({ error: 'Task is not recurring' });
+        }
+
+        // 3. Calculate the next occurrence date
+        const assignedDate = new Date(task.assigned_date);
+        const dueDate = task.due_date ? new Date(task.due_date) : null;
+        const interval = task.recurrence_interval || 1;
+
+        let nextAssignedDate = new Date(assignedDate);
+        let nextDueDate = dueDate ? new Date(dueDate) : null;
+
+        // Calculate the next occurrence based on recurrence type
+        switch (task.recurrence_type) {
+            case 'daily':
+                nextAssignedDate.setDate(nextAssignedDate.getDate() + interval);
+                if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + interval);
+                break;
+            case 'weekly':
+                nextAssignedDate.setDate(nextAssignedDate.getDate() + (interval * 7));
+                if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
+                break;
+            case 'monthly':
+                nextAssignedDate.setMonth(nextAssignedDate.getMonth() + interval);
+                if (nextDueDate) nextDueDate.setMonth(nextDueDate.getMonth() + interval);
+                break;
+            case 'yearly':
+                nextAssignedDate.setFullYear(nextAssignedDate.getFullYear() + interval);
+                if (nextDueDate) nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid recurrence type' });
+        }
+
+        // 4. Create a new task for the next occurrence
+        const result = await db.query(
+            `INSERT INTO tasks (title, description, assigned_date, due_date,
+                             recurrence_type, recurrence_interval, is_complete)
+             VALUES ($1, $2, $3, $4, $5, $6, false) RETURNING *`,
+            [
+                task.title,
+                task.description,
+                nextAssignedDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+                nextDueDate ? nextDueDate.toISOString().split('T')[0] : null,
+                task.recurrence_type,
+                task.recurrence_interval
+            ]
+        );
+
+        console.log(`Created next occurrence of task ${id} on ${nextAssignedDate.toISOString().split('T')[0]}`);
+        res.status(201).json(result.rows[0]);
+
+    } catch (err) {
+        console.error(`Error creating next occurrence of task ${id}:`, err);
+        res.status(500).json({ error: 'Failed to create next occurrence' });
     }
 });
 
