@@ -8,12 +8,15 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/sidebar.css">
-    <meta name="theme-color" content="#4db6ac">
+    <!-- Dynamic theme color for status bar -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
 </head>
 <body>
     <button class="menu-button">☰</button>
-    
+
     <div class="sidebar">
         <div class="sidebar-header">
             <h2>Menu</h2>
@@ -47,10 +50,10 @@
     <div id="permissionStatus" class="notifications-status">
         Checking notification permission...
     </div>
-    
+
     <button id="notifyBtn">Enable Background Reminders</button>
     <div id="status" class="status"></div>
-    
+
     <section class="task-list-section">
         <h2>Task List</h2>
         <div id="taskList">
@@ -142,7 +145,7 @@
                             <option value="yearly">Yearly</option>
                         </select>
                     </div>
-                    <div class="form-group form-group-half" id="recurrenceIntervalGroup" style="display: none;"> 
+                    <div class="form-group form-group-half" id="recurrenceIntervalGroup" style="display: none;">
                         <label for="taskRecurrenceInterval">Every:</label>
                         <input type="number" id="taskRecurrenceInterval" value="1" min="1" step="1" style="width: 60px;">
                         <span id="recurrenceIntervalUnit">days</span>
@@ -198,7 +201,7 @@
                             <option value="yearly">Yearly</option>
                         </select>
                     </div>
-                    <div class="form-group form-group-half" id="editRecurrenceIntervalGroup" style="display: none;"> 
+                    <div class="form-group form-group-half" id="editRecurrenceIntervalGroup" style="display: none;">
                         <label for="editTaskRecurrenceInterval">Every:</label>
                         <input type="number" id="editTaskRecurrenceInterval" value="1" min="1" step="1" style="width: 60px;">
                         <span id="editRecurrenceIntervalUnit">days</span>
@@ -278,6 +281,7 @@
     <!-- ===== End Edit Habit Modal ===== -->
 
     <script src="js/sidebar.js"></script>
+    <script src="js/status-bar.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>

@@ -211,7 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isOtherMonth && tasks.length > 0) {
             const tasksDiv = document.createElement('div');
             tasksDiv.className = 'calendar-tasks';
-            tasks.slice(0, 3).forEach(task => { // Limit visible tasks initially
+
+            // Add all tasks instead of limiting to 3
+            tasks.forEach(task => {
                 const taskEl = document.createElement('div');
                 taskEl.className = 'calendar-task-item';
 
@@ -257,17 +259,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 tasksDiv.appendChild(taskEl);
             });
-             if (tasks.length > 3) {
-                 const moreEl = document.createElement('div');
-                 moreEl.className = 'calendar-task-more';
-                 moreEl.textContent = `+${tasks.length - 3} more`;
-                 moreEl.style.fontSize = '0.75em';
-                 moreEl.style.textAlign = 'center';
-                 moreEl.style.marginTop = '3px';
-                 moreEl.style.color = '#566573';
-                 tasksDiv.appendChild(moreEl);
-             }
+
             dayDiv.appendChild(tasksDiv);
+
+            // Check for overflow after the element is added to the DOM
+            // We'll do this in a setTimeout to ensure the DOM has been updated
+            setTimeout(() => {
+                // Check if content overflows
+                if (tasksDiv.scrollHeight > tasksDiv.clientHeight) {
+                    tasksDiv.classList.add('has-overflow');
+
+                    // Add a small indicator showing number of tasks
+                    const taskCountIndicator = document.createElement('div');
+                    taskCountIndicator.className = 'task-count-indicator';
+                    taskCountIndicator.textContent = `${tasks.length} tasks`;
+                    dayDiv.appendChild(taskCountIndicator);
+                }
+            }, 0);
         }
 
         // Add click listener only for days in the current month

@@ -46,6 +46,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentHistoryExerciseName = null; // Store the name
     let currentPage = 'landing'; // <<< ADDED: Declare currentPage in top-level scope
 
+    // --- Local Storage Keys ---
+    const STORAGE_KEYS = {
+        CURRENT_WORKOUT: 'workout_tracker_current_workout',
+        WORKOUT_START_TIME: 'workout_tracker_start_time',
+        CURRENT_PAGE: 'workout_tracker_current_page'
+    };
+
     // --- NEW: Progress Photo Slider State ---
     let progressPhotosData = []; // Holds the array of { photo_id, date_taken, file_path, ... }
     let currentPhotoIndex = 0;
@@ -491,6 +498,78 @@ document.addEventListener('DOMContentLoaded', function() {
         exerciseModal.style.display = 'none';
     }
 
+    // --- Workout State Persistence Functions ---
+
+    // Save current workout state to localStorage
+    function saveWorkoutState() {
+        try {
+            // Only save if we have an active workout
+            if (currentWorkout && (Array.isArray(currentWorkout) ? currentWorkout.length > 0 : currentWorkout.exercises?.length > 0)) {
+                console.log('Saving workout state to localStorage');
+                localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(currentWorkout));
+
+                // Save workout start time if it exists
+                if (workoutStartTime) {
+                    localStorage.setItem(STORAGE_KEYS.WORKOUT_START_TIME, workoutStartTime.toString());
+                }
+
+                // Save current page if we're in active workout mode
+                if (currentPage === 'active') {
+                    localStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPage);
+                }
+
+                return true;
+            } else {
+                console.log('No active workout to save');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error saving workout state:', error);
+            return false;
+        }
+    }
+
+    // Load workout state from localStorage
+    function loadWorkoutState() {
+        try {
+            // Check if we have a saved workout
+            const savedWorkout = localStorage.getItem(STORAGE_KEYS.CURRENT_WORKOUT);
+            if (savedWorkout) {
+                console.log('Found saved workout in localStorage');
+                currentWorkout = JSON.parse(savedWorkout);
+
+                // Load workout start time if it exists
+                const savedStartTime = localStorage.getItem(STORAGE_KEYS.WORKOUT_START_TIME);
+                if (savedStartTime) {
+                    workoutStartTime = parseInt(savedStartTime);
+                }
+
+                // Load current page if it exists
+                const savedPage = localStorage.getItem(STORAGE_KEYS.CURRENT_PAGE);
+                if (savedPage === 'active') {
+                    // We'll switch to the active page after rendering
+                    return true;
+                }
+            }
+            return false;
+        } catch (error) {
+            console.error('Error loading workout state:', error);
+            return false;
+        }
+    }
+
+    // Clear saved workout state
+    function clearWorkoutState() {
+        try {
+            localStorage.removeItem(STORAGE_KEYS.CURRENT_WORKOUT);
+            localStorage.removeItem(STORAGE_KEYS.WORKOUT_START_TIME);
+            localStorage.removeItem(STORAGE_KEYS.CURRENT_PAGE);
+            console.log('Cleared saved workout state');
+        } catch (error) {
+            console.error('Error clearing workout state:', error);
+        }
+    }
+
     function switchPage(pageToShow) {
         console.log('switchPage called with:', pageToShow); // Log function call and argument
         currentPage = pageToShow; // <<< Ensure this modifies the top-level variable (no 'let')
@@ -504,6 +583,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (pageToShow === 'active') {
             activeWorkoutPage.classList.add('active');
             console.log('Applied active class to:', activeWorkoutPage);
+            // Save workout state when switching to active page
+            saveWorkoutState();
         } else if (pageToShow === 'editor') {
             templateEditorPage.classList.add('active');
             console.log('Applied active class to:', templateEditorPage);
@@ -514,14 +595,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function startEmptyWorkout() {
         console.log('Starting empty workout');
+        // Clear any existing saved workout
+        clearWorkoutState();
+
         currentWorkout = []; // Reset workout
         currentWorkoutNameEl.textContent = 'New Workout'; // Or prompt user for name
         renderCurrentWorkout();
         switchPage('active');
         startTimer();
+
+        // Save the new empty workout state
+        saveWorkoutState();
     }
 
     function startWorkoutFromTemplate(templateId) {
+        // Clear any existing saved workout
+        clearWorkoutState();
+
         const template = workoutTemplates.find(t => t.workout_id === templateId);
         if (!template) {
             console.error("Template not found:", templateId);
@@ -552,6 +642,9 @@ document.addEventListener('DOMContentLoaded', function() {
         startTimer();
         // Show FAB
         addExerciseFab.style.display = 'block';
+
+        // Save the new workout state
+        saveWorkoutState();
     }
 
 
@@ -769,6 +862,9 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleButton.innerHTML = ''; // Clear checkmark
             console.log("[handleSetToggle] Cleared innerHTML."); // <<< Log 11b: Log checkmark clear
         }
+
+        // Save workout state after toggling a set
+        saveWorkoutState();
     }
 
     async function handleCompleteWorkout() {
@@ -882,6 +978,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset state and go back to landing page
                 currentWorkout = [];
                 workoutStartTime = null;
+
+                // Clear saved workout state
+                clearWorkoutState();
+
                 switchPage('landing');
                 // Refresh templates list
                 fetchTemplates();
@@ -1372,6 +1472,31 @@ document.addEventListener('DOMContentLoaded', function() {
     function initialize() {
         console.log('Initializing Workout Tracker...');
         // REMOVED: let currentPage = 'landing'; // Remove local declaration if it existed
+
+        // Check for saved workout state
+        if (loadWorkoutState()) {
+            console.log('Restoring saved workout state');
+            // Set workout name display if we have a workout
+            if (currentWorkout) {
+                const workoutName = Array.isArray(currentWorkout) ? 'New Workout' : currentWorkout.name;
+                if (currentWorkoutNameEl) currentWorkoutNameEl.textContent = workoutName;
+
+                // Render the workout
+                renderCurrentWorkout();
+
+                // Switch to active page
+                switchPage('active');
+
+                // Resume timer if we have a start time
+                if (workoutStartTime) {
+                    // Update timer display first
+                    updateTimer();
+                    // Then start the interval
+                    workoutTimerInterval = setInterval(updateTimer, 1000);
+                }
+            }
+        }
+
         fetchExercises(); // Fetch exercises for the modal
         fetchTemplates(); // Fetch templates for the landing page
         fetchAndDisplayPhotos(); // Fetch photos for the slider
@@ -1806,6 +1931,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset state
             currentWorkout = [];
             workoutStartTime = null;
+
+            // Clear saved workout state
+            clearWorkoutState();
+
             // Switch back to landing page
             switchPage('landing');
         } else {

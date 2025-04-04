@@ -81,9 +81,7 @@ button:active {
     margin-top: 20px; /* More space before schedule button */
 }
 
-.delete-btn {
-    /* REMOVING CONFLICTING GLOBAL DELETE BUTTON STYLE */
-}
+/* REMOVING CONFLICTING GLOBAL DELETE BUTTON STYLE */
 
 .status, .notifications-status {
     margin-top: 20px;
@@ -576,7 +574,8 @@ textarea {
 /* Ensure form inside modal doesn't have extra padding/margin */
 .modal-content #addTaskForm,
 .modal-content #addHabitForm { /* Apply to both forms */
-    /* Add any specific overrides if needed */
+    margin: 0;
+    padding: 0;
 }
 
 /* --- Floating Action Button (FAB) (Adapted from workouts.css) --- */
@@ -654,16 +653,21 @@ textarea {
     border-radius: 4px;
     border: 1px solid #e8eef2;
     display: flex;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
     align-items: center; /* Center items vertically */
     gap: 10px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    justify-content: space-between; /* Distribute space evenly */
+    position: relative; /* For absolute positioning if needed */
+    min-height: 60px; /* Ensure enough height for absolute positioning */
 }
 
 /* Habit content styles */
 .habit-content {
     flex-grow: 1;
-    flex-basis: 50%; /* Give it a base width */
+    flex-basis: 100%; /* Full width on mobile */
+    max-width: calc(100% - 320px); /* Leave space for indicators */
+    order: 1; /* Control the order of elements */
+    padding-right: 20px; /* Add some padding */
 }
 
 .habit-title {
@@ -676,13 +680,14 @@ textarea {
 .habit-progress-container {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end; /* Align to the right */
     flex-shrink: 0;
-    margin: 0 10px;
+    margin: 5px 0;
     flex-grow: 0;
-    width: 120px;
-    position: relative; /* For proper alignment */
-    min-width: 120px; /* Ensure consistent width */
+    width: 150px; /* Fixed width for alignment */
+    position: absolute; /* Position absolutely */
+    right: 300px; /* Position from the right edge */
+    order: 2; /* Third element */
 }
 
 /* Progress indicator style */
@@ -695,7 +700,7 @@ textarea {
     display: inline-block;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    min-width: 90px;
+    min-width: 110px; /* Increased width for better alignment */
     text-align: center;
     white-space: nowrap;
     background-color: #4db6ac; /* Default teal background */
@@ -727,11 +732,14 @@ textarea {
 .habit-level-container {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end; /* Align to the right */
     flex-shrink: 0;
-    margin: 0 10px;
+    margin: 5px 10px 5px 0;
     flex-grow: 0;
-    width: 90px; /* Slightly smaller than progress container */
+    width: 150px; /* Fixed width for alignment - same as progress container */
+    order: 3; /* Fourth element */
+    position: absolute; /* Position absolutely */
+    right: 150px; /* Position from the right edge */
 }
 
 /* Habit actions container */
@@ -739,6 +747,13 @@ textarea {
     flex-shrink: 0;
     display: flex; /* Arrange buttons horizontally */
     gap: 8px;      /* Add space between buttons */
+    margin-top: 5px;
+    margin-left: auto; /* Push to the right */
+    order: 4; /* Last element */
+    width: auto; /* Auto width */
+    justify-content: flex-end; /* Right align buttons */
+    position: absolute; /* Position absolutely */
+    right: 15px; /* Position from the right edge */
 }
 
 /* NEW: Style for edit button in habit list */
@@ -819,7 +834,7 @@ textarea {
     display: inline-block;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    min-width: 90px; /* Increased to accommodate progress text */
+    min-width: 110px; /* Match progress indicator width */
     text-align: center;
     white-space: nowrap; /* Prevent wrapping */
 }
@@ -863,6 +878,8 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
+    order: 0; /* First element */
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 /* Style for habit checkbox - redesigned to match increment button */
@@ -960,4 +977,36 @@ textarea {
 #addHabitBtn {
     /* Use default button styles or customize */
     margin-top: 20px;
+}
+
+/* Media query for larger screens */
+@media screen and (min-width: 768px) {
+    /* Adjust habit item layout for larger screens */
+    .habit-item {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        padding-right: 180px; /* Make room for absolute positioned elements */
+    }
+
+    .habit-content {
+        flex-basis: 40%;
+        max-width: 40%;
+        order: 0;
+    }
+
+    /* Keep the absolute positioning for consistent alignment */
+    .habit-progress-container {
+        width: 150px;
+        right: 300px;
+    }
+
+    .habit-level-container {
+        width: 150px;
+        right: 150px;
+    }
+
+    .habit-actions {
+        width: auto;
+        right: 15px;
+    }
 }

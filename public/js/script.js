@@ -619,14 +619,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log(`Task ${updatedTask.id} is recurring (${updatedTask.recurrence_type}). Creating next occurrence...`);
 
                     try {
-                        // Calculate the next occurrence date
-                        const nextOccurrenceResponse = await fetch(`/api/tasks/${updatedTask.id}/next-occurrence`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
-                        });
+                        // Calculate the next occurrence date manually if the endpoint fails
+                        let nextOccurrenceData;
 
-                        if (nextOccurrenceResponse.ok) {
-                            const nextOccurrenceData = await nextOccurrenceResponse.json();
+                        try {
+                            // Try to use the server endpoint first
+                            const nextOccurrenceResponse = await fetch(`/api/tasks/${updatedTask.id}/next-occurrence`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+
+                            if (nextOccurrenceResponse.ok) {
+                                nextOccurrenceData = await nextOccurrenceResponse.json();
+                                console.log('Next occurrence created via API:', nextOccurrenceData);
+                            } else {
+                                // If the endpoint fails, calculate the next occurrence date manually
+                                console.warn('API endpoint failed, calculating next occurrence manually');
+                                nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                            }
+                        } catch (apiError) {
+                            console.error('Error calling next-occurrence API:', apiError);
+                            // Calculate the next occurrence date manually
+                            nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                        }
+
+                        if (nextOccurrenceData) {
                             console.log('Next occurrence created:', nextOccurrenceData);
 
                             // Show a notification that the task will appear on the calendar
@@ -1663,6 +1680,76 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCompletedTaskHeader(count) {
         const arrow = completedTaskListDiv.style.display === 'none' ? '&#9662;' : '&#9652;'; // Get current arrow state
         completedTasksHeader.innerHTML = `Completed Tasks (${count}) ${arrow}`;
+    }
+
+    // Function to manually create the next occurrence of a recurring task
+    async function createNextOccurrenceManually(task) {
+        console.log('Creating next occurrence manually for task:', task);
+
+        try {
+            // Calculate the next occurrence date
+            const assignedDate = new Date(task.assigned_date);
+            const dueDate = task.due_date ? new Date(task.due_date) : null;
+            const interval = task.recurrence_interval || 1;
+
+            let nextAssignedDate = new Date(assignedDate);
+            let nextDueDate = dueDate ? new Date(dueDate) : null;
+
+            // Calculate the next occurrence based on recurrence type
+            switch (task.recurrence_type) {
+                case 'daily':
+                    nextAssignedDate.setDate(nextAssignedDate.getDate() + interval);
+                    if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + interval);
+                    break;
+                case 'weekly':
+                    nextAssignedDate.setDate(nextAssignedDate.getDate() + (interval * 7));
+                    if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
+                    break;
+                case 'monthly':
+                    nextAssignedDate.setMonth(nextAssignedDate.getMonth() + interval);
+                    if (nextDueDate) nextDueDate.setMonth(nextDueDate.getMonth() + interval);
+                    break;
+                case 'yearly':
+                    nextAssignedDate.setFullYear(nextAssignedDate.getFullYear() + interval);
+                    if (nextDueDate) nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
+                    break;
+                default:
+                    console.error('Invalid recurrence type:', task.recurrence_type);
+                    return null;
+            }
+
+            // Format dates as YYYY-MM-DD
+            const formattedAssignedDate = nextAssignedDate.toISOString().split('T')[0];
+            const formattedDueDate = nextDueDate ? nextDueDate.toISOString().split('T')[0] : null;
+
+            // Create a new task for the next occurrence
+            const response = await fetch('/api/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: task.title,
+                    description: task.description,
+                    assigned_date: formattedAssignedDate,
+                    due_date: formattedDueDate,
+                    recurrence_type: task.recurrence_type,
+                    recurrence_interval: task.recurrence_interval,
+                    is_complete: false
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to create next occurrence: ${response.status} ${response.statusText}`);
+            }
+
+            const newTask = await response.json();
+            console.log('Manually created next occurrence:', newTask);
+            return newTask;
+        } catch (error) {
+            console.error('Error creating next occurrence manually:', error);
+            return null;
+        }
     }
 
 }); // End DOMContentLoaded
