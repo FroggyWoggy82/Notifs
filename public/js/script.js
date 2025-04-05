@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function checkNotificationPermission(silent = false) {
         if (!('Notification' in window)) {
+            permissionStatusDiv.style.display = 'block';
             permissionStatusDiv.textContent = 'Notifications not supported.';
             permissionStatusDiv.className = 'notifications-status permission-denied';
             notifyBtn.disabled = true;
@@ -146,21 +147,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const permission = Notification.permission;
-        permissionStatusDiv.textContent = `Notification Permission: ${permission.toUpperCase()}`;
         permissionStatusDiv.classList.remove('permission-granted', 'permission-denied', 'permission-default');
 
         if (permission === 'granted') {
-            permissionStatusDiv.classList.add('permission-granted');
+            // Hide the permission status text when granted
+            permissionStatusDiv.style.display = 'none';
             notifyBtn.textContent = 'Background Reminders Enabled';
             notifyBtn.disabled = true; // Or change to 'Refresh Subscription'?
              // If granted, ensure subscription is set up
              if (!silent) setupPushSubscription();
         } else if (permission === 'denied') {
+            permissionStatusDiv.style.display = 'block';
+            permissionStatusDiv.textContent = 'Notification Permission: DENIED';
             permissionStatusDiv.classList.add('permission-denied');
             notifyBtn.textContent = 'Enable Background Reminders';
             notifyBtn.disabled = false;
             if (!silent) updateStatus('Enable notifications in browser settings to use reminders.', true);
         } else {
+            permissionStatusDiv.style.display = 'block';
+            permissionStatusDiv.textContent = 'Notification Permission: NOT SET';
             permissionStatusDiv.classList.add('permission-default');
             notifyBtn.textContent = 'Enable Background Reminders';
             notifyBtn.disabled = false;
@@ -173,6 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
              checkNotificationPermission(); // Update UI based on new permission
              if (permissionResult === 'granted') {
                  console.log('Notification permission granted.');
+                 // Hide permission status when granted
+                 permissionStatusDiv.style.display = 'none';
                  updateStatus('Permission granted! Setting up background sync...', false);
                  await setupPushSubscription();
                  updateStatus('Background reminders enabled!', false);

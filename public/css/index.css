@@ -97,6 +97,7 @@ button:active {
     background-color: #d1f2eb; /* Light teal */
     color: #117a65; /* Darker teal text */
     border-color: #a3e4d7;
+    display: none; /* Hide the permission status when granted */
 }
 .permission-denied {
     background-color: #f5b7b1; /* Light red */
