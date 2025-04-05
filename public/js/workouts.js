@@ -314,7 +314,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Store the checked state of exercises
+    const checkedExercises = new Set();
+
     function renderAvailableExercises(searchTerm = '', category = 'all') {
+        // Save checked state before clearing the list
+        const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
+        currentCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                checkedExercises.add(parseInt(checkbox.value, 10));
+            } else {
+                checkedExercises.delete(parseInt(checkbox.value, 10));
+            }
+        });
+
         availableExerciseListEl.innerHTML = ''; // Clear previous
         searchTerm = searchTerm.toLowerCase();
 
@@ -346,6 +359,11 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.value = ex.exercise_id; // Store ID in value
             checkbox.id = `ex-select-${ex.exercise_id}`;
             checkbox.name = 'selectedExercises';
+
+            // Restore checked state if this exercise was previously checked
+            if (checkedExercises.has(ex.exercise_id)) {
+                checkbox.checked = true;
+            }
 
             // Create span for the text content
             const textSpan = document.createElement('span');
@@ -501,6 +519,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function closeExerciseModal() {
+        // Save checked state before closing the modal
+        const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
+        currentCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                checkedExercises.add(parseInt(checkbox.value, 10));
+            } else {
+                checkedExercises.delete(parseInt(checkbox.value, 10));
+            }
+        });
+
         exerciseModal.style.display = 'none';
     }
 
@@ -1961,12 +1989,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`Adding ${selectedCheckboxes.length} selected exercises to ${targetList}`);
 
+        // Store the IDs of selected exercises
+        const selectedIds = [];
         selectedCheckboxes.forEach(checkbox => {
             const exerciseId = parseInt(checkbox.value, 10);
             if (!isNaN(exerciseId)) {
+                selectedIds.push(exerciseId);
                 addExerciseToWorkout(exerciseId, targetList); // Pass targetList
             }
         });
+
+        // Clear the checked state for added exercises
+        selectedIds.forEach(id => checkedExercises.delete(id));
 
         closeExerciseModal(); // Close modal after adding all
     }
