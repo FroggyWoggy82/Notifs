@@ -11,6 +11,29 @@
     margin-bottom: 40px; /* Space before recipe creation */
 }
 
+/* User selector styles */
+.user-selector-container {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-selector-container label {
+    font-weight: 500;
+    color: #1f2933;
+}
+
+#user-selector {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #c8d0d7;
+    background-color: #f8f9fa;
+    font-size: 0.9em;
+    color: #1f2933;
+    cursor: pointer;
+}
+
 #weight-goal-section h2 {
     font-weight: 500;
     color: #1f2933;
@@ -158,4 +181,4 @@
         justify-self: center; /* Center remove button */
         margin-top: 5px;
     }
-} 
+}

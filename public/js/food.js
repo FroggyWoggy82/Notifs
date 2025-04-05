@@ -14,7 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const weightGoalStatus = document.getElementById('weight-goal-status');
     const weightGoalChartCanvas = document.getElementById('weight-goal-chart');
     const weightChartMessage = document.getElementById('weight-chart-message');
+    const userSelector = document.getElementById('user-selector');
     let weightGoalChart = null; // To hold the Chart.js instance
+
+    // Load saved user preference from localStorage or default to 1
+    let currentUserId = localStorage.getItem('weightUserPreference') || 1;
+
+    // Set the user selector to the saved preference
+    if (userSelector && currentUserId) {
+        userSelector.value = currentUserId;
+    }
     // --- End Weight Goal Elements ---
 
     // Function to create HTML for a single ingredient row
@@ -120,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             createRecipeForm.reset(); // Clear form fields
             // Reset ingredients list to one empty row
             ingredientsList.innerHTML = '';
-            addIngredientRow(); 
+            addIngredientRow();
             loadRecipes(); // Refresh the recipe list
 
         } catch (error) {
@@ -134,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadWeightGoal() {
         showStatus(weightGoalStatus, 'Loading weight goal...', 'info');
         try {
-            const response = await fetch('/api/weight/goal');
+            const response = await fetch(`/api/weight/goal?user_id=${currentUserId}`);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to fetch goal');
@@ -167,14 +176,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/weight/goal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ targetWeight: targetWeight, weeklyGain: weeklyGain })
+                body: JSON.stringify({
+                    targetWeight: targetWeight,
+                    weeklyGain: weeklyGain,
+                    user_id: currentUserId
+                })
             });
-            
+
             if (!response.ok) {
                  const errorData = await response.json();
                  throw new Error(errorData.error || 'Failed to save goal');
             }
-            
+
             const result = await response.json();
             console.log("Goal saved:", result);
 
@@ -184,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             showStatus(weightGoalStatus, 'Weight goal saved successfully!', 'success');
             // Trigger graph update as the goal line might change
-            loadAndRenderWeightChart(); 
+            loadAndRenderWeightChart();
 
         } catch (error) {
             console.error('Error saving weight goal:', error);
@@ -193,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- NEW: Weight Chart Functions --- //
-    
+
     // Loads actual weight data and goal line, then renders the chart
     async function loadAndRenderWeightChart() {
         // IMPORTANT: Make sure Chart.js library is included in food.html
@@ -204,12 +217,12 @@ document.addEventListener('DOMContentLoaded', () => {
         weightChartMessage.style.display = 'block';
         weightGoalChartCanvas.style.display = 'none'; // Hide canvas while loading
         if (weightGoalChart) weightGoalChart.destroy(); // Clear previous chart immediately
-        
+
         try {
             // Fetch both logs and goal data concurrently
             const [logsResponse, goalResponse] = await Promise.all([
-                fetch('/api/weight/logs'),
-                fetch('/api/weight/goal')
+                fetch(`/api/weight/logs?user_id=${currentUserId}`),
+                fetch(`/api/weight/goal?user_id=${currentUserId}`)
             ]);
 
             if (!logsResponse.ok) {
@@ -236,39 +249,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // --- Prepare data for Chart.js --- 
+            // --- Prepare data for Chart.js ---
             // Ensure logs are sorted by date (API should do this, but double-check)
             weightLogs.sort((a, b) => new Date(a.log_date) - new Date(b.log_date));
 
             const histLabels = weightLogs.map(log => new Date(log.log_date + 'T00:00:00Z').toLocaleDateString()); // Use UTC date for consistency
             const actualWeightData = weightLogs.map(log => log.weight);
-            
-            // --- Generate Future Dates and Labels --- 
+
+            // --- Generate Future Dates and Labels ---
             const futureLabels = [];
             const WEEKS_TO_PROJECT = 6; // Project ~6 weeks into the future
             const lastLogDate = new Date(weightLogs[weightLogs.length - 1].log_date + 'T00:00:00Z');
-            
+
             for (let i = 1; i <= WEEKS_TO_PROJECT; i++) {
                 const futureDate = new Date(lastLogDate);
                 futureDate.setDate(lastLogDate.getDate() + (i * 7)); // Add weeks
                 futureLabels.push(futureDate.toLocaleDateString());
             }
 
-            // --- Combine Labels and Pad Actual Data --- 
+            // --- Combine Labels and Pad Actual Data ---
             const labels = [...histLabels, ...futureLabels];
             // Pad actual weight data with nulls for the future dates
             const paddedActualWeightData = [...actualWeightData, ...Array(futureLabels.length).fill(null)];
 
-            // --- Calculate Full Target Weight Line (Historical + Future) --- 
+            // --- Calculate Full Target Weight Line (Historical + Future) ---
             const targetWeightLine = [];
             const startDate = new Date(weightLogs[0].log_date + 'T00:00:00Z'); // Use first log date as start
             const startWeight = actualWeightData[0]; // Use first log weight as start
             const targetWeight = goalData.target_weight;
             const weeklyGain = goalData.weekly_gain_goal;
 
-            // --- Add Logging --- 
+            // --- Add Logging ---
             console.log("Chart: Received goalData:", goalData);
-            console.log("Chart: Values for target line calculation:", 
+            console.log("Chart: Values for target line calculation:",
                 { targetWeight, weeklyGain, startDate, startWeight });
             // --- End Logging ---
 
@@ -286,20 +299,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Decide how to handle unparseable date - push null or skip?
                         targetWeightLine.push(null); // Push null if date is invalid
                         return; // Skip to next iteration
-                    } 
+                    }
 
                     // Ensure currentDate uses the same time basis as startDate (e.g., UTC midnight)
                     currentDate.setUTCHours(0, 0, 0, 0);
 
                     const weeksDiff = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 7);
                     // Only calculate projection if weeksDiff is non-negative (i.e., date is after start)
-                    if (weeksDiff >= 0) { 
+                    if (weeksDiff >= 0) {
                         const projectedWeight = startWeight + (weeksDiff * weeklyGain);
                         // Cap projection at target weight
-                        targetWeightLine.push(Math.min(projectedWeight, targetWeight)); 
+                        targetWeightLine.push(Math.min(projectedWeight, targetWeight));
                     } else {
                         // If somehow a date before start date is processed, push null
-                        targetWeightLine.push(null); 
+                        targetWeightLine.push(null);
                     }
                 });
             } else {
@@ -425,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
             recipeDiv.innerHTML = `
                 <h4>${escapeHtml(recipe.name)}</h4>
                 <p>Total Calories: <span class="recipe-calories">${recipe.total_calories.toFixed(1)}</span></p>
-                
+
                 <!-- Calorie Adjustment Controls -->
                 <div class="calorie-adjustment">
                     <label>Adjust Calories:</label>
@@ -436,9 +449,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" class="adjust-calories-amount-btn" data-amount="-200">-200</button>
                     <button type="button" class="adjust-calories-amount-btn" data-amount="200">+200</button>
                 </div>
-                
+
                 <div class="recipe-actions">
-                    <button type="button" class="view-ingredients-btn">View Ingredients</button> 
+                    <button type="button" class="view-ingredients-btn">View Ingredients</button>
                     <button type="button" class="delete-recipe-btn">Delete Recipe</button>
                 </div>
                 <div class="ingredient-details" style="display: none; margin-top: 10px;">
@@ -616,7 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${ing.fats.toFixed(1)}</td>
                     <td>${ing.carbohydrates.toFixed(1)}</td>
                     <td>${ing.price.toFixed(2)}</td>
-                    <td>${ing.calories_per_gram.toFixed(2)}</td> 
+                    <td>${ing.calories_per_gram.toFixed(2)}</td>
                     <td>${ing.protein_per_gram.toFixed(2)}</td>
                     <td>${ing.fats_per_gram.toFixed(2)}</td>
                     <td>${ing.carbohydrates_per_gram.toFixed(2)}</td>
@@ -642,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target.classList.contains('delete-recipe-btn')) {
             deleteRecipe(recipeId);
         }
-        // --- Calorie Adjustment Handlers --- 
+        // --- Calorie Adjustment Handlers ---
         else if (target.classList.contains('adjust-calories-btn')) {
             const targetInput = recipeItem.querySelector('.target-calories-input');
             const targetCalories = parseFloat(targetInput?.value);
@@ -670,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  showStatus(recipeItem.querySelector('.adjustment-status'), 'Invalid adjustment amount.', 'error');
             }
         }
-         // --- View Ingredients Handler --- 
+         // --- View Ingredients Handler ---
         else if (target.classList.contains('view-ingredients-btn')) {
             const detailsDiv = recipeItem.querySelector('.ingredient-details');
             await fetchAndDisplayIngredients(recipeId, detailsDiv, target); // Pass button to toggle text
@@ -684,8 +697,30 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Could not find weight goal form element (#weight-goal-form) to attach listener.");
     }
 
+    // --- Add Event Listener for User Selector --- //
+    if (userSelector) {
+        userSelector.addEventListener('change', function() {
+            currentUserId = this.value; // Update the current user ID
+            console.log(`Switched to user ID: ${currentUserId}`);
+
+            // Save the user preference to localStorage
+            localStorage.setItem('weightUserPreference', currentUserId);
+
+            // Reload data for the selected user
+            loadWeightGoal();
+            loadAndRenderWeightChart();
+
+            // Update the user selector label
+            const userLabel = currentUserId == 1 ? 'My Data' : 'Mom\'s Data';
+            showStatus(weightGoalStatus, `Switched to ${userLabel}`, 'info');
+            setTimeout(() => showStatus(weightGoalStatus, '', ''), 2000); // Clear after 2 seconds
+        });
+    } else {
+        console.error("Could not find user selector element (#user-selector) to attach listener.");
+    }
+
     // --- Initial Load --- //
     loadWeightGoal(); // Load saved goal
     loadAndRenderWeightChart(); // Attempt to load chart data
     loadRecipes();
-}); 
+});

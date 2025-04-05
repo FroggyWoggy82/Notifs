@@ -46,6 +46,13 @@
     <!-- ===== Weight Goal Section ===== -->
     <section id="weight-goal-section">
         <h2>Weight Goal</h2>
+        <div class="user-selector-container">
+            <label for="user-selector">Select User:</label>
+            <select id="user-selector">
+                <option value="1" selected>My Data</option>
+                <option value="2">Mom's Data</option>
+            </select>
+        </div>
         <form id="weight-goal-form">
             <div class="form-row">
                 <div class="form-group form-group-half">
@@ -63,7 +70,7 @@
 
         <div class="chart-container">
             <canvas id="weight-goal-chart"></canvas>
-            <p id="weight-chart-message" style="text-align: center;">Weight data needed to display graph.</p> 
+            <p id="weight-chart-message" style="text-align: center;">Weight data needed to display graph.</p>
         </div>
     </section>
     <!-- ===== End Weight Goal Section ===== -->
@@ -138,4 +145,4 @@
     <script src="../js/sidebar.js"></script>
     <script src="../js/food.js"></script> <!-- Food specific JS -->
 </body>
-</html> 
+</html>

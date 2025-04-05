@@ -70,19 +70,27 @@ app.use('/api/recipes', recipeRoutes);
 
 // GET /api/weight/goal - Get the current weight goal
 app.get('/api/weight/goal', async (req, res) => {
-    console.log("Received GET /api/weight/goal");
+    // Get user_id from query parameter, default to 1 if not provided
+    const userId = req.query.user_id || 1;
+    console.log(`Received GET /api/weight/goal for user_id: ${userId}`);
+
     try {
-        // Fetch the latest goal (assuming only one matters)
-        const result = await db.query('SELECT target_weight, weekly_gain_goal FROM weight_goals ORDER BY updated_at DESC LIMIT 1');
+        // Fetch the latest goal for the specified user
+        const result = await db.query(
+            'SELECT target_weight, weekly_gain_goal FROM weight_goals WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
+            [userId]
+        );
+
         if (result.rows.length > 0) {
             // Convert numeric types from string potentially returned by node-postgres to numbers
             const goal = {
                 target_weight: parseFloat(result.rows[0].target_weight),
-                weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal)
+                weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal),
+                user_id: parseInt(userId)
             };
             res.json(goal);
         } else {
-            res.json({ target_weight: null, weekly_gain_goal: null }); // No goal set
+            res.json({ target_weight: null, weekly_gain_goal: null, user_id: parseInt(userId) }); // No goal set
         }
     } catch (err) {
         console.error('Error fetching weight goal:', err);
@@ -93,7 +101,10 @@ app.get('/api/weight/goal', async (req, res) => {
 // POST /api/weight/goal - Save or update the weight goal
 app.post('/api/weight/goal', async (req, res) => {
     const { targetWeight, weeklyGain } = req.body;
-    console.log(`Received POST /api/weight/goal: target=${targetWeight}, gain=${weeklyGain}`);
+    // Get user_id from request body, default to 1 if not provided
+    const userId = req.body.user_id || 1;
+
+    console.log(`Received POST /api/weight/goal: target=${targetWeight}, gain=${weeklyGain}, user_id=${userId}`);
 
     const p_targetWeight = parseFloat(targetWeight);
     const p_weeklyGain = parseFloat(weeklyGain);
@@ -104,16 +115,18 @@ app.post('/api/weight/goal', async (req, res) => {
 
     try {
         await db.query('BEGIN');
-        await db.query('DELETE FROM weight_goals'); // Remove old goal(s)
+        // Delete only the goals for this specific user
+        await db.query('DELETE FROM weight_goals WHERE user_id = $1', [userId]);
         const result = await db.query(
-            'INSERT INTO weight_goals (target_weight, weekly_gain_goal) VALUES ($1, $2) RETURNING target_weight, weekly_gain_goal',
-            [p_targetWeight, p_weeklyGain]
+            'INSERT INTO weight_goals (target_weight, weekly_gain_goal, user_id) VALUES ($1, $2, $3) RETURNING target_weight, weekly_gain_goal, user_id',
+            [p_targetWeight, p_weeklyGain, userId]
         );
         await db.query('COMMIT');
 
         const savedGoal = {
             target_weight: parseFloat(result.rows[0].target_weight),
-            weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal)
+            weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal),
+            user_id: parseInt(result.rows[0].user_id)
         };
         console.log("Weight goal saved:", savedGoal);
         res.status(201).json(savedGoal);
@@ -126,15 +139,25 @@ app.post('/api/weight/goal', async (req, res) => {
 
 // GET /api/weight/logs - Get all weight logs
 app.get('/api/weight/logs', async (req, res) => {
-    console.log("Received GET /api/weight/logs");
+    // Get user_id from query parameter, default to 1 if not provided
+    const userId = req.query.user_id || 1;
+    console.log(`Received GET /api/weight/logs for user_id: ${userId}`);
+
     try {
-        const result = await db.query('SELECT log_id, log_date, weight FROM weight_logs ORDER BY log_date ASC');
+        // Add user_id to the query
+        const result = await db.query(
+            'SELECT log_id, log_date, weight FROM weight_logs WHERE user_id = $1 ORDER BY log_date ASC',
+            [userId]
+        );
+
         // Format date and weight for consistency
         const logs = result.rows.map(row => ({
             log_id: row.log_id,
             log_date: row.log_date.toISOString().split('T')[0], // YYYY-MM-DD format
-            weight: parseFloat(row.weight)
+            weight: parseFloat(row.weight),
+            user_id: parseInt(userId)
         }));
+
         res.json(logs);
     } catch (err) {
         console.error('Error fetching weight logs:', err);
@@ -147,7 +170,10 @@ app.post('/api/weight/log', async (req, res) => {
     const { weight } = req.body;
     // Use provided date (YYYY-MM-DD) or default to today's date
     const logDateInput = req.body.date;
-    console.log(`Received POST /api/weight/log: weight=${weight}, date=${logDateInput}`);
+    // Get user_id from request body, default to 1 if not provided
+    const userId = req.body.user_id || 1;
+
+    console.log(`Received POST /api/weight/log: weight=${weight}, date=${logDateInput}, user_id=${userId}`);
 
     const p_weight = parseFloat(weight);
     if (isNaN(p_weight) || p_weight <= 0) {
@@ -172,14 +198,15 @@ app.post('/api/weight/log', async (req, res) => {
 
     try {
         const result = await db.query(
-            'INSERT INTO weight_logs (log_date, weight) VALUES ($1, $2) RETURNING log_id, log_date, weight',
-            [p_logDateStr, p_weight]
+            'INSERT INTO weight_logs (log_date, weight, user_id) VALUES ($1, $2, $3) RETURNING log_id, log_date, weight, user_id',
+            [p_logDateStr, p_weight, userId]
         );
 
         const newLog = {
             log_id: result.rows[0].log_id,
             log_date: result.rows[0].log_date.toISOString().split('T')[0],
-            weight: parseFloat(result.rows[0].weight)
+            weight: parseFloat(result.rows[0].weight),
+            user_id: parseInt(result.rows[0].user_id)
         };
 
         console.log("Weight log recorded successfully:", newLog);

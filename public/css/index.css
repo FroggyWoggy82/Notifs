@@ -653,21 +653,26 @@ textarea {
     border-radius: 4px;
     border: 1px solid #e8eef2;
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    align-items: center; /* Center items vertically */
-    gap: 10px;
+    flex-direction: column; /* Stack elements vertically on mobile */
+    gap: 12px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    position: relative; /* For absolute positioning if needed */
-    min-height: 60px; /* Ensure enough height for absolute positioning */
+    position: relative;
 }
 
 /* Habit content styles */
 .habit-content {
-    flex-grow: 1;
-    flex-basis: 100%; /* Full width on mobile */
-    max-width: calc(100% - 320px); /* Leave space for indicators */
-    order: 1; /* Control the order of elements */
-    padding-right: 20px; /* Add some padding */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-right: 0;
+}
+
+/* Top row with habit title and checkbox */
+.habit-top-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
 }
 
 .habit-title {
@@ -676,18 +681,21 @@ textarea {
     font-size: 1em;
 }
 
+/* Progress and level row */
+.habit-indicators-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
 /* Progress container for counter habits */
 .habit-progress-container {
     display: flex;
     align-items: center;
-    justify-content: flex-end; /* Align to the right */
     flex-shrink: 0;
-    margin: 5px 0;
-    flex-grow: 0;
-    width: 150px; /* Fixed width for alignment */
-    position: absolute; /* Position absolutely */
-    right: 300px; /* Position from the right edge */
-    order: 2; /* Third element */
+    margin: 0;
 }
 
 /* Progress indicator style */
@@ -704,6 +712,7 @@ textarea {
     text-align: center;
     white-space: nowrap;
     background-color: #4db6ac; /* Default teal background */
+    margin: 0;
 }
 
 /* Different progress level colors - same as level colors */
@@ -732,28 +741,16 @@ textarea {
 .habit-level-container {
     display: flex;
     align-items: center;
-    justify-content: flex-end; /* Align to the right */
     flex-shrink: 0;
-    margin: 5px 10px 5px 0;
-    flex-grow: 0;
-    width: 150px; /* Fixed width for alignment - same as progress container */
-    order: 3; /* Fourth element */
-    position: absolute; /* Position absolutely */
-    right: 150px; /* Position from the right edge */
+    margin: 0;
 }
 
 /* Habit actions container */
 .habit-actions {
-    flex-shrink: 0;
     display: flex; /* Arrange buttons horizontally */
     gap: 8px;      /* Add space between buttons */
-    margin-top: 5px;
-    margin-left: auto; /* Push to the right */
-    order: 4; /* Last element */
-    width: auto; /* Auto width */
+    width: 100%;
     justify-content: flex-end; /* Right align buttons */
-    position: absolute; /* Position absolutely */
-    right: 15px; /* Position from the right edge */
 }
 
 /* NEW: Style for edit button in habit list */
@@ -816,12 +813,13 @@ textarea {
     color: #2e7d32; /* Darker green for completed habits */
 }
 
-/* Style for habit header with title and level */
-.habit-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+/* Style for habit title */
+.habit-title {
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 1em;
+    display: block;
+    margin-bottom: 4px;
 }
 
 /* Style for habit level indicator */
@@ -837,6 +835,7 @@ textarea {
     min-width: 110px; /* Match progress indicator width */
     text-align: center;
     white-space: nowrap; /* Prevent wrapping */
+    margin: 0;
 }
 
 /* Different level colors */
@@ -866,7 +865,7 @@ textarea {
     display: block; /* Put on new line */
     font-size: 0.8em;
     color: #566573; /* Softer grey */
-    margin-top: 4px;
+    margin-top: 0;
 }
 
 /* Unified style for habit controls (checkbox and increment button) */
@@ -878,7 +877,6 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    order: 0; /* First element */
     flex-shrink: 0; /* Prevent shrinking */
 }
 
@@ -983,30 +981,35 @@ textarea {
 @media screen and (min-width: 768px) {
     /* Adjust habit item layout for larger screens */
     .habit-item {
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        padding-right: 180px; /* Make room for absolute positioned elements */
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 15px;
     }
 
     .habit-content {
-        flex-basis: 40%;
-        max-width: 40%;
-        order: 0;
+        flex: 1;
+        max-width: 50%;
     }
 
-    /* Keep the absolute positioning for consistent alignment */
-    .habit-progress-container {
-        width: 150px;
-        right: 300px;
+    .habit-top-row {
+        margin-bottom: 0;
     }
 
+    .habit-indicators-row {
+        width: auto;
+        margin-left: auto;
+        margin-bottom: 0;
+    }
+
+    .habit-progress-container,
     .habit-level-container {
-        width: 150px;
-        right: 150px;
+        width: auto;
+        margin: 0 10px;
     }
 
     .habit-actions {
         width: auto;
-        right: 15px;
+        margin-left: 10px;
     }
 }

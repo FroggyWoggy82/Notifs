@@ -911,24 +911,28 @@ document.addEventListener('DOMContentLoaded', () => {
                                    totalCompletionsCount >= 3 ? 'level-3' : 'level-1';
 
             habitElement.innerHTML = `
-                ${checkboxHtml}
-                <div class="habit-content">
-                    <div class="habit-header">
+                <div class="habit-top-row">
+                    ${checkboxHtml}
+                    <div class="habit-content">
                         <span class="habit-title">${habit.title}</span>
-                    </div>
-                    <span class="habit-frequency">Frequency: ${habit.frequency}</span>
-                </div>
-                ${hasCounter ? `
-                <div class="habit-progress-container">
-                    <div class="habit-progress ${levelClass}" title="Current progress: ${level}/${totalCompletions}">
-                        Progress: ${level}/${totalCompletions}
-                    </div>
-                </div>` : ''}
-                <div class="habit-level-container">
-                    <div class="habit-level ${totalLevelClass}" title="${totalCompletionsCount} total completions">
-                        Level ${totalCompletionsCount}
+                        <span class="habit-frequency">Frequency: ${habit.frequency}</span>
                     </div>
                 </div>
+
+                <div class="habit-indicators-row">
+                    ${hasCounter ? `
+                    <div class="habit-progress-container">
+                        <div class="habit-progress ${levelClass}" title="Current progress: ${level}/${totalCompletions}">
+                            Progress: ${level}/${totalCompletions}
+                        </div>
+                    </div>` : ''}
+                    <div class="habit-level-container">
+                        <div class="habit-level ${totalLevelClass}" title="${totalCompletionsCount} total completions">
+                            Level ${totalCompletionsCount}
+                        </div>
+                    </div>
+                </div>
+
                 <div class="habit-actions">
                     <button class="edit-habit-btn small-btn">Edit</button>
                     <button class="delete-habit-btn small-btn delete-btn">Delete</button>
