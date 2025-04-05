@@ -75,10 +75,16 @@ app.get('/api/weight/goal', async (req, res) => {
     console.log(`Received GET /api/weight/goal for user_id: ${userId}`);
 
     try {
+        // Ensure userId is a number
+        const userIdNum = parseInt(userId, 10);
+        if (isNaN(userIdNum)) {
+            return res.status(400).json({ error: 'Invalid user_id parameter. Must be a number.' });
+        }
+
         // Fetch the latest goal for the specified user
         const result = await db.query(
             'SELECT target_weight, weekly_gain_goal FROM weight_goals WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
-            [userId]
+            [userIdNum]
         );
 
         if (result.rows.length > 0) {
@@ -86,15 +92,15 @@ app.get('/api/weight/goal', async (req, res) => {
             const goal = {
                 target_weight: parseFloat(result.rows[0].target_weight),
                 weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal),
-                user_id: parseInt(userId)
+                user_id: userIdNum
             };
             res.json(goal);
         } else {
-            res.json({ target_weight: null, weekly_gain_goal: null, user_id: parseInt(userId) }); // No goal set
+            res.json({ target_weight: null, weekly_gain_goal: null, user_id: userIdNum }); // No goal set
         }
     } catch (err) {
         console.error('Error fetching weight goal:', err);
-        res.status(500).json({ error: 'Failed to fetch weight goal' });
+        res.status(500).json({ error: `Failed to fetch weight goal: ${err.message}` });
     }
 });
 
@@ -106,6 +112,12 @@ app.post('/api/weight/goal', async (req, res) => {
 
     console.log(`Received POST /api/weight/goal: target=${targetWeight}, gain=${weeklyGain}, user_id=${userId}`);
 
+    // Ensure userId is a number
+    const userIdNum = parseInt(userId, 10);
+    if (isNaN(userIdNum)) {
+        return res.status(400).json({ error: 'Invalid user_id parameter. Must be a number.' });
+    }
+
     const p_targetWeight = parseFloat(targetWeight);
     const p_weeklyGain = parseFloat(weeklyGain);
 
@@ -116,10 +128,10 @@ app.post('/api/weight/goal', async (req, res) => {
     try {
         await db.query('BEGIN');
         // Delete only the goals for this specific user
-        await db.query('DELETE FROM weight_goals WHERE user_id = $1', [userId]);
+        await db.query('DELETE FROM weight_goals WHERE user_id = $1', [userIdNum]);
         const result = await db.query(
             'INSERT INTO weight_goals (target_weight, weekly_gain_goal, user_id) VALUES ($1, $2, $3) RETURNING target_weight, weekly_gain_goal, user_id',
-            [p_targetWeight, p_weeklyGain, userId]
+            [p_targetWeight, p_weeklyGain, userIdNum]
         );
         await db.query('COMMIT');
 
@@ -133,7 +145,7 @@ app.post('/api/weight/goal', async (req, res) => {
     } catch (err) {
         await db.query('ROLLBACK');
         console.error('Error saving weight goal:', err);
-        res.status(500).json({ error: 'Failed to save weight goal' });
+        res.status(500).json({ error: `Failed to save weight goal: ${err.message}` });
     }
 });
 
@@ -144,10 +156,16 @@ app.get('/api/weight/logs', async (req, res) => {
     console.log(`Received GET /api/weight/logs for user_id: ${userId}`);
 
     try {
+        // Ensure userId is a number
+        const userIdNum = parseInt(userId, 10);
+        if (isNaN(userIdNum)) {
+            return res.status(400).json({ error: 'Invalid user_id parameter. Must be a number.' });
+        }
+
         // Add user_id to the query
         const result = await db.query(
             'SELECT log_id, log_date, weight FROM weight_logs WHERE user_id = $1 ORDER BY log_date ASC',
-            [userId]
+            [userIdNum]
         );
 
         // Format date and weight for consistency
@@ -155,13 +173,13 @@ app.get('/api/weight/logs', async (req, res) => {
             log_id: row.log_id,
             log_date: row.log_date.toISOString().split('T')[0], // YYYY-MM-DD format
             weight: parseFloat(row.weight),
-            user_id: parseInt(userId)
+            user_id: userIdNum
         }));
 
         res.json(logs);
     } catch (err) {
         console.error('Error fetching weight logs:', err);
-        res.status(500).json({ error: 'Failed to fetch weight logs' });
+        res.status(500).json({ error: `Failed to fetch weight logs: ${err.message}` });
     }
 });
 
@@ -174,6 +192,12 @@ app.post('/api/weight/log', async (req, res) => {
     const userId = req.body.user_id || 1;
 
     console.log(`Received POST /api/weight/log: weight=${weight}, date=${logDateInput}, user_id=${userId}`);
+
+    // Ensure userId is a number
+    const userIdNum = parseInt(userId, 10);
+    if (isNaN(userIdNum)) {
+        return res.status(400).json({ error: 'Invalid user_id parameter. Must be a number.' });
+    }
 
     const p_weight = parseFloat(weight);
     if (isNaN(p_weight) || p_weight <= 0) {
@@ -199,7 +223,7 @@ app.post('/api/weight/log', async (req, res) => {
     try {
         const result = await db.query(
             'INSERT INTO weight_logs (log_date, weight, user_id) VALUES ($1, $2, $3) RETURNING log_id, log_date, weight, user_id',
-            [p_logDateStr, p_weight, userId]
+            [p_logDateStr, p_weight, userIdNum]
         );
 
         const newLog = {
@@ -216,7 +240,7 @@ app.post('/api/weight/log', async (req, res) => {
         // Currently, the table allows multiple logs per day. If you want only one,
         // add a UNIQUE constraint on log_date and handle the error code (23505) here.
         console.error('Error recording weight log:', err);
-        res.status(500).json({ error: 'Failed to record weight log' });
+        res.status(500).json({ error: `Failed to record weight log: ${err.message}` });
     }
 });
 
