@@ -1,16 +1,13 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v9'; // <-- Bumped version number
+const CACHE_NAME = 'notification-pwa-v10'; // <-- Bumped version number
+
+// Only cache static assets that rarely change
 const urlsToCache = [
-  '/',
-  '/pages/index.html', // Consider if index.html should be cached or always network
   '/manifest.json',
-  '/script.js', // Should probably be versioned or use NetworkFirst if changed often
   '/icon-192x192.png',
   '/icon-512x512.png',
-  '/css/goals.css', // Add CSS if needed offline
-  '/js/goals.js', // Add JS if needed offline
-  '/pages/goals.html' // Add HTML if needed offline
-  // Add other essential static assets here
+  // CSS and JS files will use Network First strategy
+  // HTML pages will use Network First strategy
 ];
 
 // Install service worker and cache assets
@@ -145,10 +142,78 @@ self.addEventListener('fetch', event => {
                 })
        );
   }
+  // --- Strategy for HTML pages: Network First ---
+  else if (requestUrl.pathname.endsWith('.html') || requestUrl.pathname === '/' || requestUrl.pathname.endsWith('/')) {
+    console.log(`(${CACHE_NAME}) Handling fetch for HTML: ${requestUrl.pathname} (Network First Strategy).`);
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          // Check if we received a valid response from the network
+          if (networkResponse && networkResponse.ok) {
+            console.log(`(${CACHE_NAME}) Network fetch OK for HTML: ${requestUrl.pathname}. Caching response.`);
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); });
+            return networkResponse;
+          } else {
+            console.log(`(${CACHE_NAME}) Network fetch for HTML failed, trying cache: ${requestUrl.pathname}`);
+            return caches.match(event.request);
+          }
+        })
+        .catch(error => {
+          console.warn(`(${CACHE_NAME}) Network failed for HTML: ${requestUrl.pathname}, trying cache.`, error);
+          return caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) {
+              console.log(`(${CACHE_NAME}) Serving HTML from cache as network fallback: ${requestUrl.pathname}`);
+              return cachedResponse;
+            }
+            // If not in cache either, return a simple offline page
+            console.log(`(${CACHE_NAME}) HTML not in cache either: ${requestUrl.pathname}`);
+            return new Response('You are offline and this page is not available in cache.', {
+              status: 503,
+              headers: { 'Content-Type': 'text/plain' }
+            });
+          });
+        })
+    );
+  }
+  // --- Strategy for JS and CSS: Network First ---
+  else if (requestUrl.pathname.endsWith('.js') || requestUrl.pathname.endsWith('.css')) {
+    console.log(`(${CACHE_NAME}) Handling fetch for JS/CSS: ${requestUrl.pathname} (Network First Strategy).`);
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          // Check if we received a valid response from the network
+          if (networkResponse && networkResponse.ok) {
+            console.log(`(${CACHE_NAME}) Network fetch OK for JS/CSS: ${requestUrl.pathname}. Caching response.`);
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); });
+            return networkResponse;
+          } else {
+            console.log(`(${CACHE_NAME}) Network fetch for JS/CSS failed, trying cache: ${requestUrl.pathname}`);
+            return caches.match(event.request);
+          }
+        })
+        .catch(error => {
+          console.warn(`(${CACHE_NAME}) Network failed for JS/CSS: ${requestUrl.pathname}, trying cache.`, error);
+          return caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) {
+              console.log(`(${CACHE_NAME}) Serving JS/CSS from cache as network fallback: ${requestUrl.pathname}`);
+              return cachedResponse;
+            }
+            // If not in cache either, return an error
+            console.log(`(${CACHE_NAME}) JS/CSS not in cache either: ${requestUrl.pathname}`);
+            return new Response('Resource not available offline', {
+              status: 503,
+              headers: { 'Content-Type': 'text/plain' }
+            });
+          });
+        })
+    );
+  }
   // --- Strategy for Static Assets: Cache falling back to Network (with cache update) ---
   else {
-    // This strategy is good for app shell files (HTML, CSS, JS, images)
-    console.log(`(${CACHE_NAME}) Handling fetch for ${requestUrl.pathname} (Cache/Network Strategy).`);
+    // This strategy is good for images and other static assets
+    console.log(`(${CACHE_NAME}) Handling fetch for static asset: ${requestUrl.pathname} (Cache/Network Strategy).`);
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -328,22 +393,37 @@ self.addEventListener('notificationclick', event => {
 // Store scheduled notifications (Likely REDUNDANT - fetched from API in checkScheduledNotifications)
 // self.scheduledNotifications = [];
 
-// Handle messages from the client (Likely REDUNDANT if notifications handled by sync/API)
+// Handle messages from the client
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
       console.log(`(${CACHE_NAME}) Received SKIP_WAITING message.`);
       self.skipWaiting(); // Force activation
   }
-  // Commenting out potentially redundant notification setup via message
-  /*
-  else if (event.data && event.data.type === 'SETUP_NOTIFICATIONS') {
-    console.warn('(${CACHE_NAME}) Received deprecated SETUP_NOTIFICATIONS message. Notifications should be managed server-side and fetched via sync.');
-    // self.scheduledNotifications = event.data.notifications || [];
-    // console.log('Current notifications in service worker:', self.scheduledNotifications.length);
-    // self.scheduledNotifications.forEach(notification => { console.log(`- "${notification.title}" at ${new Date(notification.time).toLocaleString()}`); });
-    // setUpPeriodicChecks();
+  // Handle cache clearing request
+  else if (event.data && event.data.type === 'CLEAR_CACHE') {
+      console.log(`(${CACHE_NAME}) Received CLEAR_CACHE message. Clearing all caches.`);
+      event.waitUntil(
+          caches.keys().then(cacheNames => {
+              return Promise.all(
+                  cacheNames.map(cacheName => {
+                      console.log(`(${CACHE_NAME}) Deleting cache: ${cacheName}`);
+                      return caches.delete(cacheName);
+                  })
+              );
+          })
+      );
   }
-  */
+  // Handle specific URL cache clearing
+  else if (event.data && event.data.type === 'CLEAR_URL_CACHE' && event.data.url) {
+      console.log(`(${CACHE_NAME}) Received CLEAR_URL_CACHE message for: ${event.data.url}`);
+      event.waitUntil(
+          caches.open(CACHE_NAME).then(cache => {
+              return cache.delete(event.data.url).then(success => {
+                  console.log(`(${CACHE_NAME}) Cache cleared for ${event.data.url}: ${success ? 'success' : 'not found'}`);
+              });
+          })
+      );
+  }
 });
 
 

@@ -1,6 +1,7 @@
 // Initialize variables at the top
 let scheduledNotifications = [];
 let deferredPrompt;
+let serviceWorkerRegistration = null;
 
 // Helper to check if a date string (YYYY-MM-DD or ISO) is today
 function isToday(dateString) {
@@ -105,9 +106,32 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(swReg => {
                 console.log('Service Worker is registered', swReg);
                 swRegistration = swReg;
+
+                // Check if there's a waiting service worker
+                if (swReg.waiting) {
+                    console.log('New service worker waiting to activate');
+                    // Add a refresh button to the UI
+                    addRefreshButton();
+                }
+
+                // Listen for new service workers
+                swReg.addEventListener('updatefound', () => {
+                    const newWorker = swReg.installing;
+                    console.log('New service worker installing:', newWorker);
+
+                    newWorker.addEventListener('statechange', () => {
+                        console.log('Service worker state changed to:', newWorker.state);
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('New service worker installed and waiting to activate');
+                            // Add a refresh button to the UI
+                            addRefreshButton();
+                        }
+                    });
+                });
+
                 // Setup push subscription if permission is already granted
                 checkNotificationPermission(true); // Check permission silently first
-                 // --- NEW: Load tasks after SW is ready ---
+                // --- NEW: Load tasks after SW is ready ---
                 loadTasks();
                 loadHabits(); // Load habits too
             })
@@ -115,6 +139,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Service Worker Error', error);
                 updateStatus('Service Worker registration failed', true);
             });
+
+        // Listen for controller change (new SW taking over)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('New service worker activated and controlling the page');
+            // Reload page for new SW after a short delay
+            setTimeout(() => {
+                console.log('Reloading page to use new service worker');
+                window.location.reload();
+            }, 1000);
+        });
     } else {
         console.warn('Push messaging is not supported');
         notifyBtn.textContent = 'Push Not Supported';
@@ -781,6 +815,116 @@ document.addEventListener('DOMContentLoaded', () => {
                  deleteBtn.disabled = false;
             }
         }
+    }
+
+    // Function to add refresh button to the UI
+    function addRefreshButton() {
+        // Check if refresh button already exists
+        if (document.getElementById('refresh-app-button')) {
+            return;
+        }
+
+        // Create refresh button
+        const refreshButton = document.createElement('button');
+        refreshButton.id = 'refresh-app-button';
+        refreshButton.className = 'refresh-button';
+        refreshButton.textContent = 'Update App';
+        refreshButton.title = 'A new version is available. Click to update.';
+
+        // Add click event listener
+        refreshButton.addEventListener('click', () => {
+            // Show loading indicator
+            refreshButton.textContent = 'Updating...';
+            refreshButton.disabled = true;
+
+            // Clear caches
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'CLEAR_CACHE'
+                });
+            }
+
+            // Skip waiting on new service worker
+            if (swRegistration && swRegistration.waiting) {
+                swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            } else {
+                // If no waiting service worker, just reload the page
+                window.location.reload();
+            }
+        });
+
+        // Add to the page - insert after the status div
+        const container = document.createElement('div');
+        container.className = 'refresh-button-container';
+        container.appendChild(refreshButton);
+
+        // Insert after the status div
+        if (statusDiv && statusDiv.parentNode) {
+            statusDiv.parentNode.insertBefore(container, statusDiv.nextSibling);
+        } else {
+            // Fallback - add to top of body
+            document.body.insertBefore(container, document.body.firstChild);
+        }
+
+        // Add CSS for the refresh button
+        if (!document.getElementById('refresh-button-style')) {
+            const style = document.createElement('style');
+            style.id = 'refresh-button-style';
+            style.textContent = `
+                .refresh-button-container {
+                    text-align: center;
+                    margin: 10px 0;
+                }
+                .refresh-button {
+                    background-color: #4db6ac;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    animation: pulse 2s infinite;
+                }
+                .refresh-button:hover {
+                    background-color: #5dc1b5;
+                }
+                .refresh-button:disabled {
+                    background-color: #cccccc;
+                    cursor: not-allowed;
+                    animation: none;
+                }
+                @keyframes pulse {
+                    0% { box-shadow: 0 0 0 0 rgba(77, 182, 172, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(77, 182, 172, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(77, 182, 172, 0); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    // Function to force refresh the page
+    function forceRefresh() {
+        // Clear all caches
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'CLEAR_CACHE'
+            });
+        }
+
+        // Reload the page
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 500);
+    }
+
+    // Add event listener for refresh button in bottom nav
+    const refreshPageBtn = document.getElementById('refresh-page-btn');
+    if (refreshPageBtn) {
+        refreshPageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            forceRefresh();
+        });
     }
 
     // Initial check for notification permission on load
