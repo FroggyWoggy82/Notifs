@@ -318,11 +318,17 @@ document.addEventListener('DOMContentLoaded', function() {
         availableExerciseListEl.innerHTML = ''; // Clear previous
         searchTerm = searchTerm.toLowerCase();
 
-        const filtered = availableExercises.filter(ex => {
-            const nameMatch = ex.name.toLowerCase().includes(searchTerm);
-            const categoryMatch = category === 'all' || ex.category === category;
-            return nameMatch && categoryMatch;
-        });
+        // If search term is empty and category is 'all', show all exercises
+        let filtered;
+        if (searchTerm === '' && category === 'all') {
+            filtered = availableExercises;
+        } else {
+            filtered = availableExercises.filter(ex => {
+                const nameMatch = ex.name.toLowerCase().includes(searchTerm);
+                const categoryMatch = category === 'all' || ex.category === category;
+                return nameMatch && categoryMatch;
+            });
+        }
 
         if (filtered.length === 0) {
             availableExerciseListEl.innerHTML = '<p>No exercises match your criteria.</p>';
