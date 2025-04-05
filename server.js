@@ -71,7 +71,8 @@ app.use('/api/recipes', recipeRoutes);
 // GET /api/weight/goal - Get the current weight goal
 app.get('/api/weight/goal', async (req, res) => {
     // Get user_id from query parameter, default to 1 if not provided
-    const userId = req.query.user_id || 1;
+    // Support both user_id and userId parameter names
+    const userId = req.query.user_id || req.query.userId || 1;
     console.log(`Received GET /api/weight/goal for user_id: ${userId}`);
 
     try {
@@ -108,7 +109,8 @@ app.get('/api/weight/goal', async (req, res) => {
 app.post('/api/weight/goal', async (req, res) => {
     const { targetWeight, weeklyGain } = req.body;
     // Get user_id from request body, default to 1 if not provided
-    const userId = req.body.user_id || 1;
+    // Support both user_id and userId parameter names
+    const userId = req.body.user_id || req.body.userId || 1;
 
     console.log(`Received POST /api/weight/goal: target=${targetWeight}, gain=${weeklyGain}, user_id=${userId}`);
 
@@ -152,7 +154,8 @@ app.post('/api/weight/goal', async (req, res) => {
 // GET /api/weight/logs - Get all weight logs
 app.get('/api/weight/logs', async (req, res) => {
     // Get user_id from query parameter, default to 1 if not provided
-    const userId = req.query.user_id || 1;
+    // Support both user_id and userId parameter names
+    const userId = req.query.user_id || req.query.userId || 1;
     console.log(`Received GET /api/weight/logs for user_id: ${userId}`);
 
     try {
@@ -188,8 +191,9 @@ app.post('/api/weight/log', async (req, res) => {
     const { weight } = req.body;
     // Use provided date (YYYY-MM-DD) or default to today's date
     const logDateInput = req.body.date;
-    // Get user_id from request body, default to 1 if not provided
-    const userId = req.body.user_id || 1;
+    // Get user_id from request body or query parameter, default to 1 if not provided
+    // Support both user_id and userId parameter names in both body and query
+    const userId = req.body.user_id || req.body.userId || req.query.user_id || req.query.userId || 1;
 
     console.log(`Received POST /api/weight/log: weight=${weight}, date=${logDateInput}, user_id=${userId}`);
 
