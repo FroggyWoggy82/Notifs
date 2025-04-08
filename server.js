@@ -17,8 +17,8 @@ const daysSinceRouter = require('./routes/daysSince'); // Old pattern
 const workoutRoutes = require('./routes/workouts'); // Old pattern
 const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern
 const recipeRoutes = require('./routes/recipes'); // Old pattern
-const weightRoutes = require('./routes/weight-simple'); // Using a simple implementation that doesn't depend on other modules
-const taskRoutes = require('./routes/tasks'); // Old pattern
+const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
+const taskRoutes = require('./routes/tasks-simple'); // Using simplified implementation for reliability
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 
 // Import Swagger documentation
@@ -66,6 +66,15 @@ NotificationModel.initialize();
 
 // Setup daily notification check
 NotificationModel.setupDailyCheck(cron.schedule);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Global error handler caught:', err);
+  res.status(500).json({
+    error: 'An unexpected error occurred',
+    message: process.env.NODE_ENV === 'production' ? 'Server error' : err.message
+  });
+});
 
 // Fallback Routes
 app.get('/pages/goals.html', (_req, res) => {
