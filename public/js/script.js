@@ -1793,4 +1793,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Check if we need to open the edit modal for a task (from calendar page)
+    const urlParams = new URLSearchParams(window.location.search);
+    const editTaskId = urlParams.get('edit_task');
+    if (editTaskId) {
+        // Fetch the task data and open the edit modal
+        (async function() {
+            try {
+                const response = await fetch(`/api/tasks/${editTaskId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const task = await response.json();
+                console.log('Opening edit modal for task from URL parameter:', task);
+                openEditTaskModal(task);
+
+                // Clear the URL parameter
+                window.history.replaceState({}, document.title, '/index.html');
+            } catch (error) {
+                console.error('Error fetching task for editing:', error);
+                updateTaskListStatus(`Error fetching task: ${error.message}`, true);
+            }
+        })();
+    }
+
 }); // End DOMContentLoaded

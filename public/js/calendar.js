@@ -348,6 +348,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             tasksOnDate.forEach(task => {
                 const li = document.createElement('li');
+                li.setAttribute('data-task-id', task.id);
+                li.className = task.is_complete ? 'complete' : '';
 
                 // Create a container for the task title and badge
                 const titleContainer = document.createElement('div');
@@ -418,10 +420,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     li.appendChild(descDiv);
                 }
 
-                // Apply complete class if needed
-                if (task.is_complete) {
-                    li.classList.add('complete');
-                }
+                // Add action buttons (Edit and Delete)
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'task-actions';
+                actionsDiv.style.marginTop = '8px';
+                actionsDiv.style.display = 'flex';
+                actionsDiv.style.gap = '8px';
+
+                // Edit button
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-task-btn';
+                editBtn.textContent = 'Edit';
+                editBtn.style.padding = '4px 8px';
+                editBtn.style.backgroundColor = '#4db6ac';
+                editBtn.style.color = 'white';
+                editBtn.style.border = 'none';
+                editBtn.style.borderRadius = '4px';
+                editBtn.style.cursor = 'pointer';
+                editBtn.addEventListener('click', () => handleEditTask(task));
+                actionsDiv.appendChild(editBtn);
+
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.style.padding = '4px 8px';
+                deleteBtn.style.backgroundColor = '#e57373';
+                deleteBtn.style.color = 'white';
+                deleteBtn.style.border = 'none';
+                deleteBtn.style.borderRadius = '4px';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.addEventListener('click', () => handleDeleteTask(task));
+                actionsDiv.appendChild(deleteBtn);
+
+                li.appendChild(actionsDiv);
 
                 selectedTaskListEl.appendChild(li);
             });
@@ -429,6 +461,95 @@ document.addEventListener('DOMContentLoaded', () => {
 
         selectedDateTasksEl.style.display = 'block';
         selectedDateTasksEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // --- Task Edit and Delete Handlers ---
+
+    // Handle editing a task
+    async function handleEditTask(task) {
+        console.log('Editing task:', task);
+
+        // Check if we're on the index page with the edit modal
+        const editTaskModal = document.getElementById('edit-task-modal');
+
+        if (!editTaskModal) {
+            // We're on the calendar page, redirect to the main page with task ID
+            window.location.href = `/index.html?edit_task=${task.id}`;
+            return;
+        }
+
+        // We have the edit modal on this page, use it
+        const editTaskIdInput = document.getElementById('edit-task-id');
+        const editTaskTitleInput = document.getElementById('edit-task-title');
+        const editTaskDescriptionInput = document.getElementById('edit-task-description');
+        const editTaskReminderTimeInput = document.getElementById('edit-task-reminder-time');
+        const editTaskAssignedDateInput = document.getElementById('edit-task-assigned-date');
+        const editTaskDueDateInput = document.getElementById('edit-task-due-date');
+        const editTaskRecurrenceTypeSelect = document.getElementById('edit-task-recurrence-type');
+        const editTaskRecurrenceIntervalInput = document.getElementById('edit-task-recurrence-interval');
+        const editTaskStatus = document.getElementById('edit-task-status');
+
+        // Populate the form fields
+        editTaskIdInput.value = task.id;
+        editTaskTitleInput.value = task.title || '';
+        editTaskDescriptionInput.value = task.description || '';
+
+        // Format dates/times for input fields
+        editTaskReminderTimeInput.value = task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : '';
+        editTaskAssignedDateInput.value = task.assigned_date ? task.assigned_date.split('T')[0] : '';
+        editTaskDueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
+
+        // Set recurrence fields
+        editTaskRecurrenceTypeSelect.value = task.recurrence_type || 'none';
+        editTaskRecurrenceIntervalInput.value = task.recurrence_interval || '1';
+
+        // Show/hide interval input based on recurrence type
+        const recurrenceIntervalContainer = document.getElementById('edit-recurrence-interval-container');
+        if (recurrenceIntervalContainer) {
+            recurrenceIntervalContainer.style.display =
+                (task.recurrence_type && task.recurrence_type !== 'none') ? 'block' : 'none';
+        }
+
+        // Show the modal
+        editTaskModal.style.display = 'block';
+    }
+
+    // Handle deleting a task
+    async function handleDeleteTask(task) {
+        console.log('Deleting task:', task);
+
+        if (!confirm(`Are you sure you want to delete task "${task.title}"?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/tasks/${task.id}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Server error deleting task' }));
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            console.log(`Task ${task.id} deleted successfully`);
+
+            // Refresh the calendar
+            await fetchTasks();
+            renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+
+            // Close the task detail view
+            selectedDateTasksEl.style.display = 'none';
+            document.querySelectorAll('.calendar-day.selected').forEach(d => d.classList.remove('selected'));
+
+            // Show a success message
+            updateStatus("Task deleted successfully", false);
+            setTimeout(() => updateStatus("", false), 3000);
+
+        } catch (error) {
+            console.error('Error deleting task:', error);
+            updateStatus(`Error deleting task: ${error.message}`, true);
+        }
     }
 
     // --- Event Listeners ---
