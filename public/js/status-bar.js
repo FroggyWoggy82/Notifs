@@ -4,7 +4,7 @@ let currentPage = 'unknown';
 // Function to update status bar color based on current page
 function updateStatusBarColor() {
     let color = '#ffffff'; // Default white
-    
+
     // Get the background color of the current page
     switch(currentPage) {
         case 'tasks':
@@ -28,7 +28,7 @@ function updateStatusBarColor() {
         default:
             color = '#ffffff'; // Default white
     }
-    
+
     // Get the actual background color of the body or main container
     try {
         // Try to get the computed background color of the body
@@ -48,13 +48,13 @@ function updateStatusBarColor() {
     } catch (error) {
         console.error('Error getting computed background color:', error);
     }
-    
+
     // Update the theme-color meta tag
     const metaThemeColor = document.querySelector('meta[name=theme-color]');
     if (metaThemeColor) {
         metaThemeColor.setAttribute('content', color);
     }
-    
+
     // For iOS
     const metaAppleStatusBar = document.querySelector('meta[name=apple-mobile-web-app-status-bar-style]');
     if (metaAppleStatusBar) {
@@ -62,7 +62,7 @@ function updateStatusBarColor() {
         // and then the background color will show through
         metaAppleStatusBar.setAttribute('content', 'black-translucent');
     }
-    
+
     console.log('Updated status bar color to:', color);
 }
 
@@ -83,10 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         currentPage = 'tasks'; // Default to tasks page
     }
-    
+
     // Update the status bar color based on the current page
     updateStatusBarColor();
-    
+
     // Add event listeners to navigation items to update status bar color
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
@@ -103,8 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPage = 'calendar';
             } else if (dataPage === 'food-page') {
                 currentPage = 'food';
+            } else if (dataPage === 'days-since-page') {
+                currentPage = 'days-since';
             }
-            
+
             // Update the status bar color
             updateStatusBarColor();
         });
