@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add recurring icon if the task is recurring
         if (task.recurrence_type && task.recurrence_type !== 'none') {
             const recurringIcon = document.createElement('span');
-            recurringIcon.className = 'recurring-icon';
+            recurringIcon.className = `recurring-icon ${task.recurrence_type}`;
             recurringIcon.innerHTML = '&#8635;'; // Recycling symbol (↻)
 
             // Create a more descriptive tooltip based on recurrence type and interval
@@ -441,37 +441,114 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Add a small badge with the interval if it's greater than 1
             if (interval > 1) {
-                recurringIcon.style.position = 'relative';
                 const intervalBadge = document.createElement('span');
+                intervalBadge.className = `interval-badge ${task.recurrence_type}`;
                 intervalBadge.textContent = interval;
-                intervalBadge.style.position = 'absolute';
-                intervalBadge.style.top = '-8px';
-                intervalBadge.style.right = '-8px';
-                intervalBadge.style.backgroundColor = '#4db6ac';
-                intervalBadge.style.color = 'white';
-                intervalBadge.style.borderRadius = '50%';
-                intervalBadge.style.width = '16px';
-                intervalBadge.style.height = '16px';
-                intervalBadge.style.fontSize = '10px';
-                intervalBadge.style.display = 'flex';
-                intervalBadge.style.alignItems = 'center';
-                intervalBadge.style.justifyContent = 'center';
                 recurringIcon.appendChild(intervalBadge);
             }
 
-            recurringIcon.style.marginLeft = '5px';
-            recurringIcon.style.color = '#4db6ac';
-            recurringIcon.style.fontWeight = 'bold';
             titleContainer.appendChild(recurringIcon);
         }
 
         contentDiv.appendChild(titleContainer);
 
         if (task.description) {
-            const descSpan = document.createElement('span'); // Changed from p to span
+            const descSpan = document.createElement('span');
             descSpan.className = 'task-description';
             descSpan.textContent = task.description;
             contentDiv.appendChild(descSpan);
+        }
+
+        // Create metadata container for due date and recurrence indicators
+        const metadataDiv = document.createElement('div');
+        metadataDiv.className = 'task-metadata';
+
+        // Add due date indicator if due date exists
+        if (task.due_date) {
+            try {
+                const dueDate = new Date(task.due_date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+
+                const nextWeek = new Date(today);
+                nextWeek.setDate(nextWeek.getDate() + 7);
+
+                // Format the due date
+                const formattedDate = dueDate.toLocaleDateString('default', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: today.getFullYear() !== dueDate.getFullYear() ? 'numeric' : undefined
+                });
+
+                const dueDateIndicator = document.createElement('div');
+                dueDateIndicator.className = 'due-date-indicator';
+
+                // Add appropriate class based on due date
+                if (dueDate < today) {
+                    dueDateIndicator.classList.add('overdue');
+                } else if (dueDate < nextWeek) {
+                    dueDateIndicator.classList.add('due-soon');
+                }
+
+                // Add calendar icon
+                const calendarIcon = document.createElement('i');
+                calendarIcon.innerHTML = '&#128197;'; // Calendar emoji
+                dueDateIndicator.appendChild(calendarIcon);
+
+                // Add due date text
+                const dueDateText = document.createElement('span');
+                if (dueDate < today) {
+                    dueDateText.textContent = `Overdue: ${formattedDate}`;
+                } else if (dueDate.toDateString() === today.toDateString()) {
+                    dueDateText.textContent = 'Due Today';
+                } else if (dueDate.toDateString() === tomorrow.toDateString()) {
+                    dueDateText.textContent = 'Due Tomorrow';
+                } else {
+                    dueDateText.textContent = `Due: ${formattedDate}`;
+                }
+                dueDateIndicator.appendChild(dueDateText);
+
+                metadataDiv.appendChild(dueDateIndicator);
+            } catch (e) {
+                console.error("Error parsing due date for display:", task.due_date, e);
+            }
+        }
+
+        // Add recurrence type indicator if task is recurring
+        if (task.recurrence_type && task.recurrence_type !== 'none') {
+            const recurrenceIndicator = document.createElement('div');
+            recurrenceIndicator.className = `recurrence-indicator recurrence-${task.recurrence_type}`;
+
+            const interval = task.recurrence_interval || 1;
+            let recurrenceText = '';
+
+            switch(task.recurrence_type) {
+                case 'daily':
+                    recurrenceText = interval === 1 ? 'Daily' : `Every ${interval} days`;
+                    break;
+                case 'weekly':
+                    recurrenceText = interval === 1 ? 'Weekly' : `Every ${interval} weeks`;
+                    break;
+                case 'monthly':
+                    recurrenceText = interval === 1 ? 'Monthly' : `Every ${interval} months`;
+                    break;
+                case 'yearly':
+                    recurrenceText = interval === 1 ? 'Yearly' : `Every ${interval} years`;
+                    break;
+                default:
+                    recurrenceText = 'Recurring';
+            }
+
+            recurrenceIndicator.textContent = recurrenceText;
+            metadataDiv.appendChild(recurrenceIndicator);
+        }
+
+        // Add metadata div to content if it has children
+        if (metadataDiv.children.length > 0) {
+            contentDiv.appendChild(metadataDiv);
         }
 
         // Display Reminder Time if active and exists
@@ -480,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reminderDate = new Date(task.reminder_time);
                 // Only show active reminders or completed task reminders
                 if (task.is_reminder_active || task.is_complete) {
-                    const reminderSpan = document.createElement('span'); // Changed from p to span
+                    const reminderSpan = document.createElement('span');
                     reminderSpan.className = 'task-reminder';
                     reminderSpan.textContent = ` ${reminderDate.toLocaleString()}`;
                     if (!task.is_reminder_active && task.is_complete) {
