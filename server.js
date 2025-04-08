@@ -18,7 +18,7 @@ const workoutRoutes = require('./routes/workouts'); // Old pattern
 const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern
 const recipeRoutes = require('./routes/recipes'); // Old pattern
 const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
-const taskRoutes = require('./routes/tasks-simple'); // Using simplified implementation for reliability
+const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 
 // Import Swagger documentation
@@ -86,7 +86,27 @@ app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Initialize database and start the server
+const initializeAndStart = async () => {
+  try {
+    // Test database connection before starting the server
+    console.log('Testing database connection...');
+    const result = await db.query('SELECT NOW()');
+    console.log('Database connection successful:', result.rows[0]);
+
+    // Start the server
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    console.log('Server will start anyway, but database features may not work');
+
+    // Start the server even if database connection fails
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT} (database connection failed)`);
+    });
+  }
+};
+
+initializeAndStart();

@@ -12,7 +12,13 @@ if (!connectionString) {
 
 // Configure the database connection
 const poolConfig = connectionString ?
-    { connectionString } :
+    {
+        connectionString,
+        // Always enable SSL for Railway PostgreSQL connections
+        ssl: {
+            rejectUnauthorized: false
+        }
+    } :
     {
         host: process.env.DB_HOST || 'localhost',
         port: process.env.DB_PORT || 5432,
@@ -21,12 +27,12 @@ const poolConfig = connectionString ?
         password: process.env.DB_PASSWORD || 'postgres'
     };
 
-// Add SSL configuration for production environments
-if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
-    poolConfig.ssl = {
-        rejectUnauthorized: false
-    };
-}
+console.log('Database connection config:', {
+    usingConnectionString: !!connectionString,
+    host: poolConfig.host || 'from connection string',
+    database: poolConfig.database || 'from connection string',
+    ssl: poolConfig.ssl ? 'enabled' : 'disabled'
+});
 
 const pool = new Pool(poolConfig);
 
