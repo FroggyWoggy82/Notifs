@@ -23,6 +23,16 @@ document.addEventListener('DOMContentLoaded', () => {
     menuButton.addEventListener('click', openSidebar);
     overlay.addEventListener('click', closeSidebar);
 
+    // Close sidebar when clicking anywhere on the document (outside the sidebar)
+    document.addEventListener('click', (event) => {
+        // Only close if sidebar is active and the click is outside the sidebar and not on the menu button
+        if (sidebar.classList.contains('active') &&
+            !sidebar.contains(event.target) &&
+            event.target !== menuButton) {
+            closeSidebar();
+        }
+    });
+
     // Close sidebar when clicking a nav item (on mobile)
     const navItems = document.querySelectorAll('.sidebar-nav-item');
     navItems.forEach(item => {
@@ -47,4 +57,4 @@ document.addEventListener('DOMContentLoaded', () => {
             item.classList.add('active');
         }
     });
-}); 
+});

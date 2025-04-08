@@ -108,8 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPage = 'calendar';
             } else if (dataPage === 'food-page') {
                 currentPage = 'food';
-            } else if (dataPage === 'days-since-page') {
-                currentPage = 'days-since';
+            // Days Since page is only in sidebar, not in bottom nav
+            // else if (dataPage === 'days-since-page') {
+            //     currentPage = 'days-since';
             }
 
             // Update the status bar color
