@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetWeight = parseFloat(targetWeightInput.value);
         const weeklyGain = parseFloat(weeklyGainGoalInput.value);
 
-        if (isNaN(targetWeight) || targetWeight <= 0 || isNaN(weeklyGain) || weeklyGain <= 0) {
-            showStatus(weightGoalStatus, 'Please enter valid positive numbers for target weight and weekly gain.', 'error');
+        if (isNaN(targetWeight) || targetWeight <= 0 || isNaN(weeklyGain) || weeklyGain === 0) {
+            showStatus(weightGoalStatus, 'Please enter a valid positive number for target weight and a non-zero value for weekly goal.', 'error');
             return;
         }
 
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { targetWeight, weeklyGain, startDate, startWeight });
             // --- End Logging ---
 
-            if (targetWeight !== null && weeklyGain !== null && weeklyGain > 0 && !isNaN(targetWeight) && !isNaN(weeklyGain)) {
+            if (targetWeight !== null && weeklyGain !== null && weeklyGain !== 0 && !isNaN(targetWeight) && !isNaN(weeklyGain)) {
                 console.log("Chart: Condition to draw target line met."); // Log condition met
                 // Iterate through the COMBINED labels array to calculate target for each date point
                 labels.forEach(labelStr => {
@@ -308,8 +308,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Only calculate projection if weeksDiff is non-negative (i.e., date is after start)
                     if (weeksDiff >= 0) {
                         const projectedWeight = startWeight + (weeksDiff * weeklyGain);
-                        // Cap projection at target weight
-                        targetWeightLine.push(Math.min(projectedWeight, targetWeight));
+
+                        // Handle weight gain vs weight loss differently
+                        if (weeklyGain > 0) {
+                            // For weight gain, cap at target weight (which is higher than start weight)
+                            targetWeightLine.push(Math.min(projectedWeight, targetWeight));
+                        } else {
+                            // For weight loss, cap at target weight (which is lower than start weight)
+                            targetWeightLine.push(Math.max(projectedWeight, targetWeight));
+                        }
                     } else {
                         // If somehow a date before start date is processed, push null
                         targetWeightLine.push(null);
@@ -358,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add target weight line dataset if data exists
         if (targetData && targetData.length > 0) {
              datasets.push({
-                 label: 'Target Weight Path (lbs)',
+                 label: 'Goal Weight Path (lbs)',
                  data: targetData,
                  borderColor: '#e74c3c', // Red
                  borderDash: [5, 5], // Dashed line
