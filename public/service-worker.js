@@ -1,13 +1,11 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v10'; // <-- Bumped version number
+const CACHE_NAME = 'notification-pwa-v11'; // <-- Bumped version number
 
-// Only cache static assets that rarely change
+// Disable caching for all resources except icons
 const urlsToCache = [
-  '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png',
-  // CSS and JS files will use Network First strategy
-  // HTML pages will use Network First strategy
+  // No other resources will be cached
 ];
 
 // Install service worker and cache assets
@@ -49,6 +47,14 @@ self.addEventListener('activate', event => {
           }
         })
       );
+    }).then(() => {
+      // Force clients to reload to get fresh content
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          // Navigate to the current URL to force a refresh
+          client.navigate(client.url);
+        });
+      });
     }).then(() => {
       // Tell the active service worker to take control of the page immediately.
       console.log(`(${CACHE_NAME}) Claiming clients.`);
@@ -142,78 +148,9 @@ self.addEventListener('fetch', event => {
                 })
        );
   }
-  // --- Strategy for HTML pages: Network First ---
-  else if (requestUrl.pathname.endsWith('.html') || requestUrl.pathname === '/' || requestUrl.pathname.endsWith('/')) {
-    console.log(`(${CACHE_NAME}) Handling fetch for HTML: ${requestUrl.pathname} (Network First Strategy).`);
-    event.respondWith(
-      fetch(event.request)
-        .then(networkResponse => {
-          // Check if we received a valid response from the network
-          if (networkResponse && networkResponse.ok) {
-            console.log(`(${CACHE_NAME}) Network fetch OK for HTML: ${requestUrl.pathname}. Caching response.`);
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); });
-            return networkResponse;
-          } else {
-            console.log(`(${CACHE_NAME}) Network fetch for HTML failed, trying cache: ${requestUrl.pathname}`);
-            return caches.match(event.request);
-          }
-        })
-        .catch(error => {
-          console.warn(`(${CACHE_NAME}) Network failed for HTML: ${requestUrl.pathname}, trying cache.`, error);
-          return caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) {
-              console.log(`(${CACHE_NAME}) Serving HTML from cache as network fallback: ${requestUrl.pathname}`);
-              return cachedResponse;
-            }
-            // If not in cache either, return a simple offline page
-            console.log(`(${CACHE_NAME}) HTML not in cache either: ${requestUrl.pathname}`);
-            return new Response('You are offline and this page is not available in cache.', {
-              status: 503,
-              headers: { 'Content-Type': 'text/plain' }
-            });
-          });
-        })
-    );
-  }
-  // --- Strategy for JS and CSS: Network First ---
-  else if (requestUrl.pathname.endsWith('.js') || requestUrl.pathname.endsWith('.css')) {
-    console.log(`(${CACHE_NAME}) Handling fetch for JS/CSS: ${requestUrl.pathname} (Network First Strategy).`);
-    event.respondWith(
-      fetch(event.request)
-        .then(networkResponse => {
-          // Check if we received a valid response from the network
-          if (networkResponse && networkResponse.ok) {
-            console.log(`(${CACHE_NAME}) Network fetch OK for JS/CSS: ${requestUrl.pathname}. Caching response.`);
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); });
-            return networkResponse;
-          } else {
-            console.log(`(${CACHE_NAME}) Network fetch for JS/CSS failed, trying cache: ${requestUrl.pathname}`);
-            return caches.match(event.request);
-          }
-        })
-        .catch(error => {
-          console.warn(`(${CACHE_NAME}) Network failed for JS/CSS: ${requestUrl.pathname}, trying cache.`, error);
-          return caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) {
-              console.log(`(${CACHE_NAME}) Serving JS/CSS from cache as network fallback: ${requestUrl.pathname}`);
-              return cachedResponse;
-            }
-            // If not in cache either, return an error
-            console.log(`(${CACHE_NAME}) JS/CSS not in cache either: ${requestUrl.pathname}`);
-            return new Response('Resource not available offline', {
-              status: 503,
-              headers: { 'Content-Type': 'text/plain' }
-            });
-          });
-        })
-    );
-  }
-  // --- Strategy for Static Assets: Cache falling back to Network (with cache update) ---
-  else {
-    // This strategy is good for images and other static assets
-    console.log(`(${CACHE_NAME}) Handling fetch for static asset: ${requestUrl.pathname} (Cache/Network Strategy).`);
+    // --- Strategy for Icons: Cache First, then Network ---
+  else if (requestUrl.pathname.includes('icon-') && (requestUrl.pathname.endsWith('.png') || requestUrl.pathname.endsWith('.jpg') || requestUrl.pathname.endsWith('.svg'))) {
+    console.log(`(${CACHE_NAME}) Handling fetch for icon: ${requestUrl.pathname} (Cache First Strategy).`);
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -223,36 +160,36 @@ self.addEventListener('fetch', event => {
           }
 
           // Not in cache, fetch from network
-          console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} from network.`);
+          console.log(`(${CACHE_NAME}) Icon not in cache, fetching from network: ${requestUrl.pathname}`);
           return fetch(event.request).then(networkResponse => {
-            // Check if the network response is valid before caching
-            // Only cache basic requests (same origin, etc.) and successful responses
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-               if(networkResponse) console.log(`(${CACHE_NAME}) Not caching invalid network response for ${requestUrl.pathname}. Status: ${networkResponse.status}, Type: ${networkResponse.type}`);
-               else console.log(`(${CACHE_NAME}) Not caching - Network fetch failed for ${requestUrl.pathname}`);
-              return networkResponse;
-            }
-
             // Clone the response to cache it
             const responseToCache = networkResponse.clone();
-            console.log(`(${CACHE_NAME}) Caching network response for ${requestUrl.pathname}.`);
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
-              }).catch(cacheError => {
-                 console.error(`(${CACHE_NAME}) Failed to cache response for ${requestUrl.pathname}:`, cacheError);
+                console.log(`(${CACHE_NAME}) Cached icon from network: ${requestUrl.pathname}`);
               });
 
             return networkResponse; // Return the network response
           });
-        }).catch(error => {
-          console.error(`(${CACHE_NAME}) Fetch error for ${requestUrl.pathname}:`, error);
-          // Optional: Provide a generic offline fallback page here
-          // Example: return caches.match('/offline.html');
-          // For now, let the error propagate
-           return new Response('Network error occurred and resource not found in cache.', {
-                status: 404, statusText: 'Resource not available'
-            });
+        })
+    );
+  }
+  // --- Strategy for ALL other resources: Network Only ---
+  else {
+    console.log(`(${CACHE_NAME}) Handling fetch for: ${requestUrl.pathname} (Network Only Strategy).`);
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          return networkResponse;
+        })
+        .catch(error => {
+          console.error(`(${CACHE_NAME}) Network fetch failed for ${requestUrl.pathname}:`, error);
+          // Return a simple error message for offline resources
+          return new Response('This resource requires an internet connection.', {
+            status: 503,
+            headers: { 'Content-Type': 'text/plain' }
+          });
         })
     );
   }
@@ -399,9 +336,9 @@ self.addEventListener('message', (event) => {
       console.log(`(${CACHE_NAME}) Received SKIP_WAITING message.`);
       self.skipWaiting(); // Force activation
   }
-  // Handle cache clearing request
-  else if (event.data && event.data.type === 'CLEAR_CACHE') {
-      console.log(`(${CACHE_NAME}) Received CLEAR_CACHE message. Clearing all caches.`);
+  // Handle cache clearing request - Always clear all caches
+  else if (event.data && (event.data.type === 'CLEAR_CACHE' || event.data.type === 'CLEAR_URL_CACHE')) {
+      console.log(`(${CACHE_NAME}) Received cache clearing message. Clearing all caches.`);
       event.waitUntil(
           caches.keys().then(cacheNames => {
               return Promise.all(
@@ -410,17 +347,14 @@ self.addEventListener('message', (event) => {
                       return caches.delete(cacheName);
                   })
               );
-          })
-      );
-  }
-  // Handle specific URL cache clearing
-  else if (event.data && event.data.type === 'CLEAR_URL_CACHE' && event.data.url) {
-      console.log(`(${CACHE_NAME}) Received CLEAR_URL_CACHE message for: ${event.data.url}`);
-      event.waitUntil(
-          caches.open(CACHE_NAME).then(cache => {
-              return cache.delete(event.data.url).then(success => {
-                  console.log(`(${CACHE_NAME}) Cache cleared for ${event.data.url}: ${success ? 'success' : 'not found'}`);
-              });
+          }).then(() => {
+              // After clearing cache, notify the client
+              if (event.source) {
+                  event.source.postMessage({
+                      type: 'CACHE_CLEARED',
+                      timestamp: Date.now()
+                  });
+              }
           })
       );
   }
