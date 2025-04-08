@@ -1,3 +1,6 @@
+// Run setup script to ensure all required files exist
+require('./setup');
+
 const express = require('express');
 const cors = require('cors');
 const webpush = require('web-push');
