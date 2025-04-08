@@ -19,7 +19,17 @@ const HabitController = require('../controllers/habitController');
  *       500:
  *         description: Server error
  */
-router.get('/', HabitController.getAllHabits);
+// Get all habits with cache control headers
+router.get('/', (req, res) => {
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
+    // Call the controller method
+    HabitController.getAllHabits(req, res);
+});
 
 /**
  * @swagger
@@ -152,6 +162,16 @@ router.delete('/:id', HabitController.deleteHabit);
  *       500:
  *         description: Server error
  */
-router.post('/:id/complete', HabitController.recordCompletion);
+// Record a habit completion with cache control headers
+router.post('/:id/complete', (req, res) => {
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
+    // Call the controller method
+    HabitController.recordCompletion(req, res);
+});
 
 module.exports = router;
