@@ -123,8 +123,8 @@ app.post('/api/weight/goal', async (req, res) => {
     const p_targetWeight = parseFloat(targetWeight);
     const p_weeklyGain = parseFloat(weeklyGain);
 
-    if (isNaN(p_targetWeight) || p_targetWeight <= 0 || isNaN(p_weeklyGain) || p_weeklyGain <= 0) {
-        return res.status(400).json({ error: 'Invalid input. Target weight and weekly gain must be positive numbers.' });
+    if (isNaN(p_targetWeight) || p_targetWeight <= 0 || isNaN(p_weeklyGain) || p_weeklyGain === 0) {
+        return res.status(400).json({ error: 'Invalid input. Target weight must be positive and weekly goal cannot be zero.' });
     }
 
     try {
