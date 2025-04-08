@@ -14,7 +14,7 @@ const daysSinceRouter = require('./routes/daysSince'); // Old pattern
 const workoutRoutes = require('./routes/workouts'); // Old pattern
 const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern
 const recipeRoutes = require('./routes/recipes'); // Old pattern
-const weightRoutes = require('./routes/weightRoutes'); // New MVC pattern
+const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
 const taskRoutes = require('./routes/tasks'); // Old pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 
