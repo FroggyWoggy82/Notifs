@@ -10,6 +10,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedTaskListEl = document.getElementById('selectedTaskList');
     const closeSelectedDateViewBtn = document.getElementById('closeSelectedDateView');
 
+    // Edit Task Modal Elements
+    const editTaskModal = document.getElementById('edit-task-modal');
+    const editTaskForm = document.getElementById('edit-task-form');
+    const editTaskIdInput = document.getElementById('edit-task-id');
+    const editTaskTitleInput = document.getElementById('edit-task-title');
+    const editTaskDescriptionInput = document.getElementById('edit-task-description');
+    const editTaskReminderTimeInput = document.getElementById('edit-task-reminder-time');
+    const editTaskAssignedDateInput = document.getElementById('edit-task-assigned-date');
+    const editTaskDueDateInput = document.getElementById('edit-task-due-date');
+    const editTaskRecurrenceTypeSelect = document.getElementById('edit-task-recurrence-type');
+    const editTaskRecurrenceIntervalInput = document.getElementById('edit-task-recurrence-interval');
+    const editTaskRecurrenceIntervalContainer = document.getElementById('edit-recurrence-interval-container');
+    const editTaskRecurrenceIntervalUnit = document.getElementById('edit-recurrence-interval-unit');
+    const editTaskStatus = document.getElementById('edit-task-status');
+    const closeEditTaskModalBtn = editTaskModal ? editTaskModal.querySelector('.close-button') : null;
+
     let currentDate = new Date(); // State for the currently viewed month/year
     let allTasks = []; // Store fetched tasks
 
@@ -466,28 +482,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Task Edit and Delete Handlers ---
 
     // Handle editing a task
-    async function handleEditTask(task) {
+    function handleEditTask(task) {
         console.log('Editing task:', task);
 
-        // Check if we're on the index page with the edit modal
-        const editTaskModal = document.getElementById('edit-task-modal');
-
         if (!editTaskModal) {
-            // We're on the calendar page, redirect to the main page with task ID
-            window.location.href = `/index.html?edit_task=${task.id}`;
+            console.error('Edit task modal not found');
             return;
         }
 
-        // We have the edit modal on this page, use it
-        const editTaskIdInput = document.getElementById('edit-task-id');
-        const editTaskTitleInput = document.getElementById('edit-task-title');
-        const editTaskDescriptionInput = document.getElementById('edit-task-description');
-        const editTaskReminderTimeInput = document.getElementById('edit-task-reminder-time');
-        const editTaskAssignedDateInput = document.getElementById('edit-task-assigned-date');
-        const editTaskDueDateInput = document.getElementById('edit-task-due-date');
-        const editTaskRecurrenceTypeSelect = document.getElementById('edit-task-recurrence-type');
-        const editTaskRecurrenceIntervalInput = document.getElementById('edit-task-recurrence-interval');
-        const editTaskStatus = document.getElementById('edit-task-status');
+        // Clear any previous status
+        if (editTaskStatus) {
+            editTaskStatus.textContent = '';
+            editTaskStatus.className = 'status';
+        }
 
         // Populate the form fields
         editTaskIdInput.value = task.id;
@@ -503,15 +510,38 @@ document.addEventListener('DOMContentLoaded', () => {
         editTaskRecurrenceTypeSelect.value = task.recurrence_type || 'none';
         editTaskRecurrenceIntervalInput.value = task.recurrence_interval || '1';
 
+        // Update the interval unit text based on recurrence type
+        updateRecurrenceIntervalUnit();
+
         // Show/hide interval input based on recurrence type
-        const recurrenceIntervalContainer = document.getElementById('edit-recurrence-interval-container');
-        if (recurrenceIntervalContainer) {
-            recurrenceIntervalContainer.style.display =
-                (task.recurrence_type && task.recurrence_type !== 'none') ? 'block' : 'none';
-        }
+        editTaskRecurrenceIntervalContainer.style.display =
+            (task.recurrence_type && task.recurrence_type !== 'none') ? 'block' : 'none';
 
         // Show the modal
         editTaskModal.style.display = 'block';
+    }
+
+    // Update the interval unit text based on recurrence type
+    function updateRecurrenceIntervalUnit() {
+        if (!editTaskRecurrenceIntervalUnit) return;
+
+        const recurrenceType = editTaskRecurrenceTypeSelect.value;
+        switch (recurrenceType) {
+            case 'daily':
+                editTaskRecurrenceIntervalUnit.textContent = 'days';
+                break;
+            case 'weekly':
+                editTaskRecurrenceIntervalUnit.textContent = 'weeks';
+                break;
+            case 'monthly':
+                editTaskRecurrenceIntervalUnit.textContent = 'months';
+                break;
+            case 'yearly':
+                editTaskRecurrenceIntervalUnit.textContent = 'years';
+                break;
+            default:
+                editTaskRecurrenceIntervalUnit.textContent = 'days';
+        }
     }
 
     // Handle deleting a task
@@ -534,13 +564,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log(`Task ${task.id} deleted successfully`);
 
-            // Refresh the calendar
+            // Refresh the tasks data
             await fetchTasks();
-            renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
 
-            // Close the task detail view
-            selectedDateTasksEl.style.display = 'none';
-            document.querySelectorAll('.calendar-day.selected').forEach(d => d.classList.remove('selected'));
+            // Get the currently selected date
+            const selectedDay = document.querySelector('.calendar-day.selected');
+            if (selectedDay) {
+                const dateKey = selectedDay.getAttribute('data-date');
+                if (dateKey) {
+                    const date = new Date(dateKey + 'T00:00:00');
+                    // Refresh the task list for the selected date
+                    showTasksForDate(date, allTasks);
+                }
+            }
+
+            // Refresh the calendar view
+            renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
 
             // Show a success message
             updateStatus("Task deleted successfully", false);
@@ -566,8 +605,127 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closeSelectedDateViewBtn.addEventListener('click', () => {
         selectedDateTasksEl.style.display = 'none';
-         document.querySelectorAll('.calendar-day.selected').forEach(d => d.classList.remove('selected'));
+        document.querySelectorAll('.calendar-day.selected').forEach(d => d.classList.remove('selected'));
     });
+
+    // Edit Task Modal Event Listeners
+    if (editTaskModal && editTaskForm) {
+        // Handle recurrence type change
+        editTaskRecurrenceTypeSelect.addEventListener('change', () => {
+            // Show/hide interval input based on recurrence type
+            const recurrenceType = editTaskRecurrenceTypeSelect.value;
+            editTaskRecurrenceIntervalContainer.style.display =
+                (recurrenceType !== 'none') ? 'block' : 'none';
+
+            // Update the interval unit text
+            updateRecurrenceIntervalUnit();
+        });
+
+        // Handle form submission
+        editTaskForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const taskId = editTaskIdInput.value;
+            if (!taskId) {
+                console.error("No task ID found in edit form.");
+                updateEditTaskStatus("Error: Task ID missing.", true);
+                return;
+            }
+
+            const saveButton = editTaskForm.querySelector('button[type="submit"]');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+            updateEditTaskStatus("Saving changes...", false);
+
+            // Gather data from the form
+            const updatedData = {
+                title: editTaskTitleInput.value.trim(),
+                description: editTaskDescriptionInput.value.trim() || null,
+                reminderTime: editTaskReminderTimeInput.value || null,
+                assignedDate: editTaskAssignedDateInput.value || null,
+                dueDate: editTaskDueDateInput.value || null,
+                recurrenceType: editTaskRecurrenceTypeSelect.value,
+                recurrenceInterval: editTaskRecurrenceTypeSelect.value !== 'none' ?
+                    parseInt(editTaskRecurrenceIntervalInput.value, 10) : null
+            };
+
+            // Basic validation
+            if (!updatedData.title) {
+                updateEditTaskStatus("Task title cannot be empty.", true);
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Changes';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Server error updating task' }));
+                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                }
+
+                const updatedTask = await response.json();
+                console.log("Task updated successfully:", updatedTask);
+
+                // Refresh the tasks data
+                await fetchTasks();
+
+                // Get the currently selected date
+                const selectedDay = document.querySelector('.calendar-day.selected');
+                if (selectedDay) {
+                    const dateKey = selectedDay.getAttribute('data-date');
+                    if (dateKey) {
+                        const date = new Date(dateKey + 'T00:00:00');
+                        // Refresh the task list for the selected date
+                        showTasksForDate(date, allTasks);
+                    }
+                }
+
+                // Refresh the calendar view
+                renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+
+                updateEditTaskStatus("Task updated successfully!", false);
+                setTimeout(() => {
+                    editTaskModal.style.display = 'none';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Error updating task:', error);
+                updateEditTaskStatus(`Error updating task: ${error.message}`, true);
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Changes';
+            }
+        });
+
+        // Close modal when clicking the close button
+        if (closeEditTaskModalBtn) {
+            closeEditTaskModalBtn.addEventListener('click', () => {
+                editTaskModal.style.display = 'none';
+            });
+        }
+
+        // Close modal when clicking outside
+        editTaskModal.addEventListener('click', (event) => {
+            if (event.target === editTaskModal) {
+                editTaskModal.style.display = 'none';
+            }
+        });
+    }
+
+    // Helper function to update edit task status
+    function updateEditTaskStatus(message, isError = false) {
+        if (!editTaskStatus) return;
+
+        editTaskStatus.textContent = message;
+        editTaskStatus.className = `status ${isError ? 'error' : 'success'}`;
+        editTaskStatus.style.display = message ? 'block' : 'none';
+    }
 
 
     // --- Initial Load ---

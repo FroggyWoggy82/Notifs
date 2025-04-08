@@ -14,7 +14,7 @@
 </head>
 <body>
     <button class="menu-button">☰</button>
-    
+
     <div class="sidebar-overlay"></div>
     <div class="sidebar">
         <div class="sidebar-header">
@@ -98,8 +98,60 @@
         </a>
     </div>
 
+    <!-- Edit Task Modal -->
+    <div id="edit-task-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Edit Task</h2>
+            <form id="edit-task-form">
+                <input type="hidden" id="edit-task-id"> <!-- Hidden field for ID -->
+                <div class="form-group">
+                    <label for="edit-task-title">Title:</label>
+                    <input type="text" id="edit-task-title" placeholder="What needs to be done?" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-task-description">Description (Optional):</label>
+                    <textarea id="edit-task-description" placeholder="Add more details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-task-reminder-time">Reminder Time (Optional):</label>
+                    <input type="datetime-local" id="edit-task-reminder-time">
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="edit-task-assigned-date">Assigned Date:</label>
+                        <input type="date" id="edit-task-assigned-date">
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="edit-task-due-date">Due Date (Optional):</label>
+                        <input type="date" id="edit-task-due-date">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="edit-task-recurrence-type">Recurrence:</label>
+                        <select id="edit-task-recurrence-type">
+                            <option value="none">None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="edit-recurrence-interval-container" style="display: none;">
+                        <label for="edit-task-recurrence-interval">Every:</label>
+                        <input type="number" id="edit-task-recurrence-interval" value="1" min="1" step="1" style="width: 60px;">
+                        <span id="edit-recurrence-interval-unit">days</span>
+                    </div>
+                </div>
+                <button type="submit" id="save-task-btn">Save Changes</button>
+            </form>
+            <div id="edit-task-status" class="status"></div>
+        </div>
+    </div>
+
     <!-- JS Dependencies - Consider a library like date-fns later if needed -->
     <script src="/js/calendar.js"></script>
     <script src="/js/sidebar.js"></script>
 </body>
-</html> 
+</html>
