@@ -8,14 +8,15 @@ const cron = require('node-cron');
 const db = require('./db'); // Required for database connection initialization
 
 // Import routes
-const goalRoutes = require('./routes/goalRoutes');
-const daysSinceRouter = require('./routes/daysSince');
-const workoutRoutes = require('./routes/workouts');
-const habitRoutes = require('./routes/habitRoutes');
-const recipeRoutes = require('./routes/recipes');
-const weightRoutes = require('./routes/weightRoutes');
-const taskRoutes = require('./routes/tasks');
-const notificationRoutes = require('./routes/notificationRoutes');
+// Using a mix of old and new route files until all are converted to MVC pattern
+const goalRoutes = require('./routes/goalRoutes'); // New MVC pattern
+const daysSinceRouter = require('./routes/daysSince'); // Old pattern
+const workoutRoutes = require('./routes/workouts'); // Old pattern
+const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern
+const recipeRoutes = require('./routes/recipes'); // Old pattern
+const weightRoutes = require('./routes/weightRoutes'); // New MVC pattern
+const taskRoutes = require('./routes/tasks'); // Old pattern
+const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
