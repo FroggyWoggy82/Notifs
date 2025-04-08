@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Product Tracking - Task List</title>
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/product-tracking.css">
+    <!-- Dynamic theme color for status bar -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body>
+    <button class="menu-button">☰</button>
+    
+    <div class="sidebar-overlay"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon">✓</span>
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon">⭐</span>
+                <span>Goals</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon">📅</span>
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon">⏱️</span>
+                <span>Days Since</span>
+            </a>
+            <a href="/pages/food.html" class="sidebar-nav-item">
+                <span class="nav-icon">🍔</span>
+                <span>Food</span>
+            </a>
+            <a href="/pages/product-tracking.html" class="sidebar-nav-item active">
+                <span class="nav-icon">🧪</span>
+                <span>Product Tracking</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="content-wrapper">
+        <h1>Product Tracking</h1>
+        <p class="description">Track how products affect your skin, hair, gut microbiome, and more.</p>
+        
+        <section class="add-product-section">
+            <h2>Add New Product</h2>
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label for="productName">Product Name:</label>
+                    <input type="text" id="productName" placeholder="Enter product name" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category:</label>
+                    <select id="productCategory" required>
+                        <option value="">Select a category</option>
+                        <option value="skin">Skin Care</option>
+                        <option value="hair">Hair Care</option>
+                        <option value="gut">Gut Health</option>
+                        <option value="supplement">Supplement</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="trackingFrequency">Tracking Frequency:</label>
+                    <select id="trackingFrequency" required>
+                        <option value="">Select frequency</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group custom-frequency" style="display: none;">
+                    <label for="customDays">Every X days:</label>
+                    <input type="number" id="customDays" min="1" value="30">
+                </div>
+                <div class="form-group">
+                    <label for="notificationType">Notification Type:</label>
+                    <select id="notificationType" required>
+                        <option value="photo">Photo Reminder</option>
+                        <option value="rating">Rating Reminder</option>
+                        <option value="notes">Notes Reminder</option>
+                        <option value="all">All of the above</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productNotes">Initial Notes (optional):</label>
+                    <textarea id="productNotes" rows="3" placeholder="Enter any initial observations or product details"></textarea>
+                </div>
+                <button type="submit" id="addProductBtn">Add Product</button>
+            </form>
+            <div id="addProductStatus" class="status"></div>
+        </section>
+        
+        <section class="product-list-section">
+            <h2>Your Products</h2>
+            <div class="filter-container">
+                <label for="categoryFilter">Filter by:</label>
+                <select id="categoryFilter">
+                    <option value="all">All Categories</option>
+                    <option value="skin">Skin Care</option>
+                    <option value="hair">Hair Care</option>
+                    <option value="gut">Gut Health</option>
+                    <option value="supplement">Supplement</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div id="productList">
+                <p>Loading products...</p>
+            </div>
+        </section>
+        
+        <!-- Product Detail Modal -->
+        <div id="productDetailModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 id="modalProductName">Product Name</h2>
+                <div class="product-details">
+                    <p><strong>Category:</strong> <span id="modalCategory"></span></p>
+                    <p><strong>Started:</strong> <span id="modalStartDate"></span></p>
+                    <p><strong>Tracking Frequency:</strong> <span id="modalFrequency"></span></p>
+                </div>
+                
+                <div class="tracking-history">
+                    <h3>Tracking History</h3>
+                    <div id="trackingEntries">
+                        <!-- Tracking entries will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="add-entry-section">
+                    <h3>Add New Entry</h3>
+                    <form id="addEntryForm">
+                        <input type="hidden" id="entryProductId">
+                        <div class="form-group">
+                            <label for="entryDate">Date:</label>
+                            <input type="date" id="entryDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="entryRating">Rating (1-10):</label>
+                            <input type="range" id="entryRating" min="1" max="10" value="5">
+                            <span id="ratingValue">5</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="entryNotes">Notes:</label>
+                            <textarea id="entryNotes" rows="3" placeholder="Enter your observations"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="entryPhoto">Photo (optional):</label>
+                            <input type="file" id="entryPhoto" accept="image/*">
+                        </div>
+                        <button type="submit" id="addEntryBtn">Add Entry</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon">✓</div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon">⭐</div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
+            <div class="nav-icon">💪</div>
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon">🍔</div>
+            <span>Food</span>
+        </a>
+    </div>
+
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/status-bar.js"></script>
+    <script src="../js/product-tracking.js"></script>
+</body>
+</html>

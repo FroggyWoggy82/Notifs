@@ -25,6 +25,9 @@ function updateStatusBarColor() {
         case 'days-since':
             color = '#ffffff'; // White background for days-since page
             break;
+        case 'product-tracking':
+            color = '#ffffff'; // White background for product-tracking page
+            break;
         default:
             color = '#ffffff'; // Default white
     }
@@ -80,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPage = 'food';
     } else if (path.includes('/pages/days-since.html')) {
         currentPage = 'days-since';
+    } else if (path.includes('/pages/product-tracking.html')) {
+        currentPage = 'product-tracking';
     } else {
         currentPage = 'tasks'; // Default to tasks page
     }
