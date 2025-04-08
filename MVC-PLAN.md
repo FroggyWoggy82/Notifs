@@ -4,9 +4,10 @@ This document outlines the plan to fully implement the MVC (Model-View-Controlle
 
 ## Current Status
 
-- **Partially Implemented**: The MVC architecture has been partially implemented with models, controllers, and routes for tasks and weight features.
+- **Mostly Implemented**: The MVC architecture has been implemented for most features including tasks, weight, goals, habits, and notifications.
 - **Server File**: The server.js file has been updated to use the modular structure.
 - **Dependencies**: Swagger dependencies have been added for API documentation.
+- **Remaining Features**: Days Since, Workouts, and Recipes still need to be converted to MVC pattern.
 
 ## Next Steps
 
@@ -16,10 +17,10 @@ Convert the remaining route files to follow the MVC pattern:
 
 - [x] `weightRoutes.js` - Already converted
 - [x] `taskRoutes.js` - Already converted
-- [ ] `goals.js` → `goalRoutes.js`
+- [x] `goals.js` → `goalRoutes.js` - Converted
 - [ ] `daysSince.js` → `daysSinceRoutes.js`
 - [ ] `workouts.js` → `workoutRoutes.js`
-- [ ] `habits.js` → `habitRoutes.js`
+- [x] `habits.js` → `habitRoutes.js` - Converted
 - [ ] `recipes.js` → `recipeRoutes.js`
 
 ### 2. Create Controller Files
@@ -28,10 +29,10 @@ Create controller files for the remaining features:
 
 - [x] `weightController.js` - Already created
 - [x] `taskController.js` - Already created
-- [ ] `goalController.js`
+- [x] `goalController.js` - Created
 - [ ] `daysSinceController.js`
 - [ ] `workoutController.js`
-- [ ] `habitController.js`
+- [x] `habitController.js` - Created
 - [ ] `recipeController.js`
 
 ### 3. Create Model Files
@@ -40,19 +41,19 @@ Create model files for the remaining features:
 
 - [x] `weightModel.js` - Already created
 - [x] `taskModel.js` - Already created
-- [ ] `goalModel.js`
+- [x] `goalModel.js` - Created
 - [ ] `daysSinceModel.js`
 - [ ] `workoutModel.js`
-- [ ] `habitModel.js`
+- [x] `habitModel.js` - Created
 - [ ] `recipeModel.js`
 
 ### 4. Update Notification Handling
 
 Move notification-related code from server.js to dedicated files:
 
-- [ ] Create `controllers/notificationController.js`
-- [ ] Create `models/notificationModel.js`
-- [ ] Create `routes/notificationRoutes.js`
+- [x] Create `controllers/notificationController.js` - Created
+- [x] Create `models/notificationModel.js` - Created
+- [x] Create `routes/notificationRoutes.js` - Created
 
 ### 5. Testing
 
@@ -61,12 +62,12 @@ Move notification-related code from server.js to dedicated files:
 
 ## Implementation Priority
 
-1. Notification handling (most critical for app functionality)
-2. Goals feature (core feature)
-3. Habits feature (frequently used)
-4. Workouts feature
-5. Days Since feature
-6. Recipes feature
+1. ✅ Notification handling (most critical for app functionality) - COMPLETED
+2. ✅ Goals feature (core feature) - COMPLETED
+3. ✅ Habits feature (frequently used) - COMPLETED
+4. Workouts feature - PENDING
+5. Days Since feature - PENDING
+6. Recipes feature - PENDING
 
 ## Benefits of Completing the MVC Implementation
 
