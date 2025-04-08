@@ -307,19 +307,41 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedDateDisplayEl.textContent = date.toLocaleDateString('default', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         selectedTaskListEl.innerHTML = ''; // Clear previous list
 
-        const tasksOnDate = tasks.filter(task => {
-            // Match based on assigned_date for now
+        // First, find all tasks directly assigned to this date
+        const directlyAssignedTasks = tasks.filter(task => {
             const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
-
-            // Check if this is a recurring task instance for this date
-            const isRecurringOnDate = task.isRecurring && assignedDateKey === dateKey;
-
-            // Check if this is a regular task for this date
-            const isRegularTaskOnDate = assignedDateKey === dateKey &&
-                                       (!task.is_complete || !task.recurrence_type || task.recurrence_type === 'none');
-
-            return isRecurringOnDate || isRegularTaskOnDate;
+            return assignedDateKey === dateKey;
         });
+
+        // Then, find recurring tasks that should appear on this date
+        const recurringTasks = tasks.filter(task => {
+            // Skip if already directly assigned to this date
+            const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
+            if (assignedDateKey === dateKey) return false;
+
+            // Skip if not a recurring task
+            if (!task.recurrence_type || task.recurrence_type === 'none') return false;
+
+            // For completed recurring tasks, check if the next occurrence falls on this date
+            if (task.is_complete && task.assigned_date) {
+                const nextOccurrence = calculateNextOccurrence(task);
+                if (nextOccurrence) {
+                    const nextDateKey = formatDateKey(nextOccurrence);
+                    return nextDateKey === dateKey;
+                }
+            }
+
+            return false;
+        }).map(task => {
+            // Create a copy of the task for the next occurrence
+            const nextTask = { ...task };
+            nextTask.is_complete = false; // Next occurrence is not complete
+            nextTask.isRecurring = true;  // Mark as a recurring instance
+            return nextTask;
+        });
+
+        // Combine both lists
+        const tasksOnDate = [...directlyAssignedTasks, ...recurringTasks];
 
         if (tasksOnDate.length === 0) {
             selectedTaskListEl.innerHTML = '<li>No tasks assigned for this date.</li>';
