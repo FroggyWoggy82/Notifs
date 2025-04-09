@@ -401,4 +401,41 @@ router.delete('/logs/:id', WorkoutController.deleteWorkoutLog);
  */
 router.post('/progress-photos', WorkoutController.uploadProgressPhotos);
 
+/**
+ * @swagger
+ * /api/workouts/progress-photos:
+ *   get:
+ *     summary: Get all progress photos
+ *     tags: [Workouts]
+ *     responses:
+ *       200:
+ *         description: List of progress photos
+ *       500:
+ *         description: Server error
+ */
+router.get('/progress-photos', WorkoutController.getProgressPhotos);
+
+/**
+ * @swagger
+ * /api/workouts/progress-photos/{photo_id}:
+ *   delete:
+ *     summary: Delete a progress photo
+ *     tags: [Workouts]
+ *     parameters:
+ *       - in: path
+ *         name: photo_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The photo ID
+ *     responses:
+ *       200:
+ *         description: Photo deleted successfully
+ *       404:
+ *         description: Photo not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/progress-photos/:photo_id', WorkoutController.deleteProgressPhoto);
+
 module.exports = router;

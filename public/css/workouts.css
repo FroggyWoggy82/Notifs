@@ -815,10 +815,10 @@ h1, h2 {
     grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps (Notes removed) */
 }
 
-/* Update to match active workout layout */
+/* Update to match active workout layout but with reordered columns */
 .template-editor-list .set-row {
     display: grid;
-    grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps */
+    grid-template-columns: auto 1fr 1fr 1fr; /* Set#, Previous, Weight, Reps */
     gap: 10px;
     align-items: center;
     padding: 8px 0;
@@ -827,6 +827,39 @@ h1, h2 {
 
 .template-editor-list .set-row:last-child {
     border-bottom: none;
+}
+
+/* Exercise configuration row styles */
+.exercise-config-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 10px 0;
+    padding: 8px;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+}
+
+.sets-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sets-input-group label {
+    font-weight: bold;
+    color: #bbb;
+}
+
+.exercise-sets-input {
+    width: 60px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #222;
+    color: #f5f5f5;
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 .exercise-notes-group {

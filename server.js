@@ -21,6 +21,8 @@ const weightRoutes = require('./routes/weight'); // Using old pattern file name 
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 
+// Note: We're no longer using the old workouts.js routes file
+
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
 

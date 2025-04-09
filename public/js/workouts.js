@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Add a beforeunload event listener to save workout state when navigating away
+    window.addEventListener('beforeunload', function() {
+        // Only save if we're on the active workout page
+        if (currentPage === 'active') {
+            console.log('Saving workout state before unload');
+            saveWorkoutState();
+        }
+    });
     console.log('Workout Tracker JS loaded');
 
     // --- Debounce Helper ---
@@ -165,6 +173,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Otherwise, use the 'sets' property from the template/exercise data
             numSets = parseInt(exerciseData.sets) || 1;
         }
+
+        // For templates, always use the sets property
+        if (isTemplate) {
+            numSets = parseInt(exerciseData.sets) || 1;
+        }
         // Ensure at least one set is rendered
         numSets = Math.max(1, numSets);
 
@@ -191,43 +204,84 @@ document.addEventListener('DOMContentLoaded', function() {
             let previousLogTextHtml = '- kg x -'; // Display text for previous log span
             const currentUnit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
 
-            // Check if previous log data exists for THIS specific set index (i)
-            if (!isTemplate && weightsArray.length > i && repsArray.length > i) {
+            // First check if we have saved input values in sets_completed
+            if (!isTemplate && exerciseData.sets_completed && exerciseData.sets_completed[i]) {
+                const savedSet = exerciseData.sets_completed[i];
+                // Check if sets_completed is an array of objects with weight/reps properties
+                if (typeof savedSet === 'object' && savedSet !== null) {
+                    if (savedSet.weight !== undefined) {
+                        weightValue = savedSet.weight;
+                        console.log(`[generateSetRowsHtml] Using saved weight value: ${weightValue}`);
+                    }
+                    if (savedSet.reps !== undefined) {
+                        repsValue = savedSet.reps;
+                        console.log(`[generateSetRowsHtml] Using saved reps value: ${repsValue}`);
+                    }
+                }
+            }
+
+            // If no saved values, check if previous log data exists for THIS specific set index (i)
+            if ((!weightValue || !repsValue) && !isTemplate && weightsArray.length > i && repsArray.length > i) {
                 const prevWeight = weightsArray[i];
                 const prevReps = repsArray[i];
 
-                // Only populate if values are not empty strings
-                if (prevWeight !== '') {
+                // Only populate if values are not empty strings and we don't already have saved values
+                if (prevWeight !== '' && !weightValue) {
                     weightValue = prevWeight;
                 }
-                if (prevReps !== '') {
+                if (prevReps !== '' && !repsValue) {
                     repsValue = prevReps;
                 }
                 // Always update the display text if data exists for this set index
                 previousLogTextHtml = `${prevWeight || '-'} ${prevUnit} x ${prevReps || '-'}`;
-                 console.log(`[generateSetRowsHtml] Set ${i}: Pre-filling weight=${weightValue}, reps=${repsValue}. Display='${previousLogTextHtml}'`);
+                console.log(`[generateSetRowsHtml] Set ${i}: Pre-filling weight=${weightValue}, reps=${repsValue}. Display='${previousLogTextHtml}'`);
             } else if (!isTemplate){
                 // If no specific data for this set index, keep inputs empty, show placeholder text
-                 console.log(`[generateSetRowsHtml] Set ${i}: No previous data found for this index.`);
+                console.log(`[generateSetRowsHtml] Set ${i}: No previous data found for this index.`);
             }
             // --- End Per-Set Logic ---
 
-            const isCompleted = !isTemplate && exerciseData.completedSets && exerciseData.completedSets[i];
+            // Check for completion status in sets_completed first, then fall back to completedSets for backward compatibility
+            let isCompleted = false;
+            if (!isTemplate) {
+                if (exerciseData.sets_completed && exerciseData.sets_completed[i]) {
+                    const savedSet = exerciseData.sets_completed[i];
+                    if (typeof savedSet === 'object' && savedSet !== null && savedSet.completed !== undefined) {
+                        isCompleted = savedSet.completed;
+                    }
+                } else if (exerciseData.completedSets && exerciseData.completedSets[i]) {
+                    // Legacy support for completedSets array
+                    isCompleted = !!exerciseData.completedSets[i];
+                }
+            }
             const isDisabled = isTemplate;
             const weightInputType = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? 'hidden' : 'number';
             const weightPlaceholder = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? '' : 'Wt';
             const repsPlaceholder = 'Reps';
 
             // Generate the HTML for this specific set row
-            setRowsHtml += `
-                <div class="set-row" data-set-index="${i}">
-                    <span class="set-number">${i + 1}</span>
-                    <span class="previous-log">${previousLogTextHtml}</span>
-                    <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
-                    <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
-                </div>
-            `;
+            if (isTemplate) {
+                // For templates, use the reordered layout: Set#, Previous, Weight, Reps
+                setRowsHtml += `
+                    <div class="set-row" data-set-index="${i}">
+                        <span class="set-number">${i + 1}</span>
+                        <span class="previous-log">${previousLogTextHtml}</span>
+                        <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" step="any" inputmode="decimal">
+                        <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" inputmode="numeric" pattern="[0-9]*">
+                    </div>
+                `;
+            } else {
+                // For active workouts, keep the original layout
+                setRowsHtml += `
+                    <div class="set-row" data-set-index="${i}">
+                        <span class="set-number">${i + 1}</span>
+                        <span class="previous-log">${previousLogTextHtml}</span>
+                        <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+                        <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+                        <button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>
+                    </div>
+                `;
+            }
         }
         return setRowsHtml;
     }
@@ -496,8 +550,47 @@ document.addEventListener('DOMContentLoaded', function() {
             removeButton.disabled = setRowsCount <= 1;
         }
 
-        // Re-attach input listeners if needed, or rely on delegation
-        // Example if needed: setupSetInputListeners(exerciseItemElement);
+        // Make sure sets_completed is properly initialized with current values
+        if (!isTemplate) {
+            // Initialize sets_completed array if it doesn't exist
+            if (!exerciseData.sets_completed) {
+                exerciseData.sets_completed = [];
+            }
+
+            // Update sets_completed with current input values
+            const setRows = exerciseItemElement.querySelectorAll('.set-row');
+            setRows.forEach((row, idx) => {
+                const weightInput = row.querySelector('.weight-input');
+                const repsInput = row.querySelector('.reps-input');
+                const completeToggle = row.querySelector('.set-complete-toggle');
+
+                // Ensure the array has enough elements
+                while (exerciseData.sets_completed.length <= idx) {
+                    exerciseData.sets_completed.push({
+                        weight: '',
+                        reps: '',
+                        unit: exerciseData.weight_unit || 'kg',
+                        completed: false
+                    });
+                }
+
+                // Update with current values
+                if (weightInput) {
+                    exerciseData.sets_completed[idx].weight = weightInput.value;
+                }
+                if (repsInput) {
+                    exerciseData.sets_completed[idx].reps = repsInput.value;
+                }
+                if (completeToggle) {
+                    exerciseData.sets_completed[idx].completed = completeToggle.classList.contains('completed');
+                }
+            });
+
+            // Save state after initialization
+            saveWorkoutState();
+        }
+
+        // Input listeners are handled through delegation on the parent container
 
          console.log(`[Render Single] Finished rendering '${exerciseData.name}'`);
     }
@@ -540,7 +633,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Only save if we have an active workout
             if (currentWorkout && (Array.isArray(currentWorkout) ? currentWorkout.length > 0 : currentWorkout.exercises?.length > 0)) {
                 console.log('Saving workout state to localStorage');
-                localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(currentWorkout));
+
+                // Create a deep copy to avoid reference issues
+                const workoutToSave = JSON.parse(JSON.stringify(currentWorkout));
+
+                // Save to localStorage
+                localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(workoutToSave));
+                console.log('Workout state saved:', workoutToSave);
 
                 // Save workout start time if it exists
                 if (workoutStartTime) {
@@ -660,7 +759,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 ...ex,
                 lastLog: undefined, // Mark for fetching
                 // Initialize sets_completed based on template 'sets' count
-                sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({ weight: '', reps: '', unit: ex.weight_unit || 'kg', completed: false }))
+                sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({
+                    weight: '',
+                    reps: '',
+                    unit: ex.weight_unit || 'kg',
+                    completed: false
+                }))
             }))
         };
 
@@ -682,8 +786,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    function addExerciseToWorkout(exerciseId, targetList) { // Added targetList parameter
-        // Removed reading targetList from modal dataset here
+    // Legacy function - kept for backward compatibility
+    function addExerciseToWorkout(exerciseId, targetList) {
+        // Find the exercise object
         const exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
         if (!exercise) {
             console.error('Exercise not found in available list', exerciseId);
@@ -691,20 +796,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Call the new function with the exercise object
+        addExerciseToWorkoutByObject(exercise, targetList);
+    }
+
+    // New function that takes an exercise object directly
+    function addExerciseToWorkoutByObject(exercise, targetList) {
         console.log(`Adding exercise: ${exercise.name} to ${targetList} list`);
 
         const newExerciseData = {
             exercise_id: exercise.exercise_id,
             name: exercise.name,
             category: exercise.category,
-            sets: 1, // Default sets changed to 1
+            sets: 3, // Default sets changed to 3 for better user experience
             reps: '', // Default reps
             weight: null,
             weight_unit: 'kg',
             order_position: (targetList === 'active' ? currentWorkout.length : currentTemplateExercises.length),
             notes: '',
             // Only add completedSets for active workouts, not templates
-            ...(targetList === 'active' && { completedSets: Array(1).fill(false) }), // Default completedSets for 1 set
+            ...(targetList === 'active' && { completedSets: Array(3).fill(false) }), // Default completedSets for 3 sets
             lastLog: undefined // Mark lastLog as not yet fetched
         };
 
@@ -856,22 +967,51 @@ document.addEventListener('DOMContentLoaded', function() {
         // }
         const exerciseData = exercises[exerciseIndex];
 
-        if (!exerciseData.completedSets) {
+        // Initialize sets_completed array if it doesn't exist
+        if (!exerciseData.sets_completed) {
             const setRowCount = exerciseItem.querySelectorAll('.set-row').length;
-            exerciseData.completedSets = Array(setRowCount).fill(false);
-            console.log(`[handleSetToggle] Initialized completedSets for exercise ${exerciseIndex}`); // <<< Log 8: Log init
+            exerciseData.sets_completed = Array(setRowCount).fill(null).map(() => ({
+                weight: '',
+                reps: '',
+                unit: exerciseData.weight_unit || 'kg',
+                completed: false
+            }));
+            console.log(`[handleSetToggle] Initialized sets_completed for exercise ${exerciseIndex}`); // <<< Log 8: Log init
         }
-        while (exerciseData.completedSets.length <= setIndex) {
-             exerciseData.completedSets.push(false);
+
+        // Ensure the sets_completed array has enough elements
+        while (exerciseData.sets_completed.length <= setIndex) {
+            exerciseData.sets_completed.push({
+                weight: '',
+                reps: '',
+                unit: exerciseData.weight_unit || 'kg',
+                completed: false
+            });
         }
-        exerciseData.completedSets[setIndex] = isCompleted;
 
-        console.log(`[handleSetToggle] Updated exerciseData.completedSets[${setIndex}] to ${isCompleted}`); // <<< Log 9: Log state update
-
-        // --- Added: Disable/Enable inputs based on completion state ---
+        // Capture current input values if they exist
         const weightInput = setRow.querySelector('.weight-input');
         const repsInput = setRow.querySelector('.reps-input');
+        if (weightInput && repsInput) {
+            exerciseData.sets_completed[setIndex].weight = weightInput.value;
+            exerciseData.sets_completed[setIndex].reps = repsInput.value;
+        }
 
+        // Update completion state
+        exerciseData.sets_completed[setIndex].completed = isCompleted;
+
+        // For backward compatibility, also update completedSets if it exists
+        if (exerciseData.completedSets) {
+            // Ensure the array has enough elements
+            while (exerciseData.completedSets.length <= setIndex) {
+                exerciseData.completedSets.push(false);
+            }
+            exerciseData.completedSets[setIndex] = isCompleted;
+        }
+
+        console.log(`[handleSetToggle] Updated exerciseData.sets_completed[${setIndex}] to ${JSON.stringify(exerciseData.sets_completed[setIndex])}`); // <<< Log 9: Log state update
+
+        // --- Added: Disable/Enable inputs based on completion state ---
         // The unit select is in the exercise header, not in each set row
         if (weightInput && repsInput) {
             weightInput.disabled = isCompleted;
@@ -1122,6 +1262,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Call helper function
             const setRowsHtml = generateSetRowsHtml(exercise, index, true); // Pass true for isTemplate
 
+            // Get the current sets value or default to 1
+            const setsValue = parseInt(exercise.sets) || 1;
+
             exerciseItem.innerHTML = `
                 <div class="exercise-item-header">
                     <h4>${escapeHtml(exercise.name)}</h4>
@@ -1133,6 +1276,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                     <!-- Corrected: Hardcode class and add data-index -->
                     <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times;</button>
+                </div>
+                <div class="exercise-config-row">
+                    <div class="sets-input-group">
+                        <label for="exercise-sets-${index}">Sets:</label>
+                        <input type="number" id="exercise-sets-${index}" class="exercise-sets-input" value="${setsValue}" min="1" max="20" data-index="${index}">
+                    </div>
                 </div>
                 <div class="exercise-notes-group">
                     <label for="exercise-notes-${index}">Notes:</label>
@@ -1218,6 +1367,18 @@ document.addEventListener('DOMContentLoaded', function() {
             templateNameInput.focus();
             return;
         }
+
+        // Update currentTemplateExercises with the current sets values from inputs
+        const templateExerciseListEl = document.getElementById('template-exercise-list');
+        const setsInputs = templateExerciseListEl.querySelectorAll('.exercise-sets-input');
+        setsInputs.forEach(input => {
+            const index = parseInt(input.dataset.index);
+            if (!isNaN(index) && index >= 0 && index < currentTemplateExercises.length) {
+                const setsValue = parseInt(input.value) || 1;
+                currentTemplateExercises[index].sets = setsValue;
+                console.log(`Updated exercise ${index} sets to ${setsValue}`);
+            }
+        });
 
         // Collect exercise data from the currentTemplateExercises array
         const exercisesToSave = currentTemplateExercises.map((exercise, index) => {
@@ -1328,7 +1489,21 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add to local cache and re-render list
             availableExercises.push(result); // Add the new exercise object returned by API
             availableExercises.sort((a, b) => a.name.localeCompare(b.name)); // Keep sorted
+
+            // Add the new exercise ID to the checked exercises set
+            checkedExercises.add(result.exercise_id);
+            console.log(`Auto-checked newly created exercise: ${result.name} (ID: ${result.exercise_id})`);
+
+            // Re-render the list with the new exercise checked
             renderAvailableExercises();
+
+            // Scroll to the newly added exercise to make it visible
+            setTimeout(() => {
+                const newExerciseCheckbox = document.getElementById(`ex-select-${result.exercise_id}`);
+                if (newExerciseCheckbox) {
+                    newExerciseCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
 
             // Hide the definition section and reset button
             handleToggleDefineExercise(); // Toggle back to hide
@@ -1592,6 +1767,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Add listener for input changes in weight and reps inputs
+        currentExerciseListEl?.addEventListener('input', (event) => {
+            const target = event.target;
+            if (target instanceof HTMLElement) {
+                if (target.classList.contains('weight-input') || target.classList.contains('reps-input') || target.classList.contains('exercise-notes-textarea')) {
+                    handleInputChange(event);
+                }
+            }
+        });
+
+        // Add a blur event listener to ensure data is saved when focus leaves an input
+        currentExerciseListEl?.addEventListener('blur', (event) => {
+            const target = event.target;
+            if (target instanceof HTMLElement) {
+                if (target.classList.contains('weight-input') || target.classList.contains('reps-input') || target.classList.contains('exercise-notes-textarea')) {
+                    handleInputChange(event);
+                    // Force save after blur
+                    saveWorkoutState();
+                    console.log('Saved workout state after input blur');
+                }
+            }
+        }, true); // Use capture phase to ensure we catch all blur events
+
         // Template search listener
         const templateSearchInputEl = document.getElementById('template-search');
         if (templateSearchInputEl instanceof HTMLInputElement) {
@@ -1609,6 +1807,29 @@ document.addEventListener('DOMContentLoaded', function() {
              // Open modal specifically for adding to template
              if(exerciseModal) exerciseModal.dataset.targetList = 'editor';
              openExerciseModal();
+        });
+
+        // Add event delegation for sets input changes in template editor
+        templateExerciseListEl?.addEventListener('change', (event) => {
+            const target = event.target;
+            if (target.classList.contains('exercise-sets-input')) {
+                const index = parseInt(target.dataset.index);
+                if (!isNaN(index) && index >= 0 && index < currentTemplateExercises.length) {
+                    const setsValue = parseInt(target.value) || 1;
+                    currentTemplateExercises[index].sets = setsValue;
+                    console.log(`Updated exercise ${index} sets to ${setsValue}`);
+
+                    // Update the sets container to show the correct number of set rows
+                    const exerciseItem = target.closest('.exercise-item');
+                    if (exerciseItem) {
+                        const setsContainer = exerciseItem.querySelector('.sets-container');
+                        if (setsContainer) {
+                            // Re-render the sets rows for this exercise
+                            setsContainer.innerHTML = generateSetRowsHtml(currentTemplateExercises[index], index, true);
+                        }
+                    }
+                }
+            }
         });
         // --- NEW: Add listener for deleting exercises from template editor ---
         templateExerciseListEl?.addEventListener('click', (event) => {
@@ -1989,20 +2210,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`Adding ${selectedCheckboxes.length} selected exercises to ${targetList}`);
 
-        // Store the IDs of selected exercises
-        const selectedIds = [];
-        selectedCheckboxes.forEach(checkbox => {
-            const exerciseId = parseInt(checkbox.value, 10);
-            if (!isNaN(exerciseId)) {
-                selectedIds.push(exerciseId);
-                addExerciseToWorkout(exerciseId, targetList); // Pass targetList
+        // Create an array to track the order in which exercises were checked
+        // We'll use the DOM order of the checkboxes, which preserves the order they appear in the list
+        const selectedExercises = [];
+
+        // Get all checkboxes (both checked and unchecked) to determine the selection order
+        const allCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
+
+        // First, collect all checked exercises in their DOM order
+        allCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const exerciseId = parseInt(checkbox.value, 10);
+                if (!isNaN(exerciseId)) {
+                    // Find the exercise data
+                    const exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
+                    if (exercise) {
+                        selectedExercises.push(exercise);
+                    }
+                }
             }
         });
 
+        console.log(`Selected exercises in DOM order: ${selectedExercises.map(ex => ex.name).join(', ')}`);
+
+        // Add exercises in the order they were selected
+        if (targetList === 'active') {
+            // For active workouts, add each exercise individually
+            selectedExercises.forEach(exercise => {
+                addExerciseToWorkoutByObject(exercise, targetList);
+            });
+        } else {
+            // For templates, add all exercises at once to maintain order
+            addExercisesToTemplate(selectedExercises);
+        }
+
         // Clear the checked state for added exercises
-        selectedIds.forEach(id => checkedExercises.delete(id));
+        selectedExercises.forEach(exercise => checkedExercises.delete(exercise.exercise_id));
 
         closeExerciseModal(); // Close modal after adding all
+    }
+
+    // New function to add multiple exercises to a template at once
+    function addExercisesToTemplate(exercises) {
+        console.log(`Adding ${exercises.length} exercises to template in selected order`);
+
+        // Clear the current template exercises array
+        currentTemplateExercises = [];
+
+        // Add each exercise to the template in the order they were selected
+        exercises.forEach((exercise, index) => {
+            const newExerciseData = {
+                exercise_id: exercise.exercise_id,
+                name: exercise.name,
+                category: exercise.category,
+                sets: 3, // Default sets
+                reps: '', // Default reps
+                weight: null,
+                weight_unit: 'kg',
+                order_position: index, // Set position based on the index in the selected array
+                notes: ''
+            };
+
+            currentTemplateExercises.push(newExerciseData);
+        });
+
+        console.log(`Template exercises after adding: ${currentTemplateExercises.map(ex => ex.name).join(', ')}`);
+
+        // Render the updated template
+        renderTemplateExerciseList();
     }
 
     // --- History Chart Functions (Updated for Search) ---
@@ -3059,8 +3334,89 @@ document.addEventListener('DOMContentLoaded', function() {
         exercises[exerciseIndex].weight_unit = newUnit;
         console.log(`Updated unit for exercise ${exerciseIndex} to: ${newUnit}`);
 
+        // Save workout state after changing unit
+        saveWorkoutState();
+
         // Optional: Update any visual display linked to the unit if needed elsewhere
         // (Currently, only affects how data is saved)
+    }
+    // --- END NEW ---
+
+    // --- NEW: Handler for Input Changes in Weight and Reps ---
+    function handleInputChange(event) {
+        const inputElement = event.target;
+        const exerciseItem = inputElement.closest('.exercise-item');
+        if (!exerciseItem) {
+            console.error("Could not find parent exercise item for input element.");
+            return;
+        }
+
+        const exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+
+        if (isNaN(exerciseIndex) || !exercises || !exercises[exerciseIndex]) {
+            console.error("Invalid exercise index for input change:", exerciseIndex);
+            return;
+        }
+
+        // Handle different input types
+        if (inputElement.classList.contains('weight-input') || inputElement.classList.contains('reps-input')) {
+            const setRow = inputElement.closest('.set-row');
+            if (!setRow) {
+                console.error("Could not find parent set row for input element.");
+                return;
+            }
+
+            const setIndex = parseInt(setRow.dataset.setIndex, 10);
+            if (isNaN(setIndex)) {
+                console.error("Invalid set index for input change:", setIndex);
+                return;
+            }
+
+            // Initialize sets_completed array if it doesn't exist
+            if (!exercises[exerciseIndex].sets_completed) {
+                const setRowCount = exerciseItem.querySelectorAll('.set-row').length;
+                exercises[exerciseIndex].sets_completed = Array(setRowCount).fill(null).map(() => ({
+                    weight: '',
+                    reps: '',
+                    unit: exercises[exerciseIndex].weight_unit || 'kg',
+                    completed: false
+                }));
+            }
+
+            // Ensure the sets_completed array has enough elements
+            while (exercises[exerciseIndex].sets_completed.length <= setIndex) {
+                exercises[exerciseIndex].sets_completed.push({
+                    weight: '',
+                    reps: '',
+                    unit: exercises[exerciseIndex].weight_unit || 'kg',
+                    completed: false
+                });
+            }
+
+            // Update the appropriate field in the sets_completed array
+            if (inputElement.classList.contains('weight-input')) {
+                exercises[exerciseIndex].sets_completed[setIndex].weight = inputElement.value;
+                console.log(`Updated weight for exercise ${exerciseIndex}, set ${setIndex} to: ${inputElement.value}`);
+            } else if (inputElement.classList.contains('reps-input')) {
+                exercises[exerciseIndex].sets_completed[setIndex].reps = inputElement.value;
+                console.log(`Updated reps for exercise ${exerciseIndex}, set ${setIndex} to: ${inputElement.value}`);
+            }
+
+            // Also update the completed status from the toggle button
+            const completeToggle = setRow.querySelector('.set-complete-toggle');
+            if (completeToggle) {
+                exercises[exerciseIndex].sets_completed[setIndex].completed = completeToggle.classList.contains('completed');
+            }
+        } else if (inputElement.classList.contains('exercise-notes-textarea')) {
+            // Update notes field
+            exercises[exerciseIndex].notes = inputElement.value;
+            console.log(`Updated notes for exercise ${exerciseIndex}`);
+        }
+
+        // Save workout state after input change
+        saveWorkoutState();
+        console.log('Saved workout state after input change');
     }
     // --- END NEW ---
 });
@@ -3107,15 +3463,28 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     // Always show "- kg x -" for previous log when there's no data
     const previousLogTextHtml = '- kg x -';
 
-    return `
-        <div class="set-row" data-set-index="${setIndex}">
-            <span class="set-number">${setIndex + 1}</span>
-            <span class="previous-log">${previousLogTextHtml}</span>
-            <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
-            <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-            ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
-        </div>
-    `;
+    if (isTemplate) {
+        // For templates, use the reordered layout: Set#, Previous, Weight, Reps
+        return `
+            <div class="set-row" data-set-index="${setIndex}">
+                <span class="set-number">${setIndex + 1}</span>
+                <span class="previous-log">${previousLogTextHtml}</span>
+                <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" step="any" inputmode="decimal">
+                <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" inputmode="numeric" pattern="[0-9]*">
+            </div>
+        `;
+    } else {
+        // For active workouts, keep the original layout
+        return `
+            <div class="set-row" data-set-index="${setIndex}">
+                <span class="set-number">${setIndex + 1}</span>
+                <span class="previous-log">${previousLogTextHtml}</span>
+                <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+                <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+                <button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>
+            </div>
+        `;
+    }
 }
 
 

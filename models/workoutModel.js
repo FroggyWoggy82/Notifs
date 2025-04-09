@@ -84,11 +84,11 @@ async function getWorkoutTemplateById(templateId) {
         GROUP BY w.workout_id, w.name, w.description, w.created_at;
     `;
     const result = await db.query(templateQuery, [templateId]);
-    
+
     if (result.rowCount === 0) {
         throw new Error('Workout template not found');
     }
-    
+
     return result.rows[0];
 }
 
@@ -103,41 +103,41 @@ async function createWorkoutTemplate(name, description, exercises) {
     if (!name || name.trim() === '') {
         throw new Error('Template name cannot be empty');
     }
-    
+
     if (!Array.isArray(exercises) || exercises.length === 0) {
         throw new Error('Template must contain at least one exercise');
     }
-    
-    const client = await db.getClient();
-    
+
+    const client = await db.pool.connect();
+
     try {
         await client.query('BEGIN');
-        
+
         // 1. Insert the workout template
         const workoutResult = await client.query(
             'INSERT INTO workouts (name, description, is_template) VALUES ($1, $2, true) RETURNING workout_id',
             [name.trim(), description || null]
         );
         const newTemplateId = workoutResult.rows[0].workout_id;
-        
+
         // 2. Insert each exercise
         for (let i = 0; i < exercises.length; i++) {
             const ex = exercises[i];
-            
+
             // Validate exercise data
             if (!ex.exercise_id) {
                 throw new Error('Each exercise must have an exercise_id');
             }
-            
+
             await client.query(
-                `INSERT INTO workout_exercises 
-                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes) 
+                `INSERT INTO workout_exercises
+                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
-                    newTemplateId, 
+                    newTemplateId,
                     ex.exercise_id,
-                    ex.sets || null,
-                    ex.reps || null,
+                    ex.sets || 1,
+                    ex.reps || '',
                     ex.weight || null,
                     ex.weight_unit || 'kg',
                     i + 1, // Use array index + 1 for order
@@ -145,9 +145,9 @@ async function createWorkoutTemplate(name, description, exercises) {
                 ]
             );
         }
-        
+
         await client.query('COMMIT');
-        
+
         // Fetch the complete template to return
         return await getWorkoutTemplateById(newTemplateId);
     } catch (error) {
@@ -170,53 +170,53 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
     if (!name || name.trim() === '') {
         throw new Error('Template name cannot be empty');
     }
-    
+
     if (!Array.isArray(exercises) || exercises.length === 0) {
         throw new Error('Template must contain at least one exercise');
     }
-    
-    const client = await db.getClient();
-    
+
+    const client = await db.pool.connect();
+
     try {
         await client.query('BEGIN');
-        
+
         // 1. Check if template exists
         const templateCheck = await client.query(
             'SELECT workout_id FROM workouts WHERE workout_id = $1 AND is_template = true',
             [templateId]
         );
-        
+
         if (templateCheck.rowCount === 0) {
             throw new Error('Workout template not found');
         }
-        
+
         // 2. Update the workout template
         await client.query(
             'UPDATE workouts SET name = $1, description = $2 WHERE workout_id = $3',
             [name.trim(), description || null, templateId]
         );
-        
+
         // 3. Delete all existing exercises for this template
         await client.query('DELETE FROM workout_exercises WHERE workout_id = $1', [templateId]);
-        
+
         // 4. Insert updated exercises
         for (let i = 0; i < exercises.length; i++) {
             const ex = exercises[i];
-            
+
             // Validate exercise data
             if (!ex.exercise_id) {
                 throw new Error('Each exercise must have an exercise_id');
             }
-            
+
             await client.query(
-                `INSERT INTO workout_exercises 
-                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes) 
+                `INSERT INTO workout_exercises
+                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
-                    templateId, 
+                    templateId,
                     ex.exercise_id,
-                    ex.sets || null,
-                    ex.reps || null,
+                    ex.sets || 1,
+                    ex.reps || '',
                     ex.weight || null,
                     ex.weight_unit || 'kg',
                     i + 1, // Use array index + 1 for order
@@ -224,9 +224,9 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
                 ]
             );
         }
-        
+
         await client.query('COMMIT');
-        
+
         // Fetch the updated template to return
         return await getWorkoutTemplateById(templateId);
     } catch (error) {
@@ -243,32 +243,32 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
  * @returns {Promise<Object>} - Promise resolving to the deleted template ID
  */
 async function deleteWorkoutTemplate(templateId) {
-    const client = await db.getClient();
-    
+    const client = await db.pool.connect();
+
     try {
         await client.query('BEGIN');
-        
+
         // 1. Check if template exists
         const templateCheck = await client.query(
             'SELECT workout_id, name FROM workouts WHERE workout_id = $1 AND is_template = true',
             [templateId]
         );
-        
+
         if (templateCheck.rowCount === 0) {
             throw new Error('Workout template not found');
         }
-        
+
         const templateName = templateCheck.rows[0].name;
-        
+
         // 2. Delete all exercises for this template
         await client.query('DELETE FROM workout_exercises WHERE workout_id = $1', [templateId]);
-        
+
         // 3. Delete the template
         await client.query('DELETE FROM workouts WHERE workout_id = $1', [templateId]);
-        
+
         await client.query('COMMIT');
-        
-        return { 
+
+        return {
             id: parseInt(templateId),
             name: templateName
         };
@@ -292,40 +292,40 @@ async function logWorkout(workoutName, duration, notes, exercises) {
     if (!workoutName || workoutName.trim() === '') {
         throw new Error('Workout name cannot be empty');
     }
-    
+
     if (!Array.isArray(exercises) || exercises.length === 0) {
         throw new Error('Workout must contain at least one logged exercise');
     }
-    
-    const client = await db.getClient();
-    
+
+    const client = await db.pool.connect();
+
     try {
         await client.query('BEGIN');
-        
+
         // 1. Insert into workout_logs
         const logInsertResult = await client.query(
             'INSERT INTO workout_logs (workout_name, duration, notes) VALUES ($1, $2::interval, $3) RETURNING log_id',
             [workoutName.trim(), duration || null, notes || null]
         );
         const newLogId = logInsertResult.rows[0].log_id;
-        
+
         // 2. Insert each exercise log
         for (const exLog of exercises) {
             if (!exLog.exercise_id || !exLog.exercise_name || exLog.sets_completed == null || !exLog.reps_completed) {
                 throw new Error('Invalid exercise log data received');
             }
-            
+
             // Ensure numeric fields are numbers or null
             const setsCompleted = parseInt(exLog.sets_completed);
             const weightUsed = exLog.weight_used ? exLog.weight_used.toString() : null;
-            
+
             if (isNaN(setsCompleted)) {
                 throw new Error('Invalid sets_completed value');
             }
-            
+
             await client.query(
-                `INSERT INTO exercise_logs 
-                (log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes) 
+                `INSERT INTO exercise_logs
+                (log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
                     newLogId,
@@ -339,16 +339,16 @@ async function logWorkout(workoutName, duration, notes, exercises) {
                 ]
             );
         }
-        
+
         await client.query('COMMIT');
-        
+
         // Fetch the complete log to return
         const logResult = await db.query('SELECT * FROM workout_logs WHERE log_id = $1', [newLogId]);
         const exerciseLogsResult = await db.query('SELECT * FROM exercise_logs WHERE log_id = $1', [newLogId]);
-        
+
         const workoutLog = logResult.rows[0];
         workoutLog.exercises = exerciseLogsResult.rows;
-        
+
         return workoutLog;
     } catch (error) {
         await client.query('ROLLBACK');
@@ -368,7 +368,7 @@ async function getWorkoutLogs(limit = 10, offset = 0) {
     // Get total count for pagination
     const countResult = await db.query('SELECT COUNT(*) FROM workout_logs');
     const totalCount = parseInt(countResult.rows[0].count);
-    
+
     // Get workout logs with their exercises
     const logsQuery = `
         SELECT
@@ -389,9 +389,9 @@ async function getWorkoutLogs(limit = 10, offset = 0) {
         ORDER BY wl.created_at DESC
         LIMIT $1 OFFSET $2;
     `;
-    
+
     const logsResult = await db.query(logsQuery, [limit, offset]);
-    
+
     return {
         logs: logsResult.rows,
         total: totalCount,
@@ -424,13 +424,13 @@ async function getWorkoutLogById(logId) {
         WHERE wl.log_id = $1
         GROUP BY wl.log_id;
     `;
-    
+
     const result = await db.query(logQuery, [logId]);
-    
+
     if (result.rowCount === 0) {
         throw new Error('Workout log not found');
     }
-    
+
     return result.rows[0];
 }
 
@@ -440,29 +440,29 @@ async function getWorkoutLogById(logId) {
  * @returns {Promise<Object>} - Promise resolving to the deleted log ID
  */
 async function deleteWorkoutLog(logId) {
-    const client = await db.getClient();
-    
+    const client = await db.pool.connect();
+
     try {
         await client.query('BEGIN');
-        
+
         // 1. Check if log exists
         const logCheck = await client.query(
             'SELECT log_id FROM workout_logs WHERE log_id = $1',
             [logId]
         );
-        
+
         if (logCheck.rowCount === 0) {
             throw new Error('Workout log not found');
         }
-        
+
         // 2. Delete all exercise logs for this workout log
         await client.query('DELETE FROM exercise_logs WHERE log_id = $1', [logId]);
-        
+
         // 3. Delete the workout log
         await client.query('DELETE FROM workout_logs WHERE log_id = $1', [logId]);
-        
+
         await client.query('COMMIT');
-        
+
         return { id: parseInt(logId) };
     } catch (error) {
         await client.query('ROLLBACK');
@@ -481,18 +481,18 @@ async function searchExercises(query) {
     if (!query || query.trim() === '') {
         return [];
     }
-    
+
     const searchQuery = `%${query.trim().toLowerCase()}%`;
-    
+
     const result = await db.query(
-        `SELECT exercise_id, name, category 
-         FROM exercises 
-         WHERE LOWER(name) LIKE $1 OR LOWER(category) LIKE $1 
-         ORDER BY name ASC 
+        `SELECT exercise_id, name, category
+         FROM exercises
+         WHERE LOWER(name) LIKE $1 OR LOWER(category) LIKE $1
+         ORDER BY name ASC
          LIMIT 20`,
         [searchQuery]
     );
-    
+
     return result.rows;
 }
 
@@ -506,26 +506,26 @@ async function createExercise(name, category) {
     if (!name || name.trim() === '') {
         throw new Error('Exercise name cannot be empty');
     }
-    
+
     if (!category || category.trim() === '') {
         throw new Error('Exercise category cannot be empty');
     }
-    
+
     // Check if exercise with this name already exists
     const existingCheck = await db.query(
         'SELECT exercise_id FROM exercises WHERE LOWER(name) = LOWER($1)',
         [name.trim()]
     );
-    
+
     if (existingCheck.rowCount > 0) {
         throw new Error('An exercise with this name already exists');
     }
-    
+
     const result = await db.query(
         'INSERT INTO exercises (name, category) VALUES ($1, $2) RETURNING *',
         [name.trim(), category.trim()]
     );
-    
+
     return result.rows[0];
 }
 
