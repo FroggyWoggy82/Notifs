@@ -25,6 +25,13 @@
     border-color: #ef9a9a;
 }
 
+.due-date-indicator.invalid-date {
+    background-color: #eeeeee;
+    color: #757575;
+    border-color: #bdbdbd;
+    cursor: pointer;
+}
+
 .due-date-indicator i {
     margin-right: 4px;
     font-size: 1em;
@@ -144,7 +151,7 @@
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .due-date-indicator,
     .recurrence-indicator {
         font-size: 0.7em;

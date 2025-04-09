@@ -190,7 +190,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Parse the *entire* previous log data ONCE, if available
         let weightsArray = [];
         let repsArray = [];
-        let prevUnit = 'kg';
+        // Use the current exercise's weight unit (which is the preferred unit) for display
+        // This ensures the previous log shows the same unit as the current exercise
+        let prevUnit = exerciseData.weight_unit || 'kg';
         if (!isTemplate && exerciseData.lastLog) {
              console.log(`[generateSetRowsHtml] Found lastLog for ${exerciseData.name}:`, exerciseData.lastLog);
             if (exerciseData.lastLog.weight_used) {
@@ -199,8 +201,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (exerciseData.lastLog.reps_completed) {
                 repsArray = exerciseData.lastLog.reps_completed.split(',').map(r => r.trim());
             }
-            prevUnit = exerciseData.lastLog.weight_unit || 'kg';
-             console.log(`[generateSetRowsHtml] Parsed arrays: weights=[${weightsArray}], reps=[${repsArray}]`);
+            // We're not using the log's weight unit anymore, but the preferred unit from exerciseData
+            // prevUnit = exerciseData.lastLog.weight_unit || 'kg';
+             console.log(`[generateSetRowsHtml] Parsed arrays: weights=[${weightsArray}], reps=[${repsArray}], using unit: ${prevUnit}`);
         }
 
         for (let i = 0; i < numSets; i++) {
@@ -532,8 +535,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="exercise-item-header">
                 <div class="exercise-name-container">
                     <h4>${escapeHtml(exerciseData.name)}</h4>
-                    ${!isTemplate ? `<button class="btn-edit-exercise-name" title="Edit Exercise Name">✎</button>` : ''}
                 </div>
+                ${!isTemplate ? `<button class="btn-edit-exercise-name" title="Edit Exercise Name">✎</button>` : ''}
                 <select class="exercise-unit-select" data-workout-index="${index}">
                     <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
                     <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
@@ -732,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Applied active class to:', templateEditorPage);
         }
         // Ensure FAB visibility matches active page
-        addExerciseFab.style.display = (pageToShow === 'active') ? 'block' : 'none';
+        addExerciseFab.style.display = (pageToShow === 'active') ? 'flex' : 'none';
     }
 
     function startEmptyWorkout() {
@@ -750,7 +753,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveWorkoutState();
     }
 
-    function startWorkoutFromTemplate(templateId) {
+    async function startWorkoutFromTemplate(templateId) {
         // Clear any existing saved workout
         clearWorkoutState();
 
@@ -761,37 +764,81 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         console.log(`Starting workout from template: ${templateId}`);
 
-        // Initialize currentWorkout as an object with name and exercises array
-        currentWorkout = {
-            name: template.name, // Store template name
-            exercises: template.exercises.map(ex => ({
-                ...ex,
-                lastLog: undefined, // Mark for fetching
-                // Initialize sets_completed based on template 'sets' count
-                sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({
-                    weight: '',
-                    reps: '',
-                    unit: ex.weight_unit || 'kg',
-                    completed: false
+        // Fetch the latest exercise preferences
+        try {
+            const response = await fetch('/api/workouts/exercises');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const exercises = await response.json();
+
+            // Create a map of exercise preferences for quick lookup
+            const exercisePreferences = {};
+            exercises.forEach(ex => {
+                exercisePreferences[ex.exercise_id] = ex.preferred_weight_unit;
+            });
+
+            // Initialize currentWorkout as an object with name and exercises array
+            currentWorkout = {
+                name: template.name, // Store template name
+                exercises: template.exercises.map(ex => {
+                    // Use the preferred weight unit if available, otherwise use the template's unit or default to kg
+                    const preferredUnit = exercisePreferences[ex.exercise_id] || ex.weight_unit || 'kg';
+
+                    return {
+                        ...ex,
+                        // Use the preferred weight unit from database
+                        weight_unit: preferredUnit,
+                        lastLog: undefined, // Mark for fetching
+                        // Initialize sets_completed based on template 'sets' count
+                        sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({
+                            weight: '',
+                            reps: '',
+                            unit: preferredUnit,
+                            completed: false
+                        }))
+                    };
+                })
+            };
+
+            console.log("Current workout initialized from template with preferences:", currentWorkout);
+
+            // Set workout name display
+            const workoutName = currentWorkout.name; // Use the name from the object
+            currentWorkoutNameEl.textContent = workoutName;
+
+            // Render the workout and switch page
+            renderCurrentWorkout(); // This function expects currentWorkout.exercises
+            switchPage('active');
+            startTimer();
+            // Show FAB
+            addExerciseFab.style.display = 'flex';
+
+            // Save the new workout state
+            saveWorkoutState();
+        } catch (error) {
+            console.error('Error fetching exercise preferences:', error);
+            // Fall back to using the template without preferences
+            currentWorkout = {
+                name: template.name,
+                exercises: template.exercises.map(ex => ({
+                    ...ex,
+                    lastLog: undefined,
+                    sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({
+                        weight: '',
+                        reps: '',
+                        unit: ex.weight_unit || 'kg',
+                        completed: false
+                    }))
                 }))
-            }))
-        };
+            };
 
-        console.log("Current workout initialized from template:", currentWorkout); // Log the object
-
-        // Set workout name display
-        const workoutName = currentWorkout.name; // Use the name from the object
-        currentWorkoutNameEl.textContent = workoutName;
-
-        // Render the workout and switch page
-        renderCurrentWorkout(); // This function expects currentWorkout.exercises
-        switchPage('active');
-        startTimer();
-        // Show FAB
-        addExerciseFab.style.display = 'block';
-
-        // Save the new workout state
-        saveWorkoutState();
+            // Continue with the workout setup
+            currentWorkoutNameEl.textContent = currentWorkout.name;
+            renderCurrentWorkout();
+            switchPage('active');
+            startTimer();
+            addExerciseFab.style.display = 'flex';
+            saveWorkoutState();
+        }
     }
 
 
@@ -809,9 +856,13 @@ document.addEventListener('DOMContentLoaded', function() {
         addExerciseToWorkoutByObject(exercise, targetList);
     }
 
-    // New function that takes an exercise object directly
+    // Function that takes an exercise object directly
     function addExerciseToWorkoutByObject(exercise, targetList) {
         console.log(`Adding exercise: ${exercise.name} to ${targetList} list`);
+
+        // Use the preferred weight unit if available
+        const preferredUnit = exercise.preferred_weight_unit || 'kg';
+        console.log(`Using preferred weight unit for ${exercise.name}: ${preferredUnit}`);
 
         const newExerciseData = {
             exercise_id: exercise.exercise_id,
@@ -820,18 +871,35 @@ document.addEventListener('DOMContentLoaded', function() {
             sets: 3, // Default sets changed to 3 for better user experience
             reps: '', // Default reps
             weight: null,
-            weight_unit: 'kg',
-            order_position: (targetList === 'active' ? currentWorkout.length : currentTemplateExercises.length),
+            weight_unit: preferredUnit, // Use the preferred weight unit
             notes: '',
-            // Only add completedSets for active workouts, not templates
-            ...(targetList === 'active' && { completedSets: Array(3).fill(false) }), // Default completedSets for 3 sets
+            // Only add sets_completed for active workouts, not templates
+            ...(targetList === 'active' && {
+                sets_completed: Array(3).fill(null).map(() => ({
+                    weight: '',
+                    reps: '',
+                    unit: preferredUnit,
+                    completed: false
+                }))
+            }),
             lastLog: undefined // Mark lastLog as not yet fetched
         };
 
         if (targetList === 'active') {
-            currentWorkout.push(newExerciseData);
+            // Check if currentWorkout is an array or an object with exercises array
+            if (Array.isArray(currentWorkout)) {
+                // For empty workouts (array)
+                newExerciseData.order_position = currentWorkout.length;
+                currentWorkout.push(newExerciseData);
+            } else {
+                // For template-based workouts (object with exercises array)
+                newExerciseData.order_position = currentWorkout.exercises.length;
+                currentWorkout.exercises.push(newExerciseData);
+            }
             renderCurrentWorkout(); // Update the active workout list UI
+            saveWorkoutState(); // Save the updated workout state
         } else { // targetList === 'editor'
+            newExerciseData.order_position = currentTemplateExercises.length;
             currentTemplateExercises.push(newExerciseData);
             renderTemplateExerciseList(); // Update the template editor list UI
         }
@@ -860,13 +928,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check the globally defined currentPage
         if (currentPage === 'active') {
-            exercisesArray = currentWorkout.exercises;
+            // Handle both array and object structures for currentWorkout
+            exercisesArray = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
             listElement = currentExerciseListEl;
         } else if (currentPage === 'template-editor') {
-            // Assuming template exercises are stored in a variable like `templateEditorExercises`
-            // This needs to be adapted based on how template editor data is stored
-            exercisesArray = templateEditorData.exercises; // Example variable name
-            listElement = templateExerciseListEl; // Example list element
+            // For template editor, use the currentTemplateExercises array
+            exercisesArray = currentTemplateExercises;
+            listElement = templateExerciseListEl;
         } else {
             console.error("[handleDeleteExercise] Called from unknown page context:", currentPage);
             return;
@@ -1276,14 +1344,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             exerciseItem.innerHTML = `
                 <div class="exercise-item-header">
-                    <h4>${escapeHtml(exercise.name)}</h4>
+                    <div class="exercise-name-container">
+                        <h4>${escapeHtml(exercise.name)}</h4>
+                    </div>
+                    <button class="btn-edit-exercise-name" title="Edit Exercise Name">✎</button>
                     <select class="exercise-unit-select" data-workout-index="${index}">
                         <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
                         <option value="lbs" ${exercise.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
                         <option value="bodyweight" ${exercise.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
                         <option value="assisted" ${exercise.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
                     </select>
-                    <!-- Corrected: Hardcode class and add data-index -->
                     <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times;</button>
                 </div>
                 <div class="exercise-config-row">
@@ -2261,7 +2331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         closeExerciseModal(); // Close modal after adding all
     }
 
-    // New function to add multiple exercises to a template at once
+    // Function to add multiple exercises to a template at once
     function addExercisesToTemplate(exercises) {
         console.log(`Adding ${exercises.length} exercises to template in selected order`);
 
@@ -2270,6 +2340,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add each exercise to the template in the order they were selected
         exercises.forEach((exercise, index) => {
+            // Use the preferred weight unit if available
+            const preferredUnit = exercise.preferred_weight_unit || 'kg';
+            console.log(`Using preferred weight unit for ${exercise.name}: ${preferredUnit}`);
+
             const newExerciseData = {
                 exercise_id: exercise.exercise_id,
                 name: exercise.name,
@@ -2277,7 +2351,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sets: 3, // Default sets
                 reps: '', // Default reps
                 weight: null,
-                weight_unit: 'kg',
+                weight_unit: preferredUnit, // Use the preferred weight unit
                 order_position: index, // Set position based on the index in the selected array
                 notes: ''
             };
@@ -2965,6 +3039,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
         newForm.addEventListener('submit', handleExerciseNameEditSubmit);
+
+        // Add click event listeners to the edit options to make the entire row clickable
+        const editOptions = document.querySelectorAll('.edit-option');
+        editOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Find the radio button inside this option and select it
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                }
+            });
+        });
     }
 
     async function handleExerciseNameEditSubmit(event) {
@@ -3435,8 +3521,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initialize(); // Run initialization
 
-    // --- NEW: Handler for Exercise Unit Change ---
-    function handleExerciseUnitChange(event) {
+    // --- Handler for Exercise Unit Change ---
+    async function handleExerciseUnitChange(event) {
         const selectElement = event.target;
         const exerciseItem = selectElement.closest('.exercise-item');
         if (!exerciseItem) {
@@ -3453,17 +3539,61 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const exerciseId = exercises[exerciseIndex].exercise_id;
+        if (!exerciseId) {
+            console.error("No exercise_id found for saving preference");
+            return;
+        }
+
         // Update the weight_unit in the underlying data
         exercises[exerciseIndex].weight_unit = newUnit;
-        console.log(`Updated unit for exercise ${exerciseIndex} to: ${newUnit}`);
+        console.log(`Updated unit for exercise ${exerciseIndex} (ID: ${exerciseId}) to: ${newUnit}`);
 
         // Save workout state after changing unit
         saveWorkoutState();
 
-        // Optional: Update any visual display linked to the unit if needed elsewhere
-        // (Currently, only affects how data is saved)
+        // Save the preference to the database
+        try {
+            const response = await fetch(`/api/workouts/exercises/preferences/${exerciseId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ weightUnit: newUnit })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to save preference: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(`Saved weight unit preference for exercise ID ${exerciseId}:`, result);
+
+            // Update the previous log display to show the new unit
+            updatePreviousLogDisplay(exerciseItem, newUnit);
+        } catch (error) {
+            console.error('Error saving exercise preference:', error);
+            // Continue with local changes even if server save fails
+        }
     }
-    // --- END NEW ---
+
+    // Helper function to update the previous log display with the new unit
+    function updatePreviousLogDisplay(exerciseItem, unit) {
+        const previousLogSpans = exerciseItem.querySelectorAll('.previous-log');
+        previousLogSpans.forEach(span => {
+            const text = span.textContent;
+            // If there's actual data (not just placeholder)
+            if (text && !text.includes('- kg x -') && !text.includes('- lbs x -') &&
+                !text.includes('- bodyweight x -') && !text.includes('- assisted x -')) {
+                // Replace the unit in the text
+                const updatedText = text.replace(/kg|lbs|bodyweight|assisted/, unit);
+                span.textContent = updatedText;
+            } else {
+                // Update the placeholder text
+                span.textContent = `- ${unit} x -`;
+            }
+        });
+    }
 
     // --- NEW: Handler for Input Changes in Weight and Reps ---
     function handleInputChange(event) {

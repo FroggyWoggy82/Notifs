@@ -416,8 +416,10 @@ h1, h2 {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-    gap: 10px; /* Keep gap for spacing between title, dropdown, and button */
+    gap: 10px; /* Keep gap for spacing between elements */
     padding-top: 5px;
+    justify-content: space-between; /* Distribute space evenly */
+    min-height: 36px; /* Increased to accommodate all elements */
 }
 
 .exercise-name-container {
@@ -426,6 +428,7 @@ h1, h2 {
     gap: 8px;
     flex-grow: 1;
     min-width: 0;
+    order: 1; /* First item */
 }
 
 .exercise-item-header h4 {
@@ -457,6 +460,9 @@ h1, h2 {
     display: flex;
     align-items: center;
     justify-content: center;
+    order: 3; /* Middle item */
+    height: 30px; /* Matched with dropdown */
+    margin-top: 1px; /* Slight adjustment to align with dropdown */
 }
 
 .btn-edit-exercise-name:hover {
@@ -466,7 +472,7 @@ h1, h2 {
 
 /* Style for the new header unit select */
 .exercise-unit-select {
-    padding: 4px 8px;
+    padding: 0 8px; /* Removed vertical padding completely */
     background-color: #333;
     border: 1px solid #555;
     color: #f5f5f5;
@@ -475,8 +481,13 @@ h1, h2 {
     cursor: pointer;
     flex-grow: 0;
     flex-shrink: 0;
-    flex-basis: 65px;
-    max-width: 65px;
+    flex-basis: 85px; /* Increased width */
+    max-width: 85px; /* Increased width */
+    order: 2; /* Second item (middle) */
+    height: 30px; /* Slightly increased height */
+    display: flex;
+    align-items: center; /* Center content vertically */
+    margin-top: 2px; /* Increased adjustment to align with buttons */
 }
 
 /* Style for set rows within an exercise */
@@ -486,7 +497,7 @@ h1, h2 {
     /* Set#, Previous, Weight Input, Reps Input, Toggle */
     grid-template-columns: auto 90px 1fr 1fr auto;
     gap: 10px;
-    align-items: center;
+    align-items: center; /* Align all items vertically center */
     padding: 8px 0;
     border-bottom: 1px solid #333;
     font-size: 0.95rem;
@@ -505,11 +516,13 @@ h1, h2 {
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Show ... if overflow */
     padding-right: 5px; /* Add a little space before next column */
+    align-self: center; /* Center vertically in grid cell */
 }
 
 .set-number {
     font-weight: bold;
     color: #bbb;
+    align-self: center; /* Center vertically in grid cell */
 }
 
 /* Removed .weight-input-group styles */
@@ -527,6 +540,8 @@ h1, h2 {
     /* For number input */
     -moz-appearance: textfield; /* Hide number input spinners FF */
     appearance: textfield; /* Standard property */
+    height: 32px; /* Set a consistent height for inputs */
+    align-self: center; /* Center vertically in grid cell */
 }
 .set-row input[type="number"]::-webkit-outer-spin-button,
 .set-row input[type="number"]::-webkit-inner-spin-button {
@@ -551,6 +566,11 @@ h1, h2 {
     font-size: 1.2rem;
     font-weight: bold;
     padding: 0;
+    margin: 0 auto; /* Center horizontally in its grid cell */
+    align-self: center; /* Center vertically in its grid cell */
+    /* Ensure exact vertical alignment with input boxes */
+    position: relative;
+    top: 0; /* Adjust this value if needed after testing */
 }
 .set-complete-toggle.completed {
     background-color: #4CAF50;
@@ -609,13 +629,18 @@ h1, h2 {
     border-radius: 50%;
     border: none;
     font-size: 24px;
-    line-height: 56px; /* Center '+' vertically */
-    text-align: center;
+    /* Remove line-height and text-align */
+    /* line-height: 56px; */
+    /* text-align: center; */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     z-index: 100;
     transition: background-color 0.2s ease, transform 0.1s ease;
+    /* Initially hidden, but use flex display when shown */
     display: none; /* Hide by default, show with JS on active workout page */
+    /* When shown, it will use these flex properties for centering */
+    align-items: center;
+    justify-content: center;
 }
 .fab:active {
     transform: scale(0.95);
@@ -984,6 +1009,12 @@ h1, h2 {
     flex-shrink: 0;
     flex-basis: 30px; /* <<< ADD explicit basis */
     max-width: 30px;  /* <<< ADD explicit max-width */
+    order: 4; /* Last item */
+    height: 30px; /* Matched with dropdown */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px; /* Slight adjustment to align with dropdown */
 
     /* margin-left: auto; */ /* <<< REMOVE THIS */
 }
@@ -1522,15 +1553,44 @@ h1, h2 {
     border-radius: 5px;
     background-color: #333;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
+    position: relative;
+    margin-bottom: 8px;
 }
 
 .edit-option:hover {
     background-color: #444;
+    transform: translateY(-1px);
+}
+
+.edit-option:active {
+    transform: translateY(1px);
 }
 
 .edit-option input[type="radio"] {
     margin: 0;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Create a larger invisible overlay for the radio button to increase clickable area */
+.edit-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 1;
+}
+
+/* Make sure the radio button stays on top of the overlay */
+.edit-option input[type="radio"] {
+    position: relative;
+    z-index: 2;
 }
 
 .edit-option-label {

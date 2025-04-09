@@ -17,11 +17,16 @@ if (!fs.existsSync(progressPhotosDir)){
 }
 
 /**
- * Get all available exercises
- * @returns {Promise<Array>} - Promise resolving to an array of exercises
+ * Get all available exercises with their preferences
+ * @returns {Promise<Array>} - Promise resolving to an array of exercises with preferences
  */
 async function getAllExercises() {
-    const result = await db.query('SELECT exercise_id, name, category FROM exercises ORDER BY name ASC');
+    const result = await db.query(`
+        SELECT e.exercise_id, e.name, e.category, COALESCE(ep.weight_unit, 'kg') as preferred_weight_unit
+        FROM exercises e
+        LEFT JOIN exercise_preferences ep ON e.exercise_id = ep.exercise_id
+        ORDER BY e.name ASC
+    `);
     return result.rows;
 }
 
@@ -325,7 +330,7 @@ async function logWorkout(workoutName, duration, notes, exercises) {
 
             await client.query(
                 `INSERT INTO exercise_logs
-                (log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes)
+                (workout_log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
                     newLogId,
@@ -344,7 +349,7 @@ async function logWorkout(workoutName, duration, notes, exercises) {
 
         // Fetch the complete log to return
         const logResult = await db.query('SELECT * FROM workout_logs WHERE log_id = $1', [newLogId]);
-        const exerciseLogsResult = await db.query('SELECT * FROM exercise_logs WHERE log_id = $1', [newLogId]);
+        const exerciseLogsResult = await db.query('SELECT * FROM exercise_logs WHERE workout_log_id = $1', [newLogId]);
 
         const workoutLog = logResult.rows[0];
         workoutLog.exercises = exerciseLogsResult.rows;
@@ -384,7 +389,7 @@ async function getWorkoutLogs(limit = 10, offset = 0) {
                 'notes', el.notes
             ) ORDER BY el.exercise_log_id) FILTER (WHERE el.exercise_log_id IS NOT NULL), '[]') AS exercises
         FROM workout_logs wl
-        LEFT JOIN exercise_logs el ON wl.log_id = el.log_id
+        LEFT JOIN exercise_logs el ON wl.log_id = el.workout_log_id
         GROUP BY wl.log_id
         ORDER BY wl.created_at DESC
         LIMIT $1 OFFSET $2;
@@ -420,7 +425,7 @@ async function getWorkoutLogById(logId) {
                 'notes', el.notes
             ) ORDER BY el.exercise_log_id) FILTER (WHERE el.exercise_log_id IS NOT NULL), '[]') AS exercises
         FROM workout_logs wl
-        LEFT JOIN exercise_logs el ON wl.log_id = el.log_id
+        LEFT JOIN exercise_logs el ON wl.log_id = el.workout_log_id
         WHERE wl.log_id = $1
         GROUP BY wl.log_id;
     `;
@@ -456,7 +461,7 @@ async function deleteWorkoutLog(logId) {
         }
 
         // 2. Delete all exercise logs for this workout log
-        await client.query('DELETE FROM exercise_logs WHERE log_id = $1', [logId]);
+        await client.query('DELETE FROM exercise_logs WHERE workout_log_id = $1', [logId]);
 
         // 3. Delete the workout log
         await client.query('DELETE FROM workout_logs WHERE log_id = $1', [logId]);
@@ -529,6 +534,62 @@ async function createExercise(name, category) {
     return result.rows[0];
 }
 
+/**
+ * Save or update exercise weight unit preference
+ * @param {number} exerciseId - The exercise ID
+ * @param {string} weightUnit - The preferred weight unit (kg, lbs, bodyweight, assisted)
+ * @returns {Promise<Object>} - Promise resolving to the saved preference
+ */
+async function saveExercisePreference(exerciseId, weightUnit) {
+    if (!exerciseId) {
+        throw new Error('Exercise ID is required');
+    }
+
+    if (!weightUnit || !['kg', 'lbs', 'bodyweight', 'assisted'].includes(weightUnit)) {
+        throw new Error('Valid weight unit is required (kg, lbs, bodyweight, assisted)');
+    }
+
+    // Check if preference already exists
+    const existingCheck = await db.query(
+        'SELECT preference_id FROM exercise_preferences WHERE exercise_id = $1',
+        [exerciseId]
+    );
+
+    if (existingCheck.rowCount > 0) {
+        // Update existing preference
+        const result = await db.query(
+            'UPDATE exercise_preferences SET weight_unit = $1, updated_at = CURRENT_TIMESTAMP WHERE exercise_id = $2 RETURNING *',
+            [weightUnit, exerciseId]
+        );
+        return result.rows[0];
+    } else {
+        // Create new preference
+        const result = await db.query(
+            'INSERT INTO exercise_preferences (exercise_id, weight_unit) VALUES ($1, $2) RETURNING *',
+            [exerciseId, weightUnit]
+        );
+        return result.rows[0];
+    }
+}
+
+/**
+ * Get exercise preference by exercise ID
+ * @param {number} exerciseId - The exercise ID
+ * @returns {Promise<Object|null>} - Promise resolving to the preference or null if not found
+ */
+async function getExercisePreference(exerciseId) {
+    if (!exerciseId) {
+        throw new Error('Exercise ID is required');
+    }
+
+    const result = await db.query(
+        'SELECT * FROM exercise_preferences WHERE exercise_id = $1',
+        [exerciseId]
+    );
+
+    return result.rowCount > 0 ? result.rows[0] : null;
+}
+
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -542,5 +603,7 @@ module.exports = {
     deleteWorkoutLog,
     searchExercises,
     createExercise,
+    saveExercisePreference,
+    getExercisePreference,
     progressPhotosDir
 };

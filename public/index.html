@@ -60,7 +60,18 @@
     <div id="status" class="status"></div>
 
     <section class="task-list-section">
-        <h2>Task List</h2>
+        <div class="task-list-header">
+            <h2>Task List</h2>
+            <div class="task-filter-container">
+                <select id="taskFilter" class="task-filter">
+                    <option value="unassigned_today" selected>Unassigned & Today</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="all">All Tasks</option>
+                </select>
+            </div>
+        </div>
         <div id="taskList">
             <p>Loading tasks...</p>
         </div>

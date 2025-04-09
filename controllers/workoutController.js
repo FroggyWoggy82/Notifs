@@ -488,6 +488,117 @@ async function deleteProgressPhoto(req, res) {
     }
 }
 
+/**
+ * Save exercise weight unit preference
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function saveExercisePreference(req, res) {
+    const { exerciseId } = req.params;
+    const { weightUnit } = req.body;
+    console.log(`Received PUT /api/workouts/exercises/preferences/${exerciseId}: weightUnit='${weightUnit}'`);
+
+    if (!exerciseId || isNaN(parseInt(exerciseId))) {
+        return res.status(400).json({ error: 'Valid exercise ID is required' });
+    }
+
+    if (!weightUnit || !['kg', 'lbs', 'bodyweight', 'assisted'].includes(weightUnit)) {
+        return res.status(400).json({ error: 'Valid weight unit is required (kg, lbs, bodyweight, assisted)' });
+    }
+
+    try {
+        const preference = await WorkoutModel.saveExercisePreference(parseInt(exerciseId), weightUnit);
+        console.log(`Exercise preference saved successfully for exercise ID: ${exerciseId}`);
+        res.json(preference);
+    } catch (error) {
+        console.error('Error saving exercise preference:', error);
+        res.status(500).json({ error: 'Failed to save exercise preference' });
+    }
+}
+
+/**
+ * Get exercise history
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getExerciseHistory(req, res) {
+    const { id: exerciseId } = req.params;
+    console.log(`Received GET /api/workouts/exercises/${exerciseId}/history request`);
+
+    if (!exerciseId || isNaN(parseInt(exerciseId))) {
+        return res.status(400).json({ error: 'Valid exercise ID is required' });
+    }
+
+    try {
+        // Fetch relevant log data, ordered by date
+        const query = `
+            SELECT
+                wl.log_id AS workout_log_id,
+                el.sets_completed,
+                el.reps_completed, -- Comma-separated string e.g., "10,9,8"
+                el.weight_used,   -- Comma-separated string e.g., "50,50,55"
+                el.weight_unit,
+                wl.date_performed
+            FROM exercise_logs el
+            JOIN workout_logs wl ON el.workout_log_id = wl.log_id
+            WHERE el.exercise_id = $1
+            ORDER BY wl.date_performed ASC; -- Order oldest to newest for charting
+        `;
+        const db = require('../db');
+        const result = await db.query(query, [exerciseId]);
+
+        // Send back all rows found
+        console.log(`Found ${result.rows.length} history logs for exercise ${exerciseId}.`);
+        res.json(result.rows);
+    } catch (error) {
+        console.error(`Error fetching history for exercise ${exerciseId}:`, error);
+        res.status(500).json({ error: 'Failed to fetch exercise history' });
+    }
+}
+
+/**
+ * Get last exercise log
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getLastExerciseLog(req, res) {
+    const { id: exerciseId } = req.params;
+    console.log(`Received GET /api/workouts/exercises/${exerciseId}/lastlog request`);
+
+    if (!exerciseId || isNaN(parseInt(exerciseId))) {
+        return res.status(400).json({ error: 'Valid exercise ID is required' });
+    }
+
+    try {
+        // Query exercise_logs joined with workout_logs to order by date_performed
+        const query = `
+            SELECT
+                el.reps_completed,
+                el.weight_used,
+                el.weight_unit,
+                wl.date_performed
+            FROM exercise_logs el
+            JOIN workout_logs wl ON el.workout_log_id = wl.log_id
+            WHERE el.exercise_id = $1
+            ORDER BY wl.date_performed DESC
+            LIMIT 1;
+        `;
+        const db = require('../db');
+        const result = await db.query(query, [exerciseId]);
+
+        if (result.rows.length > 0) {
+            console.log(`Last log found for exercise ${exerciseId}:`, result.rows[0]);
+            res.json(result.rows[0]); // Send the latest log data
+        } else {
+            console.log(`No previous logs found for exercise ${exerciseId}.`);
+            res.status(404).json({ message: 'No previous log found for this exercise.' }); // Send 404 if no log exists
+        }
+    } catch (error) {
+        console.error(`Error fetching last log for exercise ${exerciseId}:`, error);
+        res.status(500).json({ error: 'Failed to fetch last exercise log' });
+    }
+}
+
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -503,5 +614,8 @@ module.exports = {
     createExercise,
     uploadProgressPhotos,
     getProgressPhotos,
-    deleteProgressPhoto
+    deleteProgressPhoto,
+    saveExercisePreference,
+    getExerciseHistory,
+    getLastExerciseLog
 };

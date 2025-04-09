@@ -231,6 +231,51 @@ textarea {
 /* --- Task List --- */
 /* Removed .scheduled-list styles */
 
+/* Task list header with filter */
+.task-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.task-list-header h2 {
+    margin: 0;
+}
+
+.task-filter-container {
+    position: relative;
+}
+
+.task-filter {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #e8eef2;
+    background-color: #f8f9fa;
+    font-size: 0.9em;
+    color: #2c3e50;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 30px;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.task-filter:hover {
+    border-color: #bdc3c7;
+    background-color: #ffffff;
+}
+
+.task-filter:focus {
+    outline: none;
+    border-color: #4db6ac;
+    box-shadow: 0 0 0 2px rgba(77, 182, 172, 0.2);
+}
+
 /* Style for the task list container */
 #taskList {
     margin-top: 20px; /* Space above the first task */

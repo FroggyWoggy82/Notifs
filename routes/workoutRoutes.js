@@ -44,6 +44,89 @@ router.get('/exercises/search', WorkoutController.searchExercises);
 
 /**
  * @swagger
+ * /api/workouts/exercises/preferences/{exerciseId}:
+ *   put:
+ *     summary: Save exercise weight unit preference
+ *     tags: [Workouts]
+ *     parameters:
+ *       - in: path
+ *         name: exerciseId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Exercise ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - weightUnit
+ *             properties:
+ *               weightUnit:
+ *                 type: string
+ *                 enum: [kg, lbs, bodyweight, assisted]
+ *     responses:
+ *       200:
+ *         description: Preference saved successfully
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.put('/exercises/preferences/:exerciseId', WorkoutController.saveExercisePreference);
+
+/**
+ * @swagger
+ * /api/workouts/exercises/{id}/history:
+ *   get:
+ *     summary: Get exercise history
+ *     tags: [Workouts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Exercise ID
+ *     responses:
+ *       200:
+ *         description: Exercise history data
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.get('/exercises/:id/history', WorkoutController.getExerciseHistory);
+
+/**
+ * @swagger
+ * /api/workouts/exercises/{id}/lastlog:
+ *   get:
+ *     summary: Get last exercise log
+ *     tags: [Workouts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Exercise ID
+ *     responses:
+ *       200:
+ *         description: Last exercise log data
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: No log found
+ *       500:
+ *         description: Server error
+ */
+router.get('/exercises/:id/lastlog', WorkoutController.getLastExerciseLog);
+
+/**
+ * @swagger
  * /api/workouts/exercises:
  *   post:
  *     summary: Create a new exercise

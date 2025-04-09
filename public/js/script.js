@@ -47,6 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const completedTaskListDiv = document.getElementById('completedTaskList');
     // --- End Completed Task Elements ---
 
+    // --- Task Filter Element ---
+    const taskFilterSelect = document.getElementById('taskFilter');
+    // --- End Task Filter Element ---
+
     // --- Habit Elements ---
     const habitListDiv = document.getElementById('habitList');
     const habitListStatusDiv = document.getElementById('habitListStatus');
@@ -316,6 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Task Management Functions ---
 
+    // Global variable to store all tasks
+    let allTasks = [];
+
     // Load tasks from the server
     async function loadTasks() {
         console.log("Loading tasks...");
@@ -325,9 +332,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const tasks = await response.json();
-            console.log("Tasks loaded:", tasks);
-            renderTaskList(tasks);
+            allTasks = await response.json(); // Store all tasks globally
+            console.log("Tasks loaded:", allTasks);
+            filterAndRenderTasks(); // Apply current filter and render
             updateTaskListStatus("", false); // Clear loading message
             taskListStatusDiv.style.display = 'none'; // Hide if successful
         } catch (error) {
@@ -335,6 +342,126 @@ document.addEventListener('DOMContentLoaded', () => {
             taskListDiv.innerHTML = '<p class="error">Failed to load tasks. Please try refreshing.</p>';
             updateTaskListStatus("Error loading tasks.", true);
         }
+    }
+
+    // Filter tasks based on the selected filter and render them
+    function filterAndRenderTasks() {
+        const filterValue = taskFilterSelect.value;
+        console.log(`Filtering tasks by: ${filterValue}`);
+
+        let filteredTasks = [];
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1); // Start of month
+
+        // Helper function to check if a date is today
+        function isDateToday(dateString) {
+            if (!dateString) return false;
+            try {
+                // Extract just the date part if it's in ISO format
+                const datePart = typeof dateString === 'string' && dateString.includes('T') ?
+                    dateString.split('T')[0] : dateString;
+
+                // Handle potential invalid date strings
+                if (typeof datePart !== 'string' || !datePart.includes('-')) {
+                    console.warn('Invalid date format:', dateString);
+                    return false;
+                }
+
+                const [year, month, day] = datePart.split('-').map(Number);
+
+                // Validate parsed values
+                if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                    console.warn('Invalid date components:', year, month, day);
+                    return false;
+                }
+
+                // Compare with today's date
+                return year === today.getFullYear() &&
+                       (month - 1) === today.getMonth() && // Month is 0-indexed in JS Date
+                       day === today.getDate();
+            } catch (e) {
+                console.error('Error checking if date is today:', dateString, e);
+                return false;
+            }
+        }
+
+        // Helper function to check if a task is unassigned (no due date)
+        function isTaskUnassigned(task) {
+            return !task.due_date || (typeof task.due_date === 'string' && task.due_date.trim() === '');
+        }
+
+        // Helper function to check if a task is due today
+        function isTaskDueToday(task) {
+            return isDateToday(task.due_date);
+        }
+
+        // Log all tasks for debugging
+        console.log('All tasks:', allTasks.map(t => ({
+            id: t.id,
+            title: t.title,
+            due_date: t.due_date,
+            is_today: isTaskDueToday(t),
+            is_unassigned: isTaskUnassigned(t)
+        })));
+
+        // Apply filter
+        switch(filterValue) {
+            case 'unassigned_today':
+                // Show tasks that are either unassigned OR due today
+                filteredTasks = allTasks.filter(task => {
+                    // Skip completed tasks
+                    if (task.is_complete) return false;
+
+                    // Include if unassigned or due today
+                    return isTaskUnassigned(task) || isTaskDueToday(task);
+                });
+                break;
+
+            case 'today':
+                // Show only tasks due today
+                filteredTasks = allTasks.filter(task => {
+                    // Skip completed tasks
+                    if (task.is_complete) return false;
+
+                    return isTaskDueToday(task);
+                });
+                break;
+
+            case 'week':
+                filteredTasks = allTasks.filter(task => {
+                    // Skip completed tasks
+                    if (task.is_complete) return false;
+
+                    if (!task.due_date) return false;
+                    const dueDate = new Date(task.due_date.split('T')[0]);
+                    const weekEnd = new Date(today);
+                    weekEnd.setDate(today.getDate() + 6); // End of week (6 days from today)
+                    return dueDate >= weekStart && dueDate <= weekEnd;
+                });
+                break;
+
+            case 'month':
+                filteredTasks = allTasks.filter(task => {
+                    // Skip completed tasks
+                    if (task.is_complete) return false;
+
+                    if (!task.due_date) return false;
+                    const dueDate = new Date(task.due_date.split('T')[0]);
+                    return dueDate.getFullYear() === monthStart.getFullYear() &&
+                           dueDate.getMonth() === monthStart.getMonth();
+                });
+                break;
+
+            default: // 'all'
+                // Show all non-completed tasks
+                filteredTasks = allTasks.filter(task => !task.is_complete);
+        }
+
+        // Render the filtered tasks
+        renderTaskList(filteredTasks);
     }
 
     // Render the list of tasks
@@ -345,8 +472,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let completedTodayCount = 0;
 
         if (!tasks || tasks.length === 0) {
-            taskListDiv.innerHTML = '<p>No tasks yet. Add one above!</p>';
-            completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>'; // Changed message
+            taskListDiv.innerHTML = '<p>No tasks found for the selected filter.</p>';
+            completedTaskListDiv.innerHTML = '<p>No completed tasks for the selected filter.</p>';
             updateCompletedTaskHeader(0); // Update header count
             return;
         }
@@ -466,52 +593,136 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add due date indicator if due date exists
         if (task.due_date) {
             try {
-                const dueDate = new Date(task.due_date);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Reset time to start of day
+                // Create date objects for comparison and ensure proper timezone handling
+                // Handle both date-only format and date-time format
+                let dueDate;
+                try {
+                    // DIRECT FIX: Manually parse the date string to avoid timezone issues
+                    // Extract the date components regardless of format
+                    let datePart = task.due_date;
+                    if (task.due_date.includes('T')) {
+                        datePart = task.due_date.split('T')[0];
+                    }
 
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
+                    // Parse the date parts
+                    const [year, month, day] = datePart.split('-').map(Number);
 
-                const nextWeek = new Date(today);
-                nextWeek.setDate(nextWeek.getDate() + 7);
+                    // Create a date at midnight in local timezone
+                    dueDate = new Date(year, month - 1, day, 0, 0, 0, 0);
 
-                // Format the due date
-                const formattedDate = dueDate.toLocaleDateString('default', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: today.getFullYear() !== dueDate.getFullYear() ? 'numeric' : undefined
-                });
+                    console.log(`Parsed date: ${task.due_date} -> ${dueDate.toDateString()} (${dueDate.toISOString()})`);
+                    console.log(`Raw date parts: year=${year}, month=${month-1}, day=${day}`);
 
-                const dueDateIndicator = document.createElement('div');
-                dueDateIndicator.className = 'due-date-indicator';
-
-                // Add appropriate class based on due date
-                if (dueDate < today) {
-                    dueDateIndicator.classList.add('overdue');
-                } else if (dueDate < nextWeek) {
-                    dueDateIndicator.classList.add('due-soon');
+                    // Double-check the date is correct
+                    if (dueDate.getFullYear() !== year || dueDate.getMonth() !== month-1 || dueDate.getDate() !== day) {
+                        console.error(`Date parsing error: expected ${year}-${month}-${day} but got ${dueDate.getFullYear()}-${dueDate.getMonth()+1}-${dueDate.getDate()}`);
+                    }
+                } catch (e) {
+                    console.error('Error parsing date:', task.due_date, e);
+                    dueDate = new Date(0); // Use epoch time as fallback
                 }
 
-                // Add calendar icon
-                const calendarIcon = document.createElement('i');
-                calendarIcon.innerHTML = '&#128197;'; // Calendar emoji
-                dueDateIndicator.appendChild(calendarIcon);
+                // Check if the date is valid
+                if (isNaN(dueDate.getTime())) {
+                    // Handle invalid date
+                    console.error("Invalid date format:", task.due_date);
 
-                // Add due date text
-                const dueDateText = document.createElement('span');
-                if (dueDate < today) {
-                    dueDateText.textContent = `Overdue: ${formattedDate}`;
-                } else if (dueDate.toDateString() === today.toDateString()) {
-                    dueDateText.textContent = 'Due Today';
-                } else if (dueDate.toDateString() === tomorrow.toDateString()) {
-                    dueDateText.textContent = 'Due Tomorrow';
+                    // Create a simple indicator for invalid date
+                    const dueDateIndicator = document.createElement('div');
+                    dueDateIndicator.className = 'due-date-indicator invalid-date';
+
+                    // Add calendar icon
+                    const calendarIcon = document.createElement('i');
+                    calendarIcon.innerHTML = '&#128197;'; // Calendar emoji
+                    dueDateIndicator.appendChild(calendarIcon);
+
+                    // Add error text
+                    const dueDateText = document.createElement('span');
+                    dueDateText.textContent = 'Fix due date';
+                    dueDateIndicator.appendChild(dueDateText);
+
+                    metadataDiv.appendChild(dueDateIndicator);
                 } else {
-                    dueDateText.textContent = `Due: ${formattedDate}`;
-                }
-                dueDateIndicator.appendChild(dueDateText);
+                    // Process valid date - create dates for comparison
+                    // Get today's date in local timezone with time set to midnight
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    console.log(`Today's date for comparison: ${today.toDateString()}`);
 
-                metadataDiv.appendChild(dueDateIndicator);
+                    // Create tomorrow and next week dates
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+
+                    const nextWeek = new Date(today);
+                    nextWeek.setDate(nextWeek.getDate() + 7);
+
+                    // We're already using date-only objects for comparison
+
+                    // Format the due date
+                    const formattedDate = dueDate.toLocaleDateString('default', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: today.getFullYear() !== dueDate.getFullYear() ? 'numeric' : undefined
+                    });
+
+                    const dueDateIndicator = document.createElement('div');
+                    dueDateIndicator.className = 'due-date-indicator';
+
+                    // DIRECT FIX: Compare dates by their components
+                    // Get the components of each date
+                    const dueDateYear = dueDate.getFullYear();
+                    const dueDateMonth = dueDate.getMonth();
+                    const dueDateDay = dueDate.getDate();
+
+                    const todayYear = today.getFullYear();
+                    const todayMonth = today.getMonth();
+                    const todayDay = today.getDate();
+
+                    const tomorrowYear = tomorrow.getFullYear();
+                    const tomorrowMonth = tomorrow.getMonth();
+                    const tomorrowDay = tomorrow.getDate();
+
+                    console.log(`Comparing dates - Due date: ${dueDateYear}-${dueDateMonth+1}-${dueDateDay}, Today: ${todayYear}-${todayMonth+1}-${todayDay}`);
+
+                    // Compare date components directly
+                    if (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay === todayDay) {
+                        // Due today - add due-soon class but not overdue
+                        console.log('Task is due TODAY');
+                        dueDateIndicator.classList.add('due-soon');
+                    } else if (dueDateYear < todayYear ||
+                              (dueDateYear === todayYear && dueDateMonth < todayMonth) ||
+                              (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay < todayDay)) {
+                        // Only mark as overdue if strictly before today
+                        console.log('Task is OVERDUE');
+                        dueDateIndicator.classList.add('overdue');
+                    } else if (dueDate < nextWeek) {
+                        console.log('Task is due SOON');
+                        dueDateIndicator.classList.add('due-soon');
+                    }
+
+                    // Add calendar icon
+                    const calendarIcon = document.createElement('i');
+                    calendarIcon.innerHTML = '&#128197;'; // Calendar emoji
+                    dueDateIndicator.appendChild(calendarIcon);
+
+                    // Add due date text
+                    const dueDateText = document.createElement('span');
+                    // Use component comparison for dates
+                    if (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay === todayDay) {
+                        dueDateText.textContent = 'Due Today';
+                    } else if (dueDateYear < todayYear ||
+                              (dueDateYear === todayYear && dueDateMonth < todayMonth) ||
+                              (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay < todayDay)) {
+                        dueDateText.textContent = `Overdue: ${formattedDate}`;
+                    } else if (dueDateYear === tomorrowYear && dueDateMonth === tomorrowMonth && dueDateDay === tomorrowDay) {
+                        dueDateText.textContent = 'Due Tomorrow';
+                    } else {
+                        dueDateText.textContent = `Due: ${formattedDate}`;
+                    }
+                    dueDateIndicator.appendChild(dueDateText);
+
+                    metadataDiv.appendChild(dueDateIndicator);
+                }
             } catch (e) {
                 console.error("Error parsing due date for display:", task.due_date, e);
             }
@@ -607,7 +818,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const reminderTime = taskReminderTimeInput.value;
         // Get values from new fields
         const assignedDate = taskAssignedDateInput.value;
-        const dueDate = taskDueDateInput.value;
+        // Ensure the due date is properly formatted as YYYY-MM-DD and valid
+        let dueDate = null;
+        if (taskDueDateInput.value) {
+            // Always use the date-only format for new tasks (YYYY-MM-DD)
+            // This ensures consistency in the database
+            dueDate = taskDueDateInput.value;
+
+            // Log the date for debugging
+            console.log('Creating task with due date:', dueDate);
+        }
         const recurrenceType = taskRecurrenceTypeInput.value;
         const recurrenceInterval = taskRecurrenceIntervalInput.value;
 
@@ -1702,12 +1922,19 @@ document.addEventListener('DOMContentLoaded', () => {
         updateEditTaskStatus("Saving changes...", false);
 
         // Gather data from the form
+        // Use the date-only format for consistency
+        let dueDate = null;
+        if (editTaskDueDateInput.value) {
+            dueDate = editTaskDueDateInput.value;
+            console.log('Updating task with due date:', dueDate);
+        }
+
         const updatedData = {
             title: editTaskTitleInput.value.trim(),
             description: editTaskDescriptionInput.value.trim() || null,
             reminderTime: editTaskReminderTimeInput.value || null,
             assignedDate: editTaskAssignedDateInput.value || null,
-            dueDate: editTaskDueDateInput.value || null,
+            dueDate: dueDate,
             recurrenceType: editTaskRecurrenceTypeSelect.value,
             recurrenceInterval: editTaskRecurrenceTypeSelect.value !== 'none' ? parseInt(editTaskRecurrenceIntervalInput.value, 10) : null
         };
@@ -1785,6 +2012,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear after a delay, unless it's persisting an error?
         // setTimeout(() => { editTaskStatus.style.display = 'none'; }, 4000);
     }
+
+    // --- NEW: Task Filter Change Listener ---
+    taskFilterSelect.addEventListener('change', () => {
+        filterAndRenderTasks();
+    });
 
     // --- NEW: Completed Tasks Toggle Listener ---
     completedTasksHeader.addEventListener('click', () => {
