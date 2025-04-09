@@ -87,6 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const availableExerciseListEl = document.getElementById('available-exercise-list');
     const addSelectedExercisesBtn = document.getElementById('add-selected-exercises-btn'); // Added reference
 
+    // --- Exercise Name Edit Modal Elements ---
+    const exerciseNameEditModal = document.getElementById('exercise-name-edit-modal');
+    const exerciseNameEditForm = document.getElementById('exercise-name-edit-form');
+    const editExerciseNameInput = document.getElementById('edit-exercise-name');
+    const editExerciseIndexInput = document.getElementById('edit-exercise-index');
+
     // --- New Exercise Definition Modal Elements ---
     const defineNewExerciseSection = document.getElementById('define-new-exercise-section');
     const toggleDefineExerciseBtn = document.getElementById('toggle-define-exercise-btn');
@@ -524,7 +530,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // (Keep the existing innerHTML structure)
         exerciseItemElement.innerHTML = `
             <div class="exercise-item-header">
-                <h4>${escapeHtml(exerciseData.name)}</h4>
+                <div class="exercise-name-container">
+                    <h4>${escapeHtml(exerciseData.name)}</h4>
+                    ${!isTemplate ? `<button class="btn-edit-exercise-name" title="Edit Exercise Name">✎</button>` : ''}
+                </div>
                 <select class="exercise-unit-select" data-workout-index="${index}">
                     <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
                     <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
@@ -1763,6 +1772,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleExerciseUnitChange(event);
                 } else if (target.classList.contains('btn-delete-exercise')) { // <<< ADD THIS CHECK
                     handleDeleteExercise(event);                          // <<< CALL THE HANDLER
+                } else if (target.classList.contains('btn-edit-exercise-name')) { // Handle edit exercise name
+                    handleEditExerciseName(event);
                 }
             }
         });
@@ -2915,6 +2926,118 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     // --- END NEW ---
+
+    // --- Exercise Name Edit Functions ---
+    function handleEditExerciseName(event) {
+        const button = event.target;
+        const exerciseItem = button.closest('.exercise-item');
+        if (!exerciseItem) {
+            console.error('Could not find parent exercise item for edit button.');
+            return;
+        }
+
+        const index = parseInt(exerciseItem.dataset.workoutIndex, 10);
+        if (isNaN(index) || index < 0 || index >= currentWorkout.exercises.length) {
+            console.error(`Invalid index for exercise edit: ${index}`);
+            return;
+        }
+
+        openExerciseNameEditModal(index);
+    }
+
+    function openExerciseNameEditModal(index) {
+        const exercise = currentWorkout.exercises[index];
+        if (!exercise) {
+            console.error(`Exercise not found at index ${index}`);
+            return;
+        }
+
+        // Set the current values in the modal
+        document.getElementById('edit-exercise-name').value = exercise.name;
+        document.getElementById('edit-exercise-index').value = index;
+
+        // Show the modal
+        document.getElementById('exercise-name-edit-modal').style.display = 'block';
+
+        // Add submit event listener to the form
+        const form = document.getElementById('exercise-name-edit-form');
+        // Remove any existing listeners to prevent duplicates
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        newForm.addEventListener('submit', handleExerciseNameEditSubmit);
+    }
+
+    async function handleExerciseNameEditSubmit(event) {
+        event.preventDefault();
+
+        const nameInput = document.getElementById('edit-exercise-name');
+        const indexInput = document.getElementById('edit-exercise-index');
+        const editOption = document.querySelector('input[name="edit-option"]:checked').value;
+
+        const newName = nameInput.value.trim();
+        const index = parseInt(indexInput.value, 10);
+
+        if (!newName) {
+            alert('Please enter a name for the exercise.');
+            return;
+        }
+
+        if (isNaN(index) || index < 0 || index >= currentWorkout.exercises.length) {
+            console.error(`Invalid index for exercise edit: ${index}`);
+            alert('Error: Could not find the exercise to edit.');
+            return;
+        }
+
+        const exercise = currentWorkout.exercises[index];
+
+        if (editOption === 'instance') {
+            // Just update this instance
+            exercise.name = newName;
+            console.log(`Updated exercise name to: ${newName} (instance only)`);
+            renderCurrentWorkout();
+        } else if (editOption === 'new') {
+            // Create a new exercise in the database
+            try {
+                const response = await fetch('/api/workouts/exercises', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: newName,
+                        category: exercise.category || 'Other'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to create new exercise: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('New exercise created:', result);
+
+                // Update the current instance with the new exercise ID and name
+                exercise.name = newName;
+                exercise.exercise_id = result.exercise_id;
+
+                // Add the new exercise to the available exercises list
+                availableExercises.push(result);
+
+                alert(`New exercise "${newName}" created and applied to this workout.`);
+                renderCurrentWorkout();
+            } catch (error) {
+                console.error('Error creating new exercise:', error);
+                alert(`Failed to create new exercise: ${error.message}`);
+            }
+        }
+
+        // Close the modal
+        document.getElementById('exercise-name-edit-modal').style.display = 'none';
+
+        // Save the workout state
+        saveWorkoutState();
+    }
+    // --- End Exercise Name Edit Functions ---
 
     // --- NEW: Open/Close Photo Upload Modal Functions ---
     function openPhotoUploadModal() {

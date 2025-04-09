@@ -370,5 +370,44 @@
     </div>
     <!-- ===== End Photo Upload Modal ===== -->
 
+    <!-- ===== Exercise Name Edit Modal ===== -->
+    <div id="exercise-name-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('exercise-name-edit-modal').style.display='none'">&times;</span>
+            <h2>Edit Exercise Name</h2>
+            <form id="exercise-name-edit-form">
+                <input type="hidden" id="edit-exercise-index">
+                <div class="form-group">
+                    <label for="edit-exercise-name">Exercise Name:</label>
+                    <input type="text" id="edit-exercise-name" required>
+                </div>
+
+                <div class="edit-options">
+                    <div class="edit-option">
+                        <input type="radio" id="edit-option-instance" name="edit-option" value="instance" checked>
+                        <div>
+                            <label for="edit-option-instance" class="edit-option-label">Update just this instance</label>
+                            <div class="edit-option-description">Only changes the name for this workout</div>
+                        </div>
+                    </div>
+
+                    <div class="edit-option">
+                        <input type="radio" id="edit-option-new" name="edit-option" value="new">
+                        <div>
+                            <label for="edit-option-new" class="edit-option-label">Save as new exercise</label>
+                            <div class="edit-option-description">Creates a new exercise in the database</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('exercise-name-edit-modal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ===== End Exercise Name Edit Modal ===== -->
+
 </body>
 </html>

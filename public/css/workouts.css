@@ -420,6 +420,14 @@ h1, h2 {
     padding-top: 5px;
 }
 
+.exercise-name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-grow: 1;
+    min-width: 0;
+}
+
 .exercise-item-header h4 {
     margin: 0;
     font-size: 1.1rem;
@@ -430,6 +438,30 @@ h1, h2 {
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
+}
+
+.btn-edit-exercise-name {
+    background: none;
+    border: none;
+    color: #03dac6;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+    transition: color 0.2s ease;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 30px;
+    max-width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-edit-exercise-name:hover {
+    color: #03dac6;
+    outline: none;
 }
 
 /* Style for the new header unit select */
@@ -1437,3 +1469,76 @@ h1, h2 {
     margin: 0; /* Keep margin reset */
 }
 /* === END Progress Photo Header Styles === */
+
+/* === Exercise Name Edit Modal === */
+#exercise-name-edit-modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#exercise-name-edit-modal .modal-content {
+    max-width: 400px;
+}
+
+#exercise-name-edit-form .form-group {
+    margin-bottom: 15px;
+}
+
+#exercise-name-edit-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: #bbb;
+}
+
+#exercise-name-edit-form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    background-color: #222;
+    color: #f5f5f5;
+    font-size: 1rem;
+}
+
+.edit-options {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.edit-option:hover {
+    background-color: #444;
+}
+
+.edit-option input[type="radio"] {
+    margin: 0;
+}
+
+.edit-option-label {
+    font-size: 0.95rem;
+}
+
+.edit-option-description {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-top: 3px;
+}
