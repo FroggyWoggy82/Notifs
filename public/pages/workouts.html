@@ -70,10 +70,11 @@
                     <div class="header-buttons">
                         <button id="add-photo-btn" class="btn btn-secondary btn-small">+ Add Photo</button>
                         <button id="delete-photo-btn" class="btn btn-danger btn-small" title="Delete Current Photo" disabled>Delete</button>
+                        <button id="toggle-comparison-btn" class="btn btn-primary btn-small" title="Toggle Comparison View">Compare</button>
                     </div>
                 </div>
                 <!-- Photo Gallery Display -->
-                <div class="gallery-section" style="margin-bottom: 5px;">
+                <div id="photo-gallery-section" class="gallery-section" style="margin-bottom: 5px;">
                     <div class="photo-slider-container">
                         <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" disabled>&lt;</button>
                         <div class="photo-viewport"> <!-- Clipping container -->
@@ -96,7 +97,7 @@
              <!-- ===== End Progress Photos Section ===== -->
 
              <!-- ===== NEW Photo Comparison Section ===== -->
-             <div id="photo-comparison-section" class="progress-photos-section">
+             <div id="photo-comparison-section" class="progress-photos-section" style="display: none;">
                  <h2 style="text-align: center; margin-bottom: 15px;">Photo Comparison</h2>
                  <div class="comparison-controls" style="display: flex; justify-content: space-around; margin-bottom: 15px;">
                      <div class="comparison-select-group">
@@ -308,7 +309,10 @@
                 <input type="hidden" id="edit-exercise-index">
                 <div class="form-group">
                     <label for="edit-exercise-name">Exercise Name:</label>
-                    <input type="text" id="edit-exercise-name" required>
+                    <input type="text" id="edit-exercise-name" list="exercise-name-list" autocomplete="off" required>
+                    <datalist id="exercise-name-list">
+                        <!-- Exercise options will be populated by JavaScript -->
+                    </datalist>
                 </div>
 
                 <div class="edit-options">

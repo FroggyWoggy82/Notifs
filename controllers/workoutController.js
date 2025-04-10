@@ -412,18 +412,7 @@ function uploadProgressPhotos(req, res) {
 async function getProgressPhotos(req, res) {
     console.log("Received GET /api/workouts/progress-photos request");
     try {
-        const db = require('../db');
-        // Fetch records, ordered by date taken (most recent first)
-        const result = await db.query(
-            'SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC'
-        );
-
-        // Map date_taken to YYYY-MM-DD format for consistency
-        const photos = result.rows.map(photo => ({
-            ...photo,
-            date_taken: photo.date_taken.toISOString().split('T')[0] // Format as YYYY-MM-DD
-        }));
-
+        const photos = await WorkoutModel.getProgressPhotos();
         res.json(photos);
     } catch (err) {
         console.error('Error fetching progress photos:', err);
@@ -445,46 +434,16 @@ async function deleteProgressPhoto(req, res) {
     }
 
     try {
-        const db = require('../db');
-        const client = await db.pool.connect();
-
-        try {
-            await client.query('BEGIN');
-
-            // 1. Find the photo record to get the file path
-            const selectResult = await client.query('SELECT file_path FROM progress_photos WHERE photo_id = $1', [photo_id]);
-
-            if (selectResult.rowCount === 0) {
-                await client.query('ROLLBACK');
-                return res.status(404).json({ error: 'Photo not found' });
-            }
-
-            const filePath = selectResult.rows[0].file_path;
-            const fullPath = path.join(__dirname, '..', 'public', filePath);
-
-            // 2. Delete the database record
-            await client.query('DELETE FROM progress_photos WHERE photo_id = $1', [photo_id]);
-
-            // 3. Delete the file from disk if it exists
-            if (fs.existsSync(fullPath)) {
-                fs.unlinkSync(fullPath);
-                console.log(`Deleted file: ${fullPath}`);
-            } else {
-                console.warn(`File not found on disk: ${fullPath}`);
-            }
-
-            await client.query('COMMIT');
-            res.json({ message: 'Photo deleted successfully' });
-        } catch (error) {
-            await client.query('ROLLBACK');
-            console.error('Error deleting photo:', error);
-            res.status(500).json({ error: 'Failed to delete photo' });
-        } finally {
-            client.release();
-        }
+        const result = await WorkoutModel.deleteProgressPhoto(photo_id);
+        res.json(result);
     } catch (error) {
-        console.error('Database connection error:', error);
-        res.status(500).json({ error: 'Database connection error' });
+        console.error('Error deleting photo:', error);
+
+        if (error.message === 'Photo not found') {
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+
+        res.status(500).json({ error: 'Failed to delete photo' });
     }
 }
 
@@ -530,26 +489,9 @@ async function getExerciseHistory(req, res) {
     }
 
     try {
-        // Fetch relevant log data, ordered by date
-        const query = `
-            SELECT
-                wl.log_id AS workout_log_id,
-                el.sets_completed,
-                el.reps_completed, -- Comma-separated string e.g., "10,9,8"
-                el.weight_used,   -- Comma-separated string e.g., "50,50,55"
-                el.weight_unit,
-                wl.date_performed
-            FROM exercise_logs el
-            JOIN workout_logs wl ON el.workout_log_id = wl.log_id
-            WHERE el.exercise_id = $1
-            ORDER BY wl.date_performed ASC; -- Order oldest to newest for charting
-        `;
-        const db = require('../db');
-        const result = await db.query(query, [exerciseId]);
-
-        // Send back all rows found
-        console.log(`Found ${result.rows.length} history logs for exercise ${exerciseId}.`);
-        res.json(result.rows);
+        const history = await WorkoutModel.getExerciseHistory(exerciseId);
+        console.log(`Found ${history.length} history logs for exercise ${exerciseId}.`);
+        res.json(history);
     } catch (error) {
         console.error(`Error fetching history for exercise ${exerciseId}:`, error);
         res.status(500).json({ error: 'Failed to fetch exercise history' });
@@ -570,31 +512,16 @@ async function getLastExerciseLog(req, res) {
     }
 
     try {
-        // Query exercise_logs joined with workout_logs to order by date_performed
-        const query = `
-            SELECT
-                el.reps_completed,
-                el.weight_used,
-                el.weight_unit,
-                wl.date_performed
-            FROM exercise_logs el
-            JOIN workout_logs wl ON el.workout_log_id = wl.log_id
-            WHERE el.exercise_id = $1
-            ORDER BY wl.date_performed DESC
-            LIMIT 1;
-        `;
-        const db = require('../db');
-        const result = await db.query(query, [exerciseId]);
-
-        if (result.rows.length > 0) {
-            console.log(`Last log found for exercise ${exerciseId}:`, result.rows[0]);
-            res.json(result.rows[0]); // Send the latest log data
-        } else {
-            console.log(`No previous logs found for exercise ${exerciseId}.`);
-            res.status(404).json({ message: 'No previous log found for this exercise.' }); // Send 404 if no log exists
-        }
+        const lastLog = await WorkoutModel.getLastExerciseLog(exerciseId);
+        console.log(`Last log found for exercise ${exerciseId}:`, lastLog);
+        res.json(lastLog);
     } catch (error) {
         console.error(`Error fetching last log for exercise ${exerciseId}:`, error);
+
+        if (error.message === 'No previous log found for this exercise') {
+            return res.status(404).json({ message: 'No previous log found for this exercise.' });
+        }
+
         res.status(500).json({ error: 'Failed to fetch last exercise log' });
     }
 }

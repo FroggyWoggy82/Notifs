@@ -150,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoPrevBtn = document.getElementById('photo-prev-btn');
     const photoNextBtn = document.getElementById('photo-next-btn');
     const deletePhotoBtn = document.getElementById('delete-photo-btn');
+    const toggleComparisonBtn = document.getElementById('toggle-comparison-btn');
     const photoReel = document.querySelector('.photo-reel'); // Reel container
     const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
@@ -159,12 +160,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Get container for delegation ---
     const photoSliderContainer = document.querySelector('.photo-slider-container');
+    const photoGallerySection = document.getElementById('photo-gallery-section');
+    const photoComparisonSection = document.getElementById('photo-comparison-section');
 
     // --- NEW: Comparison DOM References ---
     const comparisonPhotoSelect1 = document.getElementById('comparison-photo-select-1');
     const comparisonPhotoSelect2 = document.getElementById('comparison-photo-select-2');
     const comparisonImage1 = document.getElementById('comparison-image-1');
     const comparisonImage2 = document.getElementById('comparison-image-2');
+
+    // Track comparison view state
+    let isComparisonViewActive = false;
 
     // --- Helper function to generate HTML for set rows ---
     function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
@@ -2182,6 +2188,13 @@ document.addEventListener('DOMContentLoaded', function() {
              console.error('[Initialize] deletePhotoBtn not found!');
         }
 
+        // Toggle Comparison View Listener
+        if (toggleComparisonBtn) {
+            toggleComparisonBtn.addEventListener('click', toggleComparisonView);
+        } else {
+            console.error('[Initialize] toggleComparisonBtn not found!');
+        }
+
         // Comparison Select Listeners
         const compSelect1 = document.getElementById('comparison-photo-select-1');
         const compSelect2 = document.getElementById('comparison-photo-select-2');
@@ -3030,6 +3043,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('edit-exercise-name').value = exercise.name;
         document.getElementById('edit-exercise-index').value = index;
 
+        // Populate the datalist with available exercises
+        populateExerciseNameDatalist();
+
         // Show the modal
         document.getElementById('exercise-name-edit-modal').style.display = 'block';
 
@@ -3051,6 +3067,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+
+        // Focus on the input field
+        document.getElementById('edit-exercise-name').focus();
     }
 
     async function handleExerciseNameEditSubmit(event) {
@@ -3122,6 +3141,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Save the workout state
         saveWorkoutState();
+    }
+    // Function to populate the exercise name datalist
+    function populateExerciseNameDatalist() {
+        const datalist = document.getElementById('exercise-name-list');
+        if (!datalist) {
+            console.error('Exercise name datalist element not found');
+            return;
+        }
+
+        // Clear existing options
+        datalist.innerHTML = '';
+
+        // Add options for all available exercises
+        if (availableExercises && availableExercises.length > 0) {
+            // Sort exercises alphabetically
+            const sortedExercises = [...availableExercises].sort((a, b) => a.name.localeCompare(b.name));
+
+            // Add options to datalist
+            sortedExercises.forEach(exercise => {
+                const option = document.createElement('option');
+                option.value = exercise.name;
+                option.textContent = exercise.name; // For browsers that show option text
+                datalist.appendChild(option);
+            });
+        }
     }
     // --- End Exercise Name Edit Functions ---
 
@@ -3499,6 +3543,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 comparisonPhotoSelect1.appendChild(option1);
                 comparisonPhotoSelect2.appendChild(option2);
             });
+        }
+    }
+
+    // --- NEW: Toggle Comparison View Function ---
+    function toggleComparisonView() {
+        console.log('Toggling comparison view. Current state:', isComparisonViewActive);
+
+        if (!photoGallerySection || !photoComparisonSection) {
+            console.error('Missing required elements for toggling comparison view');
+            return;
+        }
+
+        // Toggle the state
+        isComparisonViewActive = !isComparisonViewActive;
+
+        // Update UI based on state
+        if (isComparisonViewActive) {
+            // Switch to comparison view
+            photoGallerySection.style.display = 'none';
+            photoComparisonSection.style.display = 'block';
+            toggleComparisonBtn.textContent = 'Show Slider';
+            toggleComparisonBtn.title = 'Switch to Photo Slider View';
+        } else {
+            // Switch to slider view
+            photoGallerySection.style.display = 'block';
+            photoComparisonSection.style.display = 'none';
+            toggleComparisonBtn.textContent = 'Compare';
+            toggleComparisonBtn.title = 'Toggle Comparison View';
         }
     }
 

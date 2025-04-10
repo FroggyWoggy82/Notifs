@@ -1497,7 +1497,13 @@ h1, h2 {
 }
 
 .header-buttons .btn {
-    margin: 0; /* Keep margin reset */
+    margin: 0 2px; /* Small horizontal margin between buttons */
+}
+
+/* Style for the compare button */
+#toggle-comparison-btn {
+    background-color: #2196F3; /* Blue color */
+    color: white;
 }
 /* === END Progress Photo Header Styles === */
 
@@ -1536,6 +1542,20 @@ h1, h2 {
     background-color: #222;
     color: #f5f5f5;
     font-size: 1rem;
+}
+
+/* Style for datalist dropdown (browser-specific) */
+input[list="exercise-name-list"]::-webkit-calendar-picker-indicator {
+    color: #f5f5f5;
+    opacity: 0.7;
+}
+
+/* This is a workaround to limit the height of datalist options in browsers that support it */
+@supports (overflow: auto) {
+    datalist {
+        max-height: 200px;
+        overflow-y: auto;
+    }
 }
 
 .edit-options {

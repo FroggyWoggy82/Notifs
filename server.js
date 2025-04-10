@@ -17,7 +17,7 @@ const daysSinceRouter = require('./routes/daysSinceRoutes'); // New MVC pattern
 const workoutRoutes = require('./routes/workoutRoutes'); // New MVC pattern
 const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
-const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
+const weightRoutes = require('./routes/weightRoutes'); // Using MVC pattern
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 
@@ -68,6 +68,20 @@ NotificationModel.initialize();
 
 // Setup daily notification check
 NotificationModel.setupDailyCheck(cron.schedule);
+
+// Import habit reset model
+const HabitResetModel = require('./models/habitResetModel');
+
+// Setup daily habit reset at midnight
+cron.schedule('0 0 * * *', async () => {
+  console.log('Running daily habit progress reset');
+  try {
+    const result = await HabitResetModel.resetDailyHabitProgress();
+    console.log('Habit reset completed:', result);
+  } catch (error) {
+    console.error('Error during habit reset:', error);
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

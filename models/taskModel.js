@@ -22,14 +22,14 @@ class Task {
      * @returns {Promise<Object>} The created task
      */
     static async createTask(taskData) {
-        const { 
-            title, 
-            description, 
-            reminderTime, 
-            assignedDate, 
-            dueDate, 
-            recurrenceType, 
-            recurrenceInterval 
+        const {
+            title,
+            description,
+            reminderTime,
+            assignedDate,
+            dueDate,
+            recurrenceType,
+            recurrenceInterval
         } = taskData;
 
         // Build the SQL query dynamically based on provided fields
@@ -145,8 +145,9 @@ class Task {
      * @returns {Promise<Object>} The updated task
      */
     static async toggleCompletion(id, isComplete) {
+        // Update both is_complete and updated_at fields
         const result = await db.query(
-            'UPDATE tasks SET is_complete = $1 WHERE id = $2 RETURNING *',
+            'UPDATE tasks SET is_complete = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
             [isComplete, id]
         );
         return result.rows[0];

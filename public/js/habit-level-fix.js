@@ -214,6 +214,46 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Enhanced handleHabitCheckboxClick function for better level updates');
     }
 
+    // Function to check if we need to reset daily progress
+    async function checkAndResetDailyProgress() {
+        // Get the last reset date from localStorage
+        const lastResetDate = localStorage.getItem('lastHabitResetDate');
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+        // If we haven't reset today, do it now
+        if (lastResetDate !== today) {
+            console.log(`Last habit reset: ${lastResetDate}, Today: ${today}. Resetting daily progress...`);
+            try {
+                // Add cache-busting query parameter
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`/api/habits/reset-daily-progress?_=${cacheBuster}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Daily habit progress reset:', result);
+
+                    // Store today's date as the last reset date
+                    localStorage.setItem('lastHabitResetDate', today);
+
+                    // Reload habits to reflect the reset
+                    loadHabits();
+                } else {
+                    console.error('Failed to reset daily habit progress:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error checking/resetting daily habit progress:', error);
+            }
+        } else {
+            console.log(`Habit progress already reset today (${today})`);
+        }
+    }
+
+    // Check for daily reset when the page loads
+    checkAndResetDailyProgress();
+
     // Add a periodic refresh to ensure habit levels stay up to date
     setInterval(() => {
         // Only reload if the page is visible to the user
@@ -221,6 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('.habit-list') !== null) {
             console.log('Performing periodic habit refresh');
             loadHabits();
+
+            // Also check if we need to reset daily progress
+            checkAndResetDailyProgress();
         }
     }, 60000); // Refresh every minute
 

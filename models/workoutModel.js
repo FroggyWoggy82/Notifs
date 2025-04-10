@@ -590,6 +590,119 @@ async function getExercisePreference(exerciseId) {
     return result.rowCount > 0 ? result.rows[0] : null;
 }
 
+/**
+ * Get all progress photos
+ * @returns {Promise<Array>} - Promise resolving to an array of progress photos
+ */
+async function getProgressPhotos() {
+    // Fetch records, ordered by date taken (most recent first)
+    const result = await db.query(
+        'SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC'
+    );
+
+    // Map date_taken to YYYY-MM-DD format for consistency
+    return result.rows.map(photo => ({
+        ...photo,
+        date_taken: photo.date_taken.toISOString().split('T')[0] // Format as YYYY-MM-DD
+    }));
+}
+
+/**
+ * Delete a progress photo
+ * @param {number} photoId - The photo ID to delete
+ * @returns {Promise<Object>} - Promise resolving to a success message
+ */
+async function deleteProgressPhoto(photoId) {
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Get the file path before deleting
+        const selectResult = await client.query('SELECT file_path FROM progress_photos WHERE photo_id = $1', [photoId]);
+
+        if (selectResult.rows.length === 0) {
+            throw new Error('Photo not found');
+        }
+
+        const filePath = selectResult.rows[0].file_path;
+        const fullPath = path.join(__dirname, '..', 'public', filePath);
+
+        // 2. Delete the database record
+        await client.query('DELETE FROM progress_photos WHERE photo_id = $1', [photoId]);
+
+        // 3. Delete the file from disk if it exists
+        if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            console.log(`Deleted file: ${fullPath}`);
+        } else {
+            console.warn(`File not found on disk: ${fullPath}`);
+        }
+
+        await client.query('COMMIT');
+        return { message: 'Photo deleted successfully' };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
+/**
+ * Get exercise history
+ * @param {number} exerciseId - The exercise ID
+ * @returns {Promise<Array>} - Promise resolving to an array of exercise logs
+ */
+async function getExerciseHistory(exerciseId) {
+    // Fetch relevant log data, ordered by date
+    const query = `
+        SELECT
+            wl.log_id AS workout_log_id,
+            el.sets_completed,
+            el.reps_completed, -- Comma-separated string e.g., "10,9,8"
+            el.weight_used,   -- Comma-separated string e.g., "50,50,55"
+            el.weight_unit,
+            wl.date_performed
+        FROM exercise_logs el
+        JOIN workout_logs wl ON el.workout_log_id = wl.log_id
+        WHERE el.exercise_id = $1
+        ORDER BY wl.date_performed ASC; -- Order oldest to newest for charting
+    `;
+
+    const result = await db.query(query, [exerciseId]);
+    return result.rows;
+}
+
+/**
+ * Get the last exercise log
+ * @param {number} exerciseId - The exercise ID
+ * @returns {Promise<Object>} - Promise resolving to the last exercise log
+ */
+async function getLastExerciseLog(exerciseId) {
+    // Query exercise_logs joined with workout_logs to order by date_performed
+    const query = `
+        SELECT
+            el.reps_completed,
+            el.weight_used,
+            el.weight_unit,
+            wl.date_performed
+        FROM exercise_logs el
+        JOIN workout_logs wl ON el.workout_log_id = wl.log_id
+        WHERE el.exercise_id = $1
+        ORDER BY wl.date_performed DESC
+        LIMIT 1;
+    `;
+
+    const result = await db.query(query, [exerciseId]);
+
+    if (result.rows.length === 0) {
+        throw new Error('No previous log found for this exercise');
+    }
+
+    return result.rows[0];
+}
+
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -605,5 +718,9 @@ module.exports = {
     createExercise,
     saveExercisePreference,
     getExercisePreference,
+    getProgressPhotos,
+    deleteProgressPhoto,
+    getExerciseHistory,
+    getLastExerciseLog,
     progressPhotosDir
 };

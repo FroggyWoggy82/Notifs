@@ -174,4 +174,38 @@ router.post('/:id/complete', (req, res) => {
     HabitController.recordCompletion(req, res);
 });
 
+/**
+ * @swagger
+ * /api/habits/reset-daily-progress:
+ *   post:
+ *     summary: Reset daily habit progress tracking
+ *     tags: [Habits]
+ *     responses:
+ *       200:
+ *         description: Daily progress reset successfully
+ *       500:
+ *         description: Server error
+ */
+// Reset daily habit progress with cache control headers
+router.post('/reset-daily-progress', async (req, res) => {
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
+    try {
+        // Import the reset model here to avoid circular dependencies
+        const HabitResetModel = require('../models/habitResetModel');
+        const result = await HabitResetModel.resetDailyHabitProgress();
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error resetting daily habit progress:', error);
+        res.status(500).json({
+            error: 'Failed to reset daily habit progress',
+            message: error.message
+        });
+    }
+});
+
 module.exports = router;

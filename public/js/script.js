@@ -398,25 +398,58 @@ document.addEventListener('DOMContentLoaded', () => {
             return isDateToday(task.due_date);
         }
 
+        // Helper function to check if a task is overdue
+        function isTaskOverdue(task) {
+            if (!task.due_date) return false;
+            try {
+                // Extract just the date part if it's in ISO format
+                const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+                    task.due_date.split('T')[0] : task.due_date;
+
+                // Handle potential invalid date strings
+                if (typeof datePart !== 'string' || !datePart.includes('-')) {
+                    console.warn('Invalid date format:', task.due_date);
+                    return false;
+                }
+
+                const [year, month, day] = datePart.split('-').map(Number);
+
+                // Validate parsed values
+                if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                    console.warn('Invalid date components:', year, month, day);
+                    return false;
+                }
+
+                // Compare with today's date to check if it's before today
+                return (year < today.getFullYear() ||
+                       (year === today.getFullYear() && (month - 1) < today.getMonth()) ||
+                       (year === today.getFullYear() && (month - 1) === today.getMonth() && day < today.getDate()));
+            } catch (e) {
+                console.error('Error checking if task is overdue:', task.due_date, e);
+                return false;
+            }
+        }
+
         // Log all tasks for debugging
         console.log('All tasks:', allTasks.map(t => ({
             id: t.id,
             title: t.title,
             due_date: t.due_date,
             is_today: isTaskDueToday(t),
-            is_unassigned: isTaskUnassigned(t)
+            is_unassigned: isTaskUnassigned(t),
+            is_overdue: isTaskOverdue(t)
         })));
 
         // Apply filter
         switch(filterValue) {
             case 'unassigned_today':
-                // Show tasks that are either unassigned OR due today
+                // Show tasks that are either unassigned OR due today OR overdue
                 filteredTasks = allTasks.filter(task => {
                     // Skip completed tasks
                     if (task.is_complete) return false;
 
-                    // Include if unassigned or due today
-                    return isTaskUnassigned(task) || isTaskDueToday(task);
+                    // Include if unassigned, due today, or overdue
+                    return isTaskUnassigned(task) || isTaskDueToday(task) || isTaskOverdue(task);
                 });
                 break;
 
