@@ -3152,6 +3152,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END NEW ---
 
+    // --- Path Normalization Function ---
+    function normalizePhotoPath(originalPath, photoId) {
+        // If path is empty or null, use a fallback based on ID
+        if (!originalPath) {
+            console.log(`[Photo Load] Empty path for photo ID: ${photoId}, using fallback`);
+            return `uploads/progress_photos/photo-${photoId}.jpg`;
+        }
+
+        // Extract the filename from the path
+        let filename = '';
+
+        // Handle different path formats
+        if (originalPath.includes('/')) {
+            // Path contains slashes, extract the last part
+            const pathParts = originalPath.split('/');
+            filename = pathParts[pathParts.length - 1];
+        } else if (originalPath.includes('\\')) {
+            // Path contains backslashes, extract the last part
+            const pathParts = originalPath.split('\\');
+            filename = pathParts[pathParts.length - 1];
+        } else {
+            // Path is just a filename
+            filename = originalPath;
+        }
+
+        // If filename is empty, use a fallback
+        if (!filename) {
+            console.log(`[Photo Load] Could not extract filename for photo ID: ${photoId}, using fallback`);
+            return `uploads/progress_photos/photo-${photoId}.jpg`;
+        }
+
+        // Ensure the filename has an extension
+        if (!filename.includes('.')) {
+            console.log(`[Photo Load] Filename has no extension for photo ID: ${photoId}, adding .jpg`);
+            filename = `${filename}.jpg`;
+        }
+
+        // Return the normalized path
+        return `uploads/progress_photos/${filename}`;
+    }
+
     // --- Simplified Fetch and Display Photos Function ---
     async function fetchAndDisplayPhotos() {
         console.log('[Photo Load] fetchAndDisplayPhotos STARTED.');
@@ -3240,63 +3281,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add Image to Reel
                 const img = document.createElement('img');
 
-                // EMERGENCY FIX: Hardcode the paths based on photo ID
+                // PERMANENT SOLUTION: Robust path normalization for all photos
                 let imagePath;
 
                 // Log the original path
-                console.log(`[Photo Load] Original image path: ${photo.file_path} for photo ID: ${photo.photo_id}`);
+                console.log(`[Photo Load] Processing photo ID: ${photo.photo_id}, Original path: ${photo.file_path}`);
 
-                // Special handling for known photo IDs
-                if (photo.photo_id === 1) {
-                    imagePath = 'uploads/progress_photos/photos-1743533104709-675883910.jpg';
-                } else if (photo.photo_id === 4) {
-                    imagePath = 'uploads/progress_photos/photos-1743534804031-896765036.jpg';
-                } else if (photo.photo_id === 14) {
-                    imagePath = 'uploads/progress_photos/photos-1744351437809-657831548.png';
-                } else if (photo.photo_id === 15) {
-                    imagePath = 'uploads/progress_photos/photos-1744352353551-10102925.jpg';
-                } else if (photo.photo_id === 16) {
-                    // Get the filename from the path for the new photo
-                    const pathParts = photo.file_path.split('/');
-                    const filename = pathParts[pathParts.length - 1];
-                    imagePath = `uploads/progress_photos/${filename}`;
-                    console.log(`[Photo Load] Special handling for new photo ID 16: ${imagePath}`);
-                } else if (photo.photo_id === 17) {
-                    // Get the filename from the path for photo ID 17
-                    const pathParts = photo.file_path.split('/');
-                    const filename = pathParts[pathParts.length - 1];
-                    imagePath = `uploads/progress_photos/${filename}`;
-                    console.log(`[Photo Load] Special handling for photo ID 17: ${imagePath}`);
+                // Normalize the path using a consistent approach for all photos
+                imagePath = normalizePhotoPath(photo.file_path, photo.photo_id);
 
-                    // Add extra debugging for photo ID 17
-                    console.log(`[Photo Load] Photo 17 details - Original path: ${photo.file_path}`);
-                    console.log(`[Photo Load] Photo 17 details - Extracted filename: ${filename}`);
-                    console.log(`[Photo Load] Photo 17 details - Final path: ${imagePath}`);
-                } else {
-                    // Process the path from the database for other photos
-                    imagePath = photo.file_path;
+                // Log the normalized path
+                console.log(`[Photo Load] Normalized path for photo ID ${photo.photo_id}: ${imagePath}`);
 
-                    // Remove leading slash if present
-                    if (imagePath.startsWith('/')) {
-                        imagePath = imagePath.substring(1);
-                    }
-
-                    // Remove 'public/' prefix if present
-                    if (imagePath.startsWith('public/')) {
-                        imagePath = imagePath.substring(7);
-                    }
-
-                    // Ensure we have the correct path format
-                    if (!imagePath.includes('uploads/progress_photos') && !imagePath.includes('/uploads/progress_photos')) {
-                        // If the path doesn't include the expected directory, add it
-                        // Extract the filename from the path
-                        const parts = imagePath.split('/');
-                        const filename = parts[parts.length - 1];
-                        imagePath = `uploads/progress_photos/${filename}`;
-                    }
-                }
-
-                console.log(`[Photo Load] Using hardcoded path: ${imagePath} for photo ID: ${photo.photo_id}`);
+                console.log(`[Photo Load] Using normalized path: ${imagePath} for photo ID: ${photo.photo_id}`);
 
                 // Store the path in data-src for lazy loading
                 img.dataset.src = imagePath;
@@ -3418,17 +3415,39 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set the src attribute directly
             currentImageElement.src = imagePath;
 
-            // Force a reload of the image if it fails to load
+            // Enhanced error handling for image loading
             currentImageElement.onerror = function() {
-                console.log(`[Photo Display] Image failed to load, trying again with timestamp: ${imagePath}`);
-                // Add a timestamp to bypass cache
-                this.src = imagePath + '?t=' + new Date().getTime();
+                console.log(`[Photo Display] Image failed to load: ${imagePath}`);
 
-                // If it still fails, try with an absolute URL
+                // First attempt: Add a timestamp to bypass cache
+                const timestampedUrl = imagePath + '?t=' + new Date().getTime();
+                console.log(`[Photo Display] Retry 1: Using timestamped URL: ${timestampedUrl}`);
+                this.src = timestampedUrl;
+
+                // Second attempt: Try with absolute URL
                 this.onerror = function() {
-                    console.log(`[Photo Display] Image still failed to load, trying with absolute URL`);
+                    console.log(`[Photo Display] Retry 1 failed, trying with absolute URL`);
                     const absoluteUrl = new URL(imagePath, window.location.origin).href;
+                    console.log(`[Photo Display] Retry 2: Using absolute URL: ${absoluteUrl}`);
                     this.src = absoluteUrl;
+
+                    // Third attempt: Try with a different path format
+                    this.onerror = function() {
+                        console.log(`[Photo Display] Retry 2 failed, trying with alternative path format`);
+                        // Extract just the filename
+                        const filename = imagePath.split('/').pop();
+                        const alternativePath = `/uploads/progress_photos/${filename}`;
+                        console.log(`[Photo Display] Retry 3: Using alternative path: ${alternativePath}`);
+                        this.src = alternativePath;
+
+                        // Final fallback: Show a placeholder
+                        this.onerror = function() {
+                            console.log(`[Photo Display] All retries failed, using placeholder image`);
+                            this.src = '/images/photo-placeholder.png';
+                            this.alt = 'Photo could not be loaded';
+                            this.classList.add('error-placeholder');
+                        };
+                    };
                 };
             };
 
