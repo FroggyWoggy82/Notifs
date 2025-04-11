@@ -554,17 +554,53 @@ async function getProgressPhotos() {
  * @returns {Promise<Array>} - Promise resolving to an array of saved photos
  */
 async function saveProgressPhotos(date, files) {
+    console.log('==========================================');
+    console.log('saveProgressPhotos called with date:', date);
+    console.log('Files received:', files ? files.length : 0);
+    if (files && files.length > 0) {
+        console.log('First file details:', {
+            filename: files[0].filename,
+            originalname: files[0].originalname,
+            mimetype: files[0].mimetype,
+            size: files[0].size,
+            path: files[0].path
+        });
+    }
+    console.log('==========================================');
+
     if (!date) {
+        console.error('Date is required but was not provided');
         throw new Error('Date is required');
     }
 
     if (!files || files.length === 0) {
+        console.error('No files provided to saveProgressPhotos');
         throw new Error('No files provided');
     }
 
-    const client = await db.pool.connect();
+    // Verify upload directory exists
+    if (!fs.existsSync(progressPhotosDir)) {
+        console.log(`Creating directory: ${progressPhotosDir}`);
+        fs.mkdirSync(progressPhotosDir, { recursive: true });
+    }
+
+    // Verify file was actually saved to disk
+    for (const file of files) {
+        if (!fs.existsSync(file.path)) {
+            console.error(`File not found on disk: ${file.path}`);
+            throw new Error(`File ${file.originalname} was not properly saved to disk`);
+        } else {
+            console.log(`Verified file exists on disk: ${file.path}`);
+        }
+    }
+
+    let client;
     try {
+        client = await db.pool.connect();
+        console.log('Database connection established');
+
         await client.query('BEGIN');
+        console.log('Database transaction started');
 
         const insertedPhotos = [];
         for (const file of files) {
@@ -577,16 +613,28 @@ async function saveProgressPhotos(date, files) {
                 'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id, date_taken, file_path',
                 [date, relativePath]
             );
+            console.log('Database insert successful, returned:', result.rows[0]);
             insertedPhotos.push(result.rows[0]);
         }
 
         await client.query('COMMIT');
+        console.log('Database transaction committed');
         return insertedPhotos;
     } catch (error) {
-        await client.query('ROLLBACK');
+        console.error('Error in saveProgressPhotos:', error);
+        console.error('Error stack:', error.stack);
+        if (client) {
+            await client.query('ROLLBACK').catch(rollbackErr => {
+                console.error('Error during rollback:', rollbackErr);
+            });
+            console.log('Database transaction rolled back');
+        }
         throw error;
     } finally {
-        client.release();
+        if (client) {
+            client.release();
+            console.log('Database connection released');
+        }
     }
 }
 

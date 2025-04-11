@@ -346,9 +346,13 @@ async function createExercise(req, res) {
  * @param {Object} res - Express response object
  */
 function uploadProgressPhotos(req, res) {
+    console.log('==========================================');
     console.log('Received POST /api/workouts/progress-photos request');
-    console.log('Request headers:', req.headers);
+    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
     console.log('Request body before multer:', req.body || 'empty');
+    console.log('Content-Type:', req.headers['content-type']);
+    console.log('Content-Length:', req.headers['content-length']);
+    console.log('==========================================');
 
     // Check if the content type is multipart/form-data
     if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
@@ -358,12 +362,14 @@ function uploadProgressPhotos(req, res) {
 
     // Use a try-catch block to handle any synchronous errors
     try {
+        console.log('Starting multer middleware processing...');
         uploadPhotosMiddleware(req, res, async function(err) {
             console.log('Multer middleware completed');
 
             if (err) {
                 // An error occurred during upload
                 console.error('Error during upload:', err);
+                console.error('Error stack:', err.stack);
 
                 // Handle specific multer errors
                 if (err.code === 'LIMIT_FILE_SIZE') {
@@ -387,7 +393,7 @@ function uploadProgressPhotos(req, res) {
             }
 
             console.log(`Received ${req.files.length} files:`, req.files.map(f => f.filename).join(', '));
-            console.log('Request body:', req.body);
+            console.log('Request body:', JSON.stringify(req.body, null, 2));
 
             // Get the date from the request body
             // Check both 'photo-date' (from form) and 'date' (fallback) fields
