@@ -33,8 +33,20 @@ app.timeout = 300000; // 5 minutes in milliseconds
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Increase JSON and URL-encoded body size limits for large file uploads
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Add middleware to handle timeouts
+app.use((req, res, next) => {
+  // Set a longer timeout for photo upload requests
+  if (req.url.includes('/api/workouts/progress-photos')) {
+    req.setTimeout(300000); // 5 minutes
+    console.log('[Server] Extended timeout set for photo upload request');
+  }
+  next();
+});
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));

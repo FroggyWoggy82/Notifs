@@ -4,19 +4,34 @@
  */
 
 // Function to handle photo uploads
-function uploadPhoto(photoFile, date) {
-    return new Promise((resolve, reject) => {
+async function uploadPhoto(photoFile, date) {
+    return new Promise(async (resolve, reject) => {
         console.log('==========================================');
         console.log('[Photo Upload] Starting upload process');
         console.log(`[Photo Upload] Photo details: name=${photoFile.name}, size=${photoFile.size}, type=${photoFile.type}`);
         console.log(`[Photo Upload] Date: ${date}`);
         console.log('==========================================');
 
+        // Check if file is too large (over 5MB) and needs compression
+        const MAX_SIZE_BEFORE_COMPRESSION = 5 * 1024 * 1024; // 5MB
+        let fileToUpload = photoFile;
+
+        if (photoFile.size > MAX_SIZE_BEFORE_COMPRESSION && photoFile.type.startsWith('image/')) {
+            console.log(`[Photo Upload] File is large (${(photoFile.size / (1024 * 1024)).toFixed(2)}MB), attempting compression...`);
+            try {
+                fileToUpload = await compressImage(photoFile);
+                console.log(`[Photo Upload] Compression successful. New size: ${(fileToUpload.size / (1024 * 1024)).toFixed(2)}MB`);
+            } catch (err) {
+                console.warn('[Photo Upload] Compression failed, using original file:', err);
+                fileToUpload = photoFile; // Fall back to original file
+            }
+        }
+
         // Create a FormData object
         const formData = new FormData();
         formData.append('photo-date', date);
         formData.append('date', date); // Add a fallback field
-        formData.append('photos', photoFile);
+        formData.append('photos', fileToUpload);
 
         console.log('[Photo Upload] FormData created with fields:');
         console.log('- photo-date:', date);
@@ -81,8 +96,8 @@ function uploadPhoto(photoFile, date) {
         console.log('[Photo Upload] Opening connection...');
         xhr.open('POST', '/api/workouts/progress-photos', true);
 
-        // Set a longer timeout
-        xhr.timeout = 60000; // 1 minute
+        // Set a much longer timeout for large files
+        xhr.timeout = 300000; // 5 minutes
 
         console.log('[Photo Upload] Sending request...');
         xhr.send(formData);
@@ -90,7 +105,93 @@ function uploadPhoto(photoFile, date) {
     });
 }
 
-// Export the function
+/**
+ * Compress an image file to reduce its size
+ * @param {File} file - The image file to compress
+ * @returns {Promise<File>} - A promise that resolves to the compressed file
+ */
+function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        console.log('[Photo Upload] Starting image compression...');
+
+        // Create an image element to load the file
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            img.src = e.target.result;
+
+            img.onload = function() {
+                console.log(`[Photo Upload] Image loaded: ${img.width}x${img.height}`);
+
+                // Create a canvas to draw the image
+                const canvas = document.createElement('canvas');
+
+                // Calculate new dimensions (max 1200px on longest side)
+                let width = img.width;
+                let height = img.height;
+                const MAX_DIMENSION = 1200;
+
+                if (width > height && width > MAX_DIMENSION) {
+                    height = Math.round(height * (MAX_DIMENSION / width));
+                    width = MAX_DIMENSION;
+                } else if (height > MAX_DIMENSION) {
+                    width = Math.round(width * (MAX_DIMENSION / height));
+                    height = MAX_DIMENSION;
+                }
+
+                console.log(`[Photo Upload] Resizing to: ${width}x${height}`);
+
+                // Set canvas dimensions
+                canvas.width = width;
+                canvas.height = height;
+
+                // Draw image on canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convert to blob with reduced quality
+                const quality = 0.7; // 70% quality
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            console.error('[Photo Upload] Compression failed - no blob generated');
+                            reject(new Error('Compression failed'));
+                            return;
+                        }
+
+                        console.log(`[Photo Upload] Compressed size: ${blob.size} bytes`);
+
+                        // Create a new file from the blob
+                        const compressedFile = new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+
+                        resolve(compressedFile);
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+
+            img.onerror = function() {
+                console.error('[Photo Upload] Error loading image for compression');
+                reject(new Error('Error loading image for compression'));
+            };
+        };
+
+        reader.onerror = function() {
+            console.error('[Photo Upload] Error reading file for compression');
+            reject(new Error('Error reading file for compression'));
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+// Export the functions
 window.photoUploader = {
-    uploadPhoto: uploadPhoto
+    uploadPhoto: uploadPhoto,
+    compressImage: compressImage
 };

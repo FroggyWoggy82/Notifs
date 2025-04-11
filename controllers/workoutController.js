@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 // --- Multer Configuration for Progress Photos ---
-const MAX_FILE_SIZE_MB = 25;
+const MAX_FILE_SIZE_MB = 50; // Increased from 25MB to 50MB
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Ensure the upload directory exists
