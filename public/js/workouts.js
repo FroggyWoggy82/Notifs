@@ -2905,122 +2905,69 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- End History Edit Modal Functions ---
 
-    // --- NEW: Progress Photo Upload Handler ---
+    // --- Simplified Photo Upload Handler ---
     async function handlePhotoUpload(event) {
         event.preventDefault();
-        console.log('[Photo Upload Client] handlePhotoUpload triggered.');
+        console.log('Photo upload started');
 
         const form = event.target;
-        const formData = new FormData(form);
-
         const statusElement = document.getElementById('upload-status');
         const modal = document.getElementById('photo-upload-modal');
         const submitButton = form.querySelector('button[type="submit"]');
 
-        // Add null checks for essential elements
         if (!statusElement || !modal || !submitButton) {
-            console.error('[Photo Upload Client] Status element, modal, or submit button not found.');
-            alert('Error: Could not find required elements. Please refresh the page and try again.');
+            alert('Error: Could not find required elements. Please refresh the page.');
             return;
         }
 
-        // Validate form data
-        const dateValue = formData.get('photo-date');
-        const files = formData.getAll('photos');
+        // Get file and date directly from form elements
+        const photoFile = form.querySelector('input[type="file"]').files[0];
+        const photoDate = form.querySelector('input[name="photo-date"]').value;
 
-        if (!dateValue) {
+        // Basic validation
+        if (!photoDate) {
             statusElement.textContent = 'Please select a date.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] Date not found in FormData');
             return;
         }
-        if (!files || files.length === 0 || !files[0] || files[0].size === 0) {
-            statusElement.textContent = 'Please select at least one photo.';
+        if (!photoFile) {
+            statusElement.textContent = 'Please select a photo.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] No files or empty file selected.');
             return;
         }
-        console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
 
         // Show uploading status
         statusElement.textContent = 'Uploading...';
         statusElement.style.color = '#03dac6';
         submitButton.disabled = true;
 
-        // Create a timeout to force-close the modal if it takes too long
-        // Using a longer timeout for mobile uploads (3 minutes)
-        const forceCloseTimeout = setTimeout(() => {
-            console.log('[Photo Upload Client] Force closing modal due to timeout');
-            modal.style.display = 'none';
-            // Reset the form and status
-            form.reset();
-            statusElement.textContent = '';
-            submitButton.disabled = false;
-            // Force refresh photos
-            fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after timeout:', err));
-        }, 180000); // 3 minutes timeout for mobile
-
         try {
-            console.log('[Photo Upload Client] About to initiate upload to /api/workouts/progress-photos');
+            // Use the minimal photo uploader
+            const response = await window.photoUploader.uploadPhoto(photoFile, photoDate);
+            console.log('Upload successful:', response);
 
-            // Log the form data for debugging
-            console.log('[Photo Upload Client] FormData contents:');
-            for (const pair of formData.entries()) {
-                console.log(`[Photo Upload Client] FormData: ${pair[0]}: ${pair[1]}`);
-            }
+            // Show success message
+            statusElement.textContent = 'Upload successful!';
+            statusElement.style.color = '#4CAF50';
 
-            // Make sure we're using the correct field name
-            // The server expects 'photos' but we need to check if it's actually there
-            const photoFile = formData.get('photos');
-            if (!photoFile || !(photoFile instanceof File) || photoFile.size === 0) {
-                console.error('[Photo Upload Client] No valid photo file found in FormData');
-                throw new Error('No valid photo file found. Please select a photo and try again.');
-            }
-
-            console.log(`[Photo Upload Client] Photo file details: name=${photoFile.name}, size=${photoFile.size}, type=${photoFile.type}`);
-
-            try {
-                // Check if the photoUploader module is available
-                if (!window.photoUploader || typeof window.photoUploader.uploadPhoto !== 'function') {
-                    console.error('[Photo Upload Client] Photo uploader module not found');
-                    throw new Error('Photo uploader module not found. Please refresh the page and try again.');
-                }
-
-                // Show uploading status
-                statusElement.textContent = 'Uploading...';
+            // Close the modal after a short delay
+            setTimeout(() => {
+                modal.style.display = 'none';
+                form.reset();
+                statusElement.textContent = '';
                 statusElement.style.color = '#03dac6';
-
-                // Use the ultra-simplified photo uploader module
-                const response = await window.photoUploader.uploadPhoto(photoFile, formData.get('photo-date'));
-                console.log('[Photo Upload Client] Upload successful:', response);
-
-                // Show success message
-                statusElement.textContent = 'Upload successful!';
-                statusElement.style.color = '#4CAF50';
-
-                // Close the modal after a short delay
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                    // Reset the form and status
-                    form.reset();
-                    statusElement.textContent = '';
-                    statusElement.style.color = '#03dac6';
-                    submitButton.disabled = false;
-                    // Refresh photos
-                    fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after upload:', err));
-                }, 1500);
-
-            } catch (uploadError) {
-                console.error('[Photo Upload Client] Error during upload:', uploadError);
-
-                // Show error message
-                statusElement.textContent = `Upload failed: ${uploadError.message || 'Unknown error'}`;
-                statusElement.style.color = '#F44336';
                 submitButton.disabled = false;
-            }
+                fetchAndDisplayPhotos().catch(err => console.error('Error refreshing photos:', err));
+            }, 1500);
 
-            // Form is already reset in the complete listener
-            // Close the modal is already handled in the complete listener
+        } catch (error) {
+            console.error('Upload failed:', error);
+            statusElement.textContent = `Upload failed: ${error.message || 'Unknown error'}`;
+            statusElement.style.color = '#F44336';
+            submitButton.disabled = false;
+        }
+
+    }
 
             // Fetch and display photos
             try {
