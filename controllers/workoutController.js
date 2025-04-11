@@ -71,7 +71,6 @@ const fileFilter = (req, file, cb) => {
     // Accept all files for now to debug the issue
     console.log(`[Multer File Filter] Accepting all files for debugging`);
     cb(null, true);
-}
 };
 
 // Configure Multer with limits
