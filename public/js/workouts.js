@@ -3365,9 +3365,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.log(`[Photo Load] Using hardcoded path: ${imagePath} for photo ID: ${photo.photo_id}`);
 
-                // Store the path in data-src for lazy loading
-                img.dataset.src = imagePath;
-                img.src = ''; // Set src initially empty
+                // Set src directly for immediate loading
+                img.src = imagePath;
+                img.dataset.src = imagePath; // Keep data-src for reference
                 img.alt = `Progress photo ${photo.photo_id}`;
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
                 img.loading = 'lazy'; // Add native lazy loading attribute as well
@@ -3478,12 +3478,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
-            // EMERGENCY FIX: Set the src attribute directly and immediately
+            // MOBILE OPTIMIZED: Set the src attribute directly
             const imagePath = currentImageElement.dataset.src;
             console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${imagePath}`);
 
-            // Set the src attribute directly
-            currentImageElement.src = imagePath;
+            // The image should already be loaded since we set src directly when creating the element
+            // But we'll set it again just to be sure
+            if (!currentImageElement.src || currentImageElement.src === '') {
+                currentImageElement.src = imagePath;
+            }
 
             // Force a reload of the image if it fails to load
             currentImageElement.onerror = function() {
