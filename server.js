@@ -28,6 +28,9 @@ const { swaggerDocs } = require('./docs/swagger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Increase timeout for large file uploads (5 minutes)
+app.timeout = 300000; // 5 minutes in milliseconds
+
 // Middleware
 app.use(cors());
 app.use(express.json());
