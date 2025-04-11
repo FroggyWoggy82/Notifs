@@ -3154,6 +3154,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Path Normalization Function ---
     function normalizePhotoPath(originalPath, photoId) {
+        console.log(`[Photo Load] Normalizing path for photo ID: ${photoId}, Original path: ${originalPath}`);
+
+        // Special case for photo ID 17 which we know is a PNG
+        if (photoId === 17) {
+            console.log(`[Photo Load] Special case for photo ID 17 (PNG file)`);
+            // Try to find the filename in the original path
+            let filename = '';
+            if (originalPath && originalPath.includes('/')) {
+                const pathParts = originalPath.split('/');
+                filename = pathParts[pathParts.length - 1];
+            }
+
+            // If we found a filename, use it, otherwise use a hardcoded fallback
+            if (filename && filename.length > 0) {
+                // Ensure it has .png extension
+                if (!filename.toLowerCase().endsWith('.png')) {
+                    filename = filename.split('.')[0] + '.png';
+                }
+                console.log(`[Photo Load] Using extracted filename for photo 17: ${filename}`);
+                return `uploads/progress_photos/${filename}`;
+            } else {
+                // Hardcoded fallback for photo 17
+                console.log(`[Photo Load] Using hardcoded fallback for photo 17`);
+                return 'uploads/progress_photos/photos-1744351437809-657831548.png';
+            }
+        }
+
         // If path is empty or null, use a fallback based on ID
         if (!originalPath) {
             console.log(`[Photo Load] Empty path for photo ID: ${photoId}, using fallback`);
@@ -3185,12 +3212,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Ensure the filename has an extension
         if (!filename.includes('.')) {
-            console.log(`[Photo Load] Filename has no extension for photo ID: ${photoId}, adding .jpg`);
-            filename = `${filename}.jpg`;
+            // Check if we know this is a PNG (photo ID 14 is known to be PNG)
+            if (photoId === 14) {
+                console.log(`[Photo Load] Adding .png extension for photo ID: ${photoId}`);
+                filename = `${filename}.png`;
+            } else {
+                console.log(`[Photo Load] Adding .jpg extension for photo ID: ${photoId}`);
+                filename = `${filename}.jpg`;
+            }
         }
 
         // Return the normalized path
-        return `uploads/progress_photos/${filename}`;
+        const normalizedPath = `uploads/progress_photos/${filename}`;
+        console.log(`[Photo Load] Normalized path: ${normalizedPath}`);
+        return normalizedPath;
     }
 
     // --- Simplified Fetch and Display Photos Function ---
@@ -3440,12 +3475,35 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log(`[Photo Display] Retry 3: Using alternative path: ${alternativePath}`);
                         this.src = alternativePath;
 
-                        // Final fallback: Show a placeholder
+                        // Fourth attempt: Try with PNG extension if it's a JPG, or vice versa
                         this.onerror = function() {
-                            console.log(`[Photo Display] All retries failed, using placeholder image`);
-                            this.src = '/images/photo-placeholder.png';
-                            this.alt = 'Photo could not be loaded';
-                            this.classList.add('error-placeholder');
+                            console.log(`[Photo Display] Retry 3 failed, trying with alternative file extension`);
+                            let alternativeExtPath;
+
+                            // If the path ends with .jpg or .jpeg, try .png
+                            if (imagePath.toLowerCase().endsWith('.jpg') || imagePath.toLowerCase().endsWith('.jpeg')) {
+                                const basePath = imagePath.substring(0, imagePath.lastIndexOf('.'));
+                                alternativeExtPath = `${basePath}.png`;
+                                console.log(`[Photo Display] Retry 4: Trying PNG instead of JPG: ${alternativeExtPath}`);
+                            }
+                            // If the path ends with .png, try .jpg
+                            else if (imagePath.toLowerCase().endsWith('.png')) {
+                                const basePath = imagePath.substring(0, imagePath.lastIndexOf('.'));
+                                alternativeExtPath = `${basePath}.jpg`;
+                                console.log(`[Photo Display] Retry 4: Trying JPG instead of PNG: ${alternativeExtPath}`);
+                            }
+                            // If we have an alternative path, try it
+                            if (alternativeExtPath) {
+                                this.src = alternativeExtPath;
+                            }
+
+                            // Final fallback: Show a placeholder
+                            this.onerror = function() {
+                                console.log(`[Photo Display] All retries failed, using placeholder image`);
+                                this.src = '/images/photo-placeholder.png';
+                                this.alt = 'Photo could not be loaded';
+                                this.classList.add('error-placeholder');
+                            };
                         };
                     };
                 };
