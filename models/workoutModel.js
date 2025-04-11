@@ -529,22 +529,6 @@ async function createExercise(name, category) {
     return result.rows[0];
 }
 
-// --- NEW: Get All Progress Photos --- 
-async function getAllProgressPhotos() {
-    console.log('Fetching all progress photos from DB');
-    try {
-        const result = await db.query(
-            'SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC'
-        );
-        console.log(`Found ${result.rows.length} progress photos`);
-        return result.rows;
-    } catch (err) {
-        console.error('Database error fetching progress photos:', err);
-        throw new Error('Failed to fetch progress photos from database'); // Re-throw for controller
-    }
-}
-// --- END NEW ---
-
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -558,6 +542,5 @@ module.exports = {
     deleteWorkoutLog,
     searchExercises,
     createExercise,
-    progressPhotosDir,
-    getAllProgressPhotos
+    progressPhotosDir
 };

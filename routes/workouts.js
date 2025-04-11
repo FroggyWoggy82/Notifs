@@ -699,7 +699,7 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
         console.log('[Photo Upload Route Handler] DB Transaction COMMIT successful.');
         // Ensure response isn't sent twice
         if (!res.headersSent) {
-            res.status(201).json({ message: 'Photos uploaded successfully!', photos: insertedPhotos });
+            res.status(201).json({ message: `Successfully uploaded ${insertedPhotos.length} files!`, photos: insertedPhotos });
         }
 
     } catch (dbErr) {

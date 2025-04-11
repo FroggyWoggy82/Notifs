@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoPrevBtn = document.getElementById('photo-prev-btn');
     const photoNextBtn = document.getElementById('photo-next-btn');
     const deletePhotoBtn = document.getElementById('delete-photo-btn');
+    const cleanupPhotosBtn = document.getElementById('cleanup-photos-btn');
     const photoReel = document.querySelector('.photo-reel'); // Reel container
     const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
@@ -1880,6 +1881,13 @@ document.addEventListener('DOMContentLoaded', function() {
              console.error('[Initialize] deletePhotoBtn not found!');
         }
 
+        // Cleanup Photos Listener
+        if (cleanupPhotosBtn) {
+            cleanupPhotosBtn.addEventListener('click', handleCleanupPhotos);
+        } else {
+             console.error('[Initialize] cleanupPhotosBtn not found!');
+        }
+
         // Comparison Select Listeners
         const compSelect1 = document.getElementById('comparison-photo-select-1');
         const compSelect2 = document.getElementById('comparison-photo-select-2');
@@ -2609,7 +2617,28 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.textContent = result.message || 'Upload successful!';
             statusElement.style.color = '#4CAF50'; // Green
             form.reset();
-            fetchAndDisplayPhotos();
+
+            // --- Update local data and display immediately --- 
+            if (result.files && Array.isArray(result.files) && result.files.length > 0) {
+                // Prepend new photos to the existing data (assuming newest first)
+                progressPhotosData = [...result.files, ...progressPhotosData]; // <-- Use result.files
+                console.log(`[Photo Upload Client] Updated local progressPhotosData using 'result.files'. New length: ${progressPhotosData.length}`); // Updated log
+                // Reset index and display immediately
+                currentPhotoIndex = 0; 
+                displayCurrentPhoto();
+                // Also update comparison dropdowns immediately with new data
+                populateComparisonDropdowns();
+            } else {
+                // If no photo data returned, still try a full refresh
+                console.warn("[Photo Upload Client] Upload successful, but no photo data returned in response. Triggering full refresh.");
+                fetchAndDisplayPhotos(); 
+            }
+            // --- End immediate update ---
+
+            // Optionally, you can still call fetchAndDisplayPhotos() here 
+            // for redundancy or if you don't trust the returned data, but 
+            // the immediate update above should handle the UI.
+            // fetchAndDisplayPhotos(); // <<< Keep commented out for now
 
             setTimeout(() => {
                 modal.style.display = 'none';
@@ -2689,7 +2718,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             console.log('[Photo Load] Fetching photos from API...'); // Log before fetch
-            const response = await fetch('/api/workouts/progress-photos');
+            // --- Add cache: 'no-cache' --- 
+            const response = await fetch('/api/workouts/progress-photos', { cache: 'no-cache' });
+            // --- End change ---
             console.log(`[Photo Load] API Response Status: ${response.status}`); // Log status
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -2705,15 +2736,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Photo Load] Clearing loading message from photoReel...'); // Log before clearing
             photoReel.innerHTML = ''; // Clear loading message
 
-            // --- BEGIN ADDED DEBUG LOG ---
-            if (progressPhotosData.length > 0) {
-                console.log('[Photo Load DEBUG] First photo data object:', JSON.stringify(progressPhotosData[0]));
-                if (progressPhotosData.length > 1) {
-                    console.log('[Photo Load DEBUG] Second photo data object:', JSON.stringify(progressPhotosData[1]));
-                }
-            }
-            // --- END ADDED DEBUG LOG ---
-
+            // --- Log the data we are about to loop over ---
+            console.log(`[Photo Load Loop] About to iterate over progressPhotosData. Length: ${progressPhotosData.length}`);
 
             if (progressPhotosData.length === 0) {
                 console.log('[Photo Load] No photos found. Displaying empty message.'); // Log empty case
@@ -2731,14 +2755,45 @@ document.addEventListener('DOMContentLoaded', function() {
             // --- Populate the Reel and Dots ---
             console.log('[Photo Load] Populating photo reel and pagination dots...'); // Log before loop
             progressPhotosData.forEach((photo, index) => {
+                // --- Log inside the loop ---
+                console.log(`[Photo Load Loop] Iteration ${index}, Photo ID: ${photo.photo_id}`);
                 // Add Image to Reel
                 const img = document.createElement('img');
-                // img.src = photo.file_path; // <<< CHANGE THIS
-                img.dataset.src = photo.file_path; // <<< TO THIS
-                img.src = ''; // <<< ADD THIS (Set src initially empty)
-                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
+                // Ensure the file path is properly formatted
+                let imagePath = photo.file_path;
+                if (!imagePath) {
+                    console.error(`[Photo Load] Missing file_path for photo ID: ${photo.photo_id}`);
+                    imagePath = '/img/placeholder.png'; // Use a placeholder image
+                } else if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+                    // Add leading slash if missing and not an absolute URL
+                    imagePath = '/' + imagePath;
+                }
+                // Log the image path for debugging
+                console.log(`[Photo Load] Image path for photo ID ${photo.photo_id}: ${imagePath}`);
+                
+                // --- SIMPLIFIED onerror --- 
+                // Remove the complex retry logic, just log the error once if the initial load fails.
+                img.onerror = function() {
+                    console.error(`[Photo Load ERROR] Failed to initially load image src: ${this.src} (Photo ID: ${photo.photo_id})`);
+                    // Optionally, set a class to style broken images
+                    // this.classList.add('image-load-error'); 
+                    // Optionally, explicitly set to placeholder if needed, but browser might show alt
+                    // this.src = '/img/placeholder.png'; 
+                };
+                // --- END SIMPLIFIED onerror ---
+
+                // Add load success handler
+                img.onload = function() {
+                    console.log(`[Photo Load SUCCESS] Successfully loaded image for photo ID ${photo.photo_id}`);
+                }
+
+                img.crossOrigin = 'anonymous'; // Try with crossOrigin attribute
+                img.src = imagePath; // Set src directly
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
-                img.loading = 'lazy'; // Add native lazy loading attribute as well
+                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
+                img.loading = 'lazy'; // Add native lazy loading attribute
+                img.style.maxWidth = '100%'; // Ensure image fits container
+                img.style.height = 'auto'; // Maintain aspect ratio
                 photoReel.appendChild(img);
 
                 // Add Dot to Pagination
@@ -2762,10 +2817,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 paginationDotsContainer.appendChild(dot);
             });
 
+            // --- Log after the loop ---
+            console.log(`[Photo Load Loop] Finished iterating over ${progressPhotosData.length} photos.`);
+
             // Data is ready, display the first photo (most recent)
             currentPhotoIndex = 0;
-            console.log('[Photo Load] Calling displayCurrentPhoto() to show first image...'); // Log before display call
+            // --- Log before display call ---
+            console.log(`[Photo Load] Calling displayCurrentPhoto() with index ${currentPhotoIndex} to show first image...`);
             displayCurrentPhoto(); // Initial display
+            // --- Log after display call ---
+            console.log('[Photo Load] Returned from displayCurrentPhoto() call.');
 
         } catch (error) {
             console.error('[Photo Load] Error fetching or processing photos:', error);
@@ -2786,131 +2847,208 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Display Current Photo in Slider (Redesigned for Carousel) ---
     function displayCurrentPhoto() {
-        const startTime = performance.now(); // Start timing
-        console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${progressPhotosData.length})`);
+        const startTime = performance.now(); // Start timer
+        const numPhotos = progressPhotosData.length;
+        console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${numPhotos})`);
 
-        if (!photoReel || progressPhotosData.length === 0) {
-            console.warn('[Photo Display] Photo reel element not found or no photos data.');
-            // Optionally display a placeholder message
-            if (photoReel) photoReel.innerHTML = '<p>No photos available.</p>';
-            // Disable buttons if no photos
-            if(photoPrevBtn) photoPrevBtn.disabled = true;
-            if(photoNextBtn) photoNextBtn.disabled = true;
-            if(deletePhotoBtn) deletePhotoBtn.disabled = true;
-            if(paginationDotsContainer) paginationDotsContainer.innerHTML = '';
-            if(currentPhotoDateDisplay) currentPhotoDateDisplay.textContent = '';
-            return;
+        // NEW: Find the date display element
+        const dateDisplayEl = currentPhotoDateDisplay; // Use the reference
+
+        if (numPhotos === 0 || !photoReel || !paginationDotsContainer || !dateDisplayEl) {
+            console.warn('[Photo Display] No photos or required elements found (reel, dots, date display).');
+            if (dateDisplayEl) dateDisplayEl.textContent = ''; // Clear date if no photos
+            return; // Nothing to display
         }
 
-        // Ensure index is within bounds (loops)
+        // --- BEGIN ADDED DEBUG LOG ---
         console.log(`[Photo Display DEBUG] Current index before bounds check: ${currentPhotoIndex}`);
-        if (currentPhotoIndex < 0) {
-            currentPhotoIndex = progressPhotosData.length - 1;
-        } else if (currentPhotoIndex >= progressPhotosData.length) {
-            currentPhotoIndex = 0;
-        }
+        // --- END ADDED DEBUG LOG ---
+
+        // Ensure index is valid (looping can be added later if desired)
+        if (currentPhotoIndex < 0) currentPhotoIndex = 0;
+        if (currentPhotoIndex >= numPhotos) currentPhotoIndex = numPhotos - 1;
+
+        // --- BEGIN ADDED DEBUG LOG ---
         console.log(`[Photo Display DEBUG] Current index AFTER bounds check: ${currentPhotoIndex}`);
+        // --- END ADDED DEBUG LOG ---
 
-        const photoData = progressPhotosData[currentPhotoIndex];
-        if (!photoData) {
-            console.error(`[Photo Display] No photo data found for index: ${currentPhotoIndex}`);
-            return;
-        }
-        console.log('[Photo Display] Attempting to display data:', JSON.parse(JSON.stringify(photoData))); // Deep copy for logging
 
-        // --- Update the currently visible image SRC directly --- // <<<< KEEP THIS PART
-        const imageElements = photoReel.querySelectorAll('img');
-        if (imageElements.length > currentPhotoIndex && imageElements[currentPhotoIndex]) {
-            const currentImgElement = imageElements[currentPhotoIndex];
-            // Check if src needs updating (optimization)
-            // --- ENSURE ABSOLUTE PATH --- 
-            let targetSrc = photoData.file_path;
-            if (targetSrc && !targetSrc.startsWith('/')) {
-                targetSrc = '/' + targetSrc; // Prepend slash if missing
-            }
-            // --- END ENSURE --- 
-            if (currentImgElement.src !== targetSrc) {
-                console.log(`[Photo Display] Setting image src to: ${targetSrc}`);
-                currentImgElement.src = targetSrc; // Directly set src for the target image
-                // Add basic onerror handling
-                currentImgElement.onerror = () => {
-                    console.error(`Error loading image: ${currentImgElement.src}`);
-                    // REMOVED: Don't set alt text visually if image might still load
-                    // currentImgElement.alt = `Error loading: ${photoData.date_taken}`;
-                    // You could add a class here to style the broken image
-                };
-                currentImgElement.onload = () => {
-                    // Optional: Log success or remove loading indicator if you add one
-                    // console.log(`Image loaded successfully: ${currentImgElement.src}`);
-                };
-            } else {
-                // console.log('[Photo Display] Image src already set correctly.');
-            }
-        } else {
-            console.warn(`[Photo Display] Could not find image element at index ${currentPhotoIndex}`);
-        }
-
-        // --- Update Pagination Dots --- // <<<< KEEP THIS PART
-        const dots = paginationDotsContainer.querySelectorAll('.dot');
-        dots.forEach((dot, index) => {
-            if (index === currentPhotoIndex) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
-
-            // --- REMOVED Redundant SRC setting --- 
-            // const imgElement = imageElements[index]; // Find corresponding image
-            // // Lazy loading: If data-src exists but src is not set, set it now
-            // if (imgElement && imgElement.dataset.src && !imgElement.src) {
-            //     console.log(`[Photo Display DEBUG] Setting src for index ${index} from data-src: ${imgElement.dataset.src}`);
-            //     imgElement.src = imgElement.dataset.src;
-            //     imgElement.onerror = () => { // Add error handler here too
-            //         console.error(`Error loading image via data-src method: ${imgElement.src}`);
-            //         imgElement.alt = `Error loading image ${index + 1}`;
-            //     };
-            // }
-            // --- END REMOVED Block ---
-        });
-
-        // --- Update Date Display --- // <<<< KEEP THIS PART
-        if (currentPhotoDateDisplay) {
-            try {
-                // Format the date nicely
-                const date = new Date(photoData.date_taken + 'T00:00:00'); // Treat as local date
-                currentPhotoDateDisplay.textContent = date.toLocaleDateString('en-US', {
+        // --- Get Current Photo Data and Format Date ---
+        const currentPhoto = progressPhotosData[currentPhotoIndex];
+        // --- BEGIN ADDED DEBUG LOG ---
+        console.log('[Photo Display DEBUG] Photo object being used:', JSON.stringify(currentPhoto));
+        // --- END ADDED DEBUG LOG ---
+        console.log(`[Photo Display] Attempting to display data:`, currentPhoto); // <<< Log the photo object
+        let formattedDate = '';
+        if (currentPhoto && currentPhoto.date_taken) {
+            // Assuming date_taken is 'YYYY-MM-DD'. Adding T00:00:00 ensures it's treated as local time.
+            // --- Corrected Date Parsing ---
+            // The API returns a full timestamp string (e.g., "YYYY-MM-DDTHH:mm:ss.sssZ")
+            // Parse it directly without appending 'T00:00:00'
+            const dateObj = new Date(currentPhoto.date_taken);
+            if (!isNaN(dateObj)) { // Check if the date is valid after parsing
+                formattedDate = dateObj.toLocaleDateString(undefined, {
                     year: 'numeric', month: 'long', day: 'numeric'
                 });
-            } catch (e) {
-                console.error("Error formatting date:", e);
-                currentPhotoDateDisplay.textContent = photoData.date_taken; // Fallback
+            } else {
+                console.error(`[Photo Display] Invalid date format received: ${currentPhoto.date_taken}`);
+                formattedDate = 'Invalid Date'; // Keep the error message if parsing fails
             }
-        } else {
-             console.warn("[Photo Display] Date display element not found.");
+            // --- End Correction ---
         }
+        dateDisplayEl.textContent = formattedDate; // Update the date display
 
-        // --- Update Slider Position --- // <<<< KEEP THIS PART
-        const offset = currentPhotoIndex * -100; // Calculate offset percentage
-        console.log(`[Photo Display DEBUG] Calculated reel offset: ${offset}% for index ${currentPhotoIndex}`);
+        // --- Add Carousel Logic --- 
+        // 1. Update Carousel Position
+        // Rename variable to avoid conflict
+        const photoReelOffset = -currentPhotoIndex * 100; // Calculate percentage offset
         if (photoReel) {
-            photoReel.style.transform = `translateX(${offset}%)`;
             photoReel.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is applied
+            photoReel.style.transform = `translateX(${photoReelOffset}%)`;
+             console.log(`[Photo Display] Set photoReel transform to translateX(${photoReelOffset}%)`);
         } else {
-            console.warn("[Photo Display] Photo reel element not found for transform.");
+            console.error("[Photo Display] photoReel element not found when trying to set transform.");
         }
 
-        // --- Update Button States --- // <<<< KEEP THIS PART
-        // Buttons are enabled only if there's more than one photo
-        const enableButtons = progressPhotosData.length > 1;
-        if(photoPrevBtn) photoPrevBtn.disabled = !enableButtons;
-        if(photoNextBtn) photoNextBtn.disabled = !enableButtons;
-        // Delete button is enabled if there is at least one photo
-        if(deletePhotoBtn) deletePhotoBtn.disabled = progressPhotosData.length === 0;
+        // 2. Update Active Pagination Dot
+        if (paginationDotsContainer) {
+            const dots = paginationDotsContainer.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (dot instanceof HTMLElement) { // Type guard
+                    if (index === currentPhotoIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                }
+            });
+        } else {
+             console.error("[Photo Display] paginationDotsContainer not found when trying to update dots.");
+        }
 
-        // --- Performance Logging --- // <<<< KEEP THIS PART
-        const endTime = performance.now();
-        console.log(`[Photo Display] displayCurrentPhoto execution time: ${(endTime - startTime).toFixed(2)} ms`);
+        // 3. Update Navigation and Delete Button States
+        if (photoPrevBtn) photoPrevBtn.disabled = currentPhotoIndex === 0;
+        if (photoNextBtn) photoNextBtn.disabled = currentPhotoIndex >= numPhotos - 1;
+        if (deletePhotoBtn) deletePhotoBtn.disabled = numPhotos === 0;
+        // --- End Carousel Logic ---
+
+        // --- Log the file path specifically ---
+        const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
+        console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
+
+        // --- Ensure all images have their src attribute set properly ---
+        const imageElements = photoReel.querySelectorAll('img');
+        if (imageElements && imageElements.length > 0) {
+            // Check if the current image exists
+            if (imageElements[currentPhotoIndex]) {
+                const currentImageElement = imageElements[currentPhotoIndex];
+                // Log the current image src for debugging
+                console.log(`[Photo Display DEBUG] Current image src: ${currentImageElement.src}`);
+
+                // Ensure the image has a valid src
+                if (!currentImageElement.src || currentImageElement.src === 'about:blank' || currentImageElement.src.endsWith('/')) {
+                    const photoData = progressPhotosData[currentPhotoIndex];
+                    if (photoData && photoData.file_path) {
+                        // Ensure the file path is properly formatted
+                        let imagePath = photoData.file_path;
+                        if (!imagePath) {
+                            console.error(`[Photo Display] Missing file_path for photo ID: ${photoData.photo_id}`);
+                            imagePath = '/img/placeholder.png'; // Use a placeholder image
+                        } else if (!imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+                            // Add leading slash if missing and not an absolute URL
+                            imagePath = '/' + imagePath;
+                        }
+
+                        // Add error handling for image loading with retry tracking
+                        currentImageElement.dataset.retryCount = '0'; // Initialize retry counter
+                        currentImageElement.onerror = function() {
+                            // Get current retry count
+                            const retryCount = parseInt(this.dataset.retryCount || '0');
+
+                            // If we've already retried too many times, use placeholder
+                            if (retryCount >= 2) {
+                                console.warn(`[Photo Display] Max retries reached for photo ID ${photoData.photo_id}, using placeholder`);
+                                this.src = '/img/placeholder.png';
+                                this.style.border = '2px solid red';
+                                this.style.padding = '10px';
+                                this.alt = 'Image failed to load';
+                                return; // Exit to prevent more retries
+                            }
+
+                            // Increment retry counter
+                            this.dataset.retryCount = (retryCount + 1).toString();
+                            console.error(`[Photo Display ERROR] Failed to load image: ${imagePath} (Attempt ${retryCount + 1}/3)`);
+
+                            // Try different approaches based on retry count
+                            let newSrc = '';
+
+                            if (retryCount === 0) {
+                                // First retry: Try without leading slash if it starts with /uploads/
+                                if (imagePath.startsWith('/uploads/')) {
+                                    newSrc = imagePath.substring(1); // Remove leading slash
+                                    console.log(`[Photo Display] Retry 1: Trying without leading slash: ${newSrc}`);
+                                } else {
+                                    // If not starting with /uploads/, try with timestamp
+                                    const timestamp = new Date().getTime();
+                                    newSrc = imagePath.includes('?') ?
+                                        `${imagePath}&_t=${timestamp}` :
+                                        `${imagePath}?_t=${timestamp}`;
+                                    console.log(`[Photo Display] Retry 1: Adding timestamp: ${newSrc}`);
+                                }
+                            } else if (retryCount === 1) {
+                                // Second retry: Try with absolute URL to img/placeholder.png
+                                newSrc = '/img/placeholder.png';
+                                console.log(`[Photo Display] Retry 2: Using placeholder image`);
+                            }
+
+                            // Set the new source
+                            if (newSrc) {
+                                this.src = newSrc;
+                            }
+                        };
+
+                        // Add load event handler to confirm successful loading
+                        currentImageElement.onload = function() {
+                            console.log(`[Photo Display SUCCESS] Image loaded: ${this.src}`);
+                        };
+
+                        // Log the image path for debugging
+                        console.log(`[Photo Display DEBUG] Fixing missing src for index ${currentPhotoIndex} with: ${imagePath}`);
+                        currentImageElement.crossOrigin = 'anonymous'; // Try with crossOrigin attribute
+                        currentImageElement.style.maxWidth = '100%'; // Ensure image fits container
+                        currentImageElement.style.height = 'auto'; // Maintain aspect ratio
+                        currentImageElement.src = imagePath;
+                    }
+                }
+            } else {
+                console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
+            }
+        }
+
+        // --- Update Reel Position ---
+        const offset = currentPhotoIndex * -100; // Calculate percentage offset
+        // --- BEGIN ADDED DEBUG LOG ---
+        console.log(`[Photo Display DEBUG] Calculated reel offset: ${offset}% for index ${currentPhotoIndex}`);
+        // --- END ADDED DEBUG LOG ---
+        photoReel.style.transform = `translateX(${offset}%)`;
+
+        // --- Update Pagination Dots ---
+        const dots = paginationDotsContainer.querySelectorAll('.dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentPhotoIndex);
+        });
+
+        // --- Update Button States ---
+        // Buttons are now enabled/disabled directly in the calling functions
+        photoPrevBtn.disabled = (currentPhotoIndex === 0);
+        photoNextBtn.disabled = (currentPhotoIndex >= numPhotos - 1);
+        deletePhotoBtn.disabled = (numPhotos === 0); // Disable delete only if no photos
+
+        console.log(`[Photo Display] Reel transform set to: translateX(${offset}%)`);
+        const endTime = performance.now(); // End timer
+        console.log(`[Photo Display] displayCurrentPhoto execution time: ${(endTime - startTime).toFixed(2)} ms`); // Log duration
     }
+    // --- END NEW ---
 
     // --- Slider Navigation Functions (Updated for Redesign, NO ANIMATION) ---
     // let isAnimating = false; // Flag to prevent clicks during animation - REMOVED
@@ -3060,6 +3198,47 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- NEW: Cleanup Photos Function ---
+    async function handleCleanupPhotos() {
+        if (!confirm('This will remove database entries for photos that no longer exist on the server. Continue?')) {
+            return;
+        }
+
+        try {
+            // Disable the button during cleanup
+            cleanupPhotosBtn.disabled = true;
+            cleanupPhotosBtn.textContent = 'Cleaning up...';
+
+            // Call the cleanup API
+            const response = await fetch('/api/workouts/progress-photos/cleanup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Cleanup result:', result);
+
+            alert(`Cleanup completed. Found ${result.missingPhotos} missing photos out of ${result.totalPhotos} total.`);
+
+            // Refresh the photos display
+            await fetchAndDisplayPhotos();
+
+        } catch (error) {
+            console.error('Error cleaning up photos:', error);
+            alert(`Error cleaning up photos: ${error.message}`);
+        } finally {
+            // Re-enable the button
+            cleanupPhotosBtn.disabled = false;
+            cleanupPhotosBtn.textContent = 'Cleanup Missing Photos';
+        }
+    }
+
     // --- NEW: Update Comparison Images Function ---
     function updateComparisonImages() {
         if (!comparisonImage1 || !comparisonImage2 || !comparisonPhotoSelect1 || !comparisonPhotoSelect2) return;
@@ -3070,11 +3249,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const photo1 = selectedId1 ? progressPhotosData.find(p => p.photo_id == selectedId1) : null;
         const photo2 = selectedId2 ? progressPhotosData.find(p => p.photo_id == selectedId2) : null;
 
-        comparisonImage1.src = photo1 ? photo1.file_path : '';
+        // Process image path for comparison photo 1
+        let imagePath1 = photo1 ? photo1.file_path : '';
+        if (imagePath1 && !imagePath1.startsWith('/') && !imagePath1.startsWith('http')) {
+            imagePath1 = '/' + imagePath1;
+        }
+        comparisonImage1.src = imagePath1;
         comparisonImage1.alt = photo1 ? `Comparison Photo 1: ${new Date(photo1.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 1';
 
-        comparisonImage2.src = photo2 ? photo2.file_path : '';
+        // Process image path for comparison photo 2
+        let imagePath2 = photo2 ? photo2.file_path : '';
+        if (imagePath2 && !imagePath2.startsWith('/') && !imagePath2.startsWith('http')) {
+            imagePath2 = '/' + imagePath2;
+        }
+        comparisonImage2.src = imagePath2;
         comparisonImage2.alt = photo2 ? `Comparison Photo 2: ${new Date(photo2.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 2';
+
+        // Log the image paths for debugging
+        console.log(`[Comparison] Setting image 1 src to: ${imagePath1}`);
+        console.log(`[Comparison] Setting image 2 src to: ${imagePath2}`);
     }
 
     initialize(); // Run initialization

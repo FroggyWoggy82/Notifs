@@ -4,6 +4,7 @@
  */
 
 const WorkoutModel = require('../models/workoutModel');
+const db = require('../db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -59,28 +60,6 @@ async function getAllExercises(req, res) {
     } catch (error) {
         console.error('Error fetching exercises:', error);
         res.status(500).json({ error: 'Failed to fetch exercises' });
-    }
-}
-
-/**
- * Get all progress photos
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function getAllProgressPhotos(req, res) {
-    console.log("Received GET /api/workouts/progress-photos request");
-    try {
-        const photos = await WorkoutModel.getAllProgressPhotos();
-        // Optional: Format date here if needed, or let frontend handle it
-        const formattedPhotos = photos.map(photo => ({
-            ...photo,
-            // Ensure date_taken is consistently YYYY-MM-DD if it's a Date object
-            date_taken: photo.date_taken instanceof Date ? photo.date_taken.toISOString().split('T')[0] : photo.date_taken
-        }));
-        res.json(formattedPhotos);
-    } catch (error) {
-        console.error('Error fetching progress photos:', error);
-        res.status(500).json({ error: 'Failed to fetch progress photos' });
     }
 }
 
@@ -389,6 +368,44 @@ function uploadProgressPhotos(req, res) {
     });
 }
 
+/**
+ * Clean up missing progress photos
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function cleanupProgressPhotos(req, res) {
+    try {
+        const { cleanupMissingPhotos } = require('../routes/cleanupPhotos');
+        const result = await cleanupMissingPhotos();
+        res.json({
+            success: true,
+            message: `Cleanup completed. Found ${result.missingPhotos} missing photos out of ${result.totalPhotos} total.`,
+            ...result
+        });
+    } catch (error) {
+        console.error('Error in cleanup route:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'An error occurred during cleanup'
+        });
+    }
+}
+
+/**
+ * Get all progress photos
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getProgressPhotos(req, res) {
+    try {
+        const result = await db.query('SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC');
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching progress photos:', error);
+        res.status(500).json({ error: 'Failed to fetch progress photos' });
+    }
+}
+
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -403,5 +420,6 @@ module.exports = {
     searchExercises,
     createExercise,
     uploadProgressPhotos,
-    getAllProgressPhotos
+    cleanupProgressPhotos,
+    getProgressPhotos
 };

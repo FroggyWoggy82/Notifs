@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="200" fill="#333333"/>
-  <text x="100" y="100" font-family="Arial" font-size="16" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">Image unavailable</text>
-  <path d="M70,80 L130,120 M130,80 L70,120" stroke="#ffffff" stroke-width="2"/>
-</svg>
