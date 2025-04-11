@@ -69,8 +69,15 @@ NotificationModel.setupDailyCheck(cron.schedule);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Global error handler caught:', err);
-  res.status(500).json({
+  // ADD More logging here
+  console.error('--- Global Error Handler Caught ---');
+  console.error('Error Status:', err.status || 500);
+  console.error('Error Message:', err.message);
+  console.error('Request Path:', req.path);
+  console.error('Error Stack:', err.stack); // Log the full stack trace
+  console.error('--- End Global Error ---');
+  // Existing response logic
+  res.status(err.status || 500).json({ // Use err.status if available
     error: 'An unexpected error occurred',
     message: process.env.NODE_ENV === 'production' ? 'Server error' : err.message
   });

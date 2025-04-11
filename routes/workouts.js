@@ -19,22 +19,38 @@ if (!fs.existsSync(progressPhotosDir)){
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        console.log(`[Multer Storage] Destination function called for file: ${file.originalname}`);
         cb(null, progressPhotosDir); // Use the absolute path
+        console.log(`[Multer Storage] Destination set to: ${progressPhotosDir}`);
     },
     filename: function (req, file, cb) {
+        console.log(`[Multer Storage] Filename function called for file: ${file.originalname}`);
         // Create a unique filename: fieldname-timestamp.extension
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        const finalFilename = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
+        cb(null, finalFilename);
+        console.log(`[Multer Storage] Filename generated: ${finalFilename}`);
     }
 });
 
 const fileFilter = (req, file, cb) => {
-    // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
+    console.log(`[Multer File Filter] Checking file: ${file.originalname}, MIME: ${file.mimetype}`);
+    // Define allowed extensions (case-insensitive)
+    const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif|\.heic)$/i;
+
+    // Check 1: MIME type starts with 'image/'
+    const isMimeTypeImage = file.mimetype.startsWith('image/');
+    // Check 2: File extension is in the allowed list
+    const hasAllowedExtension = allowedExtensions.test(path.extname(file.originalname));
+
+    if (isMimeTypeImage || hasAllowedExtension) {
+        // Accept if either condition is true
+        console.log(`[Multer File Filter] Accepting file: ${file.originalname} (MIME: ${file.mimetype}, Extension OK: ${hasAllowedExtension})`);
         cb(null, true);
     } else {
-        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype})`);
-        cb(new Error('Not an image! Please upload only images.'), false);
+        // Reject if neither condition is true
+        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype}, Extension check failed)`);
+        cb(new Error('Invalid file type. Only JPG, PNG, GIF, HEIC images are allowed.'), false);
     }
 };
 
@@ -48,8 +64,44 @@ const upload = multer({
     }
 });
 
+// <<< NEW: Multer Error Handling Middleware >>>
+function handleMulterError(err, req, res, next) {
+    if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading.
+        console.error('--- Multer Error Handler Caught ---');
+        console.error('Multer Error Code:', err.code);
+        console.error('Multer Error Message:', err.message);
+        console.error('Field:', err.field); // Which field caused the error?
+        console.error('--- End Multer Error ---');
+        // Provide specific feedback based on the error code
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });
+        } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({ error: 'Unexpected file field.' });
+        }
+        // Generic Multer error
+        return res.status(500).json({ error: `File upload error: ${err.message}` });
+    } else if (err) {
+        // An unknown error occurred when uploading.
+        console.error('--- Non-Multer Error During Upload Caught by Multer Handler ---');
+        console.error('Error Status:', err.status);
+        console.error('Error Message:', err.message);
+        console.error('Error Stack:', err.stack);
+        console.error('--- End Non-Multer Error ---');
+        return res.status(500).json({ error: 'An unexpected error occurred during file upload.' });
+    }
+    // Everything went fine, pass control to the next handler
+    next();
+}
+
 // Use upload.array('photos', 10) to accept up to 10 files with the field name 'photos'
 const uploadPhotosMiddleware = upload.array('photos', 10); // Match the input name attribute
+
+// <<< NEW: Middleware to log request arrival before Multer >>>
+const traceMiddleware = (req, res, next) => {
+    console.log(`[Trace Middleware] Request received for ${req.method} ${req.path} from ${req.ip}`);
+    next(); // Pass control to the next middleware (Multer)
+};
 
 // --- API Routes ---
 
@@ -626,13 +678,17 @@ router.delete('/logs/:id', async (req, res) => {
 // --- Progress Photo Routes ---
 
 // POST /api/progress-photos - Upload new progress photos
-router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
+// Add traceMiddleware BEFORE uploadPhotosMiddleware
+// ADD handleMulterError AFTER uploadPhotosMiddleware
+router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleMulterError, async (req, res) => {
+    console.log('[Upload Trace] === Route Handler START ===');
     // <<< DEBUG LOGS AT THE START >>>
     console.log('[DEBUG] req.body immediately after multer:', JSON.stringify(req.body));
     console.log('[DEBUG] req.files immediately after multer:', req.files ? req.files.length : 'undefined');
     // <<< END DEBUG LOGS >>>
 
     // --- Check for Multer errors attached to req (might not happen if Multer crashes earlier) ---
+    console.log('[Upload Trace] Checking for Multer errors...');
     // Note: Multer typically calls the callback with an error, but if used as middleware,
     // it might attach error details to `req` or require an error-handling middleware.
     // This is an attempt to catch errors if the structure allows.
@@ -648,71 +704,93 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
         }
         return res.status(500).json({ error: `File upload error: ${req.multerError.message}` });
     }
-    // --- End error checking --- 
-    
-    // --- Main logic, previously inside the callback --- 
+    // --- End error checking ---
+    console.log('[Upload Trace] Finished checking Multer errors.');
+
+    // --- Main logic, previously inside the callback ---
     const { 'photo-date': date } = req.body;
     const files = req.files;
 
     console.log(`[Photo Upload Route Handler] Processing request. Date: ${date}`);
     console.log(`[Photo Upload Route Handler] Entered main handler AFTER Multer middleware.`);
 
+    console.log('[Upload Trace] Validating date and files...');
     if (!date) {
         console.error('[Photo Upload Route Handler] Error: Date is required.');
         return res.status(400).json({ error: 'Date is required.' });
     }
     // If Multer finished but found no files, req.files will be empty.
-    if (!files || files.length === 0) { 
+    if (!files || files.length === 0) {
         console.error('[Photo Upload Route Handler] Error: No photos found in request files.');
         // Don't return 400 immediately, as Multer might have already handled an error.
         // If we reached here without files and without a prior Multer error logged,
         // it's potentially an issue, but let's rely on the earlier checks or client validation.
         // We might have already sent a response if a Multer error occurred.
-        // Let's assume if we got here, it's unexpected. 
+        // Let's assume if we got here, it's unexpected.
         if (!res.headersSent) { // Only send if no response sent yet
+             console.log('[Upload Trace] Sending 400: No photo files were processed.');
              return res.status(400).json({ error: 'No photo files were processed.' });
         }
         return; // Avoid further processing if headers already sent
     }
+    console.log('[Upload Trace] Date and files validation passed.');
 
     console.log(`[Photo Upload Route Handler] Proceeding with DB operations for ${files.length} photos.`);
 
-    const client = await db.pool.connect();
-    console.log('[Photo Upload Route Handler] DB Client acquired.');
+    let client; // Define client outside try block
+    console.log('[Upload Trace] Attempting to connect to DB...');
     try {
+        client = await db.pool.connect(); // Assign client here
+        console.log('[Photo Upload Route Handler] DB Client acquired.');
+        console.log('[Upload Trace] Attempting DB transaction BEGIN...');
         await client.query('BEGIN');
         console.log('[Photo Upload Route Handler] DB Transaction BEGIN.');
 
         const insertedPhotos = [];
+        console.log(`[Upload Trace] Starting loop for ${files.length} files...`);
         for (const file of files) {
             const relativePath = `/uploads/progress_photos/${file.filename}`;
+            console.log(`[Upload Trace] Processing file: ${file.filename}`);
             console.log(`[Photo Upload Route Handler] Inserting DB record for: ${relativePath}, Date: ${date}`);
 
+            // Add logging for file details
+            console.log(`[Upload Trace] File details: name=${file.originalname}, mimetype=${file.mimetype}, size=${file.size}`);
+
+            console.log('[Upload Trace] Executing INSERT query...');
             const result = await client.query(
                 'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id, date_taken, file_path',
                 [date, relativePath]
             );
             insertedPhotos.push(result.rows[0]);
+            console.log(`[Upload Trace] Inserted photo ID: ${result.rows[0].photo_id}`);
         }
+        console.log('[Upload Trace] Finished file loop.');
 
+        console.log('[Upload Trace] Attempting DB transaction COMMIT...');
         await client.query('COMMIT');
         console.log('[Photo Upload Route Handler] DB Transaction COMMIT successful.');
         // Ensure response isn't sent twice
         if (!res.headersSent) {
+            console.log('[Upload Trace] Sending 201 success response...');
             res.status(201).json({ message: `Successfully uploaded ${insertedPhotos.length} files!`, photos: insertedPhotos });
+            console.log('[Upload Trace] Success response sent.');
         }
 
     } catch (dbErr) {
+        console.error('[Upload Trace] === ERROR Block Entered ===');
         console.error('[Photo Upload Route Handler] Database Error during photo upload transaction:', dbErr.message, dbErr.stack);
         try {
+            console.log('[Upload Trace] Attempting DB transaction ROLLBACK...');
             await client.query('ROLLBACK');
             console.log('[Photo Upload Route Handler] DB Transaction ROLLBACK successful.');
         } catch (rbErr) {
+             console.error('[Upload Trace] Error during ROLLBACK:', rbErr);
              console.error('[Photo Upload Route Handler] Error during ROLLBACK after initial error:', rbErr);
         }
-        
+
         // Check if files exist before attempting deletion
         if (files && files.length > 0) {
+            console.log('[Upload Trace] Attempting file cleanup due to DB error...');
             console.log('[Photo Upload Route Handler] Attempting to delete uploaded files due to DB error...');
             files.forEach(file => {
                 if (file && file.path) { // Add check for file.path
@@ -721,20 +799,29 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
                         else console.log(`[Photo Upload Route Handler] Deleted orphaned file: ${file.path}`);
                     });
                 } else {
-                     console.warn('[Photo Upload Route Handler] Skipping file deletion attempt: file or file.path missing.');
+                     console.warn('[Upload Trace] Skipping file cleanup - file or file.path missing.');
                 }
             });
         } else {
+            console.warn('[Upload Trace] Skipping file cleanup - no files object available.');
             console.warn('[Photo Upload Route Handler] Skipping file deletion: No files object available after DB error.');
         }
-        
+
         // Ensure response isn't sent twice
         if (!res.headersSent) {
+             console.log('[Upload Trace] Sending 500 error response...');
             res.status(500).json({ error: 'Database error saving photo information.' });
+             console.log('[Upload Trace] Error response sent.');
         }
     } finally {
-        client.release();
-        console.log('[Photo Upload Route Handler] DB Client released.');
+        console.log('[Upload Trace] === FINALLY Block Entered ===');
+        if (client) { // Check if client was successfully assigned
+            client.release();
+            console.log('[Photo Upload Route Handler] DB Client released.');
+        } else {
+             console.log('[Upload Trace] DB Client was not acquired, skipping release.');
+        }
+        console.log('[Upload Trace] === Route Handler END ===');
     }
 });
 
