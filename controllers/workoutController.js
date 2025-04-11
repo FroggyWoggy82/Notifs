@@ -12,14 +12,24 @@ const fs = require('fs');
 const MAX_FILE_SIZE_MB = 25;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
+// Ensure the upload directory exists
+const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+if (!fs.existsSync(uploadDir)){
+    console.log(`Creating directory: ${uploadDir}`);
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, WorkoutModel.progressPhotosDir);
+        console.log(`[Multer Storage] Setting destination to: ${uploadDir}`);
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         // Create a unique filename: fieldname-timestamp.extension
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        const filename = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
+        console.log(`[Multer Storage] Generated filename: ${filename}`);
+        cb(null, filename);
     }
 });
 
@@ -338,6 +348,7 @@ async function createExercise(req, res) {
 function uploadProgressPhotos(req, res) {
     console.log('Received POST /api/workouts/progress-photos request');
     console.log('Request headers:', req.headers);
+    console.log('Request body before multer:', req.body || 'empty');
 
     // Check if the content type is multipart/form-data
     if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
@@ -345,60 +356,68 @@ function uploadProgressPhotos(req, res) {
         return res.status(400).json({ error: 'Invalid content type. Expected multipart/form-data' });
     }
 
-    uploadPhotosMiddleware(req, res, async function(err) {
-        if (err) {
-            // An error occurred during upload
-            console.error('Error during upload:', err);
+    // Use a try-catch block to handle any synchronous errors
+    try {
+        uploadPhotosMiddleware(req, res, async function(err) {
+            console.log('Multer middleware completed');
 
-            // Handle specific multer errors
-            if (err.code === 'LIMIT_FILE_SIZE') {
-                return res.status(400).json({
-                    error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`
-                });
-            } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-                return res.status(400).json({
-                    error: 'Too many files or wrong field name. Expected field name: photos'
-                });
+            if (err) {
+                // An error occurred during upload
+                console.error('Error during upload:', err);
+
+                // Handle specific multer errors
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    return res.status(400).json({
+                        error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`
+                    });
+                } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+                    return res.status(400).json({
+                        error: 'Too many files or wrong field name. Expected field name: photos'
+                    });
+                }
+
+                // Generic error response
+                return res.status(400).json({ error: err.message || 'Upload failed' });
             }
 
-            // Generic error response
-            return res.status(400).json({ error: err.message || 'Upload failed' });
-        }
+            // Everything went fine, files are available in req.files
+            if (!req.files || req.files.length === 0) {
+                console.error('No files found in request');
+                return res.status(400).json({ error: 'No files were uploaded.' });
+            }
 
-        // Everything went fine, files are available in req.files
-        if (!req.files || req.files.length === 0) {
-            console.error('No files found in request');
-            return res.status(400).json({ error: 'No files were uploaded.' });
-        }
+            console.log(`Received ${req.files.length} files:`, req.files.map(f => f.filename).join(', '));
+            console.log('Request body:', req.body);
 
-        console.log(`Received ${req.files.length} files:`, req.files.map(f => f.filename).join(', '));
-        console.log('Request body:', req.body);
+            // Get the date from the request body
+            // Check both 'photo-date' (from form) and 'date' (fallback) fields
+            const date = req.body['photo-date'] || req.body['date'] || new Date().toISOString().split('T')[0]; // Default to today if not provided
+            console.log(`Using date: ${date} for photo upload (from fields: ${Object.keys(req.body).join(', ')})`);
 
-        // Get the date from the request body
-        // Check both 'photo-date' (from form) and 'date' (fallback) fields
-        const date = req.body['photo-date'] || req.body['date'] || new Date().toISOString().split('T')[0]; // Default to today if not provided
-        console.log(`Using date: ${date} for photo upload (from fields: ${Object.keys(req.body).join(', ')})`);
+            // Log all request information for debugging
+            console.log('Request headers:', req.headers);
+            console.log('Request body keys:', Object.keys(req.body));
+            console.log('Request files:', req.files ? req.files.length : 'none');
 
-        // Log all request information for debugging
-        console.log('Request headers:', req.headers);
-        console.log('Request body keys:', Object.keys(req.body));
-        console.log('Request files:', req.files ? req.files.length : 'none');
+            try {
+                // Save photos to database
+                const insertedPhotos = await WorkoutModel.saveProgressPhotos(date, req.files);
+                console.log(`Successfully saved photos to database:`, JSON.stringify(insertedPhotos));
 
-        try {
-            // Save photos to database
-            const insertedPhotos = await WorkoutModel.saveProgressPhotos(date, req.files);
-            console.log(`Successfully saved photos to database:`, JSON.stringify(insertedPhotos));
-
-            console.log(`Successfully uploaded and saved ${req.files.length} progress photos to database`);
-            res.status(201).json({
-                message: `Successfully uploaded ${req.files.length} files`,
-                photos: insertedPhotos
-            });
-        } catch (error) {
-            console.error('Error saving photos to database:', error);
-            res.status(500).json({ error: 'Error saving photos to database' });
-        }
-    });
+                console.log(`Successfully uploaded and saved ${req.files.length} progress photos to database`);
+                res.status(201).json({
+                    message: `Successfully uploaded ${req.files.length} files`,
+                    photos: insertedPhotos
+                });
+            } catch (error) {
+                console.error('Error saving photos to database:', error);
+                res.status(500).json({ error: 'Error saving photos to database' });
+            }
+        });
+    } catch (error) {
+        console.error('Error setting up multer middleware:', error);
+        return res.status(500).json({ error: 'Server error during file upload setup' });
+    }
 }
 
 /**
