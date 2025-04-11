@@ -2982,12 +2982,14 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.textContent = result.message || 'Upload successful!';
             statusElement.style.color = '#4CAF50'; // Green
             form.reset();
-            fetchAndDisplayPhotos();
 
-            setTimeout(() => {
-                modal.style.display = 'none';
-                statusElement.textContent = '';
-            }, 1500);
+            // Fetch and display photos immediately
+            await fetchAndDisplayPhotos();
+
+            // Close the modal immediately instead of using setTimeout
+            // This prevents issues on mobile where the timeout might not work properly
+            modal.style.display = 'none';
+            statusElement.textContent = '';
 
         } catch (error) {
             // ... (keep existing detailed error logging in catch block) ...
