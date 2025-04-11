@@ -3003,16 +3003,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Create and configure XMLHttpRequest
                 const xhr = new XMLHttpRequest();
 
-                // Set up event handlers
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const percentComplete = Math.round((event.loaded / event.total) * 100);
-                        statusElement.textContent = `Uploading: ${percentComplete}%`;
-                        console.log(`[Photo Upload Client] Upload progress: ${percentComplete}%`);
-                    }
+                // Add all event listeners before opening the connection
+                // This ensures we don't miss any events
+
+                // Track upload start
+                xhr.upload.onloadstart = function() {
+                    console.log('[Photo Upload Client] Upload started');
+                    statusElement.textContent = 'Upload started...';
                 };
 
+                // Track upload progress - this will be overridden later with a more robust version
+                // We're just setting up the initial handler here
+                xhr.upload.onprogress = function() {
+                    console.log(`[Photo Upload Client] Initial progress handler called`);
+                };
+
+                // Track when upload is complete
+                xhr.upload.onload = function() {
+                    console.log('[Photo Upload Client] Upload completed, waiting for server response');
+                    statusElement.textContent = 'Processing...';
+                };
+
+                // Track upload errors
+                xhr.upload.onerror = function() {
+                    console.error('[Photo Upload Client] Upload failed due to error');
+                    reject(new Error('Upload failed. Please check your connection and try again.'));
+                };
+
+                // Track upload abort
+                xhr.upload.onabort = function() {
+                    console.warn('[Photo Upload Client] Upload aborted');
+                    reject(new Error('Upload was aborted.'));
+                };
+
+                // Track upload timeout
+                xhr.upload.ontimeout = function() {
+                    console.error('[Photo Upload Client] Upload timed out');
+                    reject(new Error('Upload timed out. Please try again with a smaller image.'));
+                };
+
+                // Handle the response from the server
                 xhr.onload = function() {
+                    console.log(`[Photo Upload Client] Server responded with status: ${xhr.status}`);
+                    console.log(`[Photo Upload Client] Response text: ${xhr.responseText}`);
+
                     if (xhr.status >= 200 && xhr.status < 300) {
                         console.log(`[Photo Upload Client] Upload successful with status: ${xhr.status}`);
                         try {
@@ -3038,22 +3072,70 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 };
 
+                // Handle network errors
                 xhr.onerror = function() {
-                    console.error('[Photo Upload Client] Network error during upload');
+                    console.error('[Photo Upload Client] Network error during request');
                     reject(new Error('Network error during upload. Please check your connection and try again.'));
                 };
 
+                // Handle timeouts
                 xhr.ontimeout = function() {
-                    console.error('[Photo Upload Client] Upload timed out');
-                    reject(new Error('Upload timed out. Please try again with a smaller image or better connection.'));
+                    console.error('[Photo Upload Client] Request timed out');
+                    reject(new Error('Request timed out. Please try again with a smaller image or better connection.'));
                 };
 
-                // Open and send the request
-                xhr.open('POST', '/api/workouts/progress-photos', true);
-                xhr.timeout = 60000; // 60 seconds timeout
-                xhr.send(newFormData);
+                // Handle state changes for debugging
+                xhr.onreadystatechange = function() {
+                    console.log(`[Photo Upload Client] Ready state changed: ${xhr.readyState}`);
+                    // readyState: 0=UNSENT, 1=OPENED, 2=HEADERS_RECEIVED, 3=LOADING, 4=DONE
+                };
 
-                console.log('[Photo Upload Client] XMLHttpRequest sent');
+                // Set headers for better compatibility
+                console.log('[Photo Upload Client] Setting up headers');
+
+                // Open the connection
+                console.log('[Photo Upload Client] Opening XMLHttpRequest connection');
+                xhr.open('POST', '/api/workouts/progress-photos', true);
+
+                // Set timeout
+                xhr.timeout = 60000; // 60 seconds timeout
+
+                // Send the request
+                console.log('[Photo Upload Client] Sending XMLHttpRequest');
+                try {
+                    xhr.send(newFormData);
+                    console.log('[Photo Upload Client] XMLHttpRequest sent successfully');
+
+                    // Set a backup timer to check if progress events are firing
+                    let progressEventFired = false;
+
+                    xhr.upload.onprogress = function(event) {
+                        progressEventFired = true;
+                        console.log(`[Photo Upload Client] Progress event fired: loaded=${event.loaded}, total=${event.total}, lengthComputable=${event.lengthComputable}`);
+
+                        if (event.lengthComputable) {
+                            const percentComplete = Math.round((event.loaded / event.total) * 100);
+                            statusElement.textContent = `Uploading: ${percentComplete}%`;
+                            console.log(`[Photo Upload Client] Upload progress: ${percentComplete}%`);
+                        } else {
+                            // If length is not computable, just show that we're uploading
+                            statusElement.textContent = 'Uploading... (progress unknown)';
+                            console.log('[Photo Upload Client] Upload progress not computable');
+                        }
+                    };
+
+                    // Check if progress events are firing after 5 seconds
+                    setTimeout(() => {
+                        if (!progressEventFired) {
+                            console.warn('[Photo Upload Client] No progress events received after 5 seconds');
+                            statusElement.textContent = 'Uploading... (please wait)';
+                        }
+                    }, 5000);
+
+                } catch (error) {
+                    console.error('[Photo Upload Client] Error sending XMLHttpRequest:', error);
+                    reject(new Error(`Failed to send request: ${error.message}`));
+                }
             });
 
             // Wait for the upload to complete
