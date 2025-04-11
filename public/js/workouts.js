@@ -2968,47 +2968,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
     }
-
-            // Fetch and display photos
-            try {
-                await fetchAndDisplayPhotos();
-                console.log('[Photo Upload Client] Successfully fetched and displayed photos');
-            } catch (fetchError) {
-                console.error('[Photo Upload Client] Error fetching photos after upload:', fetchError);
-                // Try one more time after a short delay
-                setTimeout(() => {
-                    fetchAndDisplayPhotos().catch(err =>
-                        console.error('[Photo Upload Client] Second attempt to fetch photos failed:', err)
-                    );
-                }, 1000);
-            }
-
-        } catch (error) {
-            // Clear the force close timeout
-            clearTimeout(forceCloseTimeout);
-
-            console.error('[Photo Upload Client] Error during photo upload:', error);
-            console.error('[Photo Upload Client] Error Name:', error.name);
-            console.error('[Photo Upload Client] Error Message:', error.message);
-            if (error.stack) console.error('[Photo Upload Client] Error Stack:', error.stack);
-            if (error.status) console.error('[Photo Upload Client] Error Status:', error.status);
-            if (error.data) console.error('[Photo Upload Client] Error Data:', error.data);
-
-            statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
-            statusElement.style.color = '#f44336'; // Red
-
-            // Auto-close the modal after error too
-            setTimeout(() => {
-                modal.style.display = 'none';
-                statusElement.textContent = '';
-            }, 3000);
-
-        } finally {
-            // Ensure button is re-enabled
-            submitButton.disabled = false;
-            console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
-        }
-    }
     // --- END NEW ---
 
     // --- Exercise Name Edit Functions ---
