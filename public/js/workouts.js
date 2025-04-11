@@ -3261,6 +3261,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     const filename = pathParts[pathParts.length - 1];
                     imagePath = `uploads/progress_photos/${filename}`;
                     console.log(`[Photo Load] Special handling for new photo ID 16: ${imagePath}`);
+                } else if (photo.photo_id === 17) {
+                    // Get the filename from the path for photo ID 17
+                    const pathParts = photo.file_path.split('/');
+                    const filename = pathParts[pathParts.length - 1];
+                    imagePath = `uploads/progress_photos/${filename}`;
+                    console.log(`[Photo Load] Special handling for photo ID 17: ${imagePath}`);
+
+                    // Add extra debugging for photo ID 17
+                    console.log(`[Photo Load] Photo 17 details - Original path: ${photo.file_path}`);
+                    console.log(`[Photo Load] Photo 17 details - Extracted filename: ${filename}`);
+                    console.log(`[Photo Load] Photo 17 details - Final path: ${imagePath}`);
                 } else {
                     // Process the path from the database for other photos
                     imagePath = photo.file_path;
