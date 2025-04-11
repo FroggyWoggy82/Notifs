@@ -1,0 +1,33 @@
+/* Pagination dots fix */
+.pagination-dots {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 5px 0;
+    margin: 0 auto;
+}
+
+.pagination-dots .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #555;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-dots .dot.active {
+    background-color: #ff3b30;
+}
+
+/* Make sure the dots are visible and properly spaced */
+@media (max-width: 768px) {
+    .pagination-dots .dot {
+        width: 8px;
+        height: 8px;
+        margin: 0 3px;
+    }
+}

@@ -73,10 +73,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
 
-            // Run the fix every second for 10 seconds to catch any dynamically loaded images
+            // Fix the pagination dots issue
+            const fixPaginationDots = function() {
+                const paginationDotsContainer = document.querySelector('.pagination-dots');
+                const photoReel = document.getElementById('photo-reel');
+
+                if (paginationDotsContainer && photoReel) {
+                    // Get the actual number of images in the reel
+                    const images = photoReel.querySelectorAll('img');
+                    const dots = paginationDotsContainer.querySelectorAll('.dot');
+
+                    console.log(`[Pagination Fix] Found ${images.length} images and ${dots.length} dots`);
+
+                    // If there are more dots than images, remove the extra dots
+                    if (dots.length > images.length) {
+                        console.log(`[Pagination Fix] Removing ${dots.length - images.length} extra dots`);
+
+                        // Clear all dots and recreate them
+                        paginationDotsContainer.innerHTML = '';
+
+                        // Recreate the correct number of dots
+                        for (let i = 0; i < images.length; i++) {
+                            const dot = document.createElement('span');
+                            dot.classList.add('dot');
+                            dot.dataset.index = String(i);
+
+                            // Add click event listener
+                            dot.addEventListener('click', function() {
+                                console.log(`[Pagination Fix] Dot ${i} clicked`);
+                                // Call the goToPhoto function if it exists
+                                if (typeof window.goToPhoto === 'function') {
+                                    window.goToPhoto(i);
+                                } else {
+                                    console.error('[Pagination Fix] goToPhoto function not found');
+                                }
+                            });
+
+                            paginationDotsContainer.appendChild(dot);
+                        }
+
+                        // Update the active dot
+                        const currentPhotoIndex = window.currentPhotoIndex || 0;
+                        const newDots = paginationDotsContainer.querySelectorAll('.dot');
+                        newDots.forEach((dot, i) => {
+                            dot.classList.toggle('active', i === currentPhotoIndex);
+                        });
+
+                        console.log(`[Pagination Fix] Pagination dots fixed. Now have ${paginationDotsContainer.querySelectorAll('.dot').length} dots`);
+                    }
+
+                    // Make sure the dots container is properly styled for scrolling
+                    paginationDotsContainer.style.display = 'flex';
+                    paginationDotsContainer.style.justifyContent = 'center';
+                    paginationDotsContainer.style.flexWrap = 'wrap';
+                    paginationDotsContainer.style.maxWidth = '100%';
+                    paginationDotsContainer.style.overflow = 'hidden';
+                }
+            };
+
+            // Run the fixes every second for 10 seconds to catch any dynamically loaded images
             let fixAttempts = 0;
             const fixInterval = setInterval(function() {
                 simplifyImageErrorHandling();
+                fixPaginationDots();
                 fixAttempts++;
                 if (fixAttempts >= 10) {
                     clearInterval(fixInterval);
