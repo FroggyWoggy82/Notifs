@@ -2948,7 +2948,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.disabled = true;
 
         // Create a timeout to force-close the modal if it takes too long
-        // Using a longer timeout for mobile uploads (90 seconds)
+        // Using a longer timeout for mobile uploads (3 minutes)
         const forceCloseTimeout = setTimeout(() => {
             console.log('[Photo Upload Client] Force closing modal due to timeout');
             modal.style.display = 'none';
@@ -2958,7 +2958,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = false;
             // Force refresh photos
             fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after timeout:', err));
-        }, 90000); // 90 seconds timeout for mobile
+        }, 180000); // 3 minutes timeout for mobile
 
         try {
             console.log('[Photo Upload Client] About to initiate upload to /api/workouts/progress-photos');
@@ -3097,8 +3097,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('[Photo Upload Client] Opening XMLHttpRequest connection');
                 xhr.open('POST', '/api/workouts/progress-photos', true);
 
-                // Set timeout
-                xhr.timeout = 60000; // 60 seconds timeout
+                // Set a longer timeout for mobile uploads
+                xhr.timeout = 120000; // 2 minutes timeout
 
                 // Send the request
                 console.log('[Photo Upload Client] Sending XMLHttpRequest');
@@ -3113,14 +3113,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         progressEventFired = true;
                         console.log(`[Photo Upload Client] Progress event fired: loaded=${event.loaded}, total=${event.total}, lengthComputable=${event.lengthComputable}`);
 
-                        if (event.lengthComputable) {
+                        // Check if total is a reasonable value (some browsers report an unreasonably large number)
+                        const isValidTotal = event.total > 0 && event.total < 1000000000; // 1GB max reasonable size
+
+                        if (event.lengthComputable && isValidTotal) {
                             const percentComplete = Math.round((event.loaded / event.total) * 100);
                             statusElement.textContent = `Uploading: ${percentComplete}%`;
                             console.log(`[Photo Upload Client] Upload progress: ${percentComplete}%`);
                         } else {
-                            // If length is not computable, just show that we're uploading
-                            statusElement.textContent = 'Uploading... (progress unknown)';
-                            console.log('[Photo Upload Client] Upload progress not computable');
+                            // If length is not computable or total is invalid, show bytes uploaded
+                            const loadedKB = Math.round(event.loaded / 1024);
+                            statusElement.textContent = `Uploading... ${loadedKB} KB sent`;
+                            console.log(`[Photo Upload Client] Upload progress in bytes: ${event.loaded} bytes sent`);
                         }
                     };
 
