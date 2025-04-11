@@ -2957,13 +2957,21 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = false;
             // Force refresh photos
             fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after timeout:', err));
-        }, 8000); // 8 seconds timeout
+        }, 30000); // 30 seconds timeout for mobile
 
         try {
             console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
-            const response = await fetch('/api/workouts/progress-photos', {
+            // Add a timestamp to the URL to prevent caching issues
+            const timestamp = new Date().getTime();
+            const response = await fetch(`/api/workouts/progress-photos?t=${timestamp}`, {
                 method: 'POST',
                 body: formData,
+                // Add timeout and cache control for mobile
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
             });
 
             console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
@@ -3360,7 +3368,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Store the path in data-src for lazy loading
                 img.dataset.src = imagePath;
                 img.src = ''; // Set src initially empty
-                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
+                img.alt = `Progress photo ${photo.photo_id}`;
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
                 img.loading = 'lazy'; // Add native lazy loading attribute as well
                 photoReel.appendChild(img);
