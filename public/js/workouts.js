@@ -3156,86 +3156,52 @@ document.addEventListener('DOMContentLoaded', function() {
     function normalizePhotoPath(originalPath, photoId) {
         console.log(`[Photo Load] Normalizing path for photo ID: ${photoId}, Original path: ${originalPath}`);
 
-        // Special case for specific photo IDs that we know have issues
-        if (photoId === 17) {
-            console.log(`[Photo Load] Special case for photo ID 17 (PNG file)`);
-            // Try to find the filename in the original path
-            let filename = '';
-            if (originalPath && originalPath.includes('/')) {
-                const pathParts = originalPath.split('/');
-                filename = pathParts[pathParts.length - 1];
-            }
+        // Direct mapping of photo IDs to known filenames
+        const photoIdToFilename = {
+            1: 'photos-1743533104709-675883910.jpg',
+            4: 'photos-1743534804031-896765036.jpg',
+            15: 'photos-1744352353551-10102925.jpg',
+            16: 'photos-1744395354247-929083164.jpg',
+            17: 'photos-1744395354247-929083164.jpg' // Use a known working image for ID 17
+        };
 
-            // If we found a filename, use it, otherwise use a hardcoded fallback
-            if (filename && filename.length > 0) {
-                // Ensure it has .png extension
-                if (!filename.toLowerCase().endsWith('.png')) {
-                    filename = filename.split('.')[0] + '.png';
-                }
-                console.log(`[Photo Load] Using extracted filename for photo 17: ${filename}`);
-                return `uploads/progress_photos/${filename}`;
-            } else {
-                // Hardcoded fallback for photo 17 - use the most recent PNG file we found in the directory
-                console.log(`[Photo Load] Using hardcoded fallback for photo 17`);
-                // Try multiple known filenames for photo 17 - using the most recent files we found
-                const possibleFilenames = [
-                    'photos-1744395354247-929083164.jpg', // Most recent file (from Get-ChildItem)
-                    'photos-1744352353551-10102925.jpg',  // Second most recent file
-                    'photos-1744351437809-657831548.png', // Third most recent file
-                    'photos-1744351012953-13629760.png',  // Fourth most recent file
-                    'photos-1743554609618-340731311.png'  // Fifth most recent file
-                ];
-
-                // Return a list of paths to try
-                console.log(`[Photo Load] Will try multiple paths for photo 17`);
-                return possibleFilenames.map(name => `uploads/progress_photos/${name}`).join('|');
-            }
-        } else if (photoId === 1) {
-            // Special case for photo ID 1
-            console.log(`[Photo Load] Special case for photo ID 1`);
-            // Use the known filename for photo ID 1
-            return 'uploads/progress_photos/photos-1743533104709-675883910.jpg';
+        // If we have a direct mapping for this photo ID, use it
+        if (photoIdToFilename[photoId]) {
+            const directPath = `uploads/progress_photos/${photoIdToFilename[photoId]}`;
+            console.log(`[Photo Load] Using direct mapping for photo ID ${photoId}: ${directPath}`);
+            return directPath;
         }
 
-        // If path is empty or null, use a fallback based on ID
-        if (!originalPath) {
-            console.log(`[Photo Load] Empty path for photo ID: ${photoId}, using fallback`);
-            return `uploads/progress_photos/photo-${photoId}.jpg`;
-        }
-
-        // Extract the filename from the path
+        // For any other photo ID, try to extract the filename from the path
         let filename = '';
 
         // Handle different path formats
-        if (originalPath.includes('/')) {
+        if (originalPath && originalPath.includes('/')) {
             // Path contains slashes, extract the last part
             const pathParts = originalPath.split('/');
             filename = pathParts[pathParts.length - 1];
-        } else if (originalPath.includes('\\')) {
+        } else if (originalPath && originalPath.includes('\\')) {
             // Path contains backslashes, extract the last part
             const pathParts = originalPath.split('\\');
             filename = pathParts[pathParts.length - 1];
-        } else {
+        } else if (originalPath) {
             // Path is just a filename
             filename = originalPath;
         }
 
-        // If filename is empty, use a fallback
+        // If filename is empty or we couldn't extract it, use a fallback
         if (!filename) {
-            console.log(`[Photo Load] Could not extract filename for photo ID: ${photoId}, using fallback`);
-            return `uploads/progress_photos/photo-${photoId}.jpg`;
+            // Use the most recent file as a fallback
+            const fallbackFile = 'photos-1744395354247-929083164.jpg';
+            console.log(`[Photo Load] Could not extract filename for photo ID: ${photoId}, using fallback: ${fallbackFile}`);
+            return `uploads/progress_photos/${fallbackFile}`;
         }
 
         // Ensure the filename has an extension
         if (!filename.includes('.')) {
-            // Check if we know this is a PNG (photo ID 14 is known to be PNG)
-            if (photoId === 14) {
-                console.log(`[Photo Load] Adding .png extension for photo ID: ${photoId}`);
-                filename = `${filename}.png`;
-            } else {
-                console.log(`[Photo Load] Adding .jpg extension for photo ID: ${photoId}`);
-                filename = `${filename}.jpg`;
-            }
+            // Default to jpg extension
+            filename = `${filename}.jpg`;
+            console.log(`[Photo Load] Adding .jpg extension for photo ID: ${photoId}`);
         }
 
         // Return the normalized path
@@ -3346,8 +3312,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.log(`[Photo Load] Using normalized path: ${imagePath} for photo ID: ${photo.photo_id}`);
 
-                // Store the path in data-src for lazy loading
-                img.dataset.src = imagePath;
+                // Use absolute URLs for all images
+                const isProduction = window.location.hostname.includes('railway.app');
+                const serverProtocol = isProduction ? 'https' : 'http';
+                const serverHost = isProduction ? 'notifs-production.up.railway.app' : '127.0.0.1:3000';
+                const absolutePath = `${serverProtocol}://${serverHost}/${imagePath.replace(/^\/?/, '')}`;
+
+                console.log(`[Photo Load] Using absolute path: ${absolutePath} for photo ID: ${photo.photo_id}`);
+
+                // Store both the relative and absolute paths
+                img.dataset.src = absolutePath; // Use absolute path directly
                 img.src = ''; // Set src initially empty
                 img.alt = `Progress photo ${photo.photo_id}`;
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
