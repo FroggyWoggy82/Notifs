@@ -36,9 +36,18 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve uploaded files - both from root uploads and public/uploads
+// Serve uploaded files - with multiple paths for compatibility
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/public/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
+// For debugging - log all static file requests
+app.use((req, res, next) => {
+  if (req.url.includes('/uploads/') || req.url.includes('/public/uploads/')) {
+    console.log(`[Static File Request] ${req.url}`);
+  }
+  next();
+});
 
 // API Routes
 app.use('/api/goals', goalRoutes);

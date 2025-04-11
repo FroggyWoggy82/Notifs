@@ -569,7 +569,8 @@ async function saveProgressPhotos(date, files) {
         const insertedPhotos = [];
         for (const file of files) {
             // Use a consistent path format that works with our server configuration
-            const relativePath = `/uploads/progress_photos/${file.filename}`;
+            // For mobile compatibility, use a path relative to the public directory
+            const relativePath = `/public/uploads/progress_photos/${file.filename}`;
             console.log(`Saving photo with path: ${relativePath}`);
 
             const result = await client.query(

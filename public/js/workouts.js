@@ -3332,9 +3332,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add Image to Reel
                 const img = document.createElement('img');
 
-                // Store the original file path in data-src for lazy loading
-                img.dataset.src = photo.file_path;
-                console.log(`[Photo Load] Using image path: ${photo.file_path} for photo ID: ${photo.photo_id}`);
+                // Process the file path for compatibility
+                let imagePath = photo.file_path;
+
+                // Log the original path
+                console.log(`[Photo Load] Original image path: ${imagePath} for photo ID: ${photo.photo_id}`);
+
+                // For older photos that don't have the /public prefix
+                if (imagePath.startsWith('/uploads/') && !imagePath.startsWith('/public/')) {
+                    // Keep as is - these are the LeBron photos that work
+                    console.log(`[Photo Load] Using original path for older photo: ${imagePath}`);
+                }
+
+                // Store the path in data-src for lazy loading
+                img.dataset.src = imagePath;
+                console.log(`[Photo Load] Final image path set to: ${imagePath} for photo ID: ${photo.photo_id}`);
                 img.src = ''; // Set src initially empty
                 img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
@@ -3447,9 +3459,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
             // Only set src if it's not already set or differs from data-src
-            if (currentImageElement.src !== currentImageElement.dataset.src) {
-                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
-                currentImageElement.src = currentImageElement.dataset.src;
+            if (!currentImageElement.src || currentImageElement.src === '' || currentImageElement.src !== currentImageElement.dataset.src) {
+                const imagePath = currentImageElement.dataset.src;
+                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${imagePath}`);
+
+                // Set the src attribute directly
+                currentImageElement.src = imagePath;
+
+                // Force a reload of the image
+                setTimeout(() => {
+                    if (currentImageElement.complete && currentImageElement.naturalWidth === 0) {
+                        console.log(`[Photo Display] Image failed to load, trying again: ${imagePath}`);
+                        currentImageElement.src = imagePath + '?t=' + new Date().getTime();
+                    }
+                }, 500);
             }
         } else {
             console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
