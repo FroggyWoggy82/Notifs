@@ -3156,7 +3156,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function normalizePhotoPath(originalPath, photoId) {
         console.log(`[Photo Load] Normalizing path for photo ID: ${photoId}, Original path: ${originalPath}`);
 
-        // Special case for photo ID 17 which we know is a PNG
+        // Special case for specific photo IDs that we know have issues
         if (photoId === 17) {
             console.log(`[Photo Load] Special case for photo ID 17 (PNG file)`);
             // Try to find the filename in the original path
@@ -3190,6 +3190,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(`[Photo Load] Will try multiple paths for photo 17`);
                 return possibleFilenames.map(name => `uploads/progress_photos/${name}`).join('|');
             }
+        } else if (photoId === 1) {
+            // Special case for photo ID 1
+            console.log(`[Photo Load] Special case for photo ID 1`);
+            // Use the known filename for photo ID 1
+            return 'uploads/progress_photos/photos-1743533104709-675883910.jpg';
         }
 
         // If path is empty or null, use a fallback based on ID
@@ -3550,7 +3555,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Try with direct server URL
                                 this.onerror = function() {
                                     console.log(`[Photo Display] Retry 5 failed, trying with direct server URL`);
-                                    const serverPath = `http://127.0.0.1:3000/${imagePath.replace(/^\/?/, '')}`;
+                                    // Use HTTPS for production, HTTP for local development
+                                    const isProduction = window.location.hostname.includes('railway.app');
+                                    const serverProtocol = isProduction ? 'https' : 'http';
+                                    const serverHost = isProduction ? 'notifs-production.up.railway.app' : '127.0.0.1:3000';
+                                    const serverPath = `${serverProtocol}://${serverHost}/${imagePath.replace(/^\/?/, '')}`;
                                     console.log(`[Photo Display] Retry 6: Using direct server URL: ${serverPath}`);
                                     this.src = serverPath;
 
@@ -3558,12 +3567,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                     this.onerror = function() {
                                         console.log(`[Photo Display] All retries failed, using placeholder image`);
                                         // Try the placeholder with different paths
+                                        // Use HTTPS for production, HTTP for local development
+                                        const isProduction = window.location.hostname.includes('railway.app');
+                                        const serverProtocol = isProduction ? 'https' : 'http';
+                                        const serverHost = isProduction ? 'notifs-production.up.railway.app' : '127.0.0.1:3000';
+
                                         const placeholderPaths = [
                                             '/images/photo-placeholder.png',
                                             'images/photo-placeholder.png',
                                             '/public/images/photo-placeholder.png',
                                             '../images/photo-placeholder.png',
-                                            'http://127.0.0.1:3000/images/photo-placeholder.png'
+                                            `${serverProtocol}://${serverHost}/images/photo-placeholder.png`
                                         ];
 
                                         // Use the first placeholder path
@@ -3582,13 +3596,22 @@ document.addEventListener('DOMContentLoaded', function() {
                                             } else {
                                                 console.log(`[Photo Display] All placeholder paths failed, giving up`);
                                                 this.onerror = null; // Prevent infinite loop
-                                                this.style.display = 'none'; // Hide the image
-                                                // Add a text message instead
-                                                const errorMsg = document.createElement('div');
-                                                errorMsg.textContent = 'Image unavailable';
-                                                errorMsg.className = 'photo-error-message';
-                                                if (this.parentNode) {
-                                                    this.parentNode.insertBefore(errorMsg, this.nextSibling);
+
+                                                // Check if the image is actually visible despite errors
+                                                if (this.complete && this.naturalWidth > 0) {
+                                                    console.log(`[Photo Display] Image appears to be loaded despite errors, keeping it visible`);
+                                                    // Image is actually loaded, don't hide it
+                                                    this.style.display = 'block';
+                                                } else {
+                                                    // Image truly failed to load
+                                                    this.style.display = 'none'; // Hide the image
+                                                    // Add a text message instead
+                                                    const errorMsg = document.createElement('div');
+                                                    errorMsg.textContent = 'Image unavailable';
+                                                    errorMsg.className = 'photo-error-message';
+                                                    if (this.parentNode) {
+                                                        this.parentNode.insertBefore(errorMsg, this.nextSibling);
+                                                    }
                                                 }
                                             }
                                         };
