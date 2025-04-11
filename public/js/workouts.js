@@ -2979,7 +2979,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log(`[Photo Upload Client] Photo file details: name=${photoFile.name}, size=${photoFile.size}, type=${photoFile.type}`);
 
-            // Use the dedicated photo uploader module
+            // Set up event listeners before starting the upload
+            const progressListener = function(e) {
+                if (e.detail.message) {
+                    statusElement.textContent = e.detail.message;
+                } else if (e.detail.percent) {
+                    statusElement.textContent = `Uploading: ${e.detail.percent}%`;
+                } else if (e.detail.bytes) {
+                    const loadedKB = Math.round(e.detail.bytes / 1024);
+                    statusElement.textContent = `Uploading... ${loadedKB} KB sent`;
+                }
+            };
+
+            const completeListener = function(e) {
+                statusElement.textContent = 'Processing...';
+                if (e.detail && e.detail.success) {
+                    // Clear the force close timeout
+                    clearTimeout(forceCloseTimeout);
+
+                    // Show success message
+                    statusElement.textContent = 'Upload successful!';
+                    statusElement.style.color = '#4CAF50';
+
+                    // Close the modal after a short delay
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        // Reset the form and status
+                        form.reset();
+                        statusElement.textContent = '';
+                        statusElement.style.color = '#03dac6';
+                        submitButton.disabled = false;
+                        // Refresh photos
+                        fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after upload:', err));
+                    }, 1500);
+                }
+            };
+
+            const errorListener = function(e) {
+                // Clear the force close timeout
+                clearTimeout(forceCloseTimeout);
+
+                // Show error message
+                statusElement.textContent = `Upload failed: ${e.detail.error || 'Unknown error'}`;
+                statusElement.style.color = '#F44336';
+                submitButton.disabled = false;
+            };
+
+            // Add event listeners
+            document.addEventListener('photo-upload-progress', progressListener);
+            document.addEventListener('photo-upload-complete', completeListener);
+            document.addEventListener('photo-upload-error', errorListener);
+
             try {
                 // Check if the photoUploader module is available
                 if (!window.photoUploader || typeof window.photoUploader.uploadPhoto !== 'function') {
@@ -2988,72 +3038,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Use the dedicated photo uploader module
-                // Use the dedicated photo uploader module
+                statusElement.textContent = 'Starting upload...';
                 const response = await window.photoUploader.uploadPhoto(photoFile, formData.get('photo-date'));
-
-                // Set up progress tracking
-                document.addEventListener('photo-upload-progress', function(e) {
-                    if (e.detail.percent) {
-                        statusElement.textContent = `Uploading: ${e.detail.percent}%`;
-                    } else if (e.detail.bytes) {
-                        const loadedKB = Math.round(e.detail.bytes / 1024);
-                        const loadedMB = (e.detail.bytes / (1024 * 1024)).toFixed(2);
-
-                        if (loadedKB >= 1024) {
-                            statusElement.textContent = `Uploading... ${loadedMB} MB sent`;
-                        } else {
-                            statusElement.textContent = `Uploading... ${loadedKB} KB sent`;
-                        }
-                    }
-                });
-
-                document.addEventListener('photo-upload-complete', function() {
-                    statusElement.textContent = 'Processing...';
-                });
-
                 console.log('[Photo Upload Client] Upload successful:', response);
-
-                // Clear the force close timeout
-                clearTimeout(forceCloseTimeout);
-
-                // Show success message
-                statusElement.textContent = 'Upload successful!';
-                statusElement.style.color = '#4CAF50';
-
-                // Close the modal after a short delay
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                    // Reset the form and status
-                    form.reset();
-                    statusElement.textContent = '';
-                    statusElement.style.color = '#03dac6';
-                    submitButton.disabled = false;
-                    // Refresh photos
-                    fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after upload:', err));
-                }, 1500);
             } catch (uploadError) {
                 console.error('[Photo Upload Client] Error during upload:', uploadError);
-
-                // Clear the force close timeout
-                clearTimeout(forceCloseTimeout);
-
-                // Show error message
-                statusElement.textContent = `Upload failed: ${uploadError.message || 'Unknown error'}`;
-                statusElement.style.color = '#F44336';
-                submitButton.disabled = false;
-
-                // Log the error for debugging
-                console.error('[Photo Upload Client] Upload failed:', uploadError);
-            }
-
-            // Final cleanup in the finally block
-            finally {
+            } finally {
+                // Remove event listeners to prevent memory leaks
+                document.removeEventListener('photo-upload-progress', progressListener);
+                document.removeEventListener('photo-upload-complete', completeListener);
+                document.removeEventListener('photo-upload-error', errorListener);
                 console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
             }
-            form.reset();
 
-            // Close the modal immediately
-            modal.style.display = 'none';
+            // Form is already reset in the complete listener
+            // Close the modal is already handled in the complete listener
 
             // Fetch and display photos
             try {
