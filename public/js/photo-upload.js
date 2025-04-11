@@ -6,63 +6,40 @@ function uploadPhoto(photoFile, date) {
     return new Promise((resolve, reject) => {
         console.log(`Photo upload starting: ${photoFile.name}, size: ${photoFile.size}, type: ${photoFile.type}`);
 
-        // Check if the file is a JPEG
-        const isJpeg = photoFile.type === 'image/jpeg' ||
-                      photoFile.type === 'image/jpg' ||
-                      photoFile.name.toLowerCase().endsWith('.jpg') ||
-                      photoFile.name.toLowerCase().endsWith('.jpeg');
-
-        if (isJpeg) {
-            console.log('Detected JPEG image, ensuring proper handling');
-        }
-
-        // Create FormData
+        // Create FormData - keep it simple
         const formData = new FormData();
         formData.append('photo-date', date);
         formData.append('date', date);
+        formData.append('photos', photoFile);
 
-        // For JPEG files, ensure we're using the right field name and MIME type
-        if (isJpeg) {
-            // Create a new File object with explicit MIME type
-            const jpegFile = new File(
-                [photoFile],
-                // Ensure filename ends with .jpg
-                photoFile.name.toLowerCase().endsWith('.jpg') || photoFile.name.toLowerCase().endsWith('.jpeg')
-                    ? photoFile.name
-                    : photoFile.name + '.jpg',
-                { type: 'image/jpeg' }
-            );
-            formData.append('photos', jpegFile);
-            console.log(`Created new file object with explicit MIME type: ${jpegFile.type}`);
-        } else {
-            // For non-JPEG files, use the original file
-            formData.append('photos', photoFile);
-        }
+        // Use XMLHttpRequest for better compatibility with mobile devices
+        const xhr = new XMLHttpRequest();
 
-        // Use fetch API with better error handling
-        console.log('Sending fetch request to /api/workouts/progress-photos');
-        fetch('/api/workouts/progress-photos', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            console.log(`Server responded with status: ${response.status}`);
-            if (!response.ok) {
-                return response.text().then(text => {
-                    console.error(`Server error response: ${text}`);
-                    throw new Error(`Server error: ${response.status} - ${text}`);
-                });
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                console.log('Upload successful with status:', xhr.status);
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    resolve(response);
+                } catch (e) {
+                    console.log('Response parsing error:', e);
+                    // Even if parsing fails, consider it a success
+                    resolve({ success: true });
+                }
+            } else {
+                console.error('Upload failed with status:', xhr.status);
+                reject(new Error(`Upload failed with status: ${xhr.status}`));
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Upload successful:', data);
-            resolve(data);
-        })
-        .catch(error => {
-            console.error('Upload failed:', error);
-            reject(error);
-        });
+        };
+
+        xhr.onerror = function() {
+            console.error('Network error during upload');
+            reject(new Error('Network error during upload'));
+        };
+
+        // Open and send the request
+        xhr.open('POST', '/api/workouts/progress-photos');
+        xhr.send(formData);
     });
 }
 

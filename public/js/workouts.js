@@ -3152,77 +3152,55 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END NEW ---
 
-    // --- NEW: Fetch and Display Photos Function (Redesigned for Carousel) ---
+    // --- Simplified Fetch and Display Photos Function ---
     async function fetchAndDisplayPhotos() {
-        console.log('[Photo Load] fetchAndDisplayPhotos STARTED.'); // Log start
-        // Use the slider container elements, not the old galleryEl
-        // if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn) return; // Updated condition
-        if (!photoReel || !paginationDotsContainer || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
-            console.error("[Photo Load] Missing required slider elements (reel, dots container, nav buttons, delete button).");
+        console.log('[Photo Load] fetchAndDisplayPhotos STARTED.');
+
+        // Basic validation of required elements
+        if (!photoReel || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
+            console.error("[Photo Load] Missing required elements");
             return;
         }
 
-        console.log('[Photo Load] Setting loading state...'); // Log before UI update
-        // currentPhotoDisplay.style.display = 'none'; // Hide image while loading
-        // currentPhotoDate.textContent = 'Loading photos...';
-        photoReel.innerHTML = '<p>Loading photos...</p>'; // Show loading in reel
-        paginationDotsContainer.innerHTML = ''; // Clear dots
+        // Show loading state
+        photoReel.innerHTML = '<p>Loading photos...</p>';
+        if (paginationDotsContainer) paginationDotsContainer.innerHTML = '';
         photoPrevBtn.disabled = true;
         photoNextBtn.disabled = true;
         deletePhotoBtn.disabled = true;
 
         try {
-            console.log('[Photo Load] Fetching photos from API...'); // Log before fetch
+            console.log('[Photo Load] Fetching photos from API...');
 
-            // Try the new MVC endpoint first
-            let response = await fetch('/api/workouts/progress-photos');
-            console.log(`[Photo Load] API Response Status: ${response.status}`); // Log status
-
-            // Log the raw response text for debugging
-            let responseText = await response.text();
-            console.log(`[Photo Load] Raw API Response: ${responseText}`);
-
-            // If the response is not JSON (likely HTML), try the old endpoint
-            if (responseText.includes('<!DOCTYPE html>')) {
-                console.log('[Photo Load] Received HTML response, trying fallback endpoint...');
-
-                // Try the old endpoint as fallback
-                response = await fetch('/uploads/progress_photos');
-                console.log(`[Photo Load] Fallback API Response Status: ${response.status}`);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error from fallback endpoint! status: ${response.status}`);
+            // Make a fresh request to the API
+            const response = await fetch('/api/workouts/progress-photos', {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
                 }
+            });
 
-                // Use empty array as fallback if we can't get real data
-                progressPhotosData = [];
-                console.log('[Photo Load] Using empty array as fallback');
-                return; // Exit early with empty data
-            }
+            console.log(`[Photo Load] API Response Status: ${response.status}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Parse the response text manually
-            try {
-                progressPhotosData = JSON.parse(responseText);
-                console.log('[Photo Load] Successfully parsed JSON response');
+            // Get the response as JSON
+            const data = await response.json();
+            console.log(`[Photo Load] Received ${data.length} photos from API`);
 
-                // Log each photo in the response for debugging
-                if (progressPhotosData && progressPhotosData.length > 0) {
-                    console.log(`[Photo Load] Found ${progressPhotosData.length} photos:`);
-                    progressPhotosData.forEach((photo, index) => {
-                        console.log(`[Photo Load] Photo ${index + 1}: ID=${photo.photo_id}, Date=${photo.date_taken}, Path=${photo.file_path}`);
-                    });
-                } else {
-                    console.log('[Photo Load] No photos found in response');
-                }
-            } catch (parseError) {
-                console.error('[Photo Load] JSON Parse Error:', parseError);
-                // Use empty array as fallback if parsing fails
-                progressPhotosData = [];
-                console.log('[Photo Load] Using empty array due to parse error');
+            // Store the photos data
+            progressPhotosData = data;
+
+            // Log each photo for debugging
+            if (progressPhotosData && progressPhotosData.length > 0) {
+                progressPhotosData.forEach((photo, index) => {
+                    console.log(`[Photo Load] Photo ${index + 1}: ID=${photo.photo_id}, Date=${photo.date_taken}, Path=${photo.file_path}`);
+                });
+            } else {
+                console.log('[Photo Load] No photos found in response');
             }
 
             console.log(`[Photo Load] Fetched progress photos count: ${progressPhotosData.length}`);
