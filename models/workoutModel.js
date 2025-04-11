@@ -547,6 +547,46 @@ async function getProgressPhotos() {
     return photos;
 }
 
+/**
+ * Save progress photos to the database
+ * @param {string} date - The date the photo was taken (YYYY-MM-DD)
+ * @param {Array} files - Array of file objects with filename property
+ * @returns {Promise<Array>} - Promise resolving to an array of saved photos
+ */
+async function saveProgressPhotos(date, files) {
+    if (!date) {
+        throw new Error('Date is required');
+    }
+
+    if (!files || files.length === 0) {
+        throw new Error('No files provided');
+    }
+
+    const client = await db.pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const insertedPhotos = [];
+        for (const file of files) {
+            const relativePath = `/uploads/progress_photos/${file.filename}`;
+
+            const result = await client.query(
+                'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id, date_taken, file_path',
+                [date, relativePath]
+            );
+            insertedPhotos.push(result.rows[0]);
+        }
+
+        await client.query('COMMIT');
+        return insertedPhotos;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -561,5 +601,6 @@ module.exports = {
     searchExercises,
     createExercise,
     getProgressPhotos,
+    saveProgressPhotos,
     progressPhotosDir
 };

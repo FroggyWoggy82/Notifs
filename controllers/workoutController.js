@@ -329,7 +329,7 @@ async function createExercise(req, res) {
  * @param {Object} res - Express response object
  */
 function uploadProgressPhotos(req, res) {
-    uploadPhotosMiddleware(req, res, function(err) {
+    uploadPhotosMiddleware(req, res, async function(err) {
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading
             console.error('Multer error during upload:', err);
@@ -350,20 +350,22 @@ function uploadProgressPhotos(req, res) {
             return res.status(400).json({ error: 'No files were uploaded.' });
         }
 
-        // Process the uploaded files
-        const uploadedFiles = req.files.map(file => ({
-            filename: file.filename,
-            originalname: file.originalname,
-            mimetype: file.mimetype,
-            size: file.size,
-            path: `/uploads/progress_photos/${file.filename}` // Path relative to public directory
-        }));
+        // Get the date from the request body
+        const date = req.body['photo-date'] || new Date().toISOString().split('T')[0]; // Default to today if not provided
 
-        console.log(`Successfully uploaded ${uploadedFiles.length} progress photos`);
-        res.status(201).json({
-            message: `Successfully uploaded ${uploadedFiles.length} files`,
-            files: uploadedFiles
-        });
+        try {
+            // Save photos to database
+            const insertedPhotos = await WorkoutModel.saveProgressPhotos(date, req.files);
+
+            console.log(`Successfully uploaded and saved ${req.files.length} progress photos to database`);
+            res.status(201).json({
+                message: `Successfully uploaded ${req.files.length} files`,
+                photos: insertedPhotos
+            });
+        } catch (error) {
+            console.error('Error saving photos to database:', error);
+            res.status(500).json({ error: 'Error saving photos to database' });
+        }
     });
 }
 
