@@ -5,6 +5,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); // Required for checking directory existence
+const sharp = require('sharp'); // <<< ADDED: Require sharp
 
 // --- Multer Configuration for Progress Photos ---
 const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
@@ -735,7 +736,82 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
     }
     console.log('[Upload Trace] Date and files validation passed.');
 
-    console.log(`[Photo Upload Route Handler] Proceeding with DB operations for ${files.length} photos.`);
+    // <<< NEW: HEIC to JPEG Conversion Logic >>>
+    if (req.files && req.files.length > 0) {
+        console.log('[Upload Conversion] Starting HEIC check and conversion...');
+        for (let i = 0; i < req.files.length; i++) {
+            const file = req.files[i];
+            const originalPath = file.path; // Full path to the initially saved file
+            const fileExtension = path.extname(file.originalname).toLowerCase();
+
+            if (fileExtension === '.heic') {
+                console.log(`[Upload Conversion] Found HEIC file: ${file.originalname} at ${originalPath}`);
+                const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename
+                const jpegPath = path.join(path.dirname(originalPath), jpegFilename); // Full path for JPEG output
+
+                try {
+                    console.log(`[Upload Conversion] Converting ${originalPath} to ${jpegPath}...`);
+                    await sharp(originalPath)
+                        .jpeg({ quality: 85 }) // Convert to JPEG with quality 85
+                        .toFile(jpegPath);
+                    console.log(`[Upload Conversion] Conversion successful: ${jpegPath}`);
+
+                    // Update the file object to reflect the new JPEG file
+                    req.files[i].filename = jpegFilename; // Update filename
+                    req.files[i].path = jpegPath;         // Update path (though we use relative path later)
+                    req.files[i].mimetype = 'image/jpeg'; // Update mimetype
+                    req.files[i].size = fs.statSync(jpegPath).size; // Update size
+
+                    // Delete the original HEIC file (optional, saves space)
+                    try {
+                        fs.unlinkSync(originalPath);
+                        console.log(`[Upload Conversion] Deleted original HEIC file: ${originalPath}`);
+                    } catch (unlinkErr) {
+                        console.error(`[Upload Conversion] Error deleting original HEIC file ${originalPath}:`, unlinkErr);
+                        // Don't fail the whole upload if deletion fails, just log it.
+                    }
+
+                } catch (conversionError) {
+                    console.error(`[Upload Conversion] Error converting HEIC file ${file.originalname}:`, conversionError);
+                    // Handle conversion error - Option 1: Remove the failed file from the array
+                    console.warn(`[Upload Conversion] Removing failed HEIC conversion file ${file.originalname} from upload list.`);
+                    req.files.splice(i, 1); // Remove the element from the array
+                    i--; // Adjust index because we removed an element
+
+                    // Option 2: Keep the original HEIC (less ideal as it won't display)
+                    // Option 3: Throw an error and fail the whole upload
+                    // We chose Option 1 - skip this problematic file.
+
+                    // Clean up partially saved HEIC if conversion failed mid-way
+                    try {
+                        if (fs.existsSync(originalPath)) {
+                            fs.unlinkSync(originalPath);
+                        }
+                    } catch (cleanupErr) {
+                        console.error(`[Upload Conversion] Error cleaning up original HEIC ${originalPath} after conversion failure:`, cleanupErr);
+                    }
+                }
+            }
+        }
+        console.log('[Upload Conversion] Finished HEIC check and conversion.');
+         // Log final state of req.files after potential conversions
+        console.log('[DEBUG] req.files AFTER conversion loop:', req.files ? req.files.map(f => ({ name: f.filename, path: f.path, mime: f.mimetype })) : 'undefined');
+    }
+    // <<< END NEW: HEIC to JPEG Conversion Logic >>>
+
+    // Filter out any files that might have been removed during conversion failure
+    const validFiles = req.files ? req.files.filter(file => file) : [];
+
+    // Check if there are any valid files left to process after conversion attempts
+    if (validFiles.length === 0) {
+        console.error('[Photo Upload Route Handler] Error: No valid photos left after conversion attempts.');
+        if (!res.headersSent) {
+            return res.status(400).json({ error: 'No valid photos could be processed.' });
+        }
+        return;
+    }
+
+    console.log(`[Photo Upload Route Handler] Proceeding with DB operations for ${validFiles.length} valid photos.`);
 
     let client; // Define client outside try block
     console.log('[Upload Trace] Attempting to connect to DB...');
@@ -747,9 +823,10 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
         console.log('[Photo Upload Route Handler] DB Transaction BEGIN.');
 
         const insertedPhotos = [];
-        console.log(`[Upload Trace] Starting loop for ${files.length} files...`);
-        for (const file of files) {
-            const relativePath = `/uploads/progress_photos/${file.filename}`;
+        console.log(`[Upload Trace] Starting loop for ${validFiles.length} valid files...`); // Updated log
+        for (const file of validFiles) { // <<< Use validFiles array
+            // Construct relative path using the potentially updated filename
+            const relativePath = `/uploads/progress_photos/${file.filename}`; // <<< Use file.filename
             console.log(`[Upload Trace] Processing file: ${file.filename}`);
             console.log(`[Photo Upload Route Handler] Inserting DB record for: ${relativePath}, Date: ${date}`);
 
@@ -772,7 +849,13 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
         // Ensure response isn't sent twice
         if (!res.headersSent) {
             console.log('[Upload Trace] Sending 201 success response...');
-            res.status(201).json({ message: `Successfully uploaded ${insertedPhotos.length} files!`, photos: insertedPhotos });
+             // <<< Updated: Return the data for the *processed* files >>>
+             const responsePhotos = insertedPhotos.map((dbRecord, index) => ({
+                ...dbRecord, // Include photo_id, date_taken, file_path from DB
+                originalName: validFiles[index].originalname, // Keep original name for reference if needed
+                mimeType: validFiles[index].mimetype // Mime type after potential conversion
+            }));
+            res.status(201).json({ message: `Successfully uploaded and processed ${responsePhotos.length} files!`, photos: responsePhotos });
             console.log('[Upload Trace] Success response sent.');
         }
 
@@ -789,11 +872,11 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
         }
 
         // Check if files exist before attempting deletion
-        if (files && files.length > 0) {
+        if (validFiles && validFiles.length > 0) { // <<< Use validFiles
             console.log('[Upload Trace] Attempting file cleanup due to DB error...');
             console.log('[Photo Upload Route Handler] Attempting to delete uploaded files due to DB error...');
-            files.forEach(file => {
-                if (file && file.path) { // Add check for file.path
+            validFiles.forEach(file => { // <<< Use validFiles
+                if (file && file.path) { // Add check for file.path (should be updated path for converted files)
                     fs.unlink(file.path, unlinkErr => {
                         if (unlinkErr) console.error(`[Photo Upload Route Handler] Error deleting file ${file.path} after DB error:`, unlinkErr);
                         else console.log(`[Photo Upload Route Handler] Deleted orphaned file: ${file.path}`);

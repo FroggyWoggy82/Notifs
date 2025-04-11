@@ -29,6 +29,7 @@
     "node-cron": "^3.0.3",
     "pg": "^8.14.1",
     "pg-format": "^1.0.4",
+    "sharp": "^0.34.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "web-push": "^3.6.7"
