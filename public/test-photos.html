@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+        .photo-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Photo Test Page</h1>
+    <p>This page tests different ways of loading the same images to identify what works on mobile.</p>
+
+    <h2>LeBron Photos (Known Working)</h2>
+    
+    <div class="photo-container">
+        <h3>Photo ID: 1</h3>
+        <p>Original Path: /uploads/progress_photos/photos-1743533104709-675883910.jpg</p>
+        <img src="/uploads/progress_photos/photos-1743533104709-675883910.jpg" alt="LeBron Photo 1">
+    </div>
+
+    <div class="photo-container">
+        <h3>Photo ID: 4</h3>
+        <p>Original Path: /uploads/progress_photos/photos-1743534804031-896765036.jpg</p>
+        <img src="/uploads/progress_photos/photos-1743534804031-896765036.jpg" alt="LeBron Photo 4">
+    </div>
+
+    <h2>New Photos (Not Working on Mobile)</h2>
+    
+    <div class="photo-container">
+        <h3>Photo ID: 14</h3>
+        <p>Original Path: /uploads/progress_photos/photos-1744351437809-657831548.png</p>
+        <img src="/uploads/progress_photos/photos-1744351437809-657831548.png" alt="New Photo 14">
+    </div>
+
+    <div class="photo-container">
+        <h3>Photo ID: 15</h3>
+        <p>Original Path: /uploads/progress_photos/photos-1744352353551-10102925.jpg</p>
+        <img src="/uploads/progress_photos/photos-1744352353551-10102925.jpg" alt="New Photo 15">
+    </div>
+
+    <h2>Alternative Paths for New Photos</h2>
+    
+    <div class="photo-container">
+        <h3>Photo ID: 14 - With /public prefix</h3>
+        <p>Path: /public/uploads/progress_photos/photos-1744351437809-657831548.png</p>
+        <img src="/public/uploads/progress_photos/photos-1744351437809-657831548.png" alt="New Photo 14 Alt">
+    </div>
+
+    <div class="photo-container">
+        <h3>Photo ID: 15 - With /public prefix</h3>
+        <p>Path: /public/uploads/progress_photos/photos-1744352353551-10102925.jpg</p>
+        <img src="/public/uploads/progress_photos/photos-1744352353551-10102925.jpg" alt="New Photo 15 Alt">
+    </div>
+
+    <div class="photo-container">
+        <h3>Photo ID: 14 - Without leading slash</h3>
+        <p>Path: uploads/progress_photos/photos-1744351437809-657831548.png</p>
+        <img src="uploads/progress_photos/photos-1744351437809-657831548.png" alt="New Photo 14 Alt 2">
+    </div>
+
+    <div class="photo-container">
+        <h3>Photo ID: 15 - Without leading slash</h3>
+        <p>Path: uploads/progress_photos/photos-1744352353551-10102925.jpg</p>
+        <img src="uploads/progress_photos/photos-1744352353551-10102925.jpg" alt="New Photo 15 Alt 2">
+    </div>
+
+    <div class="photo-container">
+        <h3>Photo ID: 14 - With timestamp</h3>
+        <p>Path: /uploads/progress_photos/photos-1744351437809-657831548.png?t=123456</p>
+        <img src="/uploads/progress_photos/photos-1744351437809-657831548.png?t=123456" alt="New Photo 14 Alt 3">
+    </div>
+
+    <div class="photo-container">
+        <h3>Photo ID: 15 - With timestamp</h3>
+        <p>Path: /uploads/progress_photos/photos-1744352353551-10102925.jpg?t=123456</p>
+        <img src="/uploads/progress_photos/photos-1744352353551-10102925.jpg?t=123456" alt="New Photo 15 Alt 3">
+    </div>
+
+    <script>
+        // Log which images loaded successfully and which failed
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('img');
+            
+            images.forEach(img => {
+                if (img.complete) {
+                    logImageStatus(img);
+                } else {
+                    img.addEventListener('load', function() {
+                        logImageStatus(img, true);
+                    });
+                    
+                    img.addEventListener('error', function() {
+                        logImageStatus(img, false);
+                    });
+                }
+            });
+            
+            function logImageStatus(img, loaded = img.complete && img.naturalWidth > 0) {
+                const status = loaded ? 'LOADED' : 'FAILED';
+                console.log(`Image ${status}: ${img.src}`);
+                
+                // Add visual indicator
+                const container = img.closest('.photo-container');
+                if (container) {
+                    const statusEl = document.createElement('div');
+                    statusEl.textContent = `Status: ${status}`;
+                    statusEl.style.color = loaded ? 'green' : 'red';
+                    statusEl.style.fontWeight = 'bold';
+                    container.appendChild(statusEl);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

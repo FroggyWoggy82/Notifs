@@ -3332,16 +3332,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add Image to Reel
                 const img = document.createElement('img');
 
-                // Process the file path for compatibility
+                // DIRECT FIX: Process the file path for compatibility
                 let imagePath = photo.file_path;
 
                 // Log the original path
                 console.log(`[Photo Load] Original image path: ${imagePath} for photo ID: ${photo.photo_id}`);
 
-                // For older photos that don't have the /public prefix
-                if (imagePath.startsWith('/uploads/') && !imagePath.startsWith('/public/')) {
-                    // Keep as is - these are the LeBron photos that work
-                    console.log(`[Photo Load] Using original path for older photo: ${imagePath}`);
+                // Remove leading slash to make it relative to the current domain
+                if (imagePath.startsWith('/')) {
+                    imagePath = imagePath.substring(1);
+                    console.log(`[Photo Load] Converted to relative path: ${imagePath}`);
                 }
 
                 // Store the path in data-src for lazy loading
@@ -3458,22 +3458,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
-            // Only set src if it's not already set or differs from data-src
-            if (!currentImageElement.src || currentImageElement.src === '' || currentImageElement.src !== currentImageElement.dataset.src) {
-                const imagePath = currentImageElement.dataset.src;
-                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${imagePath}`);
+            // DIRECT FIX: Always set the src attribute
+            const imagePath = currentImageElement.dataset.src;
+            console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${imagePath}`);
 
-                // Set the src attribute directly
-                currentImageElement.src = imagePath;
+            // Set the src attribute directly
+            currentImageElement.src = imagePath;
 
-                // Force a reload of the image
-                setTimeout(() => {
-                    if (currentImageElement.complete && currentImageElement.naturalWidth === 0) {
-                        console.log(`[Photo Display] Image failed to load, trying again: ${imagePath}`);
-                        currentImageElement.src = imagePath + '?t=' + new Date().getTime();
-                    }
-                }, 500);
-            }
+            // Force a reload of the image if it fails to load
+            currentImageElement.onerror = function() {
+                console.log(`[Photo Display] Image failed to load, trying again with timestamp: ${imagePath}`);
+                // Add a timestamp to bypass cache
+                this.src = imagePath + '?t=' + new Date().getTime();
+            };
         } else {
             console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
         }
