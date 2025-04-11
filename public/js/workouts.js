@@ -3331,9 +3331,22 @@ document.addEventListener('DOMContentLoaded', function() {
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
                 const img = document.createElement('img');
-                // img.src = photo.file_path; // <<< CHANGE THIS
-                img.dataset.src = photo.file_path; // <<< TO THIS
-                img.src = ''; // <<< ADD THIS (Set src initially empty)
+
+                // Fix the file path for mobile compatibility
+                let imagePath = photo.file_path;
+                // If the path doesn't start with http or https, make it relative to the current domain
+                if (!imagePath.startsWith('http')) {
+                    // Remove any leading slash to make it relative
+                    if (imagePath.startsWith('/')) {
+                        imagePath = imagePath.substring(1);
+                    }
+                }
+
+                console.log(`[Photo Load] Processing image path: ${imagePath} for photo ID: ${photo.photo_id}`);
+
+                // Store the path in data-src for lazy loading
+                img.dataset.src = imagePath;
+                img.src = ''; // Set src initially empty
                 img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
                 img.loading = 'lazy'; // Add native lazy loading attribute as well
@@ -3445,9 +3458,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
             // Only set src if it's not already set or differs from data-src
-            if (currentImageElement.src !== currentImageElement.dataset.src) {
+            if (!currentImageElement.src || !currentImageElement.src.includes(currentImageElement.dataset.src)) {
                 console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
-                currentImageElement.src = currentImageElement.dataset.src;
+
+                // Use the relative path from data-src
+                const imagePath = currentImageElement.dataset.src;
+                currentImageElement.src = imagePath;
+
+                // Log the full URL for debugging
+                console.log(`[Photo Display] Full image URL: ${new URL(imagePath, window.location.href).href}`);
             }
         } else {
             console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
