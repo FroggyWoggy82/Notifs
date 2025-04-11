@@ -27,8 +27,38 @@ const storage = multer.diskStorage({
     filename: function (req, file, cb) {
         // Create a unique filename: fieldname-timestamp.extension
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const filename = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
-        console.log(`[Multer Storage] Generated filename: ${filename}`);
+
+        // Get the file extension from the original filename
+        let fileExt = path.extname(file.originalname).toLowerCase();
+
+        // If no extension or invalid extension, determine from mimetype
+        if (!fileExt || fileExt === '.') {
+            // Map common mimetypes to extensions
+            const mimeToExt = {
+                'image/jpeg': '.jpg',
+                'image/jpg': '.jpg',  // Some systems use this non-standard mimetype
+                'image/png': '.png',
+                'image/gif': '.gif',
+                'image/webp': '.webp',
+                'image/heic': '.heic',
+                'image/heif': '.heif'
+            };
+
+            // Use the mapping or default to .jpg for image types
+            fileExt = mimeToExt[file.mimetype] ||
+                      (file.mimetype.startsWith('image/') ? '.jpg' : '.bin');
+
+            console.log(`[Multer Storage] No valid extension found, using mimetype to determine extension: ${fileExt}`);
+        }
+
+        // Ensure JPEG files have consistent extension
+        if (fileExt === '.jpeg') {
+            fileExt = '.jpg';
+            console.log(`[Multer Storage] Normalized .jpeg extension to .jpg`);
+        }
+
+        const filename = file.fieldname + '-' + uniqueSuffix + fileExt;
+        console.log(`[Multer Storage] Generated filename: ${filename} (original: ${file.originalname}, mimetype: ${file.mimetype})`);
         cb(null, filename);
     }
 });
@@ -38,14 +68,33 @@ const fileFilter = (req, file, cb) => {
     console.log(`[Multer File Filter] Processing file: ${file.originalname}`);
     console.log(`[Multer File Filter] File details: mimetype=${file.mimetype}, fieldname=${file.fieldname}, size=${file.size || 'unknown'}`);
 
-    // Accept only image files with more lenient checking
-    if (file.mimetype.startsWith('image/') ||
-        file.originalname.match(/\.(jpg|jpeg|png|gif|webp|heic|heif)$/i)) {
+    // Normalize the mimetype for JPEG files
+    // Some mobile devices might send image/jpg instead of image/jpeg
+    let normalizedMimetype = file.mimetype;
+    if (normalizedMimetype === 'image/jpg') {
+        normalizedMimetype = 'image/jpeg';
+        console.log(`[Multer File Filter] Normalized mimetype from image/jpg to image/jpeg`);
+    }
+
+    // Get file extension and convert to lowercase
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    console.log(`[Multer File Filter] File extension: ${fileExt}`);
+
+    // Accept image files with very permissive checking
+    // Check both mimetype and file extension
+    if (
+        // Check if mimetype starts with image/
+        normalizedMimetype.startsWith('image/') ||
+        // Check common image extensions
+        /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(fileExt) ||
+        // Special case for JPEG files
+        fileExt === '.jpeg' || fileExt === '.jpg'
+    ) {
         console.log(`[Multer File Filter] Accepted file: ${file.originalname}`);
         cb(null, true);
     } else {
-        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype})`);
-        cb(new Error(`Not an image! Please upload only images. Received: ${file.mimetype}`), false);
+        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${normalizedMimetype}, Extension: ${fileExt})`);
+        cb(new Error(`Not an image! Please upload only images. Received: ${normalizedMimetype} with extension ${fileExt}`), false);
     }
 };
 
