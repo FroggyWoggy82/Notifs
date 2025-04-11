@@ -2963,6 +2963,23 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
             // Add a timestamp to the URL to prevent caching issues
             const timestamp = new Date().getTime();
+
+            // Log the form data for debugging
+            console.log('[Photo Upload Client] FormData contents:');
+            for (const pair of formData.entries()) {
+                console.log(`[Photo Upload Client] FormData: ${pair[0]}: ${pair[1]}`);
+            }
+
+            // Make sure we're using the correct field name
+            // The server expects 'photos' but we need to check if it's actually there
+            const photoFile = formData.get('photos');
+            if (!photoFile || !(photoFile instanceof File) || photoFile.size === 0) {
+                console.error('[Photo Upload Client] No valid photo file found in FormData');
+                throw new Error('No valid photo file found. Please select a photo and try again.');
+            }
+
+            console.log(`[Photo Upload Client] Photo file details: name=${photoFile.name}, size=${photoFile.size}, type=${photoFile.type}`);
+
             const response = await fetch(`/api/workouts/progress-photos?t=${timestamp}`, {
                 method: 'POST',
                 body: formData,
