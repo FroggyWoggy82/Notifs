@@ -1,12 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Add a beforeunload event listener to save workout state when navigating away
-    window.addEventListener('beforeunload', function() {
-        // Only save if we're on the active workout page
-        if (currentPage === 'active') {
-            console.log('Saving workout state before unload');
-            saveWorkoutState();
-        }
-    });
     console.log('Workout Tracker JS loaded');
 
     // --- Debounce Helper ---
@@ -87,12 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const availableExerciseListEl = document.getElementById('available-exercise-list');
     const addSelectedExercisesBtn = document.getElementById('add-selected-exercises-btn'); // Added reference
 
-    // --- Exercise Name Edit Modal Elements ---
-    const exerciseNameEditModal = document.getElementById('exercise-name-edit-modal');
-    const exerciseNameEditForm = document.getElementById('exercise-name-edit-form');
-    const editExerciseNameInput = document.getElementById('edit-exercise-name');
-    const editExerciseIndexInput = document.getElementById('edit-exercise-index');
-
     // --- New Exercise Definition Modal Elements ---
     const defineNewExerciseSection = document.getElementById('define-new-exercise-section');
     const toggleDefineExerciseBtn = document.getElementById('toggle-define-exercise-btn');
@@ -150,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoPrevBtn = document.getElementById('photo-prev-btn');
     const photoNextBtn = document.getElementById('photo-next-btn');
     const deletePhotoBtn = document.getElementById('delete-photo-btn');
-    const toggleComparisonBtn = document.getElementById('toggle-comparison-btn');
     const photoReel = document.querySelector('.photo-reel'); // Reel container
     const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
@@ -160,17 +145,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Get container for delegation ---
     const photoSliderContainer = document.querySelector('.photo-slider-container');
-    const photoGallerySection = document.getElementById('photo-gallery-section');
-    const photoComparisonSection = document.getElementById('photo-comparison-section');
 
     // --- NEW: Comparison DOM References ---
     const comparisonPhotoSelect1 = document.getElementById('comparison-photo-select-1');
     const comparisonPhotoSelect2 = document.getElementById('comparison-photo-select-2');
     const comparisonImage1 = document.getElementById('comparison-image-1');
     const comparisonImage2 = document.getElementById('comparison-image-2');
-
-    // Track comparison view state
-    let isComparisonViewActive = false;
 
     // --- Helper function to generate HTML for set rows ---
     function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
@@ -185,20 +165,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Otherwise, use the 'sets' property from the template/exercise data
             numSets = parseInt(exerciseData.sets) || 1;
         }
-
-        // For templates, always use the sets property
-        if (isTemplate) {
-            numSets = parseInt(exerciseData.sets) || 1;
-        }
         // Ensure at least one set is rendered
         numSets = Math.max(1, numSets);
 
         // Parse the *entire* previous log data ONCE, if available
         let weightsArray = [];
         let repsArray = [];
-        // Use the current exercise's weight unit (which is the preferred unit) for display
-        // This ensures the previous log shows the same unit as the current exercise
-        let prevUnit = exerciseData.weight_unit || 'kg';
+        let prevUnit = 'kg';
         if (!isTemplate && exerciseData.lastLog) {
              console.log(`[generateSetRowsHtml] Found lastLog for ${exerciseData.name}:`, exerciseData.lastLog);
             if (exerciseData.lastLog.weight_used) {
@@ -207,9 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (exerciseData.lastLog.reps_completed) {
                 repsArray = exerciseData.lastLog.reps_completed.split(',').map(r => r.trim());
             }
-            // We're not using the log's weight unit anymore, but the preferred unit from exerciseData
-            // prevUnit = exerciseData.lastLog.weight_unit || 'kg';
-             console.log(`[generateSetRowsHtml] Parsed arrays: weights=[${weightsArray}], reps=[${repsArray}], using unit: ${prevUnit}`);
+            prevUnit = exerciseData.lastLog.weight_unit || 'kg';
+             console.log(`[generateSetRowsHtml] Parsed arrays: weights=[${weightsArray}], reps=[${repsArray}]`);
         }
 
         for (let i = 0; i < numSets; i++) {
@@ -219,84 +191,43 @@ document.addEventListener('DOMContentLoaded', function() {
             let previousLogTextHtml = '- kg x -'; // Display text for previous log span
             const currentUnit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
 
-            // First check if we have saved input values in sets_completed
-            if (!isTemplate && exerciseData.sets_completed && exerciseData.sets_completed[i]) {
-                const savedSet = exerciseData.sets_completed[i];
-                // Check if sets_completed is an array of objects with weight/reps properties
-                if (typeof savedSet === 'object' && savedSet !== null) {
-                    if (savedSet.weight !== undefined) {
-                        weightValue = savedSet.weight;
-                        console.log(`[generateSetRowsHtml] Using saved weight value: ${weightValue}`);
-                    }
-                    if (savedSet.reps !== undefined) {
-                        repsValue = savedSet.reps;
-                        console.log(`[generateSetRowsHtml] Using saved reps value: ${repsValue}`);
-                    }
-                }
-            }
-
-            // If no saved values, check if previous log data exists for THIS specific set index (i)
-            if ((!weightValue || !repsValue) && !isTemplate && weightsArray.length > i && repsArray.length > i) {
+            // Check if previous log data exists for THIS specific set index (i)
+            if (!isTemplate && weightsArray.length > i && repsArray.length > i) {
                 const prevWeight = weightsArray[i];
                 const prevReps = repsArray[i];
 
-                // Only populate if values are not empty strings and we don't already have saved values
-                if (prevWeight !== '' && !weightValue) {
+                // Only populate if values are not empty strings
+                if (prevWeight !== '') {
                     weightValue = prevWeight;
                 }
-                if (prevReps !== '' && !repsValue) {
+                if (prevReps !== '') {
                     repsValue = prevReps;
                 }
                 // Always update the display text if data exists for this set index
                 previousLogTextHtml = `${prevWeight || '-'} ${prevUnit} x ${prevReps || '-'}`;
-                console.log(`[generateSetRowsHtml] Set ${i}: Pre-filling weight=${weightValue}, reps=${repsValue}. Display='${previousLogTextHtml}'`);
+                 console.log(`[generateSetRowsHtml] Set ${i}: Pre-filling weight=${weightValue}, reps=${repsValue}. Display='${previousLogTextHtml}'`);
             } else if (!isTemplate){
                 // If no specific data for this set index, keep inputs empty, show placeholder text
-                console.log(`[generateSetRowsHtml] Set ${i}: No previous data found for this index.`);
+                 console.log(`[generateSetRowsHtml] Set ${i}: No previous data found for this index.`);
             }
             // --- End Per-Set Logic ---
 
-            // Check for completion status in sets_completed first, then fall back to completedSets for backward compatibility
-            let isCompleted = false;
-            if (!isTemplate) {
-                if (exerciseData.sets_completed && exerciseData.sets_completed[i]) {
-                    const savedSet = exerciseData.sets_completed[i];
-                    if (typeof savedSet === 'object' && savedSet !== null && savedSet.completed !== undefined) {
-                        isCompleted = savedSet.completed;
-                    }
-                } else if (exerciseData.completedSets && exerciseData.completedSets[i]) {
-                    // Legacy support for completedSets array
-                    isCompleted = !!exerciseData.completedSets[i];
-                }
-            }
+            const isCompleted = !isTemplate && exerciseData.completedSets && exerciseData.completedSets[i];
             const isDisabled = isTemplate;
             const weightInputType = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? 'hidden' : 'number';
             const weightPlaceholder = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? '' : 'Wt';
             const repsPlaceholder = 'Reps';
 
             // Generate the HTML for this specific set row
-            if (isTemplate) {
-                // For templates, use the reordered layout: Set#, Previous, Weight, Reps
-                setRowsHtml += `
-                    <div class="set-row" data-set-index="${i}">
-                        <span class="set-number">${i + 1}</span>
-                        <span class="previous-log">${previousLogTextHtml}</span>
-                        <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" step="any" inputmode="decimal">
-                        <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" inputmode="numeric" pattern="[0-9]*">
-                    </div>
-                `;
-            } else {
-                // For active workouts, keep the original layout
-                setRowsHtml += `
-                    <div class="set-row" data-set-index="${i}">
-                        <span class="set-number">${i + 1}</span>
-                        <span class="previous-log">${previousLogTextHtml}</span>
-                        <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
-                        <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-                        <button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>
-                    </div>
-                `;
-            }
+            setRowsHtml += `
+                <div class="set-row" data-set-index="${i}">
+                    <span class="set-number">${i + 1}</span>
+                    <span class="previous-log">${previousLogTextHtml}</span>
+                    <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+                    <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
+                </div>
+            `;
         }
         return setRowsHtml;
     }
@@ -539,10 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // (Keep the existing innerHTML structure)
         exerciseItemElement.innerHTML = `
             <div class="exercise-item-header">
-                <div class="exercise-name-container">
-                    <h4>${escapeHtml(exerciseData.name)}</h4>
-                </div>
-                ${!isTemplate ? `<button class="btn-edit-exercise-name" title="Edit Exercise Name">✎</button>` : ''}
+                <h4>${escapeHtml(exerciseData.name)}</h4>
                 <select class="exercise-unit-select" data-workout-index="${index}">
                     <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
                     <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
@@ -568,47 +496,8 @@ document.addEventListener('DOMContentLoaded', function() {
             removeButton.disabled = setRowsCount <= 1;
         }
 
-        // Make sure sets_completed is properly initialized with current values
-        if (!isTemplate) {
-            // Initialize sets_completed array if it doesn't exist
-            if (!exerciseData.sets_completed) {
-                exerciseData.sets_completed = [];
-            }
-
-            // Update sets_completed with current input values
-            const setRows = exerciseItemElement.querySelectorAll('.set-row');
-            setRows.forEach((row, idx) => {
-                const weightInput = row.querySelector('.weight-input');
-                const repsInput = row.querySelector('.reps-input');
-                const completeToggle = row.querySelector('.set-complete-toggle');
-
-                // Ensure the array has enough elements
-                while (exerciseData.sets_completed.length <= idx) {
-                    exerciseData.sets_completed.push({
-                        weight: '',
-                        reps: '',
-                        unit: exerciseData.weight_unit || 'kg',
-                        completed: false
-                    });
-                }
-
-                // Update with current values
-                if (weightInput) {
-                    exerciseData.sets_completed[idx].weight = weightInput.value;
-                }
-                if (repsInput) {
-                    exerciseData.sets_completed[idx].reps = repsInput.value;
-                }
-                if (completeToggle) {
-                    exerciseData.sets_completed[idx].completed = completeToggle.classList.contains('completed');
-                }
-            });
-
-            // Save state after initialization
-            saveWorkoutState();
-        }
-
-        // Input listeners are handled through delegation on the parent container
+        // Re-attach input listeners if needed, or rely on delegation
+        // Example if needed: setupSetInputListeners(exerciseItemElement);
 
          console.log(`[Render Single] Finished rendering '${exerciseData.name}'`);
     }
@@ -651,13 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Only save if we have an active workout
             if (currentWorkout && (Array.isArray(currentWorkout) ? currentWorkout.length > 0 : currentWorkout.exercises?.length > 0)) {
                 console.log('Saving workout state to localStorage');
-
-                // Create a deep copy to avoid reference issues
-                const workoutToSave = JSON.parse(JSON.stringify(currentWorkout));
-
-                // Save to localStorage
-                localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(workoutToSave));
-                console.log('Workout state saved:', workoutToSave);
+                localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(currentWorkout));
 
                 // Save workout start time if it exists
                 if (workoutStartTime) {
@@ -741,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Applied active class to:', templateEditorPage);
         }
         // Ensure FAB visibility matches active page
-        addExerciseFab.style.display = (pageToShow === 'active') ? 'flex' : 'none';
+        addExerciseFab.style.display = (pageToShow === 'active') ? 'block' : 'none';
     }
 
     function startEmptyWorkout() {
@@ -759,7 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveWorkoutState();
     }
 
-    async function startWorkoutFromTemplate(templateId) {
+    function startWorkoutFromTemplate(templateId) {
         // Clear any existing saved workout
         clearWorkoutState();
 
@@ -770,87 +653,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         console.log(`Starting workout from template: ${templateId}`);
 
-        // Fetch the latest exercise preferences
-        try {
-            const response = await fetch('/api/workouts/exercises');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const exercises = await response.json();
+        // Initialize currentWorkout as an object with name and exercises array
+        currentWorkout = {
+            name: template.name, // Store template name
+            exercises: template.exercises.map(ex => ({
+                ...ex,
+                lastLog: undefined, // Mark for fetching
+                // Initialize sets_completed based on template 'sets' count
+                sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({ weight: '', reps: '', unit: ex.weight_unit || 'kg', completed: false }))
+            }))
+        };
 
-            // Create a map of exercise preferences for quick lookup
-            const exercisePreferences = {};
-            exercises.forEach(ex => {
-                exercisePreferences[ex.exercise_id] = ex.preferred_weight_unit;
-            });
+        console.log("Current workout initialized from template:", currentWorkout); // Log the object
 
-            // Initialize currentWorkout as an object with name and exercises array
-            currentWorkout = {
-                name: template.name, // Store template name
-                exercises: template.exercises.map(ex => {
-                    // Use the preferred weight unit if available, otherwise use the template's unit or default to kg
-                    const preferredUnit = exercisePreferences[ex.exercise_id] || ex.weight_unit || 'kg';
+        // Set workout name display
+        const workoutName = currentWorkout.name; // Use the name from the object
+        currentWorkoutNameEl.textContent = workoutName;
 
-                    return {
-                        ...ex,
-                        // Use the preferred weight unit from database
-                        weight_unit: preferredUnit,
-                        lastLog: undefined, // Mark for fetching
-                        // Initialize sets_completed based on template 'sets' count
-                        sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({
-                            weight: '',
-                            reps: '',
-                            unit: preferredUnit,
-                            completed: false
-                        }))
-                    };
-                })
-            };
+        // Render the workout and switch page
+        renderCurrentWorkout(); // This function expects currentWorkout.exercises
+        switchPage('active');
+        startTimer();
+        // Show FAB
+        addExerciseFab.style.display = 'block';
 
-            console.log("Current workout initialized from template with preferences:", currentWorkout);
-
-            // Set workout name display
-            const workoutName = currentWorkout.name; // Use the name from the object
-            currentWorkoutNameEl.textContent = workoutName;
-
-            // Render the workout and switch page
-            renderCurrentWorkout(); // This function expects currentWorkout.exercises
-            switchPage('active');
-            startTimer();
-            // Show FAB
-            addExerciseFab.style.display = 'flex';
-
-            // Save the new workout state
-            saveWorkoutState();
-        } catch (error) {
-            console.error('Error fetching exercise preferences:', error);
-            // Fall back to using the template without preferences
-            currentWorkout = {
-                name: template.name,
-                exercises: template.exercises.map(ex => ({
-                    ...ex,
-                    lastLog: undefined,
-                    sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({
-                        weight: '',
-                        reps: '',
-                        unit: ex.weight_unit || 'kg',
-                        completed: false
-                    }))
-                }))
-            };
-
-            // Continue with the workout setup
-            currentWorkoutNameEl.textContent = currentWorkout.name;
-            renderCurrentWorkout();
-            switchPage('active');
-            startTimer();
-            addExerciseFab.style.display = 'flex';
-            saveWorkoutState();
-        }
+        // Save the new workout state
+        saveWorkoutState();
     }
 
 
-    // Legacy function - kept for backward compatibility
-    function addExerciseToWorkout(exerciseId, targetList) {
-        // Find the exercise object
+    function addExerciseToWorkout(exerciseId, targetList) { // Added targetList parameter
+        // Removed reading targetList from modal dataset here
         const exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
         if (!exercise) {
             console.error('Exercise not found in available list', exerciseId);
@@ -858,54 +691,27 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Call the new function with the exercise object
-        addExerciseToWorkoutByObject(exercise, targetList);
-    }
-
-    // Function that takes an exercise object directly
-    function addExerciseToWorkoutByObject(exercise, targetList) {
         console.log(`Adding exercise: ${exercise.name} to ${targetList} list`);
-
-        // Use the preferred weight unit if available
-        const preferredUnit = exercise.preferred_weight_unit || 'kg';
-        console.log(`Using preferred weight unit for ${exercise.name}: ${preferredUnit}`);
 
         const newExerciseData = {
             exercise_id: exercise.exercise_id,
             name: exercise.name,
             category: exercise.category,
-            sets: 3, // Default sets changed to 3 for better user experience
+            sets: 1, // Default sets changed to 1
             reps: '', // Default reps
             weight: null,
-            weight_unit: preferredUnit, // Use the preferred weight unit
+            weight_unit: 'kg',
+            order_position: (targetList === 'active' ? currentWorkout.length : currentTemplateExercises.length),
             notes: '',
-            // Only add sets_completed for active workouts, not templates
-            ...(targetList === 'active' && {
-                sets_completed: Array(3).fill(null).map(() => ({
-                    weight: '',
-                    reps: '',
-                    unit: preferredUnit,
-                    completed: false
-                }))
-            }),
+            // Only add completedSets for active workouts, not templates
+            ...(targetList === 'active' && { completedSets: Array(1).fill(false) }), // Default completedSets for 1 set
             lastLog: undefined // Mark lastLog as not yet fetched
         };
 
         if (targetList === 'active') {
-            // Check if currentWorkout is an array or an object with exercises array
-            if (Array.isArray(currentWorkout)) {
-                // For empty workouts (array)
-                newExerciseData.order_position = currentWorkout.length;
-                currentWorkout.push(newExerciseData);
-            } else {
-                // For template-based workouts (object with exercises array)
-                newExerciseData.order_position = currentWorkout.exercises.length;
-                currentWorkout.exercises.push(newExerciseData);
-            }
+            currentWorkout.push(newExerciseData);
             renderCurrentWorkout(); // Update the active workout list UI
-            saveWorkoutState(); // Save the updated workout state
         } else { // targetList === 'editor'
-            newExerciseData.order_position = currentTemplateExercises.length;
             currentTemplateExercises.push(newExerciseData);
             renderTemplateExerciseList(); // Update the template editor list UI
         }
@@ -934,13 +740,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check the globally defined currentPage
         if (currentPage === 'active') {
-            // Handle both array and object structures for currentWorkout
-            exercisesArray = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+            exercisesArray = currentWorkout.exercises;
             listElement = currentExerciseListEl;
         } else if (currentPage === 'template-editor') {
-            // For template editor, use the currentTemplateExercises array
-            exercisesArray = currentTemplateExercises;
-            listElement = templateExerciseListEl;
+            // Assuming template exercises are stored in a variable like `templateEditorExercises`
+            // This needs to be adapted based on how template editor data is stored
+            exercisesArray = templateEditorData.exercises; // Example variable name
+            listElement = templateExerciseListEl; // Example list element
         } else {
             console.error("[handleDeleteExercise] Called from unknown page context:", currentPage);
             return;
@@ -1050,51 +856,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // }
         const exerciseData = exercises[exerciseIndex];
 
-        // Initialize sets_completed array if it doesn't exist
-        if (!exerciseData.sets_completed) {
+        if (!exerciseData.completedSets) {
             const setRowCount = exerciseItem.querySelectorAll('.set-row').length;
-            exerciseData.sets_completed = Array(setRowCount).fill(null).map(() => ({
-                weight: '',
-                reps: '',
-                unit: exerciseData.weight_unit || 'kg',
-                completed: false
-            }));
-            console.log(`[handleSetToggle] Initialized sets_completed for exercise ${exerciseIndex}`); // <<< Log 8: Log init
+            exerciseData.completedSets = Array(setRowCount).fill(false);
+            console.log(`[handleSetToggle] Initialized completedSets for exercise ${exerciseIndex}`); // <<< Log 8: Log init
         }
-
-        // Ensure the sets_completed array has enough elements
-        while (exerciseData.sets_completed.length <= setIndex) {
-            exerciseData.sets_completed.push({
-                weight: '',
-                reps: '',
-                unit: exerciseData.weight_unit || 'kg',
-                completed: false
-            });
+        while (exerciseData.completedSets.length <= setIndex) {
+             exerciseData.completedSets.push(false);
         }
+        exerciseData.completedSets[setIndex] = isCompleted;
 
-        // Capture current input values if they exist
-        const weightInput = setRow.querySelector('.weight-input');
-        const repsInput = setRow.querySelector('.reps-input');
-        if (weightInput && repsInput) {
-            exerciseData.sets_completed[setIndex].weight = weightInput.value;
-            exerciseData.sets_completed[setIndex].reps = repsInput.value;
-        }
-
-        // Update completion state
-        exerciseData.sets_completed[setIndex].completed = isCompleted;
-
-        // For backward compatibility, also update completedSets if it exists
-        if (exerciseData.completedSets) {
-            // Ensure the array has enough elements
-            while (exerciseData.completedSets.length <= setIndex) {
-                exerciseData.completedSets.push(false);
-            }
-            exerciseData.completedSets[setIndex] = isCompleted;
-        }
-
-        console.log(`[handleSetToggle] Updated exerciseData.sets_completed[${setIndex}] to ${JSON.stringify(exerciseData.sets_completed[setIndex])}`); // <<< Log 9: Log state update
+        console.log(`[handleSetToggle] Updated exerciseData.completedSets[${setIndex}] to ${isCompleted}`); // <<< Log 9: Log state update
 
         // --- Added: Disable/Enable inputs based on completion state ---
+        const weightInput = setRow.querySelector('.weight-input');
+        const repsInput = setRow.querySelector('.reps-input');
+
         // The unit select is in the exercise header, not in each set row
         if (weightInput && repsInput) {
             weightInput.disabled = isCompleted;
@@ -1345,28 +1122,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Call helper function
             const setRowsHtml = generateSetRowsHtml(exercise, index, true); // Pass true for isTemplate
 
-            // Get the current sets value or default to 1
-            const setsValue = parseInt(exercise.sets) || 1;
-
             exerciseItem.innerHTML = `
                 <div class="exercise-item-header">
-                    <div class="exercise-name-container">
-                        <h4>${escapeHtml(exercise.name)}</h4>
-                    </div>
-                    <button class="btn-edit-exercise-name" title="Edit Exercise Name">✎</button>
+                    <h4>${escapeHtml(exercise.name)}</h4>
                     <select class="exercise-unit-select" data-workout-index="${index}">
                         <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
                         <option value="lbs" ${exercise.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
                         <option value="bodyweight" ${exercise.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
                         <option value="assisted" ${exercise.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
                     </select>
+                    <!-- Corrected: Hardcode class and add data-index -->
                     <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times;</button>
-                </div>
-                <div class="exercise-config-row">
-                    <div class="sets-input-group">
-                        <label for="exercise-sets-${index}">Sets:</label>
-                        <input type="number" id="exercise-sets-${index}" class="exercise-sets-input" value="${setsValue}" min="1" max="20" data-index="${index}">
-                    </div>
                 </div>
                 <div class="exercise-notes-group">
                     <label for="exercise-notes-${index}">Notes:</label>
@@ -1452,18 +1218,6 @@ document.addEventListener('DOMContentLoaded', function() {
             templateNameInput.focus();
             return;
         }
-
-        // Update currentTemplateExercises with the current sets values from inputs
-        const templateExerciseListEl = document.getElementById('template-exercise-list');
-        const setsInputs = templateExerciseListEl.querySelectorAll('.exercise-sets-input');
-        setsInputs.forEach(input => {
-            const index = parseInt(input.dataset.index);
-            if (!isNaN(index) && index >= 0 && index < currentTemplateExercises.length) {
-                const setsValue = parseInt(input.value) || 1;
-                currentTemplateExercises[index].sets = setsValue;
-                console.log(`Updated exercise ${index} sets to ${setsValue}`);
-            }
-        });
 
         // Collect exercise data from the currentTemplateExercises array
         const exercisesToSave = currentTemplateExercises.map((exercise, index) => {
@@ -1574,21 +1328,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add to local cache and re-render list
             availableExercises.push(result); // Add the new exercise object returned by API
             availableExercises.sort((a, b) => a.name.localeCompare(b.name)); // Keep sorted
-
-            // Add the new exercise ID to the checked exercises set
-            checkedExercises.add(result.exercise_id);
-            console.log(`Auto-checked newly created exercise: ${result.name} (ID: ${result.exercise_id})`);
-
-            // Re-render the list with the new exercise checked
             renderAvailableExercises();
-
-            // Scroll to the newly added exercise to make it visible
-            setTimeout(() => {
-                const newExerciseCheckbox = document.getElementById(`ex-select-${result.exercise_id}`);
-                if (newExerciseCheckbox) {
-                    newExerciseCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 100);
 
             // Hide the definition section and reset button
             handleToggleDefineExercise(); // Toggle back to hide
@@ -1848,34 +1588,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleExerciseUnitChange(event);
                 } else if (target.classList.contains('btn-delete-exercise')) { // <<< ADD THIS CHECK
                     handleDeleteExercise(event);                          // <<< CALL THE HANDLER
-                } else if (target.classList.contains('btn-edit-exercise-name')) { // Handle edit exercise name
-                    handleEditExerciseName(event);
                 }
             }
         });
-
-        // Add listener for input changes in weight and reps inputs
-        currentExerciseListEl?.addEventListener('input', (event) => {
-            const target = event.target;
-            if (target instanceof HTMLElement) {
-                if (target.classList.contains('weight-input') || target.classList.contains('reps-input') || target.classList.contains('exercise-notes-textarea')) {
-                    handleInputChange(event);
-                }
-            }
-        });
-
-        // Add a blur event listener to ensure data is saved when focus leaves an input
-        currentExerciseListEl?.addEventListener('blur', (event) => {
-            const target = event.target;
-            if (target instanceof HTMLElement) {
-                if (target.classList.contains('weight-input') || target.classList.contains('reps-input') || target.classList.contains('exercise-notes-textarea')) {
-                    handleInputChange(event);
-                    // Force save after blur
-                    saveWorkoutState();
-                    console.log('Saved workout state after input blur');
-                }
-            }
-        }, true); // Use capture phase to ensure we catch all blur events
 
         // Template search listener
         const templateSearchInputEl = document.getElementById('template-search');
@@ -1894,29 +1609,6 @@ document.addEventListener('DOMContentLoaded', function() {
              // Open modal specifically for adding to template
              if(exerciseModal) exerciseModal.dataset.targetList = 'editor';
              openExerciseModal();
-        });
-
-        // Add event delegation for sets input changes in template editor
-        templateExerciseListEl?.addEventListener('change', (event) => {
-            const target = event.target;
-            if (target.classList.contains('exercise-sets-input')) {
-                const index = parseInt(target.dataset.index);
-                if (!isNaN(index) && index >= 0 && index < currentTemplateExercises.length) {
-                    const setsValue = parseInt(target.value) || 1;
-                    currentTemplateExercises[index].sets = setsValue;
-                    console.log(`Updated exercise ${index} sets to ${setsValue}`);
-
-                    // Update the sets container to show the correct number of set rows
-                    const exerciseItem = target.closest('.exercise-item');
-                    if (exerciseItem) {
-                        const setsContainer = exerciseItem.querySelector('.sets-container');
-                        if (setsContainer) {
-                            // Re-render the sets rows for this exercise
-                            setsContainer.innerHTML = generateSetRowsHtml(currentTemplateExercises[index], index, true);
-                        }
-                    }
-                }
-            }
         });
         // --- NEW: Add listener for deleting exercises from template editor ---
         templateExerciseListEl?.addEventListener('click', (event) => {
@@ -2188,13 +1880,6 @@ document.addEventListener('DOMContentLoaded', function() {
              console.error('[Initialize] deletePhotoBtn not found!');
         }
 
-        // Toggle Comparison View Listener
-        if (toggleComparisonBtn) {
-            toggleComparisonBtn.addEventListener('click', toggleComparisonView);
-        } else {
-            console.error('[Initialize] toggleComparisonBtn not found!');
-        }
-
         // Comparison Select Listeners
         const compSelect1 = document.getElementById('comparison-photo-select-1');
         const compSelect2 = document.getElementById('comparison-photo-select-2');
@@ -2304,78 +1989,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`Adding ${selectedCheckboxes.length} selected exercises to ${targetList}`);
 
-        // Create an array to track the order in which exercises were checked
-        // We'll use the DOM order of the checkboxes, which preserves the order they appear in the list
-        const selectedExercises = [];
-
-        // Get all checkboxes (both checked and unchecked) to determine the selection order
-        const allCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
-
-        // First, collect all checked exercises in their DOM order
-        allCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                const exerciseId = parseInt(checkbox.value, 10);
-                if (!isNaN(exerciseId)) {
-                    // Find the exercise data
-                    const exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
-                    if (exercise) {
-                        selectedExercises.push(exercise);
-                    }
-                }
+        // Store the IDs of selected exercises
+        const selectedIds = [];
+        selectedCheckboxes.forEach(checkbox => {
+            const exerciseId = parseInt(checkbox.value, 10);
+            if (!isNaN(exerciseId)) {
+                selectedIds.push(exerciseId);
+                addExerciseToWorkout(exerciseId, targetList); // Pass targetList
             }
         });
 
-        console.log(`Selected exercises in DOM order: ${selectedExercises.map(ex => ex.name).join(', ')}`);
-
-        // Add exercises in the order they were selected
-        if (targetList === 'active') {
-            // For active workouts, add each exercise individually
-            selectedExercises.forEach(exercise => {
-                addExerciseToWorkoutByObject(exercise, targetList);
-            });
-        } else {
-            // For templates, add all exercises at once to maintain order
-            addExercisesToTemplate(selectedExercises);
-        }
-
         // Clear the checked state for added exercises
-        selectedExercises.forEach(exercise => checkedExercises.delete(exercise.exercise_id));
+        selectedIds.forEach(id => checkedExercises.delete(id));
 
         closeExerciseModal(); // Close modal after adding all
-    }
-
-    // Function to add multiple exercises to a template at once
-    function addExercisesToTemplate(exercises) {
-        console.log(`Adding ${exercises.length} exercises to template in selected order`);
-
-        // Clear the current template exercises array
-        currentTemplateExercises = [];
-
-        // Add each exercise to the template in the order they were selected
-        exercises.forEach((exercise, index) => {
-            // Use the preferred weight unit if available
-            const preferredUnit = exercise.preferred_weight_unit || 'kg';
-            console.log(`Using preferred weight unit for ${exercise.name}: ${preferredUnit}`);
-
-            const newExerciseData = {
-                exercise_id: exercise.exercise_id,
-                name: exercise.name,
-                category: exercise.category,
-                sets: 3, // Default sets
-                reps: '', // Default reps
-                weight: null,
-                weight_unit: preferredUnit, // Use the preferred weight unit
-                order_position: index, // Set position based on the index in the selected array
-                notes: ''
-            };
-
-            currentTemplateExercises.push(newExerciseData);
-        });
-
-        console.log(`Template exercises after adding: ${currentTemplateExercises.map(ex => ex.name).join(', ')}`);
-
-        // Render the updated template
-        renderTemplateExerciseList();
     }
 
     // --- History Chart Functions (Updated for Search) ---
@@ -2905,225 +2532,114 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- End History Edit Modal Functions ---
 
-    // --- Simplified Photo Upload Handler ---
+    // --- NEW: Progress Photo Upload Handler ---
     async function handlePhotoUpload(event) {
         event.preventDefault();
-        console.log('Photo upload started');
+        console.log('[Photo Upload Client] handlePhotoUpload triggered.');
 
         const form = event.target;
+        // --- REVERTED: Use FormData directly from the form ---
+        const formData = new FormData(form);
+        // --- Removed manual construction and appending ---
+
         const statusElement = document.getElementById('upload-status');
         const modal = document.getElementById('photo-upload-modal');
         const submitButton = form.querySelector('button[type="submit"]');
 
+        // Add null checks for essential elements
         if (!statusElement || !modal || !submitButton) {
-            alert('Error: Could not find required elements. Please refresh the page.');
+            console.error('[Photo Upload Client] Status element, modal, or submit button not found.');
+            // Optionally display an error to the user if elements are missing
             return;
         }
 
-        // Get file and date directly from form elements
-        const photoFile = form.querySelector('input[type="file"]').files[0];
-        const photoDate = form.querySelector('input[name="photo-date"]').value;
+        // --- Validate directly from formData ---
+        // Ensure the keys used here ('date', 'photos') match the 'name' attributes in your HTML form inputs
+        const dateValue = formData.get('photo-date'); // Use 'photo-date' to match HTML name attribute
+        const files = formData.getAll('photos');
 
-        // Basic validation
-        if (!photoDate) {
+        if (!dateValue) {
             statusElement.textContent = 'Please select a date.';
             statusElement.style.color = 'orange';
-            return;
+            console.warn('[Photo Upload Client] Date not found in FormData (using key "photo-date"). Check input name attribute.'); // Updated console log key
+            return; // Need a date
         }
-        if (!photoFile) {
-            statusElement.textContent = 'Please select a photo.';
+        if (!files || files.length === 0 || !files[0] || files[0].size === 0) { // Check if the first file has size > 0
+            statusElement.textContent = 'Please select at least one photo.';
             statusElement.style.color = 'orange';
+            console.warn('[Photo Upload Client] No files or empty file selected.');
             return;
         }
+        console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
+        // --- End validation ---
 
-        // Show uploading status
         statusElement.textContent = 'Uploading...';
         statusElement.style.color = '#03dac6';
         submitButton.disabled = true;
 
+        console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
+        let response;
         try {
-            // Use the minimal photo uploader
-            const response = await window.photoUploader.uploadPhoto(photoFile, photoDate);
-            console.log('Upload successful:', response);
+            response = await fetch('/api/workouts/progress-photos', {
+                method: 'POST',
+                body: formData,
+            });
 
-            // Show success message
-            statusElement.textContent = 'Upload successful!';
-            statusElement.style.color = '#4CAF50';
+            // ... (keep existing logging and error handling for the response) ...
+            console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
 
-            // Close the modal after a short delay
+            if (!response.ok) {
+                let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
+                try {
+                    const text = await response.text();
+                    console.log(`[Photo Upload Client] Raw error response text: ${text}`);
+                    errorData = JSON.parse(text);
+                    console.log('[Photo Upload Client] Parsed JSON error response:', errorData);
+                } catch (parseError) {
+                    console.error('[Photo Upload Client] Failed to parse error response as JSON:', parseError);
+                }
+                const error = new Error(errorData.error || `HTTP error ${response.status}`);
+                error.status = response.status;
+                error.data = errorData;
+                throw error;
+            }
+
+            const result = await response.json();
+            console.log('[Photo Upload Client] Upload successful:', result);
+            statusElement.textContent = result.message || 'Upload successful!';
+            statusElement.style.color = '#4CAF50'; // Green
+            form.reset();
+            fetchAndDisplayPhotos();
+
             setTimeout(() => {
                 modal.style.display = 'none';
-                form.reset();
                 statusElement.textContent = '';
-                statusElement.style.color = '#03dac6';
-                submitButton.disabled = false;
-                fetchAndDisplayPhotos().catch(err => console.error('Error refreshing photos:', err));
             }, 1500);
 
         } catch (error) {
-            console.error('Upload failed:', error);
-            statusElement.textContent = `Upload failed: ${error.message || 'Unknown error'}`;
-            statusElement.style.color = '#F44336';
-            submitButton.disabled = false;
-        }
+            // ... (keep existing detailed error logging in catch block) ...
+            console.error('[Photo Upload Client] Error during photo upload fetch/processing:', error);
+            console.error('[Photo Upload Client] Error Name:', error.name);
+            console.error('[Photo Upload Client] Error Message:', error.message);
+            if (error.stack) {
+                 console.error('[Photo Upload Client] Error Stack:', error.stack);
+            }
+            if (error.status) {
+                console.error('[Photo Upload Client] Error Status:', error.status);
+            }
+             if (error.data) {
+                console.error('[Photo Upload Client] Error Data:', error.data);
+             }
 
+            statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
+            statusElement.style.color = '#f44336'; // Red
+
+        } finally {
+            submitButton.disabled = false;
+            console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
+        }
     }
     // --- END NEW ---
-
-    // --- Exercise Name Edit Functions ---
-    function handleEditExerciseName(event) {
-        const button = event.target;
-        const exerciseItem = button.closest('.exercise-item');
-        if (!exerciseItem) {
-            console.error('Could not find parent exercise item for edit button.');
-            return;
-        }
-
-        const index = parseInt(exerciseItem.dataset.workoutIndex, 10);
-        if (isNaN(index) || index < 0 || index >= currentWorkout.exercises.length) {
-            console.error(`Invalid index for exercise edit: ${index}`);
-            return;
-        }
-
-        openExerciseNameEditModal(index);
-    }
-
-    function openExerciseNameEditModal(index) {
-        const exercise = currentWorkout.exercises[index];
-        if (!exercise) {
-            console.error(`Exercise not found at index ${index}`);
-            return;
-        }
-
-        // Set the current values in the modal
-        document.getElementById('edit-exercise-name').value = exercise.name;
-        document.getElementById('edit-exercise-index').value = index;
-
-        // Populate the datalist with available exercises
-        populateExerciseNameDatalist();
-
-        // Show the modal
-        document.getElementById('exercise-name-edit-modal').style.display = 'block';
-
-        // Add submit event listener to the form
-        const form = document.getElementById('exercise-name-edit-form');
-        // Remove any existing listeners to prevent duplicates
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-        newForm.addEventListener('submit', handleExerciseNameEditSubmit);
-
-        // Add click event listeners to the edit options to make the entire row clickable
-        const editOptions = document.querySelectorAll('.edit-option');
-        editOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                // Find the radio button inside this option and select it
-                const radio = this.querySelector('input[type="radio"]');
-                if (radio) {
-                    radio.checked = true;
-                }
-            });
-        });
-
-        // Focus on the input field
-        document.getElementById('edit-exercise-name').focus();
-    }
-
-    async function handleExerciseNameEditSubmit(event) {
-        event.preventDefault();
-
-        const nameInput = document.getElementById('edit-exercise-name');
-        const indexInput = document.getElementById('edit-exercise-index');
-        const editOption = document.querySelector('input[name="edit-option"]:checked').value;
-
-        const newName = nameInput.value.trim();
-        const index = parseInt(indexInput.value, 10);
-
-        if (!newName) {
-            alert('Please enter a name for the exercise.');
-            return;
-        }
-
-        if (isNaN(index) || index < 0 || index >= currentWorkout.exercises.length) {
-            console.error(`Invalid index for exercise edit: ${index}`);
-            alert('Error: Could not find the exercise to edit.');
-            return;
-        }
-
-        const exercise = currentWorkout.exercises[index];
-
-        if (editOption === 'instance') {
-            // Just update this instance
-            exercise.name = newName;
-            console.log(`Updated exercise name to: ${newName} (instance only)`);
-            renderCurrentWorkout();
-        } else if (editOption === 'new') {
-            // Create a new exercise in the database
-            try {
-                const response = await fetch('/api/workouts/exercises', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: newName,
-                        category: exercise.category || 'Other'
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to create new exercise: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log('New exercise created:', result);
-
-                // Update the current instance with the new exercise ID and name
-                exercise.name = newName;
-                exercise.exercise_id = result.exercise_id;
-
-                // Add the new exercise to the available exercises list
-                availableExercises.push(result);
-
-                alert(`New exercise "${newName}" created and applied to this workout.`);
-                renderCurrentWorkout();
-            } catch (error) {
-                console.error('Error creating new exercise:', error);
-                alert(`Failed to create new exercise: ${error.message}`);
-            }
-        }
-
-        // Close the modal
-        document.getElementById('exercise-name-edit-modal').style.display = 'none';
-
-        // Save the workout state
-        saveWorkoutState();
-    }
-    // Function to populate the exercise name datalist
-    function populateExerciseNameDatalist() {
-        const datalist = document.getElementById('exercise-name-list');
-        if (!datalist) {
-            console.error('Exercise name datalist element not found');
-            return;
-        }
-
-        // Clear existing options
-        datalist.innerHTML = '';
-
-        // Add options for all available exercises
-        if (availableExercises && availableExercises.length > 0) {
-            // Sort exercises alphabetically
-            const sortedExercises = [...availableExercises].sort((a, b) => a.name.localeCompare(b.name));
-
-            // Add options to datalist
-            sortedExercises.forEach(exercise => {
-                const option = document.createElement('option');
-                option.value = exercise.name;
-                option.textContent = exercise.name; // For browsers that show option text
-                datalist.appendChild(option);
-            });
-        }
-    }
-    // --- End Exercise Name Edit Functions ---
 
     // --- NEW: Open/Close Photo Upload Modal Functions ---
     function openPhotoUploadModal() {
@@ -3152,114 +2668,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END NEW ---
 
-    // --- Path Normalization Function ---
-    function normalizePhotoPath(originalPath, photoId) {
-        console.log(`[Photo Load] Normalizing path for photo ID: ${photoId}, Original path: ${originalPath}`);
-
-        // Direct mapping of photo IDs to known filenames
-        const photoIdToFilename = {
-            1: 'photos-1743533104709-675883910.jpg',
-            4: 'photos-1743534804031-896765036.jpg',
-            15: 'photos-1744352353551-10102925.jpg',
-            16: 'photos-1744395354247-929083164.jpg',
-            17: 'photos-1744395354247-929083164.jpg' // Use a known working image for ID 17
-        };
-
-        // If we have a direct mapping for this photo ID, use it
-        if (photoIdToFilename[photoId]) {
-            const directPath = `uploads/progress_photos/${photoIdToFilename[photoId]}`;
-            console.log(`[Photo Load] Using direct mapping for photo ID ${photoId}: ${directPath}`);
-            return directPath;
-        }
-
-        // For any other photo ID, try to extract the filename from the path
-        let filename = '';
-
-        // Handle different path formats
-        if (originalPath && originalPath.includes('/')) {
-            // Path contains slashes, extract the last part
-            const pathParts = originalPath.split('/');
-            filename = pathParts[pathParts.length - 1];
-        } else if (originalPath && originalPath.includes('\\')) {
-            // Path contains backslashes, extract the last part
-            const pathParts = originalPath.split('\\');
-            filename = pathParts[pathParts.length - 1];
-        } else if (originalPath) {
-            // Path is just a filename
-            filename = originalPath;
-        }
-
-        // If filename is empty or we couldn't extract it, use a fallback
-        if (!filename) {
-            // Use the most recent file as a fallback
-            const fallbackFile = 'photos-1744395354247-929083164.jpg';
-            console.log(`[Photo Load] Could not extract filename for photo ID: ${photoId}, using fallback: ${fallbackFile}`);
-            return `uploads/progress_photos/${fallbackFile}`;
-        }
-
-        // Ensure the filename has an extension
-        if (!filename.includes('.')) {
-            // Default to jpg extension
-            filename = `${filename}.jpg`;
-            console.log(`[Photo Load] Adding .jpg extension for photo ID: ${photoId}`);
-        }
-
-        // Return the normalized path
-        const normalizedPath = `uploads/progress_photos/${filename}`;
-        console.log(`[Photo Load] Normalized path: ${normalizedPath}`);
-        return normalizedPath;
-    }
-
-    // --- Simplified Fetch and Display Photos Function ---
+    // --- NEW: Fetch and Display Photos Function (Redesigned for Carousel) ---
     async function fetchAndDisplayPhotos() {
-        console.log('[Photo Load] fetchAndDisplayPhotos STARTED.');
-
-        // Basic validation of required elements
-        if (!photoReel || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
-            console.error("[Photo Load] Missing required elements");
+        console.log('[Photo Load] fetchAndDisplayPhotos STARTED.'); // Log start
+        // Use the slider container elements, not the old galleryEl
+        // if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn) return; // Updated condition
+        if (!photoReel || !paginationDotsContainer || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
+            console.error("[Photo Load] Missing required slider elements (reel, dots container, nav buttons, delete button).");
             return;
         }
 
-        // Show loading state
-        photoReel.innerHTML = '<p>Loading photos...</p>';
-        if (paginationDotsContainer) paginationDotsContainer.innerHTML = '';
+        console.log('[Photo Load] Setting loading state...'); // Log before UI update
+        // currentPhotoDisplay.style.display = 'none'; // Hide image while loading
+        // currentPhotoDate.textContent = 'Loading photos...';
+        photoReel.innerHTML = '<p>Loading photos...</p>'; // Show loading in reel
+        paginationDotsContainer.innerHTML = ''; // Clear dots
         photoPrevBtn.disabled = true;
         photoNextBtn.disabled = true;
         deletePhotoBtn.disabled = true;
 
         try {
-            console.log('[Photo Load] Fetching photos from API...');
-
-            // Make a fresh request to the API
-            const response = await fetch('/api/workouts/progress-photos', {
-                method: 'GET',
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
-                }
-            });
-
-            console.log(`[Photo Load] API Response Status: ${response.status}`);
-
+            console.log('[Photo Load] Fetching photos from API...'); // Log before fetch
+            const response = await fetch('/api/workouts/progress-photos');
+            console.log(`[Photo Load] API Response Status: ${response.status}`); // Log status
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
-            // Get the response as JSON
-            const data = await response.json();
-            console.log(`[Photo Load] Received ${data.length} photos from API`);
-
-            // Store the photos data
-            progressPhotosData = data;
-
-            // Log each photo for debugging
-            if (progressPhotosData && progressPhotosData.length > 0) {
-                progressPhotosData.forEach((photo, index) => {
-                    console.log(`[Photo Load] Photo ${index + 1}: ID=${photo.photo_id}, Date=${photo.date_taken}, Path=${photo.file_path}`);
-                });
-            } else {
-                console.log('[Photo Load] No photos found in response');
-            }
+            // Store fetched data in state
+            progressPhotosData = await response.json(); // Expecting array like [{photo_id, date_taken, file_path, uploaded_at}]
 
             console.log(`[Photo Load] Fetched progress photos count: ${progressPhotosData.length}`);
 
@@ -3297,33 +2733,10 @@ document.addEventListener('DOMContentLoaded', function() {
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
                 const img = document.createElement('img');
-
-                // PERMANENT SOLUTION: Robust path normalization for all photos
-                let imagePath;
-
-                // Log the original path
-                console.log(`[Photo Load] Processing photo ID: ${photo.photo_id}, Original path: ${photo.file_path}`);
-
-                // Normalize the path using a consistent approach for all photos
-                imagePath = normalizePhotoPath(photo.file_path, photo.photo_id);
-
-                // Log the normalized path
-                console.log(`[Photo Load] Normalized path for photo ID ${photo.photo_id}: ${imagePath}`);
-
-                console.log(`[Photo Load] Using normalized path: ${imagePath} for photo ID: ${photo.photo_id}`);
-
-                // Use absolute URLs for all images
-                const isProduction = window.location.hostname.includes('railway.app');
-                const serverProtocol = isProduction ? 'https' : 'http';
-                const serverHost = isProduction ? 'notifs-production.up.railway.app' : '127.0.0.1:3000';
-                const absolutePath = `${serverProtocol}://${serverHost}/${imagePath.replace(/^\/?/, '')}`;
-
-                console.log(`[Photo Load] Using absolute path: ${absolutePath} for photo ID: ${photo.photo_id}`);
-
-                // Store both the relative and absolute paths
-                img.dataset.src = absolutePath; // Use absolute path directly
-                img.src = ''; // Set src initially empty
-                img.alt = `Progress photo ${photo.photo_id}`;
+                // img.src = photo.file_path; // <<< CHANGE THIS
+                img.dataset.src = photo.file_path; // <<< TO THIS
+                img.src = ''; // <<< ADD THIS (Set src initially empty)
+                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
                 img.dataset.photoId = photo.photo_id; // Store ID if needed
                 img.loading = 'lazy'; // Add native lazy loading attribute as well
                 photoReel.appendChild(img);
@@ -3371,23 +2784,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END NEW ---
 
-    // --- MOBILE-OPTIMIZED: Display Current Photo in Slider ---
+    // --- NEW: Display Current Photo in Slider (Redesigned for Carousel) ---
     function displayCurrentPhoto() {
         const startTime = performance.now(); // Start timer
-        const numPhotos = progressPhotosData ? progressPhotosData.length : 0;
+        const numPhotos = progressPhotosData.length;
         console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${numPhotos})`);
 
-        // Get the date display element
-        const dateDisplayEl = currentPhotoDateDisplay;
+        // NEW: Find the date display element
+        const dateDisplayEl = currentPhotoDateDisplay; // Use the reference
 
-        // Check if we have photos and required elements
         if (numPhotos === 0 || !photoReel || !paginationDotsContainer || !dateDisplayEl) {
             console.warn('[Photo Display] No photos or required elements found (reel, dots, date display).');
             if (dateDisplayEl) dateDisplayEl.textContent = ''; // Clear date if no photos
-            if (photoReel) photoReel.innerHTML = '<p>No progress photos available. Click the "+ Add Photo" button to upload your first photo.</p>';
-            if (photoPrevBtn) photoPrevBtn.disabled = true;
-            if (photoNextBtn) photoNextBtn.disabled = true;
-            if (deletePhotoBtn) deletePhotoBtn.disabled = true;
             return; // Nothing to display
         }
 
@@ -3405,15 +2813,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
         // --- Get Current Photo Data and Format Date ---
-        // Check if progressPhotosData is defined and has the expected index
-        if (!progressPhotosData || !Array.isArray(progressPhotosData)) {
-            console.error('[Photo Display] progressPhotosData is not a valid array');
-            return; // Exit early to prevent errors
-        }
-
         const currentPhoto = progressPhotosData[currentPhotoIndex];
         // --- BEGIN ADDED DEBUG LOG ---
-        console.log('[Photo Display DEBUG] Photo object being used:', currentPhoto ? JSON.stringify(currentPhoto) : 'undefined');
+        console.log('[Photo Display DEBUG] Photo object being used:', JSON.stringify(currentPhoto));
         // --- END ADDED DEBUG LOG ---
         console.log(`[Photo Display] Attempting to display data:`, currentPhoto); // <<< Log the photo object
         let formattedDate = '';
@@ -3433,176 +2835,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
-            // Get the path from the data-src attribute
-            let imagePath = currentImageElement.dataset.src;
-            console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${imagePath}`);
-
-            // Check if the path contains multiple options (separated by |)
-            if (imagePath && imagePath.includes('|')) {
-                console.log(`[Photo Display] Multiple paths detected for photo ID ${currentPhoto.photo_id}`);
-                const pathOptions = imagePath.split('|');
-                // Use the first path option initially
-                imagePath = pathOptions[0];
-                console.log(`[Photo Display] Using first path option: ${imagePath}`);
-
-                // Store all path options as a data attribute for error handling
-                currentImageElement.dataset.pathOptions = pathOptions.join('|');
-                currentImageElement.dataset.pathOptionIndex = '0';
-                currentImageElement.dataset.totalPathOptions = pathOptions.length.toString();
+            // Only set src if it's not already set or differs from data-src
+            if (currentImageElement.src !== currentImageElement.dataset.src) {
+                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
+                currentImageElement.src = currentImageElement.dataset.src;
             }
-
-            // Set the src attribute directly
-            currentImageElement.src = imagePath;
-
-            // Enhanced error handling for image loading
-            currentImageElement.onerror = function() {
-                console.log(`[Photo Display] Image failed to load: ${imagePath}`);
-
-                // Check if we have multiple path options
-                if (this.dataset.pathOptions && this.dataset.pathOptionIndex && this.dataset.totalPathOptions) {
-                    const pathOptions = this.dataset.pathOptions.split('|');
-                    let currentIndex = parseInt(this.dataset.pathOptionIndex, 10);
-                    const totalOptions = parseInt(this.dataset.totalPathOptions, 10);
-
-                    // Try the next path option if available
-                    if (currentIndex + 1 < totalOptions) {
-                        currentIndex++;
-                        const nextPath = pathOptions[currentIndex];
-                        console.log(`[Photo Display] Trying next path option (${currentIndex + 1}/${totalOptions}): ${nextPath}`);
-                        this.dataset.pathOptionIndex = currentIndex.toString();
-                        this.src = nextPath;
-                        return; // Exit early to try the next path
-                    }
-                }
-
-                // If no more path options or no path options at all, continue with normal error handling
-                // First attempt: Add a timestamp to bypass cache
-                const timestampedUrl = imagePath + '?t=' + new Date().getTime();
-                console.log(`[Photo Display] Retry 1: Using timestamped URL: ${timestampedUrl}`);
-                this.src = timestampedUrl;
-
-                // Second attempt: Try with absolute URL
-                this.onerror = function() {
-                    console.log(`[Photo Display] Retry 1 failed, trying with absolute URL`);
-                    const absoluteUrl = new URL(imagePath, window.location.origin).href;
-                    console.log(`[Photo Display] Retry 2: Using absolute URL: ${absoluteUrl}`);
-                    this.src = absoluteUrl;
-
-                    // Third attempt: Try with a different path format
-                    this.onerror = function() {
-                        console.log(`[Photo Display] Retry 2 failed, trying with alternative path format`);
-                        // Extract just the filename
-                        const filename = imagePath.split('/').pop();
-                        const alternativePath = `/uploads/progress_photos/${filename}`;
-                        console.log(`[Photo Display] Retry 3: Using alternative path: ${alternativePath}`);
-                        this.src = alternativePath;
-
-                        // Fourth attempt: Try with PNG extension if it's a JPG, or vice versa
-                        this.onerror = function() {
-                            console.log(`[Photo Display] Retry 3 failed, trying with alternative file extension`);
-                            let alternativeExtPath;
-
-                            // If the path ends with .jpg or .jpeg, try .png
-                            if (imagePath.toLowerCase().endsWith('.jpg') || imagePath.toLowerCase().endsWith('.jpeg')) {
-                                const basePath = imagePath.substring(0, imagePath.lastIndexOf('.'));
-                                alternativeExtPath = `${basePath}.png`;
-                                console.log(`[Photo Display] Retry 4: Trying PNG instead of JPG: ${alternativeExtPath}`);
-                            }
-                            // If the path ends with .png, try .jpg
-                            else if (imagePath.toLowerCase().endsWith('.png')) {
-                                const basePath = imagePath.substring(0, imagePath.lastIndexOf('.'));
-                                alternativeExtPath = `${basePath}.jpg`;
-                                console.log(`[Photo Display] Retry 4: Trying JPG instead of PNG: ${alternativeExtPath}`);
-                            }
-                            // If we have an alternative path, try it
-                            if (alternativeExtPath) {
-                                this.src = alternativeExtPath;
-                            }
-
-                            // Try with direct /public prefix
-                            this.onerror = function() {
-                                console.log(`[Photo Display] Retry 4 failed, trying with /public prefix`);
-                                const publicPath = `/public/${imagePath}`;
-                                console.log(`[Photo Display] Retry 5: Using /public prefix: ${publicPath}`);
-                                this.src = publicPath;
-
-                                // Try with direct server URL
-                                this.onerror = function() {
-                                    console.log(`[Photo Display] Retry 5 failed, trying with direct server URL`);
-                                    // Use HTTPS for production, HTTP for local development
-                                    const isProduction = window.location.hostname.includes('railway.app');
-                                    const serverProtocol = isProduction ? 'https' : 'http';
-                                    const serverHost = isProduction ? 'notifs-production.up.railway.app' : '127.0.0.1:3000';
-                                    const serverPath = `${serverProtocol}://${serverHost}/${imagePath.replace(/^\/?/, '')}`;
-                                    console.log(`[Photo Display] Retry 6: Using direct server URL: ${serverPath}`);
-                                    this.src = serverPath;
-
-                                    // Final fallback: Show a placeholder
-                                    this.onerror = function() {
-                                        console.log(`[Photo Display] All retries failed, using placeholder image`);
-                                        // Try the placeholder with different paths
-                                        // Use HTTPS for production, HTTP for local development
-                                        const isProduction = window.location.hostname.includes('railway.app');
-                                        const serverProtocol = isProduction ? 'https' : 'http';
-                                        const serverHost = isProduction ? 'notifs-production.up.railway.app' : '127.0.0.1:3000';
-
-                                        const placeholderPaths = [
-                                            '/images/photo-placeholder.png',
-                                            'images/photo-placeholder.png',
-                                            '/public/images/photo-placeholder.png',
-                                            '../images/photo-placeholder.png',
-                                            `${serverProtocol}://${serverHost}/images/photo-placeholder.png`
-                                        ];
-
-                                        // Use the first placeholder path
-                                        console.log(`[Photo Display] Trying placeholder image: ${placeholderPaths[0]}`);
-                                        this.src = placeholderPaths[0];
-                                        this.alt = 'Photo could not be loaded';
-                                        this.classList.add('error-placeholder');
-
-                                        // Set up error handler for placeholder
-                                        let placeholderIndex = 0;
-                                        const tryNextPlaceholder = () => {
-                                            placeholderIndex++;
-                                            if (placeholderIndex < placeholderPaths.length) {
-                                                console.log(`[Photo Display] Trying next placeholder: ${placeholderPaths[placeholderIndex]}`);
-                                                this.src = placeholderPaths[placeholderIndex];
-                                            } else {
-                                                console.log(`[Photo Display] All placeholder paths failed, giving up`);
-                                                this.onerror = null; // Prevent infinite loop
-
-                                                // Check if the image is actually visible despite errors
-                                                if (this.complete && this.naturalWidth > 0) {
-                                                    console.log(`[Photo Display] Image appears to be loaded despite errors, keeping it visible`);
-                                                    // Image is actually loaded, don't hide it
-                                                    this.style.display = 'block';
-                                                } else {
-                                                    // Image truly failed to load
-                                                    this.style.display = 'none'; // Hide the image
-                                                    // Add a text message instead
-                                                    const errorMsg = document.createElement('div');
-                                                    errorMsg.textContent = 'Image unavailable';
-                                                    errorMsg.className = 'photo-error-message';
-                                                    if (this.parentNode) {
-                                                        this.parentNode.insertBefore(errorMsg, this.nextSibling);
-                                                    }
-                                                }
-                                            }
-                                        };
-
-                                        this.onerror = tryNextPlaceholder;
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
-            };
-
-            // Also set onload handler to confirm success
-            currentImageElement.onload = function() {
-                console.log(`[Photo Display] Successfully loaded image: ${this.src}`);
-            };
         } else {
             console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
         }
@@ -3781,34 +3018,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- NEW: Toggle Comparison View Function ---
-    function toggleComparisonView() {
-        console.log('Toggling comparison view. Current state:', isComparisonViewActive);
-
-        if (!photoGallerySection || !photoComparisonSection) {
-            console.error('Missing required elements for toggling comparison view');
-            return;
-        }
-
-        // Toggle the state
-        isComparisonViewActive = !isComparisonViewActive;
-
-        // Update UI based on state
-        if (isComparisonViewActive) {
-            // Switch to comparison view
-            photoGallerySection.style.display = 'none';
-            photoComparisonSection.style.display = 'block';
-            toggleComparisonBtn.textContent = 'Show Slider';
-            toggleComparisonBtn.title = 'Switch to Photo Slider View';
-        } else {
-            // Switch to slider view
-            photoGallerySection.style.display = 'block';
-            photoComparisonSection.style.display = 'none';
-            toggleComparisonBtn.textContent = 'Compare';
-            toggleComparisonBtn.title = 'Toggle Comparison View';
-        }
-    }
-
     // --- NEW: Update Comparison Images Function ---
     function updateComparisonImages() {
         if (!comparisonImage1 || !comparisonImage2 || !comparisonPhotoSelect1 || !comparisonPhotoSelect2) return;
@@ -3828,8 +3037,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initialize(); // Run initialization
 
-    // --- Handler for Exercise Unit Change ---
-    async function handleExerciseUnitChange(event) {
+    // --- NEW: Handler for Exercise Unit Change ---
+    function handleExerciseUnitChange(event) {
         const selectElement = event.target;
         const exerciseItem = selectElement.closest('.exercise-item');
         if (!exerciseItem) {
@@ -3846,137 +3055,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const exerciseId = exercises[exerciseIndex].exercise_id;
-        if (!exerciseId) {
-            console.error("No exercise_id found for saving preference");
-            return;
-        }
-
         // Update the weight_unit in the underlying data
         exercises[exerciseIndex].weight_unit = newUnit;
-        console.log(`Updated unit for exercise ${exerciseIndex} (ID: ${exerciseId}) to: ${newUnit}`);
+        console.log(`Updated unit for exercise ${exerciseIndex} to: ${newUnit}`);
 
-        // Save workout state after changing unit
-        saveWorkoutState();
-
-        // Save the preference to the database
-        try {
-            const response = await fetch(`/api/workouts/exercises/preferences/${exerciseId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ weightUnit: newUnit })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to save preference: ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log(`Saved weight unit preference for exercise ID ${exerciseId}:`, result);
-
-            // Update the previous log display to show the new unit
-            updatePreviousLogDisplay(exerciseItem, newUnit);
-        } catch (error) {
-            console.error('Error saving exercise preference:', error);
-            // Continue with local changes even if server save fails
-        }
-    }
-
-    // Helper function to update the previous log display with the new unit
-    function updatePreviousLogDisplay(exerciseItem, unit) {
-        const previousLogSpans = exerciseItem.querySelectorAll('.previous-log');
-        previousLogSpans.forEach(span => {
-            const text = span.textContent;
-            // If there's actual data (not just placeholder)
-            if (text && !text.includes('- kg x -') && !text.includes('- lbs x -') &&
-                !text.includes('- bodyweight x -') && !text.includes('- assisted x -')) {
-                // Replace the unit in the text
-                const updatedText = text.replace(/kg|lbs|bodyweight|assisted/, unit);
-                span.textContent = updatedText;
-            } else {
-                // Update the placeholder text
-                span.textContent = `- ${unit} x -`;
-            }
-        });
-    }
-
-    // --- NEW: Handler for Input Changes in Weight and Reps ---
-    function handleInputChange(event) {
-        const inputElement = event.target;
-        const exerciseItem = inputElement.closest('.exercise-item');
-        if (!exerciseItem) {
-            console.error("Could not find parent exercise item for input element.");
-            return;
-        }
-
-        const exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
-        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
-
-        if (isNaN(exerciseIndex) || !exercises || !exercises[exerciseIndex]) {
-            console.error("Invalid exercise index for input change:", exerciseIndex);
-            return;
-        }
-
-        // Handle different input types
-        if (inputElement.classList.contains('weight-input') || inputElement.classList.contains('reps-input')) {
-            const setRow = inputElement.closest('.set-row');
-            if (!setRow) {
-                console.error("Could not find parent set row for input element.");
-                return;
-            }
-
-            const setIndex = parseInt(setRow.dataset.setIndex, 10);
-            if (isNaN(setIndex)) {
-                console.error("Invalid set index for input change:", setIndex);
-                return;
-            }
-
-            // Initialize sets_completed array if it doesn't exist
-            if (!exercises[exerciseIndex].sets_completed) {
-                const setRowCount = exerciseItem.querySelectorAll('.set-row').length;
-                exercises[exerciseIndex].sets_completed = Array(setRowCount).fill(null).map(() => ({
-                    weight: '',
-                    reps: '',
-                    unit: exercises[exerciseIndex].weight_unit || 'kg',
-                    completed: false
-                }));
-            }
-
-            // Ensure the sets_completed array has enough elements
-            while (exercises[exerciseIndex].sets_completed.length <= setIndex) {
-                exercises[exerciseIndex].sets_completed.push({
-                    weight: '',
-                    reps: '',
-                    unit: exercises[exerciseIndex].weight_unit || 'kg',
-                    completed: false
-                });
-            }
-
-            // Update the appropriate field in the sets_completed array
-            if (inputElement.classList.contains('weight-input')) {
-                exercises[exerciseIndex].sets_completed[setIndex].weight = inputElement.value;
-                console.log(`Updated weight for exercise ${exerciseIndex}, set ${setIndex} to: ${inputElement.value}`);
-            } else if (inputElement.classList.contains('reps-input')) {
-                exercises[exerciseIndex].sets_completed[setIndex].reps = inputElement.value;
-                console.log(`Updated reps for exercise ${exerciseIndex}, set ${setIndex} to: ${inputElement.value}`);
-            }
-
-            // Also update the completed status from the toggle button
-            const completeToggle = setRow.querySelector('.set-complete-toggle');
-            if (completeToggle) {
-                exercises[exerciseIndex].sets_completed[setIndex].completed = completeToggle.classList.contains('completed');
-            }
-        } else if (inputElement.classList.contains('exercise-notes-textarea')) {
-            // Update notes field
-            exercises[exerciseIndex].notes = inputElement.value;
-            console.log(`Updated notes for exercise ${exerciseIndex}`);
-        }
-
-        // Save workout state after input change
-        saveWorkoutState();
-        console.log('Saved workout state after input change');
+        // Optional: Update any visual display linked to the unit if needed elsewhere
+        // (Currently, only affects how data is saved)
     }
     // --- END NEW ---
 });
@@ -4023,28 +3107,15 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     // Always show "- kg x -" for previous log when there's no data
     const previousLogTextHtml = '- kg x -';
 
-    if (isTemplate) {
-        // For templates, use the reordered layout: Set#, Previous, Weight, Reps
-        return `
-            <div class="set-row" data-set-index="${setIndex}">
-                <span class="set-number">${setIndex + 1}</span>
-                <span class="previous-log">${previousLogTextHtml}</span>
-                <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" step="any" inputmode="decimal">
-                <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" inputmode="numeric" pattern="[0-9]*">
-            </div>
-        `;
-    } else {
-        // For active workouts, keep the original layout
-        return `
-            <div class="set-row" data-set-index="${setIndex}">
-                <span class="set-number">${setIndex + 1}</span>
-                <span class="previous-log">${previousLogTextHtml}</span>
-                <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
-                <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-                <button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>
-            </div>
-        `;
-    }
+    return `
+        <div class="set-row" data-set-index="${setIndex}">
+            <span class="set-number">${setIndex + 1}</span>
+            <span class="previous-log">${previousLogTextHtml}</span>
+            <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+            <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+            ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
+        </div>
+    `;
 }
 
 

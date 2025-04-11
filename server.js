@@ -28,41 +28,13 @@ const { swaggerDocs } = require('./docs/swagger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Increase timeout for large file uploads (5 minutes)
-app.timeout = 300000; // 5 minutes in milliseconds
-
 // Middleware
 app.use(cors());
-
-// Increase JSON and URL-encoded body size limits for large file uploads
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Add middleware to handle timeouts
-app.use((req, res, next) => {
-  // Set a longer timeout for photo upload requests
-  if (req.url.includes('/api/workouts/progress-photos')) {
-    req.setTimeout(300000); // 5 minutes
-    console.log('[Server] Extended timeout set for photo upload request');
-  }
-  next();
-});
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve uploaded files - with multiple paths for compatibility
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-app.use('/public/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-
-// For debugging - log all static file requests
-app.use((req, res, next) => {
-  if (req.url.includes('/uploads/') || req.url.includes('/public/uploads/')) {
-    console.log(`[Static File Request] ${req.url}`);
-  }
-  next();
-});
 
 // API Routes
 app.use('/api/goals', goalRoutes);
@@ -94,34 +66,6 @@ NotificationModel.initialize();
 
 // Setup daily notification check
 NotificationModel.setupDailyCheck(cron.schedule);
-
-// Setup daily habit reset at midnight Central Time (6 AM UTC)
-cron.schedule('0 6 * * *', async () => {
-  console.log('Running daily habit reset cron job');
-  try {
-    // Import the habit model
-    const HabitModel = require('./models/habitModel');
-
-    // Get today's date in US Central Time
-    const today = new Date();
-    const centralTime = today.toLocaleString('en-US', { timeZone: 'America/Chicago' });
-    const centralDate = new Date(centralTime);
-    const year = centralDate.getFullYear();
-    const month = String(centralDate.getMonth() + 1).padStart(2, '0');
-    const day = String(centralDate.getDate()).padStart(2, '0');
-    const todayKey = `${year}-${month}-${day}`;
-
-    console.log(`Resetting daily habit progress for date: ${todayKey}`);
-
-    // Get current habit counts for logging
-    const habits = await HabitModel.getAllHabits();
-
-    console.log(`Found ${habits.length} habits with completion data for today`);
-    console.log('Habit reset completed successfully');
-  } catch (error) {
-    console.error('Error during habit reset:', error);
-  }
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

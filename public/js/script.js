@@ -3,22 +3,15 @@ let scheduledNotifications = [];
 let deferredPrompt;
 let serviceWorkerRegistration = null;
 
-// Helper to check if a date string (YYYY-MM-DD or ISO) is today using US Central Time
+// Helper to check if a date string (YYYY-MM-DD or ISO) is today
 function isToday(dateString) {
     if (!dateString) return false;
     try {
-        // Parse the input date
         const date = new Date(dateString);
-
-        // Get today's date in US Central Time
-        const now = new Date();
-        const centralTime = now.toLocaleString('en-US', { timeZone: 'America/Chicago' });
-        const centralDate = new Date(centralTime);
-
-        // Compare the dates
-        return date.getFullYear() === centralDate.getFullYear() &&
-               date.getMonth() === centralDate.getMonth() &&
-               date.getDate() === centralDate.getDate();
+        const today = new Date();
+        return date.getFullYear() === today.getFullYear() &&
+               date.getMonth() === today.getMonth() &&
+               date.getDate() === today.getDate();
     } catch (e) {
         console.error("Error parsing date:", dateString, e);
         return false;
@@ -417,16 +410,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Apply filter
         switch(filterValue) {
             case 'unassigned_today':
-                // Show tasks that are either unassigned OR due today OR overdue
+                // Show tasks that are either unassigned OR due today
                 filteredTasks = allTasks.filter(task => {
                     // Skip completed tasks
                     if (task.is_complete) return false;
 
-                    // Check if task is overdue
-                    const isOverdue = task.due_date && new Date(task.due_date) < today && !isTaskDueToday(task);
-
-                    // Include if unassigned, due today, or overdue
-                    return isTaskUnassigned(task) || isTaskDueToday(task) || isOverdue;
+                    // Include if unassigned or due today
+                    return isTaskUnassigned(task) || isTaskDueToday(task);
                 });
                 break;
 
@@ -1196,13 +1186,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Determine if habit is complete based on counter or regular completions
-            // For counter habits, only complete when counter reaches max
-            // For regular habits, check if completions_today is greater than or equal to completions_per_day
             const isComplete = hasCounter ?
-                (currentCount >= totalCount) :
-                (completionsToday >= completionsTarget);
-
-            console.log(`Habit: ${habit.title}, completions_today: ${completionsToday}, target: ${completionsTarget}, isComplete: ${isComplete}`);
+                (currentCount >= totalCount) : // For counter habits, only complete when counter reaches max
+                (completionsToday >= completionsTarget); // For regular habits
 
             // We no longer need progressText since we're showing progress separately
 
@@ -1247,10 +1233,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // For regular habits, show a normal checkbox
-                // Only show as checked if completions_today >= completions_per_day
-                const isCheckedToday = completionsToday >= completionsTarget;
                 checkboxHtml = `<div class="habit-control-container">
-                    <input type="checkbox" class="habit-checkbox" title="Mark as done" ${isCheckedToday ? 'checked' : ''}>
+                    <input type="checkbox" class="habit-checkbox" title="Mark as done" ${isComplete ? 'checked' : ''}>
                 </div>`;
             }
 
@@ -1295,10 +1279,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     // For counter habits that are complete, use counter-complete class
                     habitElement.classList.add('counter-complete');
                 } else {
-                    // For regular habits, only mark as complete if completions_today >= completions_per_day
-                    if (completionsToday >= completionsTarget) {
-                        habitElement.classList.add('complete');
-                    }
+                    // For regular habits that are complete, use complete class
+                    habitElement.classList.add('complete');
                 }
             }
 

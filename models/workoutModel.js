@@ -84,11 +84,11 @@ async function getWorkoutTemplateById(templateId) {
         GROUP BY w.workout_id, w.name, w.description, w.created_at;
     `;
     const result = await db.query(templateQuery, [templateId]);
-
+    
     if (result.rowCount === 0) {
         throw new Error('Workout template not found');
     }
-
+    
     return result.rows[0];
 }
 
@@ -103,38 +103,38 @@ async function createWorkoutTemplate(name, description, exercises) {
     if (!name || name.trim() === '') {
         throw new Error('Template name cannot be empty');
     }
-
+    
     if (!Array.isArray(exercises) || exercises.length === 0) {
         throw new Error('Template must contain at least one exercise');
     }
-
+    
     const client = await db.getClient();
-
+    
     try {
         await client.query('BEGIN');
-
+        
         // 1. Insert the workout template
         const workoutResult = await client.query(
             'INSERT INTO workouts (name, description, is_template) VALUES ($1, $2, true) RETURNING workout_id',
             [name.trim(), description || null]
         );
         const newTemplateId = workoutResult.rows[0].workout_id;
-
+        
         // 2. Insert each exercise
         for (let i = 0; i < exercises.length; i++) {
             const ex = exercises[i];
-
+            
             // Validate exercise data
             if (!ex.exercise_id) {
                 throw new Error('Each exercise must have an exercise_id');
             }
-
+            
             await client.query(
-                `INSERT INTO workout_exercises
-                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes)
+                `INSERT INTO workout_exercises 
+                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
-                    newTemplateId,
+                    newTemplateId, 
                     ex.exercise_id,
                     ex.sets || null,
                     ex.reps || null,
@@ -145,9 +145,9 @@ async function createWorkoutTemplate(name, description, exercises) {
                 ]
             );
         }
-
+        
         await client.query('COMMIT');
-
+        
         // Fetch the complete template to return
         return await getWorkoutTemplateById(newTemplateId);
     } catch (error) {
@@ -170,50 +170,50 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
     if (!name || name.trim() === '') {
         throw new Error('Template name cannot be empty');
     }
-
+    
     if (!Array.isArray(exercises) || exercises.length === 0) {
         throw new Error('Template must contain at least one exercise');
     }
-
+    
     const client = await db.getClient();
-
+    
     try {
         await client.query('BEGIN');
-
+        
         // 1. Check if template exists
         const templateCheck = await client.query(
             'SELECT workout_id FROM workouts WHERE workout_id = $1 AND is_template = true',
             [templateId]
         );
-
+        
         if (templateCheck.rowCount === 0) {
             throw new Error('Workout template not found');
         }
-
+        
         // 2. Update the workout template
         await client.query(
             'UPDATE workouts SET name = $1, description = $2 WHERE workout_id = $3',
             [name.trim(), description || null, templateId]
         );
-
+        
         // 3. Delete all existing exercises for this template
         await client.query('DELETE FROM workout_exercises WHERE workout_id = $1', [templateId]);
-
+        
         // 4. Insert updated exercises
         for (let i = 0; i < exercises.length; i++) {
             const ex = exercises[i];
-
+            
             // Validate exercise data
             if (!ex.exercise_id) {
                 throw new Error('Each exercise must have an exercise_id');
             }
-
+            
             await client.query(
-                `INSERT INTO workout_exercises
-                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes)
+                `INSERT INTO workout_exercises 
+                (workout_id, exercise_id, sets, reps, weight, weight_unit, order_position, notes) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
-                    templateId,
+                    templateId, 
                     ex.exercise_id,
                     ex.sets || null,
                     ex.reps || null,
@@ -224,9 +224,9 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
                 ]
             );
         }
-
+        
         await client.query('COMMIT');
-
+        
         // Fetch the updated template to return
         return await getWorkoutTemplateById(templateId);
     } catch (error) {
@@ -244,31 +244,31 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
  */
 async function deleteWorkoutTemplate(templateId) {
     const client = await db.getClient();
-
+    
     try {
         await client.query('BEGIN');
-
+        
         // 1. Check if template exists
         const templateCheck = await client.query(
             'SELECT workout_id, name FROM workouts WHERE workout_id = $1 AND is_template = true',
             [templateId]
         );
-
+        
         if (templateCheck.rowCount === 0) {
             throw new Error('Workout template not found');
         }
-
+        
         const templateName = templateCheck.rows[0].name;
-
+        
         // 2. Delete all exercises for this template
         await client.query('DELETE FROM workout_exercises WHERE workout_id = $1', [templateId]);
-
+        
         // 3. Delete the template
         await client.query('DELETE FROM workouts WHERE workout_id = $1', [templateId]);
-
+        
         await client.query('COMMIT');
-
-        return {
+        
+        return { 
             id: parseInt(templateId),
             name: templateName
         };
@@ -292,40 +292,40 @@ async function logWorkout(workoutName, duration, notes, exercises) {
     if (!workoutName || workoutName.trim() === '') {
         throw new Error('Workout name cannot be empty');
     }
-
+    
     if (!Array.isArray(exercises) || exercises.length === 0) {
         throw new Error('Workout must contain at least one logged exercise');
     }
-
+    
     const client = await db.getClient();
-
+    
     try {
         await client.query('BEGIN');
-
+        
         // 1. Insert into workout_logs
         const logInsertResult = await client.query(
             'INSERT INTO workout_logs (workout_name, duration, notes) VALUES ($1, $2::interval, $3) RETURNING log_id',
             [workoutName.trim(), duration || null, notes || null]
         );
         const newLogId = logInsertResult.rows[0].log_id;
-
+        
         // 2. Insert each exercise log
         for (const exLog of exercises) {
             if (!exLog.exercise_id || !exLog.exercise_name || exLog.sets_completed == null || !exLog.reps_completed) {
                 throw new Error('Invalid exercise log data received');
             }
-
+            
             // Ensure numeric fields are numbers or null
             const setsCompleted = parseInt(exLog.sets_completed);
             const weightUsed = exLog.weight_used ? exLog.weight_used.toString() : null;
-
+            
             if (isNaN(setsCompleted)) {
                 throw new Error('Invalid sets_completed value');
             }
-
+            
             await client.query(
-                `INSERT INTO exercise_logs
-                (log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes)
+                `INSERT INTO exercise_logs 
+                (log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
                     newLogId,
@@ -339,16 +339,16 @@ async function logWorkout(workoutName, duration, notes, exercises) {
                 ]
             );
         }
-
+        
         await client.query('COMMIT');
-
+        
         // Fetch the complete log to return
         const logResult = await db.query('SELECT * FROM workout_logs WHERE log_id = $1', [newLogId]);
         const exerciseLogsResult = await db.query('SELECT * FROM exercise_logs WHERE log_id = $1', [newLogId]);
-
+        
         const workoutLog = logResult.rows[0];
         workoutLog.exercises = exerciseLogsResult.rows;
-
+        
         return workoutLog;
     } catch (error) {
         await client.query('ROLLBACK');
@@ -368,7 +368,7 @@ async function getWorkoutLogs(limit = 10, offset = 0) {
     // Get total count for pagination
     const countResult = await db.query('SELECT COUNT(*) FROM workout_logs');
     const totalCount = parseInt(countResult.rows[0].count);
-
+    
     // Get workout logs with their exercises
     const logsQuery = `
         SELECT
@@ -389,9 +389,9 @@ async function getWorkoutLogs(limit = 10, offset = 0) {
         ORDER BY wl.created_at DESC
         LIMIT $1 OFFSET $2;
     `;
-
+    
     const logsResult = await db.query(logsQuery, [limit, offset]);
-
+    
     return {
         logs: logsResult.rows,
         total: totalCount,
@@ -424,13 +424,13 @@ async function getWorkoutLogById(logId) {
         WHERE wl.log_id = $1
         GROUP BY wl.log_id;
     `;
-
+    
     const result = await db.query(logQuery, [logId]);
-
+    
     if (result.rowCount === 0) {
         throw new Error('Workout log not found');
     }
-
+    
     return result.rows[0];
 }
 
@@ -441,28 +441,28 @@ async function getWorkoutLogById(logId) {
  */
 async function deleteWorkoutLog(logId) {
     const client = await db.getClient();
-
+    
     try {
         await client.query('BEGIN');
-
+        
         // 1. Check if log exists
         const logCheck = await client.query(
             'SELECT log_id FROM workout_logs WHERE log_id = $1',
             [logId]
         );
-
+        
         if (logCheck.rowCount === 0) {
             throw new Error('Workout log not found');
         }
-
+        
         // 2. Delete all exercise logs for this workout log
         await client.query('DELETE FROM exercise_logs WHERE log_id = $1', [logId]);
-
+        
         // 3. Delete the workout log
         await client.query('DELETE FROM workout_logs WHERE log_id = $1', [logId]);
-
+        
         await client.query('COMMIT');
-
+        
         return { id: parseInt(logId) };
     } catch (error) {
         await client.query('ROLLBACK');
@@ -481,18 +481,18 @@ async function searchExercises(query) {
     if (!query || query.trim() === '') {
         return [];
     }
-
+    
     const searchQuery = `%${query.trim().toLowerCase()}%`;
-
+    
     const result = await db.query(
-        `SELECT exercise_id, name, category
-         FROM exercises
-         WHERE LOWER(name) LIKE $1 OR LOWER(category) LIKE $1
-         ORDER BY name ASC
+        `SELECT exercise_id, name, category 
+         FROM exercises 
+         WHERE LOWER(name) LIKE $1 OR LOWER(category) LIKE $1 
+         ORDER BY name ASC 
          LIMIT 20`,
         [searchQuery]
     );
-
+    
     return result.rows;
 }
 
@@ -506,211 +506,27 @@ async function createExercise(name, category) {
     if (!name || name.trim() === '') {
         throw new Error('Exercise name cannot be empty');
     }
-
+    
     if (!category || category.trim() === '') {
         throw new Error('Exercise category cannot be empty');
     }
-
+    
     // Check if exercise with this name already exists
     const existingCheck = await db.query(
         'SELECT exercise_id FROM exercises WHERE LOWER(name) = LOWER($1)',
         [name.trim()]
     );
-
+    
     if (existingCheck.rowCount > 0) {
         throw new Error('An exercise with this name already exists');
     }
-
+    
     const result = await db.query(
         'INSERT INTO exercises (name, category) VALUES ($1, $2) RETURNING *',
         [name.trim(), category.trim()]
     );
-
+    
     return result.rows[0];
-}
-
-/**
- * Get all progress photos
- * @returns {Promise<Array>} - Promise resolving to an array of progress photos
- */
-async function getProgressPhotos() {
-    const result = await db.query(
-        'SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC'
-    );
-
-    // Map date_taken to YYYY-MM-DD format for consistency
-    const photos = result.rows.map(photo => ({
-        ...photo,
-        date_taken: photo.date_taken.toISOString().split('T')[0] // Format as YYYY-MM-DD
-    }));
-
-    return photos;
-}
-
-/**
- * Save progress photos to the database
- * @param {string} date - The date the photo was taken (YYYY-MM-DD)
- * @param {Array} files - Array of file objects with filename property
- * @returns {Promise<Array>} - Promise resolving to an array of saved photos
- */
-async function saveProgressPhotos(date, files) {
-    console.log('==========================================');
-    console.log('saveProgressPhotos called with date:', date);
-    console.log('Files received:', files ? files.length : 0);
-    if (files && files.length > 0) {
-        console.log('First file details:', {
-            filename: files[0].filename,
-            originalname: files[0].originalname,
-            mimetype: files[0].mimetype,
-            size: files[0].size,
-            path: files[0].path
-        });
-    }
-    console.log('==========================================');
-
-    if (!date) {
-        console.error('Date is required but was not provided');
-        throw new Error('Date is required');
-    }
-
-    if (!files || files.length === 0) {
-        console.error('No files provided to saveProgressPhotos');
-        throw new Error('No files provided');
-    }
-
-    // Verify upload directory exists
-    if (!fs.existsSync(progressPhotosDir)) {
-        console.log(`Creating directory: ${progressPhotosDir}`);
-        fs.mkdirSync(progressPhotosDir, { recursive: true });
-    }
-
-    // Verify file was actually saved to disk
-    for (const file of files) {
-        if (!fs.existsSync(file.path)) {
-            console.error(`File not found on disk: ${file.path}`);
-            throw new Error(`File ${file.originalname} was not properly saved to disk`);
-        } else {
-            console.log(`Verified file exists on disk: ${file.path}`);
-        }
-    }
-
-    let client;
-    try {
-        client = await db.pool.connect();
-        console.log('Database connection established');
-
-        await client.query('BEGIN');
-        console.log('Database transaction started');
-
-        const insertedPhotos = [];
-        for (const file of files) {
-            // Use a consistent path format that works with our server configuration
-            // For mobile compatibility, use a path format that works with our client-side code
-            const relativePath = `uploads/progress_photos/${file.filename}`;
-            console.log(`Saving photo with path: ${relativePath}`);
-
-            const result = await client.query(
-                'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id, date_taken, file_path',
-                [date, relativePath]
-            );
-            console.log('Database insert successful, returned:', result.rows[0]);
-            insertedPhotos.push(result.rows[0]);
-        }
-
-        await client.query('COMMIT');
-        console.log('Database transaction committed');
-        return insertedPhotos;
-    } catch (error) {
-        console.error('Error in saveProgressPhotos:', error);
-        console.error('Error stack:', error.stack);
-        if (client) {
-            await client.query('ROLLBACK').catch(rollbackErr => {
-                console.error('Error during rollback:', rollbackErr);
-            });
-            console.log('Database transaction rolled back');
-        }
-        throw error;
-    } finally {
-        if (client) {
-            client.release();
-            console.log('Database connection released');
-        }
-    }
-}
-
-/**
- * Delete a progress photo by ID
- * @param {number} photoId - The ID of the photo to delete
- * @returns {Promise<boolean>} - Promise resolving to true if deleted, false if not found
- */
-async function deleteProgressPhoto(photoId) {
-    if (!photoId) {
-        throw new Error('Photo ID is required');
-    }
-
-    const client = await db.pool.connect();
-    try {
-        await client.query('BEGIN');
-
-        // First, get the file path so we can delete the file
-        const photoResult = await client.query(
-            'SELECT file_path FROM progress_photos WHERE photo_id = $1',
-            [photoId]
-        );
-
-        if (photoResult.rowCount === 0) {
-            await client.query('ROLLBACK');
-            return false; // Photo not found
-        }
-
-        const filePath = photoResult.rows[0].file_path;
-        console.log(`Deleting photo with ID ${photoId} and path ${filePath}`);
-
-        // Delete from database
-        const result = await client.query(
-            'DELETE FROM progress_photos WHERE photo_id = $1',
-            [photoId]
-        );
-
-        // Try to delete the file from disk if it exists
-        // Note: We're not letting file deletion failures stop the database deletion
-        try {
-            // Convert the database path to a filesystem path
-            let fsPath = filePath;
-
-            // Remove leading slash if present
-            if (fsPath.startsWith('/')) {
-                fsPath = fsPath.substring(1);
-            }
-
-            // Remove 'public/' prefix if present
-            if (fsPath.startsWith('public/')) {
-                fsPath = fsPath.substring(7);
-            }
-
-            // Construct the full path
-            const fullPath = path.join(__dirname, '..', 'public', fsPath);
-            console.log(`Attempting to delete file at: ${fullPath}`);
-
-            if (fs.existsSync(fullPath)) {
-                fs.unlinkSync(fullPath);
-                console.log(`Successfully deleted file: ${fullPath}`);
-            } else {
-                console.log(`File not found on disk: ${fullPath}`);
-            }
-        } catch (fileError) {
-            console.error(`Error deleting file for photo ${photoId}:`, fileError);
-            // Continue with the transaction even if file deletion fails
-        }
-
-        await client.query('COMMIT');
-        return result.rowCount > 0;
-    } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-    } finally {
-        client.release();
-    }
 }
 
 module.exports = {
@@ -726,8 +542,5 @@ module.exports = {
     deleteWorkoutLog,
     searchExercises,
     createExercise,
-    getProgressPhotos,
-    saveProgressPhotos,
-    deleteProgressPhoto,
     progressPhotosDir
 };

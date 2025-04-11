@@ -6,7 +6,6 @@
 const express = require('express');
 const router = express.Router();
 const HabitController = require('../controllers/habitController');
-const HabitModel = require('../models/habitModel');
 
 /**
  * @swagger
@@ -173,58 +172,6 @@ router.post('/:id/complete', (req, res) => {
 
     // Call the controller method
     HabitController.recordCompletion(req, res);
-});
-
-/**
- * @swagger
- * /api/habits/reset-daily-progress:
- *   post:
- *     summary: Reset daily habit progress tracking
- *     tags: [Habits]
- *     responses:
- *       200:
- *         description: Daily progress reset successfully
- *       500:
- *         description: Server error
- */
-// Reset daily habit progress with cache control headers
-router.post('/reset-daily-progress', async (req, res) => {
-    // Set cache control headers to prevent caching
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
-
-    try {
-        // Get today's date in US Central Time
-        const today = new Date();
-        const centralTime = today.toLocaleString('en-US', { timeZone: 'America/Chicago' });
-        const centralDate = new Date(centralTime);
-        const year = centralDate.getFullYear();
-        const month = String(centralDate.getMonth() + 1).padStart(2, '0');
-        const day = String(centralDate.getDate()).padStart(2, '0');
-        const todayKey = `${year}-${month}-${day}`;
-
-        console.log(`Resetting daily habit progress for date: ${todayKey}`);
-
-        // Get current habit counts for logging
-        const result = await HabitModel.getAllHabits();
-
-        console.log(`Found ${result.length} habits with completion data for today`);
-
-        res.status(200).json({
-            status: 'success',
-            message: `Daily habit progress tracking reset for ${todayKey}`,
-            date: todayKey,
-            habitsChecked: result.length
-        });
-    } catch (error) {
-        console.error('Error resetting daily habit progress:', error);
-        res.status(500).json({
-            error: 'Failed to reset daily habit progress',
-            message: error.message
-        });
-    }
 });
 
 module.exports = router;

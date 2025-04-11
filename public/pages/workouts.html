@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="../css/index.css">   <!-- Shared styles -->
     <link rel="stylesheet" href="../css/sidebar.css"> <!-- Sidebar styles -->
     <link rel="stylesheet" href="../css/workouts.css"> <!-- Specific workout styles -->
-    <link rel="stylesheet" href="../css/pagination-fix.css"> <!-- Pagination dots fix -->
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -59,10 +58,7 @@
 
         <!-- Landing Page View (Initially Visible) -->
         <div id="workout-landing-page" class="page active">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h1 style="margin: 0;">Workout Tracker</h1>
-                <a href="/pages/exercise-history.html" class="btn btn-secondary">Workout Analytics</a>
-            </div>
+            <h1>Workout Tracker</h1>
 
             <!-- Photo Sections (Slider + Comparison) -->
             <div class="progress-photos-section" style="margin-top: 5px;">
@@ -71,11 +67,10 @@
                     <div class="header-buttons">
                         <button id="add-photo-btn" class="btn btn-secondary btn-small">+ Add Photo</button>
                         <button id="delete-photo-btn" class="btn btn-danger btn-small" title="Delete Current Photo" disabled>Delete</button>
-                        <button id="toggle-comparison-btn" class="btn btn-primary btn-small" title="Toggle Comparison View">Compare</button>
                     </div>
                 </div>
                 <!-- Photo Gallery Display -->
-                <div id="photo-gallery-section" class="gallery-section" style="margin-bottom: 5px;">
+                <div class="gallery-section" style="margin-bottom: 5px;">
                     <div class="photo-slider-container">
                         <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" disabled>&lt;</button>
                         <div class="photo-viewport"> <!-- Clipping container -->
@@ -98,7 +93,7 @@
              <!-- ===== End Progress Photos Section ===== -->
 
              <!-- ===== NEW Photo Comparison Section ===== -->
-             <div id="photo-comparison-section" class="progress-photos-section" style="display: none;">
+             <div id="photo-comparison-section" class="progress-photos-section">
                  <h2 style="text-align: center; margin-bottom: 15px;">Photo Comparison</h2>
                  <div class="comparison-controls" style="display: flex; justify-content: space-around; margin-bottom: 15px;">
                      <div class="comparison-select-group">
@@ -137,6 +132,37 @@
             </div>
 
             <hr class="page-divider">
+
+            <!-- New Exercise History Section -->
+            <div class="history-section">
+                <h2>Exercise History</h2>
+                <div class="history-search-filter-container">
+                    <div class="form-group history-search-group">
+                        <label for="history-exercise-search" class="sr-only">Search Exercise:</label>
+                        <input type="text" id="history-exercise-search" class="text-input history-search-input" placeholder="Search exercises...">
+                        <div id="history-search-results" class="search-results-list"></div>
+                    </div>
+                     <div class="form-group history-category-group">
+                         <label for="history-category-filter-select" class="sr-only">Filter by Category:</label>
+                        <select id="history-category-filter-select" class="category-filter">
+                            <option value="all">All Categories</option>
+                            <option value="core">Core</option>
+                            <option value="arms">Arms</option>
+                            <option value="shoulders">Shoulders</option>
+                            <option value="chest">Chest</option>
+                            <option value="legs">Legs</option>
+                            <option value="back">Back</option>
+                            <option value="other">Other</option>
+                        </select>
+                     </div>
+                 <button id="history-edit-btn" class="btn btn-secondary btn-small" style="display: none; margin-left: 10px;">Edit History</button>
+                </div>
+                <div class="chart-container" style="position: relative; height:40vh; width:80vw; margin: 20px auto;">
+                     <canvas id="exercise-history-chart"></canvas>
+                     <p id="history-message" style="text-align: center; margin-top: 20px;"></p> <!-- Message area -->
+                </div>
+            </div>
+            <!-- End New Exercise History Section -->
 
         </div>
 
@@ -274,14 +300,57 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/workouts.js"></script>
 
+    <!-- History Edit Modal (Renamed) -->
+    <div id="history-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('history-edit-modal').style.display='none'">&times;</span>
+            <h2>Edit Exercise History: <span id="history-edit-modal-title-name"></span></h2>
 
+            <!-- Form Section -->
+            <form id="history-edit-form" novalidate>
+                <input type="hidden" id="history-edit-exercise-id">
+
+                <div class="form-group">
+                    <label for="history-edit-date">Date:</label>
+                    <input type="date" id="history-edit-date" required>
+                </div>
+                <div id="history-edit-sets-container" class="sets-container">
+                    <!-- Set rows will be rendered here by JS -->
+                </div>
+                 <div class="set-actions-container" style="margin-top: 10px;">
+                     <button type="button" id="history-edit-remove-set" class="btn btn-danger btn-small">- Remove Set</button>
+                     <button type="button" id="history-edit-add-set" class="btn btn-secondary btn-small">+ Add Set</button>
+                </div>
+                <div class="form-group">
+                    <label for="history-edit-notes">Notes (optional):</label>
+                    <textarea id="history-edit-notes" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save New Entry</button>
+                 </div>
+             </form>
+
+             <hr class="page-divider">
+
+             <!-- Existing Logs Section -->
+            <h4>Existing Log Entries</h4>
+            <div id="history-edit-log-list" class="modal-list">
+                <!-- Existing logs will be listed here -->
+                <p>Loading existing logs...</p>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('history-edit-modal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== New Photo Upload Modal ===== -->
     <div id="photo-upload-modal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="document.getElementById('photo-upload-modal').style.display='none'">&times;</span>
             <h2>Upload Progress Photos</h2>
-            <form id="progress-photo-form" enctype="multipart/form-data">
+            <form id="progress-photo-form">
                  <div class="form-group">
                      <label for="modal-photo-date">Date Taken:</label>
                      <!-- Changed ID to avoid conflict -->
@@ -290,7 +359,7 @@
                  <div class="form-group">
                      <label for="modal-photo-upload">Select Photos:</label>
                      <!-- Changed ID to avoid conflict -->
-                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" required>
+                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required>
                  </div>
                  <div class="modal-actions">
                     <button type="submit" class="btn btn-primary">Upload Photos</button>
@@ -301,54 +370,5 @@
     </div>
     <!-- ===== End Photo Upload Modal ===== -->
 
-    <!-- ===== Exercise Name Edit Modal ===== -->
-    <div id="exercise-name-edit-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="document.getElementById('exercise-name-edit-modal').style.display='none'">&times;</span>
-            <h2>Edit Exercise Name</h2>
-            <form id="exercise-name-edit-form">
-                <input type="hidden" id="edit-exercise-index">
-                <div class="form-group">
-                    <label for="edit-exercise-name">Exercise Name:</label>
-                    <input type="text" id="edit-exercise-name" list="exercise-name-list" autocomplete="off" required>
-                    <datalist id="exercise-name-list">
-                        <!-- Exercise options will be populated by JavaScript -->
-                    </datalist>
-                </div>
-
-                <div class="edit-options">
-                    <div class="edit-option">
-                        <input type="radio" id="edit-option-instance" name="edit-option" value="instance" checked>
-                        <div>
-                            <label for="edit-option-instance" class="edit-option-label">Update just this instance</label>
-                            <div class="edit-option-description">Only changes the name for this workout</div>
-                        </div>
-                    </div>
-
-                    <div class="edit-option">
-                        <input type="radio" id="edit-option-new" name="edit-option" value="new">
-                        <div>
-                            <label for="edit-option-new" class="edit-option-label">Save as new exercise</label>
-                            <div class="edit-option-description">Creates a new exercise in the database</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-actions" style="margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('exercise-name-edit-modal').style.display='none'">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <!-- ===== End Exercise Name Edit Modal ===== -->
-
-    <!-- Scripts -->
-    <script src="../js/sidebar.js"></script>
-    <script src="../js/status-bar.js"></script>
-    <script src="../npm/chart.js"></script>
-    <script src="../js/workouts.js"></script>
-    <script src="../js/photo-upload.js"></script>
-    <script src="../js/complete-photo-fix.js"></script>
 </body>
 </html>
