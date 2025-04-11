@@ -50,41 +50,6 @@ const upload = multer({
     }
 });
 
-// Add more detailed error handling
-upload.array = function() {
-    const middleware = multer.prototype.array.apply(this, arguments);
-    return function(req, res, next) {
-        console.log('[Multer] Processing upload request...');
-        console.log('[Multer] Request headers:', req.headers);
-
-        middleware(req, res, function(err) {
-            if (err) {
-                console.error('[Multer] Error during upload:', err);
-                if (err.code === 'LIMIT_FILE_SIZE') {
-                    return res.status(400).json({
-                        error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`
-                    });
-                } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-                    return res.status(400).json({
-                        error: 'Too many files or wrong field name. Expected field name: photos'
-                    });
-                } else {
-                    return res.status(400).json({ error: err.message });
-                }
-            }
-
-            console.log('[Multer] Upload processed successfully');
-            if (req.files) {
-                console.log(`[Multer] Received ${req.files.length} files:`, req.files.map(f => f.originalname).join(', '));
-            } else {
-                console.log('[Multer] No files received');
-            }
-
-            next();
-        });
-    };
-};
-
 // Use upload.array('photos', 10) to accept up to 10 files with the field name 'photos'
 const uploadPhotosMiddleware = upload.array('photos', 10);
 
@@ -381,9 +346,11 @@ function uploadProgressPhotos(req, res) {
     }
 
     uploadPhotosMiddleware(req, res, async function(err) {
-        if (err instanceof multer.MulterError) {
-            // A Multer error occurred when uploading
-            console.error('Multer error during upload:', err);
+        if (err) {
+            // An error occurred during upload
+            console.error('Error during upload:', err);
+
+            // Handle specific multer errors
             if (err.code === 'LIMIT_FILE_SIZE') {
                 return res.status(400).json({
                     error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`
@@ -393,11 +360,9 @@ function uploadProgressPhotos(req, res) {
                     error: 'Too many files or wrong field name. Expected field name: photos'
                 });
             }
-            return res.status(400).json({ error: err.message });
-        } else if (err) {
-            // An unknown error occurred
-            console.error('Unknown error during upload:', err);
-            return res.status(500).json({ error: err.message });
+
+            // Generic error response
+            return res.status(400).json({ error: err.message || 'Upload failed' });
         }
 
         // Everything went fine, files are available in req.files
