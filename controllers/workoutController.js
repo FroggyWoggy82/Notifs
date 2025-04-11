@@ -63,6 +63,28 @@ async function getAllExercises(req, res) {
 }
 
 /**
+ * Get all progress photos
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getAllProgressPhotos(req, res) {
+    console.log("Received GET /api/workouts/progress-photos request");
+    try {
+        const photos = await WorkoutModel.getAllProgressPhotos();
+        // Optional: Format date here if needed, or let frontend handle it
+        const formattedPhotos = photos.map(photo => ({
+            ...photo,
+            // Ensure date_taken is consistently YYYY-MM-DD if it's a Date object
+            date_taken: photo.date_taken instanceof Date ? photo.date_taken.toISOString().split('T')[0] : photo.date_taken
+        }));
+        res.json(formattedPhotos);
+    } catch (error) {
+        console.error('Error fetching progress photos:', error);
+        res.status(500).json({ error: 'Failed to fetch progress photos' });
+    }
+}
+
+/**
  * Get all workout templates
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -380,5 +402,6 @@ module.exports = {
     deleteWorkoutLog,
     searchExercises,
     createExercise,
-    uploadProgressPhotos
+    uploadProgressPhotos,
+    getAllProgressPhotos
 };

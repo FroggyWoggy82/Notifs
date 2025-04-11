@@ -2786,89 +2786,131 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Display Current Photo in Slider (Redesigned for Carousel) ---
     function displayCurrentPhoto() {
-        const startTime = performance.now(); // Start timer
-        const numPhotos = progressPhotosData.length;
-        console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${numPhotos})`);
+        const startTime = performance.now(); // Start timing
+        console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${progressPhotosData.length})`);
 
-        // NEW: Find the date display element
-        const dateDisplayEl = currentPhotoDateDisplay; // Use the reference
-
-        if (numPhotos === 0 || !photoReel || !paginationDotsContainer || !dateDisplayEl) {
-            console.warn('[Photo Display] No photos or required elements found (reel, dots, date display).');
-            if (dateDisplayEl) dateDisplayEl.textContent = ''; // Clear date if no photos
-            return; // Nothing to display
+        if (!photoReel || progressPhotosData.length === 0) {
+            console.warn('[Photo Display] Photo reel element not found or no photos data.');
+            // Optionally display a placeholder message
+            if (photoReel) photoReel.innerHTML = '<p>No photos available.</p>';
+            // Disable buttons if no photos
+            if(photoPrevBtn) photoPrevBtn.disabled = true;
+            if(photoNextBtn) photoNextBtn.disabled = true;
+            if(deletePhotoBtn) deletePhotoBtn.disabled = true;
+            if(paginationDotsContainer) paginationDotsContainer.innerHTML = '';
+            if(currentPhotoDateDisplay) currentPhotoDateDisplay.textContent = '';
+            return;
         }
 
-        // --- BEGIN ADDED DEBUG LOG ---
+        // Ensure index is within bounds (loops)
         console.log(`[Photo Display DEBUG] Current index before bounds check: ${currentPhotoIndex}`);
-        // --- END ADDED DEBUG LOG ---
-
-        // Ensure index is valid (looping can be added later if desired)
-        if (currentPhotoIndex < 0) currentPhotoIndex = 0;
-        if (currentPhotoIndex >= numPhotos) currentPhotoIndex = numPhotos - 1;
-
-        // --- BEGIN ADDED DEBUG LOG ---
-        console.log(`[Photo Display DEBUG] Current index AFTER bounds check: ${currentPhotoIndex}`);
-        // --- END ADDED DEBUG LOG ---
-
-
-        // --- Get Current Photo Data and Format Date ---
-        const currentPhoto = progressPhotosData[currentPhotoIndex];
-        // --- BEGIN ADDED DEBUG LOG ---
-        console.log('[Photo Display DEBUG] Photo object being used:', JSON.stringify(currentPhoto));
-        // --- END ADDED DEBUG LOG ---
-        console.log(`[Photo Display] Attempting to display data:`, currentPhoto); // <<< Log the photo object
-        let formattedDate = '';
-        if (currentPhoto && currentPhoto.date_taken) {
-            // Assuming date_taken is 'YYYY-MM-DD'. Adding T00:00:00 ensures it's treated as local time.
-            formattedDate = new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString(undefined, {
-                year: 'numeric', month: 'long', day: 'numeric'
-            });
+        if (currentPhotoIndex < 0) {
+            currentPhotoIndex = progressPhotosData.length - 1;
+        } else if (currentPhotoIndex >= progressPhotosData.length) {
+            currentPhotoIndex = 0;
         }
-        dateDisplayEl.textContent = formattedDate; // Update the date display
+        console.log(`[Photo Display DEBUG] Current index AFTER bounds check: ${currentPhotoIndex}`);
 
-        // --- Log the file path specifically ---
-        const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
-        console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
+        const photoData = progressPhotosData[currentPhotoIndex];
+        if (!photoData) {
+            console.error(`[Photo Display] No photo data found for index: ${currentPhotoIndex}`);
+            return;
+        }
+        console.log('[Photo Display] Attempting to display data:', JSON.parse(JSON.stringify(photoData))); // Deep copy for logging
 
-        // --- NEW: Find the specific image element and set its src for lazy loading ---
+        // --- Update the currently visible image SRC directly --- // <<<< KEEP THIS PART
         const imageElements = photoReel.querySelectorAll('img');
-        if (imageElements && imageElements[currentPhotoIndex]) {
-            const currentImageElement = imageElements[currentPhotoIndex];
-            // Only set src if it's not already set or differs from data-src
-            if (currentImageElement.src !== currentImageElement.dataset.src) {
-                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
-                currentImageElement.src = currentImageElement.dataset.src;
+        if (imageElements.length > currentPhotoIndex && imageElements[currentPhotoIndex]) {
+            const currentImgElement = imageElements[currentPhotoIndex];
+            // Check if src needs updating (optimization)
+            // --- ENSURE ABSOLUTE PATH --- 
+            let targetSrc = photoData.file_path;
+            if (targetSrc && !targetSrc.startsWith('/')) {
+                targetSrc = '/' + targetSrc; // Prepend slash if missing
+            }
+            // --- END ENSURE --- 
+            if (currentImgElement.src !== targetSrc) {
+                console.log(`[Photo Display] Setting image src to: ${targetSrc}`);
+                currentImgElement.src = targetSrc; // Directly set src for the target image
+                // Add basic onerror handling
+                currentImgElement.onerror = () => {
+                    console.error(`Error loading image: ${currentImgElement.src}`);
+                    // REMOVED: Don't set alt text visually if image might still load
+                    // currentImgElement.alt = `Error loading: ${photoData.date_taken}`;
+                    // You could add a class here to style the broken image
+                };
+                currentImgElement.onload = () => {
+                    // Optional: Log success or remove loading indicator if you add one
+                    // console.log(`Image loaded successfully: ${currentImgElement.src}`);
+                };
+            } else {
+                // console.log('[Photo Display] Image src already set correctly.');
             }
         } else {
-            console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
+            console.warn(`[Photo Display] Could not find image element at index ${currentPhotoIndex}`);
         }
-        // --- END NEW ---
 
-        // --- Update Reel Position ---
-        const offset = currentPhotoIndex * -100; // Calculate percentage offset
-        // --- BEGIN ADDED DEBUG LOG ---
-        console.log(`[Photo Display DEBUG] Calculated reel offset: ${offset}% for index ${currentPhotoIndex}`);
-        // --- END ADDED DEBUG LOG ---
-        photoReel.style.transform = `translateX(${offset}%)`;
-
-        // --- Update Pagination Dots ---
+        // --- Update Pagination Dots --- // <<<< KEEP THIS PART
         const dots = paginationDotsContainer.querySelectorAll('.dot');
         dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === currentPhotoIndex);
+            if (index === currentPhotoIndex) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+
+            // --- REMOVED Redundant SRC setting --- 
+            // const imgElement = imageElements[index]; // Find corresponding image
+            // // Lazy loading: If data-src exists but src is not set, set it now
+            // if (imgElement && imgElement.dataset.src && !imgElement.src) {
+            //     console.log(`[Photo Display DEBUG] Setting src for index ${index} from data-src: ${imgElement.dataset.src}`);
+            //     imgElement.src = imgElement.dataset.src;
+            //     imgElement.onerror = () => { // Add error handler here too
+            //         console.error(`Error loading image via data-src method: ${imgElement.src}`);
+            //         imgElement.alt = `Error loading image ${index + 1}`;
+            //     };
+            // }
+            // --- END REMOVED Block ---
         });
 
-        // --- Update Button States ---
-        // Buttons are now enabled/disabled directly in the calling functions
-        photoPrevBtn.disabled = (currentPhotoIndex === 0);
-        photoNextBtn.disabled = (currentPhotoIndex >= numPhotos - 1);
-        deletePhotoBtn.disabled = (numPhotos === 0); // Disable delete only if no photos
+        // --- Update Date Display --- // <<<< KEEP THIS PART
+        if (currentPhotoDateDisplay) {
+            try {
+                // Format the date nicely
+                const date = new Date(photoData.date_taken + 'T00:00:00'); // Treat as local date
+                currentPhotoDateDisplay.textContent = date.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+            } catch (e) {
+                console.error("Error formatting date:", e);
+                currentPhotoDateDisplay.textContent = photoData.date_taken; // Fallback
+            }
+        } else {
+             console.warn("[Photo Display] Date display element not found.");
+        }
 
-        console.log(`[Photo Display] Reel transform set to: translateX(${offset}%)`);
-        const endTime = performance.now(); // End timer
-        console.log(`[Photo Display] displayCurrentPhoto execution time: ${(endTime - startTime).toFixed(2)} ms`); // Log duration
+        // --- Update Slider Position --- // <<<< KEEP THIS PART
+        const offset = currentPhotoIndex * -100; // Calculate offset percentage
+        console.log(`[Photo Display DEBUG] Calculated reel offset: ${offset}% for index ${currentPhotoIndex}`);
+        if (photoReel) {
+            photoReel.style.transform = `translateX(${offset}%)`;
+            photoReel.style.transition = 'transform 0.5s ease-in-out'; // Ensure transition is applied
+        } else {
+            console.warn("[Photo Display] Photo reel element not found for transform.");
+        }
+
+        // --- Update Button States --- // <<<< KEEP THIS PART
+        // Buttons are enabled only if there's more than one photo
+        const enableButtons = progressPhotosData.length > 1;
+        if(photoPrevBtn) photoPrevBtn.disabled = !enableButtons;
+        if(photoNextBtn) photoNextBtn.disabled = !enableButtons;
+        // Delete button is enabled if there is at least one photo
+        if(deletePhotoBtn) deletePhotoBtn.disabled = progressPhotosData.length === 0;
+
+        // --- Performance Logging --- // <<<< KEEP THIS PART
+        const endTime = performance.now();
+        console.log(`[Photo Display] displayCurrentPhoto execution time: ${(endTime - startTime).toFixed(2)} ms`);
     }
-    // --- END NEW ---
 
     // --- Slider Navigation Functions (Updated for Redesign, NO ANIMATION) ---
     // let isAnimating = false; // Flag to prevent clicks during animation - REMOVED
