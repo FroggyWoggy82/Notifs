@@ -329,6 +329,7 @@ async function createExercise(req, res) {
  * @param {Object} res - Express response object
  */
 function uploadProgressPhotos(req, res) {
+    console.log('Received POST /api/workouts/progress-photos request');
     uploadPhotosMiddleware(req, res, async function(err) {
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading
@@ -347,15 +348,21 @@ function uploadProgressPhotos(req, res) {
 
         // Everything went fine, files are available in req.files
         if (!req.files || req.files.length === 0) {
+            console.error('No files found in request');
             return res.status(400).json({ error: 'No files were uploaded.' });
         }
 
+        console.log(`Received ${req.files.length} files:`, req.files.map(f => f.filename).join(', '));
+        console.log('Request body:', req.body);
+
         // Get the date from the request body
         const date = req.body['photo-date'] || new Date().toISOString().split('T')[0]; // Default to today if not provided
+        console.log(`Using date: ${date} for photo upload`);
 
         try {
             // Save photos to database
             const insertedPhotos = await WorkoutModel.saveProgressPhotos(date, req.files);
+            console.log(`Successfully saved photos to database:`, JSON.stringify(insertedPhotos));
 
             console.log(`Successfully uploaded and saved ${req.files.length} progress photos to database`);
             res.status(201).json({
@@ -378,6 +385,7 @@ async function getProgressPhotos(req, res) {
     console.log("Received GET /api/workouts/progress-photos request");
     try {
         const photos = await WorkoutModel.getProgressPhotos();
+        console.log(`Fetched ${photos.length} progress photos from database:`, JSON.stringify(photos));
         res.json(photos);
     } catch (err) {
         console.error('Error fetching progress photos:', err);

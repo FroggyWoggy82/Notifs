@@ -280,7 +280,7 @@
         <div class="modal-content">
             <span class="close-button" onclick="document.getElementById('photo-upload-modal').style.display='none'">&times;</span>
             <h2>Upload Progress Photos</h2>
-            <form id="progress-photo-form">
+            <form id="progress-photo-form" enctype="multipart/form-data">
                  <div class="form-group">
                      <label for="modal-photo-date">Date Taken:</label>
                      <!-- Changed ID to avoid conflict -->
@@ -289,7 +289,7 @@
                  <div class="form-group">
                      <label for="modal-photo-upload">Select Photos:</label>
                      <!-- Changed ID to avoid conflict -->
-                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required>
+                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" required>
                  </div>
                  <div class="modal-actions">
                     <button type="submit" class="btn btn-primary">Upload Photos</button>

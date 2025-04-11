@@ -3278,6 +3278,16 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 progressPhotosData = JSON.parse(responseText);
                 console.log('[Photo Load] Successfully parsed JSON response');
+
+                // Log each photo in the response for debugging
+                if (progressPhotosData && progressPhotosData.length > 0) {
+                    console.log(`[Photo Load] Found ${progressPhotosData.length} photos:`);
+                    progressPhotosData.forEach((photo, index) => {
+                        console.log(`[Photo Load] Photo ${index + 1}: ID=${photo.photo_id}, Date=${photo.date_taken}, Path=${photo.file_path}`);
+                    });
+                } else {
+                    console.log('[Photo Load] No photos found in response');
+                }
             } catch (parseError) {
                 console.error('[Photo Load] JSON Parse Error:', parseError);
                 // Use empty array as fallback if parsing fails
