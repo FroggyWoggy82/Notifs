@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Photo Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="date"], input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #status {
+            margin-top: 16px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .loading {
+            background-color: #d9edf7;
+            color: #31708f;
+        }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #2196F3;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Progress Photo</h1>
+    
+    <form id="upload-form">
+        <div>
+            <label for="photo-date">Date:</label>
+            <input type="date" id="photo-date" name="photo-date" required>
+        </div>
+        <div>
+            <label for="photo">Select Photo:</label>
+            <input type="file" id="photo" name="photos" accept="image/*" required>
+        </div>
+        <button type="submit">Upload Photo</button>
+    </form>
+    
+    <div id="status"></div>
+    
+    <a href="/pages/workouts.html" class="back-link">← Back to Workouts</a>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('upload-form');
+            const statusDiv = document.getElementById('status');
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const dateInput = document.getElementById('photo-date');
+                const photoInput = document.getElementById('photo');
+                
+                if (!dateInput.value || !photoInput.files.length) {
+                    statusDiv.textContent = 'Please select a date and photo.';
+                    statusDiv.className = 'error';
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('photo-date', dateInput.value);
+                formData.append('date', dateInput.value); // Add fallback field
+                formData.append('photos', photoInput.files[0]);
+                
+                // Show loading status
+                statusDiv.textContent = 'Uploading...';
+                statusDiv.className = 'loading';
+                
+                try {
+                    const response = await fetch('/api/workouts/progress-photos', {
+                        method: 'POST',
+                        body: formData,
+                        // Disable caching
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Server error: ${response.status} ${response.statusText}. ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // Show success message
+                    statusDiv.textContent = 'Photo uploaded successfully!';
+                    statusDiv.className = 'success';
+                    
+                    // Reset form
+                    form.reset();
+                    
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    statusDiv.textContent = `Upload failed: ${error.message}`;
+                    statusDiv.className = 'error';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
