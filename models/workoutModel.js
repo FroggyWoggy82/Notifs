@@ -590,6 +590,81 @@ async function saveProgressPhotos(date, files) {
     }
 }
 
+/**
+ * Delete a progress photo by ID
+ * @param {number} photoId - The ID of the photo to delete
+ * @returns {Promise<boolean>} - Promise resolving to true if deleted, false if not found
+ */
+async function deleteProgressPhoto(photoId) {
+    if (!photoId) {
+        throw new Error('Photo ID is required');
+    }
+
+    const client = await db.pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // First, get the file path so we can delete the file
+        const photoResult = await client.query(
+            'SELECT file_path FROM progress_photos WHERE photo_id = $1',
+            [photoId]
+        );
+
+        if (photoResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return false; // Photo not found
+        }
+
+        const filePath = photoResult.rows[0].file_path;
+        console.log(`Deleting photo with ID ${photoId} and path ${filePath}`);
+
+        // Delete from database
+        const result = await client.query(
+            'DELETE FROM progress_photos WHERE photo_id = $1',
+            [photoId]
+        );
+
+        // Try to delete the file from disk if it exists
+        // Note: We're not letting file deletion failures stop the database deletion
+        try {
+            // Convert the database path to a filesystem path
+            let fsPath = filePath;
+
+            // Remove leading slash if present
+            if (fsPath.startsWith('/')) {
+                fsPath = fsPath.substring(1);
+            }
+
+            // Remove 'public/' prefix if present
+            if (fsPath.startsWith('public/')) {
+                fsPath = fsPath.substring(7);
+            }
+
+            // Construct the full path
+            const fullPath = path.join(__dirname, '..', 'public', fsPath);
+            console.log(`Attempting to delete file at: ${fullPath}`);
+
+            if (fs.existsSync(fullPath)) {
+                fs.unlinkSync(fullPath);
+                console.log(`Successfully deleted file: ${fullPath}`);
+            } else {
+                console.log(`File not found on disk: ${fullPath}`);
+            }
+        } catch (fileError) {
+            console.error(`Error deleting file for photo ${photoId}:`, fileError);
+            // Continue with the transaction even if file deletion fails
+        }
+
+        await client.query('COMMIT');
+        return result.rowCount > 0;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -605,5 +680,6 @@ module.exports = {
     createExercise,
     getProgressPhotos,
     saveProgressPhotos,
+    deleteProgressPhoto,
     progressPhotosDir
 };

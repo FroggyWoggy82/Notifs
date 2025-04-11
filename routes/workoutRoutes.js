@@ -415,4 +415,27 @@ router.post('/progress-photos', WorkoutController.uploadProgressPhotos);
  */
 router.get('/progress-photos', WorkoutController.getProgressPhotos);
 
+/**
+ * @swagger
+ * /api/workouts/progress-photos/{id}:
+ *   delete:
+ *     summary: Delete a progress photo
+ *     tags: [Workouts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The photo ID
+ *     responses:
+ *       200:
+ *         description: Photo deleted successfully
+ *       404:
+ *         description: Photo not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/progress-photos/:id', WorkoutController.deleteProgressPhoto);
+
 module.exports = router;

@@ -393,6 +393,35 @@ async function getProgressPhotos(req, res) {
     }
 }
 
+/**
+ * Delete a progress photo by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function deleteProgressPhoto(req, res) {
+    const photoId = parseInt(req.params.id);
+    console.log(`Received DELETE /api/workouts/progress-photos/${photoId} request`);
+
+    if (isNaN(photoId)) {
+        return res.status(400).json({ error: 'Invalid photo ID' });
+    }
+
+    try {
+        const deleted = await WorkoutModel.deleteProgressPhoto(photoId);
+
+        if (!deleted) {
+            console.log(`Photo with ID ${photoId} not found`);
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+
+        console.log(`Successfully deleted photo with ID ${photoId}`);
+        res.json({ message: 'Photo deleted successfully' });
+    } catch (err) {
+        console.error(`Error deleting photo with ID ${photoId}:`, err);
+        res.status(500).json({ error: 'Failed to delete photo' });
+    }
+}
+
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -407,5 +436,6 @@ module.exports = {
     searchExercises,
     createExercise,
     uploadProgressPhotos,
-    getProgressPhotos
+    getProgressPhotos,
+    deleteProgressPhoto
 };

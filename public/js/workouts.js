@@ -3346,21 +3346,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Log the original path
                 console.log(`[Photo Load] Original image path: ${photo.file_path} for photo ID: ${photo.photo_id}`);
 
-                // Hardcode paths based on photo ID
-                if (photo.photo_id === 1) {
-                    imagePath = 'uploads/progress_photos/photos-1743533104709-675883910.jpg';
-                } else if (photo.photo_id === 4) {
-                    imagePath = 'uploads/progress_photos/photos-1743534804031-896765036.jpg';
-                } else if (photo.photo_id === 14) {
-                    imagePath = 'uploads/progress_photos/photos-1744351437809-657831548.png';
-                } else if (photo.photo_id === 15) {
-                    imagePath = 'uploads/progress_photos/photos-1744352353551-10102925.jpg';
-                } else {
-                    // For any other photos, use a relative path
-                    imagePath = photo.file_path;
-                    if (imagePath.startsWith('/')) {
-                        imagePath = imagePath.substring(1);
-                    }
+                // Process the path from the database
+                imagePath = photo.file_path;
+
+                // Remove leading slash if present
+                if (imagePath.startsWith('/')) {
+                    imagePath = imagePath.substring(1);
+                }
+
+                // Remove 'public/' prefix if present
+                if (imagePath.startsWith('public/')) {
+                    imagePath = imagePath.substring(7);
+                }
+
+                // Ensure we have the correct path format
+                if (!imagePath.includes('uploads/progress_photos') && !imagePath.includes('/uploads/progress_photos')) {
+                    // If the path doesn't include the expected directory, add it
+                    // Extract the filename from the path
+                    const parts = imagePath.split('/');
+                    const filename = parts[parts.length - 1];
+                    imagePath = `uploads/progress_photos/${filename}`;
                 }
 
                 console.log(`[Photo Load] Using hardcoded path: ${imagePath} for photo ID: ${photo.photo_id}`);
