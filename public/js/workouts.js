@@ -3175,9 +3175,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(`[Photo Load] Using extracted filename for photo 17: ${filename}`);
                 return `uploads/progress_photos/${filename}`;
             } else {
-                // Hardcoded fallback for photo 17
+                // Hardcoded fallback for photo 17 - use the most recent PNG file we found in the directory
                 console.log(`[Photo Load] Using hardcoded fallback for photo 17`);
-                return 'uploads/progress_photos/photos-1744351437809-657831548.png';
+                // Try multiple known filenames for photo 17
+                const possibleFilenames = [
+                    'photos-1744399948099-73865949.png',  // From the logs
+                    'photos-1744395354247-929083164.jpg', // Another recent file
+                    'photos-1744351437809-657831548.png', // Previous fallback
+                    'photos-1743545398361-380798323.png'  // Another PNG file from the directory
+                ];
+
+                // Return a list of paths to try
+                console.log(`[Photo Load] Will try multiple paths for photo 17`);
+                return possibleFilenames.map(name => `uploads/progress_photos/${name}`).join('|');
             }
         }
 
@@ -3443,9 +3453,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
-            // EMERGENCY FIX: Set the src attribute directly and immediately
-            const imagePath = currentImageElement.dataset.src;
+            // Get the path from the data-src attribute
+            let imagePath = currentImageElement.dataset.src;
             console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${imagePath}`);
+
+            // Check if the path contains multiple options (separated by |)
+            if (imagePath && imagePath.includes('|')) {
+                console.log(`[Photo Display] Multiple paths detected for photo ID ${currentPhoto.photo_id}`);
+                const pathOptions = imagePath.split('|');
+                // Use the first path option initially
+                imagePath = pathOptions[0];
+                console.log(`[Photo Display] Using first path option: ${imagePath}`);
+
+                // Store all path options as a data attribute for error handling
+                currentImageElement.dataset.pathOptions = pathOptions.join('|');
+                currentImageElement.dataset.pathOptionIndex = '0';
+                currentImageElement.dataset.totalPathOptions = pathOptions.length.toString();
+            }
 
             // Set the src attribute directly
             currentImageElement.src = imagePath;
@@ -3454,6 +3478,24 @@ document.addEventListener('DOMContentLoaded', function() {
             currentImageElement.onerror = function() {
                 console.log(`[Photo Display] Image failed to load: ${imagePath}`);
 
+                // Check if we have multiple path options
+                if (this.dataset.pathOptions && this.dataset.pathOptionIndex && this.dataset.totalPathOptions) {
+                    const pathOptions = this.dataset.pathOptions.split('|');
+                    let currentIndex = parseInt(this.dataset.pathOptionIndex, 10);
+                    const totalOptions = parseInt(this.dataset.totalPathOptions, 10);
+
+                    // Try the next path option if available
+                    if (currentIndex + 1 < totalOptions) {
+                        currentIndex++;
+                        const nextPath = pathOptions[currentIndex];
+                        console.log(`[Photo Display] Trying next path option (${currentIndex + 1}/${totalOptions}): ${nextPath}`);
+                        this.dataset.pathOptionIndex = currentIndex.toString();
+                        this.src = nextPath;
+                        return; // Exit early to try the next path
+                    }
+                }
+
+                // If no more path options or no path options at all, continue with normal error handling
                 // First attempt: Add a timestamp to bypass cache
                 const timestampedUrl = imagePath + '?t=' + new Date().getTime();
                 console.log(`[Photo Display] Retry 1: Using timestamped URL: ${timestampedUrl}`);
