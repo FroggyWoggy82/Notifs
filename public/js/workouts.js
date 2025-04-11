@@ -2948,6 +2948,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.disabled = true;
 
         // Create a timeout to force-close the modal if it takes too long
+        // Using a longer timeout for mobile uploads (90 seconds)
         const forceCloseTimeout = setTimeout(() => {
             console.log('[Photo Upload Client] Force closing modal due to timeout');
             modal.style.display = 'none';
@@ -2957,12 +2958,10 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = false;
             // Force refresh photos
             fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after timeout:', err));
-        }, 30000); // 30 seconds timeout for mobile
+        }, 90000); // 90 seconds timeout for mobile
 
         try {
-            console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
-            // Add a timestamp to the URL to prevent caching issues
-            const timestamp = new Date().getTime();
+            console.log('[Photo Upload Client] About to initiate upload to /api/workouts/progress-photos');
 
             // Log the form data for debugging
             console.log('[Photo Upload Client] FormData contents:');
@@ -2980,33 +2979,85 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log(`[Photo Upload Client] Photo file details: name=${photoFile.name}, size=${photoFile.size}, type=${photoFile.type}`);
 
-            // Create a new FormData object to ensure we have the right structure
-            const newFormData = new FormData();
+            // For mobile uploads, we'll use XMLHttpRequest instead of fetch
+            // This provides better progress monitoring and more reliable uploads on mobile
 
-            // Add the date with both possible field names for compatibility
-            newFormData.append('photo-date', formData.get('photo-date'));
-            newFormData.append('date', formData.get('photo-date')); // Add a fallback field
+            // Create a promise that will resolve when the upload completes
+            const uploadPromise = new Promise((resolve, reject) => {
+                // Create a new FormData object to ensure we have the right structure
+                const newFormData = new FormData();
 
-            // Add the photo file
-            newFormData.append('photos', photoFile);
+                // Add the date with both possible field names for compatibility
+                newFormData.append('photo-date', formData.get('photo-date'));
+                newFormData.append('date', formData.get('photo-date')); // Add a fallback field
 
-            // Log the new FormData
-            console.log('[Photo Upload Client] New FormData created with:');
-            console.log(`[Photo Upload Client] - photo-date: ${newFormData.get('photo-date')}`);
-            console.log(`[Photo Upload Client] - date: ${newFormData.get('date')}`);
-            console.log(`[Photo Upload Client] - photos: ${newFormData.get('photos').name}`);
+                // Add the photo file
+                newFormData.append('photos', photoFile);
 
-            // Use a direct URL without query parameters for simplicity
-            const response = await fetch('/api/workouts/progress-photos', {
-                method: 'POST',
-                body: newFormData,
-                // Add timeout and cache control for mobile
-                cache: 'no-store',
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
-                }
+                // Log the new FormData
+                console.log('[Photo Upload Client] New FormData created with:');
+                console.log(`[Photo Upload Client] - photo-date: ${newFormData.get('photo-date')}`);
+                console.log(`[Photo Upload Client] - date: ${newFormData.get('date')}`);
+                console.log(`[Photo Upload Client] - photos: ${newFormData.get('photos').name}`);
+
+                // Create and configure XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+
+                // Set up event handlers
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        statusElement.textContent = `Uploading: ${percentComplete}%`;
+                        console.log(`[Photo Upload Client] Upload progress: ${percentComplete}%`);
+                    }
+                };
+
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        console.log(`[Photo Upload Client] Upload successful with status: ${xhr.status}`);
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            resolve({ ok: true, status: xhr.status, json: () => Promise.resolve(response) });
+                        } catch (e) {
+                            console.error('[Photo Upload Client] Error parsing response:', e);
+                            resolve({
+                                ok: true,
+                                status: xhr.status,
+                                json: () => Promise.resolve({ message: 'Upload successful' })
+                            });
+                        }
+                    } else {
+                        console.error(`[Photo Upload Client] Upload failed with status: ${xhr.status}`);
+                        let errorData = { error: `HTTP error! Status: ${xhr.status}` };
+                        try {
+                            errorData = JSON.parse(xhr.responseText);
+                        } catch (e) {
+                            console.error('[Photo Upload Client] Error parsing error response:', e);
+                        }
+                        reject(new Error(errorData.error || `HTTP error ${xhr.status}`));
+                    }
+                };
+
+                xhr.onerror = function() {
+                    console.error('[Photo Upload Client] Network error during upload');
+                    reject(new Error('Network error during upload. Please check your connection and try again.'));
+                };
+
+                xhr.ontimeout = function() {
+                    console.error('[Photo Upload Client] Upload timed out');
+                    reject(new Error('Upload timed out. Please try again with a smaller image or better connection.'));
+                };
+
+                // Open and send the request
+                xhr.open('POST', '/api/workouts/progress-photos', true);
+                xhr.timeout = 60000; // 60 seconds timeout
+                xhr.send(newFormData);
+
+                console.log('[Photo Upload Client] XMLHttpRequest sent');
             });
+
+            // Wait for the upload to complete
+            const response = await uploadPromise;
 
             console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
 
