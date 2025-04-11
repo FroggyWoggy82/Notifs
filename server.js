@@ -36,8 +36,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve uploaded files
+// Serve uploaded files - both from root uploads and public/uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // API Routes
 app.use('/api/goals', goalRoutes);

@@ -568,7 +568,9 @@ async function saveProgressPhotos(date, files) {
 
         const insertedPhotos = [];
         for (const file of files) {
+            // Use a consistent path format that works with our server configuration
             const relativePath = `/uploads/progress_photos/${file.filename}`;
+            console.log(`Saving photo with path: ${relativePath}`);
 
             const result = await client.query(
                 'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id, date_taken, file_path',
