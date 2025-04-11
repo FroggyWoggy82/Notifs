@@ -2979,264 +2979,77 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log(`[Photo Upload Client] Photo file details: name=${photoFile.name}, size=${photoFile.size}, type=${photoFile.type}`);
 
-            // For mobile uploads, we'll use XMLHttpRequest instead of fetch
-            // This provides better progress monitoring and more reliable uploads on mobile
+            // Use the dedicated photo uploader module
+            try {
+                // Check if the photoUploader module is available
+                if (!window.photoUploader || typeof window.photoUploader.uploadPhoto !== 'function') {
+                    console.error('[Photo Upload Client] Photo uploader module not found');
+                    throw new Error('Photo uploader module not found. Please refresh the page and try again.');
+                }
 
-            // Create a promise that will resolve when the upload completes
-            const uploadPromise = new Promise((resolve, reject) => {
-                // Create a new FormData object to ensure we have the right structure
-                const newFormData = new FormData();
+                // Use the dedicated photo uploader module
+                // Use the dedicated photo uploader module
+                const response = await window.photoUploader.uploadPhoto(photoFile, formData.get('photo-date'));
 
-                // Add the date with both possible field names for compatibility
-                newFormData.append('photo-date', formData.get('photo-date'));
-                newFormData.append('date', formData.get('photo-date')); // Add a fallback field
+                // Set up progress tracking
+                document.addEventListener('photo-upload-progress', function(e) {
+                    if (e.detail.percent) {
+                        statusElement.textContent = `Uploading: ${e.detail.percent}%`;
+                    } else if (e.detail.bytes) {
+                        const loadedKB = Math.round(e.detail.bytes / 1024);
+                        const loadedMB = (e.detail.bytes / (1024 * 1024)).toFixed(2);
 
-                // Add the photo file
-                newFormData.append('photos', photoFile);
-
-                // Log the new FormData
-                console.log('[Photo Upload Client] New FormData created with:');
-                console.log(`[Photo Upload Client] - photo-date: ${newFormData.get('photo-date')}`);
-                console.log(`[Photo Upload Client] - date: ${newFormData.get('date')}`);
-                console.log(`[Photo Upload Client] - photos: ${newFormData.get('photos').name}`);
-
-                // Create and configure XMLHttpRequest
-                const xhr = new XMLHttpRequest();
-
-                // Add all event listeners before opening the connection
-                // This ensures we don't miss any events
-
-                // Track upload start
-                xhr.upload.onloadstart = function() {
-                    console.log('[Photo Upload Client] Upload started');
-                    statusElement.textContent = 'Upload started...';
-                };
-
-                // Track upload progress - this will be overridden later with a more robust version
-                // We're just setting up the initial handler here
-                xhr.upload.onprogress = function() {
-                    console.log(`[Photo Upload Client] Initial progress handler called`);
-                };
-
-                // Track when upload is complete
-                xhr.upload.onload = function() {
-                    console.log('[Photo Upload Client] Upload completed, waiting for server response');
-                    statusElement.textContent = 'Processing...';
-                };
-
-                // Track upload errors
-                xhr.upload.onerror = function() {
-                    console.error('[Photo Upload Client] Upload failed due to error');
-                    reject(new Error('Upload failed. Please check your connection and try again.'));
-                };
-
-                // Track upload abort
-                xhr.upload.onabort = function() {
-                    console.warn('[Photo Upload Client] Upload aborted');
-                    reject(new Error('Upload was aborted.'));
-                };
-
-                // Track upload timeout
-                xhr.upload.ontimeout = function() {
-                    console.error('[Photo Upload Client] Upload timed out');
-                    reject(new Error('Upload timed out. Please try again with a smaller image.'));
-                };
-
-                // Handle the response from the server
-                xhr.onload = function() {
-                    // Clear the stall check interval
-                    clearInterval(stallCheckInterval);
-
-                    console.log(`[Photo Upload Client] Server responded with status: ${xhr.status}`);
-                    console.log(`[Photo Upload Client] Response text: ${xhr.responseText}`);
-
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        console.log(`[Photo Upload Client] Upload successful with status: ${xhr.status}`);
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            resolve({ ok: true, status: xhr.status, json: () => Promise.resolve(response) });
-                        } catch (e) {
-                            console.error('[Photo Upload Client] Error parsing response:', e);
-                            resolve({
-                                ok: true,
-                                status: xhr.status,
-                                json: () => Promise.resolve({ message: 'Upload successful' })
-                            });
-                        }
-                    } else {
-                        console.error(`[Photo Upload Client] Upload failed with status: ${xhr.status}`);
-                        let errorData = { error: `HTTP error! Status: ${xhr.status}` };
-                        try {
-                            errorData = JSON.parse(xhr.responseText);
-                        } catch (e) {
-                            console.error('[Photo Upload Client] Error parsing error response:', e);
-                        }
-                        reject(new Error(errorData.error || `HTTP error ${xhr.status}`));
-                    }
-                };
-
-                // Handle network errors
-                xhr.onerror = function() {
-                    clearInterval(stallCheckInterval);
-                    console.error('[Photo Upload Client] Network error during request');
-                    reject(new Error('Network error during upload. Please check your connection and try again.'));
-                };
-
-                // Handle timeouts
-                xhr.ontimeout = function() {
-                    clearInterval(stallCheckInterval);
-                    console.error('[Photo Upload Client] Request timed out');
-                    reject(new Error('Request timed out. Please try again with a smaller image or better connection.'));
-                };
-
-                // Handle state changes for debugging
-                xhr.onreadystatechange = function() {
-                    console.log(`[Photo Upload Client] Ready state changed: ${xhr.readyState}`);
-                    // readyState: 0=UNSENT, 1=OPENED, 2=HEADERS_RECEIVED, 3=LOADING, 4=DONE
-                };
-
-                // Set headers for better compatibility
-                console.log('[Photo Upload Client] Setting up headers');
-
-                // Open the connection
-                console.log('[Photo Upload Client] Opening XMLHttpRequest connection');
-                xhr.open('POST', '/api/workouts/progress-photos', true);
-
-                // Set a longer timeout for mobile uploads
-                xhr.timeout = 300000; // 5 minutes timeout
-
-                // Set up auto-completion detection for stalled uploads
-                let lastProgressTime = Date.now();
-                let stallCheckInterval = setInterval(() => {
-                    const timeSinceLastProgress = Date.now() - lastProgressTime;
-
-                    // If no progress for 30 seconds and we've uploaded at least 500KB, assume it's complete
-                    if (timeSinceLastProgress > 30000 && xhr.loadedHistory && xhr.loadedHistory.length > 0) {
-                        const lastLoaded = xhr.loadedHistory[xhr.loadedHistory.length - 1];
-                        if (lastLoaded > 500 * 1024) { // 500KB minimum
-                            console.log(`[Photo Upload Client] Upload stalled for 30 seconds after sending ${Math.round(lastLoaded/1024)}KB. Assuming completion.`);
-                            statusElement.textContent = 'Processing upload...';
-
-                            // After 10 more seconds, force completion
-                            setTimeout(() => {
-                                console.log('[Photo Upload Client] Forcing upload completion');
-                                clearInterval(stallCheckInterval);
-
-                                // Simulate successful completion
-                                resolve({
-                                    ok: true,
-                                    status: 200,
-                                    json: () => Promise.resolve({
-                                        message: 'Upload processed successfully',
-                                        success: true
-                                    })
-                                });
-                            }, 10000);
-                        }
-                    }
-                }, 5000); // Check every 5 seconds
-
-                // Send the request
-                console.log('[Photo Upload Client] Sending XMLHttpRequest');
-                try {
-                    xhr.send(newFormData);
-                    console.log('[Photo Upload Client] XMLHttpRequest sent successfully');
-
-                    // Set a backup timer to check if progress events are firing
-                    let progressEventFired = false;
-
-                    xhr.upload.onprogress = function(event) {
-                        progressEventFired = true;
-                        console.log(`[Photo Upload Client] Progress event fired: loaded=${event.loaded}, total=${event.total}, lengthComputable=${event.lengthComputable}`);
-
-                        // Update the last progress time
-                        lastProgressTime = Date.now();
-
-                        // Check if total is a reasonable value (some browsers report an unreasonably large number)
-                        const isValidTotal = event.total > 0 && event.total < 1000000000; // 1GB max reasonable size
-
-                        // Track upload progress for auto-completion detection
-                        const currentLoaded = event.loaded;
-
-                        // Store the last few loaded values to detect if upload has stalled
-                        if (!xhr.loadedHistory) {
-                            xhr.loadedHistory = [];
-                        }
-                        xhr.loadedHistory.push(currentLoaded);
-                        if (xhr.loadedHistory.length > 10) {
-                            xhr.loadedHistory.shift(); // Keep only the last 10 values
-                        }
-
-                        // Check if upload has stalled (same loaded value for multiple consecutive checks)
-                        const hasStalled = xhr.loadedHistory.length >= 5 &&
-                            xhr.loadedHistory.slice(-5).every(val => val === currentLoaded);
-
-                        if (hasStalled) {
-                            console.log('[Photo Upload Client] Upload appears to have stalled');
-                            statusElement.textContent = `Upload stalled at ${Math.round(currentLoaded / 1024)} KB. Processing...`;
-                        } else if (event.lengthComputable && isValidTotal) {
-                            const percentComplete = Math.round((event.loaded / event.total) * 100);
-                            statusElement.textContent = `Uploading: ${percentComplete}%`;
-                            console.log(`[Photo Upload Client] Upload progress: ${percentComplete}%`);
+                        if (loadedKB >= 1024) {
+                            statusElement.textContent = `Uploading... ${loadedMB} MB sent`;
                         } else {
-                            // If length is not computable or total is invalid, show bytes uploaded
-                            const loadedKB = Math.round(event.loaded / 1024);
-                            const loadedMB = (event.loaded / (1024 * 1024)).toFixed(2);
-
-                            // Use MB for larger files
-                            if (loadedKB >= 1024) {
-                                statusElement.textContent = `Uploading... ${loadedMB} MB sent`;
-                            } else {
-                                statusElement.textContent = `Uploading... ${loadedKB} KB sent`;
-                            }
-                            console.log(`[Photo Upload Client] Upload progress in bytes: ${event.loaded} bytes sent`);
+                            statusElement.textContent = `Uploading... ${loadedKB} KB sent`;
                         }
-                    };
+                    }
+                });
 
-                    // Check if progress events are firing after 5 seconds
-                    setTimeout(() => {
-                        if (!progressEventFired) {
-                            console.warn('[Photo Upload Client] No progress events received after 5 seconds');
-                            statusElement.textContent = 'Uploading... (please wait)';
-                        }
-                    }, 5000);
+                document.addEventListener('photo-upload-complete', function() {
+                    statusElement.textContent = 'Processing...';
+                });
 
-                } catch (error) {
-                    console.error('[Photo Upload Client] Error sending XMLHttpRequest:', error);
-                    reject(new Error(`Failed to send request: ${error.message}`));
-                }
-            });
+                console.log('[Photo Upload Client] Upload successful:', response);
 
-            // Wait for the upload to complete
-            const response = await uploadPromise;
+                // Clear the force close timeout
+                clearTimeout(forceCloseTimeout);
 
-            console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
+                // Show success message
+                statusElement.textContent = 'Upload successful!';
+                statusElement.style.color = '#4CAF50';
 
-            if (!response.ok) {
-                let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
-                try {
-                    const text = await response.text();
-                    console.log(`[Photo Upload Client] Raw error response text: ${text}`);
-                    errorData = JSON.parse(text);
-                    console.log('[Photo Upload Client] Parsed JSON error response:', errorData);
-                } catch (parseError) {
-                    console.error('[Photo Upload Client] Failed to parse error response as JSON:', parseError);
-                }
-                const error = new Error(errorData.error || `HTTP error ${response.status}`);
-                error.status = response.status;
-                error.data = errorData;
-                throw error;
+                // Close the modal after a short delay
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    // Reset the form and status
+                    form.reset();
+                    statusElement.textContent = '';
+                    statusElement.style.color = '#03dac6';
+                    submitButton.disabled = false;
+                    // Refresh photos
+                    fetchAndDisplayPhotos().catch(err => console.error('Error fetching photos after upload:', err));
+                }, 1500);
+            } catch (uploadError) {
+                console.error('[Photo Upload Client] Error during upload:', uploadError);
+
+                // Clear the force close timeout
+                clearTimeout(forceCloseTimeout);
+
+                // Show error message
+                statusElement.textContent = `Upload failed: ${uploadError.message || 'Unknown error'}`;
+                statusElement.style.color = '#F44336';
+                submitButton.disabled = false;
+
+                // Log the error for debugging
+                console.error('[Photo Upload Client] Upload failed:', uploadError);
             }
 
-            // Clear the force close timeout since we succeeded
-            clearTimeout(forceCloseTimeout);
-
-            const result = await response.json();
-            console.log('[Photo Upload Client] Upload successful:', result);
-
-            // Update status and reset form
-            statusElement.textContent = result.message || 'Upload successful!';
-            statusElement.style.color = '#4CAF50'; // Green
+            // Final cleanup in the finally block
+            finally {
+                console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
+            }
             form.reset();
 
             // Close the modal immediately
