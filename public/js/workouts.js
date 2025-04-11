@@ -2980,9 +2980,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log(`[Photo Upload Client] Photo file details: name=${photoFile.name}, size=${photoFile.size}, type=${photoFile.type}`);
 
-            const response = await fetch(`/api/workouts/progress-photos?t=${timestamp}`, {
+            // Create a new FormData object to ensure we have the right structure
+            const newFormData = new FormData();
+
+            // Add the date with both possible field names for compatibility
+            newFormData.append('photo-date', formData.get('photo-date'));
+            newFormData.append('date', formData.get('photo-date')); // Add a fallback field
+
+            // Add the photo file
+            newFormData.append('photos', photoFile);
+
+            // Log the new FormData
+            console.log('[Photo Upload Client] New FormData created with:');
+            console.log(`[Photo Upload Client] - photo-date: ${newFormData.get('photo-date')}`);
+            console.log(`[Photo Upload Client] - date: ${newFormData.get('date')}`);
+            console.log(`[Photo Upload Client] - photos: ${newFormData.get('photos').name}`);
+
+            // Use a direct URL without query parameters for simplicity
+            const response = await fetch('/api/workouts/progress-photos', {
                 method: 'POST',
-                body: formData,
+                body: newFormData,
                 // Add timeout and cache control for mobile
                 cache: 'no-store',
                 headers: {

@@ -24,12 +24,18 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
+    // Log file information for debugging
+    console.log(`[Multer File Filter] Processing file: ${file.originalname}`);
+    console.log(`[Multer File Filter] File details: mimetype=${file.mimetype}, fieldname=${file.fieldname}, size=${file.size || 'unknown'}`);
+
+    // Accept only image files with more lenient checking
+    if (file.mimetype.startsWith('image/') ||
+        file.originalname.match(/\.(jpg|jpeg|png|gif|webp|heic|heif)$/i)) {
+        console.log(`[Multer File Filter] Accepted file: ${file.originalname}`);
         cb(null, true);
     } else {
         console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype})`);
-        cb(new Error('Not an image! Please upload only images.'), false);
+        cb(new Error(`Not an image! Please upload only images. Received: ${file.mimetype}`), false);
     }
 };
 
@@ -39,9 +45,45 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: MAX_FILE_SIZE_BYTES
+        fileSize: MAX_FILE_SIZE_BYTES,
+        files: 10 // Allow up to 10 files
     }
 });
+
+// Add more detailed error handling
+upload.array = function() {
+    const middleware = multer.prototype.array.apply(this, arguments);
+    return function(req, res, next) {
+        console.log('[Multer] Processing upload request...');
+        console.log('[Multer] Request headers:', req.headers);
+
+        middleware(req, res, function(err) {
+            if (err) {
+                console.error('[Multer] Error during upload:', err);
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    return res.status(400).json({
+                        error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`
+                    });
+                } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+                    return res.status(400).json({
+                        error: 'Too many files or wrong field name. Expected field name: photos'
+                    });
+                } else {
+                    return res.status(400).json({ error: err.message });
+                }
+            }
+
+            console.log('[Multer] Upload processed successfully');
+            if (req.files) {
+                console.log(`[Multer] Received ${req.files.length} files:`, req.files.map(f => f.originalname).join(', '));
+            } else {
+                console.log('[Multer] No files received');
+            }
+
+            next();
+        });
+    };
+};
 
 // Use upload.array('photos', 10) to accept up to 10 files with the field name 'photos'
 const uploadPhotosMiddleware = upload.array('photos', 10);
@@ -330,6 +372,14 @@ async function createExercise(req, res) {
  */
 function uploadProgressPhotos(req, res) {
     console.log('Received POST /api/workouts/progress-photos request');
+    console.log('Request headers:', req.headers);
+
+    // Check if the content type is multipart/form-data
+    if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
+        console.error('Invalid content type:', req.headers['content-type']);
+        return res.status(400).json({ error: 'Invalid content type. Expected multipart/form-data' });
+    }
+
     uploadPhotosMiddleware(req, res, async function(err) {
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading
@@ -337,6 +387,10 @@ function uploadProgressPhotos(req, res) {
             if (err.code === 'LIMIT_FILE_SIZE') {
                 return res.status(400).json({
                     error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`
+                });
+            } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+                return res.status(400).json({
+                    error: 'Too many files or wrong field name. Expected field name: photos'
                 });
             }
             return res.status(400).json({ error: err.message });
@@ -356,8 +410,14 @@ function uploadProgressPhotos(req, res) {
         console.log('Request body:', req.body);
 
         // Get the date from the request body
-        const date = req.body['photo-date'] || new Date().toISOString().split('T')[0]; // Default to today if not provided
-        console.log(`Using date: ${date} for photo upload`);
+        // Check both 'photo-date' (from form) and 'date' (fallback) fields
+        const date = req.body['photo-date'] || req.body['date'] || new Date().toISOString().split('T')[0]; // Default to today if not provided
+        console.log(`Using date: ${date} for photo upload (from fields: ${Object.keys(req.body).join(', ')})`);
+
+        // Log all request information for debugging
+        console.log('Request headers:', req.headers);
+        console.log('Request body keys:', Object.keys(req.body));
+        console.log('Request files:', req.files ? req.files.length : 'none');
 
         try {
             // Save photos to database
