@@ -3382,15 +3382,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END NEW ---
 
-    // --- NEW: Display Current Photo in Slider (Redesigned for Carousel) ---
+    // --- MOBILE-OPTIMIZED: Display Current Photo in Slider ---
     function displayCurrentPhoto() {
         const startTime = performance.now(); // Start timer
         const numPhotos = progressPhotosData ? progressPhotosData.length : 0;
         console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${numPhotos})`);
 
-        // NEW: Find the date display element
-        const dateDisplayEl = currentPhotoDateDisplay; // Use the reference
+        // Get the date display element
+        const dateDisplayEl = currentPhotoDateDisplay;
 
+        // Check if we have photos and required elements
         if (numPhotos === 0 || !photoReel || !paginationDotsContainer || !dateDisplayEl) {
             console.warn('[Photo Display] No photos or required elements found (reel, dots, date display).');
             if (dateDisplayEl) dateDisplayEl.textContent = ''; // Clear date if no photos
