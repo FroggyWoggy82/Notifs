@@ -3177,12 +3177,13 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // Hardcoded fallback for photo 17 - use the most recent PNG file we found in the directory
                 console.log(`[Photo Load] Using hardcoded fallback for photo 17`);
-                // Try multiple known filenames for photo 17
+                // Try multiple known filenames for photo 17 - using the most recent files we found
                 const possibleFilenames = [
-                    'photos-1744399948099-73865949.png',  // From the logs
-                    'photos-1744395354247-929083164.jpg', // Another recent file
-                    'photos-1744351437809-657831548.png', // Previous fallback
-                    'photos-1743545398361-380798323.png'  // Another PNG file from the directory
+                    'photos-1744395354247-929083164.jpg', // Most recent file (from Get-ChildItem)
+                    'photos-1744352353551-10102925.jpg',  // Second most recent file
+                    'photos-1744351437809-657831548.png', // Third most recent file
+                    'photos-1744351012953-13629760.png',  // Fourth most recent file
+                    'photos-1743554609618-340731311.png'  // Fifth most recent file
                 ];
 
                 // Return a list of paths to try
@@ -3539,12 +3540,62 @@ document.addEventListener('DOMContentLoaded', function() {
                                 this.src = alternativeExtPath;
                             }
 
-                            // Final fallback: Show a placeholder
+                            // Try with direct /public prefix
                             this.onerror = function() {
-                                console.log(`[Photo Display] All retries failed, using placeholder image`);
-                                this.src = '/images/photo-placeholder.png';
-                                this.alt = 'Photo could not be loaded';
-                                this.classList.add('error-placeholder');
+                                console.log(`[Photo Display] Retry 4 failed, trying with /public prefix`);
+                                const publicPath = `/public/${imagePath}`;
+                                console.log(`[Photo Display] Retry 5: Using /public prefix: ${publicPath}`);
+                                this.src = publicPath;
+
+                                // Try with direct server URL
+                                this.onerror = function() {
+                                    console.log(`[Photo Display] Retry 5 failed, trying with direct server URL`);
+                                    const serverPath = `http://127.0.0.1:3000/${imagePath.replace(/^\/?/, '')}`;
+                                    console.log(`[Photo Display] Retry 6: Using direct server URL: ${serverPath}`);
+                                    this.src = serverPath;
+
+                                    // Final fallback: Show a placeholder
+                                    this.onerror = function() {
+                                        console.log(`[Photo Display] All retries failed, using placeholder image`);
+                                        // Try the placeholder with different paths
+                                        const placeholderPaths = [
+                                            '/images/photo-placeholder.png',
+                                            'images/photo-placeholder.png',
+                                            '/public/images/photo-placeholder.png',
+                                            '../images/photo-placeholder.png',
+                                            'http://127.0.0.1:3000/images/photo-placeholder.png'
+                                        ];
+
+                                        // Use the first placeholder path
+                                        console.log(`[Photo Display] Trying placeholder image: ${placeholderPaths[0]}`);
+                                        this.src = placeholderPaths[0];
+                                        this.alt = 'Photo could not be loaded';
+                                        this.classList.add('error-placeholder');
+
+                                        // Set up error handler for placeholder
+                                        let placeholderIndex = 0;
+                                        const tryNextPlaceholder = () => {
+                                            placeholderIndex++;
+                                            if (placeholderIndex < placeholderPaths.length) {
+                                                console.log(`[Photo Display] Trying next placeholder: ${placeholderPaths[placeholderIndex]}`);
+                                                this.src = placeholderPaths[placeholderIndex];
+                                            } else {
+                                                console.log(`[Photo Display] All placeholder paths failed, giving up`);
+                                                this.onerror = null; // Prevent infinite loop
+                                                this.style.display = 'none'; // Hide the image
+                                                // Add a text message instead
+                                                const errorMsg = document.createElement('div');
+                                                errorMsg.textContent = 'Image unavailable';
+                                                errorMsg.className = 'photo-error-message';
+                                                if (this.parentNode) {
+                                                    this.parentNode.insertBefore(errorMsg, this.nextSibling);
+                                                }
+                                            }
+                                        };
+
+                                        this.onerror = tryNextPlaceholder;
+                                    };
+                                };
                             };
                         };
                     };

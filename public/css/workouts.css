@@ -1231,6 +1231,27 @@ h1, h2 {
     background-color: #333; /* Placeholder background */
 }
 
+/* Error message for failed image loads */
+.photo-error-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+    z-index: 20;
+}
+
+/* Style for error placeholder */
+.error-placeholder {
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
 /* Slider Navigation Buttons (Keep existing styles) */
 .slider-nav-btn {
     position: absolute;
