@@ -15,7 +15,7 @@ This document outlines the plan to fully implement the MVC (Model-View-Controlle
 
 Convert the remaining route files to follow the MVC pattern:
 
-- [x] `weight.js` → `weightRoutes.js` - Converted
+- [x] `weightRoutes.js` - Already converted
 - [x] `taskRoutes.js` - Already converted
 - [x] `goals.js` → `goalRoutes.js` - Converted
 - [x] `daysSince.js` → `daysSinceRoutes.js` - Converted

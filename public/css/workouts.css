@@ -416,19 +416,8 @@ h1, h2 {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-    gap: 10px; /* Keep gap for spacing between elements */
+    gap: 10px; /* Keep gap for spacing between title, dropdown, and button */
     padding-top: 5px;
-    justify-content: space-between; /* Distribute space evenly */
-    min-height: 36px; /* Increased to accommodate all elements */
-}
-
-.exercise-name-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-grow: 1;
-    min-width: 0;
-    order: 1; /* First item */
 }
 
 .exercise-item-header h4 {
@@ -443,36 +432,9 @@ h1, h2 {
     flex-grow: 1;
 }
 
-.btn-edit-exercise-name {
-    background: none;
-    border: none;
-    color: #03dac6;
-    font-size: 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 2px 4px;
-    line-height: 1;
-    transition: color 0.2s ease;
-    flex-grow: 0;
-    flex-shrink: 0;
-    flex-basis: 30px;
-    max-width: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    order: 3; /* Middle item */
-    height: 30px; /* Matched with dropdown */
-    margin-top: 1px; /* Slight adjustment to align with dropdown */
-}
-
-.btn-edit-exercise-name:hover {
-    color: #03dac6;
-    outline: none;
-}
-
 /* Style for the new header unit select */
 .exercise-unit-select {
-    padding: 0 8px; /* Removed vertical padding completely */
+    padding: 4px 8px;
     background-color: #333;
     border: 1px solid #555;
     color: #f5f5f5;
@@ -481,13 +443,8 @@ h1, h2 {
     cursor: pointer;
     flex-grow: 0;
     flex-shrink: 0;
-    flex-basis: 85px; /* Increased width */
-    max-width: 85px; /* Increased width */
-    order: 2; /* Second item (middle) */
-    height: 30px; /* Slightly increased height */
-    display: flex;
-    align-items: center; /* Center content vertically */
-    margin-top: 2px; /* Increased adjustment to align with buttons */
+    flex-basis: 65px;
+    max-width: 65px;
 }
 
 /* Style for set rows within an exercise */
@@ -497,7 +454,7 @@ h1, h2 {
     /* Set#, Previous, Weight Input, Reps Input, Toggle */
     grid-template-columns: auto 90px 1fr 1fr auto;
     gap: 10px;
-    align-items: center; /* Align all items vertically center */
+    align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #333;
     font-size: 0.95rem;
@@ -516,13 +473,11 @@ h1, h2 {
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Show ... if overflow */
     padding-right: 5px; /* Add a little space before next column */
-    align-self: center; /* Center vertically in grid cell */
 }
 
 .set-number {
     font-weight: bold;
     color: #bbb;
-    align-self: center; /* Center vertically in grid cell */
 }
 
 /* Removed .weight-input-group styles */
@@ -540,8 +495,6 @@ h1, h2 {
     /* For number input */
     -moz-appearance: textfield; /* Hide number input spinners FF */
     appearance: textfield; /* Standard property */
-    height: 32px; /* Set a consistent height for inputs */
-    align-self: center; /* Center vertically in grid cell */
 }
 .set-row input[type="number"]::-webkit-outer-spin-button,
 .set-row input[type="number"]::-webkit-inner-spin-button {
@@ -566,11 +519,6 @@ h1, h2 {
     font-size: 1.2rem;
     font-weight: bold;
     padding: 0;
-    margin: 0 auto; /* Center horizontally in its grid cell */
-    align-self: center; /* Center vertically in its grid cell */
-    /* Ensure exact vertical alignment with input boxes */
-    position: relative;
-    top: 0; /* Adjust this value if needed after testing */
 }
 .set-complete-toggle.completed {
     background-color: #4CAF50;
@@ -629,18 +577,13 @@ h1, h2 {
     border-radius: 50%;
     border: none;
     font-size: 24px;
-    /* Remove line-height and text-align */
-    /* line-height: 56px; */
-    /* text-align: center; */
+    line-height: 56px; /* Center '+' vertically */
+    text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     z-index: 100;
     transition: background-color 0.2s ease, transform 0.1s ease;
-    /* Initially hidden, but use flex display when shown */
     display: none; /* Hide by default, show with JS on active workout page */
-    /* When shown, it will use these flex properties for centering */
-    align-items: center;
-    justify-content: center;
 }
 .fab:active {
     transform: scale(0.95);
@@ -872,10 +815,10 @@ h1, h2 {
     grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps (Notes removed) */
 }
 
-/* Update to match active workout layout but with reordered columns */
+/* Update to match active workout layout */
 .template-editor-list .set-row {
     display: grid;
-    grid-template-columns: auto 1fr 1fr 1fr; /* Set#, Previous, Weight, Reps */
+    grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps */
     gap: 10px;
     align-items: center;
     padding: 8px 0;
@@ -884,39 +827,6 @@ h1, h2 {
 
 .template-editor-list .set-row:last-child {
     border-bottom: none;
-}
-
-/* Exercise configuration row styles */
-.exercise-config-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin: 10px 0;
-    padding: 8px;
-    background-color: #2a2a2a;
-    border-radius: 4px;
-}
-
-.sets-input-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.sets-input-group label {
-    font-weight: bold;
-    color: #bbb;
-}
-
-.exercise-sets-input {
-    width: 60px;
-    padding: 5px;
-    border-radius: 4px;
-    border: 1px solid #444;
-    background-color: #222;
-    color: #f5f5f5;
-    font-size: 0.9rem;
-    text-align: center;
 }
 
 .exercise-notes-group {
@@ -1009,12 +919,6 @@ h1, h2 {
     flex-shrink: 0;
     flex-basis: 30px; /* <<< ADD explicit basis */
     max-width: 30px;  /* <<< ADD explicit max-width */
-    order: 4; /* Last item */
-    height: 30px; /* Matched with dropdown */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1px; /* Slight adjustment to align with dropdown */
 
     /* margin-left: auto; */ /* <<< REMOVE THIS */
 }
@@ -1497,128 +1401,6 @@ h1, h2 {
 }
 
 .header-buttons .btn {
-    margin: 0 2px; /* Small horizontal margin between buttons */
-}
-
-/* Style for the compare button */
-#toggle-comparison-btn {
-    background-color: #2196F3; /* Blue color */
-    color: white;
+    margin: 0; /* Keep margin reset */
 }
 /* === END Progress Photo Header Styles === */
-
-/* === Exercise Name Edit Modal === */
-#exercise-name-edit-modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.7);
-}
-
-#exercise-name-edit-modal .modal-content {
-    max-width: 400px;
-}
-
-#exercise-name-edit-form .form-group {
-    margin-bottom: 15px;
-}
-
-#exercise-name-edit-form label {
-    display: block;
-    margin-bottom: 5px;
-    color: #bbb;
-}
-
-#exercise-name-edit-form input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #444;
-    background-color: #222;
-    color: #f5f5f5;
-    font-size: 1rem;
-}
-
-/* Style for datalist dropdown (browser-specific) */
-input[list="exercise-name-list"]::-webkit-calendar-picker-indicator {
-    color: #f5f5f5;
-    opacity: 0.7;
-}
-
-/* This is a workaround to limit the height of datalist options in browsers that support it */
-@supports (overflow: auto) {
-    datalist {
-        max-height: 200px;
-        overflow-y: auto;
-    }
-}
-
-.edit-options {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.edit-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    background-color: #333;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-    position: relative;
-    margin-bottom: 8px;
-}
-
-.edit-option:hover {
-    background-color: #444;
-    transform: translateY(-1px);
-}
-
-.edit-option:active {
-    transform: translateY(1px);
-}
-
-.edit-option input[type="radio"] {
-    margin: 0;
-    cursor: pointer;
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-}
-
-/* Create a larger invisible overlay for the radio button to increase clickable area */
-.edit-option::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    z-index: 1;
-}
-
-/* Make sure the radio button stays on top of the overlay */
-.edit-option input[type="radio"] {
-    position: relative;
-    z-index: 2;
-}
-
-.edit-option-label {
-    font-size: 0.95rem;
-}
-
-.edit-option-description {
-    font-size: 0.8rem;
-    color: #aaa;
-    margin-top: 3px;
-}

@@ -3,15 +3,22 @@ let scheduledNotifications = [];
 let deferredPrompt;
 let serviceWorkerRegistration = null;
 
-// Helper to check if a date string (YYYY-MM-DD or ISO) is today
+// Helper to check if a date string (YYYY-MM-DD or ISO) is today using US Central Time
 function isToday(dateString) {
     if (!dateString) return false;
     try {
+        // Parse the input date
         const date = new Date(dateString);
-        const today = new Date();
-        return date.getFullYear() === today.getFullYear() &&
-               date.getMonth() === today.getMonth() &&
-               date.getDate() === today.getDate();
+
+        // Get today's date in US Central Time
+        const now = new Date();
+        const centralTime = now.toLocaleString('en-US', { timeZone: 'America/Chicago' });
+        const centralDate = new Date(centralTime);
+
+        // Compare the dates
+        return date.getFullYear() === centralDate.getFullYear() &&
+               date.getMonth() === centralDate.getMonth() &&
+               date.getDate() === centralDate.getDate();
     } catch (e) {
         console.error("Error parsing date:", dateString, e);
         return false;
@@ -398,46 +405,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return isDateToday(task.due_date);
         }
 
-        // Helper function to check if a task is overdue
-        function isTaskOverdue(task) {
-            if (!task.due_date) return false;
-            try {
-                // Extract just the date part if it's in ISO format
-                const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
-                    task.due_date.split('T')[0] : task.due_date;
-
-                // Handle potential invalid date strings
-                if (typeof datePart !== 'string' || !datePart.includes('-')) {
-                    console.warn('Invalid date format:', task.due_date);
-                    return false;
-                }
-
-                const [year, month, day] = datePart.split('-').map(Number);
-
-                // Validate parsed values
-                if (isNaN(year) || isNaN(month) || isNaN(day)) {
-                    console.warn('Invalid date components:', year, month, day);
-                    return false;
-                }
-
-                // Compare with today's date to check if it's before today
-                return (year < today.getFullYear() ||
-                       (year === today.getFullYear() && (month - 1) < today.getMonth()) ||
-                       (year === today.getFullYear() && (month - 1) === today.getMonth() && day < today.getDate()));
-            } catch (e) {
-                console.error('Error checking if task is overdue:', task.due_date, e);
-                return false;
-            }
-        }
-
         // Log all tasks for debugging
         console.log('All tasks:', allTasks.map(t => ({
             id: t.id,
             title: t.title,
             due_date: t.due_date,
             is_today: isTaskDueToday(t),
-            is_unassigned: isTaskUnassigned(t),
-            is_overdue: isTaskOverdue(t)
+            is_unassigned: isTaskUnassigned(t)
         })));
 
         // Apply filter
@@ -448,8 +422,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Skip completed tasks
                     if (task.is_complete) return false;
 
+                    // Check if task is overdue
+                    const isOverdue = task.due_date && new Date(task.due_date) < today && !isTaskDueToday(task);
+
                     // Include if unassigned, due today, or overdue
-                    return isTaskUnassigned(task) || isTaskDueToday(task) || isTaskOverdue(task);
+                    return isTaskUnassigned(task) || isTaskDueToday(task) || isOverdue;
                 });
                 break;
 
@@ -1219,9 +1196,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Determine if habit is complete based on counter or regular completions
+            // For counter habits, only complete when counter reaches max
+            // For regular habits, check if completions_today is greater than or equal to completions_per_day
             const isComplete = hasCounter ?
-                (currentCount >= totalCount) : // For counter habits, only complete when counter reaches max
-                (completionsToday >= completionsTarget); // For regular habits
+                (currentCount >= totalCount) :
+                (completionsToday >= completionsTarget);
+
+            console.log(`Habit: ${habit.title}, completions_today: ${completionsToday}, target: ${completionsTarget}, isComplete: ${isComplete}`);
 
             // We no longer need progressText since we're showing progress separately
 
@@ -1266,8 +1247,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // For regular habits, show a normal checkbox
+                // Only show as checked if completions_today >= completions_per_day
+                const isCheckedToday = completionsToday >= completionsTarget;
                 checkboxHtml = `<div class="habit-control-container">
-                    <input type="checkbox" class="habit-checkbox" title="Mark as done" ${isComplete ? 'checked' : ''}>
+                    <input type="checkbox" class="habit-checkbox" title="Mark as done" ${isCheckedToday ? 'checked' : ''}>
                 </div>`;
             }
 
@@ -1312,8 +1295,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // For counter habits that are complete, use counter-complete class
                     habitElement.classList.add('counter-complete');
                 } else {
-                    // For regular habits that are complete, use complete class
-                    habitElement.classList.add('complete');
+                    // For regular habits, only mark as complete if completions_today >= completions_per_day
+                    if (completionsToday >= completionsTarget) {
+                        habitElement.classList.add('complete');
+                    }
                 }
             }
 

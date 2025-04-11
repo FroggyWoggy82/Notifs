@@ -298,7 +298,7 @@ router.post('/log/manual', async (req, res) => {
     const { exercise_id, date_performed, reps_completed, weight_used, weight_unit, notes } = req.body;
     console.log(`Received POST /api/workouts/log/manual for exercise_id: ${exercise_id}`);
 
-    // --- Basic Validation --- 
+    // --- Basic Validation ---
     if (!exercise_id || !date_performed || !reps_completed || !weight_used || !weight_unit) {
         return res.status(400).json({ error: 'Missing required fields (exercise_id, date_performed, reps_completed, weight_used, weight_unit)' });
     }
@@ -636,21 +636,21 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
     // Note: Multer typically calls the callback with an error, but if used as middleware,
     // it might attach error details to `req` or require an error-handling middleware.
     // This is an attempt to catch errors if the structure allows.
-    if (req.fileValidationError) { // Custom error from fileFilter? 
+    if (req.fileValidationError) { // Custom error from fileFilter?
         console.error('[Photo Upload Route] File validation error detected:', req.fileValidationError);
         return res.status(400).json({ error: req.fileValidationError });
     }
     // Multer might add other error properties, check common patterns
-    if (req.multerError) { 
+    if (req.multerError) {
         console.error('[Photo Upload Route] Multer error detected on req:', req.multerError.code || req.multerError.message);
         if (req.multerError.code === 'LIMIT_FILE_SIZE') {
             return res.status(413).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });
         }
         return res.status(500).json({ error: `File upload error: ${req.multerError.message}` });
     }
-    // --- End error checking --- 
-    
-    // --- Main logic, previously inside the callback --- 
+    // --- End error checking ---
+
+    // --- Main logic, previously inside the callback ---
     const { 'photo-date': date } = req.body;
     const files = req.files;
 
@@ -662,13 +662,13 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
         return res.status(400).json({ error: 'Date is required.' });
     }
     // If Multer finished but found no files, req.files will be empty.
-    if (!files || files.length === 0) { 
+    if (!files || files.length === 0) {
         console.error('[Photo Upload Route Handler] Error: No photos found in request files.');
         // Don't return 400 immediately, as Multer might have already handled an error.
         // If we reached here without files and without a prior Multer error logged,
         // it's potentially an issue, but let's rely on the earlier checks or client validation.
         // We might have already sent a response if a Multer error occurred.
-        // Let's assume if we got here, it's unexpected. 
+        // Let's assume if we got here, it's unexpected.
         if (!res.headersSent) { // Only send if no response sent yet
              return res.status(400).json({ error: 'No photo files were processed.' });
         }
@@ -710,7 +710,7 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
         } catch (rbErr) {
              console.error('[Photo Upload Route Handler] Error during ROLLBACK after initial error:', rbErr);
         }
-        
+
         // Check if files exist before attempting deletion
         if (files && files.length > 0) {
             console.log('[Photo Upload Route Handler] Attempting to delete uploaded files due to DB error...');
@@ -727,7 +727,7 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
         } else {
             console.warn('[Photo Upload Route Handler] Skipping file deletion: No files object available after DB error.');
         }
-        
+
         // Ensure response isn't sent twice
         if (!res.headersSent) {
             res.status(500).json({ error: 'Database error saving photo information.' });
@@ -738,8 +738,9 @@ router.post('/progress-photos', uploadPhotosMiddleware, async (req, res) => {
     }
 });
 
-// GET /api/progress-photos - Fetch all progress photo records
+// GET /api/workouts/progress-photos - Fetch all progress photo records
 router.get('/progress-photos', async (req, res) => {
+    console.log("[DEBUG] Old route handler for GET /progress-photos called");
     console.log("Received GET /api/progress-photos request");
     try {
         // Fetch records, ordered by date taken (most recent first)

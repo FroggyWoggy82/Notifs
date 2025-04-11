@@ -84,24 +84,10 @@
                     </div>
                     <button id="history-edit-btn" class="btn btn-secondary btn-small" style="display: none; height: 40px; margin: 0; padding: 0 15px;">Edit History</button>
                 </div>
-                <div class="analytics-container" style="display: flex; margin: 20px auto;">
-                    <div class="chart-container" style="position: relative; height:40vh; width:70vw;">
-                        <canvas id="exercise-history-chart"></canvas>
-                    </div>
-                    <div class="stats-container" style="width:25vw; margin-left: 15px; background-color: #333; padding: 15px; border-radius: 8px;">
-                        <h3 style="margin-top: 0;">Performance Stats</h3>
-                        <div class="stat-box" style="margin-bottom: 20px;">
-                            <h4>Estimated 1RM</h4>
-                            <div id="one-rep-max" style="font-size: 24px; font-weight: bold;">--</div>
-                            <div id="best-set-info" style="font-size: 14px; color: #aaa; margin-top: 5px;">Based on best set</div>
-                        </div>
-                        <div class="stat-box">
-                            <h4>Best Set</h4>
-                            <div id="best-set" style="font-size: 18px;">--</div>
-                        </div>
-                    </div>
+                <div class="chart-container" style="position: relative; height:40vh; width:80vw; margin: 20px auto;">
+                    <canvas id="exercise-history-chart"></canvas>
+                    <p id="history-message" style="text-align: center; margin-top: 20px;"></p> <!-- Message area -->
                 </div>
-                <p id="history-message" style="text-align: center; margin-top: 10px;"></p> <!-- Message area -->
             </div>
             <!-- End Exercise History Section -->
 

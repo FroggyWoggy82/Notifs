@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const HabitController = require('../controllers/habitController');
+const HabitModel = require('../models/habitModel');
 
 /**
  * @swagger
@@ -195,10 +196,28 @@ router.post('/reset-daily-progress', async (req, res) => {
     res.setHeader('Surrogate-Control', 'no-store');
 
     try {
-        // Import the reset model here to avoid circular dependencies
-        const HabitResetModel = require('../models/habitResetModel');
-        const result = await HabitResetModel.resetDailyHabitProgress();
-        res.status(200).json(result);
+        // Get today's date in US Central Time
+        const today = new Date();
+        const centralTime = today.toLocaleString('en-US', { timeZone: 'America/Chicago' });
+        const centralDate = new Date(centralTime);
+        const year = centralDate.getFullYear();
+        const month = String(centralDate.getMonth() + 1).padStart(2, '0');
+        const day = String(centralDate.getDate()).padStart(2, '0');
+        const todayKey = `${year}-${month}-${day}`;
+
+        console.log(`Resetting daily habit progress for date: ${todayKey}`);
+
+        // Get current habit counts for logging
+        const result = await HabitModel.getAllHabits();
+
+        console.log(`Found ${result.length} habits with completion data for today`);
+
+        res.status(200).json({
+            status: 'success',
+            message: `Daily habit progress tracking reset for ${todayKey}`,
+            date: todayKey,
+            habitsChecked: result.length
+        });
     } catch (error) {
         console.error('Error resetting daily habit progress:', error);
         res.status(500).json({

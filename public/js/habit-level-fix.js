@@ -30,6 +30,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const habits = await response.json();
                 allHabitsData = habits; // Store habits locally
+
+                // Log habits data for debugging
+                console.log('Loaded habits data:', habits);
+
+                // Process habits to ensure counter habits are properly displayed
+                habits.forEach(habit => {
+                    // Check if habit title contains a counter pattern like (1/10)
+                    const counterMatch = habit.title.match(/\((\d+)\/(\d+)\)/);
+                    if (counterMatch) {
+                        const currentCount = parseInt(counterMatch[1], 10) || 0;
+                        const totalCount = parseInt(counterMatch[2], 10) || 10;
+
+                        // Log counter habit details
+                        console.log(`Counter habit: ${habit.title}, Current: ${currentCount}, Total: ${totalCount}, Completions today: ${habit.completions_today}`);
+                    } else {
+                        // Log regular habit details
+                        console.log(`Regular habit: ${habit.title}, Completions today: ${habit.completions_today}, Target: ${habit.completions_per_day}`);
+                    }
+                });
+
                 displayHabits(habits);
                 habitListStatusDiv.textContent = '';
             } catch (error) {
@@ -218,7 +238,18 @@ document.addEventListener('DOMContentLoaded', () => {
     async function checkAndResetDailyProgress() {
         // Get the last reset date from localStorage
         const lastResetDate = localStorage.getItem('lastHabitResetDate');
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+        // Get today's date in US Central Time
+        const now = new Date();
+        const centralTime = now.toLocaleString('en-US', { timeZone: 'America/Chicago' });
+        const centralDate = new Date(centralTime);
+        const year = centralDate.getFullYear();
+        const month = String(centralDate.getMonth() + 1).padStart(2, '0');
+        const day = String(centralDate.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`; // YYYY-MM-DD format in Central Time
+
+        console.log(`Current date in US Central Time: ${today}`);
+        console.log(`Last habit reset date: ${lastResetDate || 'never'}`);
 
         // If we haven't reset today, do it now
         if (lastResetDate !== today) {
@@ -238,6 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Store today's date as the last reset date
                     localStorage.setItem('lastHabitResetDate', today);
 
+                    // Reset counter habits in the UI
+                    resetCounterHabitsInUI();
+
                     // Reload habits to reflect the reset
                     loadHabits();
                 } else {
@@ -251,14 +285,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Function to reset counter habits in the UI
+    function resetCounterHabitsInUI() {
+        // Find all habits with counters in the title
+        const habitElements = document.querySelectorAll('.habit-item');
+
+        habitElements.forEach(habitElement => {
+            const titleElement = habitElement.querySelector('.habit-title');
+            if (!titleElement) return;
+
+            const title = titleElement.textContent;
+            const counterMatch = title.match(/\((\d+)\/(\d+)\)/);
+
+            if (counterMatch) {
+                const currentCount = parseInt(counterMatch[1], 10);
+                const totalCount = parseInt(counterMatch[2], 10);
+
+                // Only reset if the counter is at max
+                if (currentCount >= totalCount) {
+                    // Reset the counter to 0
+                    const newTitle = title.replace(/\(\d+\/\d+\)/, `(0/${totalCount})`);
+                    titleElement.textContent = newTitle;
+
+                    // Update the progress indicator
+                    const progressEl = habitElement.querySelector('.habit-progress');
+                    if (progressEl) {
+                        progressEl.textContent = `Progress: 0/${totalCount}`;
+                        progressEl.title = `Current progress: 0/${totalCount}`;
+
+                        // Update progress class
+                        progressEl.classList.remove('level-3', 'level-5', 'level-10');
+                        progressEl.classList.add('level-1');
+                    }
+
+                    // Remove the complete styling
+                    habitElement.classList.remove('counter-complete');
+
+                    // Reset the button
+                    const incrementBtn = habitElement.querySelector('.habit-increment-btn');
+                    if (incrementBtn) {
+                        incrementBtn.textContent = '+1';
+                        incrementBtn.classList.remove('completed');
+                        incrementBtn.disabled = false;
+                        incrementBtn.title = 'Click to add +1';
+                    }
+
+                    console.log(`Reset counter habit in UI: ${title} -> ${newTitle}`);
+                }
+            }
+        });
+    }
+
     // Check for daily reset when the page loads
     checkAndResetDailyProgress();
+
+    // Force a refresh of habits when the page loads
+    setTimeout(() => {
+        console.log('Forcing initial habit refresh');
+        loadHabits();
+    }, 1000);
 
     // Add a periodic refresh to ensure habit levels stay up to date
     setInterval(() => {
         // Only reload if the page is visible to the user
         if (document.visibilityState === 'visible' &&
-            document.querySelector('.habit-list') !== null) {
+            document.querySelector('#habitList') !== null) {
             console.log('Performing periodic habit refresh');
             loadHabits();
 

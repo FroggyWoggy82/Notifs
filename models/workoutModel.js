@@ -17,16 +17,11 @@ if (!fs.existsSync(progressPhotosDir)){
 }
 
 /**
- * Get all available exercises with their preferences
- * @returns {Promise<Array>} - Promise resolving to an array of exercises with preferences
+ * Get all available exercises
+ * @returns {Promise<Array>} - Promise resolving to an array of exercises
  */
 async function getAllExercises() {
-    const result = await db.query(`
-        SELECT e.exercise_id, e.name, e.category, COALESCE(ep.weight_unit, 'kg') as preferred_weight_unit
-        FROM exercises e
-        LEFT JOIN exercise_preferences ep ON e.exercise_id = ep.exercise_id
-        ORDER BY e.name ASC
-    `);
+    const result = await db.query('SELECT exercise_id, name, category FROM exercises ORDER BY name ASC');
     return result.rows;
 }
 
@@ -113,7 +108,7 @@ async function createWorkoutTemplate(name, description, exercises) {
         throw new Error('Template must contain at least one exercise');
     }
 
-    const client = await db.pool.connect();
+    const client = await db.getClient();
 
     try {
         await client.query('BEGIN');
@@ -141,8 +136,8 @@ async function createWorkoutTemplate(name, description, exercises) {
                 [
                     newTemplateId,
                     ex.exercise_id,
-                    ex.sets || 1,
-                    ex.reps || '',
+                    ex.sets || null,
+                    ex.reps || null,
                     ex.weight || null,
                     ex.weight_unit || 'kg',
                     i + 1, // Use array index + 1 for order
@@ -180,7 +175,7 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
         throw new Error('Template must contain at least one exercise');
     }
 
-    const client = await db.pool.connect();
+    const client = await db.getClient();
 
     try {
         await client.query('BEGIN');
@@ -220,8 +215,8 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
                 [
                     templateId,
                     ex.exercise_id,
-                    ex.sets || 1,
-                    ex.reps || '',
+                    ex.sets || null,
+                    ex.reps || null,
                     ex.weight || null,
                     ex.weight_unit || 'kg',
                     i + 1, // Use array index + 1 for order
@@ -248,7 +243,7 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
  * @returns {Promise<Object>} - Promise resolving to the deleted template ID
  */
 async function deleteWorkoutTemplate(templateId) {
-    const client = await db.pool.connect();
+    const client = await db.getClient();
 
     try {
         await client.query('BEGIN');
@@ -302,7 +297,7 @@ async function logWorkout(workoutName, duration, notes, exercises) {
         throw new Error('Workout must contain at least one logged exercise');
     }
 
-    const client = await db.pool.connect();
+    const client = await db.getClient();
 
     try {
         await client.query('BEGIN');
@@ -330,7 +325,7 @@ async function logWorkout(workoutName, duration, notes, exercises) {
 
             await client.query(
                 `INSERT INTO exercise_logs
-                (workout_log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes)
+                (log_id, exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [
                     newLogId,
@@ -349,7 +344,7 @@ async function logWorkout(workoutName, duration, notes, exercises) {
 
         // Fetch the complete log to return
         const logResult = await db.query('SELECT * FROM workout_logs WHERE log_id = $1', [newLogId]);
-        const exerciseLogsResult = await db.query('SELECT * FROM exercise_logs WHERE workout_log_id = $1', [newLogId]);
+        const exerciseLogsResult = await db.query('SELECT * FROM exercise_logs WHERE log_id = $1', [newLogId]);
 
         const workoutLog = logResult.rows[0];
         workoutLog.exercises = exerciseLogsResult.rows;
@@ -389,7 +384,7 @@ async function getWorkoutLogs(limit = 10, offset = 0) {
                 'notes', el.notes
             ) ORDER BY el.exercise_log_id) FILTER (WHERE el.exercise_log_id IS NOT NULL), '[]') AS exercises
         FROM workout_logs wl
-        LEFT JOIN exercise_logs el ON wl.log_id = el.workout_log_id
+        LEFT JOIN exercise_logs el ON wl.log_id = el.log_id
         GROUP BY wl.log_id
         ORDER BY wl.created_at DESC
         LIMIT $1 OFFSET $2;
@@ -425,7 +420,7 @@ async function getWorkoutLogById(logId) {
                 'notes', el.notes
             ) ORDER BY el.exercise_log_id) FILTER (WHERE el.exercise_log_id IS NOT NULL), '[]') AS exercises
         FROM workout_logs wl
-        LEFT JOIN exercise_logs el ON wl.log_id = el.workout_log_id
+        LEFT JOIN exercise_logs el ON wl.log_id = el.log_id
         WHERE wl.log_id = $1
         GROUP BY wl.log_id;
     `;
@@ -445,7 +440,7 @@ async function getWorkoutLogById(logId) {
  * @returns {Promise<Object>} - Promise resolving to the deleted log ID
  */
 async function deleteWorkoutLog(logId) {
-    const client = await db.pool.connect();
+    const client = await db.getClient();
 
     try {
         await client.query('BEGIN');
@@ -461,7 +456,7 @@ async function deleteWorkoutLog(logId) {
         }
 
         // 2. Delete all exercise logs for this workout log
-        await client.query('DELETE FROM exercise_logs WHERE workout_log_id = $1', [logId]);
+        await client.query('DELETE FROM exercise_logs WHERE log_id = $1', [logId]);
 
         // 3. Delete the workout log
         await client.query('DELETE FROM workout_logs WHERE log_id = $1', [logId]);
@@ -535,172 +530,21 @@ async function createExercise(name, category) {
 }
 
 /**
- * Save or update exercise weight unit preference
- * @param {number} exerciseId - The exercise ID
- * @param {string} weightUnit - The preferred weight unit (kg, lbs, bodyweight, assisted)
- * @returns {Promise<Object>} - Promise resolving to the saved preference
- */
-async function saveExercisePreference(exerciseId, weightUnit) {
-    if (!exerciseId) {
-        throw new Error('Exercise ID is required');
-    }
-
-    if (!weightUnit || !['kg', 'lbs', 'bodyweight', 'assisted'].includes(weightUnit)) {
-        throw new Error('Valid weight unit is required (kg, lbs, bodyweight, assisted)');
-    }
-
-    // Check if preference already exists
-    const existingCheck = await db.query(
-        'SELECT preference_id FROM exercise_preferences WHERE exercise_id = $1',
-        [exerciseId]
-    );
-
-    if (existingCheck.rowCount > 0) {
-        // Update existing preference
-        const result = await db.query(
-            'UPDATE exercise_preferences SET weight_unit = $1, updated_at = CURRENT_TIMESTAMP WHERE exercise_id = $2 RETURNING *',
-            [weightUnit, exerciseId]
-        );
-        return result.rows[0];
-    } else {
-        // Create new preference
-        const result = await db.query(
-            'INSERT INTO exercise_preferences (exercise_id, weight_unit) VALUES ($1, $2) RETURNING *',
-            [exerciseId, weightUnit]
-        );
-        return result.rows[0];
-    }
-}
-
-/**
- * Get exercise preference by exercise ID
- * @param {number} exerciseId - The exercise ID
- * @returns {Promise<Object|null>} - Promise resolving to the preference or null if not found
- */
-async function getExercisePreference(exerciseId) {
-    if (!exerciseId) {
-        throw new Error('Exercise ID is required');
-    }
-
-    const result = await db.query(
-        'SELECT * FROM exercise_preferences WHERE exercise_id = $1',
-        [exerciseId]
-    );
-
-    return result.rowCount > 0 ? result.rows[0] : null;
-}
-
-/**
  * Get all progress photos
  * @returns {Promise<Array>} - Promise resolving to an array of progress photos
  */
 async function getProgressPhotos() {
-    // Fetch records, ordered by date taken (most recent first)
     const result = await db.query(
         'SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC'
     );
 
     // Map date_taken to YYYY-MM-DD format for consistency
-    return result.rows.map(photo => ({
+    const photos = result.rows.map(photo => ({
         ...photo,
         date_taken: photo.date_taken.toISOString().split('T')[0] // Format as YYYY-MM-DD
     }));
-}
 
-/**
- * Delete a progress photo
- * @param {number} photoId - The photo ID to delete
- * @returns {Promise<Object>} - Promise resolving to a success message
- */
-async function deleteProgressPhoto(photoId) {
-    const client = await db.getClient();
-
-    try {
-        await client.query('BEGIN');
-
-        // 1. Get the file path before deleting
-        const selectResult = await client.query('SELECT file_path FROM progress_photos WHERE photo_id = $1', [photoId]);
-
-        if (selectResult.rows.length === 0) {
-            throw new Error('Photo not found');
-        }
-
-        const filePath = selectResult.rows[0].file_path;
-        const fullPath = path.join(__dirname, '..', 'public', filePath);
-
-        // 2. Delete the database record
-        await client.query('DELETE FROM progress_photos WHERE photo_id = $1', [photoId]);
-
-        // 3. Delete the file from disk if it exists
-        if (fs.existsSync(fullPath)) {
-            fs.unlinkSync(fullPath);
-            console.log(`Deleted file: ${fullPath}`);
-        } else {
-            console.warn(`File not found on disk: ${fullPath}`);
-        }
-
-        await client.query('COMMIT');
-        return { message: 'Photo deleted successfully' };
-    } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-    } finally {
-        client.release();
-    }
-}
-
-/**
- * Get exercise history
- * @param {number} exerciseId - The exercise ID
- * @returns {Promise<Array>} - Promise resolving to an array of exercise logs
- */
-async function getExerciseHistory(exerciseId) {
-    // Fetch relevant log data, ordered by date
-    const query = `
-        SELECT
-            wl.log_id AS workout_log_id,
-            el.sets_completed,
-            el.reps_completed, -- Comma-separated string e.g., "10,9,8"
-            el.weight_used,   -- Comma-separated string e.g., "50,50,55"
-            el.weight_unit,
-            wl.date_performed
-        FROM exercise_logs el
-        JOIN workout_logs wl ON el.workout_log_id = wl.log_id
-        WHERE el.exercise_id = $1
-        ORDER BY wl.date_performed ASC; -- Order oldest to newest for charting
-    `;
-
-    const result = await db.query(query, [exerciseId]);
-    return result.rows;
-}
-
-/**
- * Get the last exercise log
- * @param {number} exerciseId - The exercise ID
- * @returns {Promise<Object>} - Promise resolving to the last exercise log
- */
-async function getLastExerciseLog(exerciseId) {
-    // Query exercise_logs joined with workout_logs to order by date_performed
-    const query = `
-        SELECT
-            el.reps_completed,
-            el.weight_used,
-            el.weight_unit,
-            wl.date_performed
-        FROM exercise_logs el
-        JOIN workout_logs wl ON el.workout_log_id = wl.log_id
-        WHERE el.exercise_id = $1
-        ORDER BY wl.date_performed DESC
-        LIMIT 1;
-    `;
-
-    const result = await db.query(query, [exerciseId]);
-
-    if (result.rows.length === 0) {
-        throw new Error('No previous log found for this exercise');
-    }
-
-    return result.rows[0];
+    return photos;
 }
 
 module.exports = {
@@ -716,11 +560,6 @@ module.exports = {
     deleteWorkoutLog,
     searchExercises,
     createExercise,
-    saveExercisePreference,
-    getExercisePreference,
     getProgressPhotos,
-    deleteProgressPhoto,
-    getExerciseHistory,
-    getLastExerciseLog,
     progressPhotosDir
 };

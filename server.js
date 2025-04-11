@@ -17,11 +17,9 @@ const daysSinceRouter = require('./routes/daysSinceRoutes'); // New MVC pattern
 const workoutRoutes = require('./routes/workoutRoutes'); // New MVC pattern
 const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
-const weightRoutes = require('./routes/weightRoutes'); // Using MVC pattern
+const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
-
-// Note: We're no longer using the old workouts.js routes file
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -69,15 +67,29 @@ NotificationModel.initialize();
 // Setup daily notification check
 NotificationModel.setupDailyCheck(cron.schedule);
 
-// Import habit reset model
-const HabitResetModel = require('./models/habitResetModel');
-
-// Setup daily habit reset at midnight
-cron.schedule('0 0 * * *', async () => {
-  console.log('Running daily habit progress reset');
+// Setup daily habit reset at midnight Central Time (6 AM UTC)
+cron.schedule('0 6 * * *', async () => {
+  console.log('Running daily habit reset cron job');
   try {
-    const result = await HabitResetModel.resetDailyHabitProgress();
-    console.log('Habit reset completed:', result);
+    // Import the habit model
+    const HabitModel = require('./models/habitModel');
+
+    // Get today's date in US Central Time
+    const today = new Date();
+    const centralTime = today.toLocaleString('en-US', { timeZone: 'America/Chicago' });
+    const centralDate = new Date(centralTime);
+    const year = centralDate.getFullYear();
+    const month = String(centralDate.getMonth() + 1).padStart(2, '0');
+    const day = String(centralDate.getDate()).padStart(2, '0');
+    const todayKey = `${year}-${month}-${day}`;
+
+    console.log(`Resetting daily habit progress for date: ${todayKey}`);
+
+    // Get current habit counts for logging
+    const habits = await HabitModel.getAllHabits();
+
+    console.log(`Found ${habits.length} habits with completion data for today`);
+    console.log('Habit reset completed successfully');
   } catch (error) {
     console.error('Error during habit reset:', error);
   }

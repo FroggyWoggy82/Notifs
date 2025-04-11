@@ -68,18 +68,5 @@ module.exports = {
                 throw err;
             });
     },
-    getClient: async () => {
-        const client = await pool.connect();
-        console.log('Client connection acquired');
-        const originalRelease = client.release;
-
-        // Override the release method to log when a client is released
-        client.release = () => {
-            console.log('Client connection released');
-            return originalRelease.apply(client);
-        };
-
-        return client;
-    },
     pool // Export pool if needed elsewhere
 };

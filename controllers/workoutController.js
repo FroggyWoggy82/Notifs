@@ -329,7 +329,7 @@ async function createExercise(req, res) {
  * @param {Object} res - Express response object
  */
 function uploadProgressPhotos(req, res) {
-    uploadPhotosMiddleware(req, res, async function(err) {
+    uploadPhotosMiddleware(req, res, function(err) {
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading
             console.error('Multer error during upload:', err);
@@ -350,57 +350,20 @@ function uploadProgressPhotos(req, res) {
             return res.status(400).json({ error: 'No files were uploaded.' });
         }
 
-        // Get the date from the form data
-        const date = req.body['photo-date'] || new Date().toISOString().split('T')[0];
-        console.log(`[Photo Upload] Using date: ${date}`);
+        // Process the uploaded files
+        const uploadedFiles = req.files.map(file => ({
+            filename: file.filename,
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size,
+            path: `/uploads/progress_photos/${file.filename}` // Path relative to public directory
+        }));
 
-        try {
-            // Save files to database
-            const db = require('../db');
-            const client = await db.pool.connect();
-
-            try {
-                await client.query('BEGIN');
-
-                const insertedPhotos = [];
-                for (const file of req.files) {
-                    const relativePath = `/uploads/progress_photos/${file.filename}`;
-                    console.log(`[Photo Upload] Inserting DB record for: ${relativePath}, Date: ${date}`);
-
-                    const result = await client.query(
-                        'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id, date_taken, file_path',
-                        [date, relativePath]
-                    );
-                    insertedPhotos.push(result.rows[0]);
-                }
-
-                await client.query('COMMIT');
-
-                // Process the uploaded files for response
-                const uploadedFiles = req.files.map(file => ({
-                    filename: file.filename,
-                    originalname: file.originalname,
-                    mimetype: file.mimetype,
-                    size: file.size,
-                    path: `/uploads/progress_photos/${file.filename}` // Path relative to public directory
-                }));
-
-                console.log(`Successfully uploaded ${uploadedFiles.length} progress photos`);
-                res.status(201).json({
-                    message: `Successfully uploaded ${uploadedFiles.length} files`,
-                    files: uploadedFiles
-                });
-            } catch (dbError) {
-                await client.query('ROLLBACK');
-                console.error('Database error during photo upload:', dbError);
-                res.status(500).json({ error: 'Failed to save photo information to database' });
-            } finally {
-                client.release();
-            }
-        } catch (error) {
-            console.error('Error during photo upload:', error);
-            res.status(500).json({ error: 'Server error during photo upload' });
-        }
+        console.log(`Successfully uploaded ${uploadedFiles.length} progress photos`);
+        res.status(201).json({
+            message: `Successfully uploaded ${uploadedFiles.length} files`,
+            files: uploadedFiles
+        });
     });
 }
 
@@ -420,112 +383,6 @@ async function getProgressPhotos(req, res) {
     }
 }
 
-/**
- * Delete a progress photo
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function deleteProgressPhoto(req, res) {
-    const { photo_id } = req.params;
-    console.log(`Received DELETE /api/workouts/progress-photos/${photo_id}`);
-
-    if (!/^[1-9]\d*$/.test(photo_id)) {
-        return res.status(400).json({ error: 'Invalid photo ID format' });
-    }
-
-    try {
-        const result = await WorkoutModel.deleteProgressPhoto(photo_id);
-        res.json(result);
-    } catch (error) {
-        console.error('Error deleting photo:', error);
-
-        if (error.message === 'Photo not found') {
-            return res.status(404).json({ error: 'Photo not found' });
-        }
-
-        res.status(500).json({ error: 'Failed to delete photo' });
-    }
-}
-
-/**
- * Save exercise weight unit preference
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function saveExercisePreference(req, res) {
-    const { exerciseId } = req.params;
-    const { weightUnit } = req.body;
-    console.log(`Received PUT /api/workouts/exercises/preferences/${exerciseId}: weightUnit='${weightUnit}'`);
-
-    if (!exerciseId || isNaN(parseInt(exerciseId))) {
-        return res.status(400).json({ error: 'Valid exercise ID is required' });
-    }
-
-    if (!weightUnit || !['kg', 'lbs', 'bodyweight', 'assisted'].includes(weightUnit)) {
-        return res.status(400).json({ error: 'Valid weight unit is required (kg, lbs, bodyweight, assisted)' });
-    }
-
-    try {
-        const preference = await WorkoutModel.saveExercisePreference(parseInt(exerciseId), weightUnit);
-        console.log(`Exercise preference saved successfully for exercise ID: ${exerciseId}`);
-        res.json(preference);
-    } catch (error) {
-        console.error('Error saving exercise preference:', error);
-        res.status(500).json({ error: 'Failed to save exercise preference' });
-    }
-}
-
-/**
- * Get exercise history
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function getExerciseHistory(req, res) {
-    const { id: exerciseId } = req.params;
-    console.log(`Received GET /api/workouts/exercises/${exerciseId}/history request`);
-
-    if (!exerciseId || isNaN(parseInt(exerciseId))) {
-        return res.status(400).json({ error: 'Valid exercise ID is required' });
-    }
-
-    try {
-        const history = await WorkoutModel.getExerciseHistory(exerciseId);
-        console.log(`Found ${history.length} history logs for exercise ${exerciseId}.`);
-        res.json(history);
-    } catch (error) {
-        console.error(`Error fetching history for exercise ${exerciseId}:`, error);
-        res.status(500).json({ error: 'Failed to fetch exercise history' });
-    }
-}
-
-/**
- * Get last exercise log
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function getLastExerciseLog(req, res) {
-    const { id: exerciseId } = req.params;
-    console.log(`Received GET /api/workouts/exercises/${exerciseId}/lastlog request`);
-
-    if (!exerciseId || isNaN(parseInt(exerciseId))) {
-        return res.status(400).json({ error: 'Valid exercise ID is required' });
-    }
-
-    try {
-        const lastLog = await WorkoutModel.getLastExerciseLog(exerciseId);
-        console.log(`Last log found for exercise ${exerciseId}:`, lastLog);
-        res.json(lastLog);
-    } catch (error) {
-        console.error(`Error fetching last log for exercise ${exerciseId}:`, error);
-
-        if (error.message === 'No previous log found for this exercise') {
-            return res.status(404).json({ message: 'No previous log found for this exercise.' });
-        }
-
-        res.status(500).json({ error: 'Failed to fetch last exercise log' });
-    }
-}
-
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -540,9 +397,5 @@ module.exports = {
     searchExercises,
     createExercise,
     uploadProgressPhotos,
-    getProgressPhotos,
-    deleteProgressPhoto,
-    saveExercisePreference,
-    getExerciseHistory,
-    getLastExerciseLog
+    getProgressPhotos
 };

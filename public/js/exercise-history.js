@@ -530,11 +530,20 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Data for Chart - Volumes:", volumes);
             console.log("Data for Chart - 1RM:", oneRepMaxes);
 
-            // Render the chart with just the volume data
+            // Get the most recent 1RM value
+            const latestOneRepMax = oneRepMaxes[oneRepMaxes.length - 1];
+            const unit = processedData[processedData.length - 1].unit;
+
+            // Create a message with the latest 1RM value
+            let message = '';
+            if (latestOneRepMax > 0) {
+                message = `Estimated 1RM: ${latestOneRepMax} ${unit}`;
+            }
+
             renderHistoryChart(labels, volumes, oneRepMaxes, processedData, 'Volume (Weight * Reps)', '1RM (Estimated)');
 
-            // Clear any message
-            historyMessageEl.textContent = '';
+            // Display the 1RM message
+            historyMessageEl.textContent = message;
 
         } catch (error) {
             console.error('Error fetching or processing exercise history:', error);
@@ -557,13 +566,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Update the stats section with the latest data
-        updateStatsSection(processedData);
-
         try {
             const ctx = historyChartCanvas.getContext('2d');
             console.log("Canvas context obtained:", ctx);
-            console.log("Rendering chart with Labels:", labels, "Volume Data:", volumeData);
+            console.log("Rendering chart with Labels:", labels, "Volume Data:", volumeData, "1RM Data:", oneRepMaxData);
 
             // Destroy existing chart before creating new one
             if (exerciseHistoryChart) {
@@ -574,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("No existing chart instance to destroy.");
             }
 
-            // Create new chart with only the volume dataset
+            // Create new chart with two datasets
             exerciseHistoryChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -589,7 +595,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             pointBackgroundColor: '#4CAF50',
                             pointRadius: 4,
                             tension: 0.1,
-                            fill: true
+                            fill: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: oneRepMaxLabel,
+                            data: oneRepMaxData,
+                            borderColor: '#03dac6', // Teal line
+                            backgroundColor: 'rgba(3, 218, 198, 0.1)', // Light teal fill
+                            borderWidth: 2,
+                            pointBackgroundColor: '#03dac6',
+                            pointRadius: 4,
+                            tension: 0.1,
+                            fill: false,
+                            yAxisID: 'y1'
                         }
                     ]
                 },
@@ -598,6 +617,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     maintainAspectRatio: false,
                     scales: {
                         y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
                             beginAtZero: true,
                             grid: {
                                 color: 'rgba(255, 255, 255, 0.1)'
@@ -609,6 +631,23 @@ document.addEventListener('DOMContentLoaded', function() {
                                 display: true,
                                 text: volumeLabel,
                                 color: '#4CAF50'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                color: '#ddd'
+                            },
+                            title: {
+                                display: true,
+                                text: oneRepMaxLabel,
+                                color: '#03dac6'
                             }
                         },
                         x: {
@@ -678,52 +717,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (historyMessageEl) {
                 historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
             }
-        }
-    }
-
-    // Function to update the stats section with the latest data
-    function updateStatsSection(processedData) {
-        if (!processedData || processedData.length === 0) {
-            console.warn("No data available to update stats section");
-            return;
-        }
-
-        // Get the most recent data point
-        const latestData = processedData[processedData.length - 1];
-
-        // Find the best set (highest 1RM) across all data points
-        let bestSet = null;
-        let highestOneRepMax = 0;
-
-        processedData.forEach(dataPoint => {
-            if (dataPoint.oneRepMax > highestOneRepMax) {
-                highestOneRepMax = dataPoint.oneRepMax;
-                bestSet = dataPoint.bestSet;
-            }
-        });
-
-        // Update the 1RM display
-        const oneRepMaxEl = document.getElementById('one-rep-max');
-        const bestSetInfoEl = document.getElementById('best-set-info');
-        const bestSetEl = document.getElementById('best-set');
-
-        if (oneRepMaxEl && bestSetInfoEl && bestSetEl) {
-            if (highestOneRepMax > 0 && bestSet) {
-                // Format the 1RM value
-                oneRepMaxEl.textContent = `${Math.round(highestOneRepMax)} ${latestData.unit}`;
-
-                // Show which set was used to calculate the 1RM
-                bestSetInfoEl.textContent = `Based on best set: ${bestSet.weight}${latestData.unit} × ${bestSet.reps}`;
-
-                // Show the best set details
-                bestSetEl.textContent = `${bestSet.weight}${latestData.unit} × ${bestSet.reps} reps on ${new Date(bestSet.date).toLocaleDateString()}`;
-            } else {
-                oneRepMaxEl.textContent = '--';
-                bestSetInfoEl.textContent = 'No data available';
-                bestSetEl.textContent = '--';
-            }
-        } else {
-            console.error("Could not find stats elements in the DOM");
         }
     }
 

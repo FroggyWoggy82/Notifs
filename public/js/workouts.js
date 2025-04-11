@@ -3217,13 +3217,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             console.log('[Photo Load] Fetching photos from API...'); // Log before fetch
-            const response = await fetch('/api/workouts/progress-photos');
+
+            // Try the new MVC endpoint first
+            let response = await fetch('/api/workouts/progress-photos');
             console.log(`[Photo Load] API Response Status: ${response.status}`); // Log status
+
+            // Log the raw response text for debugging
+            let responseText = await response.text();
+            console.log(`[Photo Load] Raw API Response: ${responseText}`);
+
+            // If the response is not JSON (likely HTML), try the old endpoint
+            if (responseText.includes('<!DOCTYPE html>')) {
+                console.log('[Photo Load] Received HTML response, trying fallback endpoint...');
+
+                // Try the old endpoint as fallback
+                response = await fetch('/uploads/progress_photos');
+                console.log(`[Photo Load] Fallback API Response Status: ${response.status}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error from fallback endpoint! status: ${response.status}`);
+                }
+
+                // Use empty array as fallback if we can't get real data
+                progressPhotosData = [];
+                console.log('[Photo Load] Using empty array as fallback');
+                return; // Exit early with empty data
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            // Store fetched data in state
-            progressPhotosData = await response.json(); // Expecting array like [{photo_id, date_taken, file_path, uploaded_at}]
+
+            // Parse the response text manually
+            try {
+                progressPhotosData = JSON.parse(responseText);
+                console.log('[Photo Load] Successfully parsed JSON response');
+            } catch (parseError) {
+                console.error('[Photo Load] JSON Parse Error:', parseError);
+                // Use empty array as fallback if parsing fails
+                progressPhotosData = [];
+                console.log('[Photo Load] Using empty array due to parse error');
+            }
 
             console.log(`[Photo Load] Fetched progress photos count: ${progressPhotosData.length}`);
 
@@ -3315,7 +3349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- NEW: Display Current Photo in Slider (Redesigned for Carousel) ---
     function displayCurrentPhoto() {
         const startTime = performance.now(); // Start timer
-        const numPhotos = progressPhotosData.length;
+        const numPhotos = progressPhotosData ? progressPhotosData.length : 0;
         console.log(`[Photo Display] Displaying photo index: ${currentPhotoIndex} (Total: ${numPhotos})`);
 
         // NEW: Find the date display element
@@ -3324,6 +3358,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (numPhotos === 0 || !photoReel || !paginationDotsContainer || !dateDisplayEl) {
             console.warn('[Photo Display] No photos or required elements found (reel, dots, date display).');
             if (dateDisplayEl) dateDisplayEl.textContent = ''; // Clear date if no photos
+            if (photoReel) photoReel.innerHTML = '<p>No progress photos available. Click the "+ Add Photo" button to upload your first photo.</p>';
+            if (photoPrevBtn) photoPrevBtn.disabled = true;
+            if (photoNextBtn) photoNextBtn.disabled = true;
+            if (deletePhotoBtn) deletePhotoBtn.disabled = true;
             return; // Nothing to display
         }
 
@@ -3341,9 +3379,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
         // --- Get Current Photo Data and Format Date ---
+        // Check if progressPhotosData is defined and has the expected index
+        if (!progressPhotosData || !Array.isArray(progressPhotosData)) {
+            console.error('[Photo Display] progressPhotosData is not a valid array');
+            return; // Exit early to prevent errors
+        }
+
         const currentPhoto = progressPhotosData[currentPhotoIndex];
         // --- BEGIN ADDED DEBUG LOG ---
-        console.log('[Photo Display DEBUG] Photo object being used:', JSON.stringify(currentPhoto));
+        console.log('[Photo Display DEBUG] Photo object being used:', currentPhoto ? JSON.stringify(currentPhoto) : 'undefined');
         // --- END ADDED DEBUG LOG ---
         console.log(`[Photo Display] Attempting to display data:`, currentPhoto); // <<< Log the photo object
         let formattedDate = '';

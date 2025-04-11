@@ -1,5 +1,5 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v12'; // <-- Bumped version number
+const CACHE_NAME = 'notification-pwa-v11'; // <-- Bumped version number
 
 // Disable caching for all resources except icons
 const urlsToCache = [
@@ -104,20 +104,6 @@ self.addEventListener('fetch', event => {
                 status: 503, // Service Unavailable or appropriate error
                 headers: { 'Content-Type': 'application/json' }
             });
-        })
-    );
-  }
-  // Network Only strategy for habit completion endpoints
-  else if (requestUrl.pathname.includes('/api/habits/') && requestUrl.pathname.includes('/complete')) {
-    console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} from network (Network Only Strategy for habit completion).`);
-    event.respondWith(
-      fetch(event.request)
-        .catch(error => {
-          console.error(`(${CACHE_NAME}) Network fetch failed for ${requestUrl.pathname}:`, error);
-          return new Response(JSON.stringify({ error: "Failed to record habit completion. Network error." }), {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' }
-          });
         })
     );
   }
