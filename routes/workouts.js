@@ -751,8 +751,21 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
             // Add special handling for .jpeg files
             if (fileExtension === '.jpeg') {
                 console.log(`[Upload Conversion] Found .jpeg file, ensuring consistent handling: ${file.originalname}`);
+                // Check if client sent special flag for JPEG files
+                if (req.body.fileType === 'jpeg') {
+                    console.log(`[Upload Conversion] Client indicated special JPEG handling needed`);
+                }
             } else if (fileExtension === '.jpg') {
                 console.log(`[Upload Conversion] Found .jpg file: ${file.originalname}`);
+            }
+
+            // Log file size for debugging
+            const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+            console.log(`[Upload Conversion] File size: ${fileSizeInMB} MB`);
+
+            // For very large files, log a warning
+            if (file.size > 5 * 1024 * 1024) { // 5MB
+                console.log(`[Upload Conversion] Warning: Large file (${fileSizeInMB} MB) may take longer to process`);
             }
 
             console.log(`[Upload Conversion] Converting file: ${file.originalname} (${originalMimeType}) to JPG format`);
@@ -762,9 +775,23 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
 
             try {
                 console.log(`[Upload Conversion] Converting ${originalPath} to ${jpgPath}...`);
-                await sharp(originalPath)
-                    .jpeg({ quality: 85 }) // Convert to JPG with quality 85
-                    .toFile(jpgPath);
+
+                // Special handling for JPEG files
+                if (fileExtension === '.jpeg' || req.body.fileType === 'jpeg') {
+                    console.log(`[Upload Conversion] Using special JPEG handling`);
+
+                    // Use a more conservative approach for JPEG files
+                    await sharp(originalPath)
+                        .jpeg({ quality: 80, progressive: true }) // Lower quality, progressive encoding
+                        .withMetadata() // Preserve metadata
+                        .toFile(jpgPath);
+                } else {
+                    // Standard conversion for other files
+                    await sharp(originalPath)
+                        .jpeg({ quality: 85 }) // Standard quality
+                        .toFile(jpgPath);
+                }
+
                 console.log(`[Upload Conversion] Conversion successful: ${jpgPath}`);
                 // Conversion successful
 
