@@ -2599,7 +2599,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const originalFile = mobilePhotoInput.files[0];
 
         // Log original file details
-        console.log(`[Mobile Upload] Original file: ${originalFile.name}, type: ${originalFile.type}, size: ${originalFile.size} bytes`);
+        const fileExtension = originalFile.name.split('.').pop().toLowerCase();
+        logDiagnostic('Original file details', {
+            name: originalFile.name,
+            type: originalFile.type,
+            extension: fileExtension,
+            size: originalFile.size,
+            lastModified: new Date(originalFile.lastModified).toISOString()
+        });
+
+        // Check if this is a .jpeg file
+        if (fileExtension === 'jpeg') {
+            logDiagnostic('JPEG file detected - will use special handling');
+        }
 
         // Update UI to show compression is happening
         statusElement.textContent = 'Preparing image...';
@@ -2671,13 +2683,28 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update UI
             statusElement.textContent = 'Uploading...';
 
+            // Check if this is a .jpeg file based on name
+            const isJpegFile = file.name && file.name.toLowerCase().endsWith('.jpeg');
+            logDiagnostic(`Preparing to upload file`, {
+                name: file.name,
+                type: file.type,
+                isJpegFile: isJpegFile,
+                size: file.size
+            });
+
             // Create FormData
             const formData = new FormData();
             formData.append('photo-date', dateInput.value);
             formData.append('photos', file);
 
-            // Log what we're uploading
-            console.log(`[Mobile Upload] Uploading file: ${file.name || 'compressed-image.jpg'}, type: ${file.type}, size: ${file.size} bytes with date: ${dateInput.value}`);
+            // For .jpeg files, use XMLHttpRequest instead of fetch
+            if (isJpegFile) {
+                logDiagnostic('Using XMLHttpRequest for .jpeg file');
+                return uploadWithXhr(formData);
+            }
+
+            // For other files, use fetch
+            logDiagnostic('Using fetch for non-jpeg file');
 
             // Simulate progress for the upload portion (40-90%)
             let uploadProgress = 40;
@@ -2776,6 +2803,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 mobileUploadBtn.disabled = false;
                 console.log('[Mobile Upload] handleMobilePhotoUpload finished');
             }
+        }
+
+        // Special XMLHttpRequest upload function for .jpeg files
+        function uploadWithXhr(formData) {
+            return new Promise((resolve, reject) => {
+                logDiagnostic('Starting XMLHttpRequest upload');
+                const xhr = new XMLHttpRequest();
+
+                // Track upload progress
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        progressBar.style.width = `${percentComplete}%`;
+                        logDiagnostic(`XMLHttpRequest upload progress: ${percentComplete}%`);
+                    }
+                };
+
+                // Handle response
+                xhr.onload = function() {
+                    logDiagnostic('XMLHttpRequest completed', { status: xhr.status });
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            logDiagnostic('XMLHttpRequest upload successful', result);
+                            handleUploadSuccess(result);
+                            resolve(result);
+                        } catch (parseError) {
+                            logDiagnostic('Error parsing XMLHttpRequest response', {
+                                error: parseError.message,
+                                responseText: xhr.responseText.substring(0, 100) + '...'
+                            });
+                            reject(new Error('Invalid response format'));
+                        }
+                    } else {
+                        logDiagnostic('XMLHttpRequest server error', {
+                            status: xhr.status,
+                            responseText: xhr.responseText.substring(0, 100) + '...'
+                        });
+                        reject(new Error(`Server error: ${xhr.status}`));
+                    }
+                };
+
+                // Handle network errors
+                xhr.onerror = function() {
+                    logDiagnostic('XMLHttpRequest network error');
+                    reject(new Error('Network error'));
+                };
+
+                // Handle timeouts
+                xhr.ontimeout = function() {
+                    logDiagnostic('XMLHttpRequest timeout');
+                    reject(new Error('Request timed out'));
+                };
+
+                // Set timeout to 3 minutes
+                xhr.timeout = 180000;
+
+                // Open and send the request
+                logDiagnostic('Opening XMLHttpRequest connection');
+                xhr.open('POST', '/api/workouts/progress-photos', true);
+                xhr.setRequestHeader('Cache-Control', 'no-cache');
+                xhr.setRequestHeader('Pragma', 'no-cache');
+
+                logDiagnostic('Sending XMLHttpRequest');
+                xhr.send(formData);
+            });
         }
     }
 

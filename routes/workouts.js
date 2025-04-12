@@ -748,6 +748,13 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
             // Process all files, including JPEG files
             // We want to standardize all images to .jpg extension
 
+            // Add special handling for .jpeg files
+            if (fileExtension === '.jpeg') {
+                console.log(`[Upload Conversion] Found .jpeg file, ensuring consistent handling: ${file.originalname}`);
+            } else if (fileExtension === '.jpg') {
+                console.log(`[Upload Conversion] Found .jpg file: ${file.originalname}`);
+            }
+
             console.log(`[Upload Conversion] Converting file: ${file.originalname} (${originalMimeType}) to JPG format`);
             const jpgFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename with .jpg extension
             const jpgPath = path.join(path.dirname(originalPath), jpgFilename); // Full path for JPG output
