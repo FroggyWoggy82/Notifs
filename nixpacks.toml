@@ -3,7 +3,9 @@
 [phases.setup]
 # Installs packages using Nix
 # Use nixPkgs instead of aptPkgs for potentially better reliability on Railway
-nixPkgs = ["vips", "libheif", "pkg-config"]
+# Using 'vips' instead of 'libvips' as the Nix package name
+# ADDED nodejs_20 explicitly to ensure Node/npm are available
+nixPkgs = ["vips", "libheif", "pkg-config", "nodejs_20"]
 
 [start]
 # Make sure this matches your actual start command in package.json or Procfile
