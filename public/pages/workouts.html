@@ -358,41 +358,14 @@
                      <input type="date" id="modal-photo-date" name="photo-date" required>
                  </div>
 
-                 <!-- Standard file input (hidden) -->
-                 <div id="standard-upload-section" class="form-group" style="display: none;">
-                     <label for="modal-photo-upload">Select Photos:</label>
-                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required>
-                     <div class="file-input-help" style="font-size: 0.8rem; color: #666; margin-top: 5px;">
-                         Select from your photo gallery
-                     </div>
-                 </div>
-
-                 <!-- Mobile-specific upload section (always visible) -->
-                 <div id="mobile-upload-section" class="form-group" style="display: block;">
-                     <div class="mobile-upload-instructions" style="margin-bottom: 15px;">
-                         <p>For better compatibility on mobile devices:</p>
-                         <ol style="text-align: left; padding-left: 20px;">
-                             <li>Select a photo from your gallery</li>
-                             <li>Click "Upload Photo" to save it</li>
-                         </ol>
-                     </div>
-                     <label for="mobile-photo-upload">Select a Photo:</label>
-                     <input type="file" id="mobile-photo-upload" accept="image/*">
+                 <!-- Simplified Photo Upload Section -->
+                 <div class="form-group">
+                     <label for="simple-photo-upload">Select a Photo:</label>
+                     <input type="file" id="simple-photo-upload" name="photos" accept="image/*" required>
                  </div>
 
                  <div class="modal-actions">
-                    <button type="submit" id="standard-upload-btn" class="btn btn-primary" style="display: none;">Upload Photos</button>
-                    <button type="button" id="mobile-upload-btn" class="btn btn-primary" style="display: none;">Upload Photo</button>
-                 </div>
-
-                 <!-- EMERGENCY FIX: New direct upload button -->
-                 <div style="margin-top: 20px; text-align: center;">
-                    <button type="button" id="emergency-upload-btn"
-                            style="background-color: #ff5722; color: white; padding: 12px 24px;
-                                   font-size: 16px; border: none; border-radius: 4px;
-                                   cursor: pointer; display: block; width: 100%;">
-                        CLICK HERE TO UPLOAD PHOTO
-                    </button>
+                    <button type="submit" id="submit-photo-btn" class="btn btn-primary">Upload Photo</button>
                  </div>
             </form>
             <p id="upload-status" style="margin-top: 15px;"></p> <!-- Status message inside modal -->
@@ -400,7 +373,7 @@
     </div>
     <!-- ===== End Photo Upload Modal ===== -->
 
-    <!-- Emergency upload handler -->
-    <script src="/js/emergency-upload.js"></script>
+    <!-- Simple upload handler -->
+    <script src="/js/simple-upload.js"></script>
 </body>
 </html>
