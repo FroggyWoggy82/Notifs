@@ -4,7 +4,6 @@
  */
 
 const WorkoutModel = require('../models/workoutModel');
-const db = require('../db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -25,37 +24,12 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    console.log(`[Multer File Filter] Checking file: ${file.originalname}, MIME: ${file.mimetype}`);
-
-    // Get the file extension and convert to lowercase
-    const fileExt = path.extname(file.originalname).toLowerCase();
-    console.log(`[Multer File Filter] File extension: ${fileExt}`);
-
-    // Define allowed extensions (case-insensitive)
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.heic'];
-
-    // Check 1: MIME type starts with 'image/'
-    const isMimeTypeImage = file.mimetype.startsWith('image/');
-    // Check 2: File extension is in the allowed list
-    const hasAllowedExtension = allowedExtensions.includes(fileExt);
-
-    // Special handling for JPEG files
-    if (fileExt === '.jpeg' || file.mimetype === 'image/jpeg') {
-        console.log(`[Multer File Filter] JPEG file detected: ${file.originalname}`);
-        // Always accept JPEG files
-        console.log(`[Multer File Filter] Accepting JPEG file: ${file.originalname}`);
-        cb(null, true);
-        return;
-    }
-
-    if (isMimeTypeImage || hasAllowedExtension) {
-        // Accept if either condition is true
-        console.log(`[Multer File Filter] Accepting file: ${file.originalname} (MIME: ${file.mimetype}, Extension OK: ${hasAllowedExtension})`);
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
         cb(null, true);
     } else {
-        // Reject if neither condition is true
-        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype}, Extension check failed)`);
-        cb(new Error('Invalid file type. Only JPG, JPEG, PNG, GIF, HEIC images are allowed.'), false);
+        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype})`);
+        cb(new Error('Not an image! Please upload only images.'), false);
     }
 };
 
@@ -393,44 +367,6 @@ function uploadProgressPhotos(req, res) {
     });
 }
 
-/**
- * Clean up missing progress photos
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function cleanupProgressPhotos(req, res) {
-    try {
-        const { cleanupMissingPhotos } = require('../routes/cleanupPhotos');
-        const result = await cleanupMissingPhotos();
-        res.json({
-            success: true,
-            message: `Cleanup completed. Found ${result.missingPhotos} missing photos out of ${result.totalPhotos} total.`,
-            ...result
-        });
-    } catch (error) {
-        console.error('Error in cleanup route:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message || 'An error occurred during cleanup'
-        });
-    }
-}
-
-/**
- * Get all progress photos
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-async function getProgressPhotos(req, res) {
-    try {
-        const result = await db.query('SELECT photo_id, date_taken, file_path, uploaded_at FROM progress_photos ORDER BY date_taken DESC, uploaded_at DESC');
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error fetching progress photos:', error);
-        res.status(500).json({ error: 'Failed to fetch progress photos' });
-    }
-}
-
 module.exports = {
     getAllExercises,
     getWorkoutTemplates,
@@ -444,7 +380,5 @@ module.exports = {
     deleteWorkoutLog,
     searchExercises,
     createExercise,
-    uploadProgressPhotos,
-    cleanupProgressPhotos,
-    getProgressPhotos
+    uploadProgressPhotos
 };

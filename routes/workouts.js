@@ -36,27 +36,13 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
     console.log(`[Multer File Filter] Checking file: ${file.originalname}, MIME: ${file.mimetype}`);
-
-    // Get the file extension and convert to lowercase
-    const fileExt = path.extname(file.originalname).toLowerCase();
-    console.log(`[Multer File Filter] File extension: ${fileExt}`);
-
     // Define allowed extensions (case-insensitive)
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.heic'];
+    const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif|\.heic)$/i;
 
     // Check 1: MIME type starts with 'image/'
     const isMimeTypeImage = file.mimetype.startsWith('image/');
     // Check 2: File extension is in the allowed list
-    const hasAllowedExtension = allowedExtensions.includes(fileExt);
-
-    // Special handling for JPEG files
-    if (fileExt === '.jpeg' || file.mimetype === 'image/jpeg') {
-        console.log(`[Multer File Filter] JPEG file detected: ${file.originalname}`);
-        // Always accept JPEG files
-        console.log(`[Multer File Filter] Accepting JPEG file: ${file.originalname}`);
-        cb(null, true);
-        return;
-    }
+    const hasAllowedExtension = allowedExtensions.test(path.extname(file.originalname));
 
     if (isMimeTypeImage || hasAllowedExtension) {
         // Accept if either condition is true
@@ -65,7 +51,7 @@ const fileFilter = (req, file, cb) => {
     } else {
         // Reject if neither condition is true
         console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype}, Extension check failed)`);
-        cb(new Error('Invalid file type. Only JPG, JPEG, PNG, GIF, HEIC images are allowed.'), false);
+        cb(new Error('Invalid file type. Only JPG, PNG, GIF, HEIC images are allowed.'), false);
     }
 };
 
@@ -750,56 +736,56 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
     }
     console.log('[Upload Trace] Date and files validation passed.');
 
-    // <<< NEW: HEIC to JPEG Conversion Logic >>>
+    // <<< UPDATED: Convert All Images to JPG Format >>>
     if (req.files && req.files.length > 0) {
-        console.log('[Upload Conversion] Starting HEIC check and conversion...');
+        console.log('[Upload Conversion] Starting image conversion to JPG...');
         for (let i = 0; i < req.files.length; i++) {
             const file = req.files[i];
             const originalPath = file.path; // Full path to the initially saved file
             const fileExtension = path.extname(file.originalname).toLowerCase();
+            const originalMimeType = file.mimetype;
 
-            if (fileExtension === '.heic') {
-                console.log(`[Upload Conversion] Found HEIC file: ${file.originalname} at ${originalPath}`);
-                const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename
-                const jpegPath = path.join(path.dirname(originalPath), jpegFilename); // Full path for JPEG output
-                let conversionSuccessful = false; // <<< Flag to track success
+            // Process all files, including JPEG files
+            // We want to standardize all images to .jpg extension
 
+            console.log(`[Upload Conversion] Converting file: ${file.originalname} (${originalMimeType}) to JPG format`);
+            const jpgFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename with .jpg extension
+            const jpgPath = path.join(path.dirname(originalPath), jpgFilename); // Full path for JPG output
+            // Prepare for conversion
+
+            try {
+                console.log(`[Upload Conversion] Converting ${originalPath} to ${jpgPath}...`);
+                await sharp(originalPath)
+                    .jpeg({ quality: 85 }) // Convert to JPG with quality 85
+                    .toFile(jpgPath);
+                console.log(`[Upload Conversion] Conversion successful: ${jpgPath}`);
+                // Conversion successful
+
+                // Update the file object to reflect the new JPG file
+                req.files[i].filename = jpgFilename; // Update filename
+                req.files[i].path = jpgPath;         // Update path (though we use relative path later)
+                req.files[i].mimetype = 'image/jpeg'; // Update mimetype
+                req.files[i].size = fs.statSync(jpgPath).size; // Update size
+
+                // Only delete original if conversion succeeded
                 try {
-                    console.log(`[Upload Conversion] Converting ${originalPath} to ${jpegPath}...`);
-                    await sharp(originalPath)
-                        .jpeg({ quality: 85 }) // Convert to JPEG with quality 85
-                        .toFile(jpegPath);
-                    console.log(`[Upload Conversion] Conversion successful: ${jpegPath}`);
-                    conversionSuccessful = true; // <<< Mark as successful
-
-                    // Update the file object to reflect the new JPEG file
-                    req.files[i].filename = jpegFilename; // Update filename
-                    req.files[i].path = jpegPath;         // Update path (though we use relative path later)
-                    req.files[i].mimetype = 'image/jpeg'; // Update mimetype
-                    req.files[i].size = fs.statSync(jpegPath).size; // Update size
-
-                    // <<< MODIFIED: Only delete original if conversion succeeded >>>
-                    try {
-                        fs.unlinkSync(originalPath);
-                        console.log(`[Upload Conversion] Deleted original HEIC file: ${originalPath}`);
-                    } catch (unlinkErr) {
-                        console.error(`[Upload Conversion] Error deleting original HEIC file ${originalPath} after successful conversion:`, unlinkErr);
-                    }
-                    // <<< END MODIFICATION >>>
-
-                } catch (conversionError) {
-                    console.error(`[Upload Conversion] Error converting HEIC file ${file.originalname}:`, conversionError);
-                    // <<< MODIFIED: Log error but KEEP the original file in req.files >>>
-                    console.warn(`[Upload Conversion] Failed to convert ${file.originalname}. Keeping original HEIC file entry.`);
-                    // <<< END MODIFICATION >>>
+                    fs.unlinkSync(originalPath);
+                    console.log(`[Upload Conversion] Deleted original file: ${originalPath}`);
+                } catch (unlinkErr) {
+                    console.error(`[Upload Conversion] Error deleting original file ${originalPath} after successful conversion:`, unlinkErr);
                 }
+
+            } catch (conversionError) {
+                console.error(`[Upload Conversion] Error converting file ${file.originalname} to JPG:`, conversionError);
+                // Log error but KEEP the original file in req.files
+                console.warn(`[Upload Conversion] Failed to convert ${file.originalname}. Keeping original file entry.`);
             }
         }
-        console.log('[Upload Conversion] Finished HEIC check and conversion.');
-         // Log final state of req.files after potential conversions
+        console.log('[Upload Conversion] Finished image conversion to JPG.');
+        // Log final state of req.files after conversions
         console.log('[DEBUG] req.files AFTER conversion loop:', req.files ? req.files.map(f => ({ name: f.filename, path: f.path, mime: f.mimetype })) : 'undefined');
     }
-    // <<< END NEW: HEIC to JPEG Conversion Logic >>>
+    // <<< END UPDATED: Convert All Images to JPG Format >>>
 
     // Filter out any files that might have been removed during conversion failure
     const filesToProcess = req.files ? req.files.filter(file => file) : [];
