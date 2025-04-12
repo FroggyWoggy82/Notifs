@@ -1,87 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Workout Tracker JS loaded');
 
-    // CRITICAL FIX: Ensure mobile upload button works
-    setTimeout(function() {
-        const mobileUploadButton = document.getElementById('mobile-upload-btn');
-        if (mobileUploadButton) {
-            console.log('CRITICAL FIX: Adding direct click handler to mobile upload button');
-            // Remove any existing click handlers by cloning the button
-            const oldButton = mobileUploadButton;
-            const newButton = oldButton.cloneNode(true);
-            oldButton.parentNode.replaceChild(newButton, oldButton);
-
-            // Add a new direct click handler
-            newButton.onclick = function(event) {
-                event.preventDefault();
-                console.log('Mobile upload button clicked directly');
-                // Call the mobile upload handler directly
-                const dateInput = document.getElementById('modal-photo-date');
-                const mobilePhotoInput = document.getElementById('mobile-photo-upload');
-
-                if (!dateInput || !dateInput.value) {
-                    alert('Please select a date');
-                    return;
-                }
-
-                if (!mobilePhotoInput || !mobilePhotoInput.files || mobilePhotoInput.files.length === 0) {
-                    alert('Please select a photo');
-                    return;
-                }
-
-                // Create FormData
-                const formData = new FormData();
-                formData.append('photo-date', dateInput.value);
-                formData.append('photos', mobilePhotoInput.files[0]);
-
-                // Show uploading message
-                const statusElement = document.getElementById('upload-status');
-                if (statusElement) {
-                    statusElement.textContent = 'Uploading...';
-                    statusElement.style.color = '#03dac6';
-                }
-
-                // Disable button during upload
-                newButton.disabled = true;
-
-                // Upload the file
-                fetch('/api/workouts/progress-photos', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Upload successful:', data);
-                    if (statusElement) {
-                        statusElement.textContent = 'Upload successful!';
-                        statusElement.style.color = '#4CAF50';
-                    }
-                    // Refresh photos
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                })
-                .catch(error => {
-                    console.error('Upload failed:', error);
-                    if (statusElement) {
-                        statusElement.textContent = 'Upload failed: ' + error.message;
-                        statusElement.style.color = '#f44336';
-                    }
-                })
-                .finally(() => {
-                    newButton.disabled = false;
-                });
-            };
-
-            // Make sure the button is visible and enabled
-            newButton.style.display = 'inline-block';
-            newButton.disabled = false;
-            console.log('CRITICAL FIX: Mobile upload button is now ready');
-        } else {
-            console.error('CRITICAL ERROR: Mobile upload button not found in DOM');
-        }
-    }, 1000); // Delay to ensure DOM is fully loaded
-
     // --- Debounce Helper ---
     function debounce(func, wait) {
         let timeout = null; // Initialize timeout as null
@@ -1842,64 +1761,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const photoUploadModalEl = document.getElementById('photo-upload-modal');
         const photoModalCloseButton = photoUploadModalEl?.querySelector('.close-button');
         const photoFormEl = document.getElementById('progress-photo-form');
-        const photoDateInputEl = document.getElementById('modal-photo-date');
+        const photoDateInputEl = document.getElementById('modal-photo-date') // Corrected ID
         const uploadStatusElement = document.getElementById('upload-status');
-        const photoUploadInputElement = document.getElementById('modal-photo-upload');
+        const photoUploadInputElement = document.getElementById('modal-photo-upload'); // Corrected ID
 
-        // Mobile-specific elements
-        const standardUploadSection = document.getElementById('standard-upload-section');
-        const mobileUploadSection = document.getElementById('mobile-upload-section');
-        const mobilePhotoUploadInput = document.getElementById('mobile-photo-upload');
-        const standardUploadBtn = document.getElementById('standard-upload-btn');
-        const mobileUploadBtn = document.getElementById('mobile-upload-btn');
-
-        // Open Modal Listener with Mobile Detection
+        // Open Modal Listener
         addPhotoBtn?.addEventListener('click', () => {
             if (photoUploadModalEl) {
-                // Reset form fields when opening
-                if (photoFormEl instanceof HTMLFormElement) photoFormEl.reset();
-                if (photoDateInputEl instanceof HTMLInputElement) {
-                    photoDateInputEl.value = new Date().toISOString().split('T')[0]; // Set default date to today
-                }
-                if (uploadStatusElement) {
-                    uploadStatusElement.textContent = '';
-                    uploadStatusElement.className = '';
-                }
+                 // Reset form fields when opening
+                 if (photoFormEl instanceof HTMLFormElement) photoFormEl.reset();
+                 if (photoDateInputEl instanceof HTMLInputElement) {
+                     photoDateInputEl.value = new Date().toISOString().split('T')[0]; // Set default date to today
+                 }
+                 if (uploadStatusElement) uploadStatusElement.textContent = ''
+                 if (uploadStatusElement) uploadStatusElement.className = '';
+                 if (photoUploadInputElement instanceof HTMLInputElement) {
+                     photoUploadInputElement.value = ''; // Clear file selection
+                 }
+                 photoUploadModalEl.style.display = 'block';
 
-                // Reset file inputs
-                if (photoUploadInputElement instanceof HTMLInputElement) {
-                    photoUploadInputElement.value = ''; // Clear file selection
-                }
-                if (mobilePhotoUploadInput instanceof HTMLInputElement) {
-                    mobilePhotoUploadInput.value = ''; // Clear mobile file selection
-                }
+                  // ---> ADD THIS: Explicitly find and re-enable the button <---
+                  const form = photoUploadModalEl.querySelector('#progress-photo-form');
+                  if (form) {
+                      const submitButton = form.querySelector('button[type="submit"]');
+                      if (submitButton) {
+                          console.log('[Modal Open] Explicitly re-enabling upload button.');
+                          submitButton.disabled = false;
+                      }
+                  }
+                  // ---> END ADDITION <---
 
-                // Detect if we should use mobile flow
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-                // Show appropriate sections based on device
-                if (isMobile) {
-                    console.log('[Photo Upload] Mobile device detected, showing mobile upload flow');
-                    if (standardUploadSection) standardUploadSection.style.display = 'none';
-                    if (mobileUploadSection) mobileUploadSection.style.display = 'block';
-                    if (standardUploadBtn) standardUploadBtn.style.display = 'none';
-                    if (mobileUploadBtn) mobileUploadBtn.style.display = 'block';
-                } else {
-                    console.log('[Photo Upload] Desktop device detected, showing standard upload flow');
-                    if (standardUploadSection) standardUploadSection.style.display = 'block';
-                    if (mobileUploadSection) mobileUploadSection.style.display = 'none';
-                    if (standardUploadBtn) standardUploadBtn.style.display = 'block';
-                    if (mobileUploadBtn) mobileUploadBtn.style.display = 'none';
-                }
-
-                // Show the modal
-                photoUploadModalEl.style.display = 'block';
-
-                // Explicitly re-enable buttons
-                if (standardUploadBtn) standardUploadBtn.disabled = false;
-                if (mobileUploadBtn) mobileUploadBtn.disabled = false;
             } else {
-                console.error('Photo upload modal not found!');
+                 console.error('Photo upload modal not found!');
             }
         });
 
@@ -1913,28 +1806,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Standard Form Submission Listener
+        // Form Submission Listener
         if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
-
-        // No need for the Add Mobile Photo Button Listener since we're using a simpler approach
-
-        // Mobile Upload Button Listener
-        const mobileUploadBtnEl = document.getElementById('mobile-upload-btn');
-        if (mobileUploadBtnEl) {
-            console.log('[Initialize] Found mobile upload button, attaching click listener');
-            mobileUploadBtnEl.addEventListener('click', function(event) {
-                event.preventDefault();
-                console.log('[Mobile Upload] Button clicked, calling handleMobilePhotoUpload');
-                handleMobilePhotoUpload();
-            });
-
-            // Force the button to be visible and enabled for testing
-            mobileUploadBtnEl.style.display = 'inline-block';
-            mobileUploadBtnEl.disabled = false;
-            console.log('[Initialize] Forced mobile upload button to be visible and enabled');
-        } else {
-            console.error('[Initialize] Mobile upload button not found!');
-        }
 
         // --- NEW: Event Delegation for Slider Buttons ---
         if (photoSliderContainer) {
@@ -2659,448 +2532,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- End History Edit Modal Functions ---
 
-    // --- Mobile-specific Photo Upload Handler with Image Compression ---
-    async function handleMobilePhotoUpload() {
-        console.log('[Mobile Upload] handleMobilePhotoUpload triggered');
-
-        const statusElement = document.getElementById('upload-status');
-        const modal = document.getElementById('photo-upload-modal');
-        const dateInput = document.getElementById('modal-photo-date');
-        const mobileUploadBtn = document.getElementById('mobile-upload-btn');
-        const mobilePhotoInput = document.getElementById('mobile-photo-upload');
-
-        // Validate inputs
-        if (!statusElement || !modal || !dateInput || !mobileUploadBtn || !mobilePhotoInput) {
-            console.error('[Mobile Upload] Required elements not found');
-            alert('Error: Required form elements not found. Please refresh the page and try again.');
-            return;
-        }
-
-        // Validate date
-        if (!dateInput.value) {
-            statusElement.textContent = 'Please select a date.';
-            statusElement.style.color = 'orange';
-            return;
-        }
-
-        // Validate file
-        if (!mobilePhotoInput.files || mobilePhotoInput.files.length === 0) {
-            statusElement.textContent = 'Please select a photo.';
-            statusElement.style.color = 'orange';
-            return;
-        }
-
-        const originalFile = mobilePhotoInput.files[0];
-
-        // Log original file details
-        const fileExtension = originalFile.name.split('.').pop().toLowerCase();
-        logDiagnostic('Original file details', {
-            name: originalFile.name,
-            type: originalFile.type,
-            extension: fileExtension,
-            size: originalFile.size,
-            lastModified: new Date(originalFile.lastModified).toISOString()
-        });
-
-        // Check if this is a .jpeg file
-        if (fileExtension === 'jpeg') {
-            logDiagnostic('JPEG file detected - will use special handling');
-        }
-
-        // Update UI to show compression is happening
-        statusElement.textContent = 'Preparing image...';
-        statusElement.style.color = '#03dac6';
-        mobileUploadBtn.disabled = true;
-
-        // Create a progress indicator
-        const progressDiv = document.createElement('div');
-        progressDiv.className = 'upload-progress';
-        progressDiv.style.width = '100%';
-        progressDiv.style.height = '4px';
-        progressDiv.style.backgroundColor = '#e0e0e0';
-        progressDiv.style.marginTop = '10px';
-        progressDiv.style.position = 'relative';
-
-        const progressBar = document.createElement('div');
-        progressBar.style.width = '0%';
-        progressBar.style.height = '100%';
-        progressBar.style.backgroundColor = '#03dac6';
-        progressBar.style.transition = 'width 0.3s';
-        progressDiv.appendChild(progressBar);
-
-        statusElement.parentNode.insertBefore(progressDiv, statusElement.nextSibling);
-
-        try {
-            // Check if the browser-image-compression library is available
-            if (typeof imageCompression !== 'function') {
-                console.warn('[Mobile Upload] Image compression library not available, using original file');
-                return uploadFile(originalFile);
-            }
-
-            // Compress the image
-            console.log('[Mobile Upload] Starting image compression...');
-            progressBar.style.width = '10%';
-
-            // Compression options
-            const options = {
-                maxSizeMB: 1,              // Max file size in MB
-                maxWidthOrHeight: 1920,     // Max width/height
-                useWebWorker: true,         // Use web worker for better performance
-                fileType: 'image/jpeg',     // Force JPEG output
-                initialQuality: 0.7,        // Initial quality setting
-                alwaysKeepResolution: true,  // Maintain aspect ratio
-                onProgress: (progress) => {
-                    // Update progress bar during compression
-                    const compressProgress = Math.min(10 + (progress * 30), 40); // 10-40% for compression
-                    progressBar.style.width = `${compressProgress}%`;
-                }
-            };
-
-            // Perform compression
-            const compressedFile = await imageCompression(originalFile, options);
-
-            console.log(`[Mobile Upload] Compression complete: ${compressedFile.size} bytes (${Math.round(compressedFile.size / originalFile.size * 100)}% of original)`);
-            progressBar.style.width = '40%';
-
-            // Upload the compressed file
-            return uploadFile(compressedFile);
-
-        } catch (error) {
-            console.error('[Mobile Upload] Error during image compression:', error);
-            // Fall back to original file if compression fails
-            console.log('[Mobile Upload] Falling back to original file due to compression error');
-            return uploadFile(originalFile);
-        }
-
-        // Inner function to handle the actual upload
-        async function uploadFile(file) {
-            // Update UI
-            statusElement.textContent = 'Uploading...';
-
-            // Check if this is a .jpeg file based on name
-            const isJpegFile = file.name && file.name.toLowerCase().endsWith('.jpeg');
-            logDiagnostic(`Preparing to upload file`, {
-                name: file.name,
-                type: file.type,
-                isJpegFile: isJpegFile,
-                size: file.size
-            });
-
-            // Create FormData
-            const formData = new FormData();
-            formData.append('photo-date', dateInput.value);
-            formData.append('photos', file);
-
-            // For .jpeg files, use XMLHttpRequest instead of fetch
-            if (isJpegFile) {
-                logDiagnostic('Using XMLHttpRequest for .jpeg file');
-                return uploadWithXhr(formData);
-            }
-
-            // For other files, use fetch
-            logDiagnostic('Using fetch for non-jpeg file');
-
-            // Simulate progress for the upload portion (40-90%)
-            let uploadProgress = 40;
-            const progressInterval = setInterval(() => {
-                uploadProgress = Math.min(uploadProgress + 3, 90);
-                progressBar.style.width = `${uploadProgress}%`;
-            }, 500); // Faster updates for better feedback
-
-            try {
-                // Create an AbortController with a longer timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => {
-                    controller.abort();
-                    console.error('[Mobile Upload] Fetch aborted due to timeout');
-                }, 180000); // 3 minute timeout for mobile
-
-                console.log('[Mobile Upload] Starting fetch with 180s timeout');
-                const response = await fetch('/api/workouts/progress-photos', {
-                    method: 'POST',
-                    body: formData,
-                    signal: controller.signal,
-                    // Add cache control headers
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-
-                // Clear the intervals and timeouts
-                clearTimeout(timeoutId);
-                clearInterval(progressInterval);
-
-                // Show 100% progress
-                progressBar.style.width = '100%';
-
-                console.log(`[Mobile Upload] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
-
-                if (!response.ok) {
-                    let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
-                    try {
-                        const text = await response.text();
-                        console.log(`[Mobile Upload] Raw error response text: ${text}`);
-                        errorData = JSON.parse(text);
-                        console.log('[Mobile Upload] Parsed JSON error response:', errorData);
-                    } catch (parseError) {
-                        console.error('[Mobile Upload] Failed to parse error response as JSON:', parseError);
-                    }
-                    const error = new Error(errorData.error || `HTTP error ${response.status}`);
-                    error.status = response.status;
-                    error.data = errorData;
-                    throw error;
-                }
-
-                const result = await response.json();
-                console.log('[Mobile Upload] Upload successful:', result);
-                statusElement.textContent = result.message || 'Upload successful!';
-                statusElement.style.color = '#4CAF50'; // Green
-
-                // Reset the file input
-                mobilePhotoInput.value = '';
-
-                // Refresh the photo display
-                fetchAndDisplayPhotos();
-
-                // Close the modal after a delay
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                    statusElement.textContent = '';
-                    // Remove progress bar
-                    if (progressDiv.parentNode) {
-                        progressDiv.parentNode.removeChild(progressDiv);
-                    }
-                }, 1500);
-
-            } catch (error) {
-                // Clear any intervals that might be running
-                clearInterval(progressInterval);
-
-                // Remove progress bar on error
-                if (progressDiv.parentNode) {
-                    progressDiv.parentNode.removeChild(progressDiv);
-                }
-
-                console.error('[Mobile Upload] Error during photo upload:', error);
-                console.error('[Mobile Upload] Error Name:', error.name);
-                console.error('[Mobile Upload] Error Message:', error.message);
-
-                if (error.name === 'AbortError') {
-                    statusElement.textContent = 'Upload timed out. Please try again with a smaller file or better connection.';
-                } else {
-                    statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
-                }
-                statusElement.style.color = '#f44336'; // Red
-
-            } finally {
-                mobileUploadBtn.disabled = false;
-                console.log('[Mobile Upload] handleMobilePhotoUpload finished');
-            }
-        }
-
-        // Special XMLHttpRequest upload function for .jpeg files
-        function uploadWithXhr(formData) {
-            return new Promise((resolve, reject) => {
-                logDiagnostic('Starting XMLHttpRequest upload');
-                const xhr = new XMLHttpRequest();
-
-                // Track upload progress
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const percentComplete = Math.round((event.loaded / event.total) * 100);
-                        progressBar.style.width = `${percentComplete}%`;
-                        logDiagnostic(`XMLHttpRequest upload progress: ${percentComplete}%`);
-                    }
-                };
-
-                // Handle response
-                xhr.onload = function() {
-                    logDiagnostic('XMLHttpRequest completed', { status: xhr.status });
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            const result = JSON.parse(xhr.responseText);
-                            logDiagnostic('XMLHttpRequest upload successful', result);
-                            handleUploadSuccess(result);
-                            resolve(result);
-                        } catch (parseError) {
-                            logDiagnostic('Error parsing XMLHttpRequest response', {
-                                error: parseError.message,
-                                responseText: xhr.responseText.substring(0, 100) + '...'
-                            });
-                            reject(new Error('Invalid response format'));
-                        }
-                    } else {
-                        logDiagnostic('XMLHttpRequest server error', {
-                            status: xhr.status,
-                            responseText: xhr.responseText.substring(0, 100) + '...'
-                        });
-                        reject(new Error(`Server error: ${xhr.status}`));
-                    }
-                };
-
-                // Handle network errors
-                xhr.onerror = function() {
-                    logDiagnostic('XMLHttpRequest network error');
-                    reject(new Error('Network error'));
-                };
-
-                // Handle timeouts
-                xhr.ontimeout = function() {
-                    logDiagnostic('XMLHttpRequest timeout');
-                    reject(new Error('Request timed out'));
-                };
-
-                // Set timeout to 3 minutes
-                xhr.timeout = 180000;
-
-                // Open and send the request
-                logDiagnostic('Opening XMLHttpRequest connection');
-                xhr.open('POST', '/api/workouts/progress-photos', true);
-                xhr.setRequestHeader('Cache-Control', 'no-cache');
-                xhr.setRequestHeader('Pragma', 'no-cache');
-
-                logDiagnostic('Sending XMLHttpRequest');
-                xhr.send(formData);
-            });
-        }
-    }
-
-    // --- IMPROVED: Progress Photo Upload Handler with Mobile-Specific Method ---
+    // --- NEW: Progress Photo Upload Handler ---
     async function handlePhotoUpload(event) {
         event.preventDefault();
         console.log('[Photo Upload Client] handlePhotoUpload triggered.');
 
-        // Check if we're using the mobile upload flow
-        const isMobileFlow = document.getElementById('mobile-upload-section').style.display !== 'none';
-        console.log(`[Photo Upload Client] Using ${isMobileFlow ? 'mobile' : 'standard'} upload flow`);
-
-        // If mobile flow, this should be handled by the mobile upload button handler
-        if (isMobileFlow) {
-            console.log('[Photo Upload Client] Mobile flow detected but standard form submitted - ignoring');
-            return;
-        }
-
         const form = event.target;
+        // --- REVERTED: Use FormData directly from the form ---
+        const formData = new FormData(form);
+        // --- Removed manual construction and appending ---
+
         const statusElement = document.getElementById('upload-status');
         const modal = document.getElementById('photo-upload-modal');
         const submitButton = form.querySelector('button[type="submit"]');
-        const fileInput = document.getElementById('modal-photo-upload');
 
         // Add null checks for essential elements
-        if (!statusElement || !modal || !submitButton || !fileInput) {
-            console.error('[Photo Upload Client] Required elements not found.');
-            alert('Error: Required form elements not found. Please refresh the page and try again.');
+        if (!statusElement || !modal || !submitButton) {
+            console.error('[Photo Upload Client] Status element, modal, or submit button not found.');
+            // Optionally display an error to the user if elements are missing
             return;
         }
 
-        // Log detailed information about the file input
-        console.log('[Photo Upload Client] File input details:', {
-            files: fileInput.files ? fileInput.files.length : 'no files property',
-            value: fileInput.value,
-            type: fileInput.type,
-            accept: fileInput.accept,
-            multiple: fileInput.multiple
-        });
+        // --- Validate directly from formData ---
+        // Ensure the keys used here ('date', 'photos') match the 'name' attributes in your HTML form inputs
+        const dateValue = formData.get('photo-date'); // Use 'photo-date' to match HTML name attribute
+        const files = formData.getAll('photos');
 
-        // Create a fresh FormData object
-        const formData = new FormData();
-
-        // Get the date value directly from the input element
-        const dateInput = document.getElementById('modal-photo-date');
-        if (!dateInput || !dateInput.value) {
+        if (!dateValue) {
             statusElement.textContent = 'Please select a date.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] Date input not found or empty');
-            return;
+            console.warn('[Photo Upload Client] Date not found in FormData (using key "photo-date"). Check input name attribute.'); // Updated console log key
+            return; // Need a date
         }
-
-        // Add date to FormData
-        formData.append('photo-date', dateInput.value);
-        console.log(`[Photo Upload Client] Added date to FormData: ${dateInput.value}`);
-
-        // Check files and add them to FormData
-        if (!fileInput.files || fileInput.files.length === 0) {
+        if (!files || files.length === 0 || !files[0] || files[0].size === 0) { // Check if the first file has size > 0
             statusElement.textContent = 'Please select at least one photo.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] No files selected');
+            console.warn('[Photo Upload Client] No files or empty file selected.');
             return;
         }
+        console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
+        // --- End validation ---
 
-        // Log information about each file
-        for (let i = 0; i < fileInput.files.length; i++) {
-            const file = fileInput.files[i];
-            console.log(`[Photo Upload Client] File ${i+1}:`, {
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                lastModified: new Date(file.lastModified).toISOString()
-            });
-
-            // Add file to FormData
-            formData.append('photos', file);
-        }
-
-        console.log(`[Photo Upload Client] Added ${fileInput.files.length} files to FormData`);
-
-        // Update UI to show upload in progress
         statusElement.textContent = 'Uploading...';
         statusElement.style.color = '#03dac6';
         submitButton.disabled = true;
 
-        // Create a progress indicator
-        const progressDiv = document.createElement('div');
-        progressDiv.className = 'upload-progress';
-        progressDiv.style.width = '100%';
-        progressDiv.style.height = '4px';
-        progressDiv.style.backgroundColor = '#e0e0e0';
-        progressDiv.style.marginTop = '10px';
-        progressDiv.style.position = 'relative';
-
-        const progressBar = document.createElement('div');
-        progressBar.style.width = '0%';
-        progressBar.style.height = '100%';
-        progressBar.style.backgroundColor = '#03dac6';
-        progressBar.style.transition = 'width 0.3s';
-        progressDiv.appendChild(progressBar);
-
-        statusElement.parentNode.insertBefore(progressDiv, statusElement.nextSibling);
-
         console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
         let response;
-        // Define progressInterval outside try block so it's accessible in catch and finally
-        let progressInterval;
         try {
-            // Create an AbortController with a timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                controller.abort();
-                console.error('[Photo Upload Client] Fetch aborted due to timeout');
-            }, 120000); // 2 minute timeout for mobile
-
-            console.log('[Photo Upload Client] Starting fetch with 120s timeout');
-
-            // Simulate progress for better UX (since actual progress events aren't reliable)
-            let progress = 0;
-            progressInterval = setInterval(() => {
-                // Increment progress but never reach 100% until complete
-                progress = Math.min(progress + 5, 90);
-                progressBar.style.width = `${progress}%`;
-            }, 1000);
-
             response = await fetch('/api/workouts/progress-photos', {
                 method: 'POST',
                 body: formData,
-                signal: controller.signal
             });
 
-            // Clear the intervals and timeouts
-            clearTimeout(timeoutId);
-            clearInterval(progressInterval);
-
-            // Show 100% progress
-            progressBar.style.width = '100%';
-
+            // ... (keep existing logging and error handling for the response) ...
             console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
 
             if (!response.ok) {
@@ -3129,30 +2614,24 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 modal.style.display = 'none';
                 statusElement.textContent = '';
-                // Remove progress bar
-                if (progressDiv.parentNode) {
-                    progressDiv.parentNode.removeChild(progressDiv);
-                }
             }, 1500);
 
         } catch (error) {
-            // Clear any intervals that might be running
-            clearInterval(progressInterval);
-
-            // Remove progress bar on error
-            if (progressDiv.parentNode) {
-                progressDiv.parentNode.removeChild(progressDiv);
-            }
-
-            console.error('[Photo Upload Client] Error during photo upload:', error);
+            // ... (keep existing detailed error logging in catch block) ...
+            console.error('[Photo Upload Client] Error during photo upload fetch/processing:', error);
             console.error('[Photo Upload Client] Error Name:', error.name);
             console.error('[Photo Upload Client] Error Message:', error.message);
-
-            if (error.name === 'AbortError') {
-                statusElement.textContent = 'Upload timed out. Please try again with a smaller file or better connection.';
-            } else {
-                statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
+            if (error.stack) {
+                 console.error('[Photo Upload Client] Error Stack:', error.stack);
             }
+            if (error.status) {
+                console.error('[Photo Upload Client] Error Status:', error.status);
+            }
+             if (error.data) {
+                console.error('[Photo Upload Client] Error Data:', error.data);
+             }
+
+            statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
             statusElement.style.color = '#f44336'; // Red
 
         } finally {
@@ -3254,35 +2733,12 @@ document.addEventListener('DOMContentLoaded', function() {
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
                 const img = document.createElement('img');
-
-                // Create a proper URL for the image path
-                const imagePath = photo.file_path;
-                // Add a timestamp to prevent caching
-                const cacheBuster = `?t=${new Date().getTime()}`;
-
-                // Store the full path with cache buster in data-src
-                img.dataset.src = imagePath + cacheBuster;
-
-                // Set a simple alt text without the ID
-                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()}`;
-
-                // Store photo ID for deletion
-                img.dataset.photoId = photo.photo_id;
-
-                // Add error handling
-                img.onerror = function() {
-                    console.error(`[Photo Load] Failed to load image: ${imagePath}`);
-                    this.onerror = null; // Prevent infinite error loop
-                    this.src = '/img/photo-placeholder.png'; // Use a placeholder image
-                    this.alt = 'Image failed to load';
-                };
-
-                // Add loading attribute for better performance
-                img.loading = 'lazy';
-
-                // Log the image path for debugging
-                console.log(`[Photo Load] Adding image to reel: ${imagePath}`);
-
+                // img.src = photo.file_path; // <<< CHANGE THIS
+                img.dataset.src = photo.file_path; // <<< TO THIS
+                img.src = ''; // <<< ADD THIS (Set src initially empty)
+                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
+                img.dataset.photoId = photo.photo_id; // Store ID if needed
+                img.loading = 'lazy'; // Add native lazy loading attribute as well
                 photoReel.appendChild(img);
 
                 // Add Dot to Pagination
@@ -3375,45 +2831,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
         console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
 
-        // --- Find and load the current image ---
+        // --- NEW: Find the specific image element and set its src for lazy loading ---
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
-
             // Only set src if it's not already set or differs from data-src
-            if (!currentImageElement.src || currentImageElement.src !== currentImageElement.dataset.src) {
-                console.log(`[Photo Display] Loading image for index ${currentPhotoIndex} from: ${currentImageElement.dataset.src}`);
-
-                // Force image loading with cache busting
+            if (currentImageElement.src !== currentImageElement.dataset.src) {
+                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
                 currentImageElement.src = currentImageElement.dataset.src;
-
-                // Add additional error handling
-                currentImageElement.onerror = function() {
-                    console.error(`[Photo Display] Failed to load image at runtime: ${currentImageElement.dataset.src}`);
-                    this.onerror = null; // Prevent infinite error loop
-                    this.src = '/img/photo-placeholder.png'; // Use a placeholder image
-                    this.alt = 'Image failed to load';
-                };
-            }
-
-            // Preload adjacent images for smoother navigation
-            if (currentPhotoIndex > 0 && imageElements[currentPhotoIndex - 1]) {
-                const prevImage = imageElements[currentPhotoIndex - 1];
-                if (!prevImage.src) {
-                    console.log(`[Photo Display] Preloading previous image: ${prevImage.dataset.src}`);
-                    prevImage.src = prevImage.dataset.src;
-                }
-            }
-
-            if (currentPhotoIndex < imageElements.length - 1 && imageElements[currentPhotoIndex + 1]) {
-                const nextImage = imageElements[currentPhotoIndex + 1];
-                if (!nextImage.src) {
-                    console.log(`[Photo Display] Preloading next image: ${nextImage.dataset.src}`);
-                    nextImage.src = nextImage.dataset.src;
-                }
             }
         } else {
-            console.warn(`[Photo Display] Could not find image element for index ${currentPhotoIndex}`);
+            console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
         }
         // --- END NEW ---
 

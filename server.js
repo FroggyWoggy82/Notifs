@@ -31,8 +31,13 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Increase JSON and URL-encoded payload size limits to 10MB
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Log middleware configuration
+console.log('[Server Config] Express JSON and URL-encoded body size limits set to 10MB');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
