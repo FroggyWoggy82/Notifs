@@ -1,9 +1,9 @@
 # nixpacks.toml
 
 [phases.setup]
-# Installs packages using apt (Debian/Ubuntu)
-# These are the common packages needed for sharp with HEIC support
-aptPkgs = ["libvips-dev", "libheif-dev", "pkg-config"]
+# Installs packages using Nix
+# Use nixPkgs instead of aptPkgs for potentially better reliability on Railway
+nixPkgs = ["libvips", "libheif", "pkg-config"]
 
 [start]
 # Make sure this matches your actual start command in package.json or Procfile
