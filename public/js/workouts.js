@@ -2565,7 +2565,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- End History Edit Modal Functions ---
 
-    // --- Mobile-specific Photo Upload Handler ---
+    // --- Mobile-specific Photo Upload Handler with Image Compression ---
     async function handleMobilePhotoUpload() {
         console.log('[Mobile Upload] handleMobilePhotoUpload triggered');
 
@@ -2596,13 +2596,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const file = mobilePhotoInput.files[0];
+        const originalFile = mobilePhotoInput.files[0];
 
-        // Log what we're about to upload
-        console.log(`[Mobile Upload] Uploading file: ${file.name}, type: ${file.type}, size: ${file.size} with date: ${dateInput.value}`);
+        // Log original file details
+        console.log(`[Mobile Upload] Original file: ${originalFile.name}, type: ${originalFile.type}, size: ${originalFile.size} bytes`);
 
-        // Update UI
-        statusElement.textContent = 'Uploading...';
+        // Update UI to show compression is happening
+        statusElement.textContent = 'Preparing image...';
         statusElement.style.color = '#03dac6';
         mobileUploadBtn.disabled = true;
 
@@ -2624,102 +2624,158 @@ document.addEventListener('DOMContentLoaded', function() {
 
         statusElement.parentNode.insertBefore(progressDiv, statusElement.nextSibling);
 
-        // Create FormData
-        const formData = new FormData();
-        formData.append('photo-date', dateInput.value);
-        formData.append('photos', file);
-
-        // Simulate progress
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            progress = Math.min(progress + 5, 90);
-            progressBar.style.width = `${progress}%`;
-        }, 1000);
-
         try {
-            // Create an AbortController with a timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                controller.abort();
-                console.error('[Mobile Upload] Fetch aborted due to timeout');
-            }, 120000); // 2 minute timeout for mobile
-
-            console.log('[Mobile Upload] Starting fetch with 120s timeout');
-            const response = await fetch('/api/workouts/progress-photos', {
-                method: 'POST',
-                body: formData,
-                signal: controller.signal
-            });
-
-            // Clear the intervals and timeouts
-            clearTimeout(timeoutId);
-            clearInterval(progressInterval);
-
-            // Show 100% progress
-            progressBar.style.width = '100%';
-
-            console.log(`[Mobile Upload] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
-
-            if (!response.ok) {
-                let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
-                try {
-                    const text = await response.text();
-                    console.log(`[Mobile Upload] Raw error response text: ${text}`);
-                    errorData = JSON.parse(text);
-                    console.log('[Mobile Upload] Parsed JSON error response:', errorData);
-                } catch (parseError) {
-                    console.error('[Mobile Upload] Failed to parse error response as JSON:', parseError);
-                }
-                const error = new Error(errorData.error || `HTTP error ${response.status}`);
-                error.status = response.status;
-                error.data = errorData;
-                throw error;
+            // Check if the browser-image-compression library is available
+            if (typeof imageCompression !== 'function') {
+                console.warn('[Mobile Upload] Image compression library not available, using original file');
+                return uploadFile(originalFile);
             }
 
-            const result = await response.json();
-            console.log('[Mobile Upload] Upload successful:', result);
-            statusElement.textContent = result.message || 'Upload successful!';
-            statusElement.style.color = '#4CAF50'; // Green
+            // Compress the image
+            console.log('[Mobile Upload] Starting image compression...');
+            progressBar.style.width = '10%';
 
-            // Reset the file input
-            mobilePhotoInput.value = '';
+            // Compression options
+            const options = {
+                maxSizeMB: 1,              // Max file size in MB
+                maxWidthOrHeight: 1920,     // Max width/height
+                useWebWorker: true,         // Use web worker for better performance
+                fileType: 'image/jpeg',     // Force JPEG output
+                initialQuality: 0.7,        // Initial quality setting
+                alwaysKeepResolution: true,  // Maintain aspect ratio
+                onProgress: (progress) => {
+                    // Update progress bar during compression
+                    const compressProgress = Math.min(10 + (progress * 30), 40); // 10-40% for compression
+                    progressBar.style.width = `${compressProgress}%`;
+                }
+            };
 
-            // Refresh the photo display
-            fetchAndDisplayPhotos();
+            // Perform compression
+            const compressedFile = await imageCompression(originalFile, options);
 
-            // Close the modal after a delay
-            setTimeout(() => {
-                modal.style.display = 'none';
-                statusElement.textContent = '';
-                // Remove progress bar
+            console.log(`[Mobile Upload] Compression complete: ${compressedFile.size} bytes (${Math.round(compressedFile.size / originalFile.size * 100)}% of original)`);
+            progressBar.style.width = '40%';
+
+            // Upload the compressed file
+            return uploadFile(compressedFile);
+
+        } catch (error) {
+            console.error('[Mobile Upload] Error during image compression:', error);
+            // Fall back to original file if compression fails
+            console.log('[Mobile Upload] Falling back to original file due to compression error');
+            return uploadFile(originalFile);
+        }
+
+        // Inner function to handle the actual upload
+        async function uploadFile(file) {
+            // Update UI
+            statusElement.textContent = 'Uploading...';
+
+            // Create FormData
+            const formData = new FormData();
+            formData.append('photo-date', dateInput.value);
+            formData.append('photos', file);
+
+            // Log what we're uploading
+            console.log(`[Mobile Upload] Uploading file: ${file.name || 'compressed-image.jpg'}, type: ${file.type}, size: ${file.size} bytes with date: ${dateInput.value}`);
+
+            // Simulate progress for the upload portion (40-90%)
+            let uploadProgress = 40;
+            const progressInterval = setInterval(() => {
+                uploadProgress = Math.min(uploadProgress + 3, 90);
+                progressBar.style.width = `${uploadProgress}%`;
+            }, 500); // Faster updates for better feedback
+
+            try {
+                // Create an AbortController with a longer timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    console.error('[Mobile Upload] Fetch aborted due to timeout');
+                }, 180000); // 3 minute timeout for mobile
+
+                console.log('[Mobile Upload] Starting fetch with 180s timeout');
+                const response = await fetch('/api/workouts/progress-photos', {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                    // Add cache control headers
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+
+                // Clear the intervals and timeouts
+                clearTimeout(timeoutId);
+                clearInterval(progressInterval);
+
+                // Show 100% progress
+                progressBar.style.width = '100%';
+
+                console.log(`[Mobile Upload] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
+
+                if (!response.ok) {
+                    let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
+                    try {
+                        const text = await response.text();
+                        console.log(`[Mobile Upload] Raw error response text: ${text}`);
+                        errorData = JSON.parse(text);
+                        console.log('[Mobile Upload] Parsed JSON error response:', errorData);
+                    } catch (parseError) {
+                        console.error('[Mobile Upload] Failed to parse error response as JSON:', parseError);
+                    }
+                    const error = new Error(errorData.error || `HTTP error ${response.status}`);
+                    error.status = response.status;
+                    error.data = errorData;
+                    throw error;
+                }
+
+                const result = await response.json();
+                console.log('[Mobile Upload] Upload successful:', result);
+                statusElement.textContent = result.message || 'Upload successful!';
+                statusElement.style.color = '#4CAF50'; // Green
+
+                // Reset the file input
+                mobilePhotoInput.value = '';
+
+                // Refresh the photo display
+                fetchAndDisplayPhotos();
+
+                // Close the modal after a delay
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    statusElement.textContent = '';
+                    // Remove progress bar
+                    if (progressDiv.parentNode) {
+                        progressDiv.parentNode.removeChild(progressDiv);
+                    }
+                }, 1500);
+
+            } catch (error) {
+                // Clear any intervals that might be running
+                clearInterval(progressInterval);
+
+                // Remove progress bar on error
                 if (progressDiv.parentNode) {
                     progressDiv.parentNode.removeChild(progressDiv);
                 }
-            }, 1500);
 
-        } catch (error) {
-            // Clear any intervals that might be running
-            clearInterval(progressInterval);
+                console.error('[Mobile Upload] Error during photo upload:', error);
+                console.error('[Mobile Upload] Error Name:', error.name);
+                console.error('[Mobile Upload] Error Message:', error.message);
 
-            // Remove progress bar on error
-            if (progressDiv.parentNode) {
-                progressDiv.parentNode.removeChild(progressDiv);
+                if (error.name === 'AbortError') {
+                    statusElement.textContent = 'Upload timed out. Please try again with a smaller file or better connection.';
+                } else {
+                    statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
+                }
+                statusElement.style.color = '#f44336'; // Red
+
+            } finally {
+                mobileUploadBtn.disabled = false;
+                console.log('[Mobile Upload] handleMobilePhotoUpload finished');
             }
-
-            console.error('[Mobile Upload] Error during photo upload:', error);
-            console.error('[Mobile Upload] Error Name:', error.name);
-            console.error('[Mobile Upload] Error Message:', error.message);
-
-            if (error.name === 'AbortError') {
-                statusElement.textContent = 'Upload timed out. Please try again with a smaller file or better connection.';
-            } else {
-                statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
-            }
-            statusElement.style.color = '#f44336'; // Red
-
-        } finally {
-            mobileUploadBtn.disabled = false;
-            console.log('[Mobile Upload] handleMobilePhotoUpload finished');
         }
     }
 
