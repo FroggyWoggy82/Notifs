@@ -6,6 +6,7 @@ const cors = require('cors');
 const webpush = require('web-push');
 const path = require('path');
 const cron = require('node-cron');
+const sharp = require('sharp');
 
 // Database connection
 const db = require('./db'); // Required for database connection initialization
@@ -100,6 +101,14 @@ const initializeAndStart = async () => {
     console.log('Testing database connection...');
     const result = await db.query('SELECT NOW()');
     console.log('Database connection successful:', result.rows[0]);
+
+    // Check sharp features before starting the server
+    console.log('--- Sharp Feature Check ---');
+    console.log('Sharp Version:', sharp.versions.sharp);
+    console.log('Libvips Version:', sharp.versions.vips);
+    console.log('Formats:', sharp.format);
+    console.log('HEIF Support (via libvips):', sharp.format.heif ? 'Available' : 'NOT Available');
+    console.log('--- End Sharp Feature Check ---');
 
     // Start the server
     app.listen(PORT, () => {

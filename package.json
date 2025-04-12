@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "migrate": "node apply-migrations.js",
-    "postinstall": "npm rebuild sharp || echo 'sharp rebuild failed, continuing...'"
+    "postinstall": "npm cache clean --force && rm -rf node_modules/sharp && npm install sharp --ignore-scripts=false --build-from-source=sharp || echo 'sharp rebuild failed, continuing...'"
   },
   "repository": {
     "type": "git",
