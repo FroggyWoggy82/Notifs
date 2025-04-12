@@ -25,12 +25,37 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
+    console.log(`[Multer File Filter] Checking file: ${file.originalname}, MIME: ${file.mimetype}`);
+
+    // Get the file extension and convert to lowercase
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    console.log(`[Multer File Filter] File extension: ${fileExt}`);
+
+    // Define allowed extensions (case-insensitive)
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.heic'];
+
+    // Check 1: MIME type starts with 'image/'
+    const isMimeTypeImage = file.mimetype.startsWith('image/');
+    // Check 2: File extension is in the allowed list
+    const hasAllowedExtension = allowedExtensions.includes(fileExt);
+
+    // Special handling for JPEG files
+    if (fileExt === '.jpeg' || file.mimetype === 'image/jpeg') {
+        console.log(`[Multer File Filter] JPEG file detected: ${file.originalname}`);
+        // Always accept JPEG files
+        console.log(`[Multer File Filter] Accepting JPEG file: ${file.originalname}`);
+        cb(null, true);
+        return;
+    }
+
+    if (isMimeTypeImage || hasAllowedExtension) {
+        // Accept if either condition is true
+        console.log(`[Multer File Filter] Accepting file: ${file.originalname} (MIME: ${file.mimetype}, Extension OK: ${hasAllowedExtension})`);
         cb(null, true);
     } else {
-        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype})`);
-        cb(new Error('Not an image! Please upload only images.'), false);
+        // Reject if neither condition is true
+        console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype}, Extension check failed)`);
+        cb(new Error('Invalid file type. Only JPG, JPEG, PNG, GIF, HEIC images are allowed.'), false);
     }
 };
 

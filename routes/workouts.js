@@ -36,13 +36,27 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
     console.log(`[Multer File Filter] Checking file: ${file.originalname}, MIME: ${file.mimetype}`);
+
+    // Get the file extension and convert to lowercase
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    console.log(`[Multer File Filter] File extension: ${fileExt}`);
+
     // Define allowed extensions (case-insensitive)
-    const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.gif|\.heic)$/i;
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.heic'];
 
     // Check 1: MIME type starts with 'image/'
     const isMimeTypeImage = file.mimetype.startsWith('image/');
     // Check 2: File extension is in the allowed list
-    const hasAllowedExtension = allowedExtensions.test(path.extname(file.originalname));
+    const hasAllowedExtension = allowedExtensions.includes(fileExt);
+
+    // Special handling for JPEG files
+    if (fileExt === '.jpeg' || file.mimetype === 'image/jpeg') {
+        console.log(`[Multer File Filter] JPEG file detected: ${file.originalname}`);
+        // Always accept JPEG files
+        console.log(`[Multer File Filter] Accepting JPEG file: ${file.originalname}`);
+        cb(null, true);
+        return;
+    }
 
     if (isMimeTypeImage || hasAllowedExtension) {
         // Accept if either condition is true
@@ -51,7 +65,7 @@ const fileFilter = (req, file, cb) => {
     } else {
         // Reject if neither condition is true
         console.warn(`[Multer File Filter] Rejected file: ${file.originalname} (MIME type: ${file.mimetype}, Extension check failed)`);
-        cb(new Error('Invalid file type. Only JPG, PNG, GIF, HEIC images are allowed.'), false);
+        cb(new Error('Invalid file type. Only JPG, JPEG, PNG, GIF, HEIC images are allowed.'), false);
     }
 };
 
@@ -351,7 +365,7 @@ router.post('/log/manual', async (req, res) => {
     const { exercise_id, date_performed, reps_completed, weight_used, weight_unit, notes } = req.body;
     console.log(`Received POST /api/workouts/log/manual for exercise_id: ${exercise_id}`);
 
-    // --- Basic Validation --- 
+    // --- Basic Validation ---
     if (!exercise_id || !date_performed || !reps_completed || !weight_used || !weight_unit) {
         return res.status(400).json({ error: 'Missing required fields (exercise_id, date_performed, reps_completed, weight_used, weight_unit)' });
     }
@@ -693,12 +707,12 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
     // Note: Multer typically calls the callback with an error, but if used as middleware,
     // it might attach error details to `req` or require an error-handling middleware.
     // This is an attempt to catch errors if the structure allows.
-    if (req.fileValidationError) { // Custom error from fileFilter? 
+    if (req.fileValidationError) { // Custom error from fileFilter?
         console.error('[Photo Upload Route] File validation error detected:', req.fileValidationError);
         return res.status(400).json({ error: req.fileValidationError });
     }
     // Multer might add other error properties, check common patterns
-    if (req.multerError) { 
+    if (req.multerError) {
         console.error('[Photo Upload Route] Multer error detected on req:', req.multerError.code || req.multerError.message);
         if (req.multerError.code === 'LIMIT_FILE_SIZE') {
             return res.status(413).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });

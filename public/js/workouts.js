@@ -2578,7 +2578,22 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('[Photo Upload Client] No files or empty file selected.');
             return;
         }
+
+        // Log detailed information about each file
         console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
+        files.forEach((file, index) => {
+            console.log(`[Photo Upload Client] File ${index + 1}:`);
+            console.log(`  - Name: ${file.name}`);
+            console.log(`  - Type: ${file.type}`);
+            console.log(`  - Size: ${file.size} bytes`);
+            console.log(`  - Last Modified: ${new Date(file.lastModified).toLocaleString()}`);
+
+            // Check if the file has a .jpeg extension
+            const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            if (fileExt === '.jpeg') {
+                console.log(`  - JPEG file detected: ${file.name}`);
+            }
+        });
         // --- End validation ---
 
         statusElement.textContent = 'Uploading...';
@@ -2618,25 +2633,25 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.style.color = '#4CAF50'; // Green
             form.reset();
 
-            // --- Update local data and display immediately --- 
+            // --- Update local data and display immediately ---
             if (result.files && Array.isArray(result.files) && result.files.length > 0) {
                 // Prepend new photos to the existing data (assuming newest first)
                 progressPhotosData = [...result.files, ...progressPhotosData]; // <-- Use result.files
                 console.log(`[Photo Upload Client] Updated local progressPhotosData using 'result.files'. New length: ${progressPhotosData.length}`); // Updated log
                 // Reset index and display immediately
-                currentPhotoIndex = 0; 
+                currentPhotoIndex = 0;
                 displayCurrentPhoto();
                 // Also update comparison dropdowns immediately with new data
                 populateComparisonDropdowns();
             } else {
                 // If no photo data returned, still try a full refresh
                 console.warn("[Photo Upload Client] Upload successful, but no photo data returned in response. Triggering full refresh.");
-                fetchAndDisplayPhotos(); 
+                fetchAndDisplayPhotos();
             }
             // --- End immediate update ---
 
-            // Optionally, you can still call fetchAndDisplayPhotos() here 
-            // for redundancy or if you don't trust the returned data, but 
+            // Optionally, you can still call fetchAndDisplayPhotos() here
+            // for redundancy or if you don't trust the returned data, but
             // the immediate update above should handle the UI.
             // fetchAndDisplayPhotos(); // <<< Keep commented out for now
 
@@ -2718,7 +2733,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             console.log('[Photo Load] Fetching photos from API...'); // Log before fetch
-            // --- Add cache: 'no-cache' --- 
+            // --- Add cache: 'no-cache' ---
             const response = await fetch('/api/workouts/progress-photos', { cache: 'no-cache' });
             // --- End change ---
             console.log(`[Photo Load] API Response Status: ${response.status}`); // Log status
@@ -2770,15 +2785,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Log the image path for debugging
                 console.log(`[Photo Load] Image path for photo ID ${photo.photo_id}: ${imagePath}`);
-                
-                // --- SIMPLIFIED onerror --- 
+
+                // --- SIMPLIFIED onerror ---
                 // Remove the complex retry logic, just log the error once if the initial load fails.
                 img.onerror = function() {
                     console.error(`[Photo Load ERROR] Failed to initially load image src: ${this.src} (Photo ID: ${photo.photo_id})`);
                     // Optionally, set a class to style broken images
-                    // this.classList.add('image-load-error'); 
+                    // this.classList.add('image-load-error');
                     // Optionally, explicitly set to placeholder if needed, but browser might show alt
-                    // this.src = '/img/placeholder.png'; 
+                    // this.src = '/img/placeholder.png';
                 };
                 // --- END SIMPLIFIED onerror ---
 
@@ -2898,7 +2913,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         dateDisplayEl.textContent = formattedDate; // Update the date display
 
-        // --- Add Carousel Logic --- 
+        // --- Add Carousel Logic ---
         // 1. Update Carousel Position
         // Rename variable to avoid conflict
         const photoReelOffset = -currentPhotoIndex * 100; // Calculate percentage offset
