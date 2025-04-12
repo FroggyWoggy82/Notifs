@@ -919,7 +919,7 @@ router.get('/progress-photos', async (req, res) => {
         // Map date_taken to YYYY-MM-DD format for consistency if needed
         const photos = result.rows.map(photo => ({
             ...photo,
-            date_taken: photo.date_taken.toISOString().split('T')[0] // Format as YYYY-MM-DD
+            date_taken: new Date(photo.date_taken).toISOString().split('T')[0] // Format as YYYY-MM-DD
         }));
 
         res.json(photos);

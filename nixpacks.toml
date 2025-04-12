@@ -1,0 +1,10 @@
+# nixpacks.toml
+
+[phases.setup]
+# Installs packages using apt (Debian/Ubuntu)
+# These are the common packages needed for sharp with HEIC support
+aptPkgs = ["libvips-dev", "libheif-dev", "pkg-config"]
+
+[start]
+# Make sure this matches your actual start command in package.json or Procfile
+cmd = "npm start" 
