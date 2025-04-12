@@ -1838,8 +1838,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // No need for the Add Mobile Photo Button Listener since we're using a simpler approach
 
         // Mobile Upload Button Listener
-        if (mobileUploadBtn) {
-            mobileUploadBtn.addEventListener('click', handleMobilePhotoUpload);
+        const mobileUploadBtnEl = document.getElementById('mobile-upload-btn');
+        if (mobileUploadBtnEl) {
+            console.log('[Initialize] Found mobile upload button, attaching click listener');
+            mobileUploadBtnEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                console.log('[Mobile Upload] Button clicked, calling handleMobilePhotoUpload');
+                handleMobilePhotoUpload();
+            });
+
+            // Force the button to be visible and enabled for testing
+            mobileUploadBtnEl.style.display = 'inline-block';
+            mobileUploadBtnEl.disabled = false;
+            console.log('[Initialize] Forced mobile upload button to be visible and enabled');
+        } else {
+            console.error('[Initialize] Mobile upload button not found!');
         }
 
         // --- NEW: Event Delegation for Slider Buttons ---
