@@ -9,12 +9,13 @@ const sharp = require('sharp'); // <<< ADDED: Require sharp
 
 // --- Multer Configuration for Progress Photos ---
 const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
-// Increase file size limit to 10MB to match Express body parser limit
-const MAX_FILE_SIZE_MB = 10;
+// Increase file size limit to 50MB to match Express body parser limit
+const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Log the file size limit for debugging
 console.log(`[Server Config] Multer file size limit set to ${MAX_FILE_SIZE_MB}MB (${MAX_FILE_SIZE_BYTES} bytes)`);
+console.log(`[Server Config] This should allow uploads of files up to ${MAX_FILE_SIZE_MB}MB in size`);
 
 // Ensure the upload directory exists
 if (!fs.existsSync(progressPhotosDir)){
@@ -85,14 +86,32 @@ function handleMulterError(err, req, res, next) {
         console.error('Multer Error Code:', err.code);
         console.error('Multer Error Message:', err.message);
         console.error('Field:', err.field); // Which field caused the error?
-        console.error('--- End Multer Error ---');
-        // Provide specific feedback based on the error code
+
+        // Provide detailed information about the file size limit
         if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(413).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });
+            console.error(`File size limit exceeded. Limit is ${MAX_FILE_SIZE_MB}MB (${MAX_FILE_SIZE_BYTES} bytes)`);
+
+            // Check if we can determine the actual file size
+            const contentLength = req.headers['content-length'];
+            if (contentLength) {
+                console.error(`Attempted upload size: ${contentLength} bytes (${(parseInt(contentLength) / (1024 * 1024)).toFixed(2)}MB)`);
+            }
+
+            return res.status(413).json({
+                error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`,
+                limit: MAX_FILE_SIZE_BYTES,
+                limitInMB: MAX_FILE_SIZE_MB,
+                actualSize: contentLength ? parseInt(contentLength) : 'unknown',
+                actualSizeInMB: contentLength ? (parseInt(contentLength) / (1024 * 1024)).toFixed(2) : 'unknown'
+            });
+        } else if (err.code === 'LIMIT_FILE_COUNT') {
+            return res.status(413).json({ error: `Too many files. Maximum is 20 files per upload.` });
         } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-            return res.status(400).json({ error: 'Unexpected file field.' });
+            return res.status(400).json({ error: `Unexpected field name. Use 'photos' for file uploads.` });
         }
+
         // Generic Multer error
+        console.error('--- End Multer Error ---');
         return res.status(500).json({ error: `File upload error: ${err.message}` });
     } else if (err) {
         // An unknown error occurred when uploading.
@@ -103,12 +122,14 @@ function handleMulterError(err, req, res, next) {
         console.error('--- End Non-Multer Error ---');
         return res.status(500).json({ error: 'An unexpected error occurred during file upload.' });
     }
-    // Everything went fine, pass control to the next handler
+
+    // If no error, continue to the next middleware
     next();
 }
 
 // Use upload.array('photos', 10) to accept up to 10 files with the field name 'photos'
-const uploadPhotosMiddleware = upload.array('photos', 10); // Match the input name attribute
+// Increase the number of files allowed to 20
+const uploadPhotosMiddleware = upload.array('photos', 20); // Match the input name attribute and allow up to 20 files
 
 // <<< NEW: Middleware to log request arrival before Multer >>>
 const traceMiddleware = (req, res, next) => {

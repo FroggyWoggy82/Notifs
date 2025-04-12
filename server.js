@@ -32,12 +32,20 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 
-// Increase JSON and URL-encoded payload size limits to 10MB
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Import body-parser explicitly for better control over limits
+const bodyParser = require('body-parser');
+
+// Configure body-parser with increased limits
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// Also set Express limits for backward compatibility
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Log middleware configuration
-console.log('[Server Config] Express JSON and URL-encoded body size limits set to 10MB');
+console.log('[Server Config] Body parser and Express limits set to 50MB');
+console.log('[Server Config] This should allow uploads of files up to 50MB in size');
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
