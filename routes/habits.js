@@ -21,6 +21,13 @@ function getTodayDateKey() {
 // --- GET /api/habits - Fetch all habits with today's completion count and total completions ---
 router.get('/', async (req, res) => {
     console.log("Received GET /api/habits request");
+
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
     const todayKey = getTodayDateKey();
     try {
         // Query habits with both today's completions and stored total_completions
@@ -113,9 +120,35 @@ router.put('/:id', async (req, res) => {
     }
 
     try {
+        // First, get the current habit data to check if it has a counter in the title
+        const currentHabitResult = await db.query(
+            'SELECT title FROM habits WHERE id = $1',
+            [id]
+        );
+
+        if (currentHabitResult.rowCount === 0) {
+            console.log(`Update Habit: Habit ${id} not found.`);
+            return res.status(404).json({ error: 'Habit not found' });
+        }
+
+        const currentTitle = currentHabitResult.rows[0].title;
+        let updatedTitle = title.trim();
+
+        // Check if the title contains a counter pattern like (4/10)
+        const counterMatch = currentTitle.match(/\((\d+)\/(\d+)\)/);
+        if (counterMatch && p_completions !== parseInt(counterMatch[2], 10)) {
+            // If the completions_per_day is changing, update the counter in the title
+            const currentCount = parseInt(counterMatch[1], 10) || 0;
+            updatedTitle = updatedTitle.replace(
+                /\((\d+)\/(\d+)\)/,
+                `(${currentCount}/${p_completions})`
+            );
+            console.log(`Updating counter in title from "${title}" to "${updatedTitle}"`);
+        }
+
         const result = await db.query(
             'UPDATE habits SET title = $1, frequency = $2, completions_per_day = $3 WHERE id = $4 RETURNING *',
-            [title.trim(), frequency, p_completions, id]
+            [updatedTitle, frequency, p_completions, id]
         );
 
         if (result.rowCount === 0) {
@@ -351,10 +384,59 @@ router.post('/:id/complete', async (req, res) => {
 });
 
 
+// --- GET /api/habits/:id/level - Get current level for a habit ---
+router.get('/:id/level', async (req, res) => {
+    const { id } = req.params;
+
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
+    console.log(`Received GET /api/habits/${id}/level`);
+
+    if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({ error: 'Invalid habit ID format' });
+    }
+
+    try {
+        // Get the habit's total completions
+        const result = await db.query(
+            'SELECT id, title, total_completions FROM habits WHERE id = $1',
+            [id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Habit not found' });
+        }
+
+        const habit = result.rows[0];
+        const totalCompletions = parseInt(habit.total_completions, 10) || 0;
+        const calculatedLevel = Math.max(1, Math.floor(totalCompletions / 5) + 1);
+
+        res.status(200).json({
+            id: habit.id,
+            title: habit.title,
+            total_completions: totalCompletions,
+            level: calculatedLevel
+        });
+    } catch (err) {
+        console.error(`Error getting level for habit ${id}:`, err);
+        res.status(500).json({ error: 'Failed to get habit level', message: err.message });
+    }
+});
+
 // --- POST /api/habits/:id/update-total - Directly update total_completions ---
 router.post('/:id/update-total', async (req, res) => {
     const { id } = req.params;
     const { increment } = req.body || {};
+
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
 
     try {
         console.log(`Received POST /api/habits/${id}/update-total with increment=${increment}`);
@@ -396,48 +478,39 @@ router.post('/:id/update-total', async (req, res) => {
     }
 });
 
-// --- POST /api/habits/:id/update-total - Directly update total_completions ---
-router.post('/:id/update-total', async (req, res) => {
+// --- GET /api/habits/:id/level - Get the current level of a habit ---
+router.get('/:id/level', async (req, res) => {
     const { id } = req.params;
-    const { increment } = req.body || {};
+    console.log(`Received GET /api/habits/${id}/level request`);
+
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
 
     try {
-        console.log(`Received POST /api/habits/${id}/update-total with increment=${increment}`);
-
-        if (!/^[1-9]\d*$/.test(id)) {
-            return res.status(400).json({ error: 'Invalid habit ID format' });
-        }
-
-        // Validate increment value
-        const incrementValue = parseInt(increment, 10) || 1;
-        if (incrementValue <= 0) {
-            return res.status(400).json({ error: 'Increment value must be positive' });
-        }
-
-        // Update the total_completions directly
         const result = await db.query(
-            'UPDATE habits SET total_completions = total_completions + $1 WHERE id = $2 RETURNING total_completions',
-            [incrementValue, id]
+            'SELECT id, total_completions FROM habits WHERE id = $1',
+            [id]
         );
 
-        if (result.rowCount === 0) {
+        if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Habit not found' });
         }
 
-        const totalCompletions = parseInt(result.rows[0].total_completions, 10) || 0;
-        const calculatedLevel = Math.max(1, Math.floor(totalCompletions / 5) + 1);
+        const habit = result.rows[0];
+        const totalCompletions = parseInt(habit.total_completions, 10) || 0;
+        const level = Math.max(1, Math.floor(totalCompletions / 5) + 1);
 
-        console.log(`Direct update to habit ${id} total_completions: ${totalCompletions}, Level: ${calculatedLevel}`);
-
-        res.status(200).json({
-            message: 'Total completions updated successfully',
+        res.json({
+            id: habit.id,
             total_completions: totalCompletions,
-            level: calculatedLevel
+            level: level
         });
-
-    } catch (err) {
-        console.error(`Error updating total_completions for habit ${id}:`, err);
-        res.status(500).json({ error: 'Failed to update total completions' });
+    } catch (error) {
+        console.error('Error fetching habit level:', error);
+        res.status(500).json({ error: 'Failed to fetch habit level' });
     }
 });
 

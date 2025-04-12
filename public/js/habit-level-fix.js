@@ -16,13 +16,29 @@ document.addEventListener('DOMContentLoaded', () => {
         window.originalLoadHabits = loadHabits;
 
         // Replace with our enhanced version
-        window.loadHabits = async function() {
-            habitListStatusDiv.textContent = 'Loading habits...';
+        window.loadHabits = async function(forceRefresh = false) {
+            habitListStatusDiv.textContent = forceRefresh ? 'Refreshing habits...' : 'Loading habits...';
             habitListStatusDiv.className = 'status';
             try {
                 // Add cache-busting query parameter to prevent browser caching
                 const cacheBuster = new Date().getTime();
-                const response = await fetch(`/api/habits?_=${cacheBuster}`);
+                const fetchOptions = {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    // Force reload from server, not from cache
+                    cache: 'no-store'
+                };
+
+                // If forceRefresh is true, add additional cache-busting measures
+                if (forceRefresh) {
+                    console.log('Forcing a complete refresh of habits data');
+                    fetchOptions.cache = 'reload'; // Force reload from network
+                }
+
+                const response = await fetch(`/api/habits?_=${cacheBuster}`, fetchOptions);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
