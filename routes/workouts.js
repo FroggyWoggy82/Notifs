@@ -65,8 +65,16 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: MAX_FILE_SIZE_BYTES // Set file size limit
+        fileSize: MAX_FILE_SIZE_BYTES, // Set file size limit
+        files: 5 // Limit to 5 files per upload
     }
+});
+
+// Log multer configuration
+console.log(`[Server Config] Multer configuration:`, {
+    fileSize: `${MAX_FILE_SIZE_MB} MB (${MAX_FILE_SIZE_BYTES} bytes)`,
+    maxFiles: 5,
+    allowedExtensions: '.jpg, .jpeg, .png, .gif, .heic'
 });
 
 // <<< NEW: Multer Error Handling Middleware >>>
@@ -691,11 +699,23 @@ router.post('/progress-photos',
         console.log(`[Photo Upload] ===== NEW UPLOAD REQUEST =====`);
         console.log(`[Photo Upload] Content-Length: ${req.headers['content-length']} bytes`);
         console.log(`[Photo Upload] Content-Type: ${req.headers['content-type']}`);
+        console.log(`[Photo Upload] User-Agent: ${req.headers['user-agent']}`);
         console.log(`[Photo Upload] File size limit: ${MAX_FILE_SIZE_MB}MB (${MAX_FILE_SIZE_BYTES} bytes)`);
 
-        // Check if the content length exceeds our limit
+        // Detect if request is from a mobile device
+        const userAgent = req.headers['user-agent'] || '';
+        const isMobile = /mobile|android|iphone|ipad|ipod/i.test(userAgent);
+        console.log(`[Photo Upload] Device type: ${isMobile ? 'Mobile' : 'Desktop'}`);
+
+        // Store device type in request for later use
+        req.isMobileDevice = isMobile;
+
+        // For mobile devices, we'll be more lenient with Content-Length checks
+        // because mobile browsers sometimes don't set it correctly
         const contentLength = parseInt(req.headers['content-length'] || '0', 10);
-        if (contentLength > MAX_FILE_SIZE_BYTES) {
+
+        // Only enforce size limit for desktop or if Content-Length is actually present
+        if (!isMobile && contentLength > MAX_FILE_SIZE_BYTES) {
             console.error(`[Photo Upload] Request too large: ${contentLength} bytes exceeds limit of ${MAX_FILE_SIZE_BYTES} bytes`);
             return res.status(413).json({
                 error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`,
@@ -765,48 +785,106 @@ router.post('/progress-photos',
     }
     console.log('[Upload Trace] Date and files validation passed.');
 
-    // <<< NEW: HEIC to JPEG Conversion Logic >>>
+    // <<< ENHANCED: Image Conversion Logic for All Files >>>
     if (req.files && req.files.length > 0) {
-        console.log('[Upload Conversion] Starting HEIC check and conversion...');
+        console.log('[Upload Conversion] Starting image processing...');
         for (let i = 0; i < req.files.length; i++) {
             const file = req.files[i];
             const originalPath = file.path; // Full path to the initially saved file
             const fileExtension = path.extname(file.originalname).toLowerCase();
 
-            if (fileExtension === '.heic') {
-                console.log(`[Upload Conversion] Found HEIC file: ${file.originalname} at ${originalPath}`);
-                const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename
-                const jpegPath = path.join(path.dirname(originalPath), jpegFilename); // Full path for JPEG output
-                let conversionSuccessful = false; // <<< Flag to track success
+            // Process all image files, not just HEIC
+            console.log(`[Upload Conversion] Processing file: ${file.originalname} (${file.mimetype}) at ${originalPath}`);
+            const jpgFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename with .jpg extension
+            const jpgPath = path.join(path.dirname(originalPath), jpgFilename); // Full path for JPG output
+            let conversionSuccessful = false; // Flag to track success
 
-                try {
-                    console.log(`[Upload Conversion] Converting ${originalPath} to ${jpegPath}...`);
+            // Check if this is a mobile upload
+            const isMobile = req.isMobileDevice === true;
+            console.log(`[Upload Conversion] Processing ${isMobile ? 'mobile' : 'desktop'} upload`);
+
+            // Get file size in MB for logging
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            console.log(`[Upload Conversion] File size: ${fileSizeMB} MB`);
+
+            try {
+                // Different handling based on device type and file size
+                if (isMobile) {
+                    // Mobile uploads - use more aggressive optimization
+                    console.log(`[Upload Conversion] Using mobile-optimized settings`);
+
+                    // For larger mobile files, resize to reduce memory usage
+                    if (file.size > 1 * 1024 * 1024) { // > 1MB
+                        console.log(`[Upload Conversion] Large mobile file, using resize + compression`);
+                        await sharp(originalPath)
+                            .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+                            .jpeg({ quality: 80, progressive: true })
+                            .toFile(jpgPath);
+                    } else {
+                        // For smaller mobile files, just compress
+                        console.log(`[Upload Conversion] Small mobile file, using compression only`);
+                        await sharp(originalPath)
+                            .jpeg({ quality: 85 })
+                            .toFile(jpgPath);
+                    }
+                } else {
+                    // Desktop uploads - use higher quality
+                    console.log(`[Upload Conversion] Using desktop-optimized settings`);
                     await sharp(originalPath)
-                        .jpeg({ quality: 85 }) // Convert to JPEG with quality 85
-                        .toFile(jpegPath);
-                    console.log(`[Upload Conversion] Conversion successful: ${jpegPath}`);
-                    conversionSuccessful = true; // <<< Mark as successful
+                        .jpeg({ quality: 90 })
+                        .toFile(jpgPath);
+                }
 
-                    // Update the file object to reflect the new JPEG file
-                    req.files[i].filename = jpegFilename; // Update filename
-                    req.files[i].path = jpegPath;         // Update path (though we use relative path later)
-                    req.files[i].mimetype = 'image/jpeg'; // Update mimetype
-                    req.files[i].size = fs.statSync(jpegPath).size; // Update size
+                console.log(`[Upload Conversion] Conversion successful: ${jpgPath}`);
+                conversionSuccessful = true; // Mark as successful
 
-                    // <<< MODIFIED: Only delete original if conversion succeeded >>>
+                // Update the file object to reflect the new JPG file
+                req.files[i].filename = jpgFilename; // Update filename
+                req.files[i].path = jpgPath;         // Update path
+                req.files[i].mimetype = 'image/jpeg'; // Update mimetype
+                req.files[i].size = fs.statSync(jpgPath).size; // Update size
+
+                // Only delete original if it's not already a JPG and conversion succeeded
+                if (fileExtension !== '.jpg') {
                     try {
                         fs.unlinkSync(originalPath);
-                        console.log(`[Upload Conversion] Deleted original HEIC file: ${originalPath}`);
+                        console.log(`[Upload Conversion] Deleted original file: ${originalPath}`);
                     } catch (unlinkErr) {
-                        console.error(`[Upload Conversion] Error deleting original HEIC file ${originalPath} after successful conversion:`, unlinkErr);
+                        console.error(`[Upload Conversion] Error deleting original file ${originalPath} after successful conversion:`, unlinkErr);
                     }
-                    // <<< END MODIFICATION >>>
+                }
+            } catch (conversionError) {
+                console.error(`[Upload Conversion] Primary conversion failed, trying fallback method:`, conversionError.message);
 
-                } catch (conversionError) {
-                    console.error(`[Upload Conversion] Error converting HEIC file ${file.originalname}:`, conversionError);
-                    // <<< MODIFIED: Log error but KEEP the original file in req.files >>>
-                    console.warn(`[Upload Conversion] Failed to convert ${file.originalname}. Keeping original HEIC file entry.`);
-                    // <<< END MODIFICATION >>>
+                try {
+                    // Fallback method - very conservative settings
+                    console.log(`[Upload Conversion] Using fallback conversion method`);
+                    await sharp(originalPath)
+                        .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+                        .jpeg({ quality: 70 })
+                        .toFile(jpgPath);
+
+                    console.log(`[Upload Conversion] Fallback conversion successful`);
+                    conversionSuccessful = true;
+
+                    // Update the file object to reflect the new JPG file
+                    req.files[i].filename = jpgFilename; // Update filename
+                    req.files[i].path = jpgPath;         // Update path
+                    req.files[i].mimetype = 'image/jpeg'; // Update mimetype
+                    req.files[i].size = fs.statSync(jpgPath).size; // Update size
+
+                    // Delete original file
+                    if (fileExtension !== '.jpg') {
+                        try {
+                            fs.unlinkSync(originalPath);
+                            console.log(`[Upload Conversion] Deleted original file after fallback conversion: ${originalPath}`);
+                        } catch (unlinkErr) {
+                            console.error(`[Upload Conversion] Error deleting original file ${originalPath} after fallback conversion:`, unlinkErr);
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.error(`[Upload Conversion] Fallback conversion also failed for ${file.originalname}:`, fallbackError);
+                    console.warn(`[Upload Conversion] Failed to convert ${file.originalname}. Keeping original file entry.`);
                 }
             }
         }
