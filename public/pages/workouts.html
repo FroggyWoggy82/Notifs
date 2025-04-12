@@ -358,8 +358,8 @@
                      <input type="date" id="modal-photo-date" name="photo-date" required>
                  </div>
 
-                 <!-- Standard file input (will be hidden on mobile) -->
-                 <div id="standard-upload-section" class="form-group">
+                 <!-- Standard file input (hidden) -->
+                 <div id="standard-upload-section" class="form-group" style="display: none;">
                      <label for="modal-photo-upload">Select Photos:</label>
                      <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required>
                      <div class="file-input-help" style="font-size: 0.8rem; color: #666; margin-top: 5px;">
@@ -367,8 +367,8 @@
                      </div>
                  </div>
 
-                 <!-- Mobile-specific upload section (initially hidden) -->
-                 <div id="mobile-upload-section" class="form-group" style="display: none;">
+                 <!-- Mobile-specific upload section (always visible) -->
+                 <div id="mobile-upload-section" class="form-group" style="display: block;">
                      <div class="mobile-upload-instructions" style="margin-bottom: 15px;">
                          <p>For better compatibility on mobile devices:</p>
                          <ol style="text-align: left; padding-left: 20px;">
@@ -381,8 +381,8 @@
                  </div>
 
                  <div class="modal-actions">
-                    <button type="submit" id="standard-upload-btn" class="btn btn-primary">Upload Photos</button>
-                    <button type="button" id="mobile-upload-btn" class="btn btn-primary" style="display: none;">Upload Photo</button>
+                    <button type="submit" id="standard-upload-btn" class="btn btn-primary" style="display: none;">Upload Photos</button>
+                    <button type="button" id="mobile-upload-btn" class="btn btn-primary" style="display: inline-block;">Upload Photo</button>
                  </div>
             </form>
             <p id="upload-status" style="margin-top: 15px;"></p> <!-- Status message inside modal -->

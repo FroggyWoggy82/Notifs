@@ -1,6 +1,87 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Workout Tracker JS loaded');
 
+    // CRITICAL FIX: Ensure mobile upload button works
+    setTimeout(function() {
+        const mobileUploadButton = document.getElementById('mobile-upload-btn');
+        if (mobileUploadButton) {
+            console.log('CRITICAL FIX: Adding direct click handler to mobile upload button');
+            // Remove any existing click handlers by cloning the button
+            const oldButton = mobileUploadButton;
+            const newButton = oldButton.cloneNode(true);
+            oldButton.parentNode.replaceChild(newButton, oldButton);
+
+            // Add a new direct click handler
+            newButton.onclick = function(event) {
+                event.preventDefault();
+                console.log('Mobile upload button clicked directly');
+                // Call the mobile upload handler directly
+                const dateInput = document.getElementById('modal-photo-date');
+                const mobilePhotoInput = document.getElementById('mobile-photo-upload');
+
+                if (!dateInput || !dateInput.value) {
+                    alert('Please select a date');
+                    return;
+                }
+
+                if (!mobilePhotoInput || !mobilePhotoInput.files || mobilePhotoInput.files.length === 0) {
+                    alert('Please select a photo');
+                    return;
+                }
+
+                // Create FormData
+                const formData = new FormData();
+                formData.append('photo-date', dateInput.value);
+                formData.append('photos', mobilePhotoInput.files[0]);
+
+                // Show uploading message
+                const statusElement = document.getElementById('upload-status');
+                if (statusElement) {
+                    statusElement.textContent = 'Uploading...';
+                    statusElement.style.color = '#03dac6';
+                }
+
+                // Disable button during upload
+                newButton.disabled = true;
+
+                // Upload the file
+                fetch('/api/workouts/progress-photos', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Upload successful:', data);
+                    if (statusElement) {
+                        statusElement.textContent = 'Upload successful!';
+                        statusElement.style.color = '#4CAF50';
+                    }
+                    // Refresh photos
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                })
+                .catch(error => {
+                    console.error('Upload failed:', error);
+                    if (statusElement) {
+                        statusElement.textContent = 'Upload failed: ' + error.message;
+                        statusElement.style.color = '#f44336';
+                    }
+                })
+                .finally(() => {
+                    newButton.disabled = false;
+                });
+            };
+
+            // Make sure the button is visible and enabled
+            newButton.style.display = 'inline-block';
+            newButton.disabled = false;
+            console.log('CRITICAL FIX: Mobile upload button is now ready');
+        } else {
+            console.error('CRITICAL ERROR: Mobile upload button not found in DOM');
+        }
+    }, 1000); // Delay to ensure DOM is fully loaded
+
     // --- Debounce Helper ---
     function debounce(func, wait) {
         let timeout = null; // Initialize timeout as null
@@ -3173,12 +3254,35 @@ document.addEventListener('DOMContentLoaded', function() {
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
                 const img = document.createElement('img');
-                // img.src = photo.file_path; // <<< CHANGE THIS
-                img.dataset.src = photo.file_path; // <<< TO THIS
-                img.src = ''; // <<< ADD THIS (Set src initially empty)
-                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
-                img.dataset.photoId = photo.photo_id; // Store ID if needed
-                img.loading = 'lazy'; // Add native lazy loading attribute as well
+
+                // Create a proper URL for the image path
+                const imagePath = photo.file_path;
+                // Add a timestamp to prevent caching
+                const cacheBuster = `?t=${new Date().getTime()}`;
+
+                // Store the full path with cache buster in data-src
+                img.dataset.src = imagePath + cacheBuster;
+
+                // Set a simple alt text without the ID
+                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()}`;
+
+                // Store photo ID for deletion
+                img.dataset.photoId = photo.photo_id;
+
+                // Add error handling
+                img.onerror = function() {
+                    console.error(`[Photo Load] Failed to load image: ${imagePath}`);
+                    this.onerror = null; // Prevent infinite error loop
+                    this.src = '/img/photo-placeholder.png'; // Use a placeholder image
+                    this.alt = 'Image failed to load';
+                };
+
+                // Add loading attribute for better performance
+                img.loading = 'lazy';
+
+                // Log the image path for debugging
+                console.log(`[Photo Load] Adding image to reel: ${imagePath}`);
+
                 photoReel.appendChild(img);
 
                 // Add Dot to Pagination
@@ -3271,17 +3375,45 @@ document.addEventListener('DOMContentLoaded', function() {
         const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
         console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
 
-        // --- NEW: Find the specific image element and set its src for lazy loading ---
+        // --- Find and load the current image ---
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
+
             // Only set src if it's not already set or differs from data-src
-            if (currentImageElement.src !== currentImageElement.dataset.src) {
-                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
+            if (!currentImageElement.src || currentImageElement.src !== currentImageElement.dataset.src) {
+                console.log(`[Photo Display] Loading image for index ${currentPhotoIndex} from: ${currentImageElement.dataset.src}`);
+
+                // Force image loading with cache busting
                 currentImageElement.src = currentImageElement.dataset.src;
+
+                // Add additional error handling
+                currentImageElement.onerror = function() {
+                    console.error(`[Photo Display] Failed to load image at runtime: ${currentImageElement.dataset.src}`);
+                    this.onerror = null; // Prevent infinite error loop
+                    this.src = '/img/photo-placeholder.png'; // Use a placeholder image
+                    this.alt = 'Image failed to load';
+                };
+            }
+
+            // Preload adjacent images for smoother navigation
+            if (currentPhotoIndex > 0 && imageElements[currentPhotoIndex - 1]) {
+                const prevImage = imageElements[currentPhotoIndex - 1];
+                if (!prevImage.src) {
+                    console.log(`[Photo Display] Preloading previous image: ${prevImage.dataset.src}`);
+                    prevImage.src = prevImage.dataset.src;
+                }
+            }
+
+            if (currentPhotoIndex < imageElements.length - 1 && imageElements[currentPhotoIndex + 1]) {
+                const nextImage = imageElements[currentPhotoIndex + 1];
+                if (!nextImage.src) {
+                    console.log(`[Photo Display] Preloading next image: ${nextImage.dataset.src}`);
+                    nextImage.src = nextImage.dataset.src;
+                }
             }
         } else {
-            console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
+            console.warn(`[Photo Display] Could not find image element for index ${currentPhotoIndex}`);
         }
         // --- END NEW ---
 
