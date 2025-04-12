@@ -3,7 +3,7 @@
 [phases.setup]
 # Installs packages using Nix
 # Use nixPkgs instead of aptPkgs for potentially better reliability on Railway
-nixPkgs = ["libvips", "libheif", "pkg-config"]
+nixPkgs = ["vips", "libheif", "pkg-config"]
 
 [start]
 # Make sure this matches your actual start command in package.json or Procfile
