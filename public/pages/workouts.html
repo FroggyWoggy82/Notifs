@@ -382,7 +382,17 @@
 
                  <div class="modal-actions">
                     <button type="submit" id="standard-upload-btn" class="btn btn-primary" style="display: none;">Upload Photos</button>
-                    <button type="button" id="mobile-upload-btn" class="btn btn-primary" style="display: inline-block;">Upload Photo</button>
+                    <button type="button" id="mobile-upload-btn" class="btn btn-primary" style="display: none;">Upload Photo</button>
+                 </div>
+
+                 <!-- EMERGENCY FIX: New direct upload button -->
+                 <div style="margin-top: 20px; text-align: center;">
+                    <button type="button" id="emergency-upload-btn"
+                            style="background-color: #ff5722; color: white; padding: 12px 24px;
+                                   font-size: 16px; border: none; border-radius: 4px;
+                                   cursor: pointer; display: block; width: 100%;">
+                        CLICK HERE TO UPLOAD PHOTO
+                    </button>
                  </div>
             </form>
             <p id="upload-status" style="margin-top: 15px;"></p> <!-- Status message inside modal -->
@@ -390,5 +400,7 @@
     </div>
     <!-- ===== End Photo Upload Modal ===== -->
 
+    <!-- Emergency upload handler -->
+    <script src="/js/emergency-upload.js"></script>
 </body>
 </html>
