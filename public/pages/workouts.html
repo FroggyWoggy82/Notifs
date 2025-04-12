@@ -370,24 +370,17 @@
                      <div class="mobile-upload-instructions" style="margin-bottom: 15px;">
                          <p>For better compatibility on mobile devices:</p>
                          <ol style="text-align: left; padding-left: 20px;">
-                             <li>Select one photo at a time</li>
-                             <li>Click "Add Photo" after each selection</li>
-                             <li>Click "Upload All Photos" when done</li>
+                             <li>Select a photo from your gallery</li>
+                             <li>Click "Upload Photo" to save it</li>
                          </ol>
                      </div>
                      <label for="mobile-photo-upload">Select a Photo:</label>
                      <input type="file" id="mobile-photo-upload" accept="image/*" capture="filesystem">
-                     <button type="button" id="add-mobile-photo-btn" class="btn btn-secondary" style="margin-top: 10px; width: 100%;">Add Photo</button>
-
-                     <div id="mobile-selected-photos" style="margin-top: 15px;">
-                         <h4>Selected Photos: <span id="mobile-photo-count">0</span></h4>
-                         <div id="mobile-photo-preview" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
-                     </div>
                  </div>
 
                  <div class="modal-actions">
                     <button type="submit" id="standard-upload-btn" class="btn btn-primary">Upload Photos</button>
-                    <button type="button" id="mobile-upload-btn" class="btn btn-primary" style="display: none;">Upload All Photos</button>
+                    <button type="button" id="mobile-upload-btn" class="btn btn-primary" style="display: none;">Upload Photo</button>
                  </div>
             </form>
             <p id="upload-status" style="margin-top: 15px;"></p> <!-- Status message inside modal -->

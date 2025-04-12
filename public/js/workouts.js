@@ -1769,14 +1769,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const standardUploadSection = document.getElementById('standard-upload-section');
         const mobileUploadSection = document.getElementById('mobile-upload-section');
         const mobilePhotoUploadInput = document.getElementById('mobile-photo-upload');
-        const addMobilePhotoBtn = document.getElementById('add-mobile-photo-btn');
-        const mobilePhotoCount = document.getElementById('mobile-photo-count');
-        const mobilePhotoPreview = document.getElementById('mobile-photo-preview');
         const standardUploadBtn = document.getElementById('standard-upload-btn');
         const mobileUploadBtn = document.getElementById('mobile-upload-btn');
-
-        // Array to store mobile photo files
-        let mobilePhotoFiles = [];
 
         // Open Modal Listener with Mobile Detection
         addPhotoBtn?.addEventListener('click', () => {
@@ -1798,11 +1792,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (mobilePhotoUploadInput instanceof HTMLInputElement) {
                     mobilePhotoUploadInput.value = ''; // Clear mobile file selection
                 }
-
-                // Reset mobile photo array and preview
-                mobilePhotoFiles = [];
-                if (mobilePhotoPreview) mobilePhotoPreview.innerHTML = '';
-                if (mobilePhotoCount) mobilePhotoCount.textContent = '0';
 
                 // Detect if we should use mobile flow
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1846,79 +1835,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Standard Form Submission Listener
         if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
 
-        // Mobile Add Photo Button Listener
-        if (addMobilePhotoBtn) {
-            addMobilePhotoBtn.addEventListener('click', () => {
-                if (!mobilePhotoUploadInput || !mobilePhotoUploadInput.files || mobilePhotoUploadInput.files.length === 0) {
-                    alert('Please select a photo first');
-                    return;
-                }
-
-                const file = mobilePhotoUploadInput.files[0];
-                console.log(`[Mobile Upload] Adding file: ${file.name}, type: ${file.type}, size: ${file.size}`);
-
-                // Add to our collection
-                mobilePhotoFiles.push(file);
-
-                // Update count
-                if (mobilePhotoCount) mobilePhotoCount.textContent = mobilePhotoFiles.length.toString();
-
-                // Create preview thumbnail
-                if (mobilePhotoPreview) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.className = 'mobile-preview-item';
-                        imgContainer.style.position = 'relative';
-                        imgContainer.style.width = '60px';
-                        imgContainer.style.height = '60px';
-
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '4px';
-
-                        const removeBtn = document.createElement('button');
-                        removeBtn.innerHTML = '&times;';
-                        removeBtn.style.position = 'absolute';
-                        removeBtn.style.top = '-8px';
-                        removeBtn.style.right = '-8px';
-                        removeBtn.style.width = '20px';
-                        removeBtn.style.height = '20px';
-                        removeBtn.style.borderRadius = '50%';
-                        removeBtn.style.backgroundColor = 'red';
-                        removeBtn.style.color = 'white';
-                        removeBtn.style.border = 'none';
-                        removeBtn.style.cursor = 'pointer';
-                        removeBtn.style.fontSize = '12px';
-                        removeBtn.style.lineHeight = '1';
-                        removeBtn.style.padding = '0';
-
-                        // Store the index for removal
-                        const fileIndex = mobilePhotoFiles.length - 1;
-                        removeBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            // Remove from array
-                            mobilePhotoFiles.splice(fileIndex, 1);
-                            // Remove from UI
-                            mobilePhotoPreview.removeChild(imgContainer);
-                            // Update count
-                            mobilePhotoCount.textContent = mobilePhotoFiles.length.toString();
-                        });
-
-                        imgContainer.appendChild(img);
-                        imgContainer.appendChild(removeBtn);
-                        mobilePhotoPreview.appendChild(imgContainer);
-                    };
-                    reader.readAsDataURL(file);
-                }
-
-                // Reset the file input for next selection
-                mobilePhotoUploadInput.value = '';
-            });
-        }
+        // No need for the Add Mobile Photo Button Listener since we're using a simpler approach
 
         // Mobile Upload Button Listener
         if (mobileUploadBtn) {
@@ -2656,9 +2573,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('photo-upload-modal');
         const dateInput = document.getElementById('modal-photo-date');
         const mobileUploadBtn = document.getElementById('mobile-upload-btn');
+        const mobilePhotoInput = document.getElementById('mobile-photo-upload');
 
         // Validate inputs
-        if (!statusElement || !modal || !dateInput || !mobileUploadBtn) {
+        if (!statusElement || !modal || !dateInput || !mobileUploadBtn || !mobilePhotoInput) {
             console.error('[Mobile Upload] Required elements not found');
             alert('Error: Required form elements not found. Please refresh the page and try again.');
             return;
@@ -2671,18 +2589,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Validate files
-        if (!mobilePhotoFiles || mobilePhotoFiles.length === 0) {
-            statusElement.textContent = 'Please add at least one photo.';
+        // Validate file
+        if (!mobilePhotoInput.files || mobilePhotoInput.files.length === 0) {
+            statusElement.textContent = 'Please select a photo.';
             statusElement.style.color = 'orange';
             return;
         }
 
+        const file = mobilePhotoInput.files[0];
+
         // Log what we're about to upload
-        console.log(`[Mobile Upload] Uploading ${mobilePhotoFiles.length} files with date: ${dateInput.value}`);
-        mobilePhotoFiles.forEach((file, index) => {
-            console.log(`[Mobile Upload] File ${index+1}: ${file.name}, type: ${file.type}, size: ${file.size}`);
-        });
+        console.log(`[Mobile Upload] Uploading file: ${file.name}, type: ${file.type}, size: ${file.size} with date: ${dateInput.value}`);
 
         // Update UI
         statusElement.textContent = 'Uploading...';
@@ -2710,11 +2627,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create FormData
         const formData = new FormData();
         formData.append('photo-date', dateInput.value);
-
-        // Add each file individually
-        mobilePhotoFiles.forEach(file => {
-            formData.append('photos', file);
-        });
+        formData.append('photos', file);
 
         // Simulate progress
         let progress = 0;
@@ -2768,12 +2681,8 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.textContent = result.message || 'Upload successful!';
             statusElement.style.color = '#4CAF50'; // Green
 
-            // Reset the mobile photo array and preview
-            mobilePhotoFiles = [];
-            const mobilePhotoPreview = document.getElementById('mobile-photo-preview');
-            const mobilePhotoCount = document.getElementById('mobile-photo-count');
-            if (mobilePhotoPreview) mobilePhotoPreview.innerHTML = '';
-            if (mobilePhotoCount) mobilePhotoCount.textContent = '0';
+            // Reset the file input
+            mobilePhotoInput.value = '';
 
             // Refresh the photo display
             fetchAndDisplayPhotos();
