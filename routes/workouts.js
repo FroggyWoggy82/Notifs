@@ -748,6 +748,7 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                 console.log(`[Upload Conversion] Found HEIC file: ${file.originalname} at ${originalPath}`);
                 const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename
                 const jpegPath = path.join(path.dirname(originalPath), jpegFilename); // Full path for JPEG output
+                let conversionSuccessful = false; // <<< Flag to track success
 
                 try {
                     console.log(`[Upload Conversion] Converting ${originalPath} to ${jpegPath}...`);
@@ -755,6 +756,7 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                         .jpeg({ quality: 85 }) // Convert to JPEG with quality 85
                         .toFile(jpegPath);
                     console.log(`[Upload Conversion] Conversion successful: ${jpegPath}`);
+                    conversionSuccessful = true; // <<< Mark as successful
 
                     // Update the file object to reflect the new JPEG file
                     req.files[i].filename = jpegFilename; // Update filename
@@ -762,14 +764,14 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                     req.files[i].mimetype = 'image/jpeg'; // Update mimetype
                     req.files[i].size = fs.statSync(jpegPath).size; // Update size
 
-                    // Delete the original HEIC file (optional, saves space)
+                    // <<< MODIFIED: Only delete original if conversion succeeded >>>
                     try {
                         fs.unlinkSync(originalPath);
                         console.log(`[Upload Conversion] Deleted original HEIC file: ${originalPath}`);
                     } catch (unlinkErr) {
-                        console.error(`[Upload Conversion] Error deleting original HEIC file ${originalPath}:`, unlinkErr);
-                        // Don't fail the whole upload if deletion fails, just log it.
+                        console.error(`[Upload Conversion] Error deleting original HEIC file ${originalPath} after successful conversion:`, unlinkErr);
                     }
+                    // <<< END MODIFICATION >>>
 
                 } catch (conversionError) {
                     console.error(`[Upload Conversion] Error converting HEIC file ${file.originalname}:`, conversionError);
@@ -778,18 +780,16 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                     req.files.splice(i, 1); // Remove the element from the array
                     i--; // Adjust index because we removed an element
 
-                    // Option 2: Keep the original HEIC (less ideal as it won't display)
-                    // Option 3: Throw an error and fail the whole upload
-                    // We chose Option 1 - skip this problematic file.
-
-                    // Clean up partially saved HEIC if conversion failed mid-way
-                    try {
-                        if (fs.existsSync(originalPath)) {
-                            fs.unlinkSync(originalPath);
-                        }
-                    } catch (cleanupErr) {
-                        console.error(`[Upload Conversion] Error cleaning up original HEIC ${originalPath} after conversion failure:`, cleanupErr);
-                    }
+                    // <<< MODIFIED: Do NOT delete original HEIC if conversion failed >>>
+                    // // Clean up partially saved HEIC if conversion failed mid-way
+                    // try {
+                    //     if (fs.existsSync(originalPath)) {
+                    //         fs.unlinkSync(originalPath);
+                    //     }
+                    // } catch (cleanupErr) {
+                    //     console.error(`[Upload Conversion] Error cleaning up original HEIC ${originalPath} after conversion failure:`, cleanupErr);
+                    // }
+                    // <<< END MODIFICATION >>>
                 }
             }
         }
