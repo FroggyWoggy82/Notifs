@@ -775,20 +775,8 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
 
                 } catch (conversionError) {
                     console.error(`[Upload Conversion] Error converting HEIC file ${file.originalname}:`, conversionError);
-                    // Handle conversion error - Option 1: Remove the failed file from the array
-                    console.warn(`[Upload Conversion] Removing failed HEIC conversion file ${file.originalname} from upload list.`);
-                    req.files.splice(i, 1); // Remove the element from the array
-                    i--; // Adjust index because we removed an element
-
-                    // <<< MODIFIED: Do NOT delete original HEIC if conversion failed >>>
-                    // // Clean up partially saved HEIC if conversion failed mid-way
-                    // try {
-                    //     if (fs.existsSync(originalPath)) {
-                    //         fs.unlinkSync(originalPath);
-                    //     }
-                    // } catch (cleanupErr) {
-                    //     console.error(`[Upload Conversion] Error cleaning up original HEIC ${originalPath} after conversion failure:`, cleanupErr);
-                    // }
+                    // <<< MODIFIED: Log error but KEEP the original file in req.files >>>
+                    console.warn(`[Upload Conversion] Failed to convert ${file.originalname}. Keeping original HEIC file entry.`);
                     // <<< END MODIFICATION >>>
                 }
             }
@@ -800,10 +788,10 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
     // <<< END NEW: HEIC to JPEG Conversion Logic >>>
 
     // Filter out any files that might have been removed during conversion failure
-    const validFiles = req.files ? req.files.filter(file => file) : [];
+    const filesToProcess = req.files ? req.files.filter(file => file) : [];
 
     // Check if there are any valid files left to process after conversion attempts
-    if (validFiles.length === 0) {
+    if (filesToProcess.length === 0) {
         console.error('[Photo Upload Route Handler] Error: No valid photos left after conversion attempts.');
         if (!res.headersSent) {
             return res.status(400).json({ error: 'No valid photos could be processed.' });
@@ -811,7 +799,7 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
         return;
     }
 
-    console.log(`[Photo Upload Route Handler] Proceeding with DB operations for ${validFiles.length} valid photos.`);
+    console.log(`[Photo Upload Route Handler] Proceeding with DB operations for ${filesToProcess.length} valid photos.`);
 
     let client; // Define client outside try block
     console.log('[Upload Trace] Attempting to connect to DB...');
@@ -823,8 +811,8 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
         console.log('[Photo Upload Route Handler] DB Transaction BEGIN.');
 
         const insertedPhotos = [];
-        console.log(`[Upload Trace] Starting loop for ${validFiles.length} valid files...`); // Updated log
-        for (const file of validFiles) { // <<< Use validFiles array
+        console.log(`[Upload Trace] Starting loop for ${filesToProcess.length} valid files...`); // Updated log
+        for (const file of filesToProcess) { // <<< Use filesToProcess array
             // Construct relative path using the potentially updated filename
             const relativePath = `/uploads/progress_photos/${file.filename}`; // <<< Use file.filename
             console.log(`[Upload Trace] Processing file: ${file.filename}`);
@@ -852,8 +840,8 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
              // <<< Updated: Return the data for the *processed* files >>>
              const responsePhotos = insertedPhotos.map((dbRecord, index) => ({
                 ...dbRecord, // Include photo_id, date_taken, file_path from DB
-                originalName: validFiles[index].originalname, // Keep original name for reference if needed
-                mimeType: validFiles[index].mimetype // Mime type after potential conversion
+                originalName: filesToProcess[index].originalname, // <<< Use filesToProcess
+                mimeType: filesToProcess[index].mimetype // <<< Use filesToProcess
             }));
             res.status(201).json({ message: `Successfully uploaded and processed ${responsePhotos.length} files!`, photos: responsePhotos });
             console.log('[Upload Trace] Success response sent.');
@@ -872,10 +860,10 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
         }
 
         // Check if files exist before attempting deletion
-        if (validFiles && validFiles.length > 0) { // <<< Use validFiles
+        if (filesToProcess && filesToProcess.length > 0) { // <<< Use filesToProcess
             console.log('[Upload Trace] Attempting file cleanup due to DB error...');
             console.log('[Photo Upload Route Handler] Attempting to delete uploaded files due to DB error...');
-            validFiles.forEach(file => { // <<< Use validFiles
+            filesToProcess.forEach(file => { // <<< Use filesToProcess
                 if (file && file.path) { // Add check for file.path (should be updated path for converted files)
                     fs.unlink(file.path, unlinkErr => {
                         if (unlinkErr) console.error(`[Photo Upload Route Handler] Error deleting file ${file.path} after DB error:`, unlinkErr);
