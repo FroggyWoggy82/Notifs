@@ -1761,38 +1761,75 @@ document.addEventListener('DOMContentLoaded', function() {
         const photoUploadModalEl = document.getElementById('photo-upload-modal');
         const photoModalCloseButton = photoUploadModalEl?.querySelector('.close-button');
         const photoFormEl = document.getElementById('progress-photo-form');
-        const photoDateInputEl = document.getElementById('modal-photo-date') // Corrected ID
+        const photoDateInputEl = document.getElementById('modal-photo-date');
         const uploadStatusElement = document.getElementById('upload-status');
-        const photoUploadInputElement = document.getElementById('modal-photo-upload'); // Corrected ID
+        const photoUploadInputElement = document.getElementById('modal-photo-upload');
 
-        // Open Modal Listener
+        // Mobile-specific elements
+        const standardUploadSection = document.getElementById('standard-upload-section');
+        const mobileUploadSection = document.getElementById('mobile-upload-section');
+        const mobilePhotoUploadInput = document.getElementById('mobile-photo-upload');
+        const addMobilePhotoBtn = document.getElementById('add-mobile-photo-btn');
+        const mobilePhotoCount = document.getElementById('mobile-photo-count');
+        const mobilePhotoPreview = document.getElementById('mobile-photo-preview');
+        const standardUploadBtn = document.getElementById('standard-upload-btn');
+        const mobileUploadBtn = document.getElementById('mobile-upload-btn');
+
+        // Array to store mobile photo files
+        let mobilePhotoFiles = [];
+
+        // Open Modal Listener with Mobile Detection
         addPhotoBtn?.addEventListener('click', () => {
             if (photoUploadModalEl) {
-                 // Reset form fields when opening
-                 if (photoFormEl instanceof HTMLFormElement) photoFormEl.reset();
-                 if (photoDateInputEl instanceof HTMLInputElement) {
-                     photoDateInputEl.value = new Date().toISOString().split('T')[0]; // Set default date to today
-                 }
-                 if (uploadStatusElement) uploadStatusElement.textContent = ''
-                 if (uploadStatusElement) uploadStatusElement.className = '';
-                 if (photoUploadInputElement instanceof HTMLInputElement) {
-                     photoUploadInputElement.value = ''; // Clear file selection
-                 }
-                 photoUploadModalEl.style.display = 'block';
+                // Reset form fields when opening
+                if (photoFormEl instanceof HTMLFormElement) photoFormEl.reset();
+                if (photoDateInputEl instanceof HTMLInputElement) {
+                    photoDateInputEl.value = new Date().toISOString().split('T')[0]; // Set default date to today
+                }
+                if (uploadStatusElement) {
+                    uploadStatusElement.textContent = '';
+                    uploadStatusElement.className = '';
+                }
 
-                  // ---> ADD THIS: Explicitly find and re-enable the button <---
-                  const form = photoUploadModalEl.querySelector('#progress-photo-form');
-                  if (form) {
-                      const submitButton = form.querySelector('button[type="submit"]');
-                      if (submitButton) {
-                          console.log('[Modal Open] Explicitly re-enabling upload button.');
-                          submitButton.disabled = false;
-                      }
-                  }
-                  // ---> END ADDITION <---
+                // Reset file inputs
+                if (photoUploadInputElement instanceof HTMLInputElement) {
+                    photoUploadInputElement.value = ''; // Clear file selection
+                }
+                if (mobilePhotoUploadInput instanceof HTMLInputElement) {
+                    mobilePhotoUploadInput.value = ''; // Clear mobile file selection
+                }
 
+                // Reset mobile photo array and preview
+                mobilePhotoFiles = [];
+                if (mobilePhotoPreview) mobilePhotoPreview.innerHTML = '';
+                if (mobilePhotoCount) mobilePhotoCount.textContent = '0';
+
+                // Detect if we should use mobile flow
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                // Show appropriate sections based on device
+                if (isMobile) {
+                    console.log('[Photo Upload] Mobile device detected, showing mobile upload flow');
+                    if (standardUploadSection) standardUploadSection.style.display = 'none';
+                    if (mobileUploadSection) mobileUploadSection.style.display = 'block';
+                    if (standardUploadBtn) standardUploadBtn.style.display = 'none';
+                    if (mobileUploadBtn) mobileUploadBtn.style.display = 'block';
+                } else {
+                    console.log('[Photo Upload] Desktop device detected, showing standard upload flow');
+                    if (standardUploadSection) standardUploadSection.style.display = 'block';
+                    if (mobileUploadSection) mobileUploadSection.style.display = 'none';
+                    if (standardUploadBtn) standardUploadBtn.style.display = 'block';
+                    if (mobileUploadBtn) mobileUploadBtn.style.display = 'none';
+                }
+
+                // Show the modal
+                photoUploadModalEl.style.display = 'block';
+
+                // Explicitly re-enable buttons
+                if (standardUploadBtn) standardUploadBtn.disabled = false;
+                if (mobileUploadBtn) mobileUploadBtn.disabled = false;
             } else {
-                 console.error('Photo upload modal not found!');
+                console.error('Photo upload modal not found!');
             }
         });
 
@@ -1806,8 +1843,87 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Form Submission Listener
+        // Standard Form Submission Listener
         if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
+
+        // Mobile Add Photo Button Listener
+        if (addMobilePhotoBtn) {
+            addMobilePhotoBtn.addEventListener('click', () => {
+                if (!mobilePhotoUploadInput || !mobilePhotoUploadInput.files || mobilePhotoUploadInput.files.length === 0) {
+                    alert('Please select a photo first');
+                    return;
+                }
+
+                const file = mobilePhotoUploadInput.files[0];
+                console.log(`[Mobile Upload] Adding file: ${file.name}, type: ${file.type}, size: ${file.size}`);
+
+                // Add to our collection
+                mobilePhotoFiles.push(file);
+
+                // Update count
+                if (mobilePhotoCount) mobilePhotoCount.textContent = mobilePhotoFiles.length.toString();
+
+                // Create preview thumbnail
+                if (mobilePhotoPreview) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgContainer = document.createElement('div');
+                        imgContainer.className = 'mobile-preview-item';
+                        imgContainer.style.position = 'relative';
+                        imgContainer.style.width = '60px';
+                        imgContainer.style.height = '60px';
+
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '4px';
+
+                        const removeBtn = document.createElement('button');
+                        removeBtn.innerHTML = '&times;';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '-8px';
+                        removeBtn.style.right = '-8px';
+                        removeBtn.style.width = '20px';
+                        removeBtn.style.height = '20px';
+                        removeBtn.style.borderRadius = '50%';
+                        removeBtn.style.backgroundColor = 'red';
+                        removeBtn.style.color = 'white';
+                        removeBtn.style.border = 'none';
+                        removeBtn.style.cursor = 'pointer';
+                        removeBtn.style.fontSize = '12px';
+                        removeBtn.style.lineHeight = '1';
+                        removeBtn.style.padding = '0';
+
+                        // Store the index for removal
+                        const fileIndex = mobilePhotoFiles.length - 1;
+                        removeBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            // Remove from array
+                            mobilePhotoFiles.splice(fileIndex, 1);
+                            // Remove from UI
+                            mobilePhotoPreview.removeChild(imgContainer);
+                            // Update count
+                            mobilePhotoCount.textContent = mobilePhotoFiles.length.toString();
+                        });
+
+                        imgContainer.appendChild(img);
+                        imgContainer.appendChild(removeBtn);
+                        mobilePhotoPreview.appendChild(imgContainer);
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                // Reset the file input for next selection
+                mobilePhotoUploadInput.value = '';
+            });
+        }
+
+        // Mobile Upload Button Listener
+        if (mobileUploadBtn) {
+            mobileUploadBtn.addEventListener('click', handleMobilePhotoUpload);
+        }
 
         // --- NEW: Event Delegation for Slider Buttons ---
         if (photoSliderContainer) {
@@ -2532,10 +2648,186 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- End History Edit Modal Functions ---
 
-    // --- IMPROVED: Progress Photo Upload Handler for Mobile Compatibility ---
+    // --- Mobile-specific Photo Upload Handler ---
+    async function handleMobilePhotoUpload() {
+        console.log('[Mobile Upload] handleMobilePhotoUpload triggered');
+
+        const statusElement = document.getElementById('upload-status');
+        const modal = document.getElementById('photo-upload-modal');
+        const dateInput = document.getElementById('modal-photo-date');
+        const mobileUploadBtn = document.getElementById('mobile-upload-btn');
+
+        // Validate inputs
+        if (!statusElement || !modal || !dateInput || !mobileUploadBtn) {
+            console.error('[Mobile Upload] Required elements not found');
+            alert('Error: Required form elements not found. Please refresh the page and try again.');
+            return;
+        }
+
+        // Validate date
+        if (!dateInput.value) {
+            statusElement.textContent = 'Please select a date.';
+            statusElement.style.color = 'orange';
+            return;
+        }
+
+        // Validate files
+        if (!mobilePhotoFiles || mobilePhotoFiles.length === 0) {
+            statusElement.textContent = 'Please add at least one photo.';
+            statusElement.style.color = 'orange';
+            return;
+        }
+
+        // Log what we're about to upload
+        console.log(`[Mobile Upload] Uploading ${mobilePhotoFiles.length} files with date: ${dateInput.value}`);
+        mobilePhotoFiles.forEach((file, index) => {
+            console.log(`[Mobile Upload] File ${index+1}: ${file.name}, type: ${file.type}, size: ${file.size}`);
+        });
+
+        // Update UI
+        statusElement.textContent = 'Uploading...';
+        statusElement.style.color = '#03dac6';
+        mobileUploadBtn.disabled = true;
+
+        // Create a progress indicator
+        const progressDiv = document.createElement('div');
+        progressDiv.className = 'upload-progress';
+        progressDiv.style.width = '100%';
+        progressDiv.style.height = '4px';
+        progressDiv.style.backgroundColor = '#e0e0e0';
+        progressDiv.style.marginTop = '10px';
+        progressDiv.style.position = 'relative';
+
+        const progressBar = document.createElement('div');
+        progressBar.style.width = '0%';
+        progressBar.style.height = '100%';
+        progressBar.style.backgroundColor = '#03dac6';
+        progressBar.style.transition = 'width 0.3s';
+        progressDiv.appendChild(progressBar);
+
+        statusElement.parentNode.insertBefore(progressDiv, statusElement.nextSibling);
+
+        // Create FormData
+        const formData = new FormData();
+        formData.append('photo-date', dateInput.value);
+
+        // Add each file individually
+        mobilePhotoFiles.forEach(file => {
+            formData.append('photos', file);
+        });
+
+        // Simulate progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress = Math.min(progress + 5, 90);
+            progressBar.style.width = `${progress}%`;
+        }, 1000);
+
+        try {
+            // Create an AbortController with a timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                console.error('[Mobile Upload] Fetch aborted due to timeout');
+            }, 120000); // 2 minute timeout for mobile
+
+            console.log('[Mobile Upload] Starting fetch with 120s timeout');
+            const response = await fetch('/api/workouts/progress-photos', {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            });
+
+            // Clear the intervals and timeouts
+            clearTimeout(timeoutId);
+            clearInterval(progressInterval);
+
+            // Show 100% progress
+            progressBar.style.width = '100%';
+
+            console.log(`[Mobile Upload] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
+
+            if (!response.ok) {
+                let errorData = { error: `HTTP error! Status: ${response.status} ${response.statusText}` };
+                try {
+                    const text = await response.text();
+                    console.log(`[Mobile Upload] Raw error response text: ${text}`);
+                    errorData = JSON.parse(text);
+                    console.log('[Mobile Upload] Parsed JSON error response:', errorData);
+                } catch (parseError) {
+                    console.error('[Mobile Upload] Failed to parse error response as JSON:', parseError);
+                }
+                const error = new Error(errorData.error || `HTTP error ${response.status}`);
+                error.status = response.status;
+                error.data = errorData;
+                throw error;
+            }
+
+            const result = await response.json();
+            console.log('[Mobile Upload] Upload successful:', result);
+            statusElement.textContent = result.message || 'Upload successful!';
+            statusElement.style.color = '#4CAF50'; // Green
+
+            // Reset the mobile photo array and preview
+            mobilePhotoFiles = [];
+            const mobilePhotoPreview = document.getElementById('mobile-photo-preview');
+            const mobilePhotoCount = document.getElementById('mobile-photo-count');
+            if (mobilePhotoPreview) mobilePhotoPreview.innerHTML = '';
+            if (mobilePhotoCount) mobilePhotoCount.textContent = '0';
+
+            // Refresh the photo display
+            fetchAndDisplayPhotos();
+
+            // Close the modal after a delay
+            setTimeout(() => {
+                modal.style.display = 'none';
+                statusElement.textContent = '';
+                // Remove progress bar
+                if (progressDiv.parentNode) {
+                    progressDiv.parentNode.removeChild(progressDiv);
+                }
+            }, 1500);
+
+        } catch (error) {
+            // Clear any intervals that might be running
+            clearInterval(progressInterval);
+
+            // Remove progress bar on error
+            if (progressDiv.parentNode) {
+                progressDiv.parentNode.removeChild(progressDiv);
+            }
+
+            console.error('[Mobile Upload] Error during photo upload:', error);
+            console.error('[Mobile Upload] Error Name:', error.name);
+            console.error('[Mobile Upload] Error Message:', error.message);
+
+            if (error.name === 'AbortError') {
+                statusElement.textContent = 'Upload timed out. Please try again with a smaller file or better connection.';
+            } else {
+                statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
+            }
+            statusElement.style.color = '#f44336'; // Red
+
+        } finally {
+            mobileUploadBtn.disabled = false;
+            console.log('[Mobile Upload] handleMobilePhotoUpload finished');
+        }
+    }
+
+    // --- IMPROVED: Progress Photo Upload Handler with Mobile-Specific Method ---
     async function handlePhotoUpload(event) {
         event.preventDefault();
         console.log('[Photo Upload Client] handlePhotoUpload triggered.');
+
+        // Check if we're using the mobile upload flow
+        const isMobileFlow = document.getElementById('mobile-upload-section').style.display !== 'none';
+        console.log(`[Photo Upload Client] Using ${isMobileFlow ? 'mobile' : 'standard'} upload flow`);
+
+        // If mobile flow, this should be handled by the mobile upload button handler
+        if (isMobileFlow) {
+            console.log('[Photo Upload Client] Mobile flow detected but standard form submitted - ignoring');
+            return;
+        }
 
         const form = event.target;
         const statusElement = document.getElementById('upload-status');
