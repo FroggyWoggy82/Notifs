@@ -209,14 +209,44 @@ router.post('/:id/complete', async (req, res) => {
         );
         const completionsToday = parseInt(countResult.rows[0].count, 10);
 
-        // 3. Check if target already met - skip this check for counter habits
+        // 3. Check if target already met - skip this check for counter habits and unlimited habits
+        const isUnlimitedHabit = completionsTarget >= 999;
+
+        // For unlimited habits, we'll use a different approach to avoid unique constraint issues
+        if (isUnlimitedHabit) {
+            console.log(`Unlimited habit ${id}: Using direct update approach`);
+            // Just increment the total_completions directly
+            await db.query(
+                'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1',
+                [id]
+            );
+
+            // Get the updated total_completions
+            const totalResult = await db.query(
+                'SELECT total_completions FROM habits WHERE id = $1',
+                [id]
+            );
+            const totalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
+            const calculatedLevel = Math.max(1, Math.floor(totalCompletions / 5) + 1);
+
+            // Return success response
+            return res.status(200).json({
+                message: 'Completion recorded (direct update for unlimited habit)',
+                completions_today: completionsToday + 1,
+                total_completions: totalCompletions,
+                level: calculatedLevel
+            });
+        }
+
+        // For regular habits, check if target already met
         if (!isCounter && completionsToday >= completionsTarget) {
             console.log(`Habit ${id} target (${completionsTarget}) already met for ${todayKey}. No new completion added.`);
             return res.status(409).json({ message: 'Daily completion target already met for this habit.' }); // 409 Conflict
         }
 
+        // We've already handled unlimited habits above, so this code is only for regular and counter habits
         try {
-            // For all habits, insert a completion record
+            // For regular habits, insert a completion record
             console.log(`Habit ${id}: inserting completion record`);
             await db.query(
                 'INSERT INTO habit_completions (habit_id, completion_date) VALUES ($1, $2)',
@@ -270,10 +300,45 @@ router.post('/:id/complete', async (req, res) => {
 
         // Check for unique constraint violation if user clicks very fast
         if (err.code === '23505') { // PostgreSQL unique constraint violation
-            return res.status(409).json({
-                message: 'Completion already recorded for today',
-                error: err.message
-            });
+            // For unlimited habits, we want to allow multiple completions
+            // So instead of returning an error, we'll increment the total_completions directly
+            if (isUnlimitedHabit) {
+                try {
+                    console.log(`Handling unique constraint for unlimited habit ${id} by incrementing total_completions directly`);
+                    await db.query(
+                        'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1 RETURNING total_completions',
+                        [id]
+                    );
+
+                    // Get the updated total_completions
+                    const totalResult = await db.query(
+                        'SELECT total_completions FROM habits WHERE id = $1',
+                        [id]
+                    );
+                    const totalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
+                    const calculatedLevel = Math.max(1, Math.floor(totalCompletions / 5) + 1);
+
+                    // Return success response
+                    return res.status(200).json({
+                        message: 'Completion recorded (direct update)',
+                        completions_today: completionsToday + 1,
+                        total_completions: totalCompletions,
+                        level: calculatedLevel
+                    });
+                } catch (updateError) {
+                    console.error(`Error handling unique constraint for unlimited habit ${id}:`, updateError);
+                    return res.status(500).json({
+                        error: 'Failed to update total completions',
+                        message: updateError.message
+                    });
+                }
+            } else {
+                // For regular habits, return the conflict error
+                return res.status(409).json({
+                    message: 'Completion already recorded for today',
+                    error: err.message
+                });
+            }
         }
 
         // Return a more detailed error message
@@ -285,6 +350,51 @@ router.post('/:id/complete', async (req, res) => {
     }
 });
 
+
+// --- POST /api/habits/:id/update-total - Directly update total_completions ---
+router.post('/:id/update-total', async (req, res) => {
+    const { id } = req.params;
+    const { increment } = req.body || {};
+
+    try {
+        console.log(`Received POST /api/habits/${id}/update-total with increment=${increment}`);
+
+        if (!/^[1-9]\d*$/.test(id)) {
+            return res.status(400).json({ error: 'Invalid habit ID format' });
+        }
+
+        // Validate increment value
+        const incrementValue = parseInt(increment, 10) || 1;
+        if (incrementValue <= 0) {
+            return res.status(400).json({ error: 'Increment value must be positive' });
+        }
+
+        // Update the total_completions directly
+        const result = await db.query(
+            'UPDATE habits SET total_completions = total_completions + $1 WHERE id = $2 RETURNING total_completions',
+            [incrementValue, id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Habit not found' });
+        }
+
+        const totalCompletions = parseInt(result.rows[0].total_completions, 10) || 0;
+        const calculatedLevel = Math.max(1, Math.floor(totalCompletions / 5) + 1);
+
+        console.log(`Direct update to habit ${id} total_completions: ${totalCompletions}, Level: ${calculatedLevel}`);
+
+        res.status(200).json({
+            message: 'Total completions updated successfully',
+            total_completions: totalCompletions,
+            level: calculatedLevel
+        });
+
+    } catch (err) {
+        console.error(`Error updating total_completions for habit ${id}:`, err);
+        res.status(500).json({ error: 'Failed to update total completions' });
+    }
+});
 
 // --- POST /api/habits/:id/update-total - Directly update total_completions ---
 router.post('/:id/update-total', async (req, res) => {

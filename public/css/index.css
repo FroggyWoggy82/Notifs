@@ -610,6 +610,7 @@ textarea {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 .close-button:hover,
 .close-button:focus {
@@ -1021,6 +1022,32 @@ textarea {
 #addHabitBtn {
     /* Use default button styles or customize */
     margin-top: 20px;
+}
+
+/* Style for completions input group */
+.completions-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Style for checkbox container */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Style for unlimited checkbox */
+#habitUnlimitedCompletions,
+#editHabitUnlimitedCompletions {
+    margin: 0;
+}
+
+/* Style for unlimited label */
+.checkbox-container label {
+    font-size: 0.85em;
+    color: #566573;
 }
 
 /* Media query for larger screens */

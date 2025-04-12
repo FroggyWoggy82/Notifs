@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoPrevBtn = document.getElementById('photo-prev-btn');
     const photoNextBtn = document.getElementById('photo-next-btn');
     const deletePhotoBtn = document.getElementById('delete-photo-btn');
+    const toggleComparisonBtn = document.getElementById('toggle-comparison-btn'); // NEW: Toggle comparison button
     const photoReel = document.querySelector('.photo-reel'); // Reel container
     const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
@@ -145,6 +146,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Get container for delegation ---
     const photoSliderContainer = document.querySelector('.photo-slider-container');
+    const gallerySection = document.querySelector('.gallery-section');
+    const photoComparisonSection = document.getElementById('photo-comparison-section');
 
     // --- NEW: Comparison DOM References ---
     const comparisonPhotoSelect1 = document.getElementById('comparison-photo-select-1');
@@ -1808,6 +1811,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Form Submission Listener
         if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
+
+        // Toggle between carousel and comparison views
+        let isComparisonMode = false;
+        if (toggleComparisonBtn) {
+            toggleComparisonBtn.addEventListener('click', () => {
+                isComparisonMode = !isComparisonMode;
+
+                if (isComparisonMode) {
+                    // Switch to comparison view
+                    gallerySection.style.display = 'none';
+                    photoComparisonSection.style.display = 'block';
+                    toggleComparisonBtn.textContent = 'View Photos';
+                    toggleComparisonBtn.title = 'Switch to Photo Gallery';
+                    deletePhotoBtn.disabled = true; // Disable delete button in comparison mode
+                } else {
+                    // Switch back to carousel view
+                    gallerySection.style.display = 'block';
+                    photoComparisonSection.style.display = 'none';
+                    toggleComparisonBtn.textContent = 'Compare';
+                    toggleComparisonBtn.title = 'Toggle Comparison View';
+                    // Re-enable delete button if there are photos
+                    deletePhotoBtn.disabled = (progressPhotosData.length === 0);
+                }
+            });
+        }
 
         // --- NEW: Event Delegation for Slider Buttons ---
         if (photoSliderContainer) {

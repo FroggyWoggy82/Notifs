@@ -68,5 +68,11 @@ module.exports = {
                 throw err;
             });
     },
+    // Get a client from the pool for transactions
+    getClient: async () => {
+        const client = await pool.connect();
+        console.log('Got client from pool for transaction');
+        return client;
+    },
     pool // Export pool if needed elsewhere
 };

@@ -174,4 +174,49 @@ router.post('/:id/complete', (req, res) => {
     HabitController.recordCompletion(req, res);
 });
 
+/**
+ * @swagger
+ * /api/habits/{id}/update-total:
+ *   post:
+ *     summary: Directly update total completions for a habit
+ *     tags: [Habits]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The habit ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               increment:
+ *                 type: integer
+ *                 description: "The amount to increment (default: 1)"
+ *                 default: 1
+ *     responses:
+ *       200:
+ *         description: Total completions updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Habit not found
+ *       500:
+ *         description: Server error
+ */
+// Update total completions directly with cache control headers
+router.post('/:id/update-total', (req, res) => {
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+
+    // Call the controller method
+    HabitController.updateTotalCompletions(req, res);
+});
+
 module.exports = router;

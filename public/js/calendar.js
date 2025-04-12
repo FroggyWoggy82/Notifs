@@ -52,12 +52,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
 
-        // Parse the assigned date
-        const assignedDate = new Date(task.assigned_date);
+        // Parse the assigned date - ensure we're working with just the date part
+        const assignedDateStr = task.assigned_date.split('T')[0];
+
+        // Create date objects with the correct date parts only to avoid timezone issues
+        const [assignedYear, assignedMonth, assignedDay] = assignedDateStr.split('-').map(Number);
+        const assignedDate = new Date(assignedYear, assignedMonth - 1, assignedDay);
+
         if (isNaN(assignedDate.getTime())) {
             console.warn(`Invalid assigned_date for task ${task.id}: ${task.assigned_date}`);
             return null;
         }
+
+        console.log(`[Calendar] Calculating next occurrence for task ${task.id} (${task.title})`);
+        console.log(`[Calendar] Original assigned date: ${assignedDateStr}, parsed as: ${assignedDate.toISOString()}`);
+        console.log(`[Calendar] Original date components: year=${assignedYear}, month=${assignedMonth}, day=${assignedDay}`);
 
         // Get the recurrence interval (default to 1 if not specified)
         const interval = task.recurrence_interval || 1;
@@ -81,6 +90,37 @@ document.addEventListener('DOMContentLoaded', () => {
             default:
                 return null;
         }
+
+        console.log(`[Calendar] Calculated next occurrence date: ${nextDate.toISOString()}`);
+
+        // Validate that the next occurrence is actually in the future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time part for proper date comparison
+
+        if (nextDate < today) {
+            console.error(`[Calendar] Calculated next date ${nextDate.toISOString()} is in the past!`);
+            // Recalculate to ensure it's in the future
+            while (nextDate < today) {
+                switch (task.recurrence_type) {
+                    case 'daily':
+                        nextDate.setDate(nextDate.getDate() + interval);
+                        break;
+                    case 'weekly':
+                        nextDate.setDate(nextDate.getDate() + (interval * 7));
+                        break;
+                    case 'monthly':
+                        nextDate.setMonth(nextDate.getMonth() + interval);
+                        break;
+                    case 'yearly':
+                        nextDate.setFullYear(nextDate.getFullYear() + interval);
+                        break;
+                }
+            }
+            console.log(`[Calendar] Corrected next occurrence date to: ${nextDate.toISOString()}`);
+        }
+
+        // Ensure we're returning a date with the correct time zone handling
+        // This is important for consistent date calculations
 
         return nextDate;
     }
@@ -343,7 +383,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nextOccurrence = calculateNextOccurrence(task);
                 if (nextOccurrence) {
                     const nextDateKey = formatDateKey(nextOccurrence);
-                    return nextDateKey === dateKey;
+                    const matches = nextDateKey === dateKey;
+
+                    if (matches) {
+                        console.log(`[Calendar] Found recurring task for date ${dateKey}: ${task.title} (ID: ${task.id})`);
+                        console.log(`[Calendar] Next occurrence date: ${nextDateKey}`);
+                    }
+
+                    return matches;
                 }
             }
 
@@ -728,10 +775,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    // --- Calendar Refresh Function ---
+    async function refreshCalendar() {
+        try {
+            await fetchTasks(); // Reload tasks
+            renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Re-render calendar
+            console.log('[Calendar] Calendar refreshed successfully');
+
+            // If a date is selected, refresh the task list for that date
+            const selectedDay = document.querySelector('.calendar-day.selected');
+            if (selectedDay) {
+                const dateKey = selectedDay.getAttribute('data-date');
+                if (dateKey) {
+                    const date = new Date(dateKey + 'T00:00:00');
+                    showTasksForDate(date, allTasks);
+                }
+            }
+        } catch (error) {
+            console.error('[Calendar] Error refreshing calendar:', error);
+            updateStatus('Failed to refresh calendar data. Please try again.', true);
+        }
+    }
+
     // --- Initial Load ---
     async function initializeCalendar() {
         await fetchTasks(); // Load tasks first
         renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Then render calendar
+
+        // Set up a periodic refresh to catch any changes made in other tabs/windows
+        setInterval(refreshCalendar, 30000); // Refresh every 30 seconds
     }
 
     initializeCalendar();

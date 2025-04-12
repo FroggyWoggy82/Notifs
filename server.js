@@ -16,7 +16,8 @@ const db = require('./db'); // Required for database connection initialization
 const goalRoutes = require('./routes/goalRoutes'); // New MVC pattern
 const daysSinceRouter = require('./routes/daysSinceRoutes'); // New MVC pattern
 const workoutRoutes = require('./routes/workouts'); // New MVC pattern
-const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern
+// Use the old habits.js file for now until we fully migrate to MVC
+const habitRoutes = require('./routes/habits');
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
 const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern

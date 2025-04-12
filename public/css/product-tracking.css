@@ -192,6 +192,7 @@ button:hover {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .close-button:hover {
@@ -270,11 +271,11 @@ button:hover {
     .content-wrapper {
         padding: 15px;
     }
-    
+
     section {
         padding: 15px;
     }
-    
+
     .modal-content {
         margin: 5% auto;
         width: 95%;

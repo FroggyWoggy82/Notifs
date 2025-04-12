@@ -115,6 +115,14 @@ h1, h2 {
     background-color: #45a049;
 }
 
+.btn-info {
+    background-color: #03dac6; /* Teal to match app theme */
+    color: black; /* Changed from white to black */
+}
+.btn-info:hover {
+    background-color: #00c4b4; /* Slightly darker teal for hover */
+}
+
 /* Added for Complete Workout button success state */
 .success {
     background-color: #4CAF50 !important; /* Green */
@@ -630,6 +638,7 @@ h1, h2 {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 .close-button:hover,
 .close-button:focus {
@@ -1321,7 +1330,7 @@ h1, h2 {
 /* === NEW Photo Comparison Section Styles === */
 #photo-comparison-section {
     /* Inherits padding/background from .progress-photos-section */
-    margin-top: 10px; /* FURTHER REDUCED top margin */
+    margin-top: 15px; /* Slightly increased from 10px since we removed the heading */
     margin-bottom: 10px; /* FURTHER REDUCED bottom margin */
 }
 
@@ -1329,6 +1338,40 @@ h1, h2 {
     display: flex;
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
     justify-content: space-around; /* Space out the dropdowns */
+}
+
+#comparison-images-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px; /* Reduced from 10px to 5px */
+    min-height: 300px;
+    margin: 0 auto;
+    max-width: 100%; /* Increased from 95% to 100% */
+}
+
+#comparison-images-container img {
+    width: 49.5%; /* Slightly increased from 49% */
+    object-fit: contain;
+    background-color: #333;
+    border-radius: 8px;
+    min-height: 300px;
+}
+
+/* Mobile adjustments for comparison view */
+@media screen and (max-width: 600px) {
+    #comparison-images-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    #comparison-images-container img {
+        width: 100%;
+        min-height: 250px;
+    }
+}
+
+.comparison-select-group-container {
+    display: flex;
     align-items: center;
     gap: 15px;
     margin-bottom: 20px;

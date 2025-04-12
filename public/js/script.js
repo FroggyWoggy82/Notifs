@@ -398,25 +398,53 @@ document.addEventListener('DOMContentLoaded', () => {
             return isDateToday(task.due_date);
         }
 
+        // Helper function to check if a task is overdue
+        function isTaskOverdue(task) {
+            if (!task.due_date) return false;
+            try {
+                const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+                    task.due_date.split('T')[0] : task.due_date;
+
+                if (typeof datePart !== 'string' || !datePart.includes('-')) {
+                    return false;
+                }
+
+                const [year, month, day] = datePart.split('-').map(Number);
+
+                if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                    return false;
+                }
+
+                // Check if date is before today
+                return (year < today.getFullYear() ||
+                       (year === today.getFullYear() && month - 1 < today.getMonth()) ||
+                       (year === today.getFullYear() && month - 1 === today.getMonth() && day < today.getDate()));
+            } catch (e) {
+                console.error('Error checking if task is overdue:', task.due_date, e);
+                return false;
+            }
+        }
+
         // Log all tasks for debugging
         console.log('All tasks:', allTasks.map(t => ({
             id: t.id,
             title: t.title,
             due_date: t.due_date,
             is_today: isTaskDueToday(t),
-            is_unassigned: isTaskUnassigned(t)
+            is_unassigned: isTaskUnassigned(t),
+            is_overdue: isTaskOverdue(t)
         })));
 
         // Apply filter
         switch(filterValue) {
             case 'unassigned_today':
-                // Show tasks that are either unassigned OR due today
+                // Show tasks that are either unassigned OR due today OR overdue
                 filteredTasks = allTasks.filter(task => {
                     // Skip completed tasks
                     if (task.is_complete) return false;
 
-                    // Include if unassigned or due today
-                    return isTaskUnassigned(task) || isTaskDueToday(task);
+                    // Include if unassigned, due today, or overdue
+                    return isTaskUnassigned(task) || isTaskDueToday(task) || isTaskOverdue(task);
                 });
                 break;
 
@@ -922,8 +950,9 @@ document.addEventListener('DOMContentLoaded', () => {
         taskItem.style.opacity = '0.7'; // Optimistic UI feedback
 
         try {
-            const response = await fetch(`/api/tasks/${taskId}`, {
-                method: 'PUT',
+            // Use the dedicated toggle-completion endpoint instead of the general update endpoint
+            const response = await fetch(`/api/tasks/${taskId}/toggle-completion`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ is_complete: isComplete })
             });
@@ -1320,13 +1349,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const title = document.getElementById('habitTitle').value;
         const frequency = document.getElementById('habitRecurrenceType').value;
+        const isUnlimited = document.getElementById('habitUnlimitedCompletions').checked;
         const completionsPerDay = document.getElementById('habitCompletionsPerDay').value;
+
+        // Use a very high number (999) for unlimited completions
+        const effectiveCompletions = isUnlimited ? 999 : parseInt(completionsPerDay, 10);
 
         const habitData = {
             title,
             frequency,
             // Only include completions_per_day if frequency is daily
-            completions_per_day: frequency === 'daily' ? parseInt(completionsPerDay, 10) : 1,
+            completions_per_day: frequency === 'daily' ? effectiveCompletions : 1,
             // Add other potential fields like description, goal, etc. later
         };
 
@@ -1622,6 +1655,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errorText = await response.text();
                     console.error(`Error response from server: ${response.status} ${response.statusText}`);
                     console.error('Response body:', errorText);
+
+                    // For unlimited habits, we want to continue even if we get a 409 Conflict
+                    const habit = allHabitsData.find(h => h.id == habitId);
+                    const isUnlimitedHabit = habit && habit.completions_per_day >= 999;
+
+                    if (response.status === 409 && isUnlimitedHabit) {
+                        console.log('Got 409 for unlimited habit, continuing with fallback method');
+                        // Use the fallback method
+                        const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ increment: 1 })
+                        });
+
+                        if (directUpdateResponse.ok) {
+                            const updateData = await directUpdateResponse.json();
+
+                            // Mark the habit as completed
+                            habitElement.classList.add('complete');
+                            console.log('Added complete class to habit element (fallback for unlimited habit)');
+
+                            // Update the level indicator
+                            const levelEl = habitElement.querySelector('.habit-level');
+                            if (levelEl && updateData.level) {
+                                levelEl.textContent = `Level ${updateData.level}`;
+                                levelEl.title = `${updateData.total_completions} total completions`;
+
+                                // Update level class
+                                updateLevelClass(levelEl, updateData.level);
+
+                                console.log(`Updated level to ${updateData.level} (fallback for unlimited habit)`);
+                                habitListStatusDiv.textContent = '';
+                                return; // Exit early
+                            }
+                        }
+                    }
+
                     throw new Error(`Server returned ${response.status}: ${errorText}`);
                 }
 
@@ -1651,6 +1721,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadHabits();
                     return;
                 }
+
+                // Mark the habit as completed
+                habitElement.classList.add('complete');
+                console.log('Added complete class to habit element (primary method)');
 
                 // Update the level indicator with the new level from the server
                 if (responseData && responseData.level !== undefined && responseData.total_completions !== undefined) {
@@ -1709,6 +1783,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.log('Direct update to total_completions successful');
                         const updateData = await directUpdateResponse.json();
 
+                        // Mark the habit as completed
+                        habitElement.classList.add('complete');
+                        console.log('Added complete class to habit element (fallback method)');
+
                         // Update the level indicator with the new level
                         const levelEl = habitElement.querySelector('.habit-level');
                         if (levelEl && updateData.level) {
@@ -1739,6 +1817,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error updating habit completion:', error);
+
+            // Try the fallback method - direct update to total_completions
+            try {
+                console.log('Making direct update to total_completions in database as fallback');
+                const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ increment: 1 })
+                });
+
+                if (directUpdateResponse.ok) {
+                    console.log('Direct update to total_completions succeeded');
+                    const fallbackData = await directUpdateResponse.json();
+
+                    // Update the level indicator with the data from the fallback method
+                    if (fallbackData.level) {
+                        const levelElement = habitElement.querySelector('.habit-level');
+                        if (levelElement) {
+                            levelElement.textContent = `Level ${fallbackData.level}`;
+                            levelElement.title = `${fallbackData.total_completions} total completions`;
+
+                            // Update the level class
+                            levelElement.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+                            let newLevelClass = 'level-1';
+                            if (fallbackData.level >= 10) {
+                                newLevelClass = 'level-10';
+                            } else if (fallbackData.level >= 5) {
+                                newLevelClass = 'level-5';
+                            } else if (fallbackData.level >= 3) {
+                                newLevelClass = 'level-3';
+                            }
+                            levelElement.classList.add(newLevelClass);
+                        }
+                    }
+
+                    habitListStatusDiv.textContent = 'Habit updated successfully.';
+                    habitListStatusDiv.className = 'status success';
+                    return; // Exit the catch block successfully
+                } else {
+                    console.warn('Direct update to total_completions failed:', await directUpdateResponse.text());
+                }
+            } catch (fallbackError) {
+                console.error('Fallback method also failed:', fallbackError);
+            }
+
+            // If we get here, both methods failed
             habitListStatusDiv.textContent = `Error: ${error.message}`;
             habitListStatusDiv.className = 'status error';
             // Revert checkbox? Reloading handles this indirectly.
@@ -1754,6 +1878,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addHabitModal.style.display = 'block';
         addHabitForm.reset(); // Clear form on open
         handleHabitRecurrenceChange(); // Set initial state for completions input
+        handleUnlimitedCompletionsChange(); // Set initial state for unlimited checkbox
     });
 
     closeHabitModalBtn.addEventListener('click', () => {
@@ -1776,6 +1901,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     habitRecurrenceTypeInput.addEventListener('change', handleHabitRecurrenceChange);
+
+    // Handle unlimited completions checkbox
+    function handleUnlimitedCompletionsChange() {
+        const unlimitedCheckbox = document.getElementById('habitUnlimitedCompletions');
+        const completionsInput = document.getElementById('habitCompletionsPerDay');
+
+        // Disable completions input when unlimited is checked
+        completionsInput.disabled = unlimitedCheckbox.checked;
+    }
+    document.getElementById('habitUnlimitedCompletions').addEventListener('change', handleUnlimitedCompletionsChange);
     // --- END NEW ---
 
     // Open and populate the edit habit modal
@@ -1783,7 +1918,15 @@ document.addEventListener('DOMContentLoaded', () => {
         editHabitIdInput.value = habit.id;
         editHabitTitleInput.value = habit.title;
         editHabitRecurrenceTypeInput.value = habit.frequency;
-        editHabitCompletionsPerDayInput.value = habit.completions_per_day;
+
+        // Check if completions_per_day is very high (unlimited)
+        const isUnlimited = habit.completions_per_day >= 999;
+        document.getElementById('editHabitUnlimitedCompletions').checked = isUnlimited;
+
+        // Set the completions per day value
+        editHabitCompletionsPerDayInput.value = isUnlimited ? 1 : habit.completions_per_day;
+        editHabitCompletionsPerDayInput.disabled = isUnlimited;
+
         handleEditHabitRecurrenceChange(); // Show/hide completions input correctly
         editHabitStatusDiv.textContent = ''; // Clear status
         editHabitStatusDiv.className = 'status';
@@ -1799,12 +1942,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const title = editHabitTitleInput.value;
         const frequency = editHabitRecurrenceTypeInput.value;
+        const isUnlimited = document.getElementById('editHabitUnlimitedCompletions').checked;
         const completionsPerDay = editHabitCompletionsPerDayInput.value;
+
+        // Use a very high number (999) for unlimited completions
+        const effectiveCompletions = isUnlimited ? 999 : parseInt(completionsPerDay, 10);
 
         const updatedHabitData = {
             title,
             frequency,
-            completions_per_day: frequency === 'daily' ? parseInt(completionsPerDay, 10) : 1,
+            completions_per_day: frequency === 'daily' ? effectiveCompletions : 1,
         };
 
         try {
@@ -1857,6 +2004,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     editHabitRecurrenceTypeInput.addEventListener('change', handleEditHabitRecurrenceChange);
+
+    // Handle unlimited completions checkbox in EDIT modal
+    function handleEditUnlimitedCompletionsChange() {
+        const unlimitedCheckbox = document.getElementById('editHabitUnlimitedCompletions');
+        const completionsInput = document.getElementById('editHabitCompletionsPerDay');
+
+        // Disable completions input when unlimited is checked
+        completionsInput.disabled = unlimitedCheckbox.checked;
+    }
+    document.getElementById('editHabitUnlimitedCompletions').addEventListener('change', handleEditUnlimitedCompletionsChange);
     // --- END NEW ---
 
     // --- NEW: Open and populate the edit task modal ---
@@ -2038,12 +2195,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Calculate the next occurrence date
-            const assignedDate = new Date(task.assigned_date);
-            const dueDate = task.due_date ? new Date(task.due_date) : null;
+            // Make sure we're working with clean date objects without time components
+            const assignedDateStr = task.assigned_date.split('T')[0];
+            const dueDateStr = task.due_date ? task.due_date.split('T')[0] : null;
+
+            // Create date objects with the correct date parts only
+            // Use YYYY-MM-DD format to avoid timezone issues
+            const [assignedYear, assignedMonth, assignedDay] = assignedDateStr.split('-').map(Number);
+            const assignedDate = new Date(assignedYear, assignedMonth - 1, assignedDay);
+
+            let dueDate = null;
+            if (dueDateStr) {
+                const [dueYear, dueMonth, dueDay] = dueDateStr.split('-').map(Number);
+                dueDate = new Date(dueYear, dueMonth - 1, dueDay);
+            }
+
             const interval = task.recurrence_interval || 1;
 
+            // Create new date objects to avoid modifying the originals
             let nextAssignedDate = new Date(assignedDate);
             let nextDueDate = dueDate ? new Date(dueDate) : null;
+
+            console.log(`Original assigned date: ${assignedDateStr}, parsed as: ${assignedDate.toISOString()}`);
+            if (dueDate) console.log(`Original due date: ${dueDateStr}, parsed as: ${dueDate.toISOString()}`);
 
             // Calculate the next occurrence based on recurrence type
             switch (task.recurrence_type) {
@@ -2066,6 +2240,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 default:
                     console.error('Invalid recurrence type:', task.recurrence_type);
                     return null;
+            }
+
+            console.log(`Calculated next assigned date: ${nextAssignedDate.toISOString()}`);
+            if (nextDueDate) console.log(`Calculated next due date: ${nextDueDate.toISOString()}`);
+
+            // Validate that the next occurrence is actually in the future
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time part for proper date comparison
+
+            if (nextAssignedDate < today) {
+                console.error(`Calculated next date ${nextAssignedDate.toISOString()} is in the past!`);
+                // Recalculate to ensure it's in the future
+                while (nextAssignedDate < today) {
+                    switch (task.recurrence_type) {
+                        case 'daily':
+                            nextAssignedDate.setDate(nextAssignedDate.getDate() + interval);
+                            if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + interval);
+                            break;
+                        case 'weekly':
+                            nextAssignedDate.setDate(nextAssignedDate.getDate() + (interval * 7));
+                            if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
+                            break;
+                        case 'monthly':
+                            nextAssignedDate.setMonth(nextAssignedDate.getMonth() + interval);
+                            if (nextDueDate) nextDueDate.setMonth(nextDueDate.getMonth() + interval);
+                            break;
+                        case 'yearly':
+                            nextAssignedDate.setFullYear(nextAssignedDate.getFullYear() + interval);
+                            if (nextDueDate) nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
+                            break;
+                    }
+                }
+                console.log(`Corrected next assigned date to: ${nextAssignedDate.toISOString()}`);
             }
 
             // Format dates as YYYY-MM-DD
@@ -2124,6 +2331,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateTaskListStatus(`Error fetching task: ${error.message}`, true);
             }
         })();
+    }
+
+    // Helper function to update level class
+    function updateLevelClass(levelElement, level) {
+        levelElement.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+        let newLevelClass = 'level-1';
+        if (level >= 10) {
+            newLevelClass = 'level-10';
+        } else if (level >= 5) {
+            newLevelClass = 'level-5';
+        } else if (level >= 3) {
+            newLevelClass = 'level-3';
+        }
+        levelElement.classList.add(newLevelClass);
+        return newLevelClass;
     }
 
 }); // End DOMContentLoaded

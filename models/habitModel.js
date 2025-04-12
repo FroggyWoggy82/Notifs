@@ -20,7 +20,7 @@ function getTodayDateKey() {
  */
 async function getAllHabits() {
     const todayKey = getTodayDateKey();
-    
+
     const result = await db.query(
         `SELECT
             h.id,
@@ -36,7 +36,7 @@ async function getAllHabits() {
          ORDER BY h.created_at DESC`,
         [todayKey]
     );
-    
+
     return result.rows;
 }
 
@@ -51,12 +51,12 @@ async function createHabit(title, frequency, completionsPerDay) {
     if (!title || title.trim() === '') {
         throw new Error('Habit title cannot be empty');
     }
-    
+
     const validFrequencies = ['daily', 'weekly', 'monthly'];
     if (!frequency || !validFrequencies.includes(frequency)) {
         throw new Error('Invalid frequency specified');
     }
-    
+
     let p_completions = 1;
     if (frequency === 'daily' && completionsPerDay) {
         try {
@@ -66,12 +66,12 @@ async function createHabit(title, frequency, completionsPerDay) {
             p_completions = 1;
         }
     }
-    
+
     const result = await db.query(
         'INSERT INTO habits (title, frequency, completions_per_day) VALUES ($1, $2, $3) RETURNING *',
         [title.trim(), frequency, p_completions]
     );
-    
+
     // Return habit with completions_today = 0 initially
     return { ...result.rows[0], completions_today: 0 };
 }
@@ -88,16 +88,16 @@ async function updateHabit(habitId, title, frequency, completionsPerDay) {
     if (!/^[1-9]\d*$/.test(habitId)) {
         throw new Error('Invalid habit ID format');
     }
-    
+
     if (!title || title.trim() === '') {
         throw new Error('Habit title cannot be empty');
     }
-    
+
     const validFrequencies = ['daily', 'weekly', 'monthly'];
     if (!frequency || !validFrequencies.includes(frequency)) {
         throw new Error('Invalid frequency specified');
     }
-    
+
     let p_completions = 1;
     if (frequency === 'daily' && completionsPerDay) {
         try {
@@ -107,7 +107,7 @@ async function updateHabit(habitId, title, frequency, completionsPerDay) {
             p_completions = 1;
         }
     }
-    
+
     // Get current habit data to preserve completions_today
     const todayKey = getTodayDateKey();
     const currentHabitResult = await db.query(
@@ -120,21 +120,21 @@ async function updateHabit(habitId, title, frequency, completionsPerDay) {
          GROUP BY h.id`,
         [todayKey, habitId]
     );
-    
+
     if (currentHabitResult.rows.length === 0) {
         throw new Error(`Habit with ID ${habitId} not found`);
     }
-    
+
     // Update the habit
     const result = await db.query(
         'UPDATE habits SET title = $1, frequency = $2, completions_per_day = $3 WHERE id = $4 RETURNING *',
         [title.trim(), frequency, p_completions, habitId]
     );
-    
+
     if (result.rowCount === 0) {
         throw new Error(`Habit with ID ${habitId} not found`);
     }
-    
+
     // Return updated habit with completions_today preserved
     return {
         ...result.rows[0],
@@ -151,16 +151,16 @@ async function deleteHabit(habitId) {
     if (!/^[1-9]\d*$/.test(habitId)) {
         throw new Error('Invalid habit ID format');
     }
-    
+
     const result = await db.query(
         'DELETE FROM habits WHERE id = $1 RETURNING id',
         [habitId]
     );
-    
+
     if (result.rowCount === 0) {
         throw new Error(`Habit with ID ${habitId} not found`);
     }
-    
+
     return { id: parseInt(habitId) };
 }
 
@@ -173,71 +173,125 @@ async function recordCompletion(habitId) {
     if (!/^[1-9]\d*$/.test(habitId)) {
         throw new Error('Invalid habit ID format');
     }
-    
+
     const todayKey = getTodayDateKey();
-    const client = await db.getClient();
-    
+
     try {
-        await client.query('BEGIN');
-        
         // 1. Check if the habit exists
-        const habitResult = await client.query(
+        const habitResult = await db.query(
             'SELECT * FROM habits WHERE id = $1',
             [habitId]
         );
-        
+
         if (habitResult.rows.length === 0) {
             throw new Error(`Habit with ID ${habitId} not found`);
         }
-        
+
         // 2. Get current completions for today
-        const completionsResult = await client.query(
+        const completionsResult = await db.query(
             'SELECT COUNT(*) as count FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
             [habitId, todayKey]
         );
-        
+
         const completionsToday = parseInt(completionsResult.rows[0].count, 10);
         const maxCompletions = habitResult.rows[0].completions_per_day;
-        
+
         // 3. Check if we've already reached the max completions for today
-        if (completionsToday >= maxCompletions) {
+        // Skip this check for unlimited habits (completions_per_day >= 999)
+        const isUnlimitedHabit = maxCompletions >= 999;
+
+        if (!isUnlimitedHabit && completionsToday >= maxCompletions) {
             throw new Error(`Maximum completions (${maxCompletions}) already reached for today`);
         }
-        
+
         // 4. Record the completion
-        await client.query(
-            'INSERT INTO habit_completions (habit_id, completion_date) VALUES ($1, $2)',
-            [habitId, todayKey]
-        );
-        
+        try {
+            if (isUnlimitedHabit) {
+                // For unlimited habits, use timestamp to make each record unique
+                const timestamp = new Date().toISOString();
+                await db.query(
+                    'INSERT INTO habit_completions (habit_id, completion_date, created_at) VALUES ($1, $2, $3)',
+                    [habitId, todayKey, timestamp]
+                );
+            } else {
+                // For regular habits
+                await db.query(
+                    'INSERT INTO habit_completions (habit_id, completion_date) VALUES ($1, $2)',
+                    [habitId, todayKey]
+                );
+            }
+        } catch (insertError) {
+            // If there's a unique constraint violation and this is an unlimited habit
+            if (insertError.code === '23505' && isUnlimitedHabit) {
+                console.log(`Handling unique constraint for unlimited habit ${habitId} by incrementing total_completions directly`);
+                // Just continue to the next step (incrementing total_completions)
+            } else {
+                // For other errors or non-unlimited habits, rethrow
+                throw insertError;
+            }
+        }
+
         // 5. Increment the total_completions counter
-        await client.query(
+        await db.query(
             'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1',
             [habitId]
         );
-        
+
         // 6. Get the updated total_completions
-        const totalResult = await client.query(
+        const totalResult = await db.query(
             'SELECT total_completions FROM habits WHERE id = $1',
             [habitId]
         );
-        
+
         const totalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
         const calculatedLevel = Math.max(1, Math.floor(totalCompletions / 5) + 1);
-        
-        await client.query('COMMIT');
-        
+
         return {
             completions_today: completionsToday + 1,
             total_completions: totalCompletions,
             level: calculatedLevel
         };
     } catch (error) {
-        await client.query('ROLLBACK');
+        console.error('Error recording habit completion:', error);
         throw error;
-    } finally {
-        client.release();
     }
+}
+
+/**
+ * Update total completions directly
+ * @param {number} habitId - The habit ID
+ * @param {number} increment - The amount to increment (default: 1)
+ * @returns {Promise<Object>} - Promise resolving to the updated completion data
+ */
+async function updateTotalCompletions(habitId, increment = 1) {
+    if (!/^[1-9]\d*$/.test(habitId)) {
+        throw new Error('Invalid habit ID format');
+    }
+
+    // Validate increment value
+    const incrementValue = parseInt(increment, 10) || 1;
+    if (incrementValue <= 0) {
+        throw new Error('Increment value must be positive');
+    }
+
+    // Update the total_completions directly
+    const result = await db.query(
+        'UPDATE habits SET total_completions = total_completions + $1 WHERE id = $2 RETURNING total_completions',
+        [incrementValue, habitId]
+    );
+
+    if (result.rowCount === 0) {
+        throw new Error(`Habit with ID ${habitId} not found`);
+    }
+
+    const totalCompletions = parseInt(result.rows[0].total_completions, 10) || 0;
+    const calculatedLevel = Math.max(1, Math.floor(totalCompletions / 5) + 1);
+
+    return {
+        message: 'Total completions updated successfully',
+        total_completions: totalCompletions,
+        level: calculatedLevel
+    };
 }
 
 module.exports = {
@@ -245,5 +299,6 @@ module.exports = {
     createHabit,
     updateHabit,
     deleteHabit,
-    recordCompletion
+    recordCompletion,
+    updateTotalCompletions
 };

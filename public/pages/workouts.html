@@ -66,6 +66,7 @@
                     <h2>Progress Photos</h2>
                     <div class="header-buttons">
                         <button id="add-photo-btn" class="btn btn-secondary btn-small">+ Add Photo</button>
+                        <button id="toggle-comparison-btn" class="btn btn-info btn-small" title="Toggle Comparison View">Compare</button>
                         <button id="delete-photo-btn" class="btn btn-danger btn-small" title="Delete Current Photo" disabled>Delete</button>
                     </div>
                 </div>
@@ -93,8 +94,7 @@
              <!-- ===== End Progress Photos Section ===== -->
 
              <!-- ===== NEW Photo Comparison Section ===== -->
-             <div id="photo-comparison-section" class="progress-photos-section">
-                 <h2 style="text-align: center; margin-bottom: 15px;">Photo Comparison</h2>
+             <div id="photo-comparison-section" class="progress-photos-section" style="display: none;">
                  <div class="comparison-controls" style="display: flex; justify-content: space-around; margin-bottom: 15px;">
                      <div class="comparison-select-group">
                          <select id="comparison-photo-select-1" class="comparison-select">
@@ -109,9 +109,9 @@
                          </select>
                      </div>
                  </div>
-                 <div id="comparison-images-container" style="display: flex; justify-content: space-between; gap: 10px; min-height: 200px;"> <!-- Adjust min-height as needed -->
-                     <img id="comparison-image-1" src="" alt="Comparison Photo 1" style="width: 49%; object-fit: contain; background-color: #333; border-radius: 4px;">
-                     <img id="comparison-image-2" src="" alt="Comparison Photo 2" style="width: 49%; object-fit: contain; background-color: #333; border-radius: 4px;">
+                 <div id="comparison-images-container">
+                     <img id="comparison-image-1" src="" alt="Comparison Photo 1">
+                     <img id="comparison-image-2" src="" alt="Comparison Photo 2">
                  </div>
              </div>
              <!-- ===== End Photo Comparison Section ===== -->
