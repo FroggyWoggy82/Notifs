@@ -776,17 +776,43 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
             try {
                 console.log(`[Upload Conversion] Converting ${originalPath} to ${jpgPath}...`);
 
-                // Special handling for JPEG files
-                if (fileExtension === '.jpeg' || req.body.fileType === 'jpeg') {
-                    console.log(`[Upload Conversion] Using special JPEG handling`);
+                // Special handling based on file type and size
+                const isLargeFile = file.size > 1 * 1024 * 1024; // 1MB
+                const isHeifFormat = file.mimetype === 'image/heif' || file.mimetype === 'image/heic' || fileExtension === '.heic';
+                const isJpegFormat = fileExtension === '.jpeg' || req.body.fileType === 'jpeg';
 
-                    // Use a more conservative approach for JPEG files
+                console.log(`[Upload Conversion] File analysis:`, {
+                    isLargeFile,
+                    isHeifFormat,
+                    isJpegFormat,
+                    mimetype: file.mimetype,
+                    extension: fileExtension
+                });
+
+                if (isHeifFormat) {
+                    // Special handling for HEIF/HEIC files (like iPhone Live Photos)
+                    console.log(`[Upload Conversion] Using HEIF/HEIC handling`);
                     await sharp(originalPath)
-                        .jpeg({ quality: 80, progressive: true }) // Lower quality, progressive encoding
+                        .jpeg({ quality: 85, progressive: true })
                         .withMetadata() // Preserve metadata
+                        .toFile(jpgPath);
+                } else if (isJpegFormat) {
+                    // Special handling for JPEG files
+                    console.log(`[Upload Conversion] Using special JPEG handling`);
+                    await sharp(originalPath)
+                        .jpeg({ quality: 80, progressive: true })
+                        .withMetadata() // Preserve metadata
+                        .toFile(jpgPath);
+                } else if (isLargeFile) {
+                    // Special handling for large files
+                    console.log(`[Upload Conversion] Using large file handling`);
+                    await sharp(originalPath)
+                        .resize(1500, 1500, { fit: 'inside', withoutEnlargement: true }) // Resize large images
+                        .jpeg({ quality: 75, progressive: true }) // Lower quality for large files
                         .toFile(jpgPath);
                 } else {
                     // Standard conversion for other files
+                    console.log(`[Upload Conversion] Using standard handling`);
                     await sharp(originalPath)
                         .jpeg({ quality: 85 }) // Standard quality
                         .toFile(jpgPath);
