@@ -1733,9 +1733,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Sending habit data:', JSON.stringify(habitData));
 
         try {
-            // Use our test server instead
+            // Use our standalone server instead
             const timestamp = new Date().getTime();
-            const response = await fetch(`http://localhost:3001/api/habits?_=${timestamp}`, {
+            const response = await fetch(`http://localhost:3002/api/habits?_=${timestamp}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2247,6 +2247,19 @@ document.addEventListener('DOMContentLoaded', () => {
             habitElement.dataset.completed = 'false';
             habitElement.classList.remove('complete');
 
+            // Dispatch a custom event to notify other components (like calendar)
+            const habitUncompletedEvent = new CustomEvent('habitUncompleted', {
+                detail: { habitId }
+            });
+            document.dispatchEvent(habitUncompletedEvent);
+            console.log('Dispatched habitUncompleted event');
+
+            // If we're on the calendar page, refresh it
+            if (typeof window.refreshCalendar === 'function') {
+                console.log('Refreshing calendar after habit uncompletion');
+                window.refreshCalendar();
+            }
+
             // Reset the progress display to show 0/target
             const progressEl = habitElement.querySelector('.habit-progress');
             if (progressEl) {
@@ -2523,6 +2536,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         const checkbox = habitElement.querySelector('.habit-checkbox');
                         if (checkbox) {
                             checkbox.checked = true;
+                        }
+
+                        // Dispatch a custom event to notify other components (like calendar)
+                        const habitCompletedEvent = new CustomEvent('habitCompleted', {
+                            detail: { habitId, result }
+                        });
+                        document.dispatchEvent(habitCompletedEvent);
+                        console.log('Dispatched habitCompleted event');
+
+                        // If we're on the calendar page, refresh it
+                        if (typeof window.refreshCalendar === 'function') {
+                            console.log('Refreshing calendar after habit completion');
+                            window.refreshCalendar();
                         }
                     }
 

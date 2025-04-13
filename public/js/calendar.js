@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editTaskStatus = document.getElementById('edit-task-status');
     const closeEditTaskModalBtn = editTaskModal ? editTaskModal.querySelector('.close-button') : null;
 
-    let currentDate = new Date(); // State for the currently viewed month/year
+    window.currentDate = new Date(); // State for the currently viewed month/year - make globally accessible
     let allTasks = []; // Store fetched tasks
     let allHabits = []; // Store fetched habits
     let habitCompletions = {}; // Store habit completions by date
@@ -111,7 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fetch habits and their completions for a date range
-    async function fetchHabits(year, month) {
+    // Make this function globally accessible so it can be called from calendar-refresh.js
+    window.fetchHabits = async function(year, month) {
         try {
             // Calculate start and end dates for the month view
             // We need to include some days from previous and next months
@@ -131,9 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log(`Fetching habits for date range: ${startDateStr} to ${endDateStr}`);
 
+            console.log(`Making request to /api/habits/completions?startDate=${startDateStr}&endDate=${endDateStr}`);
             const response = await fetch(`/api/habits/completions?startDate=${startDateStr}&endDate=${endDateStr}`);
+
+            console.log('Response status:', response.status);
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
 
             try {
@@ -172,7 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Render the calendar grid for the given month and year
-    async function renderCalendar(year, month) {
+    // Make this function globally accessible so it can be called from calendar-refresh.js
+    window.renderCalendar = async function(year, month) {
         updateStatus("Rendering calendar...", false);
         calendarGridEl.querySelectorAll('.calendar-day').forEach(el => el.remove()); // Clear previous days
         selectedDateTasksEl.style.display = 'none'; // Hide date detail view
@@ -420,10 +428,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isFutureDate = dateObj > today;
 
                 // Filter habits to only show those with completions
+                console.log(`Filtering habits for date ${dateKey}:`, allHabits);
+                console.log(`Completion map for date ${dateKey}:`, completionMap);
+
                 const habitsWithCompletions = allHabits.filter(habit => {
                     const completionCount = completionMap[habit.id] || 0;
+                    console.log(`Habit ${habit.id} (${habit.title}) has ${completionCount} completions`);
                     return completionCount > 0; // Only show habits with at least 1 completion
                 });
+
+                console.log(`Habits with completions for date ${dateKey}:`, habitsWithCompletions);
 
                 // Only show habits for past or current dates and if there are completions
                 if (!isFutureDate && habitsWithCompletions.length > 0) {
