@@ -136,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoPrevBtn = document.getElementById('photo-prev-btn');
     const photoNextBtn = document.getElementById('photo-next-btn');
     const deletePhotoBtn = document.getElementById('delete-photo-btn');
-    const toggleComparisonBtn = document.getElementById('toggle-comparison-btn'); // NEW: Toggle comparison button
     const photoReel = document.querySelector('.photo-reel'); // Reel container
     const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
@@ -146,8 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: Get container for delegation ---
     const photoSliderContainer = document.querySelector('.photo-slider-container');
-    const gallerySection = document.querySelector('.gallery-section');
-    const photoComparisonSection = document.getElementById('photo-comparison-section');
 
     // --- NEW: Comparison DOM References ---
     const comparisonPhotoSelect1 = document.getElementById('comparison-photo-select-1');
@@ -1812,31 +1809,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Form Submission Listener
         if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
 
-        // Toggle between carousel and comparison views
-        let isComparisonMode = false;
-        if (toggleComparisonBtn) {
-            toggleComparisonBtn.addEventListener('click', () => {
-                isComparisonMode = !isComparisonMode;
-
-                if (isComparisonMode) {
-                    // Switch to comparison view
-                    gallerySection.style.display = 'none';
-                    photoComparisonSection.style.display = 'block';
-                    toggleComparisonBtn.textContent = 'View Photos';
-                    toggleComparisonBtn.title = 'Switch to Photo Gallery';
-                    deletePhotoBtn.disabled = true; // Disable delete button in comparison mode
-                } else {
-                    // Switch back to carousel view
-                    gallerySection.style.display = 'block';
-                    photoComparisonSection.style.display = 'none';
-                    toggleComparisonBtn.textContent = 'Compare';
-                    toggleComparisonBtn.title = 'Toggle Comparison View';
-                    // Re-enable delete button if there are photos
-                    deletePhotoBtn.disabled = (progressPhotosData.length === 0);
-                }
-            });
-        }
-
         // --- NEW: Event Delegation for Slider Buttons ---
         if (photoSliderContainer) {
             console.log('[Initialize] Attaching DELEGATED listener to photoSliderContainer');
@@ -2566,6 +2538,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Photo Upload Client] handlePhotoUpload triggered.');
 
         const form = event.target;
+        // --- REVERTED: Use FormData directly from the form ---
+        const formData = new FormData(form);
+        // --- Removed manual construction and appending ---
+
         const statusElement = document.getElementById('upload-status');
         const modal = document.getElementById('photo-upload-modal');
         const submitButton = form.querySelector('button[type="submit"]');
@@ -2577,65 +2553,29 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Get form data for validation
-        const tempFormData = new FormData(form);
-        const dateValue = tempFormData.get('photo-date');
-        const files = tempFormData.getAll('photos');
+        // --- Validate directly from formData ---
+        // Ensure the keys used here ('date', 'photos') match the 'name' attributes in your HTML form inputs
+        const dateValue = formData.get('photo-date'); // Use 'photo-date' to match HTML name attribute
+        const files = formData.getAll('photos');
 
-        // Validate inputs
         if (!dateValue) {
             statusElement.textContent = 'Please select a date.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] Date not found in FormData (using key "photo-date"). Check input name attribute.');
+            console.warn('[Photo Upload Client] Date not found in FormData (using key "photo-date"). Check input name attribute.'); // Updated console log key
             return; // Need a date
         }
-        if (!files || files.length === 0 || !files[0] || files[0].size === 0) {
+        if (!files || files.length === 0 || !files[0] || files[0].size === 0) { // Check if the first file has size > 0
             statusElement.textContent = 'Please select at least one photo.';
             statusElement.style.color = 'orange';
             console.warn('[Photo Upload Client] No files or empty file selected.');
             return;
         }
+        console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
+        // --- End validation ---
 
-        // Show processing status
-        statusElement.textContent = 'Processing image...';
+        statusElement.textContent = 'Uploading...';
         statusElement.style.color = '#03dac6';
         submitButton.disabled = true;
-
-        // Check if we should compress the image (on mobile or large files)
-        const shouldCompress = MobileImageCompressor.isMobileDevice() || files[0].size > MobileImageCompressor.MAX_FILE_SIZE;
-
-        console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
-        console.log(`[Photo Upload Client] File size: ${(files[0].size / 1024).toFixed(1)}KB, compression needed: ${shouldCompress}`);
-
-        // Create a new FormData object for the actual upload
-        const formData = new FormData();
-        formData.append('photo-date', dateValue);
-
-        try {
-            // Process each file (compress if needed)
-            for (const file of files) {
-                let processedFile = file;
-
-                if (shouldCompress) {
-                    statusElement.textContent = 'Compressing image...';
-                    processedFile = await MobileImageCompressor.compressImage(file);
-                    console.log(`[Photo Upload Client] Compression complete: ${(file.size / 1024).toFixed(1)}KB → ${(processedFile.size / 1024).toFixed(1)}KB`);
-                }
-
-                formData.append('photos', processedFile);
-            }
-
-            // Update status to uploading
-            statusElement.textContent = 'Uploading...';
-        } catch (error) {
-            console.error('[Photo Upload Client] Error during image compression:', error);
-            statusElement.textContent = 'Error processing image. Please try again.';
-            statusElement.style.color = '#f44336';
-            submitButton.disabled = false;
-            return;
-        }
-        // --- End validation ---
-        // Status already set to 'Uploading...' in the try block
 
         console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
         let response;

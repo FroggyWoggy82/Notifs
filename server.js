@@ -16,8 +16,7 @@ const db = require('./db'); // Required for database connection initialization
 const goalRoutes = require('./routes/goalRoutes'); // New MVC pattern
 const daysSinceRouter = require('./routes/daysSinceRoutes'); // New MVC pattern
 const workoutRoutes = require('./routes/workouts'); // New MVC pattern
-// Use the old habits.js file for now until we fully migrate to MVC
-const habitRoutes = require('./routes/habits');
+const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern with fixed db.getClient issue
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
 const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
@@ -32,21 +31,43 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Import body-parser explicitly for better control over limits
-const bodyParser = require('body-parser');
+// Middleware to track request IDs and prevent duplicate database connections
+app.use((req, res, next) => {
+    // Generate a unique request ID
+    req.requestId = Date.now() + Math.random().toString(36).substring(2, 15);
+    console.log(`Request ${req.method} ${req.path} started with ID: ${req.requestId}`);
 
-// Configure body-parser with increased limits
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+    // Clear any existing database connections at the start of each request
+    if (global._pgClient) {
+        console.log(`Cleaning up existing database client at request start`);
+        try {
+            global._pgClient.release();
+        } catch (e) {
+            console.error('Error releasing client:', e);
+        }
+        global._pgClient = null;
+    }
 
-// Also set Express limits for backward compatibility
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+    // Add a listener for when the response is finished
+    res.on('finish', () => {
+        console.log(`Request ${req.method} ${req.path} (${req.requestId}) completed with status: ${res.statusCode}`);
+        // Ensure any database connections are released
+        if (global._pgClient) {
+            console.log(`Cleaning up database client for request ${req.requestId}`);
+            try {
+                global._pgClient.release();
+            } catch (e) {
+                console.error('Error releasing client:', e);
+            }
+            global._pgClient = null;
+        }
+    });
 
-// Log middleware configuration
-console.log('[Server Config] Body parser and Express limits set to 50MB');
-console.log('[Server Config] This should allow uploads of files up to 50MB in size');
+    next();
+});
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));

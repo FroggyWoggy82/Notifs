@@ -68,11 +68,55 @@ module.exports = {
                 throw err;
             });
     },
+
     // Get a client from the pool for transactions
     getClient: async () => {
+        // Check if we already have a client for this request
+        if (global._pgClient && global._pgClient._connected) {
+            console.log('Reusing existing database client');
+            return global._pgClient;
+        }
+
+        // If we had a client but it's no longer connected, clean it up
+        if (global._pgClient) {
+            console.log('Previous client exists but may be disconnected, cleaning up');
+            try {
+                global._pgClient = null;
+            } catch (e) {
+                console.error('Error cleaning up old client:', e);
+            }
+        }
+
+        // Create a new client
+        console.log('Creating new database client');
         const client = await pool.connect();
-        console.log('Got client from pool for transaction');
+        global._pgClient = client;
+
+        const originalQuery = client.query;
+        const originalRelease = client.release;
+
+        // Monkey patch the query method to log queries
+        client.query = (...args) => {
+            console.log('CLIENT QUERY:', args[0]);
+            return originalQuery.apply(client, args);
+        };
+
+        // Monkey patch the release method to ensure it's only called once
+        let released = false;
+        client.release = () => {
+            if (!released) {
+                console.log('Releasing database client');
+                released = true;
+                global._pgClient = null;
+                return originalRelease.apply(client);
+            } else {
+                console.log('Client already released, ignoring duplicate release call');
+                return Promise.resolve();
+            }
+        };
+
         return client;
     },
+
     pool // Export pool if needed elsewhere
 };

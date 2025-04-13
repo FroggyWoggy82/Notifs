@@ -156,25 +156,25 @@ async function recordCompletion(req, res) {
 }
 
 /**
- * Update total completions directly
+ * Remove a habit completion
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-async function updateTotalCompletions(req, res) {
+async function removeCompletion(req, res) {
     const { id } = req.params;
-    const { increment } = req.body || {};
 
-    console.log(`Received POST /api/habits/${id}/update-total with increment=${increment}`);
+    if (!/^[1-9]\d*$/.test(id)) {
+        return res.status(400).json({ error: 'Invalid habit ID format' });
+    }
 
     try {
-        const result = await HabitModel.updateTotalCompletions(id, increment);
-        console.log(`Direct update to habit ${id} total_completions: ${result.total_completions}, Level: ${result.level}`);
+        const result = await HabitModel.removeCompletion(id);
+        console.log(`Completion removed for habit ${id}`);
         res.status(200).json(result);
     } catch (error) {
-        console.error(`Error updating total_completions for habit ${id}:`, error);
+        console.error(`Error removing completion for habit ${id}:`, error);
 
-        if (error.message.includes('Invalid habit ID format') ||
-            error.message.includes('must be positive')) {
+        if (error.message.includes('Invalid habit ID format')) {
             return res.status(400).json({ error: error.message });
         }
 
@@ -182,7 +182,18 @@ async function updateTotalCompletions(req, res) {
             return res.status(404).json({ error: error.message });
         }
 
-        res.status(500).json({ error: 'Failed to update total completions' });
+        if (error.message.includes('No completions found')) {
+            return res.status(409).json({
+                message: error.message,
+                error: 'No completions to remove'
+            });
+        }
+
+        res.status(500).json({
+            error: 'Failed to remove completion',
+            message: error.message,
+            details: error.detail || 'No additional details available'
+        });
     }
 }
 
@@ -192,5 +203,5 @@ module.exports = {
     updateHabit,
     deleteHabit,
     recordCompletion,
-    updateTotalCompletions
+    removeCompletion
 };

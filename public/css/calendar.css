@@ -312,7 +312,6 @@
     font-weight: bold;
     cursor: pointer;
     line-height: 1;
-    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .close-button:hover,

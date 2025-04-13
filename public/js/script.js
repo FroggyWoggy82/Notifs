@@ -2,6 +2,8 @@
 let scheduledNotifications = [];
 let deferredPrompt;
 let serviceWorkerRegistration = null;
+let lastAccessDate = localStorage.getItem('lastAccessDate') || null;
+let allHabitsData = []; // Store habits data globally
 
 // Helper to check if a date string (YYYY-MM-DD or ISO) is today
 function isToday(dateString) {
@@ -16,6 +18,23 @@ function isToday(dateString) {
         console.error("Error parsing date:", dateString, e);
         return false;
     }
+}
+
+// Helper to check if the day has changed since last access
+function isDayChanged() {
+    if (!lastAccessDate) return true; // First time access
+
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    // Check if the date has changed
+    const dayChanged = lastAccessDate !== todayString;
+
+    // Update the last access date
+    localStorage.setItem('lastAccessDate', todayString);
+    lastAccessDate = todayString;
+
+    return dayChanged;
 }
 
 // Wrap all DOM operations in DOMContentLoaded
@@ -402,23 +421,16 @@ document.addEventListener('DOMContentLoaded', () => {
         function isTaskOverdue(task) {
             if (!task.due_date) return false;
             try {
+                // Extract just the date part if it's in ISO format
                 const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
                     task.due_date.split('T')[0] : task.due_date;
 
-                if (typeof datePart !== 'string' || !datePart.includes('-')) {
-                    return false;
-                }
-
+                // Parse the date
                 const [year, month, day] = datePart.split('-').map(Number);
+                const dueDate = new Date(year, month - 1, day); // Month is 0-indexed in JS Date
 
-                if (isNaN(year) || isNaN(month) || isNaN(day)) {
-                    return false;
-                }
-
-                // Check if date is before today
-                return (year < today.getFullYear() ||
-                       (year === today.getFullYear() && month - 1 < today.getMonth()) ||
-                       (year === today.getFullYear() && month - 1 === today.getMonth() && day < today.getDate()));
+                // Compare with today's date
+                return dueDate < today;
             } catch (e) {
                 console.error('Error checking if task is overdue:', task.due_date, e);
                 return false;
@@ -431,14 +443,13 @@ document.addEventListener('DOMContentLoaded', () => {
             title: t.title,
             due_date: t.due_date,
             is_today: isTaskDueToday(t),
-            is_unassigned: isTaskUnassigned(t),
-            is_overdue: isTaskOverdue(t)
+            is_unassigned: isTaskUnassigned(t)
         })));
 
         // Apply filter
         switch(filterValue) {
             case 'unassigned_today':
-                // Show tasks that are either unassigned OR due today OR overdue
+                // Show tasks that are unassigned, due today, or overdue
                 filteredTasks = allTasks.filter(task => {
                     // Skip completed tasks
                     if (task.is_complete) return false;
@@ -536,7 +547,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create DOM element for a single task
     function createTaskElement(task) {
         const div = document.createElement('div');
-        div.className = `task-item ${task.is_complete ? 'complete' : ''}`;
+
+        // Check if task is overdue
+        let isOverdue = false;
+        if (!task.is_complete && task.due_date) {
+            try {
+                // Extract just the date part if it's in ISO format
+                const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+                    task.due_date.split('T')[0] : task.due_date;
+
+                // Parse the date
+                const [year, month, day] = datePart.split('-').map(Number);
+                const dueDate = new Date(year, month - 1, day); // Month is 0-indexed in JS Date
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time part for comparison
+
+                // Compare with today's date
+                isOverdue = dueDate < today;
+            } catch (e) {
+                console.error('Error checking if task is overdue:', task.due_date, e);
+            }
+        }
+
+        div.className = `task-item ${task.is_complete ? 'complete' : ''} ${isOverdue ? 'overdue' : ''}`;
         div.setAttribute('data-task-id', task.id);
 
         // Checkbox
@@ -950,9 +983,8 @@ document.addEventListener('DOMContentLoaded', () => {
         taskItem.style.opacity = '0.7'; // Optimistic UI feedback
 
         try {
-            // Use the dedicated toggle-completion endpoint instead of the general update endpoint
-            const response = await fetch(`/api/tasks/${taskId}/toggle-completion`, {
-                method: 'PATCH',
+            const response = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ is_complete: isComplete })
             });
@@ -1164,6 +1196,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Habit Management Functions ---
 
+    // Update habit counter on the server
+    async function updateHabitCounter(habitId, newTitle) {
+        try {
+            // Find the existing habit in our local data to preserve its settings
+            const existingHabit = allHabitsData.find(h => h.id === habitId);
+
+            if (!existingHabit) {
+                console.warn(`Habit ${habitId} not found in local data, using defaults`);
+            }
+
+            const response = await fetch(`/api/habits/${habitId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: newTitle,
+                    // Preserve existing settings or use defaults
+                    frequency: existingHabit ? existingHabit.frequency : 'daily',
+                    completions_per_day: existingHabit ? existingHabit.completions_per_day : 1
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const updatedHabit = await response.json();
+            console.log(`Habit ${habitId} counter reset on server:`, updatedHabit);
+            return updatedHabit;
+        } catch (error) {
+            console.error(`Error resetting habit ${habitId} counter:`, error);
+            throw error;
+        }
+    }
+
     // Load habits from the server
     async function loadHabits() {
         habitListStatusDiv.textContent = 'Loading habits...';
@@ -1174,6 +1242,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const habits = await response.json();
+
+            // Check if day has changed since last access
+            const dayChanged = isDayChanged();
+
+            // If day has changed, reset progress for habits with counters in title
+            if (dayChanged) {
+                console.log('Day has changed, resetting habit progress counters');
+                const updatePromises = [];
+
+                habits.forEach(habit => {
+                    // Check if habit title contains a counter pattern like (5/8)
+                    const counterMatch = habit.title.match(/\((\d+)\/(\d+)\)/);
+                    if (counterMatch) {
+                        // Reset the counter to 0/X
+                        const totalCount = parseInt(counterMatch[2], 10) || 0;
+                        const newTitle = habit.title.replace(/\(\d+\/\d+\)/, `(0/${totalCount})`);
+
+                        // Update the habit title in the local array
+                        habit.title = newTitle;
+                        console.log(`Reset counter for habit: ${habit.title}`);
+
+                        // Create a promise to update the habit on the server
+                        const updatePromise = updateHabitCounter(habit.id, newTitle);
+                        updatePromises.push(updatePromise);
+                    }
+                });
+
+                // Wait for all updates to complete
+                Promise.all(updatePromises)
+                    .then(() => console.log('All habit counters updated on server'))
+                    .catch(err => console.error('Error updating habit counters:', err));
+            }
+
             allHabitsData = habits; // Store habits locally
             displayHabits(habits);
             habitListStatusDiv.textContent = '';
@@ -1199,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             habitElement.dataset.habitId = habit.id; // Store habit ID
 
             // --- Update structure for completions ---
-            const completionsToday = habit.completions_today || 0;
+            let completionsToday = habit.completions_today || 0;
             const completionsTarget = habit.completions_per_day || 1;
 
             // Check if habit title contains a counter pattern like (1/10)
@@ -1218,6 +1319,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const isComplete = hasCounter ?
                 (currentCount >= totalCount) : // For counter habits, only complete when counter reaches max
                 (completionsToday >= completionsTarget); // For regular habits
+
+            // If day has changed, ensure completions_today is reset to 0 for display purposes
+            if (isDayChanged() && !hasCounter) {
+                habit.completions_today = 0;
+                completionsToday = 0;
+            }
 
             // We no longer need progressText since we're showing progress separately
 
@@ -1247,9 +1354,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Determine the appropriate checkbox display
             let checkboxHtml = '';
-            // Check if this is an unlimited habit (completions_per_day >= 999)
-            const isUnlimitedHabit = habit.completions_per_day >= 999;
-
             if (hasCounter) {
                 // For counter habits, show a +1 button if not complete, or a completed +1 button if complete
                 if (isComplete) {
@@ -1263,11 +1367,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="habit-increment-btn" title="Click to add +1">+1</button>
                     </div>`;
                 }
-            } else if (isUnlimitedHabit) {
-                // For unlimited habits, show a +1 button that's always enabled
-                checkboxHtml = `<div class="habit-control-container">
-                    <button class="habit-increment-btn unlimited" title="Click to increment level">+1</button>
-                </div>`;
             } else {
                 // For regular habits, show a normal checkbox
                 checkboxHtml = `<div class="habit-control-container">
@@ -1296,10 +1395,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="habit-progress ${levelClass}" title="Current progress: ${level}/${totalCompletions}">
                             Progress: ${level}/${totalCompletions}
                         </div>
-                    </div>` : ''}
+                    </div>` : `
+                    <div class="habit-progress-container">
+                        <div class="habit-progress level-1" title="Current progress: ${completionsToday}/${completionsTarget}">
+                            Progress: ${completionsToday}/${completionsTarget}
+                        </div>
+                    </div>`}
                     <div class="habit-level-container">
                         <div class="habit-level ${totalLevelClass}" title="${totalCompletionsCount} total completions">
-                            Level ${totalCompletionsCount}
+                            ${totalCompletionsCount} completions
                         </div>
                     </div>
                 </div>
@@ -1326,25 +1430,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const editBtn = habitElement.querySelector('.edit-habit-btn');
 
             // Add appropriate click handler based on habit type
-            if ((hasCounter && !isComplete) || isUnlimitedHabit) {
-                // For counter habits that aren't complete or unlimited habits, use the +1 button
+            if (hasCounter && !isComplete) {
+                // For counter habits that aren't complete, use the +1 button
                 const incrementBtn = habitElement.querySelector('.habit-increment-btn');
                 if (incrementBtn) {
-                    incrementBtn.addEventListener('click', () => handleHabitCheckboxClick(habit.id, true, isUnlimitedHabit));
+                    incrementBtn.addEventListener('click', () => handleHabitCheckboxClick(habit.id, true));
                 }
-            } else if (!hasCounter && !isUnlimitedHabit) {
+            } else if (!hasCounter) {
                 // For regular habits, use the checkbox
                 const checkbox = habitElement.querySelector('.habit-checkbox');
                 if (checkbox) {
-                    checkbox.addEventListener('click', () => handleHabitCheckboxClick(habit.id, checkbox.checked, false));
+                    // Pass the checked state to the handler
+                    checkbox.addEventListener('change', (e) => handleHabitCheckboxClick(habit.id, e.target.checked));
                 }
             }
 
             // Add edit and delete listeners
             deleteBtn.addEventListener('click', () => deleteHabit(habit.id));
             editBtn.addEventListener('click', () => openEditHabitModal(habit)); // Pass the full habit object
-
-
 
             habitListDiv.appendChild(habitElement);
         });
@@ -1359,17 +1462,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const title = document.getElementById('habitTitle').value;
         const frequency = document.getElementById('habitRecurrenceType').value;
-        const isUnlimited = document.getElementById('habitUnlimitedCompletions').checked;
         const completionsPerDay = document.getElementById('habitCompletionsPerDay').value;
-
-        // Use a very high number (999) for unlimited completions
-        const effectiveCompletions = isUnlimited ? 999 : parseInt(completionsPerDay, 10);
 
         const habitData = {
             title,
             frequency,
             // Only include completions_per_day if frequency is daily
-            completions_per_day: frequency === 'daily' ? effectiveCompletions : 1,
+            completions_per_day: frequency === 'daily' ? parseInt(completionsPerDay, 10) : 1,
             // Add other potential fields like description, goal, etc. later
         };
 
@@ -1439,75 +1538,131 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Handle habit checkbox click (record completion)
-    async function handleHabitCheckboxClick(habitId, _isChecked, isUnlimitedHabit = false) {
-        // Note: We're ignoring the isChecked parameter for now and always incrementing.
-        // For simplicity, clicking always attempts to record *one* completion.
-        // The backend should handle logic like not exceeding the target, or decrementing if needed.
+    // Store previous habit levels to restore them when toggling
+    const habitLevels = {};
 
-        console.log(`Checkbox clicked for habit ${habitId}, attempting to record completion. Unlimited: ${isUnlimitedHabit}`);
+    // Helper function to calculate level from total completions
+    // Level is now simply the total completions
+    function calculateLevel(totalCompletions) {
+        return totalCompletions;
+    }
+
+    // Helper function to update level class based on level value
+    function updateLevelClass(element, level) {
+        element.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+        let newLevelClass = 'level-1';
+        if (level >= 10) {
+            newLevelClass = 'level-10';
+        } else if (level >= 5) {
+            newLevelClass = 'level-5';
+        } else if (level >= 3) {
+            newLevelClass = 'level-3';
+        }
+        element.classList.add(newLevelClass);
+    }
+
+    // Handle habit checkbox click (record completion or remove completion)
+    async function handleHabitCheckboxClick(habitId, isChecked) {
+        // Find the habit element
+        const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+        if (!habitElement) {
+            console.error(`Habit element with ID ${habitId} not found`);
+            return;
+        }
+
+        // Get the level indicator element
+        const levelEl = habitElement.querySelector('.habit-level');
+
+        // If the checkbox is being unchecked, remove a completion
+        if (!isChecked) {
+            console.log(`Checkbox unchecked for habit ${habitId}, removing completion.`);
+            habitListStatusDiv.textContent = 'Updating habit...';
+            habitListStatusDiv.className = 'status';
+
+            // Immediately update the UI to show the level decreasing
+            if (levelEl) {
+                // Get the current total completions from the title attribute
+                const titleText = levelEl.title || '0 total completions';
+                const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
+                const currentTotalCompletions = totalCompletionsMatch ? parseInt(totalCompletionsMatch[1], 10) : 0;
+
+                // Store the current total completions before decreasing it
+                habitLevels[habitId] = currentTotalCompletions;
+                console.log(`Stored total completions ${currentTotalCompletions} for habit ${habitId}`);
+
+                // Decrease total completions by 1 and calculate new level
+                const newTotalCompletions = Math.max(0, currentTotalCompletions - 1);
+                const newLevel = calculateLevel(newTotalCompletions);
+
+                // Update the level text immediately
+                levelEl.textContent = `Level ${newLevel}`;
+                levelEl.title = `${newTotalCompletions} total completions`;
+
+                // Update the level class
+                updateLevelClass(levelEl, newLevel);
+
+                console.log(`Updated level to ${newLevel} (${newTotalCompletions} total completions) (immediate UI update)`);
+            }
+
+            try {
+                // Call the uncomplete endpoint
+                const response = await fetch(`/api/habits/${habitId}/uncomplete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errorText}`);
+                }
+
+                // Get the updated data
+                const result = await response.json();
+                console.log(`Completion removed for habit ${habitId}:`, result);
+
+                // Update the level with the actual value from the server
+                if (levelEl && result.total_completions !== undefined) {
+                    // Calculate the level based on total completions
+                    const serverLevel = calculateLevel(result.total_completions);
+
+                    // Log the server response for debugging
+                    console.log(`Server response for habit ${habitId}:`, result);
+
+                    // Update the UI with the server's data - show total completions directly
+                    levelEl.textContent = `${result.total_completions} completions`;
+                    levelEl.title = `${result.total_completions} total completions`;
+                    updateLevelClass(levelEl, serverLevel);
+
+                    console.log(`Updated level from server: ${serverLevel} (${result.total_completions} total completions)`);
+                }
+
+                habitListStatusDiv.textContent = '';
+            } catch (error) {
+                console.error(`Error removing completion for habit ${habitId}:`, error);
+                habitListStatusDiv.textContent = `Error: ${error.message}`;
+                habitListStatusDiv.className = 'status error';
+
+                // Reload habits to ensure UI is in sync with server
+                loadHabits();
+            }
+
+            return;
+        }
+
+        // Only proceed with recording a completion if the checkbox is being checked
+
+        console.log(`Checkbox clicked for habit ${habitId}, attempting to record completion.`);
         habitListStatusDiv.textContent = 'Updating habit...';
         habitListStatusDiv.className = 'status';
 
-        // Find the habit element and check if it has a counter in the title
-        const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+        // Check if it has a counter in the title
         const habitTitleEl = habitElement?.querySelector('.habit-title');
         const habitTitle = habitTitleEl?.textContent || '';
         const counterMatch = habitTitle.match(/\((\d+)\/(\d+)\)/);
 
         try {
-            // Special handling for unlimited habits
-            if (isUnlimitedHabit) {
-                console.log('Handling unlimited habit click');
-
-                // For unlimited habits, we'll use the direct update endpoint
-                const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ increment: 1 })
-                });
-
-                if (directUpdateResponse.ok) {
-                    console.log('Direct update to total_completions successful for unlimited habit');
-                    const updateData = await directUpdateResponse.json();
-
-                    // Add the complete class temporarily for visual feedback
-                    habitElement.classList.add('complete');
-                    console.log('Added complete class to habit element (unlimited habit)');
-
-                    // Remove the complete class after a short delay
-                    setTimeout(() => {
-                        habitElement.classList.remove('complete');
-                        console.log('Removed complete class from unlimited habit');
-
-                        // Force a reload of habits to ensure level is up to date
-                        loadHabits(true); // Pass true to force refresh
-                    }, 500);
-
-                    // Update the level indicator
-                    const levelEl = habitElement.querySelector('.habit-level');
-                    if (levelEl && updateData.level) {
-                        levelEl.textContent = `Level ${updateData.level}`;
-                        levelEl.title = `${updateData.total_completions} total completions`;
-
-                        // Update the level class
-                        updateLevelClass(levelEl, updateData.level);
-                        console.log(`Updated level to ${updateData.level} (unlimited habit)`);
-                    }
-
-                    // Clear status
-                    habitListStatusDiv.textContent = '';
-                    return;
-                } else {
-                    const errorText = await directUpdateResponse.text();
-                    console.error(`Error updating unlimited habit: ${directUpdateResponse.status}`);
-                    console.error('Response body:', errorText);
-                    throw new Error(`Server returned ${directUpdateResponse.status}: ${errorText}`);
-                }
-            }
-
             // Special handling for habits with counters in the title
-            else if (counterMatch && habitTitleEl) {
+            if (counterMatch && habitTitleEl) {
                 const currentCount = parseInt(counterMatch[1], 10) || 0;
                 const totalCount = parseInt(counterMatch[2], 10) || 10;
                 const newCount = Math.min(currentCount + 1, totalCount);
@@ -1536,22 +1691,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update the UI immediately without reloading
                 habitTitleEl.textContent = newTitle;
 
-                // Also make a direct update to total_completions to ensure the level is properly updated
-                console.log(`Making direct update to total_completions for counter habit ${habitId}`);
+                // Also record a completion to increment the total_completions counter
+                // Send isCounterHabit flag to let the server know this is a counter habit
+                console.log(`Sending counter habit completion request for habit ${habitId}`);
                 try {
-                    const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ increment: 1 })
-                    });
-
-                    if (!directUpdateResponse.ok) {
-                        console.warn(`Failed to update total_completions directly: ${directUpdateResponse.status}`);
-                    }
-
-                    // Also record a completion to increment the total_completions counter
-                    // Send isCounterHabit flag to let the server know this is a counter habit
-                    console.log(`Sending counter habit completion request for habit ${habitId}`);
                     const completionResponse = await fetch(`/api/habits/${habitId}/complete`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1563,37 +1706,60 @@ document.addEventListener('DOMContentLoaded', () => {
                         const errorText = await completionResponse.text();
                         console.error(`Error response from server: ${completionResponse.status} ${completionResponse.statusText}`);
                         console.error('Response body:', errorText);
-                        // Don't throw an error here, we'll continue with the direct update data
-                    } else {
-                        // If the completion was successful, update the level indicator
+                        throw new Error(`Server returned ${completionResponse.status}: ${errorText}`);
+                    }
+
+                    // If the completion was successful, update the level indicator
+                    try {
+                        // Log the raw response for debugging
+                        const responseText = await completionResponse.text();
+                        console.log('Raw counter habit response:', responseText);
+
+                        // Try to parse the response as JSON
+                        let completionData;
                         try {
-                            // Get the current level from the server with cache busting
-                            const levelResponse = await fetch(`/api/habits/${habitId}/level?_=${Date.now()}`, {
-                                headers: {
-                                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                                    'Pragma': 'no-cache',
-                                    'Expires': '0'
-                                },
-                                cache: 'reload' // Force reload from network
-                            });
-
-                            if (levelResponse.ok) {
-                                const levelData = await levelResponse.json();
-                                console.log(`Got level data directly: Level ${levelData.level}, Total: ${levelData.total_completions}`);
-
-                                // Find the level element
-                                const levelEl = habitElement.querySelector('.habit-level');
-                                if (levelEl) {
-                                    // Update the level text and tooltip
-                                    levelEl.textContent = `Level ${levelData.level}`;
-                                    levelEl.title = `${levelData.total_completions} total completions`;
-                                    updateLevelClass(levelEl, levelData.level);
-                                    console.log(`Updated level to ${levelData.level} (direct fetch)`);
-                                }
-                            }
-                        } catch (levelError) {
-                            console.warn('Error fetching updated level:', levelError);
+                            completionData = JSON.parse(responseText);
+                            console.log('Parsed counter habit completion response:', completionData);
+                        } catch (parseError) {
+                            console.error('Failed to parse counter response as JSON:', parseError);
+                            console.error('Counter response text was:', responseText);
+                            return;
                         }
+
+                        // Update the level indicator with the new level
+                        if (completionData && completionData.level !== undefined && completionData.total_completions !== undefined) {
+                            console.log(`Updating counter habit level to ${completionData.level} (${completionData.total_completions} completions)`);
+
+                            // Find the level element
+                            const levelEl = habitElement.querySelector('.habit-level');
+                            console.log('Counter habit level element found:', levelEl);
+
+                            if (levelEl) {
+                                // Update the level text and tooltip
+                                levelEl.textContent = `Level ${completionData.level}`;
+                                levelEl.title = `${completionData.total_completions} total completions`;
+                                console.log('Updated counter habit level text to:', levelEl.textContent);
+
+                                // Update the level class
+                                levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+                                let newLevelClass = 'level-1';
+                                if (completionData.level >= 10) {
+                                    newLevelClass = 'level-10';
+                                } else if (completionData.level >= 5) {
+                                    newLevelClass = 'level-5';
+                                } else if (completionData.level >= 3) {
+                                    newLevelClass = 'level-3';
+                                }
+                                levelEl.classList.add(newLevelClass);
+                                console.log('Updated counter habit level class to:', newLevelClass);
+                            } else {
+                                console.warn('Could not find level element for counter habit:', habitId);
+                            }
+                        } else {
+                            console.warn('Counter habit response data missing level or total_completions:', completionData);
+                        }
+                    } catch (error) {
+                        console.warn('Could not parse completion response as JSON:', error);
                     }
                 } catch (error) {
                     console.error('Error making counter habit completion request:', error);
@@ -1618,53 +1784,81 @@ document.addEventListener('DOMContentLoaded', () => {
                     progressEl.classList.add(newLevelClass);
                 }
 
-                // Try to update the level indicator even if the server request failed
-                try {
-                    // Get the current level from the level indicator
-                    const levelEl = habitElement.querySelector('.habit-level');
-                    if (levelEl) {
-                        const currentLevelText = levelEl.textContent || 'Level 0';
-                        const currentLevel = parseInt(currentLevelText.replace('Level ', ''), 10) || 0;
-                        const newLevel = currentLevel + 1;
+                // Immediately update the level indicator
+                const levelEl = habitElement.querySelector('.habit-level');
+                if (levelEl) {
+                    // Check if we have a stored total completions for this habit
+                    let newTotalCompletions;
+                    let newLevel;
 
-                        // Update the level text
-                        levelEl.textContent = `Level ${newLevel}`;
-                        levelEl.title = `${newLevel} total completions`;
-
-                        // Update the level class
-                        levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-                        let newLevelClass = 'level-1';
-                        if (newLevel >= 10) {
-                            newLevelClass = 'level-10';
-                        } else if (newLevel >= 5) {
-                            newLevelClass = 'level-5';
-                        } else if (newLevel >= 3) {
-                            newLevelClass = 'level-3';
-                        }
-                        levelEl.classList.add(newLevelClass);
-
-                        console.log(`Updated level to ${newLevel} (fallback method)`);
-
-                        // Also make a direct update to the database to ensure the level persists
-                        try {
-                            console.log('Making direct update to total_completions in database');
-                            const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ increment: 1 })
-                            });
-
-                            if (directUpdateResponse.ok) {
-                                console.log('Direct update to total_completions successful');
-                            } else {
-                                console.warn('Direct update to total_completions failed:', await directUpdateResponse.text());
-                            }
-                        } catch (updateError) {
-                            console.error('Error making direct update to total_completions:', updateError);
-                        }
+                    if (habitId in habitLevels) {
+                        // Restore the previous total completions
+                        newTotalCompletions = habitLevels[habitId];
+                        console.log(`Restoring total completions ${newTotalCompletions} for habit ${habitId}`);
+                        // Remove the stored value
+                        delete habitLevels[habitId];
+                    } else {
+                        // If no stored value, increment the current total completions
+                        const titleText = levelEl.title || '0 total completions';
+                        const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
+                        const currentTotalCompletions = totalCompletionsMatch ? parseInt(totalCompletionsMatch[1], 10) : 0;
+                        newTotalCompletions = currentTotalCompletions + 1;
+                        console.log(`Incrementing total completions to ${newTotalCompletions} for habit ${habitId}`);
                     }
-                } catch (levelError) {
-                    console.warn('Error updating level indicator:', levelError);
+
+                    // Calculate the new level based on total completions
+                    newLevel = calculateLevel(newTotalCompletions);
+
+                    // Update the level text to show total completions directly
+                    levelEl.textContent = `${newTotalCompletions} completions`;
+                    levelEl.title = `${newTotalCompletions} total completions`;
+
+                    // Update the level class
+                    updateLevelClass(levelEl, newLevel);
+
+                    console.log(`Updated level to ${newLevel} (${newTotalCompletions} total completions) (immediate UI update)`);
+                }
+
+                // Make the server request to record the completion
+                try {
+                    console.log('Sending regular habit completion request for habit', habitId);
+                    const response = await fetch(`/api/habits/${habitId}/complete`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        console.error('Error response from server:', response.status, response.statusText);
+                        const responseBody = await response.text();
+                        console.error('Response body:', responseBody);
+                        throw new Error(`Server returned ${response.status}: ${responseBody}`);
+                    }
+
+                    // Get the updated data from the server
+                    const result = await response.json();
+                    console.log(`Completion recorded for habit ${habitId}:`, result);
+
+                    // Update the level with the actual value from the server
+                    if (levelEl && result.total_completions !== undefined) {
+                        // Calculate the level based on total completions
+                        const serverLevel = calculateLevel(result.total_completions);
+
+                        // Log the server response for debugging
+                        console.log(`Server response for habit ${habitId}:`, result);
+
+                        // Update the UI with the server's data - show total completions directly
+                        levelEl.textContent = `${result.total_completions} completions`;
+                        levelEl.title = `${result.total_completions} total completions`;
+                        updateLevelClass(levelEl, serverLevel);
+
+                        console.log(`Updated level from server: ${serverLevel} (${result.total_completions} total completions)`);
+                    }
+
+                    habitListStatusDiv.textContent = '';
+                } catch (error) {
+                    console.error(`Error updating habit completion:`, error);
+                    habitListStatusDiv.textContent = `Error: ${error.message}`;
+                    habitListStatusDiv.className = 'status error';
                 }
 
                 // We'll update the level indicator when we get the response from the server
@@ -1704,43 +1898,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errorText = await response.text();
                     console.error(`Error response from server: ${response.status} ${response.statusText}`);
                     console.error('Response body:', errorText);
-
-                    // For unlimited habits, we want to continue even if we get a 409 Conflict
-                    const habit = allHabitsData.find(h => h.id == habitId);
-                    const isUnlimitedHabit = habit && habit.completions_per_day >= 999;
-
-                    if (response.status === 409 && isUnlimitedHabit) {
-                        console.log('Got 409 for unlimited habit, continuing with fallback method');
-                        // Use the fallback method
-                        const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ increment: 1 })
-                        });
-
-                        if (directUpdateResponse.ok) {
-                            const updateData = await directUpdateResponse.json();
-
-                            // Mark the habit as completed
-                            habitElement.classList.add('complete');
-                            console.log('Added complete class to habit element (fallback for unlimited habit)');
-
-                            // Update the level indicator
-                            const levelEl = habitElement.querySelector('.habit-level');
-                            if (levelEl && updateData.level) {
-                                levelEl.textContent = `Level ${updateData.level}`;
-                                levelEl.title = `${updateData.total_completions} total completions`;
-
-                                // Update level class
-                                updateLevelClass(levelEl, updateData.level);
-
-                                console.log(`Updated level to ${updateData.level} (fallback for unlimited habit)`);
-                                habitListStatusDiv.textContent = '';
-                                return; // Exit early
-                            }
-                        }
-                    }
-
                     throw new Error(`Server returned ${response.status}: ${errorText}`);
                 }
 
@@ -1770,10 +1927,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadHabits();
                     return;
                 }
-
-                // Mark the habit as completed
-                habitElement.classList.add('complete');
-                console.log('Added complete class to habit element (primary method)');
 
                 // Update the level indicator with the new level from the server
                 if (responseData && responseData.level !== undefined && responseData.total_completions !== undefined) {
@@ -1832,10 +1985,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.log('Direct update to total_completions successful');
                         const updateData = await directUpdateResponse.json();
 
-                        // Mark the habit as completed
-                        habitElement.classList.add('complete');
-                        console.log('Added complete class to habit element (fallback method)');
-
                         // Update the level indicator with the new level
                         const levelEl = habitElement.querySelector('.habit-level');
                         if (levelEl && updateData.level) {
@@ -1866,52 +2015,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error updating habit completion:', error);
-
-            // Try the fallback method - direct update to total_completions
-            try {
-                console.log('Making direct update to total_completions in database as fallback');
-                const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ increment: 1 })
-                });
-
-                if (directUpdateResponse.ok) {
-                    console.log('Direct update to total_completions succeeded');
-                    const fallbackData = await directUpdateResponse.json();
-
-                    // Update the level indicator with the data from the fallback method
-                    if (fallbackData.level) {
-                        const levelElement = habitElement.querySelector('.habit-level');
-                        if (levelElement) {
-                            levelElement.textContent = `Level ${fallbackData.level}`;
-                            levelElement.title = `${fallbackData.total_completions} total completions`;
-
-                            // Update the level class
-                            levelElement.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-                            let newLevelClass = 'level-1';
-                            if (fallbackData.level >= 10) {
-                                newLevelClass = 'level-10';
-                            } else if (fallbackData.level >= 5) {
-                                newLevelClass = 'level-5';
-                            } else if (fallbackData.level >= 3) {
-                                newLevelClass = 'level-3';
-                            }
-                            levelElement.classList.add(newLevelClass);
-                        }
-                    }
-
-                    habitListStatusDiv.textContent = 'Habit updated successfully.';
-                    habitListStatusDiv.className = 'status success';
-                    return; // Exit the catch block successfully
-                } else {
-                    console.warn('Direct update to total_completions failed:', await directUpdateResponse.text());
-                }
-            } catch (fallbackError) {
-                console.error('Fallback method also failed:', fallbackError);
-            }
-
-            // If we get here, both methods failed
             habitListStatusDiv.textContent = `Error: ${error.message}`;
             habitListStatusDiv.className = 'status error';
             // Revert checkbox? Reloading handles this indirectly.
@@ -1927,7 +2030,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addHabitModal.style.display = 'block';
         addHabitForm.reset(); // Clear form on open
         handleHabitRecurrenceChange(); // Set initial state for completions input
-        handleUnlimitedCompletionsChange(); // Set initial state for unlimited checkbox
     });
 
     closeHabitModalBtn.addEventListener('click', () => {
@@ -1950,16 +2052,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     habitRecurrenceTypeInput.addEventListener('change', handleHabitRecurrenceChange);
-
-    // Handle unlimited completions checkbox
-    function handleUnlimitedCompletionsChange() {
-        const unlimitedCheckbox = document.getElementById('habitUnlimitedCompletions');
-        const completionsInput = document.getElementById('habitCompletionsPerDay');
-
-        // Disable completions input when unlimited is checked
-        completionsInput.disabled = unlimitedCheckbox.checked;
-    }
-    document.getElementById('habitUnlimitedCompletions').addEventListener('change', handleUnlimitedCompletionsChange);
     // --- END NEW ---
 
     // Open and populate the edit habit modal
@@ -1967,15 +2059,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editHabitIdInput.value = habit.id;
         editHabitTitleInput.value = habit.title;
         editHabitRecurrenceTypeInput.value = habit.frequency;
-
-        // Check if completions_per_day is very high (unlimited)
-        const isUnlimited = habit.completions_per_day >= 999;
-        document.getElementById('editHabitUnlimitedCompletions').checked = isUnlimited;
-
-        // Set the completions per day value
-        editHabitCompletionsPerDayInput.value = isUnlimited ? 1 : habit.completions_per_day;
-        editHabitCompletionsPerDayInput.disabled = isUnlimited;
-
+        editHabitCompletionsPerDayInput.value = habit.completions_per_day;
         handleEditHabitRecurrenceChange(); // Show/hide completions input correctly
         editHabitStatusDiv.textContent = ''; // Clear status
         editHabitStatusDiv.className = 'status';
@@ -1991,30 +2075,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const title = editHabitTitleInput.value;
         const frequency = editHabitRecurrenceTypeInput.value;
-        const isUnlimited = document.getElementById('editHabitUnlimitedCompletions').checked;
         const completionsPerDay = editHabitCompletionsPerDayInput.value;
 
-        // Use a very high number (999) for unlimited completions
-        const effectiveCompletions = isUnlimited ? 999 : parseInt(completionsPerDay, 10);
-
-        // Check if this is a counter habit by looking for the pattern (X/Y) in the title
-        const counterMatch = title.match(/\((\d+)\/(\d+)\)/);
-        let updatedTitle = title;
-
-        // If this is a counter habit and the completions_per_day is changing, update the counter in the title
-        if (counterMatch && parseInt(counterMatch[2], 10) !== effectiveCompletions) {
-            const currentCount = parseInt(counterMatch[1], 10) || 0;
-            updatedTitle = title.replace(
-                /\((\d+)\/(\d+)\)/,
-                `(${currentCount}/${effectiveCompletions})`
-            );
-            console.log(`Updating counter in title from "${title}" to "${updatedTitle}"`);
-        }
-
         const updatedHabitData = {
-            title: updatedTitle,
+            title,
             frequency,
-            completions_per_day: frequency === 'daily' ? effectiveCompletions : 1,
+            completions_per_day: frequency === 'daily' ? parseInt(completionsPerDay, 10) : 1,
         };
 
         try {
@@ -2035,7 +2101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editHabitStatusDiv.className = 'status success';
             setTimeout(() => {
                 editHabitModal.style.display = 'none'; // Close modal after short delay
-                loadHabits(true); // Reload the habit list with force refresh
+                loadHabits(); // Reload the habit list
             }, 1000);
 
         } catch (error) {
@@ -2067,16 +2133,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     editHabitRecurrenceTypeInput.addEventListener('change', handleEditHabitRecurrenceChange);
-
-    // Handle unlimited completions checkbox in EDIT modal
-    function handleEditUnlimitedCompletionsChange() {
-        const unlimitedCheckbox = document.getElementById('editHabitUnlimitedCompletions');
-        const completionsInput = document.getElementById('editHabitCompletionsPerDay');
-
-        // Disable completions input when unlimited is checked
-        completionsInput.disabled = unlimitedCheckbox.checked;
-    }
-    document.getElementById('editHabitUnlimitedCompletions').addEventListener('change', handleEditUnlimitedCompletionsChange);
     // --- END NEW ---
 
     // --- NEW: Open and populate the edit task modal ---
@@ -2258,29 +2314,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Calculate the next occurrence date
-            // Make sure we're working with clean date objects without time components
-            const assignedDateStr = task.assigned_date.split('T')[0];
-            const dueDateStr = task.due_date ? task.due_date.split('T')[0] : null;
-
-            // Create date objects with the correct date parts only
-            // Use YYYY-MM-DD format to avoid timezone issues
-            const [assignedYear, assignedMonth, assignedDay] = assignedDateStr.split('-').map(Number);
-            const assignedDate = new Date(assignedYear, assignedMonth - 1, assignedDay);
-
-            let dueDate = null;
-            if (dueDateStr) {
-                const [dueYear, dueMonth, dueDay] = dueDateStr.split('-').map(Number);
-                dueDate = new Date(dueYear, dueMonth - 1, dueDay);
-            }
-
+            const assignedDate = new Date(task.assigned_date);
+            const dueDate = task.due_date ? new Date(task.due_date) : null;
             const interval = task.recurrence_interval || 1;
 
-            // Create new date objects to avoid modifying the originals
             let nextAssignedDate = new Date(assignedDate);
             let nextDueDate = dueDate ? new Date(dueDate) : null;
-
-            console.log(`Original assigned date: ${assignedDateStr}, parsed as: ${assignedDate.toISOString()}`);
-            if (dueDate) console.log(`Original due date: ${dueDateStr}, parsed as: ${dueDate.toISOString()}`);
 
             // Calculate the next occurrence based on recurrence type
             switch (task.recurrence_type) {
@@ -2303,39 +2342,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 default:
                     console.error('Invalid recurrence type:', task.recurrence_type);
                     return null;
-            }
-
-            console.log(`Calculated next assigned date: ${nextAssignedDate.toISOString()}`);
-            if (nextDueDate) console.log(`Calculated next due date: ${nextDueDate.toISOString()}`);
-
-            // Validate that the next occurrence is actually in the future
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Reset time part for proper date comparison
-
-            if (nextAssignedDate < today) {
-                console.error(`Calculated next date ${nextAssignedDate.toISOString()} is in the past!`);
-                // Recalculate to ensure it's in the future
-                while (nextAssignedDate < today) {
-                    switch (task.recurrence_type) {
-                        case 'daily':
-                            nextAssignedDate.setDate(nextAssignedDate.getDate() + interval);
-                            if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + interval);
-                            break;
-                        case 'weekly':
-                            nextAssignedDate.setDate(nextAssignedDate.getDate() + (interval * 7));
-                            if (nextDueDate) nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
-                            break;
-                        case 'monthly':
-                            nextAssignedDate.setMonth(nextAssignedDate.getMonth() + interval);
-                            if (nextDueDate) nextDueDate.setMonth(nextDueDate.getMonth() + interval);
-                            break;
-                        case 'yearly':
-                            nextAssignedDate.setFullYear(nextAssignedDate.getFullYear() + interval);
-                            if (nextDueDate) nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
-                            break;
-                    }
-                }
-                console.log(`Corrected next assigned date to: ${nextAssignedDate.toISOString()}`);
             }
 
             // Format dates as YYYY-MM-DD
@@ -2394,21 +2400,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateTaskListStatus(`Error fetching task: ${error.message}`, true);
             }
         })();
-    }
-
-    // Helper function to update level class
-    function updateLevelClass(levelElement, level) {
-        levelElement.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-        let newLevelClass = 'level-1';
-        if (level >= 10) {
-            newLevelClass = 'level-10';
-        } else if (level >= 5) {
-            newLevelClass = 'level-5';
-        } else if (level >= 3) {
-            newLevelClass = 'level-3';
-        }
-        levelElement.classList.add(newLevelClass);
-        return newLevelClass;
     }
 
 }); // End DOMContentLoaded

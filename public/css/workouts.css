@@ -115,14 +115,6 @@ h1, h2 {
     background-color: #45a049;
 }
 
-.btn-info {
-    background-color: #03dac6; /* Teal to match app theme */
-    color: black; /* Changed from white to black */
-}
-.btn-info:hover {
-    background-color: #00c4b4; /* Slightly darker teal for hover */
-}
-
 /* Added for Complete Workout button success state */
 .success {
     background-color: #4CAF50 !important; /* Green */
@@ -638,7 +630,6 @@ h1, h2 {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 .close-button:hover,
 .close-button:focus {
@@ -1211,8 +1202,8 @@ h1, h2 {
 .photo-slider-container {
     position: relative;
     width: 100%;
-    max-width: 500px; /* Increased from 400px for more horizontal space */
-    margin: 15px auto; /* Reduced vertical margin */
+    max-width: 400px; /* Or your desired max width */
+    margin: 20px auto; /* Center the slider */
 }
 
 .photo-viewport {
@@ -1220,14 +1211,13 @@ h1, h2 {
     overflow: hidden; /* Clip the reel */
     border-radius: 8px;
     background-color: #2a2a2a;
-    /* Height will be determined by the aspect ratio of the images */
 }
 
 .photo-reel {
     display: flex; /* Arrange images horizontally */
     /* Width calculated by JS: numPhotos * 100% */
-    height: auto; /* Height determined by image aspect ratio */
-    transition: transform 0.3s ease; /* Smooth transition when changing photos */
+    height: auto; /* Adjust based on image aspect ratios? Or keep fixed like viewport? */
+    /* REMOVED transition: transform 0.5s ease-in-out; */
     /* transform: translateX(0); */ /* Initial position set by JS */
 }
 
@@ -1236,10 +1226,9 @@ h1, h2 {
     flex-shrink: 0; /* Prevent images from shrinking */
     display: block;
     height: auto;
-    aspect-ratio: 1 / 1; /* Changed to square aspect ratio to show more of the image */
+    aspect-ratio: 4 / 3; /* Match viewport aspect ratio */
     object-fit: contain; /* Scale image within bounds */
     background-color: #333; /* Placeholder background */
-    padding: 5px; /* Add some padding around the image */
 }
 
 /* Slider Navigation Buttons (Keep existing styles) */
@@ -1260,8 +1249,6 @@ h1, h2 {
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
-    touch-action: manipulation; /* Improve touch handling */
-    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .slider-nav-btn:hover {
@@ -1279,9 +1266,7 @@ h1, h2 {
 /* Pagination Dots */
 .pagination-dots {
     text-align: center;
-    padding: 8px 0;
-    margin-top: -5px; /* Move dots closer to the image */
-    user-select: none; /* Prevent text selection */
+    padding: 10px 0;
 }
 
 .dot {
@@ -1299,38 +1284,13 @@ h1, h2 {
 .dot:hover {
     background-color: #bbb; /* Active/hover dot color */
 }
-/* Mobile-specific adjustments for photo carousel */
-@media screen and (max-width: 600px) {
-    .photo-slider-container {
-        max-width: 95%; /* Use more screen width on mobile */
-        margin: 10px auto; /* Further reduce margins on mobile */
-    }
-
-    .photo-reel img {
-        aspect-ratio: 3 / 4; /* Taller aspect ratio on mobile to show more of the photo */
-        padding: 2px; /* Smaller padding on mobile */
-    }
-
-    .slider-nav-btn {
-        width: 36px; /* Slightly smaller buttons on mobile */
-        height: 36px;
-        font-size: 18px;
-    }
-
-    .dot {
-        height: 10px; /* Slightly smaller dots on mobile */
-        width: 10px;
-        margin: 0 3px;
-    }
-}
-
 /* === END Main Photo Slider Styles (Redesigned Carousel) === */
 
 
 /* === NEW Photo Comparison Section Styles === */
 #photo-comparison-section {
     /* Inherits padding/background from .progress-photos-section */
-    margin-top: 15px; /* Slightly increased from 10px since we removed the heading */
+    margin-top: 10px; /* FURTHER REDUCED top margin */
     margin-bottom: 10px; /* FURTHER REDUCED bottom margin */
 }
 
@@ -1338,40 +1298,6 @@ h1, h2 {
     display: flex;
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
     justify-content: space-around; /* Space out the dropdowns */
-}
-
-#comparison-images-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 5px; /* Reduced from 10px to 5px */
-    min-height: 300px;
-    margin: 0 auto;
-    max-width: 100%; /* Increased from 95% to 100% */
-}
-
-#comparison-images-container img {
-    width: 49.5%; /* Slightly increased from 49% */
-    object-fit: contain;
-    background-color: #333;
-    border-radius: 8px;
-    min-height: 300px;
-}
-
-/* Mobile adjustments for comparison view */
-@media screen and (max-width: 600px) {
-    #comparison-images-container {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    #comparison-images-container img {
-        width: 100%;
-        min-height: 250px;
-    }
-}
-
-.comparison-select-group-container {
-    display: flex;
     align-items: center;
     gap: 15px;
     margin-bottom: 20px;

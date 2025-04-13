@@ -1,6 +1,7 @@
 /**
  * Fix for habit level not updating correctly when using the +1 button
  * This script adds a cache-busting mechanism and ensures proper level updates
+ * It also changes the display to show total completions instead of level
  */
 
 // Wait for the document to be fully loaded
@@ -10,35 +11,60 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Habit functionality not found on this page, skipping habit-level-fix.js');
         return;
     }
+
+    // Function to update all habit level displays to show total completions
+    function updateHabitLevelDisplays() {
+        const habitLevels = document.querySelectorAll('.habit-level');
+
+        habitLevels.forEach(levelEl => {
+            // Get the current total completions from the title attribute
+            const titleText = levelEl.title || '0 total completions';
+            const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
+
+            if (totalCompletionsMatch) {
+                const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
+                // Update the level text to show total completions
+                levelEl.textContent = `${totalCompletions} completions`;
+                console.log(`Updated habit level display to show total completions: ${totalCompletions}`);
+            } else {
+                // If we can't extract from title, check if the text starts with 'Level '
+                const levelText = levelEl.textContent || '';
+                const levelMatch = levelText.match(/Level (\d+)/);
+                if (levelMatch) {
+                    const level = parseInt(levelMatch[1], 10);
+                    levelEl.textContent = `${level} completions`;
+                    console.log(`Updated habit level display from Level format: ${level}`);
+                }
+            }
+        });
+    }
+
+    // Apply the fix initially and periodically
+    setTimeout(updateHabitLevelDisplays, 1000);
+    setInterval(updateHabitLevelDisplays, 2000);
+
+    // Also update when habits are loaded
+    const originalDisplayHabits = window.displayHabits;
+    if (originalDisplayHabits) {
+        window.displayHabits = function(...args) {
+            const result = originalDisplayHabits.apply(this, args);
+            setTimeout(updateHabitLevelDisplays, 100);
+            return result;
+        };
+    }
     // Override the original loadHabits function to add cache busting
     if (typeof window.originalLoadHabits === 'undefined' && typeof loadHabits === 'function') {
         // Store the original function
         window.originalLoadHabits = loadHabits;
 
         // Replace with our enhanced version
-        window.loadHabits = async function(forceRefresh = false) {
-            habitListStatusDiv.textContent = forceRefresh ? 'Refreshing habits...' : 'Loading habits...';
+        window.loadHabits = async function() {
+            habitListStatusDiv.textContent = 'Loading habits...';
             habitListStatusDiv.className = 'status';
             try {
                 // Add cache-busting query parameter to prevent browser caching
                 const cacheBuster = new Date().getTime();
-                const fetchOptions = {
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    },
-                    // Force reload from server, not from cache
-                    cache: 'no-store'
-                };
-
-                // If forceRefresh is true, add additional cache-busting measures
-                if (forceRefresh) {
-                    console.log('Forcing a complete refresh of habits data');
-                    fetchOptions.cache = 'reload'; // Force reload from network
-                }
-
-                const response = await fetch(`/api/habits?_=${cacheBuster}`, fetchOptions);
+                const response = await fetch(`/api/habits?_=${cacheBuster}`);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -59,6 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Enhanced loadHabits function with cache busting');
     }
 
+    // Add event listener to update displays when checkboxes are clicked
+    document.addEventListener('click', function(event) {
+        // Check if the clicked element is a checkbox inside a habit item
+        if (event.target.type === 'checkbox' && event.target.closest('.habit-item')) {
+            // Wait for the UI to update
+            setTimeout(updateHabitLevelDisplays, 100);
+            setTimeout(updateHabitLevelDisplays, 500);
+            setTimeout(updateHabitLevelDisplays, 1000);
+        }
+    });
+
     // Override the handleHabitCheckboxClick function to ensure level updates correctly
     if (typeof window.originalHandleHabitCheckboxClick === 'undefined' && typeof handleHabitCheckboxClick === 'function') {
         // Store the original function
@@ -66,6 +103,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Replace with our enhanced version
         window.handleHabitCheckboxClick = async function(habitId, isChecked) {
+            // Update the display before making the request
+            setTimeout(updateHabitLevelDisplays, 50);
+
+            // If the checkbox is being unchecked, remove a completion
+            if (!isChecked) {
+                console.log(`Enhanced checkbox unchecked for habit ${habitId}, removing completion.`);
+                habitListStatusDiv.textContent = 'Updating habit...';
+                habitListStatusDiv.className = 'status';
+
+                try {
+                    // Call the uncomplete endpoint with cache busting
+                    const cacheBuster = new Date().getTime();
+                    const response = await fetch(`/api/habits/${habitId}/uncomplete?_=${cacheBuster}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Server returned ${response.status}: ${errorText}`);
+                    }
+
+                    // Get the updated data
+                    const result = await response.json();
+                    console.log(`Enhanced: Completion removed for habit ${habitId}:`, result);
+
+                    // Update the display after getting the server response
+                    setTimeout(updateHabitLevelDisplays, 50);
+
+                    // Reload habits to reflect the changes
+                    loadHabits();
+                    habitListStatusDiv.textContent = '';
+                } catch (error) {
+                    console.error(`Enhanced: Error removing completion for habit ${habitId}:`, error);
+                    habitListStatusDiv.textContent = `Error: ${error.message}`;
+                    habitListStatusDiv.className = 'status error';
+                }
+
+                return;
+            }
+
             console.log(`Enhanced checkbox clicked for habit ${habitId}, attempting to record completion.`);
             habitListStatusDiv.textContent = 'Updating habit...';
             habitListStatusDiv.className = 'status';
@@ -162,9 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (levelEl) {
                             // Update the level text and tooltip
-                            levelEl.textContent = `Level ${responseData.level}`;
+                            levelEl.textContent = `${responseData.total_completions} completions`;
                             levelEl.title = `${responseData.total_completions} total completions`;
-                            console.log('Updated level text to:', levelEl.textContent);
+                            console.log('Updated level text to show total completions:', responseData.total_completions);
+                            console.log('Full server response:', responseData);
+
+                            // Update all habit displays
+                            setTimeout(updateHabitLevelDisplays, 50);
 
                             // Update the level class based on the new level
                             levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
@@ -241,4 +323,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 60000); // Refresh every minute
 
     console.log('Habit level fix script loaded successfully');
+
+    // Run the update immediately
+    setTimeout(updateHabitLevelDisplays, 100);
+    setTimeout(updateHabitLevelDisplays, 500);
+    setTimeout(updateHabitLevelDisplays, 1000);
+    setTimeout(updateHabitLevelDisplays, 2000);
 });
+
+// Also run outside the DOMContentLoaded event in case it already fired
+setTimeout(function() {
+    const habitLevels = document.querySelectorAll('.habit-level');
+    habitLevels.forEach(levelEl => {
+        const titleText = levelEl.title || '0 total completions';
+        const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
+        if (totalCompletionsMatch) {
+            const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
+            levelEl.textContent = `${totalCompletions} completions`;
+            console.log(`Updated habit level display to show total completions: ${totalCompletions}`);
+        } else {
+            // If we can't extract from title, check if the text starts with 'Level '
+            const levelText = levelEl.textContent || '';
+            const levelMatch = levelText.match(/Level (\d+)/);
+            if (levelMatch) {
+                const level = parseInt(levelMatch[1], 10);
+                levelEl.textContent = `${level} completions`;
+                console.log(`Updated habit level display from Level format: ${level}`);
+            }
+        }
+    });
+}, 500);

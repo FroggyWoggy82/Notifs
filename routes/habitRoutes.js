@@ -1,34 +1,30 @@
-/**
- * Habit Routes
- * Defines API endpoints for habits
- */
-
 const express = require('express');
+const HabitModel = require('../models/habitModel'); // Import the habit model
+
 const router = express.Router();
-const HabitController = require('../controllers/habitController');
 
 /**
  * @swagger
  * /api/habits:
  *   get:
- *     summary: Get all habits with today's completion count and total completions
+ *     summary: Get all habits
  *     tags: [Habits]
  *     responses:
  *       200:
- *         description: List of habits
+ *         description: A list of habits
  *       500:
  *         description: Server error
  */
-// Get all habits with cache control headers
-router.get('/', (req, res) => {
-    // Set cache control headers to prevent caching
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
-
-    // Call the controller method
-    HabitController.getAllHabits(req, res);
+router.get('/', async (req, res) => {
+    console.log("Received GET /api/habits request");
+    
+    try {
+        const habits = await HabitModel.getAllHabits();
+        res.status(200).json(habits);
+    } catch (err) {
+        console.error('Error fetching habits:', err);
+        res.status(500).json({ error: 'Failed to fetch habits' });
+    }
 });
 
 /**
@@ -45,18 +41,17 @@ router.get('/', (req, res) => {
  *             type: object
  *             required:
  *               - title
- *               - frequency
  *             properties:
  *               title:
  *                 type: string
- *                 description: The habit title
  *               frequency:
  *                 type: string
  *                 enum: [daily, weekly, monthly]
- *                 description: The habit frequency
+ *                 default: daily
  *               completions_per_day:
  *                 type: integer
- *                 description: The number of completions per day (for daily habits)
+ *                 minimum: 1
+ *                 default: 1
  *     responses:
  *       201:
  *         description: Habit created successfully
@@ -65,7 +60,22 @@ router.get('/', (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/', HabitController.createHabit);
+router.post('/', async (req, res) => {
+    console.log("Received POST /api/habits request", req.body);
+    
+    try {
+        const habit = await HabitModel.createHabit(req.body);
+        res.status(201).json(habit);
+    } catch (err) {
+        console.error('Error creating habit:', err);
+        
+        if (err.message.includes('Title is required')) {
+            return res.status(400).json({ error: err.message });
+        }
+        
+        res.status(500).json({ error: 'Failed to create habit' });
+    }
+});
 
 /**
  * @swagger
@@ -86,20 +96,15 @@ router.post('/', HabitController.createHabit);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - title
- *               - frequency
  *             properties:
  *               title:
  *                 type: string
- *                 description: The habit title
  *               frequency:
  *                 type: string
  *                 enum: [daily, weekly, monthly]
- *                 description: The habit frequency
  *               completions_per_day:
  *                 type: integer
- *                 description: The number of completions per day (for daily habits)
+ *                 minimum: 1
  *     responses:
  *       200:
  *         description: Habit updated successfully
@@ -110,7 +115,27 @@ router.post('/', HabitController.createHabit);
  *       500:
  *         description: Server error
  */
-router.put('/:id', HabitController.updateHabit);
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    console.log(`Received PUT /api/habits/${id} request`, req.body);
+    
+    try {
+        const habit = await HabitModel.updateHabit(id, req.body);
+        res.status(200).json(habit);
+    } catch (err) {
+        console.error(`Error updating habit ${id}:`, err);
+        
+        if (err.message.includes('Invalid habit ID format')) {
+            return res.status(400).json({ error: err.message });
+        }
+        
+        if (err.message.includes('not found')) {
+            return res.status(404).json({ error: err.message });
+        }
+        
+        res.status(500).json({ error: 'Failed to update habit' });
+    }
+});
 
 /**
  * @swagger
@@ -135,7 +160,27 @@ router.put('/:id', HabitController.updateHabit);
  *       500:
  *         description: Server error
  */
-router.delete('/:id', HabitController.deleteHabit);
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    console.log(`Received DELETE /api/habits/${id} request`);
+    
+    try {
+        const result = await HabitModel.deleteHabit(id);
+        res.status(200).json({ message: `Habit ${id} deleted successfully`, id: parseInt(id) });
+    } catch (err) {
+        console.error(`Error deleting habit ${id}:`, err);
+        
+        if (err.message.includes('Invalid habit ID format')) {
+            return res.status(400).json({ error: err.message });
+        }
+        
+        if (err.message.includes('not found')) {
+            return res.status(404).json({ error: err.message });
+        }
+        
+        res.status(500).json({ error: 'Failed to delete habit' });
+    }
+});
 
 /**
  * @swagger
@@ -151,34 +196,65 @@ router.delete('/:id', HabitController.deleteHabit);
  *           type: integer
  *         description: The habit ID
  *     responses:
- *       201:
+ *       200:
  *         description: Completion recorded successfully
  *       400:
  *         description: Invalid input
  *       404:
  *         description: Habit not found
  *       409:
- *         description: Maximum completions reached or already recorded
+ *         description: Daily completion target already met
  *       500:
  *         description: Server error
  */
-// Record a habit completion with cache control headers
-router.post('/:id/complete', (req, res) => {
-    // Set cache control headers to prevent caching
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
+router.post('/:id/complete', async (req, res) => {
+    const { id } = req.params;
+    console.log(`Received POST /api/habits/${id}/complete request`);
+    
+    try {
+        // Use the habit model to record a completion
+        const result = await HabitModel.recordCompletion(id);
+        
+        console.log(`Completion recorded for habit ${id}. New count: ${result.completions_today}, Total: ${result.total_completions}, Level: ${result.level}`);
 
-    // Call the controller method
-    HabitController.recordCompletion(req, res);
+        res.status(200).json({
+            message: 'Completion recorded',
+            completions_today: result.completions_today,
+            total_completions: result.total_completions,
+            level: result.level
+        });
+
+    } catch (err) {
+        console.error(`Error recording completion for habit ${id}:`, err);
+        
+        if (err.message.includes('Invalid habit ID format')) {
+            return res.status(400).json({ error: err.message });
+        }
+        
+        if (err.message.includes('not found')) {
+            return res.status(404).json({ error: err.message });
+        }
+        
+        if (err.message.includes('already reached the max completions')) {
+            return res.status(409).json({ 
+                message: err.message,
+                error: 'Daily completion target already met'
+            });
+        }
+        
+        res.status(500).json({
+            error: 'Failed to record completion',
+            message: err.message,
+            details: err.detail || 'No additional details available'
+        });
+    }
 });
 
 /**
  * @swagger
- * /api/habits/{id}/update-total:
+ * /api/habits/{id}/uncomplete:
  *   post:
- *     summary: Directly update total completions for a habit
+ *     summary: Remove a habit completion
  *     tags: [Habits]
  *     parameters:
  *       - in: path
@@ -187,36 +263,59 @@ router.post('/:id/complete', (req, res) => {
  *         schema:
  *           type: integer
  *         description: The habit ID
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               increment:
- *                 type: integer
- *                 description: "The amount to increment (default: 1)"
- *                 default: 1
  *     responses:
  *       200:
- *         description: Total completions updated successfully
+ *         description: Completion removed successfully
  *       400:
  *         description: Invalid input
  *       404:
  *         description: Habit not found
+ *       409:
+ *         description: No completions to remove
  *       500:
  *         description: Server error
  */
-// Update total completions directly with cache control headers
-router.post('/:id/update-total', (req, res) => {
-    // Set cache control headers to prevent caching
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
+router.post('/:id/uncomplete', async (req, res) => {
+    const { id } = req.params;
+    console.log(`Received POST /api/habits/${id}/uncomplete request`);
+    
+    try {
+        // Use the habit model to remove a completion
+        const result = await HabitModel.removeCompletion(id);
+        
+        console.log(`Completion removed for habit ${id}. New count: ${result.completions_today}, Total: ${result.total_completions}, Level: ${result.level}`);
 
-    // Call the controller method
-    HabitController.updateTotalCompletions(req, res);
+        res.status(200).json({
+            message: 'Completion removed',
+            completions_today: result.completions_today,
+            total_completions: result.total_completions,
+            level: result.level
+        });
+
+    } catch (err) {
+        console.error(`Error removing completion for habit ${id}:`, err);
+        
+        if (err.message.includes('Invalid habit ID format')) {
+            return res.status(400).json({ error: err.message });
+        }
+        
+        if (err.message.includes('not found')) {
+            return res.status(404).json({ error: err.message });
+        }
+        
+        if (err.message.includes('No completions found')) {
+            return res.status(409).json({ 
+                message: err.message,
+                error: 'No completions to remove'
+            });
+        }
+        
+        res.status(500).json({
+            error: 'Failed to remove completion',
+            message: err.message,
+            details: err.detail || 'No additional details available'
+        });
+    }
 });
 
 module.exports = router;

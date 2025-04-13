@@ -64,7 +64,7 @@
             <h2>Task List</h2>
             <div class="task-filter-container">
                 <select id="taskFilter" class="task-filter">
-                    <option value="unassigned_today" selected>Unassigned, Today, & Overdue</option>
+                    <option value="unassigned_today" selected>Unassigned, Today & Overdue</option>
                     <option value="today">Today</option>
                     <option value="week">This Week</option>
                     <option value="month">This Month</option>
@@ -253,13 +253,7 @@
                     </div>
                     <div class="form-group form-group-half" id="habitCompletionsGroup">
                         <label for="habitCompletionsPerDay">Completions per Day:</label>
-                        <div class="completions-input-group">
-                            <input type="number" id="habitCompletionsPerDay" value="1" min="1" step="1" style="width: 60px;">
-                            <div class="checkbox-container">
-                                <input type="checkbox" id="habitUnlimitedCompletions">
-                                <label for="habitUnlimitedCompletions">Unlimited</label>
-                            </div>
-                        </div>
+                        <input type="number" id="habitCompletionsPerDay" value="1" min="1" step="1" style="width: 60px;">
                     </div>
                 </div>
                 <!-- Add goal/streak info later if needed -->
@@ -292,13 +286,7 @@
                     </div>
                     <div class="form-group form-group-half" id="editHabitCompletionsGroup">
                         <label for="editHabitCompletionsPerDay">Completions per Day:</label>
-                        <div class="completions-input-group">
-                            <input type="number" id="editHabitCompletionsPerDay" value="1" min="1" step="1" style="width: 60px;">
-                            <div class="checkbox-container">
-                                <input type="checkbox" id="editHabitUnlimitedCompletions">
-                                <label for="editHabitUnlimitedCompletions">Unlimited</label>
-                            </div>
-                        </div>
+                        <input type="number" id="editHabitCompletionsPerDay" value="1" min="1" step="1" style="width: 60px;">
                     </div>
                 </div>
                 <button type="submit" id="submitEditHabitBtn">Save Changes</button>
@@ -310,7 +298,6 @@
 
     <script src="js/sidebar.js"></script>
     <script src="js/status-bar.js"></script>
-    <script src="js/updateLevelClass.js"></script>
     <script src="js/script.js"></script>
     <script src="js/habit-level-fix.js"></script>
 </body>

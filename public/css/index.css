@@ -301,6 +301,11 @@ textarea {
     border-color: #c8e6c9;
 }
 
+.task-item.overdue {
+    border-left: 4px solid #f44336; /* Red border for overdue tasks */
+    background-color: #ffebee; /* Light red background */
+}
+
 .task-item.complete .task-content .task-title,
 .task-item.complete .task-content .task-description {
     text-decoration: line-through;
@@ -610,7 +615,6 @@ textarea {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 .close-button:hover,
 .close-button:focus {
@@ -838,8 +842,6 @@ textarea {
     background-color: #c0392b; /* Darker red */
 }
 
-
-
 /* Style for completed habits */
 .habit-item.complete {
     background-color: #e8f5e9; /* Light green */
@@ -1013,28 +1015,6 @@ textarea {
     font-size: 18px; /* Match the checkbox checkmark size */
 }
 
-/* Unlimited habit increment button */
-.habit-increment-btn.unlimited {
-    background-color: #26a69a; /* Slightly darker teal */
-    color: white;
-    border-color: #26a69a;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-/* Hover state for unlimited increment button */
-.habit-increment-btn.unlimited:hover {
-    background-color: #00897b; /* Even darker teal on hover */
-    transform: translateY(-1px);
-    box-shadow: 0 3px 5px rgba(0,0,0,0.3);
-}
-
-/* Active state for unlimited increment button */
-.habit-increment-btn.unlimited:active {
-    transform: translateY(0) scale(0.95);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
 /* Disabled state for both controls */
 .habit-checkbox:disabled,
 .habit-increment-btn:disabled {
@@ -1046,32 +1026,6 @@ textarea {
 #addHabitBtn {
     /* Use default button styles or customize */
     margin-top: 20px;
-}
-
-/* Style for completions input group */
-.completions-input-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Style for checkbox container */
-.checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Style for unlimited checkbox */
-#habitUnlimitedCompletions,
-#editHabitUnlimitedCompletions {
-    margin: 0;
-}
-
-/* Style for unlimited label */
-.checkbox-container label {
-    font-size: 0.85em;
-    color: #566573;
 }
 
 /* Media query for larger screens */
