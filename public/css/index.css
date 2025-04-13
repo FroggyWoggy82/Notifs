@@ -47,7 +47,7 @@ button {
     cursor: pointer;
     margin-top: 15px; /* Adjusted margin */
     transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-    display: block; /* Make buttons block level */
+    display: inline-block; /* Changed to inline-block for button groups */
     width: 100%; /* Full width buttons */
     box-sizing: border-box;
     text-align: center;
@@ -65,6 +65,28 @@ button:hover {
 
 button:active {
     transform: scale(0.98); /* Subtle press effect */
+}
+
+/* Button group styles */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.button-group button {
+    flex: 1;
+    margin-top: 0;
+}
+
+/* Secondary button style */
+.secondary-btn {
+    background-color: #95a5a6; /* Lighter gray for secondary actions */
+    color: #ffffff;
+}
+
+.secondary-btn:hover {
+    background-color: #7f8c8d;
 }
 
 /* Specific Button Styles */

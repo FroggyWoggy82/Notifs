@@ -29,7 +29,7 @@ async function getAllHabits() {
             h.completions_per_day,
             h.created_at,
             h.total_completions,
-            COUNT(DISTINCT CASE WHEN hc.completion_date = $1 THEN hc.id ELSE NULL END) AS completions_today
+            COUNT(DISTINCT CASE WHEN hc.completion_date = $1 AND hc.deleted_at IS NULL THEN hc.id ELSE NULL END) AS completions_today
          FROM habits h
          LEFT JOIN habit_completions hc ON h.id = hc.habit_id
          GROUP BY h.id
@@ -153,18 +153,13 @@ async function updateHabit(habitId, titleOrData, frequency, completionsPerDay) {
         }
     }
 
-    // Get a client for transaction
-    const client = await db.getClient();
-
     try {
-        await client.query('BEGIN');
-
         // Get current habit data to preserve completions_today
         const todayKey = getTodayDateKey();
-        const currentHabitResult = await client.query(
+        const currentHabitResult = await db.query(
             `SELECT
                 h.*,
-                COUNT(DISTINCT CASE WHEN hc.completion_date = $1 THEN hc.id ELSE NULL END) AS completions_today
+                COUNT(DISTINCT CASE WHEN hc.completion_date = $1 AND hc.deleted_at IS NULL THEN hc.id ELSE NULL END) AS completions_today
              FROM habits h
              LEFT JOIN habit_completions hc ON h.id = hc.habit_id
              WHERE h.id = $2
@@ -177,7 +172,7 @@ async function updateHabit(habitId, titleOrData, frequency, completionsPerDay) {
         }
 
         // Update the habit
-        const result = await client.query(
+        const result = await db.query(
             'UPDATE habits SET title = $1, frequency = $2, completions_per_day = $3 WHERE id = $4 RETURNING *',
             [typeof title === 'string' ? title.trim() : title, freq, p_completions, habitId]
         );
@@ -198,7 +193,7 @@ async function updateHabit(habitId, titleOrData, frequency, completionsPerDay) {
             updatedHabit.title = updatedHabit.title.replace(/\(\d+\/\d+\)/, `(0/${totalCount})`);
 
             // Update the title in the database
-            await client.query(
+            await db.query(
                 'UPDATE habits SET title = $1 WHERE id = $2',
                 [updatedHabit.title, habitId]
             );
@@ -206,18 +201,14 @@ async function updateHabit(habitId, titleOrData, frequency, completionsPerDay) {
             console.log(`Reset counter for updated habit: ${updatedHabit.title} (no completions today)`);
         }
 
-        await client.query('COMMIT');
-
         // Return updated habit with completions_today preserved
         return {
             ...updatedHabit,
             completions_today: completionsToday
         };
     } catch (error) {
-        await client.query('ROLLBACK');
+        console.error(`Error updating habit ${habitId}:`, error);
         throw error;
-    } finally {
-        client.release();
     }
 }
 
@@ -254,13 +245,10 @@ async function recordCompletion(habitId) {
     }
 
     const todayKey = getTodayDateKey();
-    const client = await db.getClient();
 
     try {
-        await client.query('BEGIN');
-
-        // 1. Check if the habit exists
-        const habitResult = await client.query(
+        // 1. Check if the habit exists and get its details
+        const habitResult = await db.query(
             'SELECT * FROM habits WHERE id = $1',
             [habitId]
         );
@@ -270,7 +258,7 @@ async function recordCompletion(habitId) {
         }
 
         // 2. Get current completions for today
-        const completionsResult = await client.query(
+        const completionsResult = await db.query(
             'SELECT COUNT(*) as count FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
             [habitId, todayKey]
         );
@@ -283,32 +271,57 @@ async function recordCompletion(habitId) {
             throw new Error(`Maximum completions (${maxCompletions}) already reached for today`);
         }
 
-        // 4. Record the completion
-        await client.query(
-            'INSERT INTO habit_completions (habit_id, completion_date) VALUES ($1, $2)',
+        // 4. Check if this habit was previously completed today and then uncompleted
+        // This prevents the level from increasing by 2 when checking/unchecking/checking again
+        const recentCompletionResult = await db.query(
+            `SELECT * FROM habit_completions
+             WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NOT NULL
+             ORDER BY created_at DESC LIMIT 1`,
             [habitId, todayKey]
         );
 
-        // 5. Increment the total_completions counter
-        await client.query(
-            'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1',
-            [habitId]
-        );
+        // If we found a deleted completion from today, we'll reuse it instead of creating a new one
+        if (recentCompletionResult.rows.length > 0) {
+            // Restore the previously deleted completion
+            const completionId = recentCompletionResult.rows[0].id;
+            console.log(`Restoring previously deleted completion ${completionId} for habit ${habitId}`);
 
-        // 6. Get the updated total_completions
-        const totalResult = await client.query(
+            await db.query(
+                'UPDATE habit_completions SET deleted_at = NULL WHERE id = $1',
+                [completionId]
+            );
+
+            // Don't increment total_completions since we're just restoring a previous completion
+            console.log(`Restored completion without incrementing total_completions`);
+        } else {
+            // No previous completion found, create a new one
+            // 5. Record the completion
+            await db.query(
+                'INSERT INTO habit_completions (habit_id, completion_date) VALUES ($1, $2)',
+                [habitId, todayKey]
+            );
+
+            // 6. Increment the total_completions counter
+            await db.query(
+                'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1',
+                [habitId]
+            );
+
+            console.log(`Created new completion and incremented total_completions for habit ${habitId}`);
+        }
+
+        // 7. Get the updated total_completions
+        const totalResult = await db.query(
             'SELECT total_completions FROM habits WHERE id = $1',
             [habitId]
         );
 
         const totalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
-        console.log(`Habit ${habitId} total completions after increment: ${totalCompletions}`);
+        console.log(`Habit ${habitId} total completions: ${totalCompletions}`);
 
         // Level is now simply the total completions
         const calculatedLevel = totalCompletions;
         console.log(`Habit ${habitId} calculated level: ${calculatedLevel}`);
-
-        await client.query('COMMIT');
 
         return {
             completions_today: completionsToday + 1,
@@ -316,10 +329,8 @@ async function recordCompletion(habitId) {
             level: calculatedLevel
         };
     } catch (error) {
-        await client.query('ROLLBACK');
+        console.error(`Error recording completion for habit ${habitId}:`, error);
         throw error;
-    } finally {
-        client.release();
     }
 }
 
@@ -334,13 +345,10 @@ async function removeCompletion(habitId) {
     }
 
     const todayKey = getTodayDateKey();
-    const client = await db.getClient();
 
     try {
-        await client.query('BEGIN');
-
         // 1. Check if the habit exists
-        const habitResult = await client.query(
+        const habitResult = await db.query(
             'SELECT * FROM habits WHERE id = $1',
             [habitId]
         );
@@ -350,8 +358,8 @@ async function removeCompletion(habitId) {
         }
 
         // 2. Get current completions for today
-        const completionsResult = await client.query(
-            'SELECT COUNT(*) as count FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
+        const completionsResult = await db.query(
+            'SELECT COUNT(*) as count FROM habit_completions WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NULL',
             [habitId, todayKey]
         );
 
@@ -362,24 +370,35 @@ async function removeCompletion(habitId) {
             throw new Error(`No completions found for habit ${habitId} today`);
         }
 
-        // 4. Remove the most recent completion for today
-        await client.query(
-            `DELETE FROM habit_completions WHERE id = (
+        // 4. Mark the most recent completion as deleted instead of actually deleting it
+        // This allows us to restore it if the user checks the habit again today
+        const completionResult = await db.query(
+            `UPDATE habit_completions
+             SET deleted_at = NOW()
+             WHERE id = (
                 SELECT id FROM habit_completions
-                WHERE habit_id = $1 AND completion_date = $2
+                WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NULL
                 ORDER BY created_at DESC LIMIT 1
-            )`,
+             )
+             RETURNING id`,
             [habitId, todayKey]
         );
 
+        if (completionResult.rows.length === 0) {
+            throw new Error(`Failed to mark completion as deleted for habit ${habitId}`);
+        }
+
+        const completionId = completionResult.rows[0].id;
+        console.log(`Marked completion ${completionId} as deleted for habit ${habitId}`);
+
         // 5. Decrement the total_completions counter
-        await client.query(
+        await db.query(
             'UPDATE habits SET total_completions = GREATEST(0, total_completions - 1) WHERE id = $1',
             [habitId]
         );
 
         // 6. Get the updated total_completions
-        const totalResult = await client.query(
+        const totalResult = await db.query(
             'SELECT total_completions FROM habits WHERE id = $1',
             [habitId]
         );
@@ -391,19 +410,48 @@ async function removeCompletion(habitId) {
         const calculatedLevel = totalCompletions;
         console.log(`Habit ${habitId} calculated level: ${calculatedLevel}`);
 
-        await client.query('COMMIT');
-
         return {
             completions_today: completionsToday - 1,
             total_completions: totalCompletions,
             level: calculatedLevel
         };
     } catch (error) {
-        await client.query('ROLLBACK');
+        console.error(`Error removing completion for habit ${habitId}:`, error);
         throw error;
-    } finally {
-        client.release();
     }
+}
+
+/**
+ * Update a habit's total completions directly
+ * @param {number} habitId - The habit ID
+ * @param {number} increment - The amount to increment the total completions by
+ * @returns {Promise<Object>} - Promise resolving to the updated habit data
+ */
+async function updateTotalCompletions(habitId, increment) {
+    if (!/^[1-9]\d*$/.test(habitId)) {
+        throw new Error('Invalid habit ID format');
+    }
+
+    // Use a simple query instead of a transaction with getClient
+    const updateResult = await db.query(
+        'UPDATE habits SET total_completions = total_completions + $1 WHERE id = $2 RETURNING id, total_completions',
+        [increment, habitId]
+    );
+
+    if (updateResult.rows.length === 0) {
+        throw new Error(`Habit with ID ${habitId} not found`);
+    }
+
+    const totalCompletions = parseInt(updateResult.rows[0].total_completions, 10) || 0;
+    console.log(`Habit ${habitId} total completions after direct update: ${totalCompletions}`);
+
+    // Level is simply the total completions
+    const calculatedLevel = totalCompletions;
+
+    return {
+        total_completions: totalCompletions,
+        level: calculatedLevel
+    };
 }
 
 module.exports = {
@@ -412,5 +460,6 @@ module.exports = {
     updateHabit,
     deleteHabit,
     recordCompletion,
-    removeCompletion
+    removeCompletion,
+    updateTotalCompletions
 };

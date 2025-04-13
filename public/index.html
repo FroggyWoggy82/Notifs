@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/task-indicators.css">
+    <link rel="stylesheet" href="css/habit-fix.css">
+    <link rel="stylesheet" href="css/habit-increment.css">
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -95,7 +97,10 @@
             <p>Loading habits...</p> <!-- Placeholder -->
         </div>
         <div id="habitListStatus" class="status"></div>
-        <button id="addHabitBtn">Add New Habit</button> <!-- Simple button for now -->
+        <div class="button-group">
+            <button id="addHabitBtn">Add New Habit</button>
+            <button id="resetCountersBtn" class="secondary-btn">Reset Counters</button>
+        </div>
     </section>
     <!-- ===== End Habit List Section ===== -->
 
@@ -300,5 +305,6 @@
     <script src="js/status-bar.js"></script>
     <script src="js/script.js"></script>
     <script src="js/habit-level-fix.js"></script>
+    <script src="js/habit-completion-fix.js"></script>
 </body>
 </html>

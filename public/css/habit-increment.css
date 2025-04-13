@@ -1,0 +1,86 @@
+/* Styling for habit increment buttons */
+
+/* Base style for the increment button */
+.habit-increment-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect */
+.habit-increment-btn:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Active/pressed effect */
+.habit-increment-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Completed button style */
+.habit-increment-btn.completed {
+    background-color: #27ae60;
+    cursor: default;
+}
+
+/* Disabled button style */
+.habit-increment-btn:disabled {
+    opacity: 0.8;
+    cursor: default;
+}
+
+/* Container for the button to ensure proper alignment */
+.habit-control-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+/* Style for habits with multiple completions */
+.habit-item[data-multi-completion="true"] .habit-progress {
+    font-weight: bold;
+}
+
+/* Progress indicator for multi-completion habits */
+.habit-progress-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Make the progress more visible for multi-completion habits */
+.habit-item[data-multi-completion="true"] .habit-progress {
+    background-color: #f1f8ff;
+    border: 1px solid #d1e5f9;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+/* Fix for high target habits like 'Thinking about food' */
+.habit-progress {
+    background-color: #e8f5f0;
+    border: 1px solid #d1e5f9;
+    padding: 4px 12px;
+    border-radius: 12px;
+    min-width: 120px;
+    text-align: center;
+    display: inline-block;
+    color: #2c3e50;
+    font-size: 14px;
+}

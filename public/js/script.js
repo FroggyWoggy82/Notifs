@@ -20,17 +20,34 @@ function isToday(dateString) {
     }
 }
 
-// Helper to check if the day has changed since last access
+// Helper to check if the day has changed since last counter reset
 function isDayChanged() {
-    if (!lastAccessDate) return true; // First time access
+    // Get the last counter reset date from localStorage
+    const lastCounterResetDate = localStorage.getItem('lastCounterResetDate');
 
+    // Get today's date in YYYY-MM-DD format
     const today = new Date();
     const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    // Check if the date has changed
-    const dayChanged = lastAccessDate !== todayString;
+    // If no reset date is stored, or if it's a different day, we should reset
+    if (!lastCounterResetDate) {
+        // First time access, store today's date and return true to trigger reset
+        localStorage.setItem('lastCounterResetDate', todayString);
+        return true;
+    }
 
-    // Update the last access date
+    // Check if the date has changed since last reset
+    const dayChanged = lastCounterResetDate !== todayString;
+
+    // Only update the reset date if the day has actually changed
+    if (dayChanged) {
+        localStorage.setItem('lastCounterResetDate', todayString);
+        console.log(`Day changed from ${lastCounterResetDate} to ${todayString}, will reset counters`);
+    } else {
+        console.log(`Same day as last reset (${todayString}), will not reset counters`);
+    }
+
+    // Also update the general last access date (for other features)
     localStorage.setItem('lastAccessDate', todayString);
     lastAccessDate = todayString;
 
@@ -1196,8 +1213,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Habit Management Functions ---
 
+    // Function to manually reset counter habits (for testing)
+    async function resetCounterHabits() {
+        try {
+            console.log('Manually resetting counter habits...');
+            const updatePromises = [];
+
+            allHabitsData.forEach(habit => {
+                // Check if habit title contains a counter pattern like (5/8)
+                const counterMatch = habit.title.match(/\((\d+)\/(\d+)\)/);
+                if (counterMatch) {
+                    // Reset the counter to 0/X
+                    const totalCount = parseInt(counterMatch[2], 10) || 0;
+                    const newTitle = habit.title.replace(/\(\d+\/\d+\)/, `(0/${totalCount})`);
+
+                    // Update the habit title in the local array
+                    habit.title = newTitle;
+                    console.log(`Reset counter for habit: ${habit.title}`);
+
+                    // For counter habits, set completions_per_day to match the total count
+                    habit.completions_per_day = totalCount;
+
+                    // Create a promise to update the habit on the server
+                    const updatePromise = updateHabitCounter(habit.id, newTitle, totalCount);
+                    updatePromises.push(updatePromise);
+                }
+            });
+
+            // Wait for all updates to complete
+            await Promise.all(updatePromises);
+            console.log('All counter habits reset successfully');
+
+            // Reload habits to refresh the UI
+            loadHabits();
+
+            // Show success message
+            habitListStatusDiv.textContent = 'Counter habits reset successfully';
+            habitListStatusDiv.className = 'status success';
+
+            // Clear the message after 3 seconds
+            setTimeout(() => {
+                habitListStatusDiv.textContent = '';
+                habitListStatusDiv.className = '';
+            }, 3000);
+
+        } catch (error) {
+            console.error('Error resetting counter habits:', error);
+            habitListStatusDiv.textContent = `Error: ${error.message}`;
+            habitListStatusDiv.className = 'status error';
+        }
+    }
+
     // Update habit counter on the server
-    async function updateHabitCounter(habitId, newTitle) {
+    async function updateHabitCounter(habitId, newTitle, completionsPerDay = null) {
         try {
             // Find the existing habit in our local data to preserve its settings
             const existingHabit = allHabitsData.find(h => h.id === habitId);
@@ -1205,6 +1273,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!existingHabit) {
                 console.warn(`Habit ${habitId} not found in local data, using defaults`);
             }
+
+            // Determine completions_per_day value
+            // If completionsPerDay is provided, use it (for counter habits)
+            // Otherwise, preserve the existing value or use default
+            const completions_per_day = completionsPerDay !== null ?
+                completionsPerDay :
+                (existingHabit ? existingHabit.completions_per_day : 1);
+
+            console.log(`Updating habit ${habitId} with title: ${newTitle}, completions_per_day: ${completions_per_day}`);
 
             const response = await fetch(`/api/habits/${habitId}`, {
                 method: 'PUT',
@@ -1215,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     title: newTitle,
                     // Preserve existing settings or use defaults
                     frequency: existingHabit ? existingHabit.frequency : 'daily',
-                    completions_per_day: existingHabit ? existingHabit.completions_per_day : 1
+                    completions_per_day: completions_per_day
                 }),
             });
 
@@ -1263,8 +1340,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         habit.title = newTitle;
                         console.log(`Reset counter for habit: ${habit.title}`);
 
+                        // For counter habits, set completions_per_day to match the total count
+                        // This allows incrementing the counter multiple times per day
+                        habit.completions_per_day = totalCount;
+                        console.log(`Set completions_per_day to ${totalCount} for counter habit: ${habit.title}`);
+
                         // Create a promise to update the habit on the server
-                        const updatePromise = updateHabitCounter(habit.id, newTitle);
+                        const updatePromise = updateHabitCounter(habit.id, newTitle, totalCount);
                         updatePromises.push(updatePromise);
                     }
                 });
@@ -1299,6 +1381,9 @@ document.addEventListener('DOMContentLoaded', () => {
             habitElement.classList.add('habit-item');
             habitElement.dataset.habitId = habit.id; // Store habit ID
 
+            // Set the completed attribute for CSS targeting
+            // This will be used by our CSS to force the visual state
+
             // --- Update structure for completions ---
             let completionsToday = habit.completions_today || 0;
             const completionsTarget = habit.completions_per_day || 1;
@@ -1315,32 +1400,115 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalCount = parseInt(counterMatch[2], 10) || 10;
             }
 
-            // Determine if habit is complete based on counter or regular completions
+            // Determine if habit is complete based on completion target
+            const isHighTarget = !hasCounter && completionsTarget > 100;
             const isComplete = hasCounter ?
                 (currentCount >= totalCount) : // For counter habits, only complete when counter reaches max
-                (completionsToday >= completionsTarget); // For regular habits
+                (isHighTarget ? false : completionsToday >= completionsTarget); // For regular habits, complete when reaching target
+
+            // Special handling for counter habits in the title (like Social Media Rejection (0/8))
+            // These should only be marked complete when the counter reaches the target
+            let finalIsComplete = isComplete;
+            if (hasCounter) {
+                // Override isComplete for counter habits
+                const isCounterComplete = currentCount >= totalCount;
+                finalIsComplete = isCounterComplete;
+                if (!isCounterComplete) {
+                    // If the counter hasn't reached the target, it's not complete
+                    console.log(`Counter habit ${habit.id} (${habit.title}) is not complete: ${currentCount}/${totalCount}`);
+                }
+
+                // For counter habits, update the progress text to show current/total
+                const progressEl = habitElement.querySelector('.habit-progress');
+                if (progressEl) {
+                    progressEl.textContent = `Progress: ${currentCount}/${totalCount}`;
+                    progressEl.title = `Current progress: ${currentCount}/${totalCount}`;
+
+                    // Ensure proper styling for the progress element
+                    progressEl.style.backgroundColor = '#e8f5f0';
+                    progressEl.style.border = '1px solid #d1e5f9';
+                    progressEl.style.padding = '4px 12px';
+                    progressEl.style.borderRadius = '12px';
+                    progressEl.style.minWidth = '120px';
+                    progressEl.style.textAlign = 'center';
+                    progressEl.style.display = 'inline-block';
+                }
+            }
+
+            // Set the data-completed attribute for CSS targeting
+            // This is the key to making the visual state persist
+            if (finalIsComplete) {
+                habitElement.dataset.completed = 'true';
+            } else {
+                habitElement.dataset.completed = 'false';
+            }
+
+            // Mark habits with multiple completions for special styling
+            if (completionsTarget > 1) {
+                habitElement.dataset.multiCompletion = 'true';
+            } else {
+                habitElement.dataset.multiCompletion = 'false';
+            }
+
+            // Mark counter habits for special styling
+            if (hasCounter) {
+                habitElement.dataset.counter = 'true';
+            } else {
+                habitElement.dataset.counter = 'false';
+            }
+
+            // Log the completion status for debugging
+            console.log(`Habit ${habit.id} (${habit.title}) completion status:`, {
+                completionsToday,
+                completionsTarget,
+                isComplete,
+                rawCompletionsToday: habit.completions_today,
+                dataCompleted: habitElement.dataset.completed
+            });
+
+            // Force check the checkbox if we know this habit has been completed today
+            // This ensures the UI matches the server state
+            if (!hasCounter && completionsToday > 0) {
+                // Mark as complete immediately
+                habitElement.classList.add('complete');
+
+                // Also set up a persistent check to ensure the checkbox stays checked
+                const ensureChecked = () => {
+                    const checkbox = habitElement.querySelector('.habit-checkbox');
+                    if (checkbox && !checkbox.checked) {
+                        console.log(`Forcing checkbox checked state for habit ${habit.id}`);
+                        checkbox.checked = true;
+                    }
+                };
+
+                // Check immediately
+                ensureChecked();
+
+                // And also after a delay to catch any race conditions
+                setTimeout(ensureChecked, 100);
+                setTimeout(ensureChecked, 500);
+                setTimeout(ensureChecked, 1000);
+            }
 
             // If day has changed, ensure completions_today is reset to 0 for display purposes
+            // BUT only for UI display, not for determining if the habit is complete
+            let displayCompletionsToday = completionsToday;
             if (isDayChanged() && !hasCounter) {
-                habit.completions_today = 0;
-                completionsToday = 0;
+                displayCompletionsToday = 0;
             }
 
             // We no longer need progressText since we're showing progress separately
 
             // Calculate level based on counter or total completions
             let counterLevel = 1;
-            let counterTotal = 0;
 
             if (hasCounter) {
                 counterLevel = Math.max(1, currentCount);
-                counterTotal = totalCount;
                 console.log(`Habit with counter: ${habit.title}, Current: ${currentCount}, Total: ${totalCount}`);
             }
 
             // Calculate level display - use counter value if available, otherwise use total completions
             const level = hasCounter ? counterLevel : (habit.level || 1);
-            const totalCompletions = hasCounter ? counterTotal : (habit.total_completions || 0);
 
             // Determine level class based on level value
             let levelClass = 'level-1';
@@ -1352,7 +1520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 levelClass = 'level-3';
             }
 
-            // Determine the appropriate checkbox display
+            // Determine the appropriate control display based on completion target
             let checkboxHtml = '';
             if (hasCounter) {
                 // For counter habits, show a +1 button if not complete, or a completed +1 button if complete
@@ -1367,8 +1535,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="habit-increment-btn" title="Click to add +1">+1</button>
                     </div>`;
                 }
+            } else if (completionsTarget > 1) {
+                // For habits with multiple completions per day, show a +1 button instead of checkbox
+                if (isComplete) {
+                    // When completions reached target, show a completed +1 button
+                    checkboxHtml = `<div class="habit-control-container">
+                        <button class="habit-increment-btn completed" title="Completed for today!" disabled>✓</button>
+                    </div>`;
+                } else {
+                    // When not yet complete, show a +1 button
+                    checkboxHtml = `<div class="habit-control-container">
+                        <button class="habit-increment-btn" title="Click to add +1 (${completionsToday}/${completionsTarget})">+1</button>
+                    </div>`;
+                }
             } else {
-                // For regular habits, show a normal checkbox
+                // For regular habits with single completion target, show a normal checkbox
                 checkboxHtml = `<div class="habit-control-container">
                     <input type="checkbox" class="habit-checkbox" title="Mark as done" ${isComplete ? 'checked' : ''}>
                 </div>`;
@@ -1392,13 +1573,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="habit-indicators-row">
                     ${hasCounter ? `
                     <div class="habit-progress-container">
-                        <div class="habit-progress ${levelClass}" title="Current progress: ${level}/${totalCompletions}">
-                            Progress: ${level}/${totalCompletions}
+                        <div class="habit-progress ${levelClass}" title="Current progress: ${currentCount}/${totalCount}">
+                            Progress: ${currentCount}/${totalCount}
                         </div>
                     </div>` : `
                     <div class="habit-progress-container">
-                        <div class="habit-progress level-1" title="Current progress: ${completionsToday}/${completionsTarget}">
-                            Progress: ${completionsToday}/${completionsTarget}
+                        <div class="habit-progress level-1" title="Current progress: ${displayCompletionsToday}/${completionsTarget}">
+                            Progress: ${displayCompletionsToday}/${completionsTarget}
                         </div>
                     </div>`}
                     <div class="habit-level-container">
@@ -1429,19 +1610,59 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteBtn = habitElement.querySelector('.delete-habit-btn');
             const editBtn = habitElement.querySelector('.edit-habit-btn');
 
-            // Add appropriate click handler based on habit type
-            if (hasCounter && !isComplete) {
-                // For counter habits that aren't complete, use the +1 button
+            // Add appropriate click handler based on habit type and completion target
+            if ((hasCounter || completionsTarget > 1) && !isComplete) {
+                // For counter habits or multi-completion habits that aren't complete, use the +1 button
                 const incrementBtn = habitElement.querySelector('.habit-increment-btn');
                 if (incrementBtn) {
-                    incrementBtn.addEventListener('click', () => handleHabitCheckboxClick(habit.id, true));
+                    incrementBtn.addEventListener('click', () => {
+                        console.log(`Increment button clicked for habit ${habit.id}`);
+                        // For counter habits, get the current counter values from the title
+                        if (hasCounter) {
+                            // Get the latest counter values from the title
+                            const habitTitleEl = habitElement.querySelector('.habit-title');
+                            const habitTitle = habitTitleEl ? habitTitleEl.textContent : habit.title;
+                            const counterMatch = habitTitle.match(/\((\d+)\/(\d+)\)/);
+
+                            if (counterMatch) {
+                                const currentCount = parseInt(counterMatch[1], 10) || 0;
+                                const totalCount = parseInt(counterMatch[2], 10) || 0;
+                                console.log(`Counter habit clicked: ${habitTitle}, Current: ${currentCount}, Total: ${totalCount}`);
+                                handleHabitIncrementClick(habit.id, currentCount, totalCount);
+                            } else {
+                                // Fallback to original values if pattern not found
+                                console.log(`Counter habit clicked (fallback): ${habit.title}, Current: ${currentCount}, Total: ${totalCount}`);
+                                handleHabitIncrementClick(habit.id, currentCount, totalCount);
+                            }
+                        } else {
+                            // For regular multi-completion habits
+                            handleHabitIncrementClick(habit.id, completionsToday, completionsTarget);
+                        }
+                    });
                 }
-            } else if (!hasCounter) {
-                // For regular habits, use the checkbox
+            } else if (!hasCounter && completionsTarget === 1) {
+                // For regular habits with single completion target, use the checkbox
                 const checkbox = habitElement.querySelector('.habit-checkbox');
                 if (checkbox) {
-                    // Pass the checked state to the handler
-                    checkbox.addEventListener('change', (e) => handleHabitCheckboxClick(habit.id, e.target.checked));
+                    // Store the current completion state to avoid unnecessary server calls
+                    checkbox.setAttribute('data-completed', isComplete ? 'true' : 'false');
+
+                    // Pass the checked state to the handler, but only if it's a user-initiated change
+                    checkbox.addEventListener('change', (e) => {
+                        const wasCompleted = checkbox.getAttribute('data-completed') === 'true';
+                        const isNowChecked = e.target.checked;
+
+                        // Only proceed if the state is actually changing
+                        if ((isNowChecked && !wasCompleted) || (!isNowChecked && wasCompleted)) {
+                            console.log(`User changed habit ${habit.id} checkbox to ${isNowChecked}`);
+                            handleHabitCheckboxClick(habit.id, isNowChecked);
+
+                            // Update the data attribute to reflect the new state
+                            checkbox.setAttribute('data-completed', isNowChecked ? 'true' : 'false');
+                        } else {
+                            console.log(`Ignoring redundant checkbox change for habit ${habit.id}`);
+                        }
+                    });
                 }
             }
 
@@ -1561,6 +1782,182 @@ document.addEventListener('DOMContentLoaded', () => {
         element.classList.add(newLevelClass);
     }
 
+    // Handle habit increment button click for multi-completion habits
+    async function handleHabitIncrementClick(habitId, currentCompletions, targetCompletions) {
+        console.log(`Incrementing habit ${habitId} from ${currentCompletions} to ${currentCompletions + 1} (target: ${targetCompletions})`);
+
+        // Find the habit element
+        const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+        if (!habitElement) {
+            console.error(`Habit element with ID ${habitId} not found`);
+            return;
+        }
+
+        // Find the progress element and update it
+        const progressEl = habitElement.querySelector('.habit-progress');
+        if (progressEl) {
+            const newCompletions = currentCompletions + 1;
+            progressEl.textContent = `Progress: ${newCompletions}/${targetCompletions}`;
+            progressEl.title = `Current progress: ${newCompletions}/${targetCompletions}`;
+
+            // Check if this is a counter habit by looking at the title
+            const habitTitleEl = habitElement.querySelector('.habit-title');
+            if (habitTitleEl) {
+                const habitTitle = habitTitleEl.textContent || '';
+                const counterMatch = habitTitle.match(/\((\d+)\/(\d+)\)/);
+                if (counterMatch) {
+                    // This is a counter habit, update the counter in the title
+                    const newTitle = habitTitle.replace(/\((\d+)\/(\d+)\)/, `(${newCompletions}/${targetCompletions})`);
+                    habitTitleEl.textContent = newTitle;
+                    console.log(`Updated counter in title: ${newTitle}`);
+
+                    // Update the counter in the habit data
+                    const habitData = allHabitsData.find(h => h.id === habitId);
+                    if (habitData) {
+                        habitData.title = newTitle;
+                        console.log(`Updated habit data title to: ${newTitle}`);
+                    }
+
+                    // Also update the counter on the server
+                    // For counter habits, we need to update both the title and completions_per_day
+                    // to match the total count in the counter
+                    updateHabitCounter(habitId, newTitle, targetCompletions).catch(err => {
+                        console.error(`Error updating habit counter on server:`, err);
+                    });
+                }
+            }
+
+            // Check if this is a high target habit (like 999)
+            const isHighTargetHabit = targetCompletions > 100;
+
+            // For high target habits, ensure proper styling
+            if (isHighTargetHabit) {
+                // Make sure the progress element has proper styling
+                progressEl.style.backgroundColor = '#e8f5f0';
+                progressEl.style.border = '1px solid #d1e5f9';
+                progressEl.style.padding = '4px 12px';
+                progressEl.style.borderRadius = '12px';
+                progressEl.style.minWidth = '120px';
+                progressEl.style.textAlign = 'center';
+                progressEl.style.display = 'inline-block';
+
+                // High target habits should never be marked as complete
+                habitElement.dataset.completed = 'false';
+                habitElement.classList.remove('complete');
+            } else if (newCompletions >= targetCompletions) {
+                // For normal habits, if we've reached the target, mark as complete
+                habitElement.dataset.completed = 'true';
+
+                // For counter habits, use counter-complete class
+                const isCounterHabit = habitElement.dataset.counter === 'true';
+                if (isCounterHabit) {
+                    habitElement.classList.add('counter-complete');
+                    console.log(`Counter habit ${habitId} is now complete: ${newCompletions}/${targetCompletions}`);
+                } else {
+                    habitElement.classList.add('complete');
+                }
+
+                // Replace the +1 button with a completed button
+                const controlContainer = habitElement.querySelector('.habit-control-container');
+                if (controlContainer) {
+                    controlContainer.innerHTML = `<button class="habit-increment-btn completed" title="Completed for today!" disabled>✓</button>`;
+                }
+            }
+        }
+
+        // Find the completion count button
+        const completionsButton = habitElement.querySelector('.habit-level');
+        if (!completionsButton) {
+            console.error(`Could not find completions button for habit ${habitId}`);
+            return;
+        }
+
+        // Get the current completion count
+        const currentText = completionsButton.textContent || '';
+        const countMatch = currentText.match(/(\d+)\s+completions/);
+        const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
+
+        // Increment the count
+        const newCount = currentCount + 1;
+
+        // Update the UI immediately to reflect the new count
+        completionsButton.textContent = `${newCount} completions`;
+        completionsButton.title = `${newCount} total completions`;
+
+        // Update the level class
+        completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+        let newLevelClass = 'level-1';
+        if (newCount >= 10) {
+            newLevelClass = 'level-10';
+        } else if (newCount >= 5) {
+            newLevelClass = 'level-5';
+        } else if (newCount >= 3) {
+            newLevelClass = 'level-3';
+        }
+        completionsButton.classList.add(newLevelClass);
+
+        console.log(`Updated completions count to ${newCount} (immediate UI update)`);
+
+        // Make the server request to record the completion
+        try {
+            // For counter habits, we don't need to call the server API for each increment
+            // We'll just update the UI and the counter in the title
+            // The server will be updated when we call updateHabitCounter
+
+            // Check if this is a counter habit by looking at the title
+            const habitTitleEl = habitElement.querySelector('.habit-title');
+            const isCounterHabit = habitTitleEl && habitTitleEl.textContent.match(/\((\d+)\/(\d+)\)/);
+
+            if (!isCounterHabit) {
+                // For regular habits, call the server API
+                console.log('Sending habit increment request for habit', habitId);
+                const response = await fetch(`/api/habits/${habitId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    console.error('Error response from server:', response.status, response.statusText);
+                    const responseBody = await response.text();
+                    console.error('Response body:', responseBody);
+                    throw new Error(`Server returned ${response.status}: ${responseBody}`);
+                }
+
+                // Get the updated data from the server
+                const result = await response.json();
+                console.log(`Completion recorded for habit ${habitId}:`, result);
+
+                // Log the server response for debugging only
+                if (result.total_completions !== undefined) {
+                    console.log(`Server response for habit ${habitId}:`, result);
+                    console.log(`Server reports total_completions: ${result.total_completions}`);
+                    // We don't update the UI here because we already updated it immediately
+                }
+            } else {
+                console.log(`Counter habit increment handled locally, skipping server API call`);
+            }
+
+            habitListStatusDiv.textContent = '';
+        } catch (error) {
+            console.error(`Error updating habit completion:`, error);
+            habitListStatusDiv.textContent = `Error: ${error.message}`;
+            habitListStatusDiv.className = 'status error';
+
+            // Check if this is a "maximum completions" error
+            const isMaxCompletionsError = error.message && (
+                error.message.includes('Maximum completions') ||
+                error.message.includes('already reached') ||
+                error.message.toLowerCase().includes('maximum')
+            );
+
+            if (isMaxCompletionsError) {
+                console.log('Maximum completions already reached for today.');
+                habitListStatusDiv.textContent = 'This habit has already been completed today.';
+                habitListStatusDiv.className = 'status info';
+            }
+        }
+    }
+
     // Handle habit checkbox click (record completion or remove completion)
     async function handleHabitCheckboxClick(habitId, isChecked) {
         // Find the habit element
@@ -1570,8 +1967,71 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Get the level indicator element
-        const levelEl = habitElement.querySelector('.habit-level');
+        // Find the completion count button
+        const completionsButton = habitElement.querySelector('.habit-level');
+        if (!completionsButton) {
+            console.error(`Could not find completions button for habit ${habitId}`);
+            return;
+        }
+
+        // Get the current completion count
+        const currentText = completionsButton.textContent || '';
+        const countMatch = currentText.match(/(\d+)\s+completions/);
+        const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
+
+        // Check if this is a high target habit (like 999)
+        // We don't need the title text for this check
+        const progressText = habitElement.querySelector('.habit-progress')?.textContent || '';
+        const progressMatch = progressText.match(/Progress: (\d+)\/(\d+)/);
+        const targetCompletions = progressMatch ? parseInt(progressMatch[2], 10) : 1;
+        const isHighTargetHabit = targetCompletions > 100;
+
+        // If this is a high target habit, don't mark it as completed
+        if (isHighTargetHabit && isChecked) {
+            // Remove the completed styling
+            habitElement.dataset.completed = 'false';
+            habitElement.classList.remove('complete');
+
+            // For high target habits like 'Thinking about food', ensure the progress text is visible
+            const progressEl = habitElement.querySelector('.habit-progress');
+            if (progressEl && progressEl.textContent.includes('0/999')) {
+                // Make sure the progress element has proper styling
+                progressEl.textContent = 'Progress: 0/999';
+                progressEl.style.backgroundColor = '#e8f5f0';
+                progressEl.style.border = '1px solid #d1e5f9';
+                progressEl.style.padding = '4px 12px';
+                progressEl.style.borderRadius = '12px';
+                progressEl.style.minWidth = '120px';
+                progressEl.style.textAlign = 'center';
+                progressEl.style.display = 'inline-block';
+            }
+        } else if (!isHighTargetHabit && isChecked) {
+            // For normal habits, add the completed styling
+            habitElement.dataset.completed = 'true';
+            habitElement.classList.add('complete');
+        }
+
+        // Calculate the new count based on the checkbox state
+        // For high target habits, we always increment/decrement the count but don't mark as complete
+        const newCount = isChecked ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+        // Update the UI immediately to reflect the new count
+        completionsButton.textContent = `${newCount} completions`;
+        completionsButton.title = `${newCount} total completions`;
+
+        // Update the level class
+        completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+        let newLevelClass = 'level-1';
+        if (newCount >= 10) {
+            newLevelClass = 'level-10';
+        } else if (newCount >= 5) {
+            newLevelClass = 'level-5';
+        } else if (newCount >= 3) {
+            newLevelClass = 'level-3';
+        }
+        completionsButton.classList.add(newLevelClass);
+
+        console.log(`Updated completions count to ${newCount} (immediate UI update)`);
 
         // If the checkbox is being unchecked, remove a completion
         if (!isChecked) {
@@ -1579,30 +2039,11 @@ document.addEventListener('DOMContentLoaded', () => {
             habitListStatusDiv.textContent = 'Updating habit...';
             habitListStatusDiv.className = 'status';
 
-            // Immediately update the UI to show the level decreasing
-            if (levelEl) {
-                // Get the current total completions from the title attribute
-                const titleText = levelEl.title || '0 total completions';
-                const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
-                const currentTotalCompletions = totalCompletionsMatch ? parseInt(totalCompletionsMatch[1], 10) : 0;
+            // Update the UI immediately to show the habit as uncompleted
+            habitElement.dataset.completed = 'false';
+            habitElement.classList.remove('complete');
 
-                // Store the current total completions before decreasing it
-                habitLevels[habitId] = currentTotalCompletions;
-                console.log(`Stored total completions ${currentTotalCompletions} for habit ${habitId}`);
-
-                // Decrease total completions by 1 and calculate new level
-                const newTotalCompletions = Math.max(0, currentTotalCompletions - 1);
-                const newLevel = calculateLevel(newTotalCompletions);
-
-                // Update the level text immediately
-                levelEl.textContent = `Level ${newLevel}`;
-                levelEl.title = `${newTotalCompletions} total completions`;
-
-                // Update the level class
-                updateLevelClass(levelEl, newLevel);
-
-                console.log(`Updated level to ${newLevel} (${newTotalCompletions} total completions) (immediate UI update)`);
-            }
+            // We've already updated the UI in the code above, so we don't need to do anything else here
 
             try {
                 // Call the uncomplete endpoint
@@ -1620,27 +2061,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 console.log(`Completion removed for habit ${habitId}:`, result);
 
-                // Update the level with the actual value from the server
-                if (levelEl && result.total_completions !== undefined) {
-                    // Calculate the level based on total completions
-                    const serverLevel = calculateLevel(result.total_completions);
-
-                    // Log the server response for debugging
+                // Log the server response for debugging only
+                if (result.total_completions !== undefined) {
                     console.log(`Server response for habit ${habitId}:`, result);
-
-                    // Update the UI with the server's data - show total completions directly
-                    levelEl.textContent = `${result.total_completions} completions`;
-                    levelEl.title = `${result.total_completions} total completions`;
-                    updateLevelClass(levelEl, serverLevel);
-
-                    console.log(`Updated level from server: ${serverLevel} (${result.total_completions} total completions)`);
+                    console.log(`Server reports total_completions: ${result.total_completions}`);
+                    // We don't update the UI here because we already updated it immediately
+                    // This prevents the UI from flickering or showing inconsistent values
                 }
 
                 habitListStatusDiv.textContent = '';
             } catch (error) {
                 console.error(`Error removing completion for habit ${habitId}:`, error);
-                habitListStatusDiv.textContent = `Error: ${error.message}`;
-                habitListStatusDiv.className = 'status error';
+
+                // Check if this is a "no completions" error
+                const isNoCompletionsError = error.message && (
+                    error.message.includes('No completions found') ||
+                    error.message.includes('No completions to remove')
+                );
+
+                if (isNoCompletionsError) {
+                    console.log('No completions found to remove. Reloading habits to sync with server.');
+
+                    // Find and check the checkbox again since we can't uncomplete
+                    const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+                    if (habitElement) {
+                        const checkbox = habitElement.querySelector('.habit-checkbox');
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    }
+
+                    // Show a user-friendly message
+                    habitListStatusDiv.textContent = 'This habit has not been completed today.';
+                    habitListStatusDiv.className = 'status info';
+                } else {
+                    // For other errors
+                    habitListStatusDiv.textContent = `Error: ${error.message}`;
+                    habitListStatusDiv.className = 'status error';
+                }
 
                 // Reload habits to ensure UI is in sync with server
                 loadHabits();
@@ -1838,20 +2296,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     const result = await response.json();
                     console.log(`Completion recorded for habit ${habitId}:`, result);
 
-                    // Update the level with the actual value from the server
-                    if (levelEl && result.total_completions !== undefined) {
-                        // Calculate the level based on total completions
-                        const serverLevel = calculateLevel(result.total_completions);
+                    // Mark the habit as completed in the UI
+                    const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+                    if (habitElement) {
+                        // Set the data-completed attribute for CSS targeting
+                        habitElement.dataset.completed = 'true';
+                        habitElement.classList.add('complete');
 
-                        // Log the server response for debugging
+                        // Also ensure the checkbox is checked
+                        const checkbox = habitElement.querySelector('.habit-checkbox');
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    }
+
+                    // Log the server response for debugging only
+                    if (result.total_completions !== undefined) {
                         console.log(`Server response for habit ${habitId}:`, result);
-
-                        // Update the UI with the server's data - show total completions directly
-                        levelEl.textContent = `${result.total_completions} completions`;
-                        levelEl.title = `${result.total_completions} total completions`;
-                        updateLevelClass(levelEl, serverLevel);
-
-                        console.log(`Updated level from server: ${serverLevel} (${result.total_completions} total completions)`);
+                        console.log(`Server reports total_completions: ${result.total_completions}`);
+                        // We don't update the UI here because we already updated it immediately
+                        // This prevents the UI from flickering or showing inconsistent values
                     }
 
                     habitListStatusDiv.textContent = '';
@@ -1972,7 +2436,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 habitListStatusDiv.textContent = `Error: ${error.message}`;
                 habitListStatusDiv.className = 'status error';
 
-                // If the regular completion fails, try a direct update as a fallback
+                // Check if this is a "maximum completions" error
+                const isMaxCompletionsError = error.message && (
+                    error.message.includes('Maximum completions') ||
+                    error.message.includes('already reached') ||
+                    error.message.toLowerCase().includes('maximum')
+                );
+
+                if (isMaxCompletionsError) {
+                    console.log('Maximum completions already reached for today. Not using fallback.');
+
+                    // Find and CHECK the checkbox since this habit is already completed today
+                    const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+                    if (habitElement) {
+                        // Set the data-completed attribute for CSS targeting
+                        habitElement.dataset.completed = 'true';
+
+                        const checkbox = habitElement.querySelector('.habit-checkbox');
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            habitElement.classList.add('complete');
+                        }
+
+                        // Find the completion count button and ensure it shows the correct count
+                        const completionsButton = habitElement.querySelector('.habit-level');
+                        if (completionsButton) {
+                            // Get the current completion count
+                            const currentText = completionsButton.textContent || '';
+                            const countMatch = currentText.match(/(\d+)\s+completions/);
+                            const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
+
+                            // No need to change the count since it's already at the correct value
+                            console.log(`Keeping completion count at ${currentCount} for habit ${habitId}`);
+                        }
+                    }
+
+                    // Show a user-friendly message
+                    habitListStatusDiv.textContent = 'This habit has already been completed today.';
+                    habitListStatusDiv.className = 'status info';
+
+                    // Don't reload habits as it causes the checkbox to reset
+                    // The habitElement is already defined above, so we just use it directly
+                    // Make sure the habit is marked as completed in the UI
+                    habitElement.dataset.completed = 'true';
+                    habitElement.classList.add('complete');
+
+                    // Also ensure the checkbox is checked
+                    const checkbox = habitElement.querySelector('.habit-checkbox');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+
+                    console.log(`Marked habit ${habitId} as completed in UI`);
+
+                    return;
+                }
+
+                // For other errors, try a direct update as a fallback
                 try {
                     console.log('Making direct update to total_completions in database as fallback');
                     const directUpdateResponse = await fetch(`/api/habits/${habitId}/update-total`, {
