@@ -61,10 +61,15 @@ module.exports = {
         return pool.query(text, params)
             .then(res => {
                 console.log(`Query completed successfully with ${res.rowCount} rows`);
+                if (text.includes('INSERT') && res.rows && res.rows.length > 0) {
+                    console.log('Inserted row:', JSON.stringify(res.rows[0]));
+                }
                 return res;
             })
             .catch(err => {
                 console.error('Query error:', err);
+                console.error('Query that failed:', text);
+                console.error('Parameters:', params);
                 throw err;
             });
     },

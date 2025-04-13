@@ -16,32 +16,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to ensure completed habits are visually marked as completed
     function ensureCompletedHabitsVisualState() {
         console.log('Checking for completed habits to ensure visual state');
-        
+
         // Find all habit elements
         const habitElements = document.querySelectorAll('.habit-item');
-        
+
         habitElements.forEach(habitElement => {
             const habitId = habitElement.dataset.habitId;
             if (!habitId) return;
-            
+
             // Check if this habit has any completions today
             const progressEl = habitElement.querySelector('.habit-progress');
             if (!progressEl) return;
-            
+
             const progressText = progressEl.textContent || '';
             const progressMatch = progressText.match(/Progress: (\d+)\/(\d+)/);
-            
+
             if (progressMatch) {
                 const completionsToday = parseInt(progressMatch[1], 10) || 0;
-                
+
                 // If there are any completions today, mark as completed
                 if (completionsToday > 0) {
                     console.log(`Marking habit ${habitId} as completed (${completionsToday} completions today)`);
-                    
+
                     // Set the data-completed attribute for CSS targeting
                     habitElement.dataset.completed = 'true';
                     habitElement.classList.add('complete');
-                    
+
                     // Also ensure the checkbox is checked
                     const checkbox = habitElement.querySelector('.habit-checkbox');
                     if (checkbox) {
@@ -57,21 +57,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (originalDisplayHabits) {
         window.displayHabits = function(...args) {
             const result = originalDisplayHabits.apply(this, args);
-            
+
             // After displaying habits, ensure completed habits are visually marked
             setTimeout(ensureCompletedHabitsVisualState, 100);
             setTimeout(ensureCompletedHabitsVisualState, 500);
             setTimeout(ensureCompletedHabitsVisualState, 1000);
-            
+
             return result;
         };
-        
+
         console.log('Enhanced displayHabits function to ensure completed habits visual state');
     }
 
     // Run the check periodically
     setInterval(ensureCompletedHabitsVisualState, 2000);
-    
+
+    // Add event listener for habit increment buttons to ensure they update properly
+    document.addEventListener('click', async function(event) {
+        // Check if the clicked element is a habit increment button
+        if (event.target.classList.contains('habit-increment-btn') && !event.target.classList.contains('completed')) {
+            const habitElement = event.target.closest('.habit-item');
+            if (!habitElement) return;
+
+            const habitId = habitElement.dataset.habitId;
+            if (!habitId) return;
+
+            console.log(`Habit increment button clicked for habit ${habitId}`);
+
+            // Wait for the increment to complete, then reload habits to ensure proper state
+            setTimeout(() => {
+                console.log(`Reloading habits after increment for habit ${habitId}`);
+                if (typeof loadHabits === 'function') {
+                    loadHabits();
+                }
+            }, 500);
+        }
+    });
+
     // Run the check immediately
     setTimeout(ensureCompletedHabitsVisualState, 100);
     setTimeout(ensureCompletedHabitsVisualState, 500);
@@ -82,29 +104,29 @@ document.addEventListener('DOMContentLoaded', () => {
 setTimeout(function() {
     if (typeof loadHabits === 'function') {
         const habitElements = document.querySelectorAll('.habit-item');
-        
+
         habitElements.forEach(habitElement => {
             const habitId = habitElement.dataset.habitId;
             if (!habitId) return;
-            
+
             // Check if this habit has any completions today
             const progressEl = habitElement.querySelector('.habit-progress');
             if (!progressEl) return;
-            
+
             const progressText = progressEl.textContent || '';
             const progressMatch = progressText.match(/Progress: (\d+)\/(\d+)/);
-            
+
             if (progressMatch) {
                 const completionsToday = parseInt(progressMatch[1], 10) || 0;
-                
+
                 // If there are any completions today, mark as completed
                 if (completionsToday > 0) {
                     console.log(`Marking habit ${habitId} as completed (${completionsToday} completions today)`);
-                    
+
                     // Set the data-completed attribute for CSS targeting
                     habitElement.dataset.completed = 'true';
                     habitElement.classList.add('complete');
-                    
+
                     // Also ensure the checkbox is checked
                     const checkbox = habitElement.querySelector('.habit-checkbox');
                     if (checkbox) {

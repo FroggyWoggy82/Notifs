@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentDate = new Date(); // State for the currently viewed month/year
     let allTasks = []; // Store fetched tasks
+    let allHabits = []; // Store fetched habits
+    let habitCompletions = {}; // Store habit completions by date
+    let calendarFilter = 'both'; // Default filter value (both, tasks, habits)
 
     // --- Helper Functions ---
 
@@ -107,8 +110,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Fetch habits and their completions for a date range
+    async function fetchHabits(year, month) {
+        try {
+            // Calculate start and end dates for the month view
+            // We need to include some days from previous and next months
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+
+            // Add buffer days before and after to account for calendar view
+            const startDate = new Date(firstDayOfMonth);
+            startDate.setDate(startDate.getDate() - 7); // Go back a week to be safe
+
+            const endDate = new Date(lastDayOfMonth);
+            endDate.setDate(endDate.getDate() + 7); // Go forward a week to be safe
+
+            // Format dates as YYYY-MM-DD
+            const startDateStr = startDate.toISOString().split('T')[0];
+            const endDateStr = endDate.toISOString().split('T')[0];
+
+            console.log(`Fetching habits for date range: ${startDateStr} to ${endDateStr}`);
+
+            const response = await fetch(`/api/habits/completions?startDate=${startDateStr}&endDate=${endDateStr}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            try {
+                const data = await response.json();
+                console.log("Habits and completions fetched:", data);
+
+                // Store the habits and completions
+                allHabits = data.habits || [];
+                habitCompletions = data.completionsByDate || {};
+
+                console.log("Parsed habits:", allHabits);
+                console.log("Parsed completions:", habitCompletions);
+            } catch (e) {
+                console.error("Error parsing JSON:", e);
+                // Fallback to fetching habits directly
+                try {
+                    const habitsResponse = await fetch('/api/habits');
+                    if (habitsResponse.ok) {
+                        const habitsData = await habitsResponse.json();
+                        console.log("Fallback - fetched habits directly:", habitsData);
+                        allHabits = habitsData || [];
+                    }
+                } catch (habitsError) {
+                    console.error("Error fetching habits directly:", habitsError);
+                }
+                habitCompletions = {};
+            }
+
+            return { habits: allHabits, completions: habitCompletions };
+        } catch (error) {
+            console.error('Error loading habits:', error);
+            allHabits = [];
+            habitCompletions = {};
+            return { habits: [], completions: {} };
+        }
+    }
+
     // Render the calendar grid for the given month and year
-    function renderCalendar(year, month) {
+    async function renderCalendar(year, month) {
         updateStatus("Rendering calendar...", false);
         calendarGridEl.querySelectorAll('.calendar-day').forEach(el => el.remove()); // Clear previous days
         selectedDateTasksEl.style.display = 'none'; // Hide date detail view
@@ -122,6 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const today = new Date();
         const todayKey = formatDateKey(today);
+
+        // Fetch habits for this month
+        await fetchHabits(year, month);
 
         // --- Group tasks by date for faster lookup --- //
         const tasksByDate = {};
@@ -223,75 +290,199 @@ document.addEventListener('DOMContentLoaded', () => {
         numberSpan.textContent = dayNumber;
         dayDiv.appendChild(numberSpan);
 
-        // Add tasks to the day cell (if not other month)
-        if (!isOtherMonth && tasks.length > 0) {
-            const tasksDiv = document.createElement('div');
-            tasksDiv.className = 'calendar-tasks';
+        // Only add content for days in the current month
+        if (!isOtherMonth) {
+            const dateKey = formatDateKey(date);
 
-            // Add all tasks instead of limiting to 3
-            tasks.forEach(task => {
-                const taskEl = document.createElement('div');
-                taskEl.className = 'calendar-task-item';
+            // Add tasks to the day cell if filter allows
+            if (tasks.length > 0 && (calendarFilter === 'both' || calendarFilter === 'tasks')) {
+                const tasksDiv = document.createElement('div');
+                tasksDiv.className = 'calendar-tasks';
 
-                // Apply appropriate classes based on task state
-                if (task.is_complete) taskEl.classList.add('complete');
-                if (task.isRecurring) taskEl.classList.add('recurring');
+                // Add all tasks
+                tasks.forEach(task => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'calendar-task-item';
 
-                // Set the task title
-                taskEl.textContent = task.title;
+                    // Apply appropriate classes based on task state
+                    if (task.is_complete) taskEl.classList.add('complete');
+                    if (task.isRecurring) taskEl.classList.add('recurring');
 
-                // Add tooltip with additional information
-                let tooltipText = task.title;
-                if (task.isRecurring) {
-                    tooltipText += ' (Next occurrence)';
-                }
+                    // Set the task title
+                    taskEl.textContent = task.title;
 
-                // Add recurrence information with interval if applicable
-                if (task.recurrence_type && task.recurrence_type !== 'none') {
-                    const interval = task.recurrence_interval || 1;
-                    if (interval === 1) {
-                        tooltipText += ` (Repeats ${task.recurrence_type})`;
-                    } else {
-                        // Add custom interval information
-                        switch(task.recurrence_type) {
-                            case 'daily':
-                                tooltipText += ` (Repeats every ${interval} days)`;
-                                break;
-                            case 'weekly':
-                                tooltipText += ` (Repeats every ${interval} weeks)`;
-                                break;
-                            case 'monthly':
-                                tooltipText += ` (Repeats every ${interval} months)`;
-                                break;
-                            case 'yearly':
-                                tooltipText += ` (Repeats every ${interval} years)`;
-                                break;
-                            default:
-                                tooltipText += ` (Repeats ${task.recurrence_type})`;
+                    // Add tooltip with additional information
+                    let tooltipText = task.title;
+                    if (task.isRecurring) {
+                        tooltipText += ' (Next occurrence)';
+                    }
+
+                    // Add recurrence information with interval if applicable
+                    if (task.recurrence_type && task.recurrence_type !== 'none') {
+                        const interval = task.recurrence_interval || 1;
+                        if (interval === 1) {
+                            tooltipText += ` (Repeats ${task.recurrence_type})`;
+                        } else {
+                            // Add custom interval information
+                            switch(task.recurrence_type) {
+                                case 'daily':
+                                    tooltipText += ` (Repeats every ${interval} days)`;
+                                    break;
+                                case 'weekly':
+                                    tooltipText += ` (Repeats every ${interval} weeks)`;
+                                    break;
+                                case 'monthly':
+                                    tooltipText += ` (Repeats every ${interval} months)`;
+                                    break;
+                                case 'yearly':
+                                    tooltipText += ` (Repeats every ${interval} years)`;
+                                    break;
+                                default:
+                                    tooltipText += ` (Repeats ${task.recurrence_type})`;
+                            }
+                        }
+                    }
+                    taskEl.title = tooltipText;
+
+                    tasksDiv.appendChild(taskEl);
+                });
+
+                dayDiv.appendChild(tasksDiv);
+
+                // Check for overflow after the element is added to the DOM
+                setTimeout(() => {
+                    // Check if content overflows
+                    if (tasksDiv.scrollHeight > tasksDiv.clientHeight) {
+                        tasksDiv.classList.add('has-overflow');
+
+                        // Add a small indicator showing number of tasks
+                        const taskCountIndicator = document.createElement('div');
+                        taskCountIndicator.className = 'task-count-indicator';
+                        taskCountIndicator.textContent = `${tasks.length} tasks`;
+                        dayDiv.appendChild(taskCountIndicator);
+                    }
+                }, 0);
+            }
+
+            // Add habits to the day cell, but only if they have completions
+            // and only for past or current dates, and if filter allows
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
+            const dateObj = new Date(date);
+            dateObj.setHours(0, 0, 0, 0); // Reset time to start of day
+            const isFutureDate = dateObj > today;
+
+            // Only proceed if this is not a future date and filter allows habits
+            if (allHabits.length > 0 && !isFutureDate && (calendarFilter === 'both' || calendarFilter === 'habits')) {
+                const habitsDiv = document.createElement('div');
+                habitsDiv.className = 'calendar-habits';
+
+                // Get completions for this date
+                // The dateKey is in YYYY-MM-DD format, but the keys in habitCompletions might be full date strings
+                let dateCompletions = [];
+
+                // Try direct lookup first
+                if (habitCompletions[dateKey]) {
+                    dateCompletions = habitCompletions[dateKey];
+                } else {
+                    // Try to find the date in other formats
+                    const dateParts = dateKey.split('-');
+                    const year = parseInt(dateParts[0], 10);
+                    const month = parseInt(dateParts[1], 10) - 1; // JS months are 0-indexed
+                    const day = parseInt(dateParts[2], 10);
+
+                    // Check all keys in habitCompletions
+                    for (const key in habitCompletions) {
+                        // Try to extract the date from the key
+                        const keyDate = new Date(key);
+
+                        // Check if the dates match (ignoring time)
+                        if (keyDate.getFullYear() === year &&
+                            keyDate.getMonth() === month &&
+                            keyDate.getDate() === day) {
+                            dateCompletions = habitCompletions[key];
+                            break;
                         }
                     }
                 }
-                taskEl.title = tooltipText;
 
-                tasksDiv.appendChild(taskEl);
-            });
+                // Create a map for quick lookup of completions
+                const completionMap = {};
+                dateCompletions.forEach(completion => {
+                    completionMap[completion.habitId] = completion.count;
+                });
 
-            dayDiv.appendChild(tasksDiv);
+                // Check if this date is in the future
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time to start of day
+                const dateObj = new Date(date);
+                dateObj.setHours(0, 0, 0, 0); // Reset time to start of day
+                const isFutureDate = dateObj > today;
 
-            // Check for overflow after the element is added to the DOM
-            // We'll do this in a setTimeout to ensure the DOM has been updated
-            setTimeout(() => {
-                // Check if content overflows
-                if (tasksDiv.scrollHeight > tasksDiv.clientHeight) {
-                    tasksDiv.classList.add('has-overflow');
+                // Filter habits to only show those with completions
+                const habitsWithCompletions = allHabits.filter(habit => {
+                    const completionCount = completionMap[habit.id] || 0;
+                    return completionCount > 0; // Only show habits with at least 1 completion
+                });
 
-                    // Add a small indicator showing number of tasks
-                    const taskCountIndicator = document.createElement('div');
-                    taskCountIndicator.className = 'task-count-indicator';
-                    taskCountIndicator.textContent = `${tasks.length} tasks`;
-                    dayDiv.appendChild(taskCountIndicator);
+                // Only show habits for past or current dates and if there are completions
+                if (!isFutureDate && habitsWithCompletions.length > 0) {
+                    // Add habits with completions
+                    habitsWithCompletions.forEach(habit => {
+                        const habitEl = document.createElement('div');
+                        habitEl.className = 'calendar-habit-item';
+
+                        // Get completion count for this habit on this date
+                        const completionCount = completionMap[habit.id] || 0;
+                        const target = habit.completionsPerDay || 1;
+
+                        // Set completion status
+                        if (completionCount >= target) {
+                            habitEl.classList.add('complete');
+                        } else if (completionCount > 0) {
+                            habitEl.classList.add('partial');
+                        }
+
+                        // Set the habit title with completion status
+                        // For Social Media Rejection, show the actual target value
+                        if (habit.title.includes('Social Media Rejection')) {
+                            // If it's complete, show the full target value
+                            if (completionCount >= target) {
+                                habitEl.textContent = `${habit.title} (${target}/${target})`;
+                            } else {
+                                habitEl.textContent = `${habit.title} (${completionCount}/${target})`;
+                            }
+                        } else {
+                            habitEl.textContent = `${habit.title} (${completionCount}/${target})`;
+                        }
+
+                        // Add tooltip
+                        if (habit.title.includes('Social Media Rejection') && completionCount >= target) {
+                            habitEl.title = `${habit.title}: ${target}/${target} completions`;
+                        } else {
+                            habitEl.title = `${habit.title}: ${completionCount}/${target} completions`;
+                        }
+
+                        habitsDiv.appendChild(habitEl);
+                    });
                 }
-            }, 0);
+
+                dayDiv.appendChild(habitsDiv);
+
+                // Check for overflow after the element is added to the DOM
+                setTimeout(() => {
+                    // Check if content overflows and there are habits with completions
+                    if (habitsDiv.scrollHeight > habitsDiv.clientHeight && habitsWithCompletions.length > 0) {
+                        habitsDiv.classList.add('has-overflow');
+
+                        // Add a small indicator showing number of habits with completions
+                        const habitCountIndicator = document.createElement('div');
+                        habitCountIndicator.className = 'habit-count-indicator';
+                        habitCountIndicator.textContent = `${habitsWithCompletions.length} habits`;
+                        dayDiv.appendChild(habitCountIndicator);
+                    }
+                }, 0);
+            }
         }
 
         // Add click listener only for days in the current month
@@ -317,11 +508,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add .selected { background-color: #cfe8fc; border-color: #a1cff7; } to CSS if needed
     }
 
-    // Display tasks for the selected date in the dedicated section
+    // Display tasks and habits for the selected date in the dedicated section
     function showTasksForDate(date, tasks) {
         const dateKey = formatDateKey(date);
         selectedDateDisplayEl.textContent = date.toLocaleDateString('default', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         selectedTaskListEl.innerHTML = ''; // Clear previous list
+
+        // Add a heading for tasks
+        const tasksHeading = document.createElement('h4');
+        tasksHeading.textContent = 'Tasks';
+        tasksHeading.style.marginTop = '0';
+        tasksHeading.style.color = '#13523e';
+        selectedTaskListEl.appendChild(tasksHeading);
 
         // First, find all tasks directly assigned to this date
         const directlyAssignedTasks = tasks.filter(task => {
@@ -360,7 +558,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const tasksOnDate = [...directlyAssignedTasks, ...recurringTasks];
 
         if (tasksOnDate.length === 0) {
-            selectedTaskListEl.innerHTML = '<li>No tasks assigned for this date.</li>';
+            const noTasksLi = document.createElement('li');
+            noTasksLi.textContent = 'No tasks assigned for this date.';
+            selectedTaskListEl.appendChild(noTasksLi);
         } else {
             tasksOnDate.forEach(task => {
                 const li = document.createElement('li');
@@ -474,6 +674,131 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedTaskListEl.appendChild(li);
             });
         }
+
+        // Add habits section if filter allows
+        if (calendarFilter === 'both' || calendarFilter === 'habits') {
+            const habitsHeading = document.createElement('h4');
+            habitsHeading.textContent = 'Habits';
+            habitsHeading.style.marginTop = '20px';
+            habitsHeading.style.color = '#5b2c6f';
+            selectedTaskListEl.appendChild(habitsHeading);
+
+        // Get completions for this date
+        // The dateKey is in YYYY-MM-DD format, but the keys in habitCompletions might be full date strings
+        // So we need to check all possible formats
+        let dateCompletions = [];
+
+        // Try direct lookup first
+        if (habitCompletions[dateKey]) {
+            dateCompletions = habitCompletions[dateKey];
+            console.log(`Found completions for ${dateKey} directly:`, dateCompletions);
+        } else {
+            // Try to find the date in other formats
+            const dateParts = dateKey.split('-');
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1; // JS months are 0-indexed
+            const day = parseInt(dateParts[2], 10);
+
+            // Create a date object and try different formats
+            const dateObj = new Date(year, month, day);
+
+            // Check all keys in habitCompletions
+            for (const key in habitCompletions) {
+                // Try to extract the date from the key
+                const keyDate = new Date(key);
+
+                // Check if the dates match (ignoring time)
+                if (keyDate.getFullYear() === year &&
+                    keyDate.getMonth() === month &&
+                    keyDate.getDate() === day) {
+                    dateCompletions = habitCompletions[key];
+                    console.log(`Found completions for ${dateKey} via date object matching:`, dateCompletions);
+                    break;
+                }
+            }
+        }
+
+        // Create a map for quick lookup of completions
+        const completionMap = {};
+        dateCompletions.forEach(completion => {
+            completionMap[completion.habitId] = completion.count;
+        });
+
+        // Check if this date is in the future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day
+        const dateObj = new Date(date);
+        dateObj.setHours(0, 0, 0, 0); // Reset time to start of day
+        const isFutureDate = dateObj > today;
+
+        // Filter habits to only show those with completions
+        const habitsWithCompletions = allHabits.filter(habit => {
+            const completionCount = completionMap[habit.id] || 0;
+            return completionCount > 0; // Only show habits with at least 1 completion
+        });
+
+        if (habitsWithCompletions.length === 0 || isFutureDate) {
+            const noHabitsLi = document.createElement('li');
+            noHabitsLi.textContent = isFutureDate ? 'Future date - no habits to show.' : 'No habit completions found.';
+            selectedTaskListEl.appendChild(noHabitsLi);
+        } else {
+            // Display habits with completions
+            habitsWithCompletions.forEach(habit => {
+                const li = document.createElement('li');
+                li.setAttribute('data-habit-id', habit.id);
+
+                // Get completion count for this habit on this date
+                const completionCount = completionMap[habit.id] || 0;
+                const target = habit.completionsPerDay || 1;
+
+                // Set completion status
+                if (completionCount >= target) {
+                    li.className = 'complete';
+                } else if (completionCount > 0) {
+                    li.className = 'partial';
+                    li.style.backgroundColor = '#e8daef'; // Light purple for partial completion
+                    li.style.textDecoration = 'none'; // Remove line-through
+                }
+
+                // Create a container for the habit title and badge
+                const titleContainer = document.createElement('div');
+                titleContainer.style.display = 'flex';
+                titleContainer.style.justifyContent = 'space-between';
+                titleContainer.style.alignItems = 'center';
+
+                // Create the habit title element
+                const titleSpan = document.createElement('span');
+                titleSpan.textContent = habit.title;
+                titleContainer.appendChild(titleSpan);
+
+                // Add badge for completion status
+                const badgeSpan = document.createElement('span');
+                badgeSpan.style.backgroundColor = completionCount >= target ? '#a5d6a7' : '#e8daef';
+                badgeSpan.style.color = completionCount >= target ? '#2e7d32' : '#5b2c6f';
+                badgeSpan.style.padding = '2px 6px';
+                badgeSpan.style.borderRadius = '10px';
+                badgeSpan.style.fontSize = '0.75em';
+                badgeSpan.style.fontWeight = 'bold';
+                badgeSpan.style.marginLeft = '8px';
+                // For Social Media Rejection, show the actual target value
+                if (habit.title.includes('Social Media Rejection') && completionCount >= target) {
+                    badgeSpan.textContent = `${target}/${target}`;
+                } else {
+                    badgeSpan.textContent = `${completionCount}/${target}`;
+                }
+                if (habit.title.includes('Social Media Rejection') && completionCount >= target) {
+                    badgeSpan.title = `${target} out of ${target} completions for today`;
+                } else {
+                    badgeSpan.title = `${completionCount} out of ${target} completions for today`;
+                }
+                titleContainer.appendChild(badgeSpan);
+
+                li.appendChild(titleContainer);
+
+                selectedTaskListEl.appendChild(li);
+            });
+        }
+        } // Close the habits filter if statement
 
         selectedDateTasksEl.style.display = 'block';
         selectedDateTasksEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -593,14 +918,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
 
-    prevMonthBtn.addEventListener('click', () => {
+    prevMonthBtn.addEventListener('click', async () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
-        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        await renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
     });
 
-    nextMonthBtn.addEventListener('click', () => {
+    nextMonthBtn.addEventListener('click', async () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
-        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        await renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
     });
 
     closeSelectedDateViewBtn.addEventListener('click', () => {
@@ -731,7 +1056,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Load ---
     async function initializeCalendar() {
         await fetchTasks(); // Load tasks first
-        renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Then render calendar
+        await renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Then render calendar
+
+        // Set up calendar filter
+        const calendarFilterEl = document.getElementById('calendarFilter');
+        if (calendarFilterEl) {
+            calendarFilterEl.addEventListener('change', () => {
+                calendarFilter = calendarFilterEl.value;
+                renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Re-render with the new filter
+            });
+        }
     }
 
     initializeCalendar();

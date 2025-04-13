@@ -761,13 +761,14 @@ textarea {
     gap: 10px;
     width: 100%;
     margin-bottom: 8px;
+    justify-content: space-between; /* Space out the progress and level indicators */
 }
 
-/* Progress container for counter habits */
+/* Progress container for all habits */
 .habit-progress-container {
     display: flex;
     align-items: center;
-    flex-shrink: 0;
+    flex: 1;
     margin: 0;
 }
 
@@ -781,11 +782,13 @@ textarea {
     display: inline-block;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    min-width: 110px; /* Increased width for better alignment */
+    min-width: 120px; /* Match level indicator width */
     text-align: center;
     white-space: nowrap;
     background-color: #4db6ac; /* Default teal background */
     margin: 0;
+    width: 100%; /* Take full width of container */
+    max-width: 160px; /* Limit maximum width */
 }
 
 /* Different progress level colors - same as level colors */
@@ -814,8 +817,50 @@ textarea {
 .habit-level-container {
     display: flex;
     align-items: center;
-    flex-shrink: 0;
+    flex: 1;
+    justify-content: flex-end;
     margin: 0;
+}
+
+/* Style for habit level indicator */
+.habit-level {
+    color: white;
+    font-size: 0.75em;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 12px;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    min-width: 120px; /* Match progress indicator width */
+    text-align: center;
+    white-space: nowrap;
+    background-color: #4db6ac; /* Default teal background */
+    margin: 0;
+    width: 100%; /* Take full width of container */
+    max-width: 160px; /* Limit maximum width */
+}
+
+/* Different level colors */
+.habit-level.level-1 {
+    background-color: #4db6ac; /* Teal - Default */
+}
+
+.habit-level.level-3 {
+    background-color: #26a69a; /* Darker teal */
+}
+
+.habit-level.level-5 {
+    background-color: #00897b; /* Even darker teal */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.habit-level.level-10 {
+    background-color: #00796b; /* Darkest teal */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4), 0 0 10px rgba(0,137,123,0.5);
+    padding: 4px 10px;
+    font-size: 0.8em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 /* Habit actions container */

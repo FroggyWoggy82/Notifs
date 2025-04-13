@@ -69,14 +69,36 @@ async function getAllHabits() {
 
 /**
  * Create a new habit
- * @param {string} title - The habit title
- * @param {string} frequency - The habit frequency (daily, weekly, monthly)
- * @param {number} completionsPerDay - The number of completions per day
+ * @param {Object} habitData - The habit data object
+ * @param {string} habitData.title - The habit title
+ * @param {string} habitData.frequency - The habit frequency (daily, weekly, monthly)
+ * @param {number} habitData.completions_per_day - The number of completions per day
  * @returns {Promise<Object>} - Promise resolving to the created habit
  */
-async function createHabit(title, frequency, completionsPerDay) {
+async function createHabit(habitData) {
+    console.log('createHabit called with:', JSON.stringify(habitData));
+    console.log('habitData type:', typeof habitData);
+
+    // Handle both object and individual parameters
+    let title, frequency, completionsPerDay;
+
+    if (typeof habitData === 'object' && habitData !== null) {
+        // Extract properties from the object
+        title = habitData.title;
+        frequency = habitData.frequency || 'daily';
+        completionsPerDay = habitData.completions_per_day || 1;
+        console.log('Extracted from object - title:', title, 'frequency:', frequency, 'completionsPerDay:', completionsPerDay);
+    } else {
+        // If it's not an object, assume it's the title
+        title = habitData;
+        frequency = 'daily';
+        completionsPerDay = 1;
+        console.log('Using habitData as title:', title);
+    }
+
+    // Validate inputs
     if (!title || title.trim() === '') {
-        throw new Error('Habit title cannot be empty');
+        throw new Error('Habit title is required');
     }
 
     const validFrequencies = ['daily', 'weekly', 'monthly'];
@@ -94,13 +116,55 @@ async function createHabit(title, frequency, completionsPerDay) {
         }
     }
 
-    const result = await db.query(
-        'INSERT INTO habits (title, frequency, completions_per_day) VALUES ($1, $2, $3) RETURNING *',
-        [title.trim(), frequency, p_completions]
-    );
+    console.log('Executing database query with parameters:', {
+        title: title.trim(),
+        frequency,
+        p_completions
+    });
 
-    // Return habit with completions_today = 0 initially
-    return { ...result.rows[0], completions_today: 0 };
+    try {
+        // Check if the habits table exists
+        const tableCheck = await db.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public'
+                AND table_name = 'habits'
+            )
+        `);
+
+        const tableExists = tableCheck.rows[0].exists;
+        console.log('Habits table exists:', tableExists);
+
+        if (!tableExists) {
+            console.log('Creating habits table...');
+            await db.query(`
+                CREATE TABLE habits (
+                    id SERIAL PRIMARY KEY,
+                    title VARCHAR(255) NOT NULL,
+                    frequency VARCHAR(50) NOT NULL DEFAULT 'daily',
+                    completions_per_day INTEGER NOT NULL DEFAULT 1,
+                    total_completions INTEGER NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+                )
+            `);
+            console.log('Habits table created successfully');
+        }
+
+        // Now insert the habit
+        console.log('Inserting habit with parameters:', [title.trim(), frequency, p_completions]);
+        const result = await db.query(
+            'INSERT INTO habits (title, frequency, completions_per_day) VALUES ($1, $2, $3) RETURNING *',
+            [title.trim(), frequency, p_completions]
+        );
+        console.log('Database query successful, result:', result.rows[0]);
+        return { ...result.rows[0], completions_today: 0 };
+    } catch (dbError) {
+        console.error('Database error:', dbError);
+        console.error('Error stack:', dbError.stack);
+        throw new Error(`Database error: ${dbError.message}`);
+    }
+
+    // The return statement is now in the try block
 }
 
 /**
@@ -302,12 +366,13 @@ async function recordCompletion(habitId) {
             );
 
             // 6. Increment the total_completions counter
-            await db.query(
-                'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1',
+            const updateResult = await db.query(
+                'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1 RETURNING total_completions',
                 [habitId]
             );
 
-            console.log(`Created new completion and incremented total_completions for habit ${habitId}`);
+            const newTotalCompletions = updateResult.rows[0].total_completions;
+            console.log(`Created new completion and incremented total_completions for habit ${habitId} to ${newTotalCompletions}`);
         }
 
         // 7. Get the updated total_completions
@@ -454,6 +519,98 @@ async function updateTotalCompletions(habitId, increment) {
     };
 }
 
+/**
+ * Get habit completions for a date range
+ * @param {string} startDate - Start date in YYYY-MM-DD format
+ * @param {string} endDate - End date in YYYY-MM-DD format
+ * @returns {Promise<Object>} - Promise resolving to habit completions grouped by date
+ */
+async function getCompletionsByDateRange(startDate, endDate) {
+    try {
+        console.log(`getCompletionsByDateRange called with startDate=${startDate}, endDate=${endDate}`);
+
+        // If no dates provided, use current month
+        if (!startDate || !endDate) {
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            startDate = firstDayOfMonth.toISOString().split('T')[0];
+            endDate = lastDayOfMonth.toISOString().split('T')[0];
+            console.log(`Using default date range: ${startDate} to ${endDate}`);
+        }
+
+        // Get all habits
+        const habitsResult = await db.query('SELECT id, title, frequency, completions_per_day, total_completions FROM habits');
+        const habits = habitsResult.rows;
+        console.log(`Found ${habits.length} habits:`, habits);
+
+        // Get completions for the date range
+        console.log(`Querying completions between ${startDate} and ${endDate}`);
+        const completionsResult = await db.query(
+            `SELECT
+                hc.habit_id,
+                hc.completion_date,
+                COUNT(*) as count
+             FROM habit_completions hc
+             WHERE hc.completion_date BETWEEN $1 AND $2
+                AND hc.deleted_at IS NULL
+             GROUP BY hc.habit_id, hc.completion_date
+             ORDER BY hc.completion_date`,
+            [startDate, endDate]
+        );
+        console.log(`Found ${completionsResult.rows.length} completion records:`, completionsResult.rows);
+
+        // Create a map of habits by ID for easy lookup
+        const habitsById = {};
+        habits.forEach(habit => {
+            habitsById[habit.id] = habit;
+        });
+
+        // Group completions by date
+        const completionsByDate = {};
+        completionsResult.rows.forEach(row => {
+            // Format the date as YYYY-MM-DD to ensure consistent keys
+            const date = new Date(row.completion_date);
+            const dateKey = date.toISOString().split('T')[0];
+            const habitId = row.habit_id;
+            const count = parseInt(row.count, 10);
+            const habit = habitsById[habitId];
+
+            if (!completionsByDate[dateKey]) {
+                completionsByDate[dateKey] = [];
+            }
+
+            completionsByDate[dateKey].push({
+                habitId,
+                title: habit ? habit.title : `Unknown Habit (${habitId})`,
+                count,
+                target: habit ? habit.completions_per_day : 1
+            });
+        });
+
+        // Add all habits to the response with their details
+        const response = {
+            startDate,
+            endDate,
+            habits: habits.map(h => ({
+                id: h.id,
+                title: h.title,
+                frequency: h.frequency,
+                completionsPerDay: h.completions_per_day,
+                totalCompletions: h.total_completions
+            })),
+            completionsByDate
+        };
+
+        console.log('Final response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error) {
+        console.error('Error fetching habit completions by date range:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     getAllHabits,
     createHabit,
@@ -461,5 +618,6 @@ module.exports = {
     deleteHabit,
     recordCompletion,
     removeCompletion,
-    updateTotalCompletions
+    updateTotalCompletions,
+    getCompletionsByDateRange
 };

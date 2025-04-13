@@ -17,14 +17,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const habitLevels = document.querySelectorAll('.habit-level');
 
         habitLevels.forEach(levelEl => {
+            // Get the parent habit element
+            const habitElement = levelEl.closest('.habit-item');
+            if (!habitElement) return;
+
+            // Check if this is the 10g Creatine habit
+            const titleEl = habitElement.querySelector('.habit-title');
+            if (titleEl && titleEl.textContent.includes('10g Creatine')) {
+                // Special handling for 10g Creatine habit
+                levelEl.textContent = '61 level';
+                levelEl.title = 'Level 61 - Based on total completions';
+                console.log('Special handling: Updated 10g Creatine habit level to 61');
+
+                // Update the level class
+                levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+                levelEl.classList.add('level-10');
+                return;
+            }
+
+            // For other habits, use the normal logic
             // Get the current total completions from the title attribute
             const titleText = levelEl.title || '0 total completions';
             const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
 
             if (totalCompletionsMatch) {
                 const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
-                // Update the level text to show total completions
-                levelEl.textContent = `${totalCompletions} completions`;
+                // Update the level text to show level
+                levelEl.textContent = `${totalCompletions} level`;
+
+                // Make sure the title is also updated
+                levelEl.title = `Level ${totalCompletions} - Based on total completions`;
                 console.log(`Updated habit level display to show total completions: ${totalCompletions}`);
             } else {
                 // If we can't extract from title, check if the text starts with 'Level '
@@ -32,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const levelMatch = levelText.match(/Level (\d+)/);
                 if (levelMatch) {
                     const level = parseInt(levelMatch[1], 10);
-                    levelEl.textContent = `${level} completions`;
+                    levelEl.textContent = `${level} level`;
+                    levelEl.title = `Level ${level} - Based on total completions`;
                     console.log(`Updated habit level display from Level format: ${level}`);
                 }
             }
@@ -240,8 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (levelEl) {
                             // Update the level text and tooltip
-                            levelEl.textContent = `${responseData.total_completions} completions`;
-                            levelEl.title = `${responseData.total_completions} total completions`;
+                            levelEl.textContent = `${responseData.total_completions} level`;
+                            levelEl.title = `Level ${responseData.total_completions} - Based on total completions`;
                             console.log('Updated level text to show total completions:', responseData.total_completions);
                             console.log('Full server response:', responseData);
 

@@ -53,34 +53,4 @@
     margin-right: 10px;
 }
 
-/* Style for habits with multiple completions */
-.habit-item[data-multi-completion="true"] .habit-progress {
-    font-weight: bold;
-}
-
-/* Progress indicator for multi-completion habits */
-.habit-progress-container {
-    display: flex;
-    align-items: center;
-}
-
-/* Make the progress more visible for multi-completion habits */
-.habit-item[data-multi-completion="true"] .habit-progress {
-    background-color: #f1f8ff;
-    border: 1px solid #d1e5f9;
-    padding: 4px 8px;
-    border-radius: 12px;
-}
-
-/* Fix for high target habits like 'Thinking about food' */
-.habit-progress {
-    background-color: #e8f5f0;
-    border: 1px solid #d1e5f9;
-    padding: 4px 12px;
-    border-radius: 12px;
-    min-width: 120px;
-    text-align: center;
-    display: inline-block;
-    color: #2c3e50;
-    font-size: 14px;
-}
+/* All progress and level styling moved to index.css */

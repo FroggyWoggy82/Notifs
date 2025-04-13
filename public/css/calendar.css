@@ -5,6 +5,39 @@
     margin-bottom: 20px;
 }
 
+/* Calendar Filter */
+.calendar-filter {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 8px 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dde5eb;
+}
+
+.calendar-filter label {
+    margin-right: 10px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.calendar-filter select {
+    padding: 6px 10px;
+    border: 1px solid #dde5eb;
+    border-radius: 4px;
+    background-color: white;
+    color: #2c3e50;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.calendar-filter select:focus {
+    outline: none;
+    border-color: #4db6ac;
+    box-shadow: 0 0 0 2px rgba(77, 182, 172, 0.2);
+}
+
 .calendar-controls {
     display: flex;
     justify-content: space-between;
@@ -102,30 +135,35 @@
     color: #117a65; /* Darker teal for today's number */
 }
 
-/* Task Items within Calendar Day */
-.calendar-tasks {
+/* Task and Habit Items within Calendar Day */
+.calendar-tasks,
+.calendar-habits {
     flex-grow: 1;
-    overflow-y: auto; /* Allow scrolling if many tasks */
+    overflow-y: auto; /* Allow scrolling if many items */
     max-height: 85px; /* Increased max height to fit more content */
     scrollbar-width: thin; /* Firefox */
     scrollbar-color: #bdc3c7 #e8eef2; /* Firefox */
     margin-top: 2px; /* Add a small margin at the top */
 }
 /* Webkit scrollbar styling */
-.calendar-tasks::-webkit-scrollbar {
+.calendar-tasks::-webkit-scrollbar,
+.calendar-habits::-webkit-scrollbar {
   width: 5px;
 }
-.calendar-tasks::-webkit-scrollbar-track {
+.calendar-tasks::-webkit-scrollbar-track,
+.calendar-habits::-webkit-scrollbar-track {
   background: #e8eef2;
   border-radius: 3px;
 }
-.calendar-tasks::-webkit-scrollbar-thumb {
+.calendar-tasks::-webkit-scrollbar-thumb,
+.calendar-habits::-webkit-scrollbar-thumb {
   background-color: #bdc3c7;
   border-radius: 3px;
 }
 
 /* Add a fade effect at the bottom to indicate more content */
-.calendar-tasks::after {
+.calendar-tasks::after,
+.calendar-habits::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -139,27 +177,37 @@
 }
 
 /* Show the fade effect when content overflows */
-.calendar-tasks.has-overflow::after {
+.calendar-tasks.has-overflow::after,
+.calendar-habits.has-overflow::after {
   opacity: 1;
 }
 
-/* Task count indicator */
-.task-count-indicator {
+/* Task and habit count indicators */
+.task-count-indicator,
+.habit-count-indicator {
   position: absolute;
   bottom: 2px;
-  right: 2px;
   font-size: 0.7em;
   padding: 1px 4px;
-  background-color: rgba(77, 182, 172, 0.2);
   border-radius: 3px;
   color: #2c3e50;
   z-index: 1;
 }
 
+.task-count-indicator {
+  right: 2px;
+  background-color: rgba(77, 182, 172, 0.2);
+}
 
-.calendar-task-item {
-    background-color: #e9f7ef; /* Light green background */
-    color: #13523e;
+.habit-count-indicator {
+  left: 2px;
+  background-color: rgba(142, 68, 173, 0.2);
+}
+
+
+/* Common styles for calendar items */
+.calendar-task-item,
+.calendar-habit-item {
     padding: 3px 6px;
     border-radius: 3px;
     font-size: 0.8em;
@@ -168,16 +216,55 @@
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer;
-    border: 1px solid #a6dabc;
     max-width: 100%; /* Ensure it doesn't exceed the container width */
     box-sizing: border-box; /* Include padding in width calculation */
 }
 
+/* Task specific styling */
+.calendar-task-item {
+    background-color: #e9f7ef; /* Light green background */
+    color: #13523e;
+    border: 1px solid #a6dabc;
+}
+
+/* Habit specific styling */
+.calendar-habit-item {
+    background-color: #f5eef8; /* Light purple background */
+    color: #5b2c6f;
+    border: 1px solid #d2b4de;
+}
+
+/* Completed items styling */
 .calendar-task-item.complete {
     background-color: #e0e0e0;
     color: #757575;
     text-decoration: line-through;
     border-color: #cccccc;
+}
+
+/* Completed habit styling */
+.calendar-habit-item.complete {
+    background-color: #a3e4d7; /* Light green for completed habits */
+    color: #186a5b;
+    border-left: 3px solid #1abc9c; /* Green border for completed habits */
+    position: relative;
+    text-decoration: none; /* Remove line-through */
+}
+
+/* Checkmark for completed habits */
+.calendar-habit-item.complete::after {
+    content: '✓';
+    position: absolute;
+    right: 4px;
+    color: #186a5b;
+    font-weight: bold;
+}
+
+/* Partial completion styling for habits */
+.calendar-habit-item.partial {
+    background-color: #e8daef; /* Lighter purple */
+    color: #5b2c6f;
+    border-left: 3px solid #9b59b6; /* Purple border for partial habits */
 }
 
 /* Style for recurring task instances */

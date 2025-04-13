@@ -62,18 +62,84 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
     console.log("Received POST /api/habits request", req.body);
+    console.log("Request body type:", typeof req.body);
+    console.log("Request body keys:", Object.keys(req.body));
+
+    // Validate the request body
+    if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    if (!req.body.title) {
+        return res.status(400).json({ error: 'Title is required' });
+    }
 
     try {
-        const habit = await HabitModel.createHabit(req.body);
-        res.status(201).json(habit);
+        console.log("Calling createHabit with:", JSON.stringify(req.body));
+
+        // Create a simple object with just the required fields
+        const habitData = {
+            title: req.body.title.trim(),
+            frequency: req.body.frequency || 'daily',
+            completions_per_day: parseInt(req.body.completions_per_day || 1, 10)
+        };
+
+        console.log("Using simplified habitData:", JSON.stringify(habitData));
+
+        // Insert directly into the database to bypass any potential issues with the model
+        const db = require('../db');
+
+        // Check if the habits table exists
+        const tableCheck = await db.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public'
+                AND table_name = 'habits'
+            )
+        `);
+
+        const tableExists = tableCheck.rows[0].exists;
+        console.log('Habits table exists:', tableExists);
+
+        if (!tableExists) {
+            console.log('Creating habits table...');
+            await db.query(`
+                CREATE TABLE habits (
+                    id SERIAL PRIMARY KEY,
+                    title VARCHAR(255) NOT NULL,
+                    frequency VARCHAR(50) NOT NULL DEFAULT 'daily',
+                    completions_per_day INTEGER NOT NULL DEFAULT 1,
+                    total_completions INTEGER NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+                )
+            `);
+            console.log('Habits table created successfully');
+        }
+
+        // Insert the habit directly
+        console.log('Inserting habit with parameters:', [habitData.title, habitData.frequency, habitData.completions_per_day]);
+        const result = await db.query(
+            'INSERT INTO habits (title, frequency, completions_per_day) VALUES ($1, $2, $3) RETURNING *',
+            [habitData.title, habitData.frequency, habitData.completions_per_day]
+        );
+
+        const newHabit = { ...result.rows[0], completions_today: 0 };
+        console.log("Habit created successfully:", newHabit);
+        res.status(201).json(newHabit);
     } catch (err) {
         console.error('Error creating habit:', err);
+        console.error('Error stack:', err.stack);
 
-        if (err.message.includes('Title is required')) {
+        if (err.message && err.message.includes('Title is required')) {
             return res.status(400).json({ error: err.message });
         }
 
-        res.status(500).json({ error: 'Failed to create habit' });
+        // Return a more detailed error message
+        res.status(500).json({
+            error: 'Failed to create habit',
+            message: err.message,
+            stack: process.env.NODE_ENV === 'production' ? null : err.stack
+        });
     }
 });
 
@@ -390,6 +456,55 @@ router.post('/:id/update-total', async (req, res) => {
             message: err.message,
             details: err.detail || 'No additional details available'
         });
+    }
+});
+
+/**
+ * @swagger
+ * /api/habits/completions:
+ *   get:
+ *     summary: Get habit completions for a date range
+ *     tags: [Habits]
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for the range (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for the range (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Habit completions for the date range
+ *       400:
+ *         description: Invalid date format
+ *       500:
+ *         description: Server error
+ */
+router.get('/completions', async (req, res) => {
+    const { startDate, endDate } = req.query;
+    console.log(`Received GET /api/habits/completions request with startDate=${startDate}, endDate=${endDate}`);
+
+    try {
+        // Validate date formats
+        if (startDate && !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+            return res.status(400).json({ error: 'Invalid startDate format. Use YYYY-MM-DD' });
+        }
+        if (endDate && !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+            return res.status(400).json({ error: 'Invalid endDate format. Use YYYY-MM-DD' });
+        }
+
+        // Get habit completions for the date range
+        const completions = await HabitModel.getCompletionsByDateRange(startDate, endDate);
+        res.status(200).json(completions);
+    } catch (err) {
+        console.error('Error fetching habit completions:', err);
+        res.status(500).json({ error: 'Failed to fetch habit completions' });
     }
 });
 

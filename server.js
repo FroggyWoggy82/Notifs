@@ -16,7 +16,7 @@ const db = require('./db'); // Required for database connection initialization
 const goalRoutes = require('./routes/goalRoutes'); // New MVC pattern
 const daysSinceRouter = require('./routes/daysSinceRoutes'); // New MVC pattern
 const workoutRoutes = require('./routes/workouts'); // New MVC pattern
-const habitRoutes = require('./routes/habitRoutes'); // New MVC pattern with fixed db.getClient issue
+const habitRoutes = require('./routes/habitRoutesNew'); // Using direct DB access to fix habit creation issue
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
 const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
@@ -81,6 +81,11 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/weight', weightRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
+
+// Catch-all for API routes to prevent returning HTML for non-existent API endpoints
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: `API endpoint not found: ${req.originalUrl}` });
+});
 
 // Setup Swagger documentation
 swaggerDocs(app);
