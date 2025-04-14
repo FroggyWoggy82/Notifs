@@ -150,18 +150,26 @@ const initializeAndStart = async () => {
     console.log('HEIF Support (via libvips):', sharp.format.heif ? 'Available' : 'NOT Available');
     console.log('--- End Sharp Feature Check ---');
 
-    // Start the server
-    app.listen(PORT, () => {
+    // Start the server with increased timeout
+    const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
+
+    // Set timeout to 5 minutes (300000 ms) for large uploads
+    server.timeout = 300000; // 5 minutes
+    console.log(`Server timeout set to ${server.timeout}ms (${server.timeout/60000} minutes)`);
   } catch (error) {
     console.error('Failed to connect to database:', error);
     console.log('Server will start anyway, but database features may not work');
 
     // Start the server even if database connection fails
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT} (database connection failed)`);
     });
+
+    // Set timeout to 5 minutes (300000 ms) for large uploads
+    server.timeout = 300000; // 5 minutes
+    console.log(`Server timeout set to ${server.timeout}ms (${server.timeout/60000} minutes)`);
   }
 };
 

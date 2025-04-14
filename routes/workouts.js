@@ -111,75 +111,139 @@ const traceMiddleware = (req, res, next) => {
 async function compressImageToTargetSize(inputPath, outputPath, targetSizeKB) {
     console.log(`[Image Compression] Starting compression of ${inputPath} to target size ${targetSizeKB}KB`);
 
-    // Get the original file size
-    const stats = await fsStatAsync(inputPath);
-    const originalSizeKB = stats.size / 1024;
-    console.log(`[Image Compression] Original file size: ${originalSizeKB.toFixed(2)}KB`);
+    try {
+        // Get the original file size
+        const stats = await fsStatAsync(inputPath);
+        const originalSizeKB = stats.size / 1024;
+        console.log(`[Image Compression] Original file size: ${originalSizeKB.toFixed(2)}KB`);
 
-    // If the file is already smaller than the target size, just copy it
-    if (originalSizeKB <= targetSizeKB) {
-        console.log(`[Image Compression] File is already smaller than target size, no compression needed`);
-        // Just copy the file
-        await sharp(inputPath).toFile(outputPath);
-        return {
-            success: true,
-            originalSize: originalSizeKB,
-            newSize: originalSizeKB,
-            quality: 100
-        };
-    }
+        // If the file is already smaller than the target size, just copy it
+        if (originalSizeKB <= targetSizeKB) {
+            console.log(`[Image Compression] File is already smaller than target size, no compression needed`);
+            // Just copy the file
+            await sharp(inputPath).toFile(outputPath);
+            return {
+                success: true,
+                originalSize: originalSizeKB,
+                newSize: originalSizeKB,
+                quality: 100
+            };
+        }
 
-    // Start with quality 90 and decrease by 10 each time until we reach the target size
-    // or hit a minimum quality threshold
-    let quality = 90;
-    const minQuality = 30; // Don't go below this quality to avoid terrible images
-    let currentSizeKB = originalSizeKB;
-    let attempts = 0;
-    const maxAttempts = 10; // Prevent infinite loops
+        // For very large images, resize them first to reduce processing time
+        let imageProcessor = sharp(inputPath);
 
-    while (currentSizeKB > targetSizeKB && quality >= minQuality && attempts < maxAttempts) {
-        console.log(`[Image Compression] Attempt ${attempts + 1} with quality ${quality}`);
+        // Get image metadata
+        const metadata = await imageProcessor.metadata();
+        console.log(`[Image Compression] Image dimensions: ${metadata.width}x${metadata.height}`);
 
-        // Compress the image with the current quality setting
-        await sharp(inputPath)
-            .jpeg({ quality })
-            .toFile(outputPath);
-
-        // Check the new file size
-        const newStats = await fsStatAsync(outputPath);
-        currentSizeKB = newStats.size / 1024;
-        console.log(`[Image Compression] New file size: ${currentSizeKB.toFixed(2)}KB`);
-
-        // If we're still above the target size, reduce quality and try again
-        if (currentSizeKB > targetSizeKB) {
-            // Decrease quality more aggressively for larger files
-            const sizeRatio = currentSizeKB / targetSizeKB;
-            if (sizeRatio > 3) {
-                quality -= 20; // Large file, decrease quality more
-            } else if (sizeRatio > 2) {
-                quality -= 15; // Medium file, decrease quality moderately
+        // If image is very large, resize it first to speed up compression
+        const MAX_DIMENSION = 2000; // Maximum dimension for efficient processing
+        if (metadata.width > MAX_DIMENSION || metadata.height > MAX_DIMENSION) {
+            console.log(`[Image Compression] Image is very large, resizing first to improve performance`);
+            // Resize while maintaining aspect ratio
+            if (metadata.width > metadata.height) {
+                imageProcessor = imageProcessor.resize(MAX_DIMENSION, null, { fit: 'inside' });
             } else {
-                quality -= 10; // Small file, decrease quality less
+                imageProcessor = imageProcessor.resize(null, MAX_DIMENSION, { fit: 'inside' });
+            }
+        }
+
+        // Start with quality 80 for faster compression
+        let quality = 80;
+        const minQuality = 30; // Don't go below this quality to avoid terrible images
+        let currentSizeKB = originalSizeKB;
+        let attempts = 0;
+        const maxAttempts = 8; // Limit attempts to prevent long processing times
+
+        // Binary search approach for faster convergence
+        let minQ = minQuality;
+        let maxQ = 90;
+
+        while (attempts < maxAttempts) {
+            console.log(`[Image Compression] Attempt ${attempts + 1} with quality ${quality}`);
+
+            // Compress the image with the current quality setting
+            await imageProcessor
+                .jpeg({ quality })
+                .toFile(outputPath);
+
+            // Check the new file size
+            const newStats = await fsStatAsync(outputPath);
+            currentSizeKB = newStats.size / 1024;
+            console.log(`[Image Compression] New file size: ${currentSizeKB.toFixed(2)}KB`);
+
+            // If we're close enough to the target, we're done
+            if (Math.abs(currentSizeKB - targetSizeKB) < targetSizeKB * 0.1 || currentSizeKB <= targetSizeKB) {
+                break;
             }
 
-            // Ensure quality doesn't go below minQuality
-            quality = Math.max(quality, minQuality);
+            // Binary search approach
+            if (currentSizeKB > targetSizeKB) {
+                // Too big, reduce quality
+                maxQ = quality;
+                quality = Math.floor((minQ + quality) / 2);
+            } else {
+                // Too small, increase quality
+                minQ = quality;
+                quality = Math.floor((quality + maxQ) / 2);
+            }
+
+            // Ensure quality stays within bounds
+            quality = Math.max(minQuality, Math.min(90, quality));
             attempts++;
+
+            // If we're not making progress, break early
+            if (maxQ - minQ <= 5) {
+                // Final attempt with lower quality to ensure we're under target
+                if (currentSizeKB > targetSizeKB) {
+                    quality = minQuality;
+                    await imageProcessor
+                        .jpeg({ quality })
+                        .toFile(outputPath);
+                    const finalStats = await fsStatAsync(outputPath);
+                    currentSizeKB = finalStats.size / 1024;
+                }
+                break;
+            }
+        }
+
+        // If we couldn't reach the target size with reasonable quality,
+        // use the smallest size we achieved
+        const success = currentSizeKB <= targetSizeKB;
+        console.log(`[Image Compression] ${success ? 'Successfully' : 'Could not'} compress to target size. ` +
+                    `Final size: ${currentSizeKB.toFixed(2)}KB with quality ${quality}`);
+
+        return {
+            success,
+            originalSize: originalSizeKB,
+            newSize: currentSizeKB,
+            quality
+        };
+    } catch (error) {
+        console.error(`[Image Compression] Error during compression:`, error);
+        // In case of error, try a simple compression as fallback
+        try {
+            await sharp(inputPath)
+                .jpeg({ quality: 50 }) // Use a moderate quality
+                .toFile(outputPath);
+
+            const stats = await fsStatAsync(outputPath);
+            const finalSizeKB = stats.size / 1024;
+
+            console.log(`[Image Compression] Fallback compression completed. Size: ${finalSizeKB.toFixed(2)}KB`);
+
+            return {
+                success: finalSizeKB <= targetSizeKB,
+                originalSize: 0, // Unknown due to error
+                newSize: finalSizeKB,
+                quality: 50
+            };
+        } catch (fallbackError) {
+            console.error(`[Image Compression] Fallback compression failed:`, fallbackError);
+            throw error; // Re-throw the original error
         }
     }
-
-    // If we couldn't reach the target size with reasonable quality,
-    // use the smallest size we achieved
-    const success = currentSizeKB <= targetSizeKB;
-    console.log(`[Image Compression] ${success ? 'Successfully' : 'Could not'} compress to target size. ` +
-                `Final size: ${currentSizeKB.toFixed(2)}KB with quality ${quality}`);
-
-    return {
-        success,
-        originalSize: originalSizeKB,
-        newSize: currentSizeKB,
-        quality
-    };
 }
 
 // --- API Routes ---
@@ -760,6 +824,8 @@ router.delete('/logs/:id', async (req, res) => {
 // Add traceMiddleware BEFORE uploadPhotosMiddleware
 // ADD handleMulterError AFTER uploadPhotosMiddleware
 router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleMulterError, async (req, res) => {
+    // Set a longer timeout for this specific route
+    req.setTimeout(300000); // 5 minutes
     console.log('[Upload Trace] === Route Handler START ===');
     // <<< DEBUG LOGS AT THE START >>>
     console.log('[DEBUG] req.body immediately after multer:', JSON.stringify(req.body));
