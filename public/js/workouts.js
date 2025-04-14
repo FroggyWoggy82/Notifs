@@ -2658,15 +2658,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update status with compression info
         statusElement.style.display = 'block';
+
+        // Add warning for large files
+        let warningText = '';
+        if (totalSizeMB > 5) {
+            warningText = `<div style="font-size: 0.8em; margin-top: 5px; color: #ff9800;">
+                <strong>Warning:</strong> Large file detected (${totalSizeMB} MB). Image will be significantly compressed.
+            </div>`;
+        }
+
         statusElement.innerHTML = `
-            <div style="color: #03dac6;">Uploading ${files.length} file(s) (${totalSizeMB} MB)...</div>
+            <div style="color: #03dac6;">Uploading ${files.length} file(s)...</div>
             <div style="font-size: 0.8em; margin-top: 5px;">
                 ${isMobile ?
-                    'Using mobile compression. Files will be compressed to under 800KB.' :
+                    'Using mobile compression. Files over 800KB will be resized to 400x400px.' :
                     'Using standard compression. Large files will be reduced in size.'}
             </div>
+            ${warningText}
             <div style="font-size: 0.8em; margin-top: 5px; color: #aaa;">
-                This may take a moment for large files...
+                Please wait while processing...
             </div>
         `;
         submitButton.disabled = true;
@@ -2680,11 +2690,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Set a timeout to prevent the upload from getting stuck
         const uploadTimeout = setTimeout(() => {
-            statusElement.textContent = 'Upload timed out. Please try again with a smaller image.';
-            statusElement.style.color = 'red';
+            statusElement.innerHTML = `
+                <div style="color: #f44336;">Upload timed out. Please try again with a smaller image.</div>
+                <div style="font-size: 0.8em; margin-top: 5px;">
+                    Try using a smaller image or taking a new photo with lower resolution.
+                </div>
+            `;
             submitButton.disabled = false;
-            console.error('[Photo Upload Client] Upload timed out after 60 seconds');
-        }, 60000); // 60 second timeout - increased to allow more time for processing
+            console.error('[Photo Upload Client] Upload timed out after 30 seconds');
+        }, 30000); // 30 second timeout - reduced to provide faster feedback
 
         let response;
         try {
@@ -2696,7 +2710,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const fetchTimeout = setTimeout(() => {
                 controller.abort();
                 console.error('[Photo Upload Client] Fetch operation aborted due to timeout');
-            }, 50000); // 50 second timeout for fetch operation
+            }, 25000); // 25 second timeout for fetch operation
 
             console.log('[Photo Upload Client] Starting fetch with timeout control');
             response = await fetch(uploadEndpoint, {
