@@ -2656,9 +2656,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
 
-        // Update status
+        // Update status with compression info
         statusElement.style.display = 'block';
-        statusElement.innerHTML = `<div style="color: #03dac6;">Uploading ${files.length} file(s) (${totalSizeMB} MB)...</div>`;
+        statusElement.innerHTML = `
+            <div style="color: #03dac6;">Uploading ${files.length} file(s) (${totalSizeMB} MB)...</div>
+            <div style="font-size: 0.8em; margin-top: 5px;">
+                ${isMobile ?
+                    'Using mobile compression. Files will be compressed to under 800KB.' :
+                    'Using standard compression. Large files will be reduced in size.'}
+            </div>
+            <div style="font-size: 0.8em; margin-top: 5px; color: #aaa;">
+                This may take a moment for large files...
+            </div>
+        `;
         submitButton.disabled = true;
 
         // Use the mobile-specific endpoint for mobile devices

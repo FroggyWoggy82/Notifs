@@ -85,78 +85,133 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
             const originalSizeKB = originalStats.size / 1024;
             console.log(`[MOBILE UPLOAD] Original size: ${originalSizeKB.toFixed(2)}KB`);
 
-            // Ultra aggressive settings for mobile
-            let quality = 20;
-            let maxDimension = 600;
+            // Process the image with guaranteed size limit
+            let currentQuality = 20; // Start with aggressive quality for mobile
+            let currentMaxDimension = 600;
+            let attempts = 1;
+            let sizeKB = Infinity;
 
-            if (originalSizeKB > 5000) {
-                quality = 10;
-                maxDimension = 500;
+            console.log(`[MOBILE UPLOAD] Starting progressive compression to ensure <800KB file size`);
+
+            // Keep trying with progressively more aggressive settings until under 800KB
+            while (sizeKB > 800 && attempts <= 5) {
+                console.log(`[MOBILE UPLOAD] Compression attempt #${attempts} with quality=${currentQuality}, maxDimension=${currentMaxDimension}`);
+
+                try {
+                    // Remove previous attempt if it exists
+                    if (attempts > 1 && fs.existsSync(jpegPath)) {
+                        fs.unlinkSync(jpegPath);
+                    }
+
+                    await sharp(file.path)
+                        .resize(currentMaxDimension, currentMaxDimension, { fit: 'inside', withoutEnlargement: true })
+                        .jpeg({
+                            quality: currentQuality,
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            optimizeCoding: true
+                        })
+                        .toFile(jpegPath);
+
+                    // Check result
+                    const stats = fs.statSync(jpegPath);
+                    sizeKB = stats.size / 1024;
+                    console.log(`[MOBILE UPLOAD] Attempt #${attempts} result: ${sizeKB.toFixed(2)}KB`);
+
+                    // If still too large, reduce quality and dimensions for next attempt
+                    if (sizeKB > 800) {
+                        // Reduce quality by 30% each time, with a minimum of 5%
+                        currentQuality = Math.max(5, Math.floor(currentQuality * 0.7));
+
+                        // Reduce dimensions by 20% each time, with a minimum of 300px
+                        currentMaxDimension = Math.max(300, Math.floor(currentMaxDimension * 0.8));
+
+                        attempts++;
+                    }
+                } catch (compressionError) {
+                    console.error(`[MOBILE UPLOAD] Error during compression attempt #${attempts}:`, compressionError);
+                    attempts++;
+                    // Continue to next attempt with more aggressive settings
+                    currentQuality = Math.max(5, Math.floor(currentQuality * 0.5));
+                    currentMaxDimension = Math.max(300, Math.floor(currentMaxDimension * 0.7));
+                }
             }
 
-            console.log(`[MOBILE UPLOAD] Using quality=${quality}, maxDimension=${maxDimension}`);
-
-            // Process the image - first attempt
-            await sharp(file.path)
-                .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-                .jpeg({
-                    quality: quality,
-                    progressive: true,
-                    optimizeScans: true,
-                    trellisQuantisation: true,
-                    optimizeCoding: true
-                })
-                .toFile(jpegPath);
-
-            // Check the size of the processed image
-            const stats = fs.statSync(jpegPath);
-            const sizeKB = stats.size / 1024;
-            console.log(`[MOBILE UPLOAD] Processed size: ${sizeKB.toFixed(2)}KB`);
-
-            // If still too large, try again with extreme settings
+            // Final result
+            console.log(`[MOBILE UPLOAD] Final size after progressive compression: ${sizeKB.toFixed(2)}KB after ${attempts} attempt(s)`);
             if (sizeKB > 800) {
-                console.log(`[MOBILE UPLOAD] Still too large, trying extreme settings`);
+                console.warn(`[MOBILE UPLOAD] WARNING: Could not compress below 800KB after ${attempts} attempts!`);
+            }
 
-                // Create a new filename for the second attempt
-                const secondFilename = `mobile_tiny_${timestamp}.jpg`;
-                const secondPath = path.join(progressPhotosDir, secondFilename);
+            // If still too large after all attempts, use EMERGENCY grayscale compression
+            if (sizeKB > 800) {
+                console.log(`[MOBILE UPLOAD] EMERGENCY COMPRESSION: File still over 800KB after progressive attempts`);
 
-                // Use extreme settings
-                await sharp(file.path)
-                    .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
-                    .grayscale() // Convert to grayscale to reduce file size dramatically
-                    .jpeg({
-                        quality: 10,
-                        progressive: true,
-                        optimizeScans: true,
-                        trellisQuantisation: true,
-                        optimizeCoding: true
-                    })
-                    .toFile(secondPath);
+                // Create a new filename for the emergency attempt
+                const emergencyFilename = `mobile_emergency_${timestamp}.jpg`;
+                const emergencyPath = path.join(progressPhotosDir, emergencyFilename);
 
-                // Check second attempt
-                const secondStats = fs.statSync(secondPath);
-                const secondSizeKB = secondStats.size / 1024;
-                console.log(`[MOBILE UPLOAD] Second attempt size: ${secondSizeKB.toFixed(2)}KB`);
+                try {
+                    // Use absolute minimum settings - grayscale with 1% quality
+                    console.log(`[MOBILE UPLOAD] Using absolute minimum quality settings (grayscale, 1% quality, 200px)`);
+                    await sharp(file.path)
+                        .resize(200, 200, { fit: 'inside', withoutEnlargement: true })
+                        .grayscale() // Convert to grayscale to reduce file size dramatically
+                        .jpeg({
+                            quality: 1, // Absolute minimum quality
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            optimizeCoding: true
+                        })
+                        .toFile(emergencyPath);
 
-                // Delete first attempt
-                fs.unlinkSync(jpegPath);
+                    // Check emergency attempt
+                    const emergencyStats = fs.statSync(emergencyPath);
+                    const emergencySizeKB = emergencyStats.size / 1024;
+                    console.log(`[MOBILE UPLOAD] EMERGENCY compression result: ${emergencySizeKB.toFixed(2)}KB (${(originalSizeKB/emergencySizeKB).toFixed(2)}x reduction)`);
 
-                // Add to processed files
-                processedFiles.push({
-                    filename: secondFilename,
-                    path: secondPath,
-                    relativePath: `/uploads/progress_photos/${secondFilename}`,
-                    size: secondStats.size
-                });
+                    // Delete first attempt
+                    fs.unlinkSync(jpegPath);
+
+                    // Add to processed files
+                    processedFiles.push({
+                        filename: emergencyFilename,
+                        path: emergencyPath,
+                        relativePath: `/uploads/progress_photos/${emergencyFilename}`,
+                        size: emergencyStats.size
+                    });
+
+                    // Update sizeKB for final check
+                    sizeKB = emergencySizeKB;
+                } catch (emergencyError) {
+                    console.error(`[MOBILE UPLOAD] Emergency compression failed:`, emergencyError);
+                    // Keep using the best attempt so far
+                    processedFiles.push({
+                        filename: path.basename(jpegPath),
+                        path: jpegPath,
+                        relativePath: `/uploads/progress_photos/${path.basename(jpegPath)}`,
+                        size: fs.statSync(jpegPath).size
+                    });
+                }
             } else {
                 // Add to processed files
                 processedFiles.push({
                     filename: jpegFilename,
                     path: jpegPath,
                     relativePath: `/uploads/progress_photos/${jpegFilename}`,
-                    size: stats.size
+                    size: fs.statSync(jpegPath).size
                 });
+
+                // Log success
+                console.log(`[MOBILE UPLOAD] Successfully compressed to ${sizeKB.toFixed(2)}KB (under 800KB limit)`);
+            }
+
+            // Final size check and warning
+            if (sizeKB > 800) {
+                console.error(`[MOBILE UPLOAD] CRITICAL ERROR: Could not compress image below 800KB despite all attempts!`);
+                console.error(`[MOBILE UPLOAD] Final size: ${sizeKB.toFixed(2)}KB - This should never happen!`);
             }
 
             // Delete original file
