@@ -77,8 +77,8 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
         try {
             // Generate unique filename for the processed image
             const timestamp = Date.now();
-            const jpegFilename = `mobile_processed_${timestamp}.jpg`;
-            const jpegPath = path.join(progressPhotosDir, jpegFilename);
+            const jpgFilename = `mobile_processed_${timestamp}.jpg`;
+            const jpgPath = path.join(progressPhotosDir, jpgFilename);
 
             // Get original file size
             const originalStats = fs.statSync(file.path);
@@ -96,19 +96,21 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                     // Create a tiny image that's guaranteed to be under 800KB
                     await sharp(file.path)
                         .resize(400, 400, { fit: 'inside' })
+                        .toFormat('jpeg') // Explicitly set format to jpeg
                         .jpeg({ quality: 20 })
-                        .toFile(jpegPath);
+                        .toFile(jpgPath);
                 } else {
-                    // For files under 800KB, just convert to JPEG
-                    console.log(`[MOBILE UPLOAD] File under 800KB - converting to JPEG`);
+                    // For files under 800KB, just convert to JPG
+                    console.log(`[MOBILE UPLOAD] File under 800KB - converting to JPG`);
 
                     await sharp(file.path)
+                        .toFormat('jpeg') // Explicitly set format to jpeg
                         .jpeg({ quality: 80 })
-                        .toFile(jpegPath);
+                        .toFile(jpgPath);
                 }
 
                 // Check result
-                const stats = fs.statSync(jpegPath);
+                const stats = fs.statSync(jpgPath);
                 const sizeKB = stats.size / 1024;
                 console.log(`[MOBILE UPLOAD] Processed file size: ${sizeKB.toFixed(2)}KB`);
             } catch (error) {
@@ -127,8 +129,9 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                             background: { r: 200, g: 200, b: 200 }
                         }
                     })
+                    .toFormat('jpeg') // Explicitly set format to jpeg
                     .jpeg({ quality: 30 })
-                    .toFile(jpegPath);
+                    .toFile(jpgPath);
 
                     console.log(`[MOBILE UPLOAD] Created emergency blank image`);
                 } catch (emergencyError) {
@@ -139,13 +142,13 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
 
             // Add to processed files
             processedFiles.push({
-                filename: jpegFilename,
-                path: jpegPath,
-                relativePath: `/uploads/progress_photos/${jpegFilename}`,
-                size: fs.existsSync(jpegPath) ? fs.statSync(jpegPath).size : 0
+                filename: jpgFilename,
+                path: jpgPath,
+                relativePath: `/uploads/progress_photos/${jpgFilename}`,
+                size: fs.existsSync(jpgPath) ? fs.statSync(jpgPath).size : 0
             });
 
-            console.log(`[MOBILE UPLOAD] Added file to processed files: ${jpegFilename}`);
+            console.log(`[MOBILE UPLOAD] Added file to processed files: ${jpgFilename}`);
 
             // Delete original file
             try {

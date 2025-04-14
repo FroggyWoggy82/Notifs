@@ -84,8 +84,8 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
 
             // Create a new filename for the processed image
             const timestamp = Date.now();
-            const jpegFilename = `processed_${timestamp}.jpg`;
-            const jpegPath = path.join(progressPhotosDir, jpegFilename);
+            const jpgFilename = `processed_${timestamp}.jpg`;
+            const jpgPath = path.join(progressPhotosDir, jpgFilename);
 
             try {
                 // Get original file size
@@ -97,24 +97,25 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
                 if (originalSizeKB <= 800) {
                     console.log(`[SIMPLE UPLOAD] Original file already under 800KB (${originalSizeKB.toFixed(2)}KB) - using as is`);
 
-                    // Just convert to JPEG without aggressive compression
+                    // Just convert to JPG without aggressive compression
                     await sharp(file.path)
+                        .toFormat('jpeg') // Explicitly set format to jpeg
                         .jpeg({
                             quality: 90, // High quality since file is already small
                             progressive: true
                         })
-                        .toFile(jpegPath);
+                        .toFile(jpgPath);
 
                     // Update size after conversion
-                    const stats = fs.statSync(jpegPath);
+                    const stats = fs.statSync(jpgPath);
                     const sizeKB = stats.size / 1024;
-                    console.log(`[SIMPLE UPLOAD] Converted to JPEG: ${sizeKB.toFixed(2)}KB`);
+                    console.log(`[SIMPLE UPLOAD] Converted to JPG: ${sizeKB.toFixed(2)}KB`);
 
                     // Add to processed files
                     processedFiles.push({
-                        filename: jpegFilename,
-                        path: jpegPath,
-                        relativePath: `/uploads/progress_photos/${jpegFilename}`,
+                        filename: jpgFilename,
+                        path: jpgPath,
+                        relativePath: `/uploads/progress_photos/${jpgFilename}`,
                         size: stats.size
                     });
 
