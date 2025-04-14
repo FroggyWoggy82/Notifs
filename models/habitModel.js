@@ -331,24 +331,30 @@ async function recordCompletion(habitId) {
         const currentTotalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
         console.log(`Habit ${habitId} current total completions: ${currentTotalCompletions}`);
 
-        // 3. Check if there's already a completion for today
+        // 3. Check how many completions exist for today
         const completionResult = await db.query(
-            'SELECT * FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
+            'SELECT COUNT(*) FROM habit_completions WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NULL',
             [habitId, todayKey]
         );
 
-        const hasCompletionToday = completionResult.rows.length > 0;
-        console.log(`Habit ${habitId} has completion for today: ${hasCompletionToday}`);
+        const completionsToday = parseInt(completionResult.rows[0].count, 10) || 0;
+        console.log(`Habit ${habitId} has ${completionsToday} completions for today`);
 
-        // 4. If there's already a completion for today, don't increment total_completions
-        if (hasCompletionToday) {
-            console.log(`IMPORTANT: Habit ${habitId} already has a completion today - NOT incrementing total_completions`);
+        // Get the habit's completions_per_day value
+        const habit = habitResult.rows[0];
+        const completionsPerDay = parseInt(habit.completions_per_day, 10) || 1;
+        console.log(`Habit ${habitId} has completions_per_day: ${completionsPerDay}`);
+
+        // 4. Check if the habit has reached its maximum completions for today
+        if (completionsToday >= completionsPerDay) {
+            console.log(`IMPORTANT: Habit ${habitId} has reached maximum completions for today (${completionsToday}/${completionsPerDay})`);
 
             return {
-                completions_today: 1,
+                completions_today: completionsToday,
                 total_completions: currentTotalCompletions,
                 level: currentTotalCompletions,
-                is_repeat_completion: true
+                is_complete: true,
+                is_max_completions: true
             };
         }
 
@@ -372,11 +378,20 @@ async function recordCompletion(habitId) {
             const newTotalCompletions = updateResult.rows[0].total_completions;
             console.log(`Incremented total_completions for habit ${habitId} from ${currentTotalCompletions} to ${newTotalCompletions}`);
 
+            // Get the updated completion count
+            const updatedCompletionResult = await db.query(
+                'SELECT COUNT(*) FROM habit_completions WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NULL',
+                [habitId, todayKey]
+            );
+
+            const updatedCompletionsToday = parseInt(updatedCompletionResult.rows[0].count, 10) || 0;
+            console.log(`Habit ${habitId} now has ${updatedCompletionsToday} completions for today after adding a new one`);
+
             return {
-                completions_today: 1,
+                completions_today: updatedCompletionsToday,
                 total_completions: newTotalCompletions,
                 level: newTotalCompletions,
-                is_first_completion: true
+                is_first_completion: completionsToday === 0
             };
         } catch (insertError) {
             // If the insert fails due to a unique constraint violation, it means another request
@@ -384,8 +399,17 @@ async function recordCompletion(habitId) {
             if (insertError.code === '23505') { // Unique violation
                 console.log(`Unique constraint violation - another request completed the habit at the same time`);
 
+                // Get the current completion count
+                const currentCompletionResult = await db.query(
+                    'SELECT COUNT(*) FROM habit_completions WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NULL',
+                    [habitId, todayKey]
+                );
+
+                const currentCompletionsToday = parseInt(currentCompletionResult.rows[0].count, 10) || 0;
+                console.log(`Habit ${habitId} has ${currentCompletionsToday} completions for today (unique constraint violation)`);
+
                 return {
-                    completions_today: 1,
+                    completions_today: currentCompletionsToday,
                     total_completions: currentTotalCompletions,
                     level: currentTotalCompletions,
                     is_repeat_completion: true

@@ -6,10 +6,13 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); // Required for checking directory existence
 const sharp = require('sharp'); // <<< ADDED: Require sharp
+const { promisify } = require('util'); // For promisifying fs functions
+const fsStatAsync = promisify(fs.stat); // Promisified fs.stat
 
 // --- Multer Configuration for Progress Photos ---
 const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
 const MAX_FILE_SIZE_MB = 25;
+const TARGET_FILE_SIZE_KB = 800; // Target file size in KB for compression
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Ensure the upload directory exists
@@ -103,6 +106,81 @@ const traceMiddleware = (req, res, next) => {
     console.log(`[Trace Middleware] Request received for ${req.method} ${req.path} from ${req.ip}`);
     next(); // Pass control to the next middleware (Multer)
 };
+
+// Function to compress an image to a target file size
+async function compressImageToTargetSize(inputPath, outputPath, targetSizeKB) {
+    console.log(`[Image Compression] Starting compression of ${inputPath} to target size ${targetSizeKB}KB`);
+
+    // Get the original file size
+    const stats = await fsStatAsync(inputPath);
+    const originalSizeKB = stats.size / 1024;
+    console.log(`[Image Compression] Original file size: ${originalSizeKB.toFixed(2)}KB`);
+
+    // If the file is already smaller than the target size, just copy it
+    if (originalSizeKB <= targetSizeKB) {
+        console.log(`[Image Compression] File is already smaller than target size, no compression needed`);
+        // Just copy the file
+        await sharp(inputPath).toFile(outputPath);
+        return {
+            success: true,
+            originalSize: originalSizeKB,
+            newSize: originalSizeKB,
+            quality: 100
+        };
+    }
+
+    // Start with quality 90 and decrease by 10 each time until we reach the target size
+    // or hit a minimum quality threshold
+    let quality = 90;
+    const minQuality = 30; // Don't go below this quality to avoid terrible images
+    let currentSizeKB = originalSizeKB;
+    let attempts = 0;
+    const maxAttempts = 10; // Prevent infinite loops
+
+    while (currentSizeKB > targetSizeKB && quality >= minQuality && attempts < maxAttempts) {
+        console.log(`[Image Compression] Attempt ${attempts + 1} with quality ${quality}`);
+
+        // Compress the image with the current quality setting
+        await sharp(inputPath)
+            .jpeg({ quality })
+            .toFile(outputPath);
+
+        // Check the new file size
+        const newStats = await fsStatAsync(outputPath);
+        currentSizeKB = newStats.size / 1024;
+        console.log(`[Image Compression] New file size: ${currentSizeKB.toFixed(2)}KB`);
+
+        // If we're still above the target size, reduce quality and try again
+        if (currentSizeKB > targetSizeKB) {
+            // Decrease quality more aggressively for larger files
+            const sizeRatio = currentSizeKB / targetSizeKB;
+            if (sizeRatio > 3) {
+                quality -= 20; // Large file, decrease quality more
+            } else if (sizeRatio > 2) {
+                quality -= 15; // Medium file, decrease quality moderately
+            } else {
+                quality -= 10; // Small file, decrease quality less
+            }
+
+            // Ensure quality doesn't go below minQuality
+            quality = Math.max(quality, minQuality);
+            attempts++;
+        }
+    }
+
+    // If we couldn't reach the target size with reasonable quality,
+    // use the smallest size we achieved
+    const success = currentSizeKB <= targetSizeKB;
+    console.log(`[Image Compression] ${success ? 'Successfully' : 'Could not'} compress to target size. ` +
+                `Final size: ${currentSizeKB.toFixed(2)}KB with quality ${quality}`);
+
+    return {
+        success,
+        originalSize: originalSizeKB,
+        newSize: currentSizeKB,
+        quality
+    };
+}
 
 // --- API Routes ---
 
@@ -351,7 +429,7 @@ router.post('/log/manual', async (req, res) => {
     const { exercise_id, date_performed, reps_completed, weight_used, weight_unit, notes } = req.body;
     console.log(`Received POST /api/workouts/log/manual for exercise_id: ${exercise_id}`);
 
-    // --- Basic Validation --- 
+    // --- Basic Validation ---
     if (!exercise_id || !date_performed || !reps_completed || !weight_used || !weight_unit) {
         return res.status(400).json({ error: 'Missing required fields (exercise_id, date_performed, reps_completed, weight_used, weight_unit)' });
     }
@@ -693,12 +771,12 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
     // Note: Multer typically calls the callback with an error, but if used as middleware,
     // it might attach error details to `req` or require an error-handling middleware.
     // This is an attempt to catch errors if the structure allows.
-    if (req.fileValidationError) { // Custom error from fileFilter? 
+    if (req.fileValidationError) { // Custom error from fileFilter?
         console.error('[Photo Upload Route] File validation error detected:', req.fileValidationError);
         return res.status(400).json({ error: req.fileValidationError });
     }
     // Multer might add other error properties, check common patterns
-    if (req.multerError) { 
+    if (req.multerError) {
         console.error('[Photo Upload Route] Multer error detected on req:', req.multerError.code || req.multerError.message);
         if (req.multerError.code === 'LIMIT_FILE_SIZE') {
             return res.status(413).json({ error: `File too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.` });
@@ -736,56 +814,132 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
     }
     console.log('[Upload Trace] Date and files validation passed.');
 
-    // <<< NEW: HEIC to JPEG Conversion Logic >>>
+    // <<< UPDATED: Image Processing Logic - HEIC Conversion and Compression >>>
     if (req.files && req.files.length > 0) {
-        console.log('[Upload Conversion] Starting HEIC check and conversion...');
+        console.log('[Upload Processing] Starting image processing (conversion and compression)...');
         for (let i = 0; i < req.files.length; i++) {
             const file = req.files[i];
             const originalPath = file.path; // Full path to the initially saved file
             const fileExtension = path.extname(file.originalname).toLowerCase();
+            let processedPath = originalPath; // Default to original path
 
+            // Step 1: Convert HEIC files to JPEG first if needed
             if (fileExtension === '.heic') {
-                console.log(`[Upload Conversion] Found HEIC file: ${file.originalname} at ${originalPath}`);
+                console.log(`[Upload Processing] Found HEIC file: ${file.originalname} at ${originalPath}`);
                 const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename
                 const jpegPath = path.join(path.dirname(originalPath), jpegFilename); // Full path for JPEG output
-                let conversionSuccessful = false; // <<< Flag to track success
 
                 try {
-                    console.log(`[Upload Conversion] Converting ${originalPath} to ${jpegPath}...`);
+                    console.log(`[Upload Processing] Converting HEIC to JPEG: ${originalPath} to ${jpegPath}...`);
                     await sharp(originalPath)
-                        .jpeg({ quality: 85 }) // Convert to JPEG with quality 85
+                        .jpeg({ quality: 90 }) // Convert to JPEG with quality 90
                         .toFile(jpegPath);
-                    console.log(`[Upload Conversion] Conversion successful: ${jpegPath}`);
-                    conversionSuccessful = true; // <<< Mark as successful
+                    console.log(`[Upload Processing] HEIC conversion successful: ${jpegPath}`);
 
                     // Update the file object to reflect the new JPEG file
                     req.files[i].filename = jpegFilename; // Update filename
-                    req.files[i].path = jpegPath;         // Update path (though we use relative path later)
+                    req.files[i].path = jpegPath;         // Update path
                     req.files[i].mimetype = 'image/jpeg'; // Update mimetype
                     req.files[i].size = fs.statSync(jpegPath).size; // Update size
+                    processedPath = jpegPath; // Update the path for compression
 
-                    // <<< MODIFIED: Only delete original if conversion succeeded >>>
+                    // Delete the original HEIC file
                     try {
                         fs.unlinkSync(originalPath);
-                        console.log(`[Upload Conversion] Deleted original HEIC file: ${originalPath}`);
+                        console.log(`[Upload Processing] Deleted original HEIC file: ${originalPath}`);
                     } catch (unlinkErr) {
-                        console.error(`[Upload Conversion] Error deleting original HEIC file ${originalPath} after successful conversion:`, unlinkErr);
+                        console.error(`[Upload Processing] Error deleting original HEIC file ${originalPath}:`, unlinkErr);
                     }
-                    // <<< END MODIFICATION >>>
-
                 } catch (conversionError) {
-                    console.error(`[Upload Conversion] Error converting HEIC file ${file.originalname}:`, conversionError);
-                    // <<< MODIFIED: Log error but KEEP the original file in req.files >>>
-                    console.warn(`[Upload Conversion] Failed to convert ${file.originalname}. Keeping original HEIC file entry.`);
-                    // <<< END MODIFICATION >>>
+                    console.error(`[Upload Processing] Error converting HEIC file ${file.originalname}:`, conversionError);
+                    console.warn(`[Upload Processing] Failed to convert ${file.originalname}. Will try to compress original file.`);
+                    processedPath = originalPath; // Use original path for compression
                 }
             }
+
+            // Step 2: Compress the image (either the original or the converted JPEG)
+            try {
+                // Create a temporary path for the compressed file
+                const fileBasename = path.basename(file.filename, path.extname(file.filename));
+                const compressedFilename = fileBasename + '_compressed' + path.extname(file.filename);
+                const compressedPath = path.join(path.dirname(processedPath), compressedFilename);
+
+                console.log(`[Upload Processing] Compressing image: ${processedPath} to target size ${TARGET_FILE_SIZE_KB}KB`);
+                const compressionResult = await compressImageToTargetSize(processedPath, compressedPath, TARGET_FILE_SIZE_KB);
+
+                if (compressionResult.success) {
+                    console.log(`[Upload Processing] Compression successful: ${compressionResult.originalSize.toFixed(2)}KB -> ${compressionResult.newSize.toFixed(2)}KB (quality: ${compressionResult.quality})`);
+
+                    // Update the file object to reflect the compressed file
+                    const finalFilename = fileBasename + path.extname(file.filename); // Keep original extension but use compressed file
+                    const finalPath = path.join(path.dirname(processedPath), finalFilename);
+
+                    // Rename the compressed file to the original filename
+                    fs.renameSync(compressedPath, finalPath);
+
+                    // Update the file object
+                    req.files[i].filename = finalFilename;
+                    req.files[i].path = finalPath;
+                    req.files[i].size = compressionResult.newSize * 1024; // Convert KB to bytes
+
+                    // Delete the original file if it's different from the compressed one
+                    if (processedPath !== finalPath) {
+                        try {
+                            fs.unlinkSync(processedPath);
+                            console.log(`[Upload Processing] Deleted original file after compression: ${processedPath}`);
+                        } catch (unlinkErr) {
+                            console.error(`[Upload Processing] Error deleting original file ${processedPath} after compression:`, unlinkErr);
+                        }
+                    }
+                } else {
+                    console.warn(`[Upload Processing] Could not compress ${file.originalname} to target size. Using best effort result.`);
+
+                    // Still use the compressed version if it's smaller than the original
+                    if (compressionResult.newSize < compressionResult.originalSize) {
+                        console.log(`[Upload Processing] Using best effort compression: ${compressionResult.originalSize.toFixed(2)}KB -> ${compressionResult.newSize.toFixed(2)}KB`);
+
+                        // Update the file object to reflect the compressed file
+                        const finalFilename = fileBasename + path.extname(file.filename);
+                        const finalPath = path.join(path.dirname(processedPath), finalFilename);
+
+                        // Rename the compressed file to the original filename
+                        fs.renameSync(compressedPath, finalPath);
+
+                        // Update the file object
+                        req.files[i].filename = finalFilename;
+                        req.files[i].path = finalPath;
+                        req.files[i].size = compressionResult.newSize * 1024; // Convert KB to bytes
+
+                        // Delete the original file if it's different from the compressed one
+                        if (processedPath !== finalPath) {
+                            try {
+                                fs.unlinkSync(processedPath);
+                                console.log(`[Upload Processing] Deleted original file after best-effort compression: ${processedPath}`);
+                            } catch (unlinkErr) {
+                                console.error(`[Upload Processing] Error deleting original file ${processedPath} after best-effort compression:`, unlinkErr);
+                            }
+                        }
+                    } else {
+                        console.log(`[Upload Processing] Compressed version is larger than original, keeping original file.`);
+                        // Delete the compressed file since we're not using it
+                        try {
+                            fs.unlinkSync(compressedPath);
+                            console.log(`[Upload Processing] Deleted unused compressed file: ${compressedPath}`);
+                        } catch (unlinkErr) {
+                            console.error(`[Upload Processing] Error deleting unused compressed file ${compressedPath}:`, unlinkErr);
+                        }
+                    }
+                }
+            } catch (compressionError) {
+                console.error(`[Upload Processing] Error compressing file ${file.originalname}:`, compressionError);
+                console.warn(`[Upload Processing] Will use original file due to compression error.`);
+            }
         }
-        console.log('[Upload Conversion] Finished HEIC check and conversion.');
-         // Log final state of req.files after potential conversions
-        console.log('[DEBUG] req.files AFTER conversion loop:', req.files ? req.files.map(f => ({ name: f.filename, path: f.path, mime: f.mimetype })) : 'undefined');
+        console.log('[Upload Processing] Finished image processing.');
+        // Log final state of req.files after processing
+        console.log('[DEBUG] req.files AFTER processing:', req.files ? req.files.map(f => ({ name: f.filename, path: f.path, size: `${(f.size/1024).toFixed(2)}KB`, mime: f.mimetype })) : 'undefined');
     }
-    // <<< END NEW: HEIC to JPEG Conversion Logic >>>
+    // <<< END UPDATED: Image Processing Logic >>>
 
     // Filter out any files that might have been removed during conversion failure
     const filesToProcess = req.files ? req.files.filter(file => file) : [];

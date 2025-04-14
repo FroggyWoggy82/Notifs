@@ -141,12 +141,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const completionsToday = parseInt(habit.completions_today) || 0;
                 console.log(`Habit ${habit.id} (${habit.title}) has ${completionsToday} completions today`);
 
+                // Make sure we use the correct target value from the habit data
+                const completionsTarget = parseInt(habit.completions_per_day) || 1;
+
                 habitCompletions[todayKey].push({
                     habitId: habit.id,
                     title: habit.title,
                     count: completionsToday, // Use the actual completions count from the API
-                    target: habit.completions_per_day || 1
+                    target: completionsTarget // Use the correct target from the habit data
                 });
+
+                console.log(`Added habit ${habit.id} (${habit.title}) to today with ${completionsToday}/${completionsTarget} completions`);
             });
 
             // For past dates, we'll use the completions API to get historical data
@@ -540,7 +545,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         // Get completion count for this habit on this date
                         const completionCount = completionMap[habit.id] || 0;
-                        const target = habit.completionsPerDay || 1;
+
+                        // Make sure we use the correct target value
+                        // First try to get it from the habit object's completions_per_day property
+                        // If not available, try to find it in the dateCompletions array
+                        let target = parseInt(habit.completions_per_day) || 1;
+
+                        // For habits like Social Media Rejection that have a specific target
+                        // Try to find the target in the dateCompletions array
+                        const habitCompletion = dateCompletions.find(c => c.habitId === habit.id);
+                        if (habitCompletion && habitCompletion.target) {
+                            target = parseInt(habitCompletion.target);
+                        }
+
+                        console.log(`Displaying habit ${habit.id} (${habit.title}) with ${completionCount}/${target} completions`);
 
                         // Set completion status
                         if (completionCount >= target) {
@@ -550,17 +568,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         // Set the habit title with completion status
-                        // For Social Media Rejection, show the actual target value
-                        if (habit.title.includes('Social Media Rejection')) {
-                            // If it's complete, show the full target value
-                            if (completionCount >= target) {
-                                habitEl.textContent = `${habit.title} (${target}/${target})`;
-                            } else {
-                                habitEl.textContent = `${habit.title} (${completionCount}/${target})`;
-                            }
-                        } else {
-                            habitEl.textContent = `${habit.title} (${completionCount}/${target})`;
-                        }
+                        // For habits with multiple completions per day, always show the actual count/target
+                        // This ensures habits like Social Media Rejection show 2/8 instead of 0/1
+                        habitEl.textContent = `${habit.title} (${completionCount}/${target})`;
 
                         // Add tooltip
                         if (habit.title.includes('Social Media Rejection') && completionCount >= target) {
@@ -868,7 +878,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Get completion count for this habit on this date
                 const completionCount = completionMap[habit.id] || 0;
-                const target = habit.completionsPerDay || 1;
+
+                // Make sure we use the correct target value
+                // First try to get it from the habit object's completions_per_day property
+                // If not available, try to find it in the dateCompletions array
+                let target = parseInt(habit.completions_per_day) || 1;
+
+                // For habits like Social Media Rejection that have a specific target
+                // Try to find the target in the dateCompletions array
+                const habitCompletion = dateCompletions.find(c => c.habitId === habit.id);
+                if (habitCompletion && habitCompletion.target) {
+                    target = parseInt(habitCompletion.target);
+                }
+
+                console.log(`Selected date view - Displaying habit ${habit.id} (${habit.title}) with ${completionCount}/${target} completions`);
 
                 // Set completion status
                 if (completionCount >= target) {
@@ -899,17 +922,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeSpan.style.fontSize = '0.75em';
                 badgeSpan.style.fontWeight = 'bold';
                 badgeSpan.style.marginLeft = '8px';
-                // For Social Media Rejection, show the actual target value
-                if (habit.title.includes('Social Media Rejection') && completionCount >= target) {
-                    badgeSpan.textContent = `${target}/${target}`;
-                } else {
-                    badgeSpan.textContent = `${completionCount}/${target}`;
-                }
-                if (habit.title.includes('Social Media Rejection') && completionCount >= target) {
-                    badgeSpan.title = `${target} out of ${target} completions for today`;
-                } else {
-                    badgeSpan.title = `${completionCount} out of ${target} completions for today`;
-                }
+                // Always show the actual completion count and target
+                // This ensures habits like Social Media Rejection show 2/8 instead of 0/1
+                badgeSpan.textContent = `${completionCount}/${target}`;
+                badgeSpan.title = `${completionCount} out of ${target} completions for today`;
                 titleContainer.appendChild(badgeSpan);
 
                 li.appendChild(titleContainer);
