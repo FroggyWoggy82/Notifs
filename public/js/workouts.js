@@ -2567,6 +2567,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const dateValue = formData.get('photo-date'); // Use 'photo-date' to match HTML name attribute
         const files = formData.getAll('photos');
 
+        // For mobile uploads, rename the date parameter to 'date'
+        if (isMobile && dateValue) {
+            formData.delete('photo-date');
+            formData.append('date', dateValue);
+            console.log('[Photo Upload Client] Renamed photo-date to date for mobile upload');
+        }
+
         if (!dateValue) {
             statusElement.textContent = 'Please select a date.';
             statusElement.style.color = 'orange';
@@ -2588,10 +2595,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Detect if we're on a mobile device
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const uploadEndpoint = isMobile ? '/api/mobile/mobile' : '/api/photos/upload';
+        const uploadEndpoint = isMobile ? '/api/basic/basic' : '/api/photos/upload';
 
         console.log(`[Photo Upload Client] Running on ${isMobile ? 'MOBILE' : 'DESKTOP'} device`);
         console.log(`[Photo Upload Client] About to initiate fetch to ${uploadEndpoint}`);
+
+        // Set a timeout to prevent the upload from getting stuck
+        const uploadTimeout = setTimeout(() => {
+            statusElement.textContent = 'Upload timed out. Please try again with a smaller image.';
+            statusElement.style.color = 'red';
+            submitButton.disabled = false;
+            console.error('[Photo Upload Client] Upload timed out after 30 seconds');
+        }, 30000); // 30 second timeout
 
         let response;
         try {
@@ -2599,6 +2614,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData,
             });
+
+            // Clear the timeout since we got a response
+            clearTimeout(uploadTimeout);
 
             // ... (keep existing logging and error handling for the response) ...
             console.log(`[Photo Upload Client] Fetch promise resolved. Status: ${response.status}, StatusText: ${response.statusText}, OK: ${response.ok}`);
@@ -2650,8 +2668,19 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.style.color = '#f44336'; // Red
 
         } finally {
+            // Make sure the timeout is cleared
+            clearTimeout(uploadTimeout);
+
             submitButton.disabled = false;
             console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
+
+            // Refresh the photo gallery
+            fetchAndDisplayPhotos();
+
+            // Close the modal
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
     }
     // --- END NEW ---

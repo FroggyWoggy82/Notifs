@@ -18,6 +18,7 @@ const daysSinceRouter = require('./routes/daysSinceRoutes'); // New MVC pattern
 const workoutRoutes = require('./routes/workouts'); // New MVC pattern
 const photoUploadRoutes = require('./routes/photo-upload'); // NEW: Simplified photo upload route
 const mobileUploadRoutes = require('./routes/mobile-upload'); // NEW: Mobile-specific photo upload route
+const basicUploadRoutes = require('./routes/basic-upload'); // NEW: Ultra-basic photo upload route
 const habitRoutes = require('./routes/habitRoutesSimple'); // Using extremely simplified route handler
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
 const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
@@ -80,6 +81,7 @@ app.use('/api/days-since', daysSinceRouter);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/photos', photoUploadRoutes); // NEW: Photo upload route
 app.use('/api/mobile', mobileUploadRoutes); // NEW: Mobile-specific upload route
+app.use('/api/basic', basicUploadRoutes); // NEW: Ultra-basic upload route
 app.use('/api/habits', habitRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/weight', weightRoutes);
