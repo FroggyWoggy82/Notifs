@@ -311,6 +311,8 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
                 console.log(`[SIMPLE UPLOAD] Inserted photo ID: ${result.rows[0].photo_id}`);
             } catch (dbError) {
                 console.error(`[SIMPLE UPLOAD] Database error:`, dbError);
+                console.error(`[SIMPLE UPLOAD] Error details:`, dbError.message);
+                console.error(`[SIMPLE UPLOAD] Query parameters:`, [photoDate, file.relativePath]);
             }
         }
 

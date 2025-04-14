@@ -2586,10 +2586,16 @@ document.addEventListener('DOMContentLoaded', function() {
         statusElement.style.color = '#03dac6';
         submitButton.disabled = true;
 
-        console.log('[Photo Upload Client] About to initiate fetch to /api/photos/upload');
+        // Detect if we're on a mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const uploadEndpoint = isMobile ? '/api/mobile/mobile' : '/api/photos/upload';
+
+        console.log(`[Photo Upload Client] Running on ${isMobile ? 'MOBILE' : 'DESKTOP'} device`);
+        console.log(`[Photo Upload Client] About to initiate fetch to ${uploadEndpoint}`);
+
         let response;
         try {
-            response = await fetch('/api/photos/upload', {
+            response = await fetch(uploadEndpoint, {
                 method: 'POST',
                 body: formData,
             });
