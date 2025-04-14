@@ -840,28 +840,48 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                 // Determine quality and dimensions based on file size
                 let quality = 70; // Default quality
                 let maxDimension = 1200; // Default max dimension
+                let useAdvancedOptions = false;
 
                 if (originalSizeKB > 5000) {
                     // Very large files (>5MB)
                     quality = 30;
                     maxDimension = 800;
+                    useAdvancedOptions = true;
                 } else if (originalSizeKB > 2000) {
                     // Large files (2-5MB)
                     quality = 40;
                     maxDimension = 1000;
+                    useAdvancedOptions = true;
                 } else if (originalSizeKB > 800) {
                     // Medium files (800KB-2MB)
                     quality = 50;
                     maxDimension = 1200;
                 }
 
-                console.log(`[GUARANTEED UPLOAD] Using quality=${quality}, maxDimension=${maxDimension}`);
+                console.log(`[GUARANTEED UPLOAD] Using quality=${quality}, maxDimension=${maxDimension}, advancedOptions=${useAdvancedOptions}`);
 
-                // First attempt - standard conversion
-                await sharp(file.path)
-                    .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-                    .jpeg({ quality: quality })
-                    .toFile(jpegPath);
+                // First attempt - standard conversion with advanced options for large files
+                if (useAdvancedOptions) {
+                    // Use advanced options for large files
+                    await sharp(file.path)
+                        .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
+                        .jpeg({
+                            quality: quality,
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            overshootDeringing: true,
+                            optimizeCoding: true,
+                            quantisationTable: 2
+                        })
+                        .toFile(jpegPath);
+                } else {
+                    // Use standard options for smaller files
+                    await sharp(file.path)
+                        .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
+                        .jpeg({ quality: quality })
+                        .toFile(jpegPath);
+                }
 
                 // Check result size
                 let stats = fs.statSync(jpegPath);
@@ -872,10 +892,18 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                 if (sizeKB > 800) {
                     console.log(`[GUARANTEED UPLOAD] Still too large, trying more aggressive settings`);
 
-                    // Second attempt with more aggressive settings
+                    // Second attempt with more aggressive settings and advanced options
                     await sharp(file.path)
                         .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
-                        .jpeg({ quality: 30 })
+                        .jpeg({
+                            quality: 30,
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            overshootDeringing: true,
+                            optimizeCoding: true,
+                            quantisationTable: 3
+                        })
                         .toFile(jpegPath);
 
                     stats = fs.statSync(jpegPath);
@@ -886,14 +914,58 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                     if (sizeKB > 800) {
                         console.log(`[GUARANTEED UPLOAD] Still too large, using extreme settings`);
 
+                        // Try a completely different approach for the final attempt
+                        // First, create a grayscale version to reduce file size
+                        const grayscalePath = path.join(path.dirname(jpegPath), 'gray_' + path.basename(jpegPath));
+
+                        // Create a grayscale version first
                         await sharp(file.path)
                             .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
-                            .jpeg({ quality: 20 })
-                            .toFile(jpegPath);
+                            .grayscale() // Convert to grayscale to reduce file size
+                            .jpeg({
+                                quality: 20,
+                                progressive: true,
+                                optimizeScans: true,
+                                trellisQuantisation: true,
+                                overshootDeringing: true,
+                                optimizeCoding: true,
+                                quantisationTable: 3
+                            })
+                            .toFile(grayscalePath);
 
-                        stats = fs.statSync(jpegPath);
-                        sizeKB = stats.size / 1024;
-                        console.log(`[GUARANTEED UPLOAD] Final attempt result: ${sizeKB.toFixed(2)}KB`);
+                        // Check if grayscale version is small enough
+                        const grayStats = fs.statSync(grayscalePath);
+                        const graySizeKB = grayStats.size / 1024;
+
+                        if (graySizeKB <= 800) {
+                            // Use the grayscale version if it's small enough
+                            fs.copyFileSync(grayscalePath, jpegPath);
+                            fs.unlinkSync(grayscalePath); // Clean up temporary file
+
+                            stats = fs.statSync(jpegPath);
+                            sizeKB = stats.size / 1024;
+                            console.log(`[GUARANTEED UPLOAD] Using grayscale version: ${sizeKB.toFixed(2)}KB`);
+                        } else {
+                            // If even grayscale is too large, use extreme compression
+                            await sharp(file.path)
+                                .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
+                                .jpeg({
+                                    quality: 10,
+                                    progressive: true,
+                                    optimizeScans: true,
+                                    trellisQuantisation: true,
+                                    overshootDeringing: true,
+                                    optimizeCoding: true,
+                                    quantisationTable: 3
+                                })
+                                .toFile(jpegPath);
+
+                            fs.unlinkSync(grayscalePath); // Clean up temporary file
+
+                            stats = fs.statSync(jpegPath);
+                            sizeKB = stats.size / 1024;
+                            console.log(`[GUARANTEED UPLOAD] Final extreme attempt result: ${sizeKB.toFixed(2)}KB`);
+                        }
                     }
                 }
 
@@ -926,38 +998,63 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
             } catch (error) {
                 console.error(`[GUARANTEED UPLOAD] Error processing file:`, error);
 
-                // EMERGENCY FALLBACK: Create a minimal JPG file
-                console.log(`[GUARANTEED UPLOAD] Using emergency fallback`);
+                // BETTER FALLBACK: Try a different approach for large files
+                console.log(`[GUARANTEED UPLOAD] Using better fallback approach`);
                 try {
-                    // Create a very small, guaranteed-to-work JPG file
-                    console.log(`[GUARANTEED UPLOAD] Creating minimal JPG file`);
+                    // Try a completely different approach with lower-level settings
+                    console.log(`[GUARANTEED UPLOAD] Trying alternative processing method`);
 
-                    // Create a 400x400 solid gray image as absolute fallback
-                    await sharp({
-                        create: {
-                            width: 400,
-                            height: 400,
-                            channels: 3,
-                            background: { r: 128, g: 128, b: 128 }
-                        }
-                    })
-                    .jpeg({ quality: 70 })
-                    .toFile(jpegPath);
+                    // Use a more direct approach with minimal processing
+                    // This should work for any image format and size
+                    await sharp(file.path)
+                        .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+                        .jpeg({
+                            quality: 20,
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            overshootDeringing: true,
+                            optimizeCoding: true,
+                            quantisationTable: 3
+                        })
+                        .toFile(jpegPath);
 
                     const fallbackStats = fs.statSync(jpegPath);
-                    console.log(`[GUARANTEED UPLOAD] Created fallback image: ${fallbackStats.size / 1024}KB`);
+                    const fallbackSizeKB = fallbackStats.size / 1024;
+                    console.log(`[GUARANTEED UPLOAD] Alternative method result: ${fallbackSizeKB.toFixed(2)}KB`);
+
+                    // If still too large, create a smaller version
+                    if (fallbackSizeKB > 800) {
+                        console.log(`[GUARANTEED UPLOAD] Still too large, creating minimal version`);
+                        await sharp(file.path)
+                            .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+                            .jpeg({
+                                quality: 10,
+                                progressive: true,
+                                optimizeScans: true,
+                                trellisQuantisation: true,
+                                overshootDeringing: true,
+                                optimizeCoding: true,
+                                quantisationTable: 3
+                            })
+                            .toFile(jpegPath);
+
+                        const minimalStats = fs.statSync(jpegPath);
+                        console.log(`[GUARANTEED UPLOAD] Minimal version result: ${(minimalStats.size/1024).toFixed(2)}KB`);
+                    }
 
                     // Update file object
+                    const finalStats = fs.statSync(jpegPath);
                     req.files[i].filename = jpegFilename;
                     req.files[i].path = jpegPath;
                     req.files[i].mimetype = 'image/jpeg';
-                    req.files[i].size = fallbackStats.size;
+                    req.files[i].size = finalStats.size;
 
                     // Add to processed files
                     processedFiles.push({
                         filename: jpegFilename,
                         path: jpegPath,
-                        size: fallbackStats.size
+                        size: finalStats.size
                     });
                 } catch (fallbackError) {
                     console.error(`[GUARANTEED UPLOAD] Even fallback failed:`, fallbackError);
