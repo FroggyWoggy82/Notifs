@@ -824,9 +824,11 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
             console.log(`[ULTRA SIMPLE UPLOAD] Processing file ${i+1}/${req.files.length}: ${file.originalname}`);
 
             // Always convert to JPG with fixed settings
+            // IMPORTANT: Create a different filename to avoid "Cannot use same file for input and output" error
             const fileExtension = path.extname(file.originalname).toLowerCase();
-            const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg';
-            const jpegPath = path.join(path.dirname(file.path), jpegFilename);
+            const timestamp = Date.now();
+            let jpegFilename = `processed_${timestamp}_${path.basename(file.filename, fileExtension)}.jpg`;
+            let jpegPath = path.join(path.dirname(file.path), jpegFilename);
 
             try {
                 // GUARANTEED APPROACH: Convert to JPG with aggressive settings for large files
@@ -916,7 +918,9 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
 
                         // Try a completely different approach for the final attempt
                         // First, create a grayscale version to reduce file size
-                        const grayscalePath = path.join(path.dirname(jpegPath), 'gray_' + path.basename(jpegPath));
+                        // Use a unique name to avoid conflicts
+                        const grayTimestamp = Date.now();
+                        const grayscalePath = path.join(path.dirname(jpegPath), `gray_${grayTimestamp}_${path.basename(jpegPath)}`);
 
                         // Create a grayscale version first
                         await sharp(file.path)
@@ -998,11 +1002,15 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
             } catch (error) {
                 console.error(`[GUARANTEED UPLOAD] Error processing file:`, error);
 
-                // BETTER FALLBACK: Try a different approach for large files
+                // BETTER FALLBACK: Try a completely different approach for large files
                 console.log(`[GUARANTEED UPLOAD] Using better fallback approach`);
                 try {
-                    // Try a completely different approach with lower-level settings
-                    console.log(`[GUARANTEED UPLOAD] Trying alternative processing method`);
+                    // Create a new unique filename for the fallback attempt
+                    const fallbackTimestamp = Date.now();
+                    const fallbackFilename = `fallback_${fallbackTimestamp}.jpg`;
+                    const fallbackPath = path.join(path.dirname(file.path), fallbackFilename);
+
+                    console.log(`[GUARANTEED UPLOAD] Trying alternative processing method to: ${fallbackPath}`);
 
                     // Use a more direct approach with minimal processing
                     // This should work for any image format and size
@@ -1017,7 +1025,11 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
                             optimizeCoding: true,
                             quantisationTable: 3
                         })
-                        .toFile(jpegPath);
+                        .toFile(fallbackPath);
+
+                    // Update jpegPath to use the fallback path
+                    jpegPath = fallbackPath;
+                    jpegFilename = fallbackFilename;
 
                     const fallbackStats = fs.statSync(jpegPath);
                     const fallbackSizeKB = fallbackStats.size / 1024;

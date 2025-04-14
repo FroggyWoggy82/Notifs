@@ -2586,10 +2586,10 @@ document.addEventListener('DOMContentLoaded', function() {
         statusElement.style.color = '#03dac6';
         submitButton.disabled = true;
 
-        console.log('[Photo Upload Client] About to initiate fetch to /api/workouts/progress-photos');
+        console.log('[Photo Upload Client] About to initiate fetch to /api/photos/upload');
         let response;
         try {
-            response = await fetch('/api/workouts/progress-photos', {
+            response = await fetch('/api/photos/upload', {
                 method: 'POST',
                 body: formData,
             });
