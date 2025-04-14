@@ -147,6 +147,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const photoSliderContainer = document.querySelector('.photo-slider-container');
 
     // --- NEW: Comparison DOM References ---
+    const comparePhotosBtn = document.getElementById('compare-photos-btn');
+    const photoComparisonSection = document.getElementById('photo-comparison-section');
     const comparisonPhotoSelect1 = document.getElementById('comparison-photo-select-1');
     const comparisonPhotoSelect2 = document.getElementById('comparison-photo-select-2');
     const comparisonImage1 = document.getElementById('comparison-image-1');
@@ -1880,6 +1882,13 @@ document.addEventListener('DOMContentLoaded', function() {
              console.error('[Initialize] deletePhotoBtn not found!');
         }
 
+        // Compare Photos Button Listener
+        if (comparePhotosBtn) {
+            comparePhotosBtn.addEventListener('click', togglePhotoComparison);
+        } else {
+            console.error('[Initialize] comparePhotosBtn not found!');
+        }
+
         // Comparison Select Listeners
         const compSelect1 = document.getElementById('comparison-photo-select-1');
         const compSelect2 = document.getElementById('comparison-photo-select-2');
@@ -2640,6 +2649,68 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     // --- END NEW ---
+
+    // --- NEW: Toggle Photo Comparison Section ---
+    function togglePhotoComparison() {
+        if (photoComparisonSection) {
+            const isCurrentlyVisible = photoComparisonSection.style.display !== 'none';
+
+            // Toggle comparison section visibility
+            photoComparisonSection.style.display = isCurrentlyVisible ? 'none' : 'block';
+
+            // Toggle carousel visibility (opposite of comparison section)
+            const gallerySection = document.querySelector('.gallery-section');
+            if (gallerySection) {
+                gallerySection.style.display = isCurrentlyVisible ? 'block' : 'none';
+            }
+
+            // Update button text based on state
+            if (comparePhotosBtn) {
+                comparePhotosBtn.textContent = isCurrentlyVisible ? 'Compare' : 'Carousel';
+            }
+
+            // If showing the comparison section, make sure the dropdowns are populated
+            if (!isCurrentlyVisible) {
+                populateComparisonDropdowns();
+            }
+        }
+    }
+
+    // Helper function to populate comparison dropdowns
+    function populateComparisonDropdowns() {
+        // This function will be called when the comparison section is shown
+        // It ensures the dropdowns are populated with the latest photos
+        if (progressPhotos.length > 0 && comparisonPhotoSelect1 && comparisonPhotoSelect2) {
+            // First, clear existing options
+            comparisonPhotoSelect1.innerHTML = '';
+            comparisonPhotoSelect2.innerHTML = '';
+
+            // Then add options for each photo
+            progressPhotos.forEach((photo, index) => {
+                const date = new Date(photo.date);
+                const formattedDate = date.toLocaleDateString();
+                const option1 = document.createElement('option');
+                const option2 = document.createElement('option');
+
+                option1.value = index;
+                option1.textContent = formattedDate;
+                option2.value = index;
+                option2.textContent = formattedDate;
+
+                comparisonPhotoSelect1.appendChild(option1);
+                comparisonPhotoSelect2.appendChild(option2);
+            });
+
+            // Set default selections (first and last photos)
+            if (progressPhotos.length > 1) {
+                comparisonPhotoSelect1.value = 0; // First photo
+                comparisonPhotoSelect2.value = progressPhotos.length - 1; // Last photo
+            }
+
+            // Trigger the change event to update the comparison images
+            updateComparisonImages();
+        }
+    }
 
     // --- NEW: Open/Close Photo Upload Modal Functions ---
     function openPhotoUploadModal() {
