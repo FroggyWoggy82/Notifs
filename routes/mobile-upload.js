@@ -109,50 +109,85 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
             const originalSizeKB = originalStats.size / 1024;
             console.log(`[MOBILE UPLOAD] Original size: ${originalSizeKB.toFixed(2)}KB`);
 
-            // Process the image with guaranteed size limit - DIRECT APPROACH
-            // Start with extremely aggressive settings immediately
-            let sizeKB = Infinity;
+            // Check if the original file is already under 800KB
+            let sizeKB = originalSizeKB;
 
-            console.log(`[MOBILE UPLOAD] Starting DIRECT aggressive compression to ensure <800KB file size`);
             console.log(`[MOBILE UPLOAD] Original file: ${file.path}, size: ${originalSizeKB.toFixed(2)}KB`);
             console.log(`[MOBILE UPLOAD] Target file: ${jpegPath}`);
 
-            // DIRECT APPROACH: Use a single ultra-aggressive approach immediately
-            try {
-                console.log(`[MOBILE UPLOAD] Using ULTRA-aggressive compression settings: quality=5, size=300px, grayscale=true`);
+            // Only compress if the original file is over 800KB
+            if (originalSizeKB <= 800) {
+                console.log(`[MOBILE UPLOAD] Original file already under 800KB (${originalSizeKB.toFixed(2)}KB) - using as is`);
 
-                // Use extremely aggressive settings right away - even more aggressive than before
-                await sharp(file.path)
-                    .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
-                    .grayscale() // Convert to grayscale immediately
-                    .jpeg({
-                        quality: 5, // Extremely low quality
-                        progressive: true,
-                        optimizeScans: true,
-                        trellisQuantisation: true,
-                        optimizeCoding: true
-                    })
-                    .toFile(jpegPath);
+                // Just convert to JPEG without aggressive compression
+                try {
+                    await sharp(file.path)
+                        .jpeg({
+                            quality: 90, // High quality since file is already small
+                            progressive: true
+                        })
+                        .toFile(jpegPath);
 
-                // Check result
-                const stats = fs.statSync(jpegPath);
-                sizeKB = stats.size / 1024;
-                console.log(`[MOBILE UPLOAD] Compression result: ${sizeKB.toFixed(2)}KB (${(originalSizeKB/sizeKB).toFixed(2)}x reduction)`);
-
-                // Verify file exists and has content
-                console.log(`[MOBILE UPLOAD] Compressed file exists: ${fs.existsSync(jpegPath)}`);
-                console.log(`[MOBILE UPLOAD] Compressed file size: ${stats.size} bytes`);
-
-            } catch (compressionError) {
-                console.error(`[MOBILE UPLOAD] Error during compression:`, compressionError);
-                // Continue to emergency compression
-            }
-
-            // Final result check
-            if (sizeKB > 800) {
-                console.warn(`[MOBILE UPLOAD] WARNING: Initial compression not sufficient, still ${sizeKB.toFixed(2)}KB`);
+                    // Update size after conversion
+                    const stats = fs.statSync(jpegPath);
+                    sizeKB = stats.size / 1024;
+                    console.log(`[MOBILE UPLOAD] Converted to JPEG: ${sizeKB.toFixed(2)}KB`);
+                } catch (conversionError) {
+                    console.error(`[MOBILE UPLOAD] Error converting to JPEG:`, conversionError);
+                    // If conversion fails, try to copy the original file
+                    fs.copyFileSync(file.path, jpegPath);
+                    console.log(`[MOBILE UPLOAD] Copied original file to ${jpegPath}`);
+                }
             } else {
-                console.log(`[MOBILE UPLOAD] SUCCESS: Compressed to ${sizeKB.toFixed(2)}KB (under 800KB limit)`);
+                // File is over 800KB, apply compression
+                console.log(`[MOBILE UPLOAD] File is over 800KB (${originalSizeKB.toFixed(2)}KB) - applying compression`);
+
+                try {
+                    // Start with moderate compression for files that aren't extremely large
+                    let quality = 40;
+                    let maxDimension = 800;
+
+                    // Use more aggressive settings for larger files
+                    if (originalSizeKB > 3000) { // > 3MB
+                        quality = 20;
+                        maxDimension = 600;
+                    } else if (originalSizeKB > 1500) { // > 1.5MB
+                        quality = 30;
+                        maxDimension = 700;
+                    }
+
+                    console.log(`[MOBILE UPLOAD] Using compression settings: quality=${quality}, size=${maxDimension}px`);
+
+                    await sharp(file.path)
+                        .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
+                        .jpeg({
+                            quality: quality,
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            optimizeCoding: true
+                        })
+                        .toFile(jpegPath);
+
+                    // Check result
+                    const stats = fs.statSync(jpegPath);
+                    sizeKB = stats.size / 1024;
+                    console.log(`[MOBILE UPLOAD] Compression result: ${sizeKB.toFixed(2)}KB (${(originalSizeKB/sizeKB).toFixed(2)}x reduction)`);
+
+                    // Verify file exists and has content
+                    console.log(`[MOBILE UPLOAD] Compressed file exists: ${fs.existsSync(jpegPath)}`);
+                    console.log(`[MOBILE UPLOAD] Compressed file size: ${stats.size} bytes`);
+
+                    // Check if we need more aggressive compression
+                    if (sizeKB > 800) {
+                        console.warn(`[MOBILE UPLOAD] WARNING: Initial compression not sufficient, still ${sizeKB.toFixed(2)}KB`);
+                    } else {
+                        console.log(`[MOBILE UPLOAD] SUCCESS: Compressed to ${sizeKB.toFixed(2)}KB (under 800KB limit)`);
+                    }
+                } catch (compressionError) {
+                    console.error(`[MOBILE UPLOAD] Error during compression:`, compressionError);
+                    // Continue to emergency compression
+                }
             }
 
             // If still too large, use EXTREME EMERGENCY compression

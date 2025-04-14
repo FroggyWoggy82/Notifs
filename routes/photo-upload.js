@@ -93,6 +93,35 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
                 const originalSizeKB = originalStats.size / 1024;
                 console.log(`[SIMPLE UPLOAD] Original size: ${originalSizeKB.toFixed(2)}KB`);
 
+                // Check if the original file is already under 800KB
+                if (originalSizeKB <= 800) {
+                    console.log(`[SIMPLE UPLOAD] Original file already under 800KB (${originalSizeKB.toFixed(2)}KB) - using as is`);
+
+                    // Just convert to JPEG without aggressive compression
+                    await sharp(file.path)
+                        .jpeg({
+                            quality: 90, // High quality since file is already small
+                            progressive: true
+                        })
+                        .toFile(jpegPath);
+
+                    // Update size after conversion
+                    const stats = fs.statSync(jpegPath);
+                    const sizeKB = stats.size / 1024;
+                    console.log(`[SIMPLE UPLOAD] Converted to JPEG: ${sizeKB.toFixed(2)}KB`);
+
+                    // Add to processed files
+                    processedFiles.push({
+                        filename: jpegFilename,
+                        path: jpegPath,
+                        relativePath: `/uploads/progress_photos/${jpegFilename}`,
+                        size: stats.size
+                    });
+
+                    // Skip the rest of the compression logic
+                    continue;
+                }
+
                 // Determine quality based on file size and device type
                 let quality = 70;
                 let maxDimension = 1200;
@@ -101,25 +130,25 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
                 if (isMobile) {
                     console.log(`[SIMPLE UPLOAD] Using mobile-optimized settings`);
                     if (originalSizeKB > 3000) {
-                        quality = 15; // Ultra aggressive for large mobile files
+                        quality = 20; // Less aggressive than before
                         maxDimension = 800;
                     } else if (originalSizeKB > 1000) {
-                        quality = 25;
+                        quality = 30;
                         maxDimension = 1000;
                     } else {
-                        quality = 35;
+                        quality = 40;
                         maxDimension = 1200;
                     }
                 } else {
                     // Desktop settings
                     if (originalSizeKB > 5000) {
-                        quality = 25;
+                        quality = 30;
                         maxDimension = 800;
                     } else if (originalSizeKB > 2000) {
-                        quality = 35;
+                        quality = 40;
                         maxDimension = 1000;
                     } else if (originalSizeKB > 800) {
-                        quality = 45;
+                        quality = 50;
                     }
                 }
 
