@@ -2564,20 +2564,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- Validate directly from formData ---
         // Ensure the keys used here ('date', 'photos') match the 'name' attributes in your HTML form inputs
-        const dateValue = formData.get('photo-date'); // Use 'photo-date' to match HTML name attribute
+        const dateValue = formData.get('date'); // Now using 'date' to match HTML name attribute
         const files = formData.getAll('photos');
 
-        // For mobile uploads, rename the date parameter to 'date'
-        if (isMobile && dateValue) {
-            formData.delete('photo-date');
-            formData.append('date', dateValue);
-            console.log('[Photo Upload Client] Renamed photo-date to date for mobile upload');
-        }
+        // Log form data for debugging
+        console.log('[Photo Upload Client] Date value:', dateValue);
+        console.log('[Photo Upload Client] Files count:', files.length);
 
         if (!dateValue) {
             statusElement.textContent = 'Please select a date.';
             statusElement.style.color = 'orange';
-            console.warn('[Photo Upload Client] Date not found in FormData (using key "photo-date"). Check input name attribute.'); // Updated console log key
+            console.warn('[Photo Upload Client] Date not found in FormData (using key "date"). Check input name attribute.');
             return; // Need a date
         }
         if (!files || files.length === 0 || !files[0] || files[0].size === 0) { // Check if the first file has size > 0
