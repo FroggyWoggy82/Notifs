@@ -1,5 +1,7 @@
 const express = require('express');
 const habitController = require('../controllers/habitController');
+const HabitModel = require('../models/habitModel');
+const db = require('../db');
 
 const router = express.Router();
 
@@ -410,7 +412,82 @@ router.get('/completions', async (req, res) => {
         res.status(200).json(completions);
     } catch (err) {
         console.error('Error fetching habit completions:', err);
-        res.status(500).json({ error: 'Failed to fetch habit completions' });
+        console.error('Error stack:', err.stack);
+        res.status(500).json({
+            error: 'Failed to fetch habit completions',
+            message: err.message,
+            stack: process.env.NODE_ENV === 'production' ? null : err.stack
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /api/habits/{id}/check-completion:
+ *   get:
+ *     summary: Check if a habit has completions for a specific date
+ *     tags: [Habits]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The habit ID
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The date to check (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Completion status for the habit on the specified date
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Habit not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/check-completion', async (req, res) => {
+    const { id } = req.params;
+    const { date } = req.query;
+    console.log(`Received GET /api/habits/${id}/check-completion request with date=${date}`);
+
+    try {
+        // Validate habit ID
+        if (!/^[1-9]\d*$/.test(id)) {
+            return res.status(400).json({ error: 'Invalid habit ID format' });
+        }
+
+        // Validate date format
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD' });
+        }
+
+        // Check if the habit exists
+        const habitResult = await db.query('SELECT * FROM habits WHERE id = $1', [id]);
+        if (habitResult.rows.length === 0) {
+            return res.status(404).json({ error: `Habit with ID ${id} not found` });
+        }
+
+        // Get completions for this habit on the specified date
+        const completionsResult = await db.query(
+            'SELECT COUNT(*) FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
+            [id, date]
+        );
+
+        const completions = parseInt(completionsResult.rows[0].count, 10) || 0;
+
+        res.status(200).json({
+            habitId: parseInt(id),
+            date,
+            completions
+        });
+    } catch (err) {
+        console.error(`Error checking completions for habit ${id}:`, err);
+        res.status(500).json({ error: 'Failed to check habit completions' });
     }
 });
 

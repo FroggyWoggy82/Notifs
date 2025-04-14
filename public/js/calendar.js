@@ -110,6 +110,106 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Fetch completions directly from the database using a more efficient approach
+    async function fetchCompletionsDirectly(startDate, endDate) {
+        try {
+            console.log(`Fetching completions directly for date range: ${startDate} to ${endDate}`);
+
+            // First, get all habits
+            const habitsResponse = await fetch('/api/habits');
+            if (!habitsResponse.ok) {
+                throw new Error(`HTTP error! status: ${habitsResponse.status}`);
+            }
+
+            const habitsData = await habitsResponse.json();
+            allHabits = habitsData || [];
+            console.log("Fetched habits directly:", allHabits);
+
+            // Initialize completions map
+            habitCompletions = {};
+
+            // Get today's date for special handling
+            const todayKey = formatDateKey(new Date());
+            console.log(`Today's date key: ${todayKey}`);
+
+            // Initialize completions for today's date with all habits (even those with no completions)
+            habitCompletions[todayKey] = [];
+
+            // Add all habits to today's date with their current completion status
+            allHabits.forEach(habit => {
+                // Use the completions_today value from the habits API
+                const completionsToday = parseInt(habit.completions_today) || 0;
+                console.log(`Habit ${habit.id} (${habit.title}) has ${completionsToday} completions today`);
+
+                habitCompletions[todayKey].push({
+                    habitId: habit.id,
+                    title: habit.title,
+                    count: completionsToday, // Use the actual completions count from the API
+                    target: habit.completions_per_day || 1
+                });
+            });
+
+            // For past dates, we'll use the completions API to get historical data
+            try {
+                // Try to use the completions API for the date range
+                const completionsResponse = await fetch(`/api/habits/completions?startDate=${startDate}&endDate=${endDate}`);
+
+                if (completionsResponse.ok) {
+                    const completionsData = await completionsResponse.json();
+                    console.log("Fetched completions data for date range:", completionsData);
+
+                    // Process completions data for past dates
+                    if (completionsData && completionsData.completionsByDate) {
+                        // For each date in the completions data
+                        for (const dateKey in completionsData.completionsByDate) {
+                            // Skip today as we've already handled it with more accurate data
+                            if (dateKey === todayKey) continue;
+
+                            // Add the completions for this date
+                            habitCompletions[dateKey] = completionsData.completionsByDate[dateKey];
+                        }
+                    }
+                } else {
+                    console.log("Completions API failed for date range, but we'll still show habits for today");
+                }
+            } catch (completionsError) {
+                console.error("Error fetching completions for date range:", completionsError);
+                console.log("Continuing with values for today's habits only");
+            }
+
+            console.log("Directly fetched completions:", habitCompletions);
+            return { habits: allHabits, completions: habitCompletions };
+        } catch (error) {
+            console.error('Error fetching completions directly:', error);
+
+            // Even if there's an error, make sure we still show all habits for today
+            try {
+                // If we have habits but no completions, at least set up today's date
+                if (allHabits.length > 0) {
+                    const todayKey = formatDateKey(new Date());
+                    habitCompletions = {};
+                    habitCompletions[todayKey] = [];
+
+                    // Add all habits to today's date with 0 completions
+                    allHabits.forEach(habit => {
+                        habitCompletions[todayKey].push({
+                            habitId: habit.id,
+                            title: habit.title,
+                            count: 0,
+                            target: habit.completions_per_day || 1
+                        });
+                    });
+
+                    return { habits: allHabits, completions: habitCompletions };
+                }
+            } catch (fallbackError) {
+                console.error('Error in fallback for today\'s habits:', fallbackError);
+            }
+
+            return { habits: [], completions: {} };
+        }
+    }
+
     // Fetch habits and their completions for a date range
     // Make this function globally accessible so it can be called from calendar-refresh.js
     window.fetchHabits = async function(year, month) {
@@ -132,42 +232,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log(`Fetching habits for date range: ${startDateStr} to ${endDateStr}`);
 
-            console.log(`Making request to /api/habits/completions?startDate=${startDateStr}&endDate=${endDateStr}`);
-            const response = await fetch(`/api/habits/completions?startDate=${startDateStr}&endDate=${endDateStr}`);
-
-            console.log('Response status:', response.status);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            // First, get all habits directly
+            console.log('Fetching all habits first');
+            const habitsResponse = await fetch('/api/habits');
+            if (!habitsResponse.ok) {
+                throw new Error(`HTTP error fetching habits! status: ${habitsResponse.status}`);
             }
 
-            try {
-                const data = await response.json();
-                console.log("Habits and completions fetched:", data);
+            const habitsData = await habitsResponse.json();
+            console.log('Successfully fetched habits:', habitsData);
+            allHabits = habitsData || [];
 
-                // Store the habits and completions
-                allHabits = data.habits || [];
-                habitCompletions = data.completionsByDate || {};
-
-                console.log("Parsed habits:", allHabits);
-                console.log("Parsed completions:", habitCompletions);
-            } catch (e) {
-                console.error("Error parsing JSON:", e);
-                // Fallback to fetching habits directly
-                try {
-                    const habitsResponse = await fetch('/api/habits');
-                    if (habitsResponse.ok) {
-                        const habitsData = await habitsResponse.json();
-                        console.log("Fallback - fetched habits directly:", habitsData);
-                        allHabits = habitsData || [];
-                    }
-                } catch (habitsError) {
-                    console.error("Error fetching habits directly:", habitsError);
-                }
-                habitCompletions = {};
-            }
+            // Skip the completions API and go straight to the direct method
+            // This is more efficient and ensures all habits show up for today
+            console.log("Using direct completion fetching for better performance...");
+            await fetchCompletionsDirectly(startDateStr, endDateStr);
 
             return { habits: allHabits, completions: habitCompletions };
         } catch (error) {
@@ -427,22 +506,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 dateObj.setHours(0, 0, 0, 0); // Reset time to start of day
                 const isFutureDate = dateObj > today;
 
-                // Filter habits to only show those with completions
+                // Filter habits to only show those with any progress
                 console.log(`Filtering habits for date ${dateKey}:`, allHabits);
                 console.log(`Completion map for date ${dateKey}:`, completionMap);
 
-                const habitsWithCompletions = allHabits.filter(habit => {
-                    const completionCount = completionMap[habit.id] || 0;
-                    console.log(`Habit ${habit.id} (${habit.title}) has ${completionCount} completions`);
-                    return completionCount > 0; // Only show habits with at least 1 completion
-                });
+                // Check if this is today's date
+                const todayKey = formatDateKey(new Date());
+                const isToday = dateKey === todayKey;
+                console.log(`Is this today's date (${dateKey} vs ${todayKey})? ${isToday}`);
 
-                console.log(`Habits with completions for date ${dateKey}:`, habitsWithCompletions);
+                // For today's date, show all habits. For other dates, only show habits with progress
+                let habitsToShow = [];
+                if (isToday) {
+                    // Show all habits for today
+                    habitsToShow = allHabits;
+                    console.log(`Showing all habits for today (${dateKey}):`, habitsToShow);
+                } else {
+                    // For other dates, only show habits with progress
+                    habitsToShow = allHabits.filter(habit => {
+                        const completionCount = completionMap[habit.id] || 0;
+                        console.log(`Habit ${habit.id} (${habit.title}) has ${completionCount} completions`);
+                        return completionCount > 0; // Show habits with any progress (at least 1 completion)
+                    });
+                    console.log(`Habits with progress for date ${dateKey}:`, habitsToShow);
+                }
 
-                // Only show habits for past or current dates and if there are completions
-                if (!isFutureDate && habitsWithCompletions.length > 0) {
-                    // Add habits with completions
-                    habitsWithCompletions.forEach(habit => {
+                // Only show habits for past or current dates
+                if (!isFutureDate && (habitsToShow.length > 0 || isToday)) {
+                    // Add habits with any progress
+                    habitsToShow.forEach(habit => {
                         const habitEl = document.createElement('div');
                         habitEl.className = 'calendar-habit-item';
 
@@ -485,14 +577,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Check for overflow after the element is added to the DOM
                 setTimeout(() => {
-                    // Check if content overflows and there are habits with completions
-                    if (habitsDiv.scrollHeight > habitsDiv.clientHeight && habitsWithCompletions.length > 0) {
+                    // Check if content overflows and there are habits to show
+                    if (habitsDiv.scrollHeight > habitsDiv.clientHeight && habitsToShow.length > 0) {
                         habitsDiv.classList.add('has-overflow');
 
-                        // Add a small indicator showing number of habits with completions
+                        // Add a small indicator showing number of habits
                         const habitCountIndicator = document.createElement('div');
                         habitCountIndicator.className = 'habit-count-indicator';
-                        habitCountIndicator.textContent = `${habitsWithCompletions.length} habits`;
+                        habitCountIndicator.textContent = `${habitsToShow.length} habits`;
                         dayDiv.appendChild(habitCountIndicator);
                     }
                 }, 0);
@@ -745,19 +837,32 @@ document.addEventListener('DOMContentLoaded', () => {
         dateObj.setHours(0, 0, 0, 0); // Reset time to start of day
         const isFutureDate = dateObj > today;
 
-        // Filter habits to only show those with completions
-        const habitsWithCompletions = allHabits.filter(habit => {
-            const completionCount = completionMap[habit.id] || 0;
-            return completionCount > 0; // Only show habits with at least 1 completion
-        });
+        // Check if this is today's date
+        const todayKey = formatDateKey(new Date());
+        const isToday = dateKey === todayKey;
+        console.log(`Selected date view - Is this today's date (${dateKey} vs ${todayKey})? ${isToday}`);
 
-        if (habitsWithCompletions.length === 0 || isFutureDate) {
+        // For today's date, show all habits. For other dates, only show habits with progress
+        let habitsToShow = [];
+        if (isToday) {
+            // Show all habits for today
+            habitsToShow = allHabits;
+            console.log(`Selected date view - Showing all habits for today (${dateKey}):`, habitsToShow);
+        } else {
+            // For other dates, only show habits with progress
+            habitsToShow = allHabits.filter(habit => {
+                const completionCount = completionMap[habit.id] || 0;
+                return completionCount > 0; // Show habits with any progress (at least 1 completion)
+            });
+        }
+
+        if ((habitsToShow.length === 0 && !isToday) || isFutureDate) {
             const noHabitsLi = document.createElement('li');
-            noHabitsLi.textContent = isFutureDate ? 'Future date - no habits to show.' : 'No habit completions found.';
+            noHabitsLi.textContent = isFutureDate ? 'Future date - no habits to show.' : 'No habit progress found.';
             selectedTaskListEl.appendChild(noHabitsLi);
         } else {
-            // Display habits with completions
-            habitsWithCompletions.forEach(habit => {
+            // Display habits
+            habitsToShow.forEach(habit => {
                 const li = document.createElement('li');
                 li.setAttribute('data-habit-id', habit.id);
 

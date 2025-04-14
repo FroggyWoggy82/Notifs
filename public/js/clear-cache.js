@@ -84,6 +84,56 @@ function reloadPageAfterDelay(delay = 1000) {
     }, delay);
 }
 
+// Function to force a day change for habit counters
+function forceDayChange() {
+    // Set the last counter reset date to yesterday
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toISOString().split('T')[0];
+    localStorage.setItem('lastCounterResetDate', yesterdayString);
+    console.log(`Forced day change by setting lastCounterResetDate to ${yesterdayString}`);
+
+    // Reload the page to apply the change
+    reloadPageAfterDelay(500);
+
+    return `Day change forced. Reset date set to ${yesterdayString}. Page will reload.`;
+}
+
+// Function to check the current day change status
+function checkDayChangeStatus() {
+    const lastCounterResetDate = localStorage.getItem('lastCounterResetDate');
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+
+    if (!lastCounterResetDate) {
+        return 'No last reset date found. Habits will reset on next load.';
+    }
+
+    const dayChanged = lastCounterResetDate !== todayString;
+
+    if (dayChanged) {
+        return `Day has changed. Last reset: ${lastCounterResetDate}, Today: ${todayString}. Habits will reset on next load.`;
+    } else {
+        return `Same day as last reset. Last reset: ${lastCounterResetDate}, Today: ${todayString}. Habits will NOT reset.`;
+    }
+}
+
+// Function to manually reset habit counters
+function resetHabitCounters() {
+    if (typeof window.resetCounterHabits === 'function') {
+        window.resetCounterHabits();
+        return 'Resetting habit counters...';
+    } else {
+        console.error('resetCounterHabits function not found');
+        return 'Error: resetCounterHabits function not found. Make sure you are on a page with habits.';
+    }
+}
+
+// Make the functions available globally
+window.forceDayChange = forceDayChange;
+window.checkDayChangeStatus = checkDayChangeStatus;
+window.resetHabitCounters = resetHabitCounters;
+
 // Clear the cache when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Clearing service worker cache on page load');

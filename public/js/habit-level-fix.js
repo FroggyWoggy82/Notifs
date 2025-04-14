@@ -4,6 +4,39 @@
  * It also changes the display to show the correct level based on completions per day
  */
 
+// Helper to check if the day has changed since last counter reset
+function isDayChanged() {
+    // Get the last counter reset date from localStorage
+    const lastCounterResetDate = localStorage.getItem('lastCounterResetDate');
+
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    // If no reset date is stored, or if it's a different day, we should reset
+    if (!lastCounterResetDate) {
+        // First time access, store today's date and return true to trigger reset
+        localStorage.setItem('lastCounterResetDate', todayString);
+        return true;
+    }
+
+    // Check if the date has changed since last reset
+    const dayChanged = lastCounterResetDate !== todayString;
+
+    // Only update the reset date if the day has actually changed
+    if (dayChanged) {
+        localStorage.setItem('lastCounterResetDate', todayString);
+        console.log(`Day changed from ${lastCounterResetDate} to ${todayString}, will reset counters`);
+    } else {
+        console.log(`Same day as last reset (${todayString}), will not reset counters`);
+    }
+
+    // Also update the general last access date (for other features)
+    localStorage.setItem('lastAccessDate', todayString);
+
+    return dayChanged;
+}
+
 // Wait for the document to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Ensure the script doesn't run if the page doesn't have habits
@@ -99,6 +132,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Update habit counter on the server
+    async function updateHabitCounter(habitId, newTitle, completionsPerDay = null) {
+        try {
+            // Find the existing habit in our local data to preserve its settings
+            const existingHabit = allHabitsData.find(h => h.id === habitId);
+
+            if (!existingHabit) {
+                console.warn(`Habit ${habitId} not found in local data, using defaults`);
+            }
+
+            // Determine completions_per_day value
+            // If completionsPerDay is provided, use it (for counter habits)
+            // Otherwise, preserve the existing value or use default
+            const completions_per_day = completionsPerDay !== null ?
+                completionsPerDay :
+                (existingHabit ? existingHabit.completions_per_day : 1);
+
+            console.log(`Updating habit ${habitId} with title: ${newTitle}, completions_per_day: ${completions_per_day}`);
+
+            const response = await fetch(`/api/habits/${habitId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: newTitle,
+                    // Preserve existing settings or use defaults
+                    frequency: existingHabit ? existingHabit.frequency : 'daily',
+                    completions_per_day: completions_per_day
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const updatedHabit = await response.json();
+            console.log(`Habit ${habitId} counter reset on server:`, updatedHabit);
+            return updatedHabit;
+        } catch (error) {
+            console.error(`Error resetting habit ${habitId} counter:`, error);
+            throw error;
+        }
+    }
+
     // Apply the fix initially and periodically
     setTimeout(updateHabitLevelDisplays, 1000);
     setInterval(updateHabitLevelDisplays, 2000);
@@ -129,8 +207,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const habits = await response.json();
+
+                // Check if day has changed since last access
+                const dayChanged = isDayChanged();
+
+                // If day has changed, reset progress for habits with counters in title
+                if (dayChanged) {
+                    console.log('Day has changed, resetting habit progress counters');
+                    const updatePromises = [];
+
+                    habits.forEach(habit => {
+                        // Check if habit title contains a counter pattern like (5/8)
+                        const counterMatch = habit.title.match(/\((\d+)\/(\d+)\)/);
+                        if (counterMatch) {
+                            // Reset the counter to 0/X
+                            const totalCount = parseInt(counterMatch[2], 10) || 0;
+                            const newTitle = habit.title.replace(/\(\d+\/\d+\)/, `(0/${totalCount})`);
+
+                            // Update the habit title in the local array
+                            habit.title = newTitle;
+                            console.log(`Reset counter for habit: ${habit.title}`);
+
+                            // For counter habits, set completions_per_day to match the total count
+                            // This allows incrementing the counter multiple times per day
+                            habit.completions_per_day = totalCount;
+                            console.log(`Set completions_per_day to ${totalCount} for counter habit: ${habit.title}`);
+
+                            // Create a promise to update the habit on the server
+                            const updatePromise = updateHabitCounter(habit.id, newTitle, totalCount);
+                            updatePromises.push(updatePromise);
+                        }
+                    });
+
+                    // Wait for all updates to complete
+                    Promise.all(updatePromises)
+                        .then(() => console.log('All habit counters updated on server'))
+                        .catch(err => console.error('Error updating habit counters:', err));
+                }
+
                 allHabitsData = habits; // Store habits locally
                 displayHabits(habits);
                 habitListStatusDiv.textContent = '';
@@ -381,6 +496,83 @@ document.addEventListener('DOMContentLoaded', () => {
             loadHabits();
         }
     }, 60000); // Refresh every minute
+
+    // Function to manually reset counter habits (for testing)
+    async function resetCounterHabits() {
+        try {
+            console.log('Manually resetting counter habits...');
+            const updatePromises = [];
+
+            allHabitsData.forEach(habit => {
+                // Check if habit title contains a counter pattern like (5/8)
+                const counterMatch = habit.title.match(/\((\d+)\/(\d+)\)/);
+                if (counterMatch) {
+                    // Reset the counter to 0/X
+                    const totalCount = parseInt(counterMatch[2], 10) || 0;
+                    const newTitle = habit.title.replace(/\(\d+\/\d+\)/, `(0/${totalCount})`);
+
+                    // Update the habit title in the local array
+                    habit.title = newTitle;
+                    console.log(`Reset counter for habit: ${habit.title}`);
+
+                    // For counter habits, set completions_per_day to match the total count
+                    habit.completions_per_day = totalCount;
+
+                    // Create a promise to update the habit on the server
+                    const updatePromise = updateHabitCounter(habit.id, newTitle, totalCount);
+                    updatePromises.push(updatePromise);
+                }
+            });
+
+            // Wait for all updates to complete
+            await Promise.all(updatePromises);
+            console.log('All counter habits reset successfully');
+
+            // Reload habits to refresh the UI
+            loadHabits();
+
+            // Show success message
+            habitListStatusDiv.textContent = 'Counter habits reset successfully';
+            habitListStatusDiv.className = 'status success';
+
+            // Clear the message after 3 seconds
+            setTimeout(() => {
+                habitListStatusDiv.textContent = '';
+                habitListStatusDiv.className = '';
+            }, 3000);
+
+        } catch (error) {
+            console.error('Error resetting counter habits:', error);
+            habitListStatusDiv.textContent = `Error: ${error.message}`;
+            habitListStatusDiv.className = 'status error';
+        }
+    }
+
+    // Add event listener for the Reset Counters button
+    const resetCountersBtn = document.getElementById('resetCountersBtn');
+    if (resetCountersBtn) {
+        resetCountersBtn.addEventListener('click', () => {
+            // Ask for confirmation before resetting
+            if (confirm('Are you sure you want to reset all counter habits to 0? This cannot be undone.')) {
+                resetCounterHabits();
+            }
+        });
+    }
+
+    // Add a function to force a day change (for testing)
+    window.forceDayChange = function() {
+        // Set the last counter reset date to yesterday
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayString = yesterday.toISOString().split('T')[0];
+        localStorage.setItem('lastCounterResetDate', yesterdayString);
+        console.log(`Forced day change by setting lastCounterResetDate to ${yesterdayString}`);
+
+        // Reload habits to trigger the day change check
+        loadHabits();
+
+        return `Day change forced. Reset date set to ${yesterdayString}`;
+    };
 
     console.log('Habit level fix script loaded successfully');
 

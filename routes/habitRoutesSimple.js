@@ -98,6 +98,34 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// UPDATE a habit
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, frequency, completions_per_day } = req.body;
+        console.log(`Received PUT /api/habits/${id} request:`, req.body);
+
+        if (!title) {
+            return res.status(400).json({ error: 'Title is required' });
+        }
+
+        const result = await db.query(
+            'UPDATE habits SET title = $1, frequency = $2, completions_per_day = $3 WHERE id = $4 RETURNING *',
+            [title, frequency || 'daily', completions_per_day || 1, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Habit not found' });
+        }
+
+        console.log(`Habit ${id} updated successfully:`, result.rows[0]);
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error updating habit:', err);
+        res.status(500).json({ error: 'Failed to update habit' });
+    }
+});
+
 // DELETE a habit
 router.delete('/:id', async (req, res) => {
     try {
@@ -318,7 +346,58 @@ router.get('/completions', async (req, res) => {
         res.status(200).json(response);
     } catch (err) {
         console.error('Error fetching habit completions:', err);
-        res.status(500).json({ error: 'Failed to fetch habit completions' });
+        console.error('Error stack:', err.stack);
+        res.status(500).json({
+            error: 'Failed to fetch habit completions',
+            message: err.message,
+            stack: process.env.NODE_ENV === 'production' ? null : err.stack
+        });
+    }
+});
+
+// Check if a habit has completions for a specific date
+router.get('/:id/check-completion', async (req, res) => {
+    const { id } = req.params;
+    const { date } = req.query;
+    console.log(`Received GET /api/habits/${id}/check-completion request with date=${date}`);
+
+    try {
+        // Validate habit ID
+        if (!/^[1-9]\d*$/.test(id)) {
+            return res.status(400).json({ error: 'Invalid habit ID format' });
+        }
+
+        // Validate date format
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD' });
+        }
+
+        // Check if the habit exists
+        const habitResult = await db.query('SELECT * FROM habits WHERE id = $1', [id]);
+        if (habitResult.rows.length === 0) {
+            return res.status(404).json({ error: `Habit with ID ${id} not found` });
+        }
+
+        // Get completions for this habit on the specified date
+        const completionsResult = await db.query(
+            'SELECT COUNT(*) FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
+            [id, date]
+        );
+
+        const completions = parseInt(completionsResult.rows[0].count, 10) || 0;
+        const habit = habitResult.rows[0];
+
+        res.status(200).json({
+            habitId: habit.id,
+            title: habit.title,
+            date: date,
+            completions: completions,
+            target: habit.completions_per_day || 1,
+            isComplete: completions >= (habit.completions_per_day || 1)
+        });
+    } catch (err) {
+        console.error(`Error checking completions for habit ${id} on ${date}:`, err);
+        res.status(500).json({ error: 'Failed to check habit completions' });
     }
 });
 
