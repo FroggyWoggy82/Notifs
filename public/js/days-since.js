@@ -4,11 +4,11 @@ function calculateTimeSince(startDate) {
     const start = new Date(startDate);
     const now = new Date();
     const diffMs = now - start;
-    
+
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     return `${days}:${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
 
@@ -72,7 +72,7 @@ function renderEvents(events) {
             </div>
         `;
     }).join('');
-    
+
     console.log('Setting innerHTML:', renderedHtml); // Debug log
     daysSinceList.innerHTML = renderedHtml;
 
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle form submission
     addEventForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const eventName = document.getElementById('eventName').value.trim();
         const startDate = document.getElementById('eventStartDate').value;
 
@@ -135,17 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Create a Date object in local time
-            const localDate = new Date(startDate);
-            
+            // Create a Date object in local time and preserve the local time
+            // by sending the date string directly without timezone conversion
             const response = await fetch('/api/days-since', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
-                    eventName, 
-                    startDate: localDate.toISOString() // Send as ISO string
+                body: JSON.stringify({
+                    eventName,
+                    startDate: startDate // Send the datetime-local value directly
                 })
             });
 
@@ -170,7 +169,14 @@ window.editEvent = function(id, currentName, currentDate) {
     if (!eventElement) return;
 
     // Format the date for the datetime-local input
-    const formattedDate = new Date(currentDate).toISOString().slice(0, 16);
+    // Create a date object and format it to be compatible with datetime-local input
+    const date = new Date(currentDate);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
 
     // Create and show edit form
     const editForm = document.createElement('form');
@@ -211,7 +217,10 @@ window.editEvent = function(id, currentName, currentDate) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ eventName: newName, startDate: newDate })
+                body: JSON.stringify({
+                    eventName: newName,
+                    startDate: newDate // Send the datetime-local value directly
+                })
             });
 
             if (!response.ok) {
@@ -253,4 +262,4 @@ window.deleteEvent = async function(id) {
 
 window.cancelEdit = function(id) {
     loadEvents();
-} 
+}

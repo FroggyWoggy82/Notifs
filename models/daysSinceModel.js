@@ -25,18 +25,32 @@ async function createEvent(eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Parse the ISO string into a Date object
-    const parsedDate = new Date(startDate);
+    // Handle the date string from the client (format: YYYY-MM-DDTHH:MM)
+    // Create a date object that preserves the local time
+    let parsedDate;
+    if (startDate.includes('T')) {
+        // This is a datetime-local value (YYYY-MM-DDTHH:MM)
+        const [datePart, timePart] = startDate.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+
+        // Create date with local time components (no timezone conversion)
+        parsedDate = new Date(year, month - 1, day, hours, minutes);
+    } else {
+        // Fallback for other formats
+        parsedDate = new Date(startDate);
+    }
+
     if (isNaN(parsedDate.getTime())) {
         throw new Error('Invalid date format');
     }
 
-    // Store the date as is (PostgreSQL will handle timezone conversion)
+    // Store the date in the database
     const result = await db.query(
         'INSERT INTO days_since_events (event_name, start_date) VALUES ($1, $2) RETURNING *',
         [eventName.trim(), parsedDate]
     );
-    
+
     return result.rows[0];
 }
 
@@ -52,8 +66,22 @@ async function updateEvent(id, eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Parse the ISO string into a Date object
-    const parsedDate = new Date(startDate);
+    // Handle the date string from the client (format: YYYY-MM-DDTHH:MM)
+    // Create a date object that preserves the local time
+    let parsedDate;
+    if (startDate.includes('T')) {
+        // This is a datetime-local value (YYYY-MM-DDTHH:MM)
+        const [datePart, timePart] = startDate.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+
+        // Create date with local time components (no timezone conversion)
+        parsedDate = new Date(year, month - 1, day, hours, minutes);
+    } else {
+        // Fallback for other formats
+        parsedDate = new Date(startDate);
+    }
+
     if (isNaN(parsedDate.getTime())) {
         throw new Error('Invalid date format');
     }
