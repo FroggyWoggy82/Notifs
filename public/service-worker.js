@@ -1,5 +1,5 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v11'; // <-- Bumped version number
+const CACHE_NAME = 'notification-pwa-v14'; // <-- Bumped version number to force refresh
 
 // Disable caching for all resources except icons
 const urlsToCache = [
@@ -68,14 +68,46 @@ self.addEventListener('activate', event => {
 
 // --- MODIFIED Fetch Handler ---
 self.addEventListener('fetch', event => {
-  // Ensure the request is potentially cacheable
+  // Get the request URL
+  const requestUrl = new URL(event.request.url);
+
+  // Special handling for API requests (both GET and POST)
+  if (requestUrl.pathname.startsWith('/api/')) {
+    console.log(`(${CACHE_NAME}) Handling API request: ${event.request.method} ${requestUrl.pathname}`);
+
+    // Use Network Only strategy for all API requests
+    event.respondWith(
+      fetch(event.request, {
+        // Add cache-busting headers to the request if possible
+        // Note: We can't modify headers for cross-origin requests
+        cache: 'no-store'
+      })
+      .then(networkResponse => {
+        // Return the network response directly without caching
+        console.log(`(${CACHE_NAME}) Network fetch OK for ${requestUrl.pathname}. NOT caching response.`);
+        return networkResponse;
+      })
+      .catch(error => {
+        // Network request failed (e.g., offline)
+        console.warn(`(${CACHE_NAME}) Network failed for ${requestUrl.pathname}`, error);
+        // Return a specific offline response for API calls
+        return new Response(JSON.stringify({ error: "Offline. Please try again when connected." }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
+    return;
+  }
+
+  // For non-API requests, only handle GET requests
   if (event.request.method !== 'GET') {
     // Don't intercept non-GET requests for caching purposes
-     console.log(`(${CACHE_NAME}) Ignoring non-GET request: ${event.request.method} ${event.request.url}`);
+    console.log(`(${CACHE_NAME}) Ignoring non-API non-GET request: ${event.request.method} ${event.request.url}`);
     return; // Let the browser handle it normally
   }
 
-  const requestUrl = new URL(event.request.url);
+  // requestUrl is already defined above
 
   // Network Only strategy for /api/days-since endpoints
   if (requestUrl.pathname.startsWith('/api/days-since')) {
@@ -107,45 +139,34 @@ self.addEventListener('fetch', event => {
         })
     );
   }
-  // --- Strategy for other API calls (Notifications): Network First? ---
-  // Consider if notification API calls should also be Network First or Network Only
+  // --- Strategy for other API calls: Network Only ---
+  // Never cache API responses to ensure fresh data
   else if (requestUrl.pathname.startsWith('/api/')) {
-       // Example: Network first for other API calls
-       console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} (Network First Strategy for API).`);
+       console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} (Network Only Strategy for API).`);
        event.respondWith(
-            fetch(event.request)
-                .then(networkResponse => {
-                    // Check if we received a valid response from the network
-                    if (networkResponse && networkResponse.ok) {
-                        console.log(`(${CACHE_NAME}) Network fetch OK for ${requestUrl.pathname}. Caching response.`);
-                        const responseToCache = networkResponse.clone();
-                        caches.open(CACHE_NAME).then(cache => { cache.put(event.request, responseToCache); });
-                    } else if (networkResponse) {
-                         console.log(`(${CACHE_NAME}) Network fetch for ${requestUrl.pathname} got non-OK status: ${networkResponse.status}`);
-                    } else {
-                        console.log(`(${CACHE_NAME}) Network fetch failed for ${requestUrl.pathname}. No network response.`);
-                    }
-                    // Return the network response regardless (even if it's an error status)
-                    // or fallback to cache below if network totally failed
-                    return networkResponse;
-                })
-                .catch(error => {
-                    // Network request itself failed (e.g., offline)
-                    console.warn(`(${CACHE_NAME}) Network failed HARD for ${requestUrl.pathname}, trying cache.`, error);
-                    return caches.match(event.request).then(cachedResponse => {
-                        if (cachedResponse) {
-                            console.log(`(${CACHE_NAME}) Serving ${requestUrl.pathname} from cache as network fallback.`);
-                            return cachedResponse;
-                        }
-                        // If not in cache either, the fetch will ultimately fail
-                        console.log(`(${CACHE_NAME}) ${requestUrl.pathname} not in cache either.`);
-                        // Re-throw the error or return a specific offline response?
-                        // For API calls, maybe return an error JSON:
-                        return new Response(JSON.stringify({ error: "Offline and not in cache" }), {
-                            status: 503, headers: { 'Content-Type': 'application/json' }
-                        });
-                    });
-                })
+            fetch(event.request, {
+                // Add cache-busting headers to the request
+                headers: {
+                    ...event.request.headers,
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            })
+            .then(networkResponse => {
+                // Return the network response directly without caching
+                console.log(`(${CACHE_NAME}) Network fetch OK for ${requestUrl.pathname}. NOT caching response.`);
+                return networkResponse;
+            })
+            .catch(error => {
+                // Network request failed (e.g., offline)
+                console.warn(`(${CACHE_NAME}) Network failed for ${requestUrl.pathname}`, error);
+                // Return a specific offline response for API calls
+                return new Response(JSON.stringify({ error: "Offline. Please try again when connected." }), {
+                    status: 503,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            })
        );
   }
     // --- Strategy for Icons: Cache First, then Network ---

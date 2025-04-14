@@ -69,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Enhanced displayHabits function to ensure completed habits visual state');
     }
 
+    // We don't need to override the handleHabitCheckboxClick function anymore
+    // The backend now handles the logic to prevent multiple increments per day
+
     // Run the check periodically
     setInterval(ensureCompletedHabitsVisualState, 2000);
 
@@ -93,6 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         }
     });
+
+    // We don't need to override the handleHabitCheckboxClick function anymore
+    // The backend now handles the logic to prevent multiple increments per day
+    console.log('Using backend logic to prevent multiple increments per day');
 
     // Run the check immediately
     setTimeout(ensureCompletedHabitsVisualState, 100);

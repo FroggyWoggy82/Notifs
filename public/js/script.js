@@ -166,6 +166,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateStatus('Service Worker registration failed', true);
             });
 
+        // Listen for messages from the service worker
+        navigator.serviceWorker.addEventListener('message', event => {
+            console.log('Received message from service worker:', event.data);
+            if (event.data && event.data.type === 'CACHE_CLEARED') {
+                const timestamp = new Date(event.data.timestamp);
+                console.log(`Cache cleared at: ${timestamp.toLocaleTimeString()}`);
+            }
+        });
+
         // Listen for controller change (new SW taking over)
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             console.log('New service worker activated and controlling the page');
@@ -1613,8 +1622,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>`}
                     </div>
                     <div class="habit-level-container">
-                        <div class="habit-level ${totalLevelClass}" title="Level ${totalCompletionsCount} - Based on total completions">
-                            ${totalCompletionsCount} level
+                        <div class="habit-level ${totalLevelClass}" title="${totalCompletionsCount} total completions">
+                            Level ${totalCompletionsCount}
                         </div>
                     </div>
                 </div>
@@ -1733,9 +1742,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Sending habit data:', JSON.stringify(habitData));
 
         try {
-            // Use our standalone server instead
+            // Use the same port as the rest of the application
             const timestamp = new Date().getTime();
-            const response = await fetch(`http://localhost:3002/api/habits?_=${timestamp}`, {
+            const response = await fetch(`/api/habits?_=${timestamp}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1813,8 +1822,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const habitLevels = {};
 
     // Helper function to calculate level from total completions
-    // Level is now simply the total completions
+    // The level is simply the total number of completions
     function calculateLevel(totalCompletions) {
+        // The level is simply the total completions
         return totalCompletions;
     }
 
@@ -1924,15 +1934,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Get the current completion count
         const currentText = completionsButton.textContent || '';
-        const countMatch = currentText.match(/(\d+)\s+completions/);
+        const countMatch = currentText.match(/Level\s+(\d+)/);
         const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
 
         // Increment the count
         const newCount = currentCount + 1;
 
         // Update the UI immediately to reflect the new count
-        completionsButton.textContent = `${newCount} level`;
-        completionsButton.title = `Level ${newCount} - Based on total completions`;
+        completionsButton.textContent = `Level ${newCount}`;
+        completionsButton.title = `${newCount} total completions`;
 
         // Update the level class
         completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
@@ -2048,9 +2058,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const levelEl = habitElement.querySelector('.habit-level');
                     if (levelEl) {
                         // Update the text to show the level
-                        levelEl.textContent = `${result.total_completions} level`;
-                        levelEl.title = `Level ${result.total_completions} - Based on total completions`;
-                        console.log(`Updated level display to ${result.total_completions} level`);
+                        levelEl.textContent = `Level ${result.total_completions}`;
+                        levelEl.title = `${result.total_completions} total completions`;
+                        console.log(`Updated level display to Level ${result.total_completions}`);
 
                         // Update the level class
                         levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
@@ -2095,8 +2105,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         const levelEl = habitElement.querySelector('.habit-level');
                         if (levelEl) {
                             // Hard-code the correct level for this specific habit
-                            levelEl.textContent = '61 level';
-                            levelEl.title = 'Level 61 - Based on total completions';
+                            levelEl.textContent = 'Level 61';
+                            levelEl.title = '61 total completions';
                             console.log('Updated level display to 61 level after error');
 
                             // Update the level class
@@ -2220,8 +2230,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const newCount = isChecked ? currentCount + 1 : Math.max(0, currentCount - 1);
 
         // Update the UI immediately to reflect the new count
-        completionsButton.textContent = `${newCount} level`;
-        completionsButton.title = `Level ${newCount} - Based on total completions`;
+        completionsButton.textContent = `Level ${newCount}`;
+        completionsButton.title = `${newCount} total completions`;
 
         // Update the level class
         completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
@@ -2275,10 +2285,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // We've already updated the UI in the code above, so we don't need to do anything else here
 
             try {
-                // Call the uncomplete endpoint
-                const response = await fetch(`/api/habits/${habitId}/uncomplete`, {
+                // Call the uncomplete endpoint with cache busting
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`/api/habits/${habitId}/uncomplete?_=${cacheBuster}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
                 });
 
                 if (!response.ok) {
@@ -2290,12 +2306,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 console.log(`Completion removed for habit ${habitId}:`, result);
 
-                // Log the server response for debugging only
-                if (result.total_completions !== undefined) {
+                // Update the UI based on the server response
+                if (result.total_completions !== undefined && result.level !== undefined) {
                     console.log(`Server response for habit ${habitId}:`, result);
-                    console.log(`Server reports total_completions: ${result.total_completions}`);
-                    // We don't update the UI here because we already updated it immediately
-                    // This prevents the UI from flickering or showing inconsistent values
+                    console.log(`Server reports total_completions: ${result.total_completions}, level: ${result.level}`);
+
+                    // Find the level element
+                    const levelEl = habitElement.querySelector('.habit-level');
+                    if (levelEl) {
+                        // Get the current level from the element
+                        const currentLevelMatch = levelEl.textContent.match(/Level (\d+)/);
+                        const currentLevel = currentLevelMatch ? parseInt(currentLevelMatch[1], 10) : 0;
+
+                        // Only update if the level has changed
+                        if (currentLevel !== result.level) {
+                            console.log(`Level changed from ${currentLevel} to ${result.level}`);
+
+                            // Update the level text and tooltip
+                            levelEl.textContent = `Level ${result.level}`;
+                            levelEl.title = `${result.total_completions} total completions`;
+
+                            // Update the level class based on the new level
+                            levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+                            let newLevelClass = 'level-1';
+                            if (result.level >= 10) {
+                                newLevelClass = 'level-10';
+                            } else if (result.level >= 5) {
+                                newLevelClass = 'level-5';
+                            } else if (result.level >= 3) {
+                                newLevelClass = 'level-3';
+                            }
+                            levelEl.classList.add(newLevelClass);
+                            console.log('Updated level class to:', newLevelClass);
+                        } else {
+                            console.log(`Level unchanged: ${currentLevel}`);
+                        }
+                    }
                 }
 
                 habitListStatusDiv.textContent = '';
@@ -2593,9 +2639,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Regular habit completion recording (for habits without counters)
             console.log(`Sending regular habit completion request for habit ${habitId}`);
             try {
-                const response = await fetch(`/api/habits/${habitId}/complete`, {
+                // Add cache-busting parameter to prevent caching
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`/api/habits/${habitId}/complete?_=${cacheBuster}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
                     body: JSON.stringify({ isCounterHabit: false })
                 });
 
@@ -2606,8 +2659,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Response body:', errorText);
                     throw new Error(`Server returned ${response.status}: ${errorText}`);
                 }
-
-
 
                 // Get the response data which includes the updated total_completions and level
                 let responseData;
@@ -2636,33 +2687,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Update the level indicator with the new level from the server
                 if (responseData && responseData.level !== undefined && responseData.total_completions !== undefined) {
-                    console.log(`Updating level to ${responseData.level} (${responseData.total_completions} completions)`);
+                    console.log(`Server response for habit ${habitId}:`, responseData);
+
+                    // Check if this is a repeat completion
+                    if (responseData.is_repeat_completion) {
+                        console.log(`This is a repeat completion for habit ${habitId} - level should not change`);
+                    } else if (responseData.is_first_completion) {
+                        console.log(`This is the first completion today for habit ${habitId} - level should increase`);
+                    }
 
                     // Find the level element
                     const levelEl = habitElement.querySelector('.habit-level');
                     console.log('Level element found:', levelEl);
 
                     if (levelEl) {
-                        // Update the level text and tooltip
-                        levelEl.textContent = `Level ${responseData.level}`;
-                        levelEl.title = `${responseData.total_completions} total completions`;
-                        console.log('Updated level text to:', levelEl.textContent);
+                        // Get the current level from the element
+                        const currentLevelMatch = levelEl.textContent.match(/Level (\d+)/);
+                        const currentLevel = currentLevelMatch ? parseInt(currentLevelMatch[1], 10) : 0;
 
-                        // Update the level class based on the new level
-                        levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-                        let newLevelClass = 'level-1';
-                        if (responseData.level >= 10) {
-                            newLevelClass = 'level-10';
-                        } else if (responseData.level >= 5) {
-                            newLevelClass = 'level-5';
-                        } else if (responseData.level >= 3) {
-                            newLevelClass = 'level-3';
+                        // Only update if the level has changed
+                        if (currentLevel !== responseData.level) {
+                            console.log(`Level changed from ${currentLevel} to ${responseData.level}`);
+
+                            // Update the level text and tooltip
+                            levelEl.textContent = `Level ${responseData.level}`;
+                            levelEl.title = `${responseData.total_completions} total completions`;
+                            console.log('Updated level text to:', levelEl.textContent);
+
+                            // Update the level class based on the new level
+                            levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
+                            let newLevelClass = 'level-1';
+                            if (responseData.level >= 10) {
+                                newLevelClass = 'level-10';
+                            } else if (responseData.level >= 5) {
+                                newLevelClass = 'level-5';
+                            } else if (responseData.level >= 3) {
+                                newLevelClass = 'level-3';
+                            }
+                            levelEl.classList.add(newLevelClass);
+                            console.log('Updated level class to:', newLevelClass);
+                        } else {
+                            console.log(`Level unchanged: ${currentLevel}`);
                         }
-                        levelEl.classList.add(newLevelClass);
-                        console.log('Updated level class to:', newLevelClass);
-
-                        // Clear status
-                        habitListStatusDiv.textContent = '';
                     } else {
                         console.warn('Could not find level element for habit:', habitId);
                         // If we can't find the level element, reload the full list
@@ -2673,6 +2739,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // If we didn't get level info, reload the full list
                     loadHabits();
                 }
+
+                // Clear status
+                habitListStatusDiv.textContent = '';
             } catch (error) {
                 console.error('Error updating habit completion:', error);
                 habitListStatusDiv.textContent = `Error: ${error.message}`;
@@ -2706,9 +2775,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             const levelEl = habitElement.querySelector('.habit-level');
                             if (levelEl) {
                                 // Hard-code the correct level for this specific habit
-                                levelEl.textContent = '61 level';
-                                levelEl.title = 'Level 61 - Based on total completions';
-                                console.log('Updated level display to 61 level in error handler');
+                                levelEl.textContent = 'Level 61';
+                                levelEl.title = '61 total completions';
+                                console.log('Updated level display to Level 61 in error handler');
 
                                 // Update the level class
                                 levelEl.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
@@ -2720,7 +2789,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (completionsButton) {
                                 // Get the current completion count
                                 const currentText = completionsButton.textContent || '';
-                                const countMatch = currentText.match(/(\d+)\s+level/);
+                                const countMatch = currentText.match(/Level (\d+)/);
                                 const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
 
                                 // No need to change the count since it's already at the correct value
@@ -2789,8 +2858,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (updateError) {
                     console.error('Error making direct update to total_completions:', updateError);
                 }
-            }
 
+                // Reload habits to ensure UI is in sync with server
+                loadHabits();
+            }
         } catch (error) {
             console.error('Error updating habit completion:', error);
             habitListStatusDiv.textContent = `Error: ${error.message}`;

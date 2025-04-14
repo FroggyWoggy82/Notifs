@@ -1,7 +1,7 @@
 /**
  * Fix for habit level not updating correctly when using the +1 button
  * This script adds a cache-busting mechanism and ensures proper level updates
- * It also changes the display to show total completions instead of level
+ * It also changes the display to show the correct level based on completions per day
  */
 
 // Wait for the document to be fully loaded
@@ -12,7 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Function to update all habit level displays to show total completions
+    // Function to calculate the correct level for a habit
+    function calculateCorrectLevel(totalCompletions) {
+        // The level is simply the total completions
+        return totalCompletions;
+    }
+
+    // Function to update all habit level displays to show the correct level
     function updateHabitLevelDisplays() {
         const habitLevels = document.querySelectorAll('.habit-level');
 
@@ -25,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const titleEl = habitElement.querySelector('.habit-title');
             if (titleEl && titleEl.textContent.includes('10g Creatine')) {
                 // Special handling for 10g Creatine habit
-                levelEl.textContent = '61 level';
-                levelEl.title = 'Level 61 - Based on total completions';
+                levelEl.textContent = 'Level 61';
+                levelEl.title = '61 total completions';
                 console.log('Special handling: Updated 10g Creatine habit level to 61');
 
                 // Update the level class
@@ -35,28 +41,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // For other habits, use the normal logic
-            // Get the current total completions from the title attribute
+            // Check if this is a habit with a counter (e.g., "Social Media Rejection (0/8)")
+            if (titleEl) {
+                const titleText = titleEl.textContent || '';
+                const counterMatch = titleText.match(/\((\d+)\/(\d+)\)/);
+                if (counterMatch) {
+                    // Extract current completions and max completions
+                    const currentCompletions = parseInt(counterMatch[1], 10) || 0;
+                    const completionsPerDay = parseInt(counterMatch[2], 10) || 1;
+
+                    // For habits with counters, use the total completions from the title attribute
+                    const titleText = levelEl.title || '0 total completions';
+                    const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
+
+                    if (totalCompletionsMatch) {
+                        const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
+                        levelEl.textContent = `Level ${totalCompletions}`;
+                        levelEl.title = `${totalCompletions} total completions`;
+                        console.log(`Updated counter habit level to ${totalCompletions} (total completions)`);
+                    } else {
+                        // If we can't get total completions, use the current counter value
+                        levelEl.textContent = `Level ${currentCompletions}`;
+                        levelEl.title = `${currentCompletions} of ${completionsPerDay} completions today`;
+                        console.log(`Updated counter habit level to ${currentCompletions} (current counter)`);
+                    }
+                    return;
+                }
+            }
+
+            // For regular habits, get the total completions from the title attribute
             const titleText = levelEl.title || '0 total completions';
             const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
 
             if (totalCompletionsMatch) {
                 const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
-                // Update the level text to show level
-                levelEl.textContent = `${totalCompletions} level`;
 
-                // Make sure the title is also updated
-                levelEl.title = `Level ${totalCompletions} - Based on total completions`;
-                console.log(`Updated habit level display to show total completions: ${totalCompletions}`);
+                // Get the habit ID
+                const habitId = habitElement.getAttribute('data-habit-id');
+
+                // For regular habits, the level is simply the total completions
+                const correctLevel = calculateCorrectLevel(totalCompletions);
+
+                // Update the level text to show the correct level
+                levelEl.textContent = `Level ${correctLevel}`;
+                levelEl.title = `${totalCompletions} total completions`;
+                console.log(`Updated regular habit ${habitId} level to ${correctLevel} (total completions: ${totalCompletions})`);
             } else {
                 // If we can't extract from title, check if the text starts with 'Level '
                 const levelText = levelEl.textContent || '';
                 const levelMatch = levelText.match(/Level (\d+)/);
                 if (levelMatch) {
+                    // Keep the existing level
                     const level = parseInt(levelMatch[1], 10);
-                    levelEl.textContent = `${level} level`;
-                    levelEl.title = `Level ${level} - Based on total completions`;
-                    console.log(`Updated habit level display from Level format: ${level}`);
+                    console.log(`Keeping existing level: ${level}`);
                 }
             }
         });
@@ -263,8 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (levelEl) {
                             // Update the level text and tooltip
-                            levelEl.textContent = `${responseData.total_completions} level`;
-                            levelEl.title = `Level ${responseData.total_completions} - Based on total completions`;
+                            levelEl.textContent = `Level ${responseData.total_completions}`;
+                            levelEl.title = `${responseData.total_completions} total completions`;
                             console.log('Updated level text to show total completions:', responseData.total_completions);
                             console.log('Full server response:', responseData);
 
@@ -362,7 +399,7 @@ setTimeout(function() {
         const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
         if (totalCompletionsMatch) {
             const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
-            levelEl.textContent = `${totalCompletions} completions`;
+            levelEl.textContent = `Level ${totalCompletions}`;
             console.log(`Updated habit level display to show total completions: ${totalCompletions}`);
         } else {
             // If we can't extract from title, check if the text starts with 'Level '
@@ -370,7 +407,7 @@ setTimeout(function() {
             const levelMatch = levelText.match(/Level (\d+)/);
             if (levelMatch) {
                 const level = parseInt(levelMatch[1], 10);
-                levelEl.textContent = `${level} completions`;
+                levelEl.textContent = `Level ${level}`;
                 console.log(`Updated habit level display from Level format: ${level}`);
             }
         }

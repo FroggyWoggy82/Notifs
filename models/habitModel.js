@@ -309,9 +309,10 @@ async function recordCompletion(habitId) {
     }
 
     const todayKey = getTodayDateKey();
+    console.log(`Recording completion for habit ${habitId} on ${todayKey}`);
 
     try {
-        // 1. Check if the habit exists and get its details
+        // 1. Check if the habit exists
         const habitResult = await db.query(
             'SELECT * FROM habits WHERE id = $1',
             [habitId]
@@ -321,78 +322,79 @@ async function recordCompletion(habitId) {
             throw new Error(`Habit with ID ${habitId} not found`);
         }
 
-        // 2. Get current completions for today
-        const completionsResult = await db.query(
-            'SELECT COUNT(*) as count FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
+        // 2. Get the current total_completions
+        const totalResult = await db.query(
+            'SELECT total_completions FROM habits WHERE id = $1',
+            [habitId]
+        );
+
+        const currentTotalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
+        console.log(`Habit ${habitId} current total completions: ${currentTotalCompletions}`);
+
+        // 3. Check if there's already a completion for today
+        const completionResult = await db.query(
+            'SELECT * FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
             [habitId, todayKey]
         );
 
-        const completionsToday = parseInt(completionsResult.rows[0].count, 10);
-        const maxCompletions = habitResult.rows[0].completions_per_day;
+        const hasCompletionToday = completionResult.rows.length > 0;
+        console.log(`Habit ${habitId} has completion for today: ${hasCompletionToday}`);
 
-        // 3. Check if we've already reached the max completions for today
-        if (completionsToday >= maxCompletions) {
-            throw new Error(`Maximum completions (${maxCompletions}) already reached for today`);
+        // 4. If there's already a completion for today, don't increment total_completions
+        if (hasCompletionToday) {
+            console.log(`IMPORTANT: Habit ${habitId} already has a completion today - NOT incrementing total_completions`);
+
+            return {
+                completions_today: 1,
+                total_completions: currentTotalCompletions,
+                level: currentTotalCompletions,
+                is_repeat_completion: true
+            };
         }
 
-        // 4. Check if this habit was previously completed today and then uncompleted
-        // This prevents the level from increasing by 2 when checking/unchecking/checking again
-        const recentCompletionResult = await db.query(
-            `SELECT * FROM habit_completions
-             WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NOT NULL
-             ORDER BY created_at DESC LIMIT 1`,
-            [habitId, todayKey]
-        );
+        // 5. If we get here, this is the first time the habit is being completed today
+        console.log(`IMPORTANT: First completion of habit ${habitId} today - incrementing total_completions`);
+        console.log(`Current total_completions: ${currentTotalCompletions}, will increment by 1`);
 
-        // If we found a deleted completion from today, we'll reuse it instead of creating a new one
-        if (recentCompletionResult.rows.length > 0) {
-            // Restore the previously deleted completion
-            const completionId = recentCompletionResult.rows[0].id;
-            console.log(`Restoring previously deleted completion ${completionId} for habit ${habitId}`);
-
-            await db.query(
-                'UPDATE habit_completions SET deleted_at = NULL WHERE id = $1',
-                [completionId]
-            );
-
-            // Don't increment total_completions since we're just restoring a previous completion
-            console.log(`Restored completion without incrementing total_completions`);
-        } else {
-            // No previous completion found, create a new one
-            // 5. Record the completion
+        try {
+            // Create a new completion record
             await db.query(
                 'INSERT INTO habit_completions (habit_id, completion_date) VALUES ($1, $2)',
                 [habitId, todayKey]
             );
 
-            // 6. Increment the total_completions counter
+            // Increment the total_completions counter
             const updateResult = await db.query(
                 'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1 RETURNING total_completions',
                 [habitId]
             );
 
             const newTotalCompletions = updateResult.rows[0].total_completions;
-            console.log(`Created new completion and incremented total_completions for habit ${habitId} to ${newTotalCompletions}`);
+            console.log(`Incremented total_completions for habit ${habitId} from ${currentTotalCompletions} to ${newTotalCompletions}`);
+
+            return {
+                completions_today: 1,
+                total_completions: newTotalCompletions,
+                level: newTotalCompletions,
+                is_first_completion: true
+            };
+        } catch (insertError) {
+            // If the insert fails due to a unique constraint violation, it means another request
+            // completed the habit at the same time. In this case, just return the current state.
+            if (insertError.code === '23505') { // Unique violation
+                console.log(`Unique constraint violation - another request completed the habit at the same time`);
+
+                return {
+                    completions_today: 1,
+                    total_completions: currentTotalCompletions,
+                    level: currentTotalCompletions,
+                    is_repeat_completion: true
+                };
+            }
+
+            // For other errors, rethrow
+            throw insertError;
         }
-
-        // 7. Get the updated total_completions
-        const totalResult = await db.query(
-            'SELECT total_completions FROM habits WHERE id = $1',
-            [habitId]
-        );
-
-        const totalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
-        console.log(`Habit ${habitId} total completions: ${totalCompletions}`);
-
-        // Level is now simply the total completions
-        const calculatedLevel = totalCompletions;
-        console.log(`Habit ${habitId} calculated level: ${calculatedLevel}`);
-
-        return {
-            completions_today: completionsToday + 1,
-            total_completions: totalCompletions,
-            level: calculatedLevel
-        };
     } catch (error) {
         console.error(`Error recording completion for habit ${habitId}:`, error);
         throw error;
@@ -410,6 +412,7 @@ async function removeCompletion(habitId) {
     }
 
     const todayKey = getTodayDateKey();
+    console.log(`Removing completion for habit ${habitId} on ${todayKey}`);
 
     try {
         // 1. Check if the habit exists
@@ -422,63 +425,49 @@ async function removeCompletion(habitId) {
             throw new Error(`Habit with ID ${habitId} not found`);
         }
 
-        // 2. Get current completions for today
-        const completionsResult = await db.query(
-            'SELECT COUNT(*) as count FROM habit_completions WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NULL',
-            [habitId, todayKey]
-        );
-
-        const completionsToday = parseInt(completionsResult.rows[0].count, 10);
-
-        // 3. Check if there are any completions to remove
-        if (completionsToday === 0) {
-            throw new Error(`No completions found for habit ${habitId} today`);
-        }
-
-        // 4. Mark the most recent completion as deleted instead of actually deleting it
-        // This allows us to restore it if the user checks the habit again today
+        // 2. Check if there's a completion for today
         const completionResult = await db.query(
-            `UPDATE habit_completions
-             SET deleted_at = NOW()
-             WHERE id = (
-                SELECT id FROM habit_completions
-                WHERE habit_id = $1 AND completion_date = $2 AND deleted_at IS NULL
-                ORDER BY created_at DESC LIMIT 1
-             )
-             RETURNING id`,
+            'SELECT * FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
             [habitId, todayKey]
         );
 
         if (completionResult.rows.length === 0) {
-            throw new Error(`Failed to mark completion as deleted for habit ${habitId}`);
+            throw new Error(`No completions found for habit ${habitId} today`);
         }
 
-        const completionId = completionResult.rows[0].id;
-        console.log(`Marked completion ${completionId} as deleted for habit ${habitId}`);
-
-        // 5. Decrement the total_completions counter
-        await db.query(
-            'UPDATE habits SET total_completions = GREATEST(0, total_completions - 1) WHERE id = $1',
-            [habitId]
-        );
-
-        // 6. Get the updated total_completions
+        // 3. Get the current total_completions
         const totalResult = await db.query(
             'SELECT total_completions FROM habits WHERE id = $1',
             [habitId]
         );
 
-        const totalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
-        console.log(`Habit ${habitId} total completions after decrement: ${totalCompletions}`);
+        const currentTotalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
+        console.log(`Habit ${habitId} current total completions: ${currentTotalCompletions}`);
 
-        // Level is now simply the total completions
-        const calculatedLevel = totalCompletions;
-        console.log(`Habit ${habitId} calculated level: ${calculatedLevel}`);
+        // 4. Delete the completion record
+        console.log(`IMPORTANT: Deleting completion for habit ${habitId}`);
+
+        await db.query(
+            'DELETE FROM habit_completions WHERE habit_id = $1 AND completion_date = $2',
+            [habitId, todayKey]
+        );
+
+        // 5. Decrement the total_completions counter
+        const expectedNewTotal = Math.max(0, currentTotalCompletions - 1);
+        console.log(`IMPORTANT: Decrementing total_completions for habit ${habitId} from ${currentTotalCompletions} to ${expectedNewTotal}`);
+
+        const updateResult = await db.query(
+            'UPDATE habits SET total_completions = GREATEST(0, total_completions - 1) WHERE id = $1 RETURNING total_completions',
+            [habitId]
+        );
+
+        const newTotalCompletions = updateResult.rows[0].total_completions;
+        console.log(`Habit ${habitId} total completions after decrement: ${newTotalCompletions}`);
 
         return {
-            completions_today: completionsToday - 1,
-            total_completions: totalCompletions,
-            level: calculatedLevel
+            completions_today: 0,
+            total_completions: newTotalCompletions,
+            level: newTotalCompletions
         };
     } catch (error) {
         console.error(`Error removing completion for habit ${habitId}:`, error);
@@ -497,26 +486,40 @@ async function updateTotalCompletions(habitId, increment) {
         throw new Error('Invalid habit ID format');
     }
 
-    // Use a simple query instead of a transaction with getClient
-    const updateResult = await db.query(
-        'UPDATE habits SET total_completions = total_completions + $1 WHERE id = $2 RETURNING id, total_completions',
-        [increment, habitId]
-    );
+    try {
+        // Get the current total_completions
+        const totalResult = await db.query(
+            'SELECT total_completions FROM habits WHERE id = $1',
+            [habitId]
+        );
 
-    if (updateResult.rows.length === 0) {
-        throw new Error(`Habit with ID ${habitId} not found`);
+        if (totalResult.rows.length === 0) {
+            throw new Error(`Habit with ID ${habitId} not found`);
+        }
+
+        const currentTotalCompletions = parseInt(totalResult.rows[0].total_completions, 10) || 0;
+        console.log(`Habit ${habitId} current total completions: ${currentTotalCompletions}`);
+
+        // Update the total_completions
+        const expectedNewTotal = Math.max(0, currentTotalCompletions + increment);
+        console.log(`IMPORTANT: Updating total_completions for habit ${habitId} from ${currentTotalCompletions} to ${expectedNewTotal}`);
+
+        const updateResult = await db.query(
+            'UPDATE habits SET total_completions = GREATEST(0, total_completions + $1) WHERE id = $2 RETURNING id, total_completions',
+            [increment, habitId]
+        );
+
+        const newTotalCompletions = parseInt(updateResult.rows[0].total_completions, 10) || 0;
+        console.log(`Habit ${habitId} total completions after direct update: ${newTotalCompletions}`);
+
+        return {
+            total_completions: newTotalCompletions,
+            level: newTotalCompletions
+        };
+    } catch (error) {
+        console.error(`Error updating total completions for habit ${habitId}:`, error);
+        throw error;
     }
-
-    const totalCompletions = parseInt(updateResult.rows[0].total_completions, 10) || 0;
-    console.log(`Habit ${habitId} total completions after direct update: ${totalCompletions}`);
-
-    // Level is simply the total completions
-    const calculatedLevel = totalCompletions;
-
-    return {
-        total_completions: totalCompletions,
-        level: calculatedLevel
-    };
 }
 
 /**
@@ -611,8 +614,50 @@ async function getCompletionsByDateRange(startDate, endDate) {
     }
 }
 
+/**
+ * Get a habit by ID with today's completion count
+ * @param {number} habitId - The habit ID
+ * @returns {Promise<Object>} - Promise resolving to the habit data
+ */
+async function getHabitById(habitId) {
+    if (!/^[1-9]\d*$/.test(habitId)) {
+        throw new Error('Invalid habit ID format');
+    }
+
+    const todayKey = getTodayDateKey();
+
+    const result = await db.query(
+        `SELECT
+            h.id,
+            h.title,
+            h.frequency,
+            h.completions_per_day,
+            h.created_at,
+            h.total_completions,
+            COUNT(DISTINCT CASE WHEN hc.completion_date = $1 AND hc.deleted_at IS NULL THEN hc.id ELSE NULL END) AS completions_today
+         FROM habits h
+         LEFT JOIN habit_completions hc ON h.id = hc.habit_id
+         WHERE h.id = $2
+         GROUP BY h.id`,
+        [todayKey, habitId]
+    );
+
+    if (result.rows.length === 0) {
+        throw new Error(`Habit with ID ${habitId} not found`);
+    }
+
+    const habit = result.rows[0];
+
+    // Parse the completions as numbers
+    habit.completions_today = parseInt(habit.completions_today, 10) || 0;
+    habit.total_completions = parseInt(habit.total_completions, 10) || 0;
+
+    return habit;
+}
+
 module.exports = {
     getAllHabits,
+    getHabitById,
     createHabit,
     updateHabit,
     deleteHabit,

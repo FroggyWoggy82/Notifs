@@ -1,5 +1,5 @@
 const express = require('express');
-const HabitModel = require('../models/habitModel'); // Import the habit model
+const habitController = require('../controllers/habitController');
 
 const router = express.Router();
 
@@ -15,17 +15,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', async (req, res) => {
-    console.log("Received GET /api/habits request");
-
-    try {
-        const habits = await HabitModel.getAllHabits();
-        res.status(200).json(habits);
-    } catch (err) {
-        console.error('Error fetching habits:', err);
-        res.status(500).json({ error: 'Failed to fetch habits' });
-    }
-});
+router.get('/', habitController.getAllHabits);
 
 /**
  * @swagger
@@ -273,50 +263,7 @@ router.delete('/:id', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/:id/complete', async (req, res) => {
-    const { id } = req.params;
-    console.log(`Received POST /api/habits/${id}/complete request`);
-
-    try {
-        // Use the habit model to record a completion
-        const result = await HabitModel.recordCompletion(id);
-
-        console.log(`Completion recorded for habit ${id}. New count: ${result.completions_today}, Total: ${result.total_completions}, Level: ${result.level}`);
-
-        res.status(200).json({
-            message: 'Completion recorded',
-            completions_today: result.completions_today,
-            total_completions: result.total_completions,
-            level: result.level
-        });
-
-    } catch (err) {
-        console.error(`Error recording completion for habit ${id}:`, err);
-
-        if (err.message.includes('Invalid habit ID format')) {
-            return res.status(400).json({ error: err.message });
-        }
-
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ error: err.message });
-        }
-
-        if (err.message.includes('already reached the max completions') ||
-            err.message.includes('Maximum completions') ||
-            err.message.includes('already reached for today')) {
-            return res.status(409).json({
-                message: err.message,
-                error: 'Daily completion target already met'
-            });
-        }
-
-        res.status(500).json({
-            error: 'Failed to record completion',
-            message: err.message,
-            details: err.detail || 'No additional details available'
-        });
-    }
-});
+router.post('/:id/complete', habitController.recordCompletion);
 
 /**
  * @swagger
@@ -343,48 +290,7 @@ router.post('/:id/complete', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/:id/uncomplete', async (req, res) => {
-    const { id } = req.params;
-    console.log(`Received POST /api/habits/${id}/uncomplete request`);
-
-    try {
-        // Use the habit model to remove a completion
-        const result = await HabitModel.removeCompletion(id);
-
-        console.log(`Completion removed for habit ${id}. New count: ${result.completions_today}, Total: ${result.total_completions}, Level: ${result.level}`);
-
-        res.status(200).json({
-            message: 'Completion removed',
-            completions_today: result.completions_today,
-            total_completions: result.total_completions,
-            level: result.level
-        });
-
-    } catch (err) {
-        console.error(`Error removing completion for habit ${id}:`, err);
-
-        if (err.message.includes('Invalid habit ID format')) {
-            return res.status(400).json({ error: err.message });
-        }
-
-        if (err.message.includes('not found')) {
-            return res.status(404).json({ error: err.message });
-        }
-
-        if (err.message.includes('No completions found')) {
-            return res.status(409).json({
-                message: err.message,
-                error: 'No completions to remove'
-            });
-        }
-
-        res.status(500).json({
-            error: 'Failed to remove completion',
-            message: err.message,
-            details: err.detail || 'No additional details available'
-        });
-    }
-});
+router.post('/:id/uncomplete', habitController.removeCompletion);
 
 /**
  * @swagger
