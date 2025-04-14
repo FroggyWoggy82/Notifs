@@ -109,23 +109,24 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
             const originalSizeKB = originalStats.size / 1024;
             console.log(`[MOBILE UPLOAD] Original size: ${originalSizeKB.toFixed(2)}KB`);
 
-            // Process the image with guaranteed size limit - SIMPLIFIED VERSION
+            // Process the image with guaranteed size limit - DIRECT APPROACH
             // Start with extremely aggressive settings immediately
             let sizeKB = Infinity;
 
-            console.log(`[MOBILE UPLOAD] Starting SIMPLIFIED aggressive compression to ensure <800KB file size`);
+            console.log(`[MOBILE UPLOAD] Starting DIRECT aggressive compression to ensure <800KB file size`);
             console.log(`[MOBILE UPLOAD] Original file: ${file.path}, size: ${originalSizeKB.toFixed(2)}KB`);
+            console.log(`[MOBILE UPLOAD] Target file: ${jpegPath}`);
 
-            // SIMPLIFIED: Use a single aggressive approach immediately
+            // DIRECT APPROACH: Use a single ultra-aggressive approach immediately
             try {
-                console.log(`[MOBILE UPLOAD] Using ultra-aggressive compression settings: quality=10, size=400px, grayscale=true`);
+                console.log(`[MOBILE UPLOAD] Using ULTRA-aggressive compression settings: quality=5, size=300px, grayscale=true`);
 
-                // Use extremely aggressive settings right away
+                // Use extremely aggressive settings right away - even more aggressive than before
                 await sharp(file.path)
-                    .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
+                    .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
                     .grayscale() // Convert to grayscale immediately
                     .jpeg({
-                        quality: 10, // Very low quality
+                        quality: 5, // Extremely low quality
                         progressive: true,
                         optimizeScans: true,
                         trellisQuantisation: true,
@@ -163,22 +164,23 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                 const emergencyPath = path.join(progressPhotosDir, emergencyFilename);
 
                 try {
-                    // Create a tiny blank grayscale image instead of trying to compress the original
-                    console.log(`[MOBILE UPLOAD] Creating minimal 200x200 blank image with 1% quality`);
+                        // Try one more time with absolute minimum settings
+                    console.log(`[MOBILE UPLOAD] LAST RESORT: Creating 100x100 grayscale image with 1% quality`);
 
-                    // Create a blank image instead of processing the original
-                    await sharp({
-                        create: {
-                            width: 200,
-                            height: 200,
-                            channels: 1, // Grayscale
-                            background: { r: 200, g: 200, b: 200 }
-                        }
-                    })
-                    .jpeg({
-                        quality: 1 // Absolute minimum quality
-                    })
-                    .toFile(emergencyPath);
+                    // Try one more time with the original image but with absolute minimum settings
+                    await sharp(file.path)
+                        .resize(100, 100, { fit: 'inside' })
+                        .grayscale()
+                        .flatten({ background: { r: 255, g: 255, b: 255 } }) // Convert transparency to white
+                        .jpeg({
+                            quality: 1, // Absolute minimum quality
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            optimizeCoding: true,
+                            force: true // Force JPEG output regardless of input
+                        })
+                        .toFile(emergencyPath);
 
                     // Check emergency attempt
                     const emergencyStats = fs.statSync(emergencyPath);
@@ -249,16 +251,16 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                 const emergencyFilename = `mobile_emergency_${timestamp}.jpg`;
                 const emergencyPath = path.join(progressPhotosDir, emergencyFilename);
 
-                // Create a tiny grayscale image
+                // Create a tiny grayscale image - absolute minimum size
                 await sharp({
                     create: {
-                        width: 300,
-                        height: 300,
-                        channels: 3,
+                        width: 50,
+                        height: 50,
+                        channels: 1, // Grayscale (1 channel)
                         background: { r: 200, g: 200, b: 200 }
                     }
                 })
-                .jpeg({ quality: 60 })
+                .jpeg({ quality: 1 }) // Absolute minimum quality
                 .toFile(emergencyPath);
 
                 console.log(`[MOBILE UPLOAD] Created emergency image: ${emergencyPath}`);

@@ -2683,17 +2683,30 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.textContent = 'Upload timed out. Please try again with a smaller image.';
             statusElement.style.color = 'red';
             submitButton.disabled = false;
-            console.error('[Photo Upload Client] Upload timed out after 30 seconds');
-        }, 30000); // 30 second timeout
+            console.error('[Photo Upload Client] Upload timed out after 60 seconds');
+        }, 60000); // 60 second timeout - increased to allow more time for processing
 
         let response;
         try {
+            // Create an AbortController to handle timeout
+            const controller = new AbortController();
+            const signal = controller.signal;
+
+            // Set a separate timeout for the fetch operation itself
+            const fetchTimeout = setTimeout(() => {
+                controller.abort();
+                console.error('[Photo Upload Client] Fetch operation aborted due to timeout');
+            }, 50000); // 50 second timeout for fetch operation
+
+            console.log('[Photo Upload Client] Starting fetch with timeout control');
             response = await fetch(uploadEndpoint, {
                 method: 'POST',
                 body: formData,
+                signal: signal
             });
 
-            // Clear the timeout since we got a response
+            // Clear both timeouts since we got a response
+            clearTimeout(fetchTimeout);
             clearTimeout(uploadTimeout);
 
             // ... (keep existing logging and error handling for the response) ...
@@ -2728,22 +2741,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1500);
 
         } catch (error) {
-            // ... (keep existing detailed error logging in catch block) ...
-            console.error('[Photo Upload Client] Error during photo upload fetch/processing:', error);
-            console.error('[Photo Upload Client] Error Name:', error.name);
-            console.error('[Photo Upload Client] Error Message:', error.message);
-            if (error.stack) {
-                 console.error('[Photo Upload Client] Error Stack:', error.stack);
-            }
-            if (error.status) {
-                console.error('[Photo Upload Client] Error Status:', error.status);
-            }
-             if (error.data) {
-                console.error('[Photo Upload Client] Error Data:', error.data);
-             }
+            // Handle AbortError specifically
+            if (error.name === 'AbortError') {
+                console.error('[Photo Upload Client] Fetch operation was aborted (timeout)');
+                statusElement.innerHTML = `
+                    <div style="color: #f44336;">Upload timed out. Please try again with a smaller image or check your connection.</div>
+                `;
+                submitButton.disabled = false;
+            } else {
+                // Standard error handling
+                console.error('[Photo Upload Client] Error during photo upload fetch/processing:', error);
+                console.error('[Photo Upload Client] Error Name:', error.name);
+                console.error('[Photo Upload Client] Error Message:', error.message);
+                if (error.stack) {
+                    console.error('[Photo Upload Client] Error Stack:', error.stack);
+                }
+                if (error.status) {
+                    console.error('[Photo Upload Client] Error Status:', error.status);
+                }
+                if (error.data) {
+                    console.error('[Photo Upload Client] Error Data:', error.data);
+                }
 
-            statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
-            statusElement.style.color = '#f44336'; // Red
+                statusElement.textContent = `Error: ${error.message || 'Upload failed. Please try again.'}`;
+                statusElement.style.color = '#f44336'; // Red
+            }
 
         } finally {
             // Make sure the timeout is cleared
