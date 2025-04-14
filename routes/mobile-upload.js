@@ -31,11 +31,16 @@ const storage = multer.diskStorage({
     }
 });
 
-// Configure multer upload
+// Configure multer upload with higher limits for mobile
+const MAX_FILE_SIZE_MB = 50; // Increased to 50MB
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+console.log(`[MOBILE UPLOAD] Configured with file size limit: ${MAX_FILE_SIZE_MB} MB`);
+
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 25 * 1024 * 1024 // 25MB limit
+        fileSize: MAX_FILE_SIZE_BYTES
     }
 });
 
@@ -46,7 +51,7 @@ const uploadMiddleware = upload.array('photos', 10);
 router.post('/mobile', uploadMiddleware, async (req, res) => {
     // Set a longer timeout for this specific route
     req.setTimeout(300000); // 5 minutes
-    
+
     console.log(`[MOBILE UPLOAD] Starting mobile upload process`);
     console.log(`[MOBILE UPLOAD] Files received: ${req.files ? req.files.length : 0}`);
     console.log(`[MOBILE UPLOAD] Request body:`, req.body);
@@ -65,36 +70,36 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
 
     // Process each file
     const processedFiles = [];
-    
+
     for (const file of req.files) {
         console.log(`[MOBILE UPLOAD] Processing file: ${file.originalname}, size: ${file.size} bytes`);
-        
+
         try {
             // Generate unique filename for the processed image
             const timestamp = Date.now();
             const jpegFilename = `mobile_processed_${timestamp}.jpg`;
             const jpegPath = path.join(progressPhotosDir, jpegFilename);
-            
+
             // Get original file size
             const originalStats = fs.statSync(file.path);
             const originalSizeKB = originalStats.size / 1024;
             console.log(`[MOBILE UPLOAD] Original size: ${originalSizeKB.toFixed(2)}KB`);
-            
+
             // Ultra aggressive settings for mobile
             let quality = 20;
             let maxDimension = 600;
-            
+
             if (originalSizeKB > 5000) {
                 quality = 10;
                 maxDimension = 500;
             }
-            
+
             console.log(`[MOBILE UPLOAD] Using quality=${quality}, maxDimension=${maxDimension}`);
-            
+
             // Process the image - first attempt
             await sharp(file.path)
                 .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-                .jpeg({ 
+                .jpeg({
                     quality: quality,
                     progressive: true,
                     optimizeScans: true,
@@ -102,25 +107,25 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                     optimizeCoding: true
                 })
                 .toFile(jpegPath);
-                
+
             // Check the size of the processed image
             const stats = fs.statSync(jpegPath);
             const sizeKB = stats.size / 1024;
             console.log(`[MOBILE UPLOAD] Processed size: ${sizeKB.toFixed(2)}KB`);
-            
+
             // If still too large, try again with extreme settings
             if (sizeKB > 800) {
                 console.log(`[MOBILE UPLOAD] Still too large, trying extreme settings`);
-                
+
                 // Create a new filename for the second attempt
                 const secondFilename = `mobile_tiny_${timestamp}.jpg`;
                 const secondPath = path.join(progressPhotosDir, secondFilename);
-                
+
                 // Use extreme settings
                 await sharp(file.path)
                     .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
                     .grayscale() // Convert to grayscale to reduce file size dramatically
-                    .jpeg({ 
+                    .jpeg({
                         quality: 10,
                         progressive: true,
                         optimizeScans: true,
@@ -128,15 +133,15 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                         optimizeCoding: true
                     })
                     .toFile(secondPath);
-                    
+
                 // Check second attempt
                 const secondStats = fs.statSync(secondPath);
                 const secondSizeKB = secondStats.size / 1024;
                 console.log(`[MOBILE UPLOAD] Second attempt size: ${secondSizeKB.toFixed(2)}KB`);
-                
+
                 // Delete first attempt
                 fs.unlinkSync(jpegPath);
-                
+
                 // Add to processed files
                 processedFiles.push({
                     filename: secondFilename,
@@ -153,14 +158,14 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                     size: stats.size
                 });
             }
-            
+
             // Delete original file
             fs.unlinkSync(file.path);
             console.log(`[MOBILE UPLOAD] Deleted original file`);
-            
+
         } catch (error) {
             console.error(`[MOBILE UPLOAD] Error processing file:`, error);
-            
+
             // Create an emergency fallback image
             console.log(`[MOBILE UPLOAD] Creating emergency fallback image`);
             try {
@@ -168,7 +173,7 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                 const timestamp = Date.now();
                 const emergencyFilename = `mobile_emergency_${timestamp}.jpg`;
                 const emergencyPath = path.join(progressPhotosDir, emergencyFilename);
-                
+
                 // Create a tiny grayscale image
                 await sharp({
                     create: {
@@ -180,9 +185,9 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                 })
                 .jpeg({ quality: 60 })
                 .toFile(emergencyPath);
-                
+
                 console.log(`[MOBILE UPLOAD] Created emergency image: ${emergencyPath}`);
-                
+
                 // Add emergency image to processed files
                 processedFiles.push({
                     filename: emergencyFilename,
@@ -190,7 +195,7 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
                     relativePath: `/uploads/progress_photos/${emergencyFilename}`,
                     size: fs.statSync(emergencyPath).size
                 });
-                
+
                 // Try to delete original file
                 try {
                     fs.unlinkSync(file.path);
@@ -213,22 +218,22 @@ router.post('/mobile', uploadMiddleware, async (req, res) => {
     // Insert into database
     const insertedPhotos = [];
     const photoDate = new Date(date);
-    
+
     for (const file of processedFiles) {
         try {
             console.log(`[MOBILE UPLOAD] Inserting into database: ${file.relativePath}`);
-            
+
             const result = await db.query(
                 'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id',
                 [photoDate, file.relativePath]
             );
-            
+
             insertedPhotos.push({
                 photo_id: result.rows[0].photo_id,
                 date_taken: photoDate,
                 file_path: file.relativePath
             });
-            
+
             console.log(`[MOBILE UPLOAD] Inserted photo ID: ${result.rows[0].photo_id}`);
         } catch (dbError) {
             console.error(`[MOBILE UPLOAD] Database error:`, dbError);

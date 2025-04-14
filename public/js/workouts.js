@@ -32,6 +32,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const navigationDebounceTime = 100; // Milliseconds to wait
 
+    // --- Device Detection ---
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('[Device Detection] Running on mobile device:', isMobile);
+
     // --- State Variables ---
     let availableExercises = []; // Populated from API
     let workoutTemplates = [];   // Populated from API
@@ -2590,9 +2594,9 @@ document.addEventListener('DOMContentLoaded', function() {
         statusElement.style.color = '#03dac6';
         submitButton.disabled = true;
 
-        // Detect if we're on a mobile device
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const uploadEndpoint = isMobile ? '/api/basic/basic' : '/api/photos/upload';
+        // Use the mobile-specific endpoint for mobile devices
+        const uploadEndpoint = isMobile ? '/api/mobile/mobile' : '/api/photos/upload';
+        console.log(`[Photo Upload Client] Using endpoint: ${uploadEndpoint} for ${isMobile ? 'mobile' : 'desktop'} device`);
 
         console.log(`[Photo Upload Client] Running on ${isMobile ? 'MOBILE' : 'DESKTOP'} device`);
         console.log(`[Photo Upload Client] About to initiate fetch to ${uploadEndpoint}`);

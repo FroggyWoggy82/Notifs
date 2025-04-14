@@ -34,8 +34,13 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Configure body parsers with explicit limits
+const MAX_JSON_SIZE = '25mb';
+const MAX_URLENCODED_SIZE = '25mb';
+console.log(`[Server Config] Body parser configured with limits: JSON=${MAX_JSON_SIZE}, URL-encoded=${MAX_URLENCODED_SIZE}`);
+app.use(express.json({ limit: MAX_JSON_SIZE }));
+app.use(express.urlencoded({ extended: true, limit: MAX_URLENCODED_SIZE }));
 
 // Middleware to track request IDs and prevent duplicate database connections
 app.use((req, res, next) => {
