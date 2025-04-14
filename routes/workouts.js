@@ -823,38 +823,41 @@ router.post('/progress-photos', traceMiddleware, uploadPhotosMiddleware, handleM
             const fileExtension = path.extname(file.originalname).toLowerCase();
             let processedPath = originalPath; // Default to original path
 
-            // Step 1: Convert HEIC files to JPEG first if needed
-            if (fileExtension === '.heic') {
-                console.log(`[Upload Processing] Found HEIC file: ${file.originalname} at ${originalPath}`);
-                const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename
-                const jpegPath = path.join(path.dirname(originalPath), jpegFilename); // Full path for JPEG output
+            // Step 1: Convert all files to JPG format
+            // We'll convert all image types to JPG, including existing JPEGs
+            // This ensures consistent format for all uploaded images
 
-                try {
-                    console.log(`[Upload Processing] Converting HEIC to JPEG: ${originalPath} to ${jpegPath}...`);
-                    await sharp(originalPath)
-                        .jpeg({ quality: 90 }) // Convert to JPEG with quality 90
-                        .toFile(jpegPath);
-                    console.log(`[Upload Processing] HEIC conversion successful: ${jpegPath}`);
+            console.log(`[Upload Processing] Converting ${file.originalname} to JPG format`);
+            const jpegFilename = path.basename(file.filename, fileExtension) + '.jpg'; // Create new filename
+            const jpegPath = path.join(path.dirname(originalPath), jpegFilename); // Full path for JPEG output
 
-                    // Update the file object to reflect the new JPEG file
-                    req.files[i].filename = jpegFilename; // Update filename
-                    req.files[i].path = jpegPath;         // Update path
-                    req.files[i].mimetype = 'image/jpeg'; // Update mimetype
-                    req.files[i].size = fs.statSync(jpegPath).size; // Update size
-                    processedPath = jpegPath; // Update the path for compression
+            try {
+                console.log(`[Upload Processing] Converting to JPEG: ${originalPath} to ${jpegPath}...`);
+                await sharp(originalPath)
+                    .jpeg({ quality: 90 }) // Convert to JPEG with quality 90
+                    .toFile(jpegPath);
+                console.log(`[Upload Processing] Conversion to JPEG successful: ${jpegPath}`);
 
-                    // Delete the original HEIC file
+                // Update the file object to reflect the new JPEG file
+                req.files[i].filename = jpegFilename; // Update filename
+                req.files[i].path = jpegPath;         // Update path
+                req.files[i].mimetype = 'image/jpeg'; // Update mimetype
+                req.files[i].size = fs.statSync(jpegPath).size; // Update size
+                processedPath = jpegPath; // Update the path for compression
+
+                // Delete the original file if it's different from the new JPG file
+                if (originalPath !== jpegPath) {
                     try {
                         fs.unlinkSync(originalPath);
-                        console.log(`[Upload Processing] Deleted original HEIC file: ${originalPath}`);
+                        console.log(`[Upload Processing] Deleted original file after conversion: ${originalPath}`);
                     } catch (unlinkErr) {
-                        console.error(`[Upload Processing] Error deleting original HEIC file ${originalPath}:`, unlinkErr);
+                        console.error(`[Upload Processing] Error deleting original file ${originalPath} after conversion:`, unlinkErr);
                     }
-                } catch (conversionError) {
-                    console.error(`[Upload Processing] Error converting HEIC file ${file.originalname}:`, conversionError);
-                    console.warn(`[Upload Processing] Failed to convert ${file.originalname}. Will try to compress original file.`);
-                    processedPath = originalPath; // Use original path for compression
                 }
+            } catch (conversionError) {
+                console.error(`[Upload Processing] Error converting file ${file.originalname}:`, conversionError);
+                console.warn(`[Upload Processing] Failed to convert ${file.originalname}. Will try to compress original file.`);
+                processedPath = originalPath; // Use original path for compression
             }
 
             // Step 2: Compress the image (either the original or the converted JPEG)
