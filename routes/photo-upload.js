@@ -9,8 +9,10 @@ const router = express.Router();
 
 // --- Configuration ---
 const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
-const MAX_FILE_SIZE_MB = 25;
+const MAX_FILE_SIZE_MB = 100; // Increased to 100MB to handle any mobile camera
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+console.log(`[PHOTO UPLOAD] Configured with file size limit: ${MAX_FILE_SIZE_MB} MB`);
 
 // Ensure the upload directory exists
 if (!fs.existsSync(progressPhotosDir)) {
@@ -99,123 +101,148 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
                 if (isMobile) {
                     console.log(`[SIMPLE UPLOAD] Using mobile-optimized settings`);
                     if (originalSizeKB > 3000) {
-                        quality = 20; // Very aggressive for large mobile files
+                        quality = 15; // Ultra aggressive for large mobile files
                         maxDimension = 800;
                     } else if (originalSizeKB > 1000) {
-                        quality = 30;
+                        quality = 25;
                         maxDimension = 1000;
                     } else {
-                        quality = 40;
+                        quality = 35;
                         maxDimension = 1200;
                     }
                 } else {
                     // Desktop settings
                     if (originalSizeKB > 5000) {
-                        quality = 30;
+                        quality = 25;
                         maxDimension = 800;
                     } else if (originalSizeKB > 2000) {
-                        quality = 40;
+                        quality = 35;
                         maxDimension = 1000;
                     } else if (originalSizeKB > 800) {
-                        quality = 50;
+                        quality = 45;
                     }
                 }
 
-                console.log(`[SIMPLE UPLOAD] Using quality=${quality}, maxDimension=${maxDimension}`);
+                console.log(`[SIMPLE UPLOAD] File size: ${(originalSizeKB/1024).toFixed(2)} MB - Using quality=${quality}, maxDimension=${maxDimension}`);
 
-                // Process the image
-                await sharp(file.path)
-                    .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-                    .jpeg({ quality: quality })
-                    .toFile(jpegPath);
+                // Process the image with guaranteed size limit
+                let currentQuality = quality;
+                let currentMaxDimension = maxDimension;
+                let attempts = 1;
+                let sizeKB = Infinity;
 
-                // Check result
-                const stats = fs.statSync(jpegPath);
-                const sizeKB = stats.size / 1024;
-                console.log(`[SIMPLE UPLOAD] Processed size: ${sizeKB.toFixed(2)}KB`);
+                // Keep trying with progressively more aggressive settings until under 800KB
+                while (sizeKB > 800 && attempts <= 5) {
+                    console.log(`[SIMPLE UPLOAD] Compression attempt #${attempts} with quality=${currentQuality}, maxDimension=${currentMaxDimension}`);
 
-                // If still too large, try again with more aggressive settings
+                    await sharp(file.path)
+                        .resize(currentMaxDimension, currentMaxDimension, { fit: 'inside', withoutEnlargement: true })
+                        .jpeg({
+                            quality: currentQuality,
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            optimizeCoding: true
+                        })
+                        .toFile(jpegPath);
+
+                    // Check result
+                    const stats = fs.statSync(jpegPath);
+                    sizeKB = stats.size / 1024;
+                    console.log(`[SIMPLE UPLOAD] Attempt #${attempts} result: ${sizeKB.toFixed(2)}KB`);
+
+                    // If still too large, reduce quality and dimensions for next attempt
+                    if (sizeKB > 800) {
+                        // Remove the file before next attempt
+                        try { fs.unlinkSync(jpegPath); } catch (e) { /* ignore */ }
+
+                        // Reduce quality by 20% each time, with a minimum of 5%
+                        currentQuality = Math.max(5, Math.floor(currentQuality * 0.8));
+
+                        // Reduce dimensions by 20% each time, with a minimum of 300px
+                        currentMaxDimension = Math.max(300, Math.floor(currentMaxDimension * 0.8));
+
+                        attempts++;
+                    }
+                }
+
+                // Final result
+                console.log(`[SIMPLE UPLOAD] Final size: ${sizeKB.toFixed(2)}KB after ${attempts} attempt(s)`);
                 if (sizeKB > 800) {
-                    console.log(`[SIMPLE UPLOAD] Still too large, trying more aggressive settings`);
+                    console.warn(`[SIMPLE UPLOAD] WARNING: Could not compress below 800KB after ${attempts} attempts!`);
+                }
 
-                    // Create a new filename for the second attempt
-                    const secondFilename = `small_${timestamp}.jpg`;
-                    const secondPath = path.join(progressPhotosDir, secondFilename);
+                // If still too large, try EMERGENCY compression
+                if (sizeKB > 800) {
+                    console.log(`[SIMPLE UPLOAD] EMERGENCY COMPRESSION: File still over 800KB after progressive attempts`);
 
-                    // Use even more aggressive settings for mobile
-                    if (isMobile) {
-                        console.log(`[SIMPLE UPLOAD] Using ultra-aggressive mobile settings for second attempt`);
+                    // Create a new filename for the emergency attempt
+                    const emergencyFilename = `emergency_${timestamp}.jpg`;
+                    const emergencyPath = path.join(progressPhotosDir, emergencyFilename);
+
+                    // Use absolute minimum settings - grayscale if needed
+                    console.log(`[SIMPLE UPLOAD] Using absolute minimum quality settings`);
+                    await sharp(file.path)
+                        .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
+                        .grayscale() // Convert to grayscale to reduce file size dramatically
+                        .jpeg({
+                            quality: 1, // Absolute minimum quality
+                            progressive: true,
+                            optimizeScans: true,
+                            trellisQuantisation: true,
+                            optimizeCoding: true
+                        })
+                        .toFile(emergencyPath);
+
+                    // Check emergency attempt
+                    const emergencyStats = fs.statSync(emergencyPath);
+                    const emergencySizeKB = emergencyStats.size / 1024;
+                    console.log(`[SIMPLE UPLOAD] EMERGENCY compression result: ${emergencySizeKB.toFixed(2)}KB (${(originalSizeKB/emergencySizeKB).toFixed(2)}x reduction)`);
+
+                    // If still too large, this is our absolute last resort
+                    if (emergencySizeKB > 800) {
+                        console.log(`[SIMPLE UPLOAD] CRITICAL: Even emergency compression couldn't get below 800KB!`);
+                        console.log(`[SIMPLE UPLOAD] Forcing image to 200x200 grayscale with 1% quality`);
+
+                        // Create a final attempt filename
+                        const finalFilename = `final_${timestamp}.jpg`;
+                        const finalPath = path.join(progressPhotosDir, finalFilename);
+
                         await sharp(file.path)
-                            .resize(500, 500, { fit: 'inside', withoutEnlargement: true })
-                            .jpeg({
-                                quality: 15,
-                                progressive: true,
-                                optimizeScans: true,
-                                trellisQuantisation: true,
-                                optimizeCoding: true
-                            })
-                            .toFile(secondPath);
+                            .resize(200, 200, { fit: 'inside', withoutEnlargement: true })
+                            .grayscale()
+                            .jpeg({ quality: 1 })
+                            .toFile(finalPath);
+
+                        // Check final result
+                        const finalStats = fs.statSync(finalPath);
+                        const finalSizeKB = finalStats.size / 1024;
+                        console.log(`[SIMPLE UPLOAD] FINAL compression result: ${finalSizeKB.toFixed(2)}KB`);
+
+                        // Use the final file
+                        fs.unlinkSync(emergencyPath); // Remove emergency file
+                        fs.renameSync(finalPath, jpegPath); // Replace original with final
+                        sizeKB = finalSizeKB; // Update size for later use
                     } else {
-                        // Standard second attempt for desktop
-                        await sharp(file.path)
-                            .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
-                            .jpeg({ quality: 30 })
-                            .toFile(secondPath);
+                        // Use the emergency file
+                        fs.renameSync(emergencyPath, jpegPath); // Replace original with emergency
+                        sizeKB = emergencySizeKB; // Update size for later use
                     }
 
-                    // Check second attempt
-                    const secondStats = fs.statSync(secondPath);
-                    const secondSizeKB = secondStats.size / 1024;
-                    console.log(`[SIMPLE UPLOAD] Second attempt size: ${secondSizeKB.toFixed(2)}KB`);
+                    // Add to processed files
+                    processedFiles.push({
+                        filename: jpegFilename,
+                        path: jpegPath,
+                        relativePath: `/uploads/progress_photos/${jpegFilename}`,
+                        size: fs.statSync(jpegPath).size
+                    });
 
-                    // For mobile devices, if still too large, try a third extreme attempt
-                    if (isMobile && secondSizeKB > 800) {
-                        console.log(`[SIMPLE UPLOAD] Mobile image still too large, trying extreme settings`);
-
-                        // Create a new filename for the third attempt
-                        const thirdFilename = `tiny_${timestamp}.jpg`;
-                        const thirdPath = path.join(progressPhotosDir, thirdFilename);
-
-                        // Use extreme settings - grayscale, tiny dimensions, minimum quality
-                        await sharp(file.path)
-                            .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
-                            .grayscale() // Convert to grayscale to reduce file size dramatically
-                            .jpeg({
-                                quality: 10,
-                                progressive: true,
-                                optimizeScans: true,
-                                trellisQuantisation: true,
-                                optimizeCoding: true
-                            })
-                            .toFile(thirdPath);
-
-                        // Check third attempt
-                        const thirdStats = fs.statSync(thirdPath);
-                        const thirdSizeKB = thirdStats.size / 1024;
-                        console.log(`[SIMPLE UPLOAD] Third attempt size: ${thirdSizeKB.toFixed(2)}KB`);
-
-                        // Delete previous attempts
-                        fs.unlinkSync(jpegPath);
-                        fs.unlinkSync(secondPath);
-
-                        // Add to processed files
-                        processedFiles.push({
-                            filename: thirdFilename,
-                            path: thirdPath,
-                            relativePath: `/uploads/progress_photos/${thirdFilename}`,
-                            size: thirdStats.size
-                        });
+                    // Final size check and warning
+                    if (sizeKB > 800) {
+                        console.error(`[SIMPLE UPLOAD] CRITICAL ERROR: Could not compress image below 800KB despite all attempts!`);
+                        console.error(`[SIMPLE UPLOAD] Final size: ${sizeKB.toFixed(2)}KB - This should never happen!`);
                     } else {
-                        // Delete first attempt
-                        fs.unlinkSync(jpegPath);
-
-                        // Add to processed files
-                        processedFiles.push({
-                            filename: secondFilename,
-                            path: secondPath,
-                            relativePath: `/uploads/progress_photos/${secondFilename}`,
-                            size: secondStats.size
-                        });
+                        console.log(`[SIMPLE UPLOAD] Successfully compressed image to ${sizeKB.toFixed(2)}KB (under 800KB limit)`);
                     }
                 } else {
                     // Add to processed files

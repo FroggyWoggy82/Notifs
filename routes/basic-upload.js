@@ -30,10 +30,15 @@ const storage = multer.diskStorage({
 });
 
 // Configure multer upload with very high limits
+const MAX_FILE_SIZE_MB = 100; // Increased to 100MB to handle any mobile camera
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+console.log(`[BASIC UPLOAD] Configured with file size limit: ${MAX_FILE_SIZE_MB} MB`);
+
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 50 * 1024 * 1024 // 50MB limit
+        fileSize: MAX_FILE_SIZE_BYTES
     }
 });
 

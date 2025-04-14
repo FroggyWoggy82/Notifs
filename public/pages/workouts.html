@@ -359,8 +359,13 @@
                  <div class="form-group">
                      <label for="modal-photo-upload">Select Photos:</label>
                      <!-- Changed ID to avoid conflict -->
-                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required>
+                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required onchange="displayFileSize(this)">
                  </div>
+                 <div id="file-size-info" class="form-group" style="display:none;">
+                     <label>File Size:</label>
+                     <div id="file-size-display"></div>
+                 </div>
+                 <div id="upload-status" class="form-group" style="display:none;"></div>
                  <div class="modal-actions">
                     <button type="submit" class="btn btn-primary">Upload Photos</button>
                  </div>

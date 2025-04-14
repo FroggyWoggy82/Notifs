@@ -2545,6 +2545,59 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- End History Edit Modal Functions ---
 
+    // --- NEW: File Size Display Function ---
+    function displayFileSize(input) {
+        const fileSizeInfo = document.getElementById('file-size-info');
+        const fileSizeDisplay = document.getElementById('file-size-display');
+
+        if (!fileSizeInfo || !fileSizeDisplay) {
+            console.error('[Photo Upload] File size display elements not found');
+            return;
+        }
+
+        if (input.files && input.files.length > 0) {
+            fileSizeInfo.style.display = 'block';
+
+            let totalSize = 0;
+            let fileDetails = [];
+
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                totalSize += file.size;
+
+                // Format individual file size
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                fileDetails.push(`${file.name}: ${fileSizeMB} MB`);
+            }
+
+            // Format total size
+            const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+
+            // Create HTML content
+            let html = `<strong>Total: ${totalSizeMB} MB</strong><br>`;
+            if (input.files.length > 1) {
+                html += '<details><summary>Individual Files</summary><ul>';
+                fileDetails.forEach(detail => {
+                    html += `<li>${detail}</li>`;
+                });
+                html += '</ul></details>';
+            }
+
+            // Add warning if files are large
+            if (totalSizeMB > 5) {
+                html += `<div style="color: orange; margin-top: 5px;">Large file(s) detected. Server will compress these images.</div>`;
+            }
+
+            fileSizeDisplay.innerHTML = html;
+
+            // Log for debugging
+            console.log(`[Photo Upload] Selected ${input.files.length} file(s), total size: ${totalSizeMB} MB`);
+        } else {
+            fileSizeInfo.style.display = 'none';
+            fileSizeDisplay.innerHTML = '';
+        }
+    }
+
     // --- NEW: Progress Photo Upload Handler ---
     async function handlePhotoUpload(event) {
         event.preventDefault();
@@ -2590,8 +2643,22 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`[Photo Upload Client] FormData contains date: ${dateValue} and ${files.length} file(s).`);
         // --- End validation ---
 
-        statusElement.textContent = 'Uploading...';
-        statusElement.style.color = '#03dac6';
+        // Show file size information again
+        const fileSizeInfo = document.getElementById('file-size-info');
+        if (fileSizeInfo) {
+            fileSizeInfo.style.display = 'block';
+        }
+
+        // Calculate total file size for logging
+        let totalSize = 0;
+        for (const file of files) {
+            totalSize += file.size;
+        }
+        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+
+        // Update status
+        statusElement.style.display = 'block';
+        statusElement.innerHTML = `<div style="color: #03dac6;">Uploading ${files.length} file(s) (${totalSizeMB} MB)...</div>`;
         submitButton.disabled = true;
 
         // Use the mobile-specific endpoint for mobile devices
