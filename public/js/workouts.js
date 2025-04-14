@@ -3255,6 +3255,12 @@ document.addEventListener('DOMContentLoaded', function() {
         comparisonImage2.alt = photo2 ? `Comparison Photo 2: ${new Date(photo2.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 2';
     }
 
+    // Set up toggle button for exercise history
+    const toggleHistoryBtn = document.getElementById('toggle-history-btn');
+    if (toggleHistoryBtn) {
+        toggleHistoryBtn.addEventListener('click', toggleExerciseHistory);
+    }
+
     initialize(); // Run initialization
 
     // --- NEW: Handler for Exercise Unit Change ---
@@ -3338,6 +3344,16 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     `;
 }
 
+// Toggle Exercise History Section
+function toggleExerciseHistory() {
+    const historySection = document.getElementById('exercise-history-section');
+    const toggleButton = document.getElementById('toggle-history-btn');
 
-
-
+    if (historySection.style.display === 'none') {
+        historySection.style.display = 'block';
+        toggleButton.textContent = 'Hide Exercise History';
+    } else {
+        historySection.style.display = 'none';
+        toggleButton.textContent = 'Show Exercise History';
+    }
+}

@@ -135,6 +135,15 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Page Routes
+app.get('/exercise-history', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'exercise-history.html'));
+});
+
+app.get('/workouts', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'workouts.html'));
+});
+
 // Fallback Routes
 app.get('/pages/goals.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'goals.html'));
