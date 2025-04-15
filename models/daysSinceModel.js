@@ -26,7 +26,7 @@ async function createEvent(eventName, startDate) {
     }
 
     // Handle the date string from the client (format: YYYY-MM-DDTHH:MM)
-    // Create a date object that preserves the local time
+    // Create a date object that preserves the exact time as entered
     let parsedDate;
     if (startDate.includes('T')) {
         // This is a datetime-local value (YYYY-MM-DDTHH:MM)
@@ -34,14 +34,20 @@ async function createEvent(eventName, startDate) {
         const [year, month, day] = datePart.split('-').map(Number);
         const [hours, minutes] = timePart.split(':').map(Number);
 
-        // Create date with local time components (no timezone conversion)
-        parsedDate = new Date(year, month - 1, day, hours, minutes);
+        // Create a date string in ISO format but force it to be interpreted as UTC
+        // This prevents any timezone conversion
+        const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00.000Z`;
+
+        // Store the date as a string in the format 'YYYY-MM-DD HH:MM:00'
+        // This will be interpreted by PostgreSQL as a timestamp without timezone
+        parsedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
     } else {
-        // Fallback for other formats
+        // Fallback for other formats - should not normally be used
         parsedDate = new Date(startDate);
     }
 
-    if (isNaN(parsedDate.getTime())) {
+    // Only validate date format if parsedDate is a Date object
+    if (parsedDate instanceof Date && isNaN(parsedDate.getTime())) {
         throw new Error('Invalid date format');
     }
 
@@ -67,7 +73,7 @@ async function updateEvent(id, eventName, startDate) {
     }
 
     // Handle the date string from the client (format: YYYY-MM-DDTHH:MM)
-    // Create a date object that preserves the local time
+    // Create a date object that preserves the exact time as entered
     let parsedDate;
     if (startDate.includes('T')) {
         // This is a datetime-local value (YYYY-MM-DDTHH:MM)
@@ -75,14 +81,20 @@ async function updateEvent(id, eventName, startDate) {
         const [year, month, day] = datePart.split('-').map(Number);
         const [hours, minutes] = timePart.split(':').map(Number);
 
-        // Create date with local time components (no timezone conversion)
-        parsedDate = new Date(year, month - 1, day, hours, minutes);
+        // Create a date string in ISO format but force it to be interpreted as UTC
+        // This prevents any timezone conversion
+        const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00.000Z`;
+
+        // Store the date as a string in the format 'YYYY-MM-DD HH:MM:00'
+        // This will be interpreted by PostgreSQL as a timestamp without timezone
+        parsedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
     } else {
-        // Fallback for other formats
+        // Fallback for other formats - should not normally be used
         parsedDate = new Date(startDate);
     }
 
-    if (isNaN(parsedDate.getTime())) {
+    // Only validate date format if parsedDate is a Date object
+    if (parsedDate instanceof Date && isNaN(parsedDate.getTime())) {
         throw new Error('Invalid date format');
     }
 

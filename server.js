@@ -24,6 +24,7 @@ const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
 const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
+const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -92,6 +93,7 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/weight', weightRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {

@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("No existing chart instance to destroy.");
             }
 
-            // Create new chart with two datasets
+            // Create new chart with only the volume dataset (1RM removed as requested)
             exerciseHistoryChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -597,19 +597,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             tension: 0.1,
                             fill: true,
                             yAxisID: 'y'
-                        },
-                        {
-                            label: oneRepMaxLabel,
-                            data: oneRepMaxData,
-                            borderColor: '#03dac6', // Teal line
-                            backgroundColor: 'rgba(3, 218, 198, 0.1)', // Light teal fill
-                            borderWidth: 2,
-                            pointBackgroundColor: '#03dac6',
-                            pointRadius: 4,
-                            tension: 0.1,
-                            fill: false,
-                            yAxisID: 'y1'
                         }
+                        // 1RM dataset removed as requested by user
                     ]
                 },
                 options: {
@@ -629,27 +618,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             },
                             title: {
                                 display: true,
-                                text: volumeLabel,
+                                text: `${volumeLabel} (${processedData[0]?.unit || 'kg'})`,
                                 color: '#4CAF50'
                             }
                         },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            beginAtZero: true,
-                            grid: {
-                                drawOnChartArea: false
-                            },
-                            ticks: {
-                                color: '#ddd'
-                            },
-                            title: {
-                                display: true,
-                                text: oneRepMaxLabel,
-                                color: '#03dac6'
-                            }
-                        },
+                        // y1 axis removed as we no longer show 1RM line
                         x: {
                             grid: {
                                 color: 'rgba(255, 255, 255, 0.1)'
@@ -682,21 +655,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                         label += ': ';
                                     }
 
-                                    // Different display for volume vs 1RM
+                                    // Display for volume dataset
                                     if (context.parsed.y !== null) {
-                                        if (context.datasetIndex === 0) { // Volume dataset
-                                            // Show best set as weight×reps
-                                            const dataPoint = processedData[context.dataIndex];
-                                            if (dataPoint && dataPoint.bestSet) {
-                                                const weight = dataPoint.bestSet.weight;
-                                                const reps = dataPoint.bestSet.reps;
-                                                const unit = dataPoint.unit;
-                                                label = `Best set: ${weight}${unit} × ${reps}`;
-                                            } else {
-                                                label += context.parsed.y;
-                                            }
-                                        } else { // 1RM dataset
-                                            const dataPoint = processedData[context.dataIndex];
+                                        // Show best set as weight×reps
+                                        const dataPoint = processedData[context.dataIndex];
+                                        if (dataPoint && dataPoint.bestSet) {
+                                            const weight = dataPoint.bestSet.weight;
+                                            const reps = dataPoint.bestSet.reps;
+                                            const unit = dataPoint.unit;
+                                            label = `Best set: ${weight}${unit} × ${reps}`;
+                                        } else {
                                             const unit = dataPoint ? dataPoint.unit : '';
                                             label += `${context.parsed.y} ${unit}`;
                                         }

@@ -20,6 +20,30 @@ function isToday(dateString) {
     }
 }
 
+// Helper function to check if a task is due today - defined in global scope
+function isTaskDueToday(task) {
+    if (!task.due_date) return false;
+    try {
+        // Create a date object from the input
+        const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+            task.due_date.split('T')[0] : task.due_date;
+        const [year, month, day] = datePart.split('-').map(Number);
+        const dueDate = new Date(year, month - 1, day);
+
+        // Get today's date
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Compare year, month, and day
+        return dueDate.getFullYear() === today.getFullYear() &&
+               dueDate.getMonth() === today.getMonth() &&
+               dueDate.getDate() === today.getDate();
+    } catch (e) {
+        console.error('Error checking if task is due today:', task.due_date, e);
+        return false;
+    }
+}
+
 // Helper function to calculate next occurrence date for recurring tasks
 function calculateNextOccurrence(task) {
     if (!task.recurrence_type || task.recurrence_type === 'none' || !task.due_date) {
@@ -452,43 +476,14 @@ document.addEventListener('DOMContentLoaded', () => {
         weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
         const monthStart = new Date(today.getFullYear(), today.getMonth(), 1); // Start of month
 
-        // Helper function to check if a date is today
-        function isDateToday(dateString) {
-            if (!dateString) return false;
-            try {
-                // Create a date object from the input
-                const inputDate = new Date(dateString);
-
-                // Check if the date is valid
-                if (isNaN(inputDate.getTime())) {
-                    console.warn('Invalid date format:', dateString);
-                    return false;
-                }
-
-                // Convert to YYYY-MM-DD format to normalize timezone issues
-                const inputDateStr = inputDate.toISOString().split('T')[0];
-                const todayStr = today.toISOString().split('T')[0];
-
-                // Log for debugging
-                console.log(`Comparing dates for today check: input=${inputDateStr}, today=${todayStr}`);
-
-                // Compare date strings directly
-                return inputDateStr === todayStr;
-            } catch (e) {
-                console.error('Error checking if date is today:', dateString, e);
-                return false;
-            }
-        }
+        // Helper function to check if a date is today - removed as we now use the global isToday function
 
         // Helper function to check if a task is unassigned (no due date)
         function isTaskUnassigned(task) {
             return !task.due_date || (typeof task.due_date === 'string' && task.due_date.trim() === '');
         }
 
-        // Helper function to check if a task is due today
-        function isTaskDueToday(task) {
-            return isDateToday(task.due_date);
-        }
+        // Helper function to check if a task is due today - now defined in global scope
 
         // Helper function to check if a task is due tomorrow
         function isTaskDueTomorrow(task) {
@@ -673,6 +668,72 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Sort tasks: overdue first, then due today, then unassigned, then others
+        tasks.sort((a, b) => {
+            // Helper function to check if a task is overdue
+            const isOverdue = (task) => {
+                if (!task.due_date) return false;
+                try {
+                    const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+                        task.due_date.split('T')[0] : task.due_date;
+                    const [year, month, day] = datePart.split('-').map(Number);
+                    const dueDate = new Date(year, month - 1, day);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return dueDate < today;
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            // Helper function to check if a task is due today
+            const isDueToday = (task) => {
+                if (!task.due_date) return false;
+                try {
+                    const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+                        task.due_date.split('T')[0] : task.due_date;
+                    const [year, month, day] = datePart.split('-').map(Number);
+                    const dueDate = new Date(year, month - 1, day);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return dueDate.getFullYear() === today.getFullYear() &&
+                           dueDate.getMonth() === today.getMonth() &&
+                           dueDate.getDate() === today.getDate();
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            // Helper function to check if a task is unassigned
+            const isUnassigned = (task) => {
+                return !task.assigned_date && !task.due_date;
+            };
+
+            // Determine priority for each task
+            const aOverdue = isOverdue(a);
+            const bOverdue = isOverdue(b);
+            const aDueToday = isDueToday(a);
+            const bDueToday = isDueToday(b);
+            const aUnassigned = isUnassigned(a);
+            const bUnassigned = isUnassigned(b);
+
+            // Sort by priority: overdue > due today > unassigned > others
+            if (aOverdue && !bOverdue) return -1;
+            if (!aOverdue && bOverdue) return 1;
+            if (aDueToday && !bDueToday) return -1;
+            if (!aDueToday && bDueToday) return 1;
+            if (aUnassigned && !bUnassigned) return -1;
+            if (!aUnassigned && bUnassigned) return 1;
+
+            // If same priority, sort by due date (if available)
+            if (a.due_date && b.due_date) {
+                return new Date(a.due_date) - new Date(b.due_date);
+            }
+
+            // Default to sorting by ID (most recent first)
+            return b.id - a.id;
+        });
+
         tasks.forEach(task => {
             // Check if this is a completed recurring task with an overdue next occurrence
             let isCompletedRecurringWithOverdueNext = false;
@@ -821,6 +882,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create a container for the title and recurring icon
         const titleContainer = document.createElement('div');
         titleContainer.className = 'task-title-container';
+
+        // No visual priority indicators as requested
 
         // Create the title span
         const titleSpan = document.createElement('span');

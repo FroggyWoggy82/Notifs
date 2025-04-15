@@ -1,14 +1,19 @@
 // Days Since functionality
 // Helper functions
 function calculateTimeSince(startDate) {
+    // Create date objects for start and now
     const start = new Date(startDate);
     const now = new Date();
+
+    // Calculate the time difference in milliseconds
     const diffMs = now - start;
 
+    // Calculate days, hours, and minutes
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
+    // Format the output as days:hours:minutes
     return `${days}:${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
 
@@ -19,8 +24,8 @@ function formatDate(dateString) {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/New_York' // Use local timezone
+        minute: '2-digit'
+        // No timeZone specified - will use the browser's local timezone
     });
 }
 
@@ -170,12 +175,17 @@ window.editEvent = function(id, currentName, currentDate) {
 
     // Format the date for the datetime-local input
     // Create a date object and format it to be compatible with datetime-local input
+    // We need to handle the date carefully to preserve the exact time that was set
     const date = new Date(currentDate);
+
+    // Get date components in local time zone
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    // Format for datetime-local input (YYYY-MM-DDTHH:MM)
     const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
 
     // Create and show edit form

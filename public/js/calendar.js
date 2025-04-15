@@ -89,12 +89,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fetch all tasks (or potentially filter by date range later)
-    async function fetchTasks() {
+    // Make this function globally accessible for the calendar-refresh-fix.js script
+    window.fetchTasks = async function(forceReload = false) {
         updateStatus("Loading tasks...", false);
         try {
             // Fetch tasks that have either an assigned_date or due_date
             // The API might need refinement to fetch only relevant tasks for a given month view
-            const response = await fetch('/api/tasks?relevantDates=true'); // Add a query param if needed
+            const url = forceReload ?
+                `/api/tasks?relevantDates=true&_cache=${new Date().getTime()}` :
+                '/api/tasks?relevantDates=true';
+
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -106,6 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Found ${recurringTasks.length} recurring tasks:`, recurringTasks);
 
             updateStatus("", false); // Clear loading message
+
+            // Re-render the calendar with the new data
+            renderCalendar();
+
             return allTasks;
         } catch (error) {
             console.error('Error loading tasks:', error);
@@ -1234,6 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Load ---
     async function initializeCalendar() {
         await fetchTasks(); // Load tasks first
+        await fetchHabits(); // Load habits
         await renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Then render calendar
 
         // Set up calendar filter
@@ -1244,6 +1254,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Re-render with the new filter
             });
         }
+
+        // Add event listeners for task updates
+        document.addEventListener('taskCompleted', function(event) {
+            console.log('Task completed event detected in calendar.js, refreshing tasks...');
+            fetchTasks(true); // Force reload
+        });
+
+        document.addEventListener('taskUpdated', function(event) {
+            console.log('Task updated event detected in calendar.js, refreshing tasks...');
+            fetchTasks(true); // Force reload
+        });
     }
 
     initializeCalendar();

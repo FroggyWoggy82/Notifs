@@ -328,6 +328,8 @@ textarea {
     background-color: #ffebee; /* Light red background */
 }
 
+/* Task Priority Indicators removed as requested */
+
 .task-item.complete .task-content .task-title,
 .task-item.complete .task-content .task-description {
     text-decoration: line-through;

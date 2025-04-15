@@ -196,6 +196,21 @@
                     <textarea id="template-description" rows="3"></textarea>
                 </div>
 
+                <div class="default-settings-container">
+                    <h3>Default Settings</h3>
+                    <p class="settings-description">These settings will be applied to all exercises added to this template.</p>
+                    <div class="default-settings-group">
+                        <div class="default-setting">
+                            <label for="default-sets">Default Sets:</label>
+                            <input type="number" id="default-sets" min="1" value="3">
+                        </div>
+                        <div class="default-setting">
+                            <label for="default-reps">Default Reps:</label>
+                            <input type="text" id="default-reps" placeholder="e.g., 8-12">
+                        </div>
+                    </div>
+                </div>
+
                 <h3>Exercises</h3>
                 <div id="template-exercise-list" class="exercise-list template-editor-list">
                     <p>Add exercises using the button below.</p>
@@ -300,7 +315,10 @@
     <script src="../js/status-bar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/client-compression.js"></script>
+    <script src="../js/direct-input-save.js"></script>
     <script src="../js/workouts.js"></script>
+    <script src="../js/workout-persistence.js"></script>
+    <script src="../js/workout-debug.js"></script>
 
     <!-- History Edit Modal (Renamed) -->
     <div id="history-edit-modal" class="modal">

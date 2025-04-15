@@ -49,12 +49,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentHistoryExerciseId = null; // Store the currently selected exercise ID
     let currentHistoryExerciseName = null; // Store the name
     let currentPage = 'landing'; // <<< ADDED: Declare currentPage in top-level scope
+    let lastInputSaveTime = 0; // Track when inputs were last saved
 
     // --- Local Storage Keys ---
     const STORAGE_KEYS = {
         CURRENT_WORKOUT: 'workout_tracker_current_workout',
         WORKOUT_START_TIME: 'workout_tracker_start_time',
-        CURRENT_PAGE: 'workout_tracker_current_page'
+        CURRENT_PAGE: 'workout_tracker_current_page',
+        INPUT_VALUES: 'workout_tracker_input_values' // New key for storing input values
     };
 
     // --- NEW: Progress Photo Slider State ---
@@ -97,6 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const templateEditorTitle = document.getElementById('template-editor-title');
     const templateNameInput = document.getElementById('template-name');
     const templateDescriptionInput = document.getElementById('template-description');
+    const defaultSetsInput = document.getElementById('default-sets');
+    const defaultRepsInput = document.getElementById('default-reps');
     const templateExerciseListEl = document.getElementById('template-exercise-list');
     const templateAddExerciseBtn = document.getElementById('template-add-exercise-btn');
     const templateCancelBtn = document.getElementById('template-cancel-btn');
@@ -197,8 +201,13 @@ document.addEventListener('DOMContentLoaded', function() {
             let previousLogTextHtml = '- kg x -'; // Display text for previous log span
             const currentUnit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
 
+            // For template exercises, use the default reps value if available
+            if (isTemplate && exerciseData.reps) {
+                repsValue = exerciseData.reps;
+                console.log(`[generateSetRowsHtml] Template Set ${i}: Using default reps=${repsValue}`);
+            }
             // Check if previous log data exists for THIS specific set index (i)
-            if (!isTemplate && weightsArray.length > i && repsArray.length > i) {
+            else if (!isTemplate && weightsArray.length > i && repsArray.length > i) {
                 const prevWeight = weightsArray[i];
                 const prevReps = repsArray[i];
 
@@ -320,17 +329,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Store the checked state of exercises
+    // Store the checked state of exercises and their order
     const checkedExercises = new Set();
+    // Track the order in which exercises were checked
+    const checkedExercisesOrder = [];
 
     function renderAvailableExercises(searchTerm = '', category = 'all') {
         // Save checked state before clearing the list
         const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
         currentCheckboxes.forEach(checkbox => {
+            const exerciseId = parseInt(checkbox.value, 10);
             if (checkbox.checked) {
-                checkedExercises.add(parseInt(checkbox.value, 10));
+                checkedExercises.add(exerciseId);
+                // Add to order array if not already there
+                if (!checkedExercisesOrder.includes(exerciseId)) {
+                    checkedExercisesOrder.push(exerciseId);
+                }
             } else {
-                checkedExercises.delete(parseInt(checkbox.value, 10));
+                checkedExercises.delete(exerciseId);
+                // Remove from order array
+                const index = checkedExercisesOrder.indexOf(exerciseId);
+                if (index > -1) {
+                    checkedExercisesOrder.splice(index, 1);
+                }
             }
         });
 
@@ -370,6 +391,27 @@ document.addEventListener('DOMContentLoaded', function() {
             if (checkedExercises.has(ex.exercise_id)) {
                 checkbox.checked = true;
             }
+
+            // Add change event listener to track check order
+            checkbox.addEventListener('change', (e) => {
+                const exerciseId = parseInt(e.target.value, 10);
+                if (e.target.checked) {
+                    // Add to checked set
+                    checkedExercises.add(exerciseId);
+                    // Add to order array if not already there
+                    if (!checkedExercisesOrder.includes(exerciseId)) {
+                        checkedExercisesOrder.push(exerciseId);
+                    }
+                } else {
+                    // Remove from checked set
+                    checkedExercises.delete(exerciseId);
+                    // Remove from order array
+                    const index = checkedExercisesOrder.indexOf(exerciseId);
+                    if (index > -1) {
+                        checkedExercisesOrder.splice(index, 1);
+                    }
+                }
+            });
 
             // Create span for the text content
             const textSpan = document.createElement('span');
@@ -425,7 +467,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentExerciseListEl.appendChild(item);
                 }
             });
-             console.log("[renderCurrentWorkout] Finished appending all rendered items.");
+            console.log("[renderCurrentWorkout] Finished appending all rendered items.");
+
+            // Restore input values after rendering if we're on the active page
+            if (currentPage === 'active') {
+                setTimeout(() => {
+                    // Restore using our persistence module if available
+                    if (typeof restoreWorkoutData === 'function') {
+                        restoreWorkoutData();
+                    } else {
+                        // Fallback to regular restore
+                        restoreInputValues();
+                    }
+                }, 300);
+            }
         }).catch(error => {
             console.error("Error rendering one or more workout items:", error);
             currentExerciseListEl.innerHTML = '<p style="color: red;">Error displaying workout. Please try refreshing.</p>';
@@ -528,10 +583,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Save checked state before closing the modal
         const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
         currentCheckboxes.forEach(checkbox => {
+            const exerciseId = parseInt(checkbox.value, 10);
             if (checkbox.checked) {
-                checkedExercises.add(parseInt(checkbox.value, 10));
+                checkedExercises.add(exerciseId);
+                // Add to order array if not already there
+                if (!checkedExercisesOrder.includes(exerciseId)) {
+                    checkedExercisesOrder.push(exerciseId);
+                }
             } else {
-                checkedExercises.delete(parseInt(checkbox.value, 10));
+                checkedExercises.delete(exerciseId);
+                // Remove from order array
+                const index = checkedExercisesOrder.indexOf(exerciseId);
+                if (index > -1) {
+                    checkedExercisesOrder.splice(index, 1);
+                }
             }
         });
 
@@ -558,6 +623,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPage);
                 }
 
+                // Save input values
+                saveInputValues();
+
                 return true;
             } else {
                 console.log('No active workout to save');
@@ -568,6 +636,166 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
     }
+
+    // Save all input values from the active workout
+    function saveInputValues() {
+        if (currentPage !== 'active') {
+            console.log('Not saving input values - not on active page');
+            return;
+        }
+
+        try {
+            console.log('Saving input values to localStorage');
+            const inputValues = {};
+
+            // Wait for DOM to be ready
+            if (!currentExerciseListEl) {
+                console.error('Current exercise list element not found');
+                return false;
+            }
+
+            // Get all exercise items in the current workout
+            const exerciseItems = currentExerciseListEl.querySelectorAll('.exercise-item');
+            console.log(`Found ${exerciseItems.length} exercise items to save`);
+
+            // If no exercise items found, try again with a direct approach
+            if (exerciseItems.length === 0) {
+                console.log('No exercise items found in DOM, using workout data directly');
+
+                // Get the exercise data from the current workout
+                const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+                if (!exercises || exercises.length === 0) {
+                    console.error('No exercises found in current workout data');
+                    return false;
+                }
+
+                // Save input values directly from the workout data
+                exercises.forEach((exerciseData, workoutIndex) => {
+                    const exerciseId = exerciseData.exercise_id;
+                    console.log(`Saving data for exercise ID ${exerciseId} (${exerciseData.name}) from workout data`);
+
+                    // Create a basic structure for this exercise
+                    inputValues[exerciseId] = {
+                        sets: [],
+                        name: exerciseData.name,
+                        workoutIndex: workoutIndex
+                    };
+
+                    // Try to get existing values from the DOM if available
+                    const existingValues = {};
+                    try {
+                        // Check if we have any existing input values in the DOM
+                        const exerciseItems = document.querySelectorAll('.exercise-item');
+                        exerciseItems.forEach(item => {
+                            const itemWorkoutIndex = parseInt(item.dataset.workoutIndex, 10);
+                            if (itemWorkoutIndex === workoutIndex) {
+                                // Found the exercise item, get its input values
+                                const setRows = item.querySelectorAll('.set-row');
+                                setRows.forEach((row, setIndex) => {
+                                    const weightInput = row.querySelector('.weight-input');
+                                    const repsInput = row.querySelector('.reps-input');
+                                    const completeToggle = row.querySelector('.set-complete-toggle');
+
+                                    existingValues[setIndex] = {
+                                        weight: weightInput ? weightInput.value : '',
+                                        reps: repsInput ? repsInput.value : '',
+                                        completed: completeToggle ? completeToggle.classList.contains('completed') : false
+                                    };
+                                });
+                            }
+                        });
+                    } catch (e) {
+                        console.error('Error getting existing values:', e);
+                    }
+
+                    // Add sets based on the exercise data
+                    const setCount = exerciseData.sets || 3; // Default to 3 sets if not specified
+                    for (let i = 0; i < setCount; i++) {
+                        // Use existing values if available, otherwise use empty values
+                        inputValues[exerciseId].sets.push({
+                            weight: existingValues[i] ? existingValues[i].weight : '',
+                            reps: existingValues[i] ? existingValues[i].reps : '',
+                            completed: existingValues[i] ? existingValues[i].completed : false
+                        });
+                    }
+                });
+            } else {
+                // Process each exercise item in the DOM
+                exerciseItems.forEach((item) => {
+                    // Get exercise ID from the workout index and current workout data
+                    const workoutIndex = parseInt(item.dataset.workoutIndex, 10);
+                    console.log(`Processing exercise at index ${workoutIndex}`);
+
+                    if (isNaN(workoutIndex)) {
+                        console.error('Invalid workout index:', item.dataset.workoutIndex);
+                        return;
+                    }
+
+                    // Get the exercise data from the current workout
+                    const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+                    if (!exercises || !exercises[workoutIndex]) {
+                        console.error('Exercise not found at index:', workoutIndex);
+                        return;
+                    }
+
+                    const exerciseData = exercises[workoutIndex];
+                    const exerciseId = exerciseData.exercise_id;
+
+                    console.log(`Saving data for exercise ID ${exerciseId} (${exerciseData.name})`);
+
+                    inputValues[exerciseId] = {
+                        sets: [],
+                        name: exerciseData.name,
+                        workoutIndex: workoutIndex
+                    };
+
+                    // Get all set rows for this exercise
+                    const setRows = item.querySelectorAll('.set-row');
+                    console.log(`Found ${setRows.length} set rows for exercise ${exerciseId}`);
+
+                    setRows.forEach((row, setIndex) => {
+                        const weightInput = row.querySelector('.weight-input');
+                        const repsInput = row.querySelector('.reps-input');
+                        const completeToggle = row.querySelector('.set-complete-toggle');
+
+                        const weightValue = weightInput ? weightInput.value : '';
+                        const repsValue = repsInput ? repsInput.value : '';
+                        const isCompleted = completeToggle ? completeToggle.classList.contains('completed') : false;
+
+                        console.log(`Set ${setIndex + 1}: weight=${weightValue}, reps=${repsValue}, completed=${isCompleted}`);
+
+                        inputValues[exerciseId].sets[setIndex] = {
+                            weight: weightValue,
+                            reps: repsValue,
+                            completed: isCompleted
+                        };
+                    });
+
+                    // Get notes if they exist
+                    const notesTextarea = item.querySelector('.exercise-notes-textarea');
+                    if (notesTextarea) {
+                        inputValues[exerciseId].notes = notesTextarea.value;
+                        console.log(`Notes saved for exercise ${exerciseId}: ${notesTextarea.value.substring(0, 20)}${notesTextarea.value.length > 20 ? '...' : ''}`);
+                    }
+                });
+            }
+
+            // Save to localStorage
+            const inputValuesJson = JSON.stringify(inputValues);
+            localStorage.setItem(STORAGE_KEYS.INPUT_VALUES, inputValuesJson);
+            lastInputSaveTime = Date.now();
+            console.log('Input values saved at:', new Date(lastInputSaveTime).toLocaleTimeString());
+            console.log('Saved data size:', Math.round(inputValuesJson.length / 1024), 'KB');
+            console.log('Saved input values:', inputValues);
+
+            return true;
+        } catch (error) {
+            console.error('Error saving input values:', error);
+            return false;
+        }
+    }
+
+
 
     // Load workout state from localStorage
     function loadWorkoutState() {
@@ -598,12 +826,210 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Restore input values from localStorage
+    function restoreInputValues() {
+        try {
+            const savedInputValues = localStorage.getItem(STORAGE_KEYS.INPUT_VALUES);
+            if (!savedInputValues) {
+                console.log('No saved input values found');
+                return false;
+            }
+
+            console.log('Restoring input values from localStorage');
+            const inputValues = JSON.parse(savedInputValues);
+            console.log('Parsed saved input values:', Object.keys(inputValues).length, 'exercises');
+            console.log('Saved input values data:', inputValues);
+
+            // Wait for DOM to be ready
+            if (!currentExerciseListEl) {
+                console.error('Current exercise list element not found');
+                return false;
+            }
+
+            // Get all exercise items in the current workout
+            const exerciseItems = currentExerciseListEl.querySelectorAll('.exercise-item');
+            console.log(`Found ${exerciseItems.length} exercise items in the DOM`);
+
+            // If no exercise items found in the DOM, wait and try again
+            if (exerciseItems.length === 0) {
+                console.log('No exercise items found in DOM, will retry in 500ms');
+                setTimeout(() => restoreInputValues(), 500);
+                return false;
+            }
+
+            // Map of exercise IDs to their workout indices
+            const exerciseMap = {};
+
+            // First, build a map of exercise IDs from the current workout
+            const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+            if (exercises) {
+                exercises.forEach((exercise, index) => {
+                    if (exercise && exercise.exercise_id) {
+                        exerciseMap[exercise.exercise_id] = index;
+                        console.log(`Mapped exercise ID ${exercise.exercise_id} (${exercise.name}) to index ${index}`);
+                    }
+                });
+            }
+
+            // Now restore values using the workout index
+            exerciseItems.forEach((item) => {
+                const workoutIndex = parseInt(item.dataset.workoutIndex, 10);
+                if (isNaN(workoutIndex)) {
+                    console.error('Invalid workout index:', item.dataset.workoutIndex);
+                    return;
+                }
+
+                // Get the exercise data from the current workout
+                if (!exercises || !exercises[workoutIndex]) {
+                    console.error('Exercise not found at index:', workoutIndex);
+                    return;
+                }
+
+                const exerciseData = exercises[workoutIndex];
+                const exerciseId = exerciseData.exercise_id;
+
+                console.log(`Checking for saved data for exercise ID ${exerciseId} (${exerciseData.name})`);
+
+                if (!inputValues[exerciseId]) {
+                    console.log(`No saved data found for exercise ID ${exerciseId}`);
+                    return;
+                }
+
+                console.log(`Restoring data for exercise ID ${exerciseId} (${exerciseData.name})`);
+
+                // Get all set rows for this exercise
+                const setRows = item.querySelectorAll('.set-row');
+                console.log(`Found ${setRows.length} set rows for exercise ${exerciseId}`);
+
+                // Check if we have any non-empty values to restore
+                let hasNonEmptyValues = false;
+                if (inputValues[exerciseId].sets) {
+                    for (const set of inputValues[exerciseId].sets) {
+                        if (set.weight || set.reps || set.completed) {
+                            hasNonEmptyValues = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasNonEmptyValues) {
+                    console.log(`No non-empty values found for exercise ID ${exerciseId}`);
+
+                    // If there are no saved values, initialize them from the DOM
+                    setRows.forEach((row, setIndex) => {
+                        const weightInput = row.querySelector('.weight-input');
+                        const repsInput = row.querySelector('.reps-input');
+                        const completeToggle = row.querySelector('.set-complete-toggle');
+
+                        if (!inputValues[exerciseId].sets[setIndex]) {
+                            inputValues[exerciseId].sets[setIndex] = {
+                                weight: '',
+                                reps: '',
+                                completed: false
+                            };
+                        }
+
+                        if (weightInput && weightInput.value) {
+                            inputValues[exerciseId].sets[setIndex].weight = weightInput.value;
+                            hasNonEmptyValues = true;
+                        }
+
+                        if (repsInput && repsInput.value) {
+                            inputValues[exerciseId].sets[setIndex].reps = repsInput.value;
+                            hasNonEmptyValues = true;
+                        }
+
+                        if (completeToggle && completeToggle.classList.contains('completed')) {
+                            inputValues[exerciseId].sets[setIndex].completed = true;
+                            hasNonEmptyValues = true;
+                        }
+                    });
+
+                    // If we found any values in the DOM, save them to localStorage
+                    if (hasNonEmptyValues) {
+                        localStorage.setItem(STORAGE_KEYS.INPUT_VALUES, JSON.stringify(inputValues));
+                        console.log('Initialized input values from DOM:', inputValues);
+                    }
+                }
+
+                setRows.forEach((row, setIndex) => {
+                    if (!inputValues[exerciseId].sets[setIndex]) {
+                        console.log(`No saved data for set ${setIndex + 1}`);
+                        return;
+                    }
+
+                    const savedSet = inputValues[exerciseId].sets[setIndex];
+                    const weightInput = row.querySelector('.weight-input');
+                    const repsInput = row.querySelector('.reps-input');
+                    const completeToggle = row.querySelector('.set-complete-toggle');
+
+                    if (weightInput && savedSet.weight !== undefined) {
+                        weightInput.value = savedSet.weight;
+                        console.log(`Restored weight for set ${setIndex + 1}: ${savedSet.weight}`);
+                    }
+
+                    if (repsInput && savedSet.reps !== undefined) {
+                        repsInput.value = savedSet.reps;
+                        console.log(`Restored reps for set ${setIndex + 1}: ${savedSet.reps}`);
+                    }
+
+                    if (completeToggle && savedSet.completed) {
+                        completeToggle.classList.add('completed');
+                        completeToggle.innerHTML = '&#10003;'; // Add checkmark
+
+                        // Also disable inputs if completed
+                        if (weightInput) {
+                            weightInput.disabled = true;
+                            weightInput.classList.add('completed');
+                        }
+                        if (repsInput) {
+                            repsInput.disabled = true;
+                            repsInput.classList.add('completed');
+                        }
+
+                        console.log(`Restored completed state for set ${setIndex + 1}`);
+                    }
+
+                    // Log the actual values that were restored
+                    console.log(`Set ${setIndex + 1} restored values: weight=${weightInput?.value || ''}, reps=${repsInput?.value || ''}, completed=${completeToggle?.classList.contains('completed') || false}`);
+
+                    // Force a DOM update by triggering a change event
+                    if (weightInput) {
+                        const event = new Event('change', { bubbles: true });
+                        weightInput.dispatchEvent(event);
+                    }
+
+                    if (repsInput) {
+                        const event = new Event('change', { bubbles: true });
+                        repsInput.dispatchEvent(event);
+                    }
+                });
+
+                // Restore notes if they exist
+                if (inputValues[exerciseId].notes) {
+                    const notesTextarea = item.querySelector('.exercise-notes-textarea');
+                    if (notesTextarea) {
+                        notesTextarea.value = inputValues[exerciseId].notes;
+                        console.log(`Restored notes for exercise ${exerciseId}`);
+                    }
+                }
+            });
+
+            console.log('Input values restored successfully');
+            return true;
+        } catch (error) {
+            console.error('Error restoring input values:', error);
+            return false;
+        }
+    }
+
     // Clear saved workout state
     function clearWorkoutState() {
         try {
             localStorage.removeItem(STORAGE_KEYS.CURRENT_WORKOUT);
             localStorage.removeItem(STORAGE_KEYS.WORKOUT_START_TIME);
             localStorage.removeItem(STORAGE_KEYS.CURRENT_PAGE);
+            localStorage.removeItem(STORAGE_KEYS.INPUT_VALUES);
             console.log('Cleared saved workout state');
         } catch (error) {
             console.error('Error clearing workout state:', error);
@@ -625,12 +1051,27 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Applied active class to:', activeWorkoutPage);
             // Save workout state when switching to active page
             saveWorkoutState();
+
+            // Restore input values when switching to active page
+            setTimeout(() => {
+                // Restore using our persistence module if available
+                if (typeof restoreWorkoutData === 'function') {
+                    restoreWorkoutData();
+                } else {
+                    // Fallback to regular restore
+                    restoreInputValues();
+                }
+            }, 300);
         } else if (pageToShow === 'editor') {
             templateEditorPage.classList.add('active');
             console.log('Applied active class to:', templateEditorPage);
         }
         // Ensure FAB visibility matches active page
-        addExerciseFab.style.display = (pageToShow === 'active') ? 'block' : 'none';
+        if (pageToShow === 'active') {
+            addExerciseFab.style.display = 'flex'; // Use flex to properly center the + sign
+        } else {
+            addExerciseFab.style.display = 'none';
+        }
     }
 
     function startEmptyWorkout() {
@@ -648,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveWorkoutState();
     }
 
-    function startWorkoutFromTemplate(templateId) {
+    async function startWorkoutFromTemplate(templateId) {
         // Clear any existing saved workout
         clearWorkoutState();
 
@@ -662,13 +1103,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize currentWorkout as an object with name and exercises array
         currentWorkout = {
             name: template.name, // Store template name
-            exercises: template.exercises.map(ex => ({
-                ...ex,
-                lastLog: undefined, // Mark for fetching
-                // Initialize sets_completed based on template 'sets' count
-                sets_completed: Array(parseInt(ex.sets) || 1).fill(null).map(() => ({ weight: '', reps: '', unit: ex.weight_unit || 'kg', completed: false }))
-            }))
+            exercises: template.exercises.map(ex => {
+                // Get the number of sets from the template, default to 1 if not specified
+                const numSets = parseInt(ex.sets) || 1;
+                console.log(`Creating ${numSets} sets for exercise ${ex.name} from template`);
+
+                return {
+                    ...ex,
+                    lastLog: undefined, // Mark for fetching
+                    // Initialize sets_completed based on template 'sets' count
+                    sets_completed: Array(numSets).fill(null).map(() => ({
+                        weight: '',
+                        reps: '',
+                        unit: ex.weight_unit || 'kg',
+                        completed: false
+                    }))
+                };
+            })
         };
+
+        // Fetch and apply exercise unit preferences
+        await applyExerciseUnitPreferences(currentWorkout.exercises);
 
         console.log("Current workout initialized from template:", currentWorkout); // Log the object
 
@@ -681,14 +1136,79 @@ document.addEventListener('DOMContentLoaded', function() {
         switchPage('active');
         startTimer();
         // Show FAB
-        addExerciseFab.style.display = 'block';
+        addExerciseFab.style.display = 'flex';
 
         // Save the new workout state
         saveWorkoutState();
     }
 
+    // Fetch and apply exercise unit preferences
+    async function applyExerciseUnitPreferences(exercises) {
+        try {
+            // Create an array of promises for fetching preferences
+            const preferencePromises = exercises.map(async (exercise) => {
+                if (!exercise.exercise_id) return;
 
-    function addExerciseToWorkout(exerciseId, targetList) { // Added targetList parameter
+                try {
+                    // Use window.location.origin to ensure we're using the correct host and port
+                    const baseUrl = window.location.origin;
+                    const response = await fetch(`${baseUrl}/api/exercise-preferences/${exercise.exercise_id}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!response.ok) return;
+
+                    const preference = await response.json();
+                    if (preference && preference.weight_unit) {
+                        // Apply the preferred unit to the exercise data
+                        exercise.weight_unit = preference.weight_unit;
+
+                        // Also apply to any sets_completed units
+                        if (exercise.sets_completed && Array.isArray(exercise.sets_completed)) {
+                            exercise.sets_completed.forEach(set => {
+                                if (set) set.unit = preference.weight_unit;
+                            });
+                        }
+
+                        console.log(`Applied unit preference for exercise ${exercise.exercise_id}: ${preference.weight_unit}`);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching preference for exercise ${exercise.exercise_id}:`, error);
+                    // Continue without preference - will use default
+                }
+            });
+
+            // Wait for all preference fetches to complete
+            await Promise.all(preferencePromises);
+
+            // After rendering, update any unit dropdowns in the DOM
+            setTimeout(() => {
+                updateUnitDropdownsInDOM(exercises);
+            }, 100); // Small delay to ensure DOM is updated
+        } catch (error) {
+            console.error('Error applying exercise unit preferences:', error);
+            // Continue without preferences - will use defaults
+        }
+    }
+
+    // Helper function to update unit dropdowns in the DOM
+    function updateUnitDropdownsInDOM(exercises) {
+        exercises.forEach((exercise, index) => {
+            if (!exercise.exercise_id || !exercise.weight_unit) return;
+
+            // Find the dropdown for this exercise
+            const exerciseItems = document.querySelectorAll('.exercise-item');
+            if (exerciseItems.length <= index) return;
+
+            const unitSelect = exerciseItems[index].querySelector('.exercise-unit-select');
+            if (unitSelect && unitSelect.value !== exercise.weight_unit) {
+                console.log(`Updating DOM dropdown for exercise ${exercise.exercise_id} to ${exercise.weight_unit}`);
+                unitSelect.value = exercise.weight_unit;
+            }
+        });
+    }
+
+
+    async function addExerciseToWorkout(exerciseId, targetList) { // Added targetList parameter
         // Removed reading targetList from modal dataset here
         const exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
         if (!exercise) {
@@ -699,20 +1219,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`Adding exercise: ${exercise.name} to ${targetList} list`);
 
+        // Get default sets and reps from the template settings if adding to template
+        let defaultSets = 1;
+        let defaultReps = '';
+
+        if (targetList === 'editor' && defaultSetsInput && defaultRepsInput) {
+            defaultSets = parseInt(defaultSetsInput.value) || 1;
+            defaultReps = defaultRepsInput.value || '';
+            console.log(`Using default settings: ${defaultSets} sets, reps: ${defaultReps}`);
+        }
+
         const newExerciseData = {
             exercise_id: exercise.exercise_id,
             name: exercise.name,
             category: exercise.category,
-            sets: 1, // Default sets changed to 1
-            reps: '', // Default reps
+            sets: defaultSets, // Use default sets from template settings
+            reps: defaultReps, // Use default reps from template settings
             weight: null,
-            weight_unit: 'kg',
+            weight_unit: 'kg', // Default unit, will be updated from preferences if available
             order_position: (targetList === 'active' ? currentWorkout.length : currentTemplateExercises.length),
             notes: '',
             // Only add completedSets for active workouts, not templates
-            ...(targetList === 'active' && { completedSets: Array(1).fill(false) }), // Default completedSets for 1 set
+            ...(targetList === 'active' && { completedSets: Array(defaultSets).fill(false) }), // Default completedSets based on default sets
             lastLog: undefined // Mark lastLog as not yet fetched
         };
+
+        // Fetch and apply unit preference for this exercise
+        try {
+            const baseUrl = window.location.origin;
+            const response = await fetch(`${baseUrl}/api/exercise-preferences/${exerciseId}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (response.ok) {
+                const preference = await response.json();
+                if (preference && preference.weight_unit) {
+                    newExerciseData.weight_unit = preference.weight_unit;
+                    console.log(`Applied unit preference for new exercise: ${preference.weight_unit}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching exercise unit preference:', error);
+            // Continue with default unit
+        }
 
         if (targetList === 'active') {
             currentWorkout.push(newExerciseData);
@@ -721,8 +1269,6 @@ document.addEventListener('DOMContentLoaded', function() {
             currentTemplateExercises.push(newExerciseData);
             renderTemplateExerciseList(); // Update the template editor list UI
         }
-
-        closeExerciseModal(); // Close modal after adding
     }
 
     function handleDeleteExercise(event) {
@@ -903,12 +1449,30 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("[handleSetToggle] Cleared innerHTML."); // <<< Log 11b: Log checkmark clear
         }
 
-        // Save workout state after toggling a set
+        // Save workout state and input values after toggling a set
         saveWorkoutState();
+
+        // Directly save the completed state to localStorage using our direct save function
+        saveSetCompletionDirectly(toggleButton);
+
+        // Also call the regular save function as a backup
+        saveInputValues();
     }
 
     async function handleCompleteWorkout() {
         console.log('Completing workout...');
+
+        // Save input values before completing the workout
+        console.log('Saving input values before completing workout');
+
+        // Save using our persistence module if available
+        if (typeof saveWorkoutData === 'function') {
+            saveWorkoutData();
+        } else {
+            // Fallback to regular save
+            saveInputValues();
+        }
+
         stopTimer(); // Stop timer first
 
         const loggedExercises = [];
@@ -1144,16 +1708,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label for="exercise-notes-${index}">Notes:</label>
                     <textarea id="exercise-notes-${index}" class="exercise-notes" rows="2">${escapeHtml(exercise.notes || '')}</textarea>
                 </div>
+                <!-- Add default settings input fields -->
+                <div class="sets-input-group">
+                    <div class="input-field">
+                        <label for="exercise-sets-${index}">Number of sets:</label>
+                        <input type="number" id="exercise-sets-${index}" class="exercise-sets-input" min="1" value="${exercise.sets || 1}">
+                    </div>
+                    <div class="input-field">
+                        <label for="exercise-reps-${index}">Default reps:</label>
+                        <input type="text" id="exercise-reps-${index}" class="exercise-reps-input" placeholder="e.g., 8-12" value="${exercise.reps || ''}">
+                    </div>
+                </div>
                 <div class="sets-container">
                     ${setRowsHtml}
                 </div>
-                <!-- Removed Add/Remove Set buttons from template editor items -->
-                <!--
-                <div class="set-actions-container">
-                    <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
-                    <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
-                </div>
-                -->
             `;
 
             templateExerciseListEl.appendChild(exerciseItem);
@@ -1224,6 +1792,38 @@ document.addEventListener('DOMContentLoaded', function() {
             templateNameInput.focus();
             return;
         }
+
+        // Get the updated values from the form inputs
+        const exerciseItems = document.querySelectorAll('#template-exercise-list .exercise-item');
+
+        // Update the currentTemplateExercises array with the latest values from the form
+        exerciseItems.forEach((item, index) => {
+            if (index < currentTemplateExercises.length) {
+                // Get the number of sets from the input field
+                const setsInput = item.querySelector('.exercise-sets-input');
+                if (setsInput) {
+                    currentTemplateExercises[index].sets = parseInt(setsInput.value) || 1;
+                }
+
+                // Get the default reps from the input field
+                const repsInput = item.querySelector('.exercise-reps-input');
+                if (repsInput) {
+                    currentTemplateExercises[index].reps = repsInput.value || '';
+                }
+
+                // Get the notes from the textarea
+                const notesTextarea = item.querySelector('.exercise-notes');
+                if (notesTextarea) {
+                    currentTemplateExercises[index].notes = notesTextarea.value;
+                }
+
+                // Get the weight unit from the select
+                const unitSelect = item.querySelector('.exercise-unit-select');
+                if (unitSelect) {
+                    currentTemplateExercises[index].weight_unit = unitSelect.value;
+                }
+            }
+        });
 
         // Collect exercise data from the currentTemplateExercises array
         const exercisesToSave = currentTemplateExercises.map((exercise, index) => {
@@ -1443,6 +2043,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         console.log(`Added set ${newSetIndex + 1} to exercise ${exerciseIndex}`);
+
+        // Save input values after adding a set
+        saveInputValues();
     }
 
     // --- Remove Set Handler ---
@@ -1504,6 +2107,9 @@ document.addEventListener('DOMContentLoaded', function() {
             removeButton.disabled = true;
         }
 
+        // Save input values after removing a set
+        saveInputValues();
+
         // No need to re-render the whole item, just removed the row
         // renderSingleExerciseItem(exerciseItemElement, exercise, workoutIndex);
      }
@@ -1527,6 +2133,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Switch to active page
                 switchPage('active');
 
+                // Restore input values after the page has been rendered
+                // Use a longer timeout to ensure DOM is fully rendered
+                setTimeout(() => {
+                    // Restore using our persistence module if available
+                    if (typeof restoreWorkoutData === 'function') {
+                        restoreWorkoutData();
+                    } else {
+                        // Fallback to regular restore
+                        restoreInputValues();
+                    }
+                }, 300);
+
                 // Resume timer if we have a start time
                 if (workoutStartTime) {
                     // Update timer display first
@@ -1540,6 +2158,60 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchExercises(); // Fetch exercises for the modal
         fetchTemplates(); // Fetch templates for the landing page
         fetchAndDisplayPhotos(); // Fetch photos for the slider
+
+
+
+        // Save input values when navigating away from the page
+        window.addEventListener('beforeunload', () => {
+            if (currentPage === 'active') {
+                // Save using our persistence module if available
+                if (typeof saveWorkoutData === 'function') {
+                    saveWorkoutData();
+                } else {
+                    // Fallback to regular save
+                    saveInputValues();
+                }
+
+                // Add a small delay to ensure the save completes
+                // This is a bit of a hack, but it works in most browsers
+                const start = Date.now();
+                while (Date.now() - start < 100) {
+                    // Busy wait to ensure the save completes
+                }
+            }
+        });
+
+        // Save input values when clicking on navigation links
+        document.querySelectorAll('.sidebar-nav-item, .nav-item').forEach(link => {
+            link.addEventListener('click', () => {
+                if (currentPage === 'active') {
+                    // Save using our persistence module if available
+                    if (typeof saveWorkoutData === 'function') {
+                        saveWorkoutData();
+                    } else {
+                        // Fallback to regular save
+                        saveInputValues();
+                    }
+                }
+            });
+        });
+
+        // Add a MutationObserver to detect when exercise items are added to the DOM
+        if (currentExerciseListEl) {
+            console.log('Setting up MutationObserver for exercise list');
+            const observer = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        console.log('Exercise list changed - checking for input values to restore');
+                        // We'll let the workout-persistence module handle this
+                        // It has its own MutationObserver with debouncing
+                        break;
+                    }
+                }
+            });
+
+            observer.observe(currentExerciseListEl, { childList: true, subtree: true });
+        }
 
         // Page switching listeners
         startEmptyWorkoutBtn?.addEventListener('click', startEmptyWorkout);
@@ -1594,6 +2266,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleExerciseUnitChange(event);
                 } else if (target.classList.contains('btn-delete-exercise')) { // <<< ADD THIS CHECK
                     handleDeleteExercise(event);                          // <<< CALL THE HANDLER
+                }
+            }
+        });
+
+        // Add listener for input changes to save values
+        currentExerciseListEl?.addEventListener('input', (event) => {
+            const target = event.target;
+            if (target instanceof HTMLElement) {
+                if (target.classList.contains('weight-input') ||
+                    target.classList.contains('reps-input') ||
+                    target.classList.contains('exercise-notes-textarea')) {
+
+                    console.log(`Input detected in ${target.className} - scheduling save`);
+
+                    // Save the value immediately using our direct save function
+                    saveInputValueDirectly(target);
+
+                    // Debounce the save to avoid too many saves
+                    clearTimeout(window.inputSaveTimeout);
+                    window.inputSaveTimeout = setTimeout(() => {
+                        console.log('Debounced save triggered');
+                        // Save input values
+                        saveInputValues();
+                    }, 500); // Save after 500ms of inactivity
                 }
             }
         });
@@ -1972,6 +2668,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Cancel Workout Function ---
     function handleCancelWorkout() {
+        // Save input values before canceling the workout
+        console.log('Saving input values before canceling workout');
+
+        // Save using our persistence module if available
+        if (typeof saveWorkoutData === 'function') {
+            saveWorkoutData();
+        } else {
+            // Fallback to regular save
+            saveInputValues();
+        }
+
         stopTimer(); // Stop timer immediately
         if (confirm('Are you sure you want to cancel this workout? All progress will be lost.')) {
             console.log('Workout cancelled by user.');
@@ -1991,7 +2698,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- New Handler for Adding Multiple Selected Exercises ---
-    function handleAddSelectedExercises() {
+    async function handleAddSelectedExercises() {
         const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
         const selectedCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -2004,18 +2711,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Store the IDs of selected exercises
         const selectedIds = [];
+
+        // Get all checked exercise IDs
         selectedCheckboxes.forEach(checkbox => {
             const exerciseId = parseInt(checkbox.value, 10);
             if (!isNaN(exerciseId)) {
                 selectedIds.push(exerciseId);
-                addExerciseToWorkout(exerciseId, targetList); // Pass targetList
             }
         });
 
-        // Clear the checked state for added exercises
-        selectedIds.forEach(id => checkedExercises.delete(id));
+        // Use the order array to add exercises in the order they were checked
+        const orderedIds = checkedExercisesOrder.filter(id => selectedIds.includes(id));
 
-        closeExerciseModal(); // Close modal after adding all
+        // Add any selected exercises that might not be in the order array (fallback)
+        selectedIds.forEach(id => {
+            if (!orderedIds.includes(id)) {
+                orderedIds.push(id);
+            }
+        });
+
+        // Close the modal before adding exercises to prevent multiple clicks
+        closeExerciseModal();
+
+        // Add exercises in the correct order (sequentially to maintain order)
+        for (const exerciseId of orderedIds) {
+            await addExerciseToWorkout(exerciseId, targetList); // Pass targetList and await completion
+        }
+
+        // Clear the checked state for added exercises
+        selectedIds.forEach(id => {
+            checkedExercises.delete(id);
+            // Also remove from order array
+            const index = checkedExercisesOrder.indexOf(id);
+            if (index > -1) {
+                checkedExercisesOrder.splice(index, 1);
+            }
+        });
     }
 
     // --- History Chart Functions (Updated for Search) ---
@@ -3263,7 +3994,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initialize(); // Run initialization
 
-    // --- NEW: Handler for Exercise Unit Change ---
+    // --- Handler for Exercise Unit Change ---
     function handleExerciseUnitChange(event) {
         const selectElement = event.target;
         const exerciseItem = selectElement.closest('.exercise-item');
@@ -3285,10 +4016,41 @@ document.addEventListener('DOMContentLoaded', function() {
         exercises[exerciseIndex].weight_unit = newUnit;
         console.log(`Updated unit for exercise ${exerciseIndex} to: ${newUnit}`);
 
-        // Optional: Update any visual display linked to the unit if needed elsewhere
-        // (Currently, only affects how data is saved)
+        // Save the preference to the server if we have an exercise_id
+        const exerciseId = exercises[exerciseIndex].exercise_id;
+        if (exerciseId) {
+            saveExerciseUnitPreference(exerciseId, newUnit);
+        }
     }
-    // --- END NEW ---
+
+    // Save exercise unit preference to the server
+    async function saveExerciseUnitPreference(exerciseId, weightUnit) {
+        try {
+            console.log(`Saving unit preference for exercise ${exerciseId}: ${weightUnit}`);
+            const baseUrl = window.location.origin;
+            const response = await fetch(`${baseUrl}/api/exercise-preferences`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ exerciseId, weightUnit })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(`Successfully saved unit preference:`, result);
+            return true;
+        } catch (error) {
+            console.error('Error saving exercise unit preference:', error);
+            // Continue without showing error to user - this is a background operation
+            return false;
+        }
+    }
 });
 
 // Helper function (if not already present globally)
