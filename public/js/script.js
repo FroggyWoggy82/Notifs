@@ -20,6 +20,45 @@ function isToday(dateString) {
     }
 }
 
+// Helper function to calculate next occurrence date for recurring tasks
+function calculateNextOccurrence(task) {
+    if (!task.recurrence_type || task.recurrence_type === 'none' || !task.due_date) {
+        return null;
+    }
+
+    // Parse the due date
+    const dueDate = new Date(task.due_date);
+    if (isNaN(dueDate.getTime())) {
+        console.warn(`Invalid due_date for task ${task.id}: ${task.due_date}`);
+        return null;
+    }
+
+    // Get the recurrence interval (default to 1 if not specified)
+    const interval = task.recurrence_interval || 1;
+
+    // Calculate the next occurrence based on recurrence type
+    const nextDate = new Date(dueDate);
+
+    switch (task.recurrence_type) {
+        case 'daily':
+            nextDate.setDate(nextDate.getDate() + interval);
+            break;
+        case 'weekly':
+            nextDate.setDate(nextDate.getDate() + (interval * 7));
+            break;
+        case 'monthly':
+            nextDate.setMonth(nextDate.getMonth() + interval);
+            break;
+        case 'yearly':
+            nextDate.setFullYear(nextDate.getFullYear() + interval);
+            break;
+        default:
+            return null;
+    }
+
+    return nextDate;
+}
+
 // Helper to check if the day has changed since last counter reset
 function isDayChanged() {
     // Get the last counter reset date from localStorage
@@ -70,8 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addTaskStatusDiv = document.getElementById('addTaskStatus');
     const taskListStatusDiv = document.getElementById('taskListStatus');
     // New form fields
-    const taskAssignedDateInput = document.getElementById('taskAssignedDate');
     const taskDueDateInput = document.getElementById('taskDueDate');
+    const taskDurationInput = document.getElementById('taskDuration');
     const taskRecurrenceTypeInput = document.getElementById('taskRecurrenceType');
     const taskRecurrenceIntervalInput = document.getElementById('taskRecurrenceInterval');
     const recurrenceIntervalGroup = document.getElementById('recurrenceIntervalGroup');
@@ -127,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const editTaskTitleInput = document.getElementById('editTaskTitle');
     const editTaskDescriptionInput = document.getElementById('editTaskDescription');
     const editTaskReminderTimeInput = document.getElementById('editTaskReminderTime');
-    const editTaskAssignedDateInput = document.getElementById('editTaskAssignedDate');
     const editTaskDueDateInput = document.getElementById('editTaskDueDate');
+    const editTaskDurationInput = document.getElementById('editTaskDuration');
     const editTaskRecurrenceTypeSelect = document.getElementById('editTaskRecurrenceType');
     const editRecurrenceIntervalGroup = document.getElementById('editRecurrenceIntervalGroup');
     const editTaskRecurrenceIntervalInput = document.getElementById('editTaskRecurrenceInterval');
@@ -369,16 +408,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let allTasks = [];
 
     // Load tasks from the server
-    async function loadTasks() {
-        console.log("Loading tasks...");
+    async function loadTasks(forceReload = false) {
+        console.log("Loading tasks..." + (forceReload ? " (Force reload)" : ""));
         updateTaskListStatus("Loading tasks...", false);
         try {
-            const response = await fetch('/api/tasks');
+            // Add a cache-busting parameter when force reloading
+            const url = forceReload ?
+                `/api/tasks?_cache=${new Date().getTime()}` :
+                '/api/tasks';
+
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             allTasks = await response.json(); // Store all tasks globally
             console.log("Tasks loaded:", allTasks);
+
+            // If force reloading, clear the task lists before rendering
+            if (forceReload) {
+                taskListDiv.innerHTML = '';
+                completedTaskListDiv.innerHTML = '';
+            }
+
             filterAndRenderTasks(); // Apply current filter and render
             updateTaskListStatus("", false); // Clear loading message
             taskListStatusDiv.style.display = 'none'; // Hide if successful
@@ -405,28 +456,24 @@ document.addEventListener('DOMContentLoaded', () => {
         function isDateToday(dateString) {
             if (!dateString) return false;
             try {
-                // Extract just the date part if it's in ISO format
-                const datePart = typeof dateString === 'string' && dateString.includes('T') ?
-                    dateString.split('T')[0] : dateString;
+                // Create a date object from the input
+                const inputDate = new Date(dateString);
 
-                // Handle potential invalid date strings
-                if (typeof datePart !== 'string' || !datePart.includes('-')) {
+                // Check if the date is valid
+                if (isNaN(inputDate.getTime())) {
                     console.warn('Invalid date format:', dateString);
                     return false;
                 }
 
-                const [year, month, day] = datePart.split('-').map(Number);
+                // Convert to YYYY-MM-DD format to normalize timezone issues
+                const inputDateStr = inputDate.toISOString().split('T')[0];
+                const todayStr = today.toISOString().split('T')[0];
 
-                // Validate parsed values
-                if (isNaN(year) || isNaN(month) || isNaN(day)) {
-                    console.warn('Invalid date components:', year, month, day);
-                    return false;
-                }
+                // Log for debugging
+                console.log(`Comparing dates for today check: input=${inputDateStr}, today=${todayStr}`);
 
-                // Compare with today's date
-                return year === today.getFullYear() &&
-                       (month - 1) === today.getMonth() && // Month is 0-indexed in JS Date
-                       day === today.getDate();
+                // Compare date strings directly
+                return inputDateStr === todayStr;
             } catch (e) {
                 console.error('Error checking if date is today:', dateString, e);
                 return false;
@@ -443,20 +490,60 @@ document.addEventListener('DOMContentLoaded', () => {
             return isDateToday(task.due_date);
         }
 
+        // Helper function to check if a task is due tomorrow
+        function isTaskDueTomorrow(task) {
+            if (!task.due_date) return false;
+            try {
+                // Create a date object from the input
+                const dueDate = new Date(task.due_date);
+
+                // Check if the date is valid
+                if (isNaN(dueDate.getTime())) {
+                    console.warn('Invalid date format:', task.due_date);
+                    return false;
+                }
+
+                // Create tomorrow's date for comparison
+                const tomorrow = new Date(today);
+                tomorrow.setDate(today.getDate() + 1);
+
+                // Convert to YYYY-MM-DD format to normalize timezone issues
+                const dueDateStr = dueDate.toISOString().split('T')[0];
+                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+                // Log for debugging
+                console.log(`Comparing dates for tomorrow check: due=${dueDateStr}, tomorrow=${tomorrowStr}`);
+
+                // Compare date strings directly
+                return dueDateStr === tomorrowStr;
+            } catch (e) {
+                console.error('Error checking if task is due tomorrow:', task.due_date, e);
+                return false;
+            }
+        }
+
         // Helper function to check if a task is overdue
         function isTaskOverdue(task) {
             if (!task.due_date) return false;
             try {
-                // Extract just the date part if it's in ISO format
-                const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
-                    task.due_date.split('T')[0] : task.due_date;
+                // Create a date object from the input
+                const dueDate = new Date(task.due_date);
 
-                // Parse the date
-                const [year, month, day] = datePart.split('-').map(Number);
-                const dueDate = new Date(year, month - 1, day); // Month is 0-indexed in JS Date
+                // Check if the date is valid
+                if (isNaN(dueDate.getTime())) {
+                    console.warn('Invalid date format:', task.due_date);
+                    return false;
+                }
 
-                // Compare with today's date
-                return dueDate < today;
+                // Convert to YYYY-MM-DD format to normalize timezone issues
+                const dueDateStr = dueDate.toISOString().split('T')[0];
+                const todayStr = today.toISOString().split('T')[0];
+
+                // Log for debugging
+                console.log(`Comparing dates for overdue check: due=${dueDateStr}, today=${todayStr}`);
+
+                // Compare date strings directly
+                return dueDateStr < todayStr;
             } catch (e) {
                 console.error('Error checking if task is overdue:', task.due_date, e);
                 return false;
@@ -472,16 +559,59 @@ document.addEventListener('DOMContentLoaded', () => {
             is_unassigned: isTaskUnassigned(t)
         })));
 
+
+
+        // Helper function to check if a task's next occurrence is overdue
+        function isNextOccurrenceOverdue(task) {
+            if (!task.is_complete || !task.recurrence_type || task.recurrence_type === 'none') {
+                return false;
+            }
+
+            const nextOccurrence = calculateNextOccurrence(task);
+            if (!nextOccurrence) return false;
+
+            // Check if the next occurrence is overdue
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+            // Log for debugging
+            console.log(`Checking if next occurrence is overdue for task ${task.id} (${task.title})`);
+            console.log(`Next occurrence date: ${nextOccurrence.toISOString()}`);
+            console.log(`Today's date: ${today.toISOString()}`);
+            console.log(`Is overdue: ${nextOccurrence < today}`);
+
+            return nextOccurrence < today;
+        }
+
         // Apply filter
         switch(filterValue) {
             case 'unassigned_today':
                 // Show tasks that are unassigned, due today, or overdue
                 filteredTasks = allTasks.filter(task => {
-                    // Skip completed tasks
-                    if (task.is_complete) return false;
+                    // For completed recurring tasks, check if the next occurrence is overdue
+                    if (task.is_complete) {
+                        if (task.recurrence_type && task.recurrence_type !== 'none') {
+                            // Include if the next occurrence is overdue
+                            const isOverdue = isNextOccurrenceOverdue(task);
+                            console.log(`Task ${task.id} (${task.title}) is_complete=${task.is_complete}, recurrence_type=${task.recurrence_type}, isOverdue=${isOverdue}`);
+                            return isOverdue;
+                        }
+                        return false; // Skip other completed tasks
+                    }
 
-                    // Include if unassigned, due today, or overdue
-                    return isTaskUnassigned(task) || isTaskDueToday(task) || isTaskOverdue(task);
+                    // Include if unassigned, due today, or overdue, but exclude tasks due tomorrow
+                    const isUnassigned = isTaskUnassigned(task);
+                    const isDueToday = isTaskDueToday(task);
+                    const isOverdue = isTaskOverdue(task);
+                    const isDueTomorrow = isTaskDueTomorrow(task);
+
+                    // Log for debugging
+                    if (task.title === 'Clean Airpods') {
+                        console.log(`Filter check for ${task.title}: unassigned=${isUnassigned}, dueToday=${isDueToday}, overdue=${isOverdue}, dueTomorrow=${isDueTomorrow}`);
+                    }
+
+                    // Only include if it's unassigned, due today, or overdue, but NOT due tomorrow
+                    return (isUnassigned || isDueToday || isOverdue) && !isDueTomorrow;
                 });
                 break;
 
@@ -544,8 +674,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tasks.forEach(task => {
-            const taskElement = createTaskElement(task);
-            if (task.is_complete) {
+            // Check if this is a completed recurring task with an overdue next occurrence
+            let isCompletedRecurringWithOverdueNext = false;
+            let nextOccurrence = null;
+
+            if (task.is_complete && task.recurrence_type && task.recurrence_type !== 'none') {
+                // Use the stored next occurrence date if available, otherwise calculate it
+                if (task.next_occurrence_date) {
+                    nextOccurrence = new Date(task.next_occurrence_date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // Reset time to start of day
+                    isCompletedRecurringWithOverdueNext = nextOccurrence < today;
+                    console.log(`Task ${task.id} (${task.title}) is a completed recurring task with next occurrence ${nextOccurrence.toISOString()}`);
+                    console.log(`Is next occurrence overdue? ${isCompletedRecurringWithOverdueNext}`);
+                } else {
+                    // Fallback to calculating the next occurrence
+                    nextOccurrence = calculateNextOccurrence(task);
+                    if (nextOccurrence) {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0); // Reset time to start of day
+                        isCompletedRecurringWithOverdueNext = nextOccurrence < today;
+                        console.log(`Task ${task.id} (${task.title}) is a completed recurring task with calculated next occurrence ${nextOccurrence.toISOString()}`);
+                        console.log(`Is next occurrence overdue? ${isCompletedRecurringWithOverdueNext}`);
+                    }
+                }
+            }
+
+            // Create a copy of the task for display purposes
+            const displayTask = {...task};
+
+            // If it's a completed recurring task with an overdue next occurrence,
+            // mark it as incomplete for display purposes and add a data attribute
+            if (isCompletedRecurringWithOverdueNext) {
+                console.log(`Treating task ${task.id} (${task.title}) as incomplete for display purposes`);
+                displayTask.is_complete = false;
+                displayTask.isRecurringOverdue = true;
+
+                // Set a special flag to indicate this is an overdue next occurrence
+                displayTask.isOverdueNextOccurrence = true;
+
+                // Store the actual next occurrence date for proper display
+                if (nextOccurrence) {
+                    displayTask.nextOccurrenceDate = nextOccurrence;
+                    console.log(`Task ${task.id} (${task.title}) next occurrence is overdue: ${nextOccurrence.toISOString()}`);
+                    // We'll keep the original due_date to ensure proper date calculations
+                }
+            }
+
+            const taskElement = createTaskElement(displayTask);
+
+            // Add a data attribute to identify recurring overdue tasks
+            if (isCompletedRecurringWithOverdueNext) {
+                taskElement.setAttribute('data-recurring-overdue', 'true');
+            }
+
+            if (task.is_complete && !isCompletedRecurringWithOverdueNext) {
                 // --- Check if completed today using updated_at ---
                 if (isToday(task.updated_at)) {
                     completedTaskListDiv.appendChild(taskElement);
@@ -572,6 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create DOM element for a single task
     function createTaskElement(task) {
+        // Create the main task item div that will be returned
         const div = document.createElement('div');
 
         // Check if task is overdue
@@ -592,6 +776,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 isOverdue = dueDate < today;
             } catch (e) {
                 console.error('Error checking if task is overdue:', task.due_date, e);
+            }
+        }
+
+        // For recurring tasks, check if the next occurrence is overdue
+        let nextOccurrenceDate = null;
+        if (task.recurrence_type && task.recurrence_type !== 'none') {
+            // Calculate the next occurrence date
+            nextOccurrenceDate = calculateNextOccurrence(task);
+            if (nextOccurrenceDate) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time part for comparison
+                isOverdue = nextOccurrenceDate < today;
+
+                // Log for debugging
+                if (task.is_complete) {
+                    console.log(`Task ${task.id} (${task.title}) is a completed recurring task`);
+                    console.log(`Next occurrence date: ${nextOccurrenceDate.toISOString()}`);
+                    console.log(`Today's date: ${today.toISOString()}`);
+                    console.log(`Is next occurrence overdue: ${isOverdue}`);
+                }
+
+                // If this is a recurring overdue task (marked by the renderTaskList function)
+                if (task.isRecurringOverdue) {
+                    console.log(`Task ${task.id} (${task.title}) is a recurring overdue task`);
+                    isOverdue = true;
+                }
             }
         }
 
@@ -677,6 +887,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const metadataDiv = document.createElement('div');
         metadataDiv.className = 'task-metadata';
 
+        // Add next occurrence indicator for recurring tasks
+        if (task.recurrence_type && task.recurrence_type !== 'none' && nextOccurrenceDate) {
+            const nextOccurrenceIndicator = document.createElement('div');
+            nextOccurrenceIndicator.className = 'next-occurrence-indicator';
+
+            // Add calendar icon
+            const calendarIcon = document.createElement('i');
+            calendarIcon.innerHTML = '&#8635;'; // Recycling symbol
+            nextOccurrenceIndicator.appendChild(calendarIcon);
+
+            // Add next occurrence text
+            const nextOccurrenceText = document.createElement('span');
+            nextOccurrenceText.textContent = `Next: ${nextOccurrenceDate.toLocaleDateString()}`;
+            nextOccurrenceIndicator.appendChild(nextOccurrenceText);
+
+            // Check if next occurrence is overdue
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
+            const isNextOverdue = nextOccurrenceDate < today;
+
+            // Add overdue class if next occurrence is overdue
+            if (isNextOverdue) {
+                nextOccurrenceIndicator.classList.add('overdue');
+                console.log(`Task ${task.id} (${task.title}) next occurrence is overdue: ${nextOccurrenceDate.toISOString()}`);
+            }
+
+            metadataDiv.appendChild(nextOccurrenceIndicator);
+        }
+
         // Add due date indicator if due date exists
         if (task.due_date) {
             try {
@@ -755,33 +994,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dueDateIndicator = document.createElement('div');
                     dueDateIndicator.className = 'due-date-indicator';
 
-                    // DIRECT FIX: Compare dates by their components
-                    // Get the components of each date
-                    const dueDateYear = dueDate.getFullYear();
-                    const dueDateMonth = dueDate.getMonth();
-                    const dueDateDay = dueDate.getDate();
+                    // Create dates at midnight for comparison
+                    const dueDateMidnight = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                    const tomorrowMidnight = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
 
-                    const todayYear = today.getFullYear();
-                    const todayMonth = today.getMonth();
-                    const todayDay = today.getDate();
+                    console.log(`Comparing dates - Due date: ${dueDateMidnight.toISOString()}, Today: ${todayMidnight.toISOString()}, Tomorrow: ${tomorrowMidnight.toISOString()}`);
 
-                    const tomorrowYear = tomorrow.getFullYear();
-                    const tomorrowMonth = tomorrow.getMonth();
-                    const tomorrowDay = tomorrow.getDate();
-
-                    console.log(`Comparing dates - Due date: ${dueDateYear}-${dueDateMonth+1}-${dueDateDay}, Today: ${todayYear}-${todayMonth+1}-${todayDay}`);
-
-                    // Compare date components directly
-                    if (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay === todayDay) {
+                    // Compare dates
+                    if (dueDateMidnight.getTime() === todayMidnight.getTime()) {
                         // Due today - add due-soon class but not overdue
                         console.log('Task is due TODAY');
                         dueDateIndicator.classList.add('due-soon');
-                    } else if (dueDateYear < todayYear ||
-                              (dueDateYear === todayYear && dueDateMonth < todayMonth) ||
-                              (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay < todayDay)) {
+                    } else if (dueDateMidnight < todayMidnight) {
                         // Only mark as overdue if strictly before today
                         console.log('Task is OVERDUE');
                         dueDateIndicator.classList.add('overdue');
+                    } else if (dueDateMidnight.getTime() === tomorrowMidnight.getTime()) {
+                        // Due tomorrow
+                        console.log('Task is due TOMORROW');
+                        dueDateIndicator.classList.add('due-soon');
                     } else if (dueDate < nextWeek) {
                         console.log('Task is due SOON');
                         dueDateIndicator.classList.add('due-soon');
@@ -794,21 +1026,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Add due date text
                     const dueDateText = document.createElement('span');
-                    // Use component comparison for dates
-                    if (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay === todayDay) {
-                        dueDateText.textContent = 'Due Today';
-                    } else if (dueDateYear < todayYear ||
-                              (dueDateYear === todayYear && dueDateMonth < todayMonth) ||
-                              (dueDateYear === todayYear && dueDateMonth === todayMonth && dueDateDay < todayDay)) {
+
+                    // Special handling for recurring tasks with overdue next occurrences
+                    if (task.isOverdueNextOccurrence && task.nextOccurrenceDate) {
+                        // This is a completed recurring task with an overdue next occurrence
+                        // Show that the next occurrence is overdue
+
+                        // Show both the original due date and the next occurrence date
                         dueDateText.textContent = `Overdue: ${formattedDate}`;
-                    } else if (dueDateYear === tomorrowYear && dueDateMonth === tomorrowMonth && dueDateDay === tomorrowDay) {
-                        dueDateText.textContent = 'Due Tomorrow';
+                        dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
+                        dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
+
+                        // Add a data attribute to mark this as a recurring overdue task
+                        div.setAttribute('data-recurring-overdue', 'true');
+
+                        // Add the next occurrence date as a separate element
+                        const nextOccurrenceIndicator = document.createElement('div');
+                        nextOccurrenceIndicator.className = 'next-occurrence-indicator';
+
+                        // Add calendar icon with recurrence symbol
+                        const nextIcon = document.createElement('i');
+                        nextIcon.innerHTML = '&#8635;'; // Recycling symbol (↻)
+                        nextOccurrenceIndicator.appendChild(nextIcon);
+
+                        // For the next occurrence text, use the task's next_occurrence_date if available,
+                        // otherwise calculate it based on the recurrence type
+                        let nextDate;
+                        let nextDateText;
+
+                        if (task.next_occurrence_date) {
+                            // Use the stored next occurrence date if available
+                            nextDate = new Date(task.next_occurrence_date);
+                            nextDateText = nextDate.toLocaleDateString();
+                            console.log(`Using database next occurrence date for task ${task.id}: ${nextDateText}`);
+                        } else {
+                            // Calculate the next occurrence date based on the recurrence type
+                            const today = new Date();
+
+                            // For daily tasks, the next occurrence should be tomorrow
+                            if (task.recurrence_type === 'daily') {
+                                const tomorrow = new Date(today);
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                nextDateText = tomorrow.toLocaleDateString();
+                            } else {
+                                // For other recurrence types, use today's date as a fallback
+                                nextDateText = today.toLocaleDateString();
+                            }
+                        }
+
+                        // Create and add the next occurrence text
+                        const nextText = document.createElement('span');
+                        nextText.textContent = `Next: ${nextDateText}`;
+                        nextOccurrenceIndicator.appendChild(nextText);
+
+                        // Store this to add after the due date indicator
+                        task.nextOccurrenceIndicator = nextOccurrenceIndicator;
+                    } else if (task.recurrence_type && task.recurrence_type !== 'none' && task.is_complete) {
+                        // For completed recurring tasks, show the next occurrence date
+                        if (task.next_occurrence_date) {
+                            // Use the stored next occurrence date if available
+                            const nextDate = new Date(task.next_occurrence_date);
+                            const formattedNextDate = nextDate.toLocaleDateString();
+                            dueDateText.textContent = `Next: ${formattedNextDate}`;
+                            console.log(`Using database next occurrence date for completed task ${task.id}: ${formattedNextDate}`);
+                        } else {
+                            // If no stored next occurrence date, calculate it
+                            const nextOccurrence = calculateNextOccurrence(task);
+                            if (nextOccurrence) {
+                                const formattedNextDate = nextOccurrence.toLocaleDateString();
+                                dueDateText.textContent = `Next: ${formattedNextDate}`;
+                            } else {
+                                // Fallback if we can't calculate the next occurrence
+                                dueDateText.textContent = `Due: ${formattedDate}`;
+                            }
+                        }
                     } else {
-                        dueDateText.textContent = `Due: ${formattedDate}`;
+                        // Normal due date handling
+                        if (dueDateMidnight.getTime() === todayMidnight.getTime()) {
+                            dueDateText.textContent = 'Due Today';
+                        } else if (dueDateMidnight < todayMidnight) {
+                            dueDateText.textContent = `Overdue: ${formattedDate}`;
+                        } else if (dueDateMidnight.getTime() === tomorrowMidnight.getTime()) {
+                            dueDateText.textContent = 'Due Tomorrow';
+                        } else {
+                            dueDateText.textContent = `Due: ${formattedDate}`;
+                        }
                     }
                     dueDateIndicator.appendChild(dueDateText);
 
                     metadataDiv.appendChild(dueDateIndicator);
+
+                    // Add the next occurrence indicator if it exists
+                    if (task.nextOccurrenceIndicator) {
+                        metadataDiv.appendChild(task.nextOccurrenceIndicator);
+                    }
                 }
             } catch (e) {
                 console.error("Error parsing due date for display:", task.due_date, e);
@@ -903,18 +1214,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = taskTitleInput.value.trim();
         const description = taskDescriptionInput.value.trim();
         const reminderTime = taskReminderTimeInput.value;
-        // Get values from new fields
-        const assignedDate = taskAssignedDateInput.value;
-        // Ensure the due date is properly formatted as YYYY-MM-DD and valid
-        let dueDate = null;
-        if (taskDueDateInput.value) {
-            // Always use the date-only format for new tasks (YYYY-MM-DD)
-            // This ensures consistency in the database
-            dueDate = taskDueDateInput.value;
 
-            // Log the date for debugging
-            console.log('Creating task with due date:', dueDate);
+        // Set due date to today if not provided
+        let dueDate = taskDueDateInput.value;
+        if (!dueDate) {
+            const today = new Date();
+            dueDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+            console.log('Setting default due date to today:', dueDate);
         }
+
+        // Get duration value (default to 1 if not set)
+        const duration = parseInt(taskDurationInput.value, 10) || 1;
         const recurrenceType = taskRecurrenceTypeInput.value;
         const recurrenceInterval = taskRecurrenceIntervalInput.value;
 
@@ -930,8 +1240,8 @@ document.addEventListener('DOMContentLoaded', () => {
             description: description || null, // Send null if empty
             reminderTime: reminderTime || null, // Send null if empty
             // Add new fields to the payload
-            assignedDate: assignedDate || null, // Send null if empty
-            dueDate: dueDate || null,           // Send null if empty
+            dueDate: dueDate,
+            duration: duration,
             recurrenceType: recurrenceType,
             recurrenceInterval: recurrenceType !== 'none' ? parseInt(recurrenceInterval, 10) : null // Send interval only if recurrence is set
         };
@@ -1005,10 +1315,161 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskId = taskItem.getAttribute('data-task-id');
         const isComplete = checkbox.checked;
 
-        console.log(`Toggling task ${taskId} to complete=${isComplete}`);
+        // Check if this is a recurring task with an overdue next occurrence
+        const isRecurringOverdue = taskItem.hasAttribute('data-recurring-overdue');
+
+        console.log(`Toggling task ${taskId} to complete=${isComplete} (isRecurringOverdue=${isRecurringOverdue})`);
         taskItem.style.opacity = '0.7'; // Optimistic UI feedback
 
         try {
+            // If it's a recurring overdue task and we're marking it complete,
+            // we need to handle it specially
+            if (isRecurringOverdue && isComplete) {
+                console.log(`Task ${taskId} is a recurring overdue task, creating next occurrence...`);
+
+                // First, mark the task as complete
+                console.log(`Sending request to mark task ${taskId} complete...`);
+                const completeResponse = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        is_complete: true
+                    })
+                });
+
+                console.log(`Response status: ${completeResponse.status}`);
+
+                if (!completeResponse.ok) {
+                    throw new Error(`HTTP error marking task complete! status: ${completeResponse.status}`);
+                }
+
+                // Get the updated task data
+                const updatedTask = await completeResponse.json();
+                console.log(`Task ${taskId} marked complete:`, updatedTask);
+
+                // Dispatch a custom event to notify other components (like calendar)
+                const taskCompletedEvent = new CustomEvent('taskCompleted', {
+                    detail: { taskId: updatedTask.id, task: updatedTask }
+                });
+                document.dispatchEvent(taskCompletedEvent);
+                console.log('Dispatched taskCompleted event for recurring overdue task');
+
+                // Now create the next occurrence using the API endpoint directly
+                console.log(`Creating next occurrence for task ${taskId} using API endpoint...`);
+                let nextOccurrence = null;
+                try {
+                    // For daily tasks, set the due date to tomorrow
+                    if (updatedTask.recurrence_type === 'daily') {
+                        // Create a new task with tomorrow's date
+                        const today = new Date();
+                        const tomorrow = new Date(today);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const formattedTomorrow = tomorrow.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+                        // Create a new task with tomorrow's date
+                        const createResponse = await fetch('/api/tasks', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: updatedTask.title,
+                                description: updatedTask.description,
+                                assignedDate: formattedTomorrow, // Set assigned date to ensure it appears on calendar
+                                dueDate: formattedTomorrow,
+                                recurrenceType: updatedTask.recurrence_type,
+                                recurrenceInterval: updatedTask.recurrence_interval
+                            })
+                        });
+
+                        if (createResponse.ok) {
+                            nextOccurrence = await createResponse.json();
+                            console.log(`Next occurrence created manually: ${nextOccurrence.id} with due date ${formattedTomorrow}`);
+
+                            // Dispatch a custom event for the new occurrence
+                            const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                                detail: { taskId: nextOccurrence.id, task: nextOccurrence }
+                            });
+                            document.dispatchEvent(taskUpdatedEvent);
+                            console.log('Dispatched taskUpdated event for manually created next occurrence of overdue task');
+
+                            // Update the original task with the next occurrence date
+                            try {
+                                console.log(`Updating task ${taskId} with next occurrence date ${formattedTomorrow}`);
+                                const updateData = { nextOccurrenceDate: formattedTomorrow };
+                                console.log('Update data:', updateData);
+
+                                const updateResponse = await fetch(`/api/tasks/${taskId}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(updateData)
+                                });
+
+                                if (updateResponse.ok) {
+                                    console.log(`Updated task ${taskId} with next occurrence date ${formattedTomorrow}`);
+                                } else {
+                                    console.error(`Failed to update task ${taskId} with next occurrence date: ${updateResponse.status}`);
+                                    // Get more detailed error information
+                                    try {
+                                        const errorData = await updateResponse.json();
+                                        console.error('Error details:', errorData);
+                                    } catch (e) {
+                                        console.error('Could not parse error response');
+                                    }
+                                }
+                            } catch (updateError) {
+                                console.error('Error updating task with next occurrence date:', updateError);
+                            }
+                        } else {
+                            console.error(`Failed to create next occurrence manually: ${createResponse.status}`);
+                        }
+                    } else {
+                        // For other recurrence types, use the API endpoint
+                        const nextOccurrenceResponse = await fetch(`/api/tasks/${taskId}/next-occurrence`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        if (nextOccurrenceResponse.ok) {
+                            nextOccurrence = await nextOccurrenceResponse.json();
+                            console.log(`Next occurrence created via API endpoint: ${nextOccurrence.id}`);
+
+                            // Dispatch a custom event for the new occurrence
+                            const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                                detail: { taskId: nextOccurrence.id, task: nextOccurrence }
+                            });
+                            document.dispatchEvent(taskUpdatedEvent);
+                            console.log('Dispatched taskUpdated event for next occurrence of overdue task');
+                        } else {
+                            console.error(`Failed to create next occurrence via API: ${nextOccurrenceResponse.status}`);
+                        }
+                    }
+
+                    // Show a notification if a next occurrence was created
+                    if (nextOccurrence) {
+                        // Use the local showNextOccurrenceNotification function
+                        const notification = document.createElement('div');
+                        notification.className = 'status success';
+                        // Use due_date if available, otherwise try assigned_date, with a fallback to current date
+                        const nextDate = nextOccurrence.due_date || nextOccurrence.assigned_date || new Date().toISOString();
+                        notification.textContent = `Next occurrence of "${updatedTask.title}" created for ${new Date(nextDate).toLocaleDateString()}`;
+                        document.body.appendChild(notification);
+
+                        // Remove the notification after 5 seconds
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 5000);
+                    }
+                } catch (apiError) {
+                    console.error('Error creating next occurrence:', apiError);
+                }
+
+                // Refresh the task list to show the updated state
+                // Force a complete reload of tasks from the server
+                allTasks = []; // Clear the task cache
+                await loadTasks(true); // Pass true to force a full reload
+                return;
+            }
+
+            // Normal task completion toggle
             const response = await fetch(`/api/tasks/${taskId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -1033,6 +1494,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const placeholder = completedTaskListDiv.querySelector('p');
                 if (placeholder) placeholder.remove();
 
+                // Dispatch a custom event to notify other components (like calendar)
+                const taskCompletedEvent = new CustomEvent('taskCompleted', {
+                    detail: { taskId: updatedTask.id, task: updatedTask }
+                });
+                document.dispatchEvent(taskCompletedEvent);
+                console.log('Dispatched taskCompleted event');
+
                 // If this is a recurring task, create a new task for the next occurrence
                 if (updatedTask.recurrence_type && updatedTask.recurrence_type !== 'none') {
                     console.log(`Task ${updatedTask.id} is recurring (${updatedTask.recurrence_type}). Creating next occurrence...`);
@@ -1042,23 +1510,92 @@ document.addEventListener('DOMContentLoaded', () => {
                         let nextOccurrenceData;
 
                         try {
-                            // Try to use the server endpoint first
-                            const nextOccurrenceResponse = await fetch(`/api/tasks/${updatedTask.id}/next-occurrence`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' }
-                            });
+                            // For daily tasks, set the due date to tomorrow
+                            if (updatedTask.recurrence_type === 'daily') {
+                                // Create a new task with tomorrow's date
+                                const today = new Date();
+                                const tomorrow = new Date(today);
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                const formattedTomorrow = tomorrow.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 
-                            if (nextOccurrenceResponse.ok) {
-                                nextOccurrenceData = await nextOccurrenceResponse.json();
-                                console.log('Next occurrence created via API:', nextOccurrenceData);
+                                // Create a new task with tomorrow's date
+                                const createResponse = await fetch('/api/tasks', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        title: updatedTask.title,
+                                        description: updatedTask.description,
+                                        assignedDate: formattedTomorrow, // Set assigned date to ensure it appears on calendar
+                                        dueDate: formattedTomorrow,
+                                        recurrenceType: updatedTask.recurrence_type,
+                                        recurrenceInterval: updatedTask.recurrence_interval
+                                    })
+                                });
+
+                                if (createResponse.ok) {
+                                    nextOccurrenceData = await createResponse.json();
+                                    console.log(`Next occurrence created manually: ${nextOccurrenceData.id} with due date ${formattedTomorrow}`);
+
+                                    // Dispatch a custom event for the new occurrence
+                                    const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                                        detail: { taskId: nextOccurrenceData.id, task: nextOccurrenceData }
+                                    });
+                                    document.dispatchEvent(taskUpdatedEvent);
+                                    console.log('Dispatched taskUpdated event for manually created next occurrence');
+
+                                    // Update the original task with the next occurrence date
+                                    try {
+                                        console.log(`Updating task ${updatedTask.id} with next occurrence date ${formattedTomorrow}`);
+                                        const updateData = { nextOccurrenceDate: formattedTomorrow };
+                                        console.log('Update data:', updateData);
+
+                                        const updateResponse = await fetch(`/api/tasks/${updatedTask.id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(updateData)
+                                        });
+
+                                        if (updateResponse.ok) {
+                                            console.log(`Updated task ${updatedTask.id} with next occurrence date ${formattedTomorrow}`);
+                                        } else {
+                                            console.error(`Failed to update task ${updatedTask.id} with next occurrence date: ${updateResponse.status}`);
+                                        }
+                                    } catch (updateError) {
+                                        console.error('Error updating task with next occurrence date:', updateError);
+                                    }
+                                } else {
+                                    console.error(`Failed to create next occurrence manually: ${createResponse.status}`);
+                                    // Fallback to using the local function
+                                    nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                                }
                             } else {
-                                // If the endpoint fails, calculate the next occurrence date manually
-                                console.warn('API endpoint failed, calculating next occurrence manually');
-                                nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                                // For other recurrence types, use the API endpoint
+                                const nextOccurrenceResponse = await fetch(`/api/tasks/${updatedTask.id}/next-occurrence`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' }
+                                });
+
+                                if (nextOccurrenceResponse.ok) {
+                                    nextOccurrenceData = await nextOccurrenceResponse.json();
+                                    console.log('Next occurrence created via API:', nextOccurrenceData);
+
+                                    // Dispatch a custom event for the new occurrence
+                                    const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                                        detail: { taskId: nextOccurrenceData.id, task: nextOccurrenceData }
+                                    });
+                                    document.dispatchEvent(taskUpdatedEvent);
+                                    console.log('Dispatched taskUpdated event for next occurrence');
+                                } else {
+                                    // If the endpoint fails, calculate the next occurrence date manually
+                                    console.warn('API endpoint failed, calculating next occurrence manually');
+                                    // Use the local function defined in this file
+                                    nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                                }
                             }
                         } catch (apiError) {
-                            console.error('Error calling next-occurrence API:', apiError);
+                            console.error('Error creating next occurrence:', apiError);
                             // Calculate the next occurrence date manually
+                            // Use the local function defined in this file
                             nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
                         }
 
@@ -1094,7 +1631,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             }
 
-                            notification.textContent = `Recurring task "${updatedTask.title}" (repeats ${recurrenceText}) will appear on the calendar on ${new Date(nextOccurrenceData.assigned_date).toLocaleDateString()}.`;
+                            // Use due_date if available, otherwise try assigned_date, with a fallback to current date
+                            const nextDate = nextOccurrenceData.due_date || nextOccurrenceData.assigned_date || new Date().toISOString();
+                            notification.textContent = `Recurring task "${updatedTask.title}" (repeats ${recurrenceText}) will appear on the calendar on ${new Date(nextDate).toLocaleDateString()}.`;
                             notification.style.marginTop = '10px';
                             notification.style.marginBottom = '10px';
 
@@ -1129,6 +1668,13 @@ document.addEventListener('DOMContentLoaded', () => {
                  // Remove placeholder if it exists
                 const placeholder = taskListDiv.querySelector('p');
                 if (placeholder) placeholder.remove();
+
+                // Dispatch a custom event to notify other components (like calendar)
+                const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                    detail: { taskId: updatedTask.id, task: updatedTask }
+                });
+                document.dispatchEvent(taskUpdatedEvent);
+                console.log('Dispatched taskUpdated event');
             }
 
             // Update completed task count header (count elements *in the list*)
@@ -1203,9 +1749,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NEW: Add Task Modal Listeners ---
     addTaskFab.addEventListener('click', () => {
         addTaskModal.style.display = 'block';
-        // Optionally clear form on open?
-        // addTaskForm.reset();
-        // handleRecurrenceChange(); // Reset recurrence display too
+
+        // Set due date to today by default
+        const today = new Date();
+        taskDueDateInput.value = today.toISOString().split('T')[0];
+
+        // Set duration to 1 by default
+        taskDurationInput.value = 1;
+
+        // Reset other form fields
+        taskTitleInput.value = '';
+        taskDescriptionInput.value = '';
+        taskReminderTimeInput.value = '';
+        taskRecurrenceTypeInput.value = 'none';
+
+        // Update recurrence display
+        recurrenceIntervalGroup.style.display = 'none';
     });
 
     closeTaskModalBtn.addEventListener('click', () => {
@@ -2997,8 +3556,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Format dates/times for input fields
         editTaskReminderTimeInput.value = task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : '';
-        editTaskAssignedDateInput.value = task.assigned_date ? task.assigned_date.split('T')[0] : '';
         editTaskDueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
+
+        // Set duration (default to 1 if not set)
+        editTaskDurationInput.value = task.duration || 1;
 
         // Set recurrence type and interval
         editTaskRecurrenceTypeSelect.value = task.recurrence_type || 'none';
@@ -3058,8 +3619,8 @@ document.addEventListener('DOMContentLoaded', () => {
             title: editTaskTitleInput.value.trim(),
             description: editTaskDescriptionInput.value.trim() || null,
             reminderTime: editTaskReminderTimeInput.value || null,
-            assignedDate: editTaskAssignedDateInput.value || null,
             dueDate: dueDate,
+            duration: parseInt(editTaskDurationInput.value, 10) || 1,
             recurrenceType: editTaskRecurrenceTypeSelect.value,
             recurrenceInterval: editTaskRecurrenceTypeSelect.value !== 'none' ? parseInt(editTaskRecurrenceIntervalInput.value, 10) : null
         };

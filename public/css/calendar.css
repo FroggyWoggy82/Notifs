@@ -242,6 +242,30 @@
     border-color: #cccccc;
 }
 
+/* Recurring task styling */
+.calendar-task-item.recurring {
+    background-color: #e3f2fd; /* Light blue background */
+    color: #0d47a1;
+    border-color: #bbdefb;
+}
+
+/* Overdue task styling */
+.calendar-task-item.overdue {
+    background-color: #ffebee; /* Light red background */
+    color: #c62828;
+    border-color: #ffcdd2;
+    font-weight: bold;
+}
+
+/* Recurring and overdue task styling */
+.calendar-task-item.recurring.overdue {
+    background-color: #ffebee; /* Light red background takes precedence */
+    color: #c62828;
+    border-color: #ffcdd2;
+    border-left: 3px solid #c62828; /* Thicker left border for emphasis */
+    font-weight: bold;
+}
+
 /* Completed habit styling */
 .calendar-habit-item.complete {
     background-color: #a3e4d7; /* Light green for completed habits */
@@ -330,6 +354,25 @@
     text-decoration: line-through;
     color: #757575;
     background-color: #f0f0f0;
+}
+
+#selectedTaskList li.recurring {
+    background-color: #e3f2fd; /* Light blue background */
+    color: #0d47a1;
+    border-left: 3px solid #2196f3;
+}
+
+#selectedTaskList li.overdue {
+    background-color: #ffebee; /* Light red background */
+    color: #c62828;
+    font-weight: bold;
+    border-left: 3px solid #f44336;
+}
+
+#selectedTaskList li.recurring.overdue {
+    background-color: #ffebee; /* Light red background takes precedence */
+    color: #c62828;
+    border-left: 3px solid #c62828; /* Thicker left border for emphasis */
 }
 
 /* Task actions in calendar view */

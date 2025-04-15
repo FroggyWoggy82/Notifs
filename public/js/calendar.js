@@ -100,6 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             allTasks = await response.json();
             console.log("Tasks fetched for calendar:", allTasks);
+
+            // Log recurring tasks specifically for debugging
+            const recurringTasks = allTasks.filter(task => task.recurrence_type && task.recurrence_type !== 'none');
+            console.log(`Found ${recurringTasks.length} recurring tasks:`, recurringTasks);
+
             updateStatus("", false); // Clear loading message
             return allTasks;
         } catch (error) {
@@ -287,28 +292,40 @@ document.addEventListener('DOMContentLoaded', () => {
         allTasks.forEach(task => {
             const dates = [];
 
-            // For completed recurring tasks, calculate and show the next occurrence
-            if (task.is_complete && task.recurrence_type && task.recurrence_type !== 'none') {
-                const nextOccurrence = calculateNextOccurrence(task);
-                if (nextOccurrence) {
-                    // Create a copy of the task for the next occurrence
-                    const nextTask = { ...task };
-                    nextTask.assigned_date = formatDateKey(nextOccurrence);
-                    nextTask.is_complete = false; // Next occurrence is not complete
-                    nextTask.isRecurring = true;  // Mark as a recurring instance
+            // For recurring tasks, calculate and show the next occurrence
+            // Note: We process both complete and incomplete recurring tasks
+            if (task.recurrence_type && task.recurrence_type !== 'none') {
+                // For completed tasks, calculate the next occurrence
+                // For incomplete tasks, we still want to show them on their assigned date
+                if (task.is_complete) {
+                    const nextOccurrence = calculateNextOccurrence(task);
+                    if (nextOccurrence) {
+                        // Create a copy of the task for the next occurrence
+                        const nextTask = { ...task };
+                        nextTask.assigned_date = formatDateKey(nextOccurrence);
+                        nextTask.due_date = formatDateKey(nextOccurrence); // Also update the due date
+                        nextTask.is_complete = false; // Next occurrence is not complete
+                        nextTask.isRecurring = true;  // Mark as a recurring instance
 
-                    // Add the next occurrence date
-                    const nextDateKey = formatDateKey(nextOccurrence);
-                    dates.push(nextDateKey);
+                        // Add the next occurrence date
+                        const nextDateKey = formatDateKey(nextOccurrence);
+                        dates.push(nextDateKey);
 
-                    // Check if the next occurrence is within the current month view
-                    const isInCurrentMonth = (
-                        nextOccurrence.getFullYear() === year &&
-                        nextOccurrence.getMonth() === month
-                    );
+                        // Check if the next occurrence is within the current month view
+                        const isInCurrentMonth = (
+                            nextOccurrence.getFullYear() === year &&
+                            nextOccurrence.getMonth() === month
+                        );
 
-                    if (isInCurrentMonth) {
-                        console.log(`Adding next occurrence of task ${task.id} on ${nextDateKey}`);
+                        // Also check if the next occurrence is overdue (for highlighting)
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0); // Reset time to start of day
+                        const isOverdue = nextOccurrence < today;
+                        if (isOverdue) {
+                            nextTask.isOverdue = true; // Mark as overdue for styling
+                        }
+
+                        console.log(`Adding next occurrence of task ${task.id} on ${nextDateKey} (overdue: ${isOverdue})`);
 
                         // Store the next occurrence task
                         if (!tasksByDate[nextDateKey]) {
@@ -316,6 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         tasksByDate[nextDateKey].push(nextTask);
                     }
+                } else {
+                    // For incomplete recurring tasks, make sure they show up on their assigned date
+                    // This ensures that recurring tasks that haven't been completed yet are visible
+                    console.log(`Processing incomplete recurring task ${task.id} (${task.title}) with assigned_date ${task.assigned_date}`);
                 }
             }
 
@@ -326,11 +347,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const assignedDateKey = task.assigned_date.split('T')[0];
                     dates.push(assignedDateKey);
 
-                    // Only add non-recurring instances or incomplete tasks to their original date
-                    if (!task.is_complete || !task.recurrence_type || task.recurrence_type === 'none') {
-                        if (!tasksByDate[assignedDateKey]) {
-                            tasksByDate[assignedDateKey] = [];
-                        }
+                    // Add all tasks to their assigned date, even recurring ones
+                    // This ensures that recurring tasks always show up on their assigned date
+                    if (!tasksByDate[assignedDateKey]) {
+                        tasksByDate[assignedDateKey] = [];
+                    }
+
+                    // Only add the task if it's not already in the array for this date
+                    const taskAlreadyAdded = tasksByDate[assignedDateKey].some(t => t.id === task.id);
+                    if (!taskAlreadyAdded) {
+                        console.log(`Adding task ${task.id} (${task.title}) to date ${assignedDateKey}`);
                         tasksByDate[assignedDateKey].push(task);
                     }
                 } catch (e) {
@@ -399,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Apply appropriate classes based on task state
                     if (task.is_complete) taskEl.classList.add('complete');
                     if (task.isRecurring) taskEl.classList.add('recurring');
+                    if (task.isOverdue) taskEl.classList.add('overdue');
 
                     // Set the task title
                     taskEl.textContent = task.title;
@@ -667,6 +694,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const nextTask = { ...task };
             nextTask.is_complete = false; // Next occurrence is not complete
             nextTask.isRecurring = true;  // Mark as a recurring instance
+
+            // Check if the next occurrence is overdue
+            const nextOccurrence = calculateNextOccurrence(task);
+            if (nextOccurrence) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time to start of day
+                if (nextOccurrence < today) {
+                    nextTask.isOverdue = true; // Mark as overdue for styling
+                }
+            }
+
             return nextTask;
         });
 
@@ -681,7 +719,12 @@ document.addEventListener('DOMContentLoaded', () => {
             tasksOnDate.forEach(task => {
                 const li = document.createElement('li');
                 li.setAttribute('data-task-id', task.id);
-                li.className = task.is_complete ? 'complete' : '';
+                // Apply appropriate classes based on task state
+                const classes = [];
+                if (task.is_complete) classes.push('complete');
+                if (task.isRecurring) classes.push('recurring');
+                if (task.isOverdue) classes.push('overdue');
+                li.className = classes.join(' ');
 
                 // Create a container for the task title and badge
                 const titleContainer = document.createElement('div');

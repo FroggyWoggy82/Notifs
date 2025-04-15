@@ -160,4 +160,50 @@ router.delete('/:id', TaskController.deleteTask);
  */
 router.patch('/:id/toggle-completion', TaskController.toggleCompletion);
 
+/**
+ * @swagger
+ * /api/tasks/{id}/next-occurrence:
+ *   post:
+ *     summary: Create the next occurrence of a recurring task
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Task ID
+ *     responses:
+ *       201:
+ *         description: Next occurrence created
+ *       400:
+ *         description: Invalid input or task is not recurring
+ *       404:
+ *         description: Task not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/:id/next-occurrence', TaskController.createNextOccurrence);
+
+/**
+ * @swagger
+ * /api/tasks/debug-routes:
+ *   get:
+ *     summary: Debug endpoint to list all registered routes
+ *     responses:
+ *       200:
+ *         description: List of registered routes
+ */
+router.get('/debug-routes', (req, res) => {
+    const routes = [];
+    router.stack.forEach((middleware) => {
+        if (middleware.route) {
+            routes.push({
+                path: middleware.route.path,
+                methods: Object.keys(middleware.route.methods).filter(m => middleware.route.methods[m])
+            });
+        }
+    });
+    res.json(routes);
+});
+
 module.exports = router;

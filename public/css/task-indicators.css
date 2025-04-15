@@ -25,6 +25,15 @@
     border-color: #ef9a9a;
 }
 
+/* Special styling for next occurrence overdue indicator */
+.next-occurrence-overdue {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+    font-weight: bold;
+    border-left: 3px solid #c62828;
+}
+
 .due-date-indicator.invalid-date {
     background-color: #eeeeee;
     color: #757575;
@@ -131,6 +140,31 @@
     background-color: #e65100;
 }
 
+/* Next Occurrence Indicator */
+.next-occurrence-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    background-color: #e8f5e9;
+    color: #388e3c;
+    border: 1px solid #c8e6c9;
+    margin-left: 4px;
+}
+
+.next-occurrence-indicator.overdue {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+}
+
+.next-occurrence-indicator i {
+    margin-right: 4px;
+    font-size: 1em;
+}
+
 /* Task Content Enhancements */
 .task-content {
     display: flex;
@@ -153,7 +187,8 @@
     }
 
     .due-date-indicator,
-    .recurrence-indicator {
+    .recurrence-indicator,
+    .next-occurrence-indicator {
         font-size: 0.7em;
         padding: 1px 5px;
     }

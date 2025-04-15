@@ -148,12 +148,12 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group form-group-half">
-                        <label for="taskAssignedDate">Assigned Date:</label>
-                        <input type="date" id="taskAssignedDate">
+                        <label for="taskDueDate">Due Date:</label>
+                        <input type="date" id="taskDueDate">
                     </div>
                     <div class="form-group form-group-half">
-                        <label for="taskDueDate">Due Date (Optional):</label>
-                        <input type="date" id="taskDueDate">
+                        <label for="taskDuration">Duration (days):</label>
+                        <input type="number" id="taskDuration" min="1" value="1">
                     </div>
                 </div>
                 <div class="form-row">
@@ -204,12 +204,12 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group form-group-half">
-                        <label for="editTaskAssignedDate">Assigned Date:</label>
-                        <input type="date" id="editTaskAssignedDate">
+                        <label for="editTaskDueDate">Due Date:</label>
+                        <input type="date" id="editTaskDueDate">
                     </div>
                     <div class="form-group form-group-half">
-                        <label for="editTaskDueDate">Due Date (Optional):</label>
-                        <input type="date" id="editTaskDueDate">
+                        <label for="editTaskDuration">Duration (days):</label>
+                        <input type="number" id="editTaskDuration" min="1" value="1">
                     </div>
                 </div>
                 <div class="form-row">
@@ -305,6 +305,7 @@
     <script src="js/sidebar.js"></script>
     <script src="js/status-bar.js"></script>
     <script src="js/clear-cache.js"></script>
+    <script src="js/recurring-task-helper.js"></script>
     <script src="js/script.js"></script>
     <script src="js/habit-level-fix.js"></script>
     <script src="js/habit-completion-fix.js"></script>

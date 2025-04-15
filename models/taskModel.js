@@ -22,15 +22,27 @@ class Task {
      * @returns {Promise<Object>} The created task
      */
     static async createTask(taskData) {
-        const { 
-            title, 
-            description, 
-            reminderTime, 
-            assignedDate, 
-            dueDate, 
-            recurrenceType, 
-            recurrenceInterval 
+        const {
+            title,
+            description,
+            reminderTime,
+            assignedDate,
+            dueDate,
+            recurrenceType,
+            recurrenceInterval
         } = taskData;
+
+        // Ensure both assignedDate and dueDate are set if one is provided
+        let finalAssignedDate = assignedDate;
+        let finalDueDate = dueDate;
+
+        if (finalAssignedDate && !finalDueDate) {
+            finalDueDate = finalAssignedDate;
+            console.log('Setting dueDate equal to assignedDate:', finalDueDate);
+        } else if (!finalAssignedDate && finalDueDate) {
+            finalAssignedDate = finalDueDate;
+            console.log('Setting assignedDate equal to dueDate:', finalAssignedDate);
+        }
 
         // Build the SQL query dynamically based on provided fields
         const fields = ['title'];
@@ -51,15 +63,15 @@ class Task {
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 
-        if (assignedDate !== undefined) {
+        if (finalAssignedDate !== undefined) {
             fields.push('assigned_date');
-            values.push(assignedDate);
+            values.push(finalAssignedDate);
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 
-        if (dueDate !== undefined) {
+        if (finalDueDate !== undefined) {
             fields.push('due_date');
-            values.push(dueDate);
+            values.push(finalDueDate);
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 
@@ -149,6 +161,80 @@ class Task {
             'UPDATE tasks SET is_complete = $1 WHERE id = $2 RETURNING *',
             [isComplete, id]
         );
+        return result.rows[0];
+    }
+
+    /**
+     * Create the next occurrence of a recurring task
+     * @param {number} id - The task ID
+     * @returns {Promise<Object>} The newly created task
+     */
+    static async createNextOccurrence(id) {
+        // 1. Get the task details
+        const taskResult = await db.query(
+            `SELECT id, title, description, due_date,
+                    recurrence_type, recurrence_interval
+             FROM tasks WHERE id = $1`,
+            [id]
+        );
+
+        if (taskResult.rowCount === 0) {
+            throw new Error('Task not found');
+        }
+
+        const task = taskResult.rows[0];
+
+        // 2. Check if this is a recurring task
+        if (!task.recurrence_type || task.recurrence_type === 'none') {
+            throw new Error('Task is not recurring');
+        }
+
+        // 3. Calculate the next occurrence date
+        if (!task.due_date) {
+            throw new Error('Task has no due date');
+        }
+
+        const dueDate = new Date(task.due_date);
+        const interval = task.recurrence_interval || 1;
+
+        let nextDueDate = new Date(dueDate);
+
+        // Calculate the next occurrence based on recurrence type
+        switch (task.recurrence_type) {
+            case 'daily':
+                nextDueDate.setDate(nextDueDate.getDate() + interval);
+                break;
+            case 'weekly':
+                nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
+                break;
+            case 'monthly':
+                nextDueDate.setMonth(nextDueDate.getMonth() + interval);
+                break;
+            case 'yearly':
+                nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
+                break;
+            default:
+                throw new Error('Invalid recurrence type');
+        }
+
+        // 4. Create a new task for the next occurrence
+        // IMPORTANT: Set both assigned_date and due_date to ensure it appears on the calendar
+        const formattedDate = nextDueDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        const result = await db.query(
+            `INSERT INTO tasks (title, description, assigned_date, due_date,
+                             recurrence_type, recurrence_interval, is_complete)
+             VALUES ($1, $2, $3, $4, $5, $6, false) RETURNING *`,
+            [
+                task.title,
+                task.description,
+                formattedDate, // Set assigned_date to ensure it appears on calendar
+                formattedDate, // Set due_date
+                task.recurrence_type,
+                task.recurrence_interval
+            ]
+        );
+
+        console.log(`Created next occurrence of task ${id} with due date ${nextDueDate.toISOString().split('T')[0]}`);
         return result.rows[0];
     }
 }
