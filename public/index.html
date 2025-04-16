@@ -11,6 +11,24 @@
     <link rel="stylesheet" href="css/task-indicators.css">
     <link rel="stylesheet" href="css/habit-fix.css">
     <link rel="stylesheet" href="css/habit-increment.css">
+    <link rel="stylesheet" href="css/overdue-fix.css">
+    <style>
+        /* Direct inline styles for overdue tasks */
+        .task-item.overdue,
+        .task-item[data-overdue="true"] {
+            background-color: #ffebee !important;
+            border-left: 4px solid #f44336 !important;
+            border-color: #ef9a9a !important;
+        }
+
+        /* Ensure overdue styling takes precedence over complete styling */
+        .task-item.complete.overdue,
+        .task-item.complete[data-overdue="true"] {
+            background-color: #ffebee !important;
+            border-left: 4px solid #f44336 !important;
+            border-color: #ef9a9a !important;
+        }
+    </style>
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -131,8 +149,19 @@
     <!-- ===== Add Task Modal ===== -->
     <div id="addTaskModal" class="modal">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Add New Task</h2>
+            <div class="modal-header">
+                <h2>Add New Task</h2>
+                <div class="modal-controls">
+                    <div class="toggle-container">
+                        <label class="toggle-switch" title="Use last task inputs">
+                            <input type="checkbox" id="useLastInputs">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Reuse last inputs</span>
+                    </div>
+                    <span class="close-button">&times;</span>
+                </div>
+            </div>
             <form id="addTaskForm">
                 <div class="form-group">
                     <label for="taskTitle">Title:</label>
@@ -143,14 +172,25 @@
                     <textarea id="taskDescription" placeholder="Add more details..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="taskReminderType">Reminder (Optional):</label>
-                    <select id="taskReminderType">
-                        <option value="none" selected>No Reminder</option>
-                        <option value="same-day">On the due date</option>
-                        <option value="day-before">1 day before</option>
-                        <option value="week-before">1 week before</option>
-                        <option value="custom">Custom time</option>
-                    </select>
+                    <label>Reminders (Optional):</label>
+                    <div class="reminder-checkboxes">
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="reminderSameDay" class="reminder-checkbox" value="same-day">
+                            <label for="reminderSameDay">On the due date</label>
+                        </div>
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="reminderDayBefore" class="reminder-checkbox" value="day-before">
+                            <label for="reminderDayBefore">1 day before</label>
+                        </div>
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="reminderWeekBefore" class="reminder-checkbox" value="week-before">
+                            <label for="reminderWeekBefore">1 week before</label>
+                        </div>
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="reminderCustom" class="reminder-checkbox" value="custom">
+                            <label for="reminderCustom">Custom time</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group" id="customReminderGroup" style="display: none;">
                     <label for="taskReminderTime">Custom Reminder Time:</label>
@@ -209,14 +249,25 @@
                     <textarea id="editTaskDescription" placeholder="Add more details..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="editTaskReminderType">Reminder (Optional):</label>
-                    <select id="editTaskReminderType">
-                        <option value="none" selected>No Reminder</option>
-                        <option value="same-day">On the due date</option>
-                        <option value="day-before">1 day before</option>
-                        <option value="week-before">1 week before</option>
-                        <option value="custom">Custom time</option>
-                    </select>
+                    <label>Reminders (Optional):</label>
+                    <div class="reminder-checkboxes">
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="editReminderSameDay" class="reminder-checkbox" value="same-day">
+                            <label for="editReminderSameDay">On the due date</label>
+                        </div>
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="editReminderDayBefore" class="reminder-checkbox" value="day-before">
+                            <label for="editReminderDayBefore">1 day before</label>
+                        </div>
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="editReminderWeekBefore" class="reminder-checkbox" value="week-before">
+                            <label for="editReminderWeekBefore">1 week before</label>
+                        </div>
+                        <div class="reminder-checkbox-item">
+                            <input type="checkbox" id="editReminderCustom" class="reminder-checkbox" value="custom">
+                            <label for="editReminderCustom">Custom time</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group" id="editCustomReminderGroup" style="display: none;">
                     <label for="editTaskReminderTime">Custom Reminder Time:</label>
@@ -322,13 +373,20 @@
     </div>
     <!-- ===== End Edit Habit Modal ===== -->
 
-    <script src="js/sidebar.js"></script>
-    <script src="js/status-bar.js"></script>
-    <script src="js/clear-cache.js"></script>
-    <script src="js/recurring-task-helper.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/habit-level-fix.js"></script>
-    <script src="js/habit-completion-fix.js"></script>
-    <script src="js/calendar-refresh-fix.js"></script>
+    <!-- Common utilities -->
+    <script src="js/common/sidebar.js"></script>
+    <script src="js/common/status-bar.js"></script>
+    <script src="js/common/clear-cache.js"></script>
+
+    <!-- Task functionality -->
+    <script src="js/tasks/recurring-task-helper.js"></script>
+    <script src="js/tasks/script.js"></script>
+
+    <!-- Habit functionality -->
+    <script src="js/habits/habit-level-fix.js"></script>
+    <script src="js/habits/habit-completion-fix.js"></script>
+
+    <!-- Calendar integration -->
+    <script src="js/calendar/calendar-refresh-fix.js"></script>
 </body>
 </html>

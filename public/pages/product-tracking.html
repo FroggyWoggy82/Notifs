@@ -14,7 +14,7 @@
 </head>
 <body>
     <button class="menu-button">☰</button>
-    
+
     <div class="sidebar-overlay"></div>
     <div class="sidebar">
         <div class="sidebar-header">
@@ -51,7 +51,7 @@
     <div class="content-wrapper">
         <h1>Product Tracking</h1>
         <p class="description">Track how products affect your skin, hair, gut microbiome, and more.</p>
-        
+
         <section class="add-product-section">
             <h2>Add New Product</h2>
             <form id="addProductForm">
@@ -106,7 +106,7 @@
             </form>
             <div id="addProductStatus" class="status"></div>
         </section>
-        
+
         <section class="product-list-section">
             <h2>Your Products</h2>
             <div class="filter-container">
@@ -124,7 +124,7 @@
                 <p>Loading products...</p>
             </div>
         </section>
-        
+
         <!-- Product Detail Modal -->
         <div id="productDetailModal" class="modal">
             <div class="modal-content">
@@ -135,14 +135,14 @@
                     <p><strong>Started:</strong> <span id="modalStartDate"></span></p>
                     <p><strong>Tracking Frequency:</strong> <span id="modalFrequency"></span></p>
                 </div>
-                
+
                 <div class="tracking-history">
                     <h3>Tracking History</h3>
                     <div id="trackingEntries">
                         <!-- Tracking entries will be loaded here -->
                     </div>
                 </div>
-                
+
                 <div class="add-entry-section">
                     <h3>Add New Entry</h3>
                     <form id="addEntryForm">
@@ -194,8 +194,11 @@
         </a>
     </div>
 
-    <script src="../js/sidebar.js"></script>
-    <script src="../js/status-bar.js"></script>
-    <script src="../js/product-tracking.js"></script>
+    <!-- Common utilities -->
+    <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/status-bar.js"></script>
+
+    <!-- Product tracking functionality -->
+    <script src="../js/product-tracking/product-tracking.js"></script>
 </body>
 </html>

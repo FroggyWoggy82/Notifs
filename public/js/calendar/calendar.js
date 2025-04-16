@@ -795,6 +795,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 itemContainer.style.alignItems = 'flex-start';
                 itemContainer.style.gap = '8px';
 
+                // Add touch event for mobile devices
+                li.addEventListener('touchstart', handleTaskTouch);
+
                 // Add checkbox for multi-select
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
@@ -1180,6 +1183,20 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error deleting task:', error);
             updateStatus(`Error deleting task: ${error.message}`, true);
         }
+    }
+
+    // Handle touch events for mobile devices
+    function handleTaskTouch(event) {
+        // Get the task item
+        const taskItem = event.currentTarget;
+
+        // Toggle the show-actions class
+        taskItem.classList.toggle('show-actions');
+
+        // Remove the class after 3 seconds
+        setTimeout(() => {
+            taskItem.classList.remove('show-actions');
+        }, 3000);
     }
 
     // Function to update the Delete Selected button visibility

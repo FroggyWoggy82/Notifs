@@ -140,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskListDiv = document.getElementById('taskList');
     const addTaskStatusDiv = document.getElementById('addTaskStatus');
     const taskListStatusDiv = document.getElementById('taskListStatus');
+    const useLastInputsToggle = document.getElementById('useLastInputs');
     // New form fields
     const taskDueDateInput = document.getElementById('taskDueDate');
     const taskDurationInput = document.getElementById('taskDuration');
@@ -233,6 +234,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 // --- NEW: Load tasks after SW is ready ---
                 loadTasks();
                 loadHabits(); // Load habits too
+
+                // Add a function to ensure overdue tasks have red background
+                function ensureOverdueStyling() {
+                    // Find all overdue tasks
+                    const overdueTasks = document.querySelectorAll('.task-item.overdue, .task-item[data-overdue="true"]');
+
+                    // Apply styling directly
+                    overdueTasks.forEach(task => {
+                        task.style.backgroundColor = '#ffebee';
+                        task.style.borderLeft = '4px solid #f44336';
+                        task.style.borderColor = '#ef9a9a';
+                    });
+                }
+
+                // Run the function after tasks are loaded
+                setTimeout(ensureOverdueStyling, 500);
+
+                // Also run it periodically to catch any new tasks
+                setInterval(ensureOverdueStyling, 2000);
             })
             .catch(error => {
                 console.error('Service Worker Error', error);
@@ -274,6 +294,25 @@ document.addEventListener('DOMContentLoaded', () => {
          // --- NEW: Still load tasks even if push is not supported ---
          loadTasks();
          loadHabits(); // Load habits too
+
+         // Add a function to ensure overdue tasks have red background
+         function ensureOverdueStyling() {
+             // Find all overdue tasks
+             const overdueTasks = document.querySelectorAll('.task-item.overdue, .task-item[data-overdue="true"]');
+
+             // Apply styling directly
+             overdueTasks.forEach(task => {
+                 task.style.backgroundColor = '#ffebee';
+                 task.style.borderLeft = '4px solid #f44336';
+                 task.style.borderColor = '#ef9a9a';
+             });
+         }
+
+         // Run the function after tasks are loaded
+         setTimeout(ensureOverdueStyling, 500);
+
+         // Also run it periodically to catch any new tasks
+         setInterval(ensureOverdueStyling, 2000);
     }
 
     notifyBtn.addEventListener('click', () => {
@@ -467,6 +506,16 @@ document.addEventListener('DOMContentLoaded', () => {
             filterAndRenderTasks(); // Apply current filter and render
             updateTaskListStatus("", false); // Clear loading message
             taskListStatusDiv.style.display = 'none'; // Hide if successful
+
+            // Apply styling to overdue tasks after rendering
+            setTimeout(() => {
+                const overdueTasks = document.querySelectorAll('.task-item.overdue, .task-item[data-overdue="true"]');
+                overdueTasks.forEach(task => {
+                    task.style.backgroundColor = '#ffebee';
+                    task.style.borderLeft = '4px solid #f44336';
+                    task.style.borderColor = '#ef9a9a';
+                });
+            }, 100);
         } catch (error) {
             console.error('Error loading tasks:', error);
             taskListDiv.innerHTML = '<p class="error">Failed to load tasks. Please try refreshing.</p>';
@@ -829,6 +878,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create the main task item div that will be returned
         const div = document.createElement('div');
 
+        // Add touch event for mobile devices
+        div.addEventListener('touchstart', handleTaskTouch);
+
         // Check if task is overdue
         let isOverdue = false;
         if (!task.is_complete && task.due_date) {
@@ -878,6 +930,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         div.className = `task-item ${task.is_complete ? 'complete' : ''} ${isOverdue ? 'overdue' : ''}`;
         div.setAttribute('data-task-id', task.id);
+
+        // Apply inline styles for overdue tasks to ensure they appear with red background
+        if (isOverdue) {
+            div.style.backgroundColor = '#ffebee';
+            div.style.borderLeft = '4px solid #f44336';
+            div.style.borderColor = '#ef9a9a';
+            div.setAttribute('data-overdue', 'true'); // Add a data attribute for CSS targeting
+        }
 
         // Checkbox
         const checkbox = document.createElement('input');
@@ -1277,6 +1337,99 @@ document.addEventListener('DOMContentLoaded', () => {
         return div;
     }
 
+    // Object to store the last task inputs
+    let lastTaskInputs = {
+        title: '',
+        description: '',
+        reminderTypes: [],
+        reminderTime: '',
+        dueDate: '',
+        duration: 1,
+        recurrenceType: 'none',
+        recurrenceInterval: 1
+    };
+
+    // Function to save the current form inputs
+    function saveCurrentInputs() {
+        // Get selected reminder types
+        const selectedReminderTypes = [];
+        document.querySelectorAll('.reminder-checkbox:checked').forEach(checkbox => {
+            selectedReminderTypes.push(checkbox.value);
+        });
+
+        lastTaskInputs = {
+            title: taskTitleInput.value.trim(),
+            description: taskDescriptionInput.value.trim(),
+            reminderTypes: selectedReminderTypes,
+            reminderTime: taskReminderTimeInput.value,
+            dueDate: taskDueDateInput.value,
+            duration: taskDurationInput.value,
+            recurrenceType: taskRecurrenceTypeInput.value,
+            recurrenceInterval: taskRecurrenceIntervalInput.value
+        };
+        console.log('Saved task inputs:', lastTaskInputs);
+    }
+
+    // Function to load the last saved inputs
+    function loadLastInputs() {
+        if (!lastTaskInputs.title) return; // Don't load if no saved inputs
+
+        taskTitleInput.value = lastTaskInputs.title;
+        taskDescriptionInput.value = lastTaskInputs.description;
+        taskReminderTimeInput.value = lastTaskInputs.reminderTime;
+        taskDueDateInput.value = lastTaskInputs.dueDate;
+        taskDurationInput.value = lastTaskInputs.duration;
+        taskRecurrenceTypeInput.value = lastTaskInputs.recurrenceType;
+        taskRecurrenceIntervalInput.value = lastTaskInputs.recurrenceInterval;
+
+        // Uncheck all reminder checkboxes first
+        document.querySelectorAll('.reminder-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        // Check the appropriate reminder checkboxes
+        if (lastTaskInputs.reminderTypes && lastTaskInputs.reminderTypes.length > 0) {
+            lastTaskInputs.reminderTypes.forEach(type => {
+                const checkbox = document.getElementById(`reminder${type.charAt(0).toUpperCase() + type.slice(1).replace('-', '')}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+
+            // Show custom reminder input if needed
+            if (lastTaskInputs.reminderTypes.includes('custom')) {
+                customReminderGroup.style.display = 'block';
+            } else {
+                customReminderGroup.style.display = 'none';
+            }
+        }
+
+        // Update recurrence UI
+        if (lastTaskInputs.recurrenceType !== 'none') {
+            recurrenceIntervalGroup.style.display = 'block';
+            updateRecurrenceIntervalUnit();
+        } else {
+            recurrenceIntervalGroup.style.display = 'none';
+        }
+
+        console.log('Loaded saved task inputs');
+    }
+
+    // Toggle switch event listener
+    useLastInputsToggle.addEventListener('change', function() {
+        if (this.checked) {
+            loadLastInputs();
+        } else {
+            // Reset form to defaults
+            addTaskForm.reset();
+            const today = new Date();
+            taskDueDateInput.value = today.toISOString().split('T')[0];
+            taskDurationInput.value = 1;
+            customReminderGroup.style.display = 'none';
+            recurrenceIntervalGroup.style.display = 'none';
+        }
+    });
+
     // Handle form submission to add a new task
     addTaskForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -1286,7 +1439,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const title = taskTitleInput.value.trim();
         const description = taskDescriptionInput.value.trim();
-        const reminderType = taskReminderTypeInput.value;
+
+        // Get selected reminder types
+        const reminderTypes = [];
+        document.querySelectorAll('.reminder-checkbox:checked').forEach(checkbox => {
+            reminderTypes.push(checkbox.value);
+        });
 
         // Set due date to today if not provided
         let dueDate = taskDueDateInput.value;
@@ -1296,30 +1454,55 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Setting default due date to today:', dueDate);
         }
 
-        // Calculate reminder time based on selected option
-        let reminderTime = null;
-        if (reminderType !== 'none') {
+        // Calculate reminder times based on selected options
+        const reminderTimes = [];
+        let customReminderTime = null;
+
+        // Process each selected reminder type
+        for (const reminderType of reminderTypes) {
             if (reminderType === 'custom') {
                 // Use the custom time input
-                reminderTime = taskReminderTimeInput.value;
+                customReminderTime = taskReminderTimeInput.value;
+                if (!customReminderTime) {
+                    updateAddTaskStatus("Please set a custom reminder time or uncheck the custom reminder option.", true);
+                    addTaskBtn.disabled = false;
+                    addTaskBtn.textContent = 'Add Task';
+                    return;
+                }
+                reminderTimes.push({
+                    type: 'custom',
+                    time: customReminderTime
+                });
             } else {
                 // Calculate based on due date
                 const dueDateTime = new Date(dueDate);
 
                 if (reminderType === 'same-day') {
                     // Set to 9:00 AM on the due date
-                    dueDateTime.setHours(9, 0, 0, 0);
-                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                    const reminderDate = new Date(dueDateTime);
+                    reminderDate.setHours(9, 0, 0, 0);
+                    reminderTimes.push({
+                        type: 'same-day',
+                        time: reminderDate.toISOString().slice(0, 16)
+                    });
                 } else if (reminderType === 'day-before') {
                     // Set to 9:00 AM on the day before
-                    dueDateTime.setDate(dueDateTime.getDate() - 1);
-                    dueDateTime.setHours(9, 0, 0, 0);
-                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                    const reminderDate = new Date(dueDateTime);
+                    reminderDate.setDate(reminderDate.getDate() - 1);
+                    reminderDate.setHours(9, 0, 0, 0);
+                    reminderTimes.push({
+                        type: 'day-before',
+                        time: reminderDate.toISOString().slice(0, 16)
+                    });
                 } else if (reminderType === 'week-before') {
                     // Set to 9:00 AM one week before
-                    dueDateTime.setDate(dueDateTime.getDate() - 7);
-                    dueDateTime.setHours(9, 0, 0, 0);
-                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                    const reminderDate = new Date(dueDateTime);
+                    reminderDate.setDate(reminderDate.getDate() - 7);
+                    reminderDate.setHours(9, 0, 0, 0);
+                    reminderTimes.push({
+                        type: 'week-before',
+                        time: reminderDate.toISOString().slice(0, 16)
+                    });
                 }
             }
         }
@@ -1336,11 +1519,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Use the first reminder time as the primary one for backward compatibility
+        const primaryReminderTime = reminderTimes.length > 0 ? reminderTimes[0].time : null;
+
         const taskData = {
             title: title,
             description: description || null, // Send null if empty
-            reminderTime: reminderTime || null, // Send null if empty
-            reminderType: reminderType, // Store the reminder type for future reference
+            reminderTime: primaryReminderTime, // Use the first reminder time as the primary one
+            reminderType: reminderTypes.length > 0 ? reminderTypes.join(',') : 'none', // Store all reminder types as comma-separated string
+            reminderTimes: reminderTimes.length > 0 ? JSON.stringify(reminderTimes) : null, // Store all reminder times as JSON
             // Add new fields to the payload
             dueDate: dueDate,
             duration: duration,
@@ -1376,10 +1563,24 @@ document.addEventListener('DOMContentLoaded', () => {
             // Option 2: Reload all tasks (simpler but less smooth)
             // await loadTasks();
 
+            // Save the current inputs before clearing the form
+            saveCurrentInputs();
+
+            // Check if the toggle is on
+            const keepInputs = useLastInputsToggle.checked;
+
             // Clear form
             addTaskForm.reset();
-            // Hide recurrence interval group after reset
-            recurrenceIntervalGroup.style.display = 'none';
+
+            // If toggle was on, restore it and reload inputs
+            if (keepInputs) {
+                useLastInputsToggle.checked = true;
+                loadLastInputs();
+            } else {
+                // Otherwise just hide recurrence interval group
+                recurrenceIntervalGroup.style.display = 'none';
+            }
+
             updateAddTaskStatus("Task added successfully!", false);
 
         } catch (error) {
@@ -1391,6 +1592,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Function to update the recurrence interval unit text
+    function updateRecurrenceIntervalUnit() {
+        if (!recurrenceIntervalUnit) return;
+
+        const recurrenceType = taskRecurrenceTypeInput.value;
+        switch (recurrenceType) {
+            case 'daily':
+                recurrenceIntervalUnit.textContent = 'days';
+                break;
+            case 'weekly':
+                recurrenceIntervalUnit.textContent = 'weeks';
+                break;
+            case 'monthly':
+                recurrenceIntervalUnit.textContent = 'months';
+                break;
+            case 'yearly':
+                recurrenceIntervalUnit.textContent = 'years';
+                break;
+            default:
+                recurrenceIntervalUnit.textContent = 'days';
+        }
+    }
+
     // --- NEW: Add listener for recurrence type change ---
     taskRecurrenceTypeInput.addEventListener('change', function() {
         const type = this.value;
@@ -1399,13 +1623,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             recurrenceIntervalGroup.style.display = 'flex'; // Or 'block' depending on your layout
             // Update unit text based on type
-            switch(type) {
-                case 'daily': recurrenceIntervalUnit.textContent = 'days'; break;
-                case 'weekly': recurrenceIntervalUnit.textContent = 'weeks'; break;
-                case 'monthly': recurrenceIntervalUnit.textContent = 'months'; break;
-                case 'yearly': recurrenceIntervalUnit.textContent = 'years'; break;
-                default: recurrenceIntervalUnit.textContent = 'interval';
-            }
+            updateRecurrenceIntervalUnit();
             taskRecurrenceIntervalInput.value = '1'; // Reset interval to 1 when type changes
         }
     });
@@ -1803,6 +2021,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Handle touch events for mobile devices
+    function handleTaskTouch(event) {
+        // Get the task item
+        const taskItem = event.currentTarget;
+
+        // Toggle the show-actions class
+        taskItem.classList.toggle('show-actions');
+
+        // Remove the class after 3 seconds
+        setTimeout(() => {
+            taskItem.classList.remove('show-actions');
+        }, 3000);
+    }
+
     // Handle clicking the delete button
     async function handleDeleteTask(event) {
         const deleteBtn = event.target;
@@ -1852,37 +2084,47 @@ document.addEventListener('DOMContentLoaded', () => {
     addTaskFab.addEventListener('click', () => {
         addTaskModal.style.display = 'block';
 
-        // Set due date to today by default
-        const today = new Date();
-        taskDueDateInput.value = today.toISOString().split('T')[0];
+        // Check if we should use last inputs
+        if (useLastInputsToggle.checked && lastTaskInputs.title) {
+            // Load the last saved inputs
+            loadLastInputs();
+        } else {
+            // Set due date to today by default
+            const today = new Date();
+            taskDueDateInput.value = today.toISOString().split('T')[0];
 
-        // Set duration to 1 by default
-        taskDurationInput.value = 1;
+            // Set duration to 1 by default
+            taskDurationInput.value = 1;
 
-        // Reset other form fields
-        taskTitleInput.value = '';
-        taskDescriptionInput.value = '';
-        taskReminderTypeInput.value = 'none';
-        taskReminderTimeInput.value = '';
-        customReminderGroup.style.display = 'none';
-        taskRecurrenceTypeInput.value = 'none';
+            // Reset other form fields
+            taskTitleInput.value = '';
+            taskDescriptionInput.value = '';
+            taskReminderTypeInput.value = 'none';
+            taskReminderTimeInput.value = '';
+            customReminderGroup.style.display = 'none';
+            taskRecurrenceTypeInput.value = 'none';
 
-        // Update recurrence display
-        recurrenceIntervalGroup.style.display = 'none';
+            // Update recurrence display
+            recurrenceIntervalGroup.style.display = 'none';
+        }
     });
 
-    // Add event listener for reminder type change
-    taskReminderTypeInput.addEventListener('change', () => {
-        // Show/hide custom reminder time input based on selection
-        customReminderGroup.style.display =
-            taskReminderTypeInput.value === 'custom' ? 'block' : 'none';
-    });
+    // Get all reminder checkboxes
+    const reminderCheckboxes = document.querySelectorAll('.reminder-checkbox');
 
-    // Add event listener for edit reminder type change
-    editTaskReminderTypeInput.addEventListener('change', () => {
-        // Show/hide custom reminder time input based on selection
-        editCustomReminderGroup.style.display =
-            editTaskReminderTypeInput.value === 'custom' ? 'block' : 'none';
+    // Add event listeners for reminder checkboxes
+    reminderCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // If this is the custom checkbox, show/hide the custom time input
+            if (this.id === 'reminderCustom') {
+                customReminderGroup.style.display = this.checked ? 'block' : 'none';
+            }
+
+            // If this is an edit form custom checkbox
+            if (this.id === 'editReminderCustom') {
+                editCustomReminderGroup.style.display = this.checked ? 'block' : 'none';
+            }
+        });
     });
 
     closeTaskModalBtn.addEventListener('click', () => {

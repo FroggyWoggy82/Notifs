@@ -1,5 +1,5 @@
 // Run setup script to ensure all required files exist
-require('./setup');
+require('./config/setup');
 
 const express = require('express');
 const cors = require('cors');
@@ -9,7 +9,7 @@ const cron = require('node-cron');
 const sharp = require('sharp');
 
 // Database connection
-const db = require('./db'); // Required for database connection initialization
+const db = require('./utils/db'); // Required for database connection initialization
 
 // Import routes
 // Using a mix of old and new route files until all are converted to MVC pattern

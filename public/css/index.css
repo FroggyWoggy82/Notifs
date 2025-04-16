@@ -325,8 +325,15 @@ textarea {
 }
 
 .task-item.overdue {
-    border-left: 4px solid #f44336; /* Red border for overdue tasks */
-    background-color: #ffebee; /* Light red background */
+    border-left: 4px solid #f44336 !important; /* Red border for overdue tasks */
+    background-color: #ffebee !important; /* Light red background with !important to override other styles */
+    border-color: #ef9a9a !important;
+}
+
+/* Ensure overdue styling takes precedence over complete styling */
+.task-item.complete.overdue {
+    background-color: #ffebee !important; /* Light red background with !important to override complete styles */
+    border-left: 4px solid #f44336 !important; /* Red border for overdue tasks */
 }
 
 /* Task Priority Indicators removed as requested */
@@ -436,6 +443,18 @@ textarea {
     display: flex;
     align-items: center;
     gap: 8px;
+    opacity: 0; /* Hide by default */
+    transition: opacity 0.2s ease;
+}
+
+/* Show task actions on hover */
+.task-item:hover .task-actions {
+    opacity: 1;
+}
+
+/* For touch devices - will be handled with JavaScript */
+.task-item.show-actions .task-actions {
+    opacity: 1;
 }
 
 /* Icon button base styles */
@@ -603,6 +622,77 @@ textarea {
     background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
 }
 
+/* Modal header with controls */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Toggle switch styling */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-label {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #2196F3;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
 .modal-content {
     background-color: #ffffff; /* Light background for task modal */
     color: #2c3e50; /* Dark text */
@@ -630,12 +720,10 @@ textarea {
 
 .close-button {
     color: #aaa;
-    position: absolute;
-    top: 10px;
-    right: 15px;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    line-height: 1;
 }
 .close-button:hover,
 .close-button:focus {
@@ -648,6 +736,32 @@ textarea {
 .modal-content #addHabitForm { /* Apply to both forms */
     margin: 0;
     padding: 0;
+}
+
+/* Reminder checkboxes */
+.reminder-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.reminder-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reminder-checkbox-item label {
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.reminder-checkbox {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
 }
 
 /* --- Floating Action Button (FAB) (Adapted from workouts.css) --- */

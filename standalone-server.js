@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Use the same database module as the main server
-const db = require('./db');
+const db = require('./utils/db');
 
 // Use the query function from the db module
 const query = db.query;

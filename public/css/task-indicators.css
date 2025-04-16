@@ -23,6 +23,9 @@
     background-color: #ffebee;
     color: #c62828;
     border-color: #ef9a9a;
+    font-weight: bold;
+    border-width: 2px;
+    box-shadow: 0 0 3px rgba(198, 40, 40, 0.3);
 }
 
 /* Special styling for next occurrence overdue indicator */
@@ -32,6 +35,8 @@
     border-color: #ef9a9a;
     font-weight: bold;
     border-left: 3px solid #c62828;
+    border-width: 2px;
+    box-shadow: 0 0 3px rgba(198, 40, 40, 0.3);
 }
 
 .due-date-indicator.invalid-date {
@@ -158,6 +163,9 @@
     background-color: #ffebee;
     color: #c62828;
     border-color: #ef9a9a;
+    font-weight: bold;
+    border-width: 2px;
+    box-shadow: 0 0 3px rgba(198, 40, 40, 0.3);
 }
 
 .next-occurrence-indicator i {
