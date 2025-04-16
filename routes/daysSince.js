@@ -1,6 +1,6 @@
 // routes/daysSince.js
 const express = require('express');
-const db = require('../db');
+const db = require('../utils/db');
 const router = express.Router();
 
 // GET /api/days-since - Fetch all events
@@ -101,4 +101,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-module.exports = router; 
+module.exports = router;

@@ -1,6 +1,6 @@
 // routes/recipes.js
 const express = require('express');
-const db = require('../db'); // Assuming db.js is in the parent directory
+const db = require('../utils/db');
 const router = express.Router();
 
 // === CRUD Operations for Recipes ===
@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
 
         // Fetch ingredients for the recipe
         const ingredientsResult = await db.query(
-            'SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC', 
+            'SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC',
             [id]
         );
         recipe.ingredients = ingredientsResult.rows;
@@ -79,8 +79,8 @@ router.post('/', async (req, res) => {
         // Insert ingredients
         const ingredientInsertPromises = ingredients.map(ing => {
             // Validate required ingredient fields
-            if (!ing.name || typeof ing.calories !== 'number' || typeof ing.amount !== 'number' || 
-                typeof ing.protein !== 'number' || typeof ing.fats !== 'number' || 
+            if (!ing.name || typeof ing.calories !== 'number' || typeof ing.amount !== 'number' ||
+                typeof ing.protein !== 'number' || typeof ing.fats !== 'number' ||
                 typeof ing.carbohydrates !== 'number' || typeof ing.price !== 'number' || ing.amount <= 0) {
                  throw new Error('Invalid data for ingredient: ' + (ing.name || '[Missing Name]')); // Throw error to trigger rollback
             }
@@ -99,7 +99,7 @@ router.post('/', async (req, res) => {
         const finalIngredients = await db.query('SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC', [newRecipeId]);
         const newRecipe = finalResult.rows[0];
         newRecipe.ingredients = finalIngredients.rows;
-        
+
         res.status(201).json(newRecipe);
 
     } catch (err) {
@@ -120,7 +120,7 @@ router.post('/', async (req, res) => {
 // PUT /api/recipes/:id - Update recipe (including calorie adjustment)
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, targetCalories } = req.body; 
+    const { name, targetCalories } = req.body;
     console.log(`Received PUT /api/recipes/${id}: name='${name}', targetCalories=${targetCalories}`);
 
     // We only handle calorie adjustments for now. Name changes could be added.
@@ -214,4 +214,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-module.exports = router; 
+module.exports = router;

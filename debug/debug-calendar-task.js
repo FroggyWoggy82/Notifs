@@ -1,5 +1,5 @@
 // Script to debug why the Progress Photo task isn't showing up in the calendar
-const db = require('./db');
+const db = require('../utils/db');
 
 async function debugCalendarTask() {
     try {

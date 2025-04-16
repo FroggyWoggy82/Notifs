@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
 const multer = require('multer');
-const db = require('../db');
+const db = require('../utils/db');
 const router = express.Router();
 
 // --- Configuration ---

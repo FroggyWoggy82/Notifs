@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../utils/db');
 
 /**
  * Weight Goal Model
@@ -39,15 +39,15 @@ class WeightGoal {
         try {
             // Delete existing goals for this user
             await db.query('DELETE FROM weight_goals WHERE user_id = $1', [userId]);
-            
+
             // Insert new goal
             const result = await db.query(
                 'INSERT INTO weight_goals (target_weight, weekly_gain_goal, user_id) VALUES ($1, $2, $3) RETURNING target_weight, weekly_gain_goal, user_id',
                 [targetWeight, weeklyGain, userId]
             );
-            
+
             await db.query('COMMIT');
-            
+
             return {
                 target_weight: parseFloat(result.rows[0].target_weight),
                 weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal),

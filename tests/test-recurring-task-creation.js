@@ -1,5 +1,5 @@
 // Script to test creating a recurring task
-const db = require('./db');
+const db = require('../utils/db');
 
 async function testRecurringTaskCreation() {
     try {

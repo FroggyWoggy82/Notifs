@@ -1,5 +1,5 @@
 // Script to update the Social Media Rejection habit completions_per_day
-const db = require('./db');
+const db = require('../utils/db');
 
 async function updateHabitCompletions() {
     try {

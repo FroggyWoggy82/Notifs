@@ -1,5 +1,5 @@
 // check-db.js
-const db = require('./db');
+const db = require('../utils/db');
 
 async function checkDatabase() {
     try {

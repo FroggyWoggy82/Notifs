@@ -7,12 +7,13 @@
     <link rel="stylesheet" href="../css/index.css">   <!-- Shared styles -->
     <link rel="stylesheet" href="../css/sidebar.css"> <!-- Sidebar styles -->
     <link rel="stylesheet" href="../css/workouts.css"> <!-- Specific workout styles -->
+    <link rel="stylesheet" href="../css/custom-form-elements.css"> <!-- Custom form elements -->
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <!-- Link to an icon library if needed for FAB/icons, e.g., Font Awesome -->
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <button class="menu-button">☰</button> <!-- Hamburger Icon -->
@@ -341,6 +342,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/common/client-compression.js"></script>
     <script src="../js/common/direct-input-save.js"></script>
+    <script src="../js/common/custom-form-elements.js"></script>
 
     <!-- Workout functionality -->
     <script src="../js/workouts/workouts.js"></script>
@@ -398,24 +400,32 @@
             <span class="close-button" onclick="document.getElementById('photo-upload-modal').style.display='none'">&times;</span>
             <h2>Upload Progress Photos</h2>
             <form id="progress-photo-form" onsubmit="handleClientCompression(event)">
-                 <div class="form-group">
-                     <label for="modal-photo-date">Date Taken:</label>
-                     <!-- Changed ID to avoid conflict -->
-                     <input type="date" id="modal-photo-date" name="date" required>
-                 </div>
-                 <div class="form-group">
-                     <label for="modal-photo-upload">Select Photos:</label>
-                     <!-- Changed ID to avoid conflict -->
-                     <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required onchange="displayFileSize(this)">
-                 </div>
-                 <div id="file-size-info" class="form-group" style="display:none;">
-                     <label>File Size:</label>
-                     <div id="file-size-display"></div>
-                 </div>
-                 <div id="upload-status" class="form-group" style="display:none;"></div>
-                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary">Upload Photos</button>
-                 </div>
+                <div class="form-group">
+                    <label for="modal-photo-date">Date Taken:</label>
+                    <!-- Custom styled date input -->
+                    <div class="custom-date-input">
+                        <input type="date" id="modal-photo-date" name="date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="modal-photo-upload">Select Photos:</label>
+                    <!-- Custom styled file input -->
+                    <div class="custom-file-input">
+                        <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required onchange="displayFileSize(this)">
+                        <div class="custom-file-button">
+                            <i class="fas fa-camera"></i> Choose Photos
+                        </div>
+                        <div class="file-name-display" id="file-name-display">No file chosen</div>
+                    </div>
+                </div>
+                <div id="file-size-info" class="form-group" style="display:none;">
+                    <label>File Size:</label>
+                    <div id="file-size-display"></div>
+                </div>
+                <div id="upload-status" class="form-group" style="display:none;"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="upload-button">Upload Photos</button>
+                </div>
             </form>
             <p id="upload-status" style="margin-top: 15px;"></p> <!-- Status message inside modal -->
         </div>

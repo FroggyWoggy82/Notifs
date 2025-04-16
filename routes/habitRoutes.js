@@ -1,7 +1,7 @@
 const express = require('express');
 const habitController = require('../controllers/habitController');
 const HabitModel = require('../models/habitModel');
-const db = require('../db');
+const db = require('../utils/db');
 
 const router = express.Router();
 
@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
         console.log("Using simplified habitData:", JSON.stringify(habitData));
 
         // Insert directly into the database to bypass any potential issues with the model
-        const db = require('../db');
+        const db = require('../utils/db');
 
         // Check if the habits table exists
         const tableCheck = await db.query(`

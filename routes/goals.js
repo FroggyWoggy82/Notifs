@@ -1,6 +1,6 @@
 // routes/goals.js
 const express = require('express');
-const db = require('../db'); // Adjust path if needed
+const db = require('../utils/db');
 const router = express.Router();
 
 // --- Helper function to build the tree (REVISED VERSION) ---

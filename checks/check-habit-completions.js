@@ -1,5 +1,5 @@
 // Script to check the habit_completions table schema
-const db = require('./db');
+const db = require('../utils/db');
 
 async function checkHabitCompletionsTable() {
     try {

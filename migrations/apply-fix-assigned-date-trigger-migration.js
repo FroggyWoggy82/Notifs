@@ -1,7 +1,7 @@
 // apply-fix-assigned-date-trigger-migration.js
 const fs = require('fs');
 const path = require('path');
-const db = require('./db');
+const db = require('../utils/db');
 
 async function applyMigration() {
     try {

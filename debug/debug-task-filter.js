@@ -1,5 +1,5 @@
 // Script to debug why the Clean Airpods task is showing up in the unassigned_today filter with a Due Tomorrow label
-const db = require('./db');
+const db = require('../utils/db');
 
 async function debugTaskFilter() {
     try {

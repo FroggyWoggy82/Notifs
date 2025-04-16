@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const db = require('../db');
+const db = require('../utils/db');
 
 // --- Configuration ---
 // Ensure uploads directory exists

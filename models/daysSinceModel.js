@@ -3,7 +3,7 @@
  * Handles data operations for days since events
  */
 
-const db = require('../db');
+const db = require('../utils/db');
 
 /**
  * Get all days since events

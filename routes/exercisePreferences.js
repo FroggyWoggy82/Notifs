@@ -1,31 +1,31 @@
 // routes/exercisePreferences.js
 const express = require('express');
-const db = require('../db');
+const db = require('../utils/db');
 const router = express.Router();
 
 // GET /api/exercise-preferences/:exerciseId - Get preferences for a specific exercise
 router.get('/:exerciseId', async (req, res) => {
     const { exerciseId } = req.params;
     console.log(`Received GET /api/exercise-preferences/${exerciseId} request`);
-    
+
     if (!/^\d+$/.test(exerciseId)) {
         return res.status(400).json({ error: 'Invalid exercise ID format' });
     }
-    
+
     try {
         const result = await db.query(
             'SELECT * FROM exercise_preferences WHERE exercise_id = $1',
             [exerciseId]
         );
-        
+
         if (result.rows.length === 0) {
             // Return default preferences if none exist
-            return res.json({ 
+            return res.json({
                 exercise_id: parseInt(exerciseId),
                 weight_unit: 'kg' // Default unit
             });
         }
-        
+
         res.json(result.rows[0]);
     } catch (err) {
         console.error('Error fetching exercise preferences:', err);
@@ -37,24 +37,24 @@ router.get('/:exerciseId', async (req, res) => {
 router.post('/', async (req, res) => {
     const { exerciseId, weightUnit } = req.body;
     console.log(`Received POST /api/exercise-preferences: exerciseId=${exerciseId}, weightUnit=${weightUnit}`);
-    
+
     // Validation
     if (!exerciseId || !/^\d+$/.test(exerciseId)) {
         return res.status(400).json({ error: 'Invalid exercise ID' });
     }
-    
+
     const validUnits = ['kg', 'lbs', 'bodyweight', 'assisted'];
     if (!weightUnit || !validUnits.includes(weightUnit)) {
         return res.status(400).json({ error: 'Invalid weight unit' });
     }
-    
+
     try {
         // Check if preference already exists
         const checkResult = await db.query(
             'SELECT preference_id FROM exercise_preferences WHERE exercise_id = $1',
             [exerciseId]
         );
-        
+
         let result;
         if (checkResult.rows.length > 0) {
             // Update existing preference
@@ -69,7 +69,7 @@ router.post('/', async (req, res) => {
                 [exerciseId, weightUnit]
             );
         }
-        
+
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Error saving exercise preferences:', err);

@@ -3,7 +3,7 @@
  * Handles data operations for recipes and ingredients
  */
 
-const db = require('../db');
+const db = require('../utils/db');
 
 /**
  * Get all recipes (basic info)
@@ -29,7 +29,7 @@ async function getRecipeById(id) {
 
     // Fetch ingredients for the recipe
     const ingredientsResult = await db.query(
-        'SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC', 
+        'SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC',
         [id]
     );
     recipe.ingredients = ingredientsResult.rows;
@@ -72,8 +72,8 @@ async function createRecipe(name, ingredients) {
         // Insert ingredients
         const ingredientInsertPromises = ingredients.map(ing => {
             // Validate required ingredient fields
-            if (!ing.name || typeof ing.calories !== 'number' || typeof ing.amount !== 'number' || 
-                typeof ing.protein !== 'number' || typeof ing.fats !== 'number' || 
+            if (!ing.name || typeof ing.calories !== 'number' || typeof ing.amount !== 'number' ||
+                typeof ing.protein !== 'number' || typeof ing.fats !== 'number' ||
                 typeof ing.carbohydrates !== 'number' || typeof ing.price !== 'number' || ing.amount <= 0) {
                  throw new Error('Invalid data for ingredient: ' + (ing.name || '[Missing Name]'));
             }
@@ -91,7 +91,7 @@ async function createRecipe(name, ingredients) {
         const finalIngredients = await db.query('SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC', [newRecipeId]);
         const newRecipe = finalResult.rows[0];
         newRecipe.ingredients = finalIngredients.rows;
-        
+
         return newRecipe;
     } catch (error) {
         await client.query('ROLLBACK'); // Rollback transaction on error
@@ -189,7 +189,7 @@ async function deleteRecipe(id) {
         throw new Error('Recipe not found');
     }
 
-    return { 
+    return {
         id: parseInt(id),
         name: result.rows[0].name
     };

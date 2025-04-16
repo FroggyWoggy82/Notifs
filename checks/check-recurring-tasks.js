@@ -1,5 +1,5 @@
 // Script to check the shave and Laundry tasks
-const db = require('./db');
+const db = require('../utils/db');
 
 async function checkRecurringTasks() {
     try {

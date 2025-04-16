@@ -3,7 +3,7 @@
  * Handles data operations for habits
  */
 
-const db = require('../db');
+const db = require('../utils/db');
 
 /**
  * Get today's date in YYYY-MM-DD format using Central Time

@@ -1,5 +1,5 @@
 // Script to check for Clean Airpods task
-const db = require('./db');
+const db = require('../utils/db');
 
 async function checkTask() {
     try {

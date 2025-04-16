@@ -1,6 +1,6 @@
 // routes/workouts.js
 const express = require('express');
-const db = require('../db'); // Assuming db setup is in ../db/index.js or similar
+const db = require('../utils/db');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');

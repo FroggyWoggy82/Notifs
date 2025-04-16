@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../utils/db');
 
 // POST /api/tasks/:id/next-occurrence - Create the next occurrence of a recurring task
 router.post('/:id/next-occurrence', async (req, res) => {

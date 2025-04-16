@@ -1,5 +1,5 @@
 // Script to check the due date of the Clean Airpods task
-const db = require('./db');
+const db = require('../utils/db');
 
 async function checkTaskDate() {
     try {

@@ -1,5 +1,5 @@
 // Script to debug task completion and next occurrence creation
-const db = require('./db');
+const db = require('../utils/db');
 
 async function debugTaskCompletion() {
     try {

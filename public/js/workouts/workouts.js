@@ -3447,12 +3447,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- NEW: File Size Display Function ---
     function displayFileSize(input) {
+        // Use the shared function from custom-form-elements.js if available
+        if (typeof window.displayFileSize === 'function') {
+            window.displayFileSize(input);
+            return;
+        }
+
+        // Fallback implementation if the shared function is not available
         const fileSizeInfo = document.getElementById('file-size-info');
         const fileSizeDisplay = document.getElementById('file-size-display');
+        const fileNameDisplay = document.getElementById('file-name-display');
 
         if (!fileSizeInfo || !fileSizeDisplay) {
             console.error('[Photo Upload] File size display elements not found');
             return;
+        }
+
+        // Update file name display if it exists
+        if (fileNameDisplay) {
+            if (input.files.length === 0) {
+                fileNameDisplay.textContent = 'No file chosen';
+            } else if (input.files.length === 1) {
+                fileNameDisplay.textContent = input.files[0].name;
+            } else {
+                fileNameDisplay.textContent = `${input.files.length} files selected`;
+            }
         }
 
         if (input.files && input.files.length > 0) {
