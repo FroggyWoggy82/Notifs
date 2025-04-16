@@ -571,11 +571,11 @@ textarea {
     background-color: #ffffff; /* White background */
     display: flex;
     justify-content: space-around;
-    padding: 8px 0; /* Adjusted padding */
+    padding: 6px 0 4px 0; /* Reduced padding, especially at bottom */
     box-shadow: 0 -1px 3px rgba(44, 62, 80, 0.1); /* Softer shadow */
     z-index: 1000;
     border-top: 1px solid #dde5eb; /* Subtle top border */
-    height: 60px; /* Fixed height */
+    height: 56px; /* Slightly reduced height */
     box-sizing: border-box; /* Include padding in height */
 }
 
@@ -583,11 +583,13 @@ textarea {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center; /* Center content vertically */
     color: #566573; /* Grey inactive color */
     text-decoration: none;
     font-size: 11px; /* Smaller font */
-    padding: 5px 10px; /* Padding for tap target */
+    padding: 2px 10px 0 10px; /* Reduced top padding, keep text higher */
     transition: color 0.2s ease;
+    height: 100%; /* Take full height of nav bar */
 }
 
 .nav-item.active {
@@ -599,7 +601,18 @@ textarea {
 
 .nav-icon {
     font-size: 22px; /* Slightly smaller icons */
-    margin-bottom: 3px;
+    margin-bottom: 2px; /* Reduced margin to move text up */
+    line-height: 1; /* Ensure proper vertical alignment */
+}
+
+/* Add specific styling for the text in nav items */
+.nav-item span {
+    line-height: 1.2; /* Improve text line height */
+    display: block; /* Ensure proper block display */
+    margin-top: 1px; /* Small top margin */
+    font-size: 10px; /* Slightly smaller font to ensure it fits */
+    max-height: 24px; /* Limit height to ensure it's visible */
+    overflow: visible; /* Allow text to be visible */
 }
 
 /* Add padding to main content to prevent overlap with navigation bar */

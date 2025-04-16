@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveCalorieTargetBtn = document.getElementById('save-calorie-target');
     const currentCalorieTarget = document.getElementById('current-calorie-target');
     const calorieTargetStatus = document.getElementById('calorie-target-status');
-    const quickTargetButtons = document.querySelectorAll('.quick-target-btn');
 
     // Default scale values
     let xAxisScale = 1;
@@ -1198,16 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event listeners for quick target buttons
-    if (quickTargetButtons.length > 0) {
-        quickTargetButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const calories = this.dataset.calories;
-                calorieTargetInput.value = calories;
-                saveCalorieTarget();
-            });
-        });
-    }
+    // Quick target buttons have been removed
 
     // --- Initial Load --- //
     loadWeightGoal(); // Load saved goal

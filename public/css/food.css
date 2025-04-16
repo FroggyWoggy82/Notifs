@@ -69,6 +69,8 @@
     position: relative;
     height: 300px; /* Adjust height as needed */
     width: 100%;
+    margin-bottom: 20px; /* Add space after chart */
+    overflow: visible; /* Allow annotations to be visible outside container */
 }
 
 .chart-controls {
@@ -133,11 +135,14 @@
 }
 /* Calorie Target Section */
 .calorie-target-section {
-    margin-top: 30px;
+    margin-top: 40px; /* Increased margin to create more separation from chart */
     padding: 20px;
     background-color: #f8f9fa;
     border-radius: 6px;
     border: 1px solid #e8eef2;
+    clear: both; /* Ensure it starts below any floating elements */
+    position: relative; /* Establish positioning context */
+    z-index: 1; /* Ensure it's above the chart */
 }
 
 .calorie-target-section h3 {
@@ -204,11 +209,12 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 15px;
+    padding: 12px 20px;
     background-color: #ffffff;
     border-radius: 4px;
     border: 1px solid #e8eef2;
-    min-width: 200px;
+    min-width: 250px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .target-label {
@@ -219,7 +225,8 @@
 .target-value {
     font-weight: bold;
     color: #3498db;
-    font-size: 1.1em;
+    font-size: 1.2em;
+    padding-left: 5px;
 }
 
 .quick-targets {
