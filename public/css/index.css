@@ -14,10 +14,11 @@ body {
     /* Layout */
     /* max-width: 600px; */ /* <<<< REMOVED this line to allow full width */
     margin: 0 auto; /* Still centers content IF a max-width IS applied elsewhere or on a wrapper */
-    padding: 30px 20px 80px 20px; /* Kept padding, adjust as needed */
+    padding: 30px 20px 80px 20px; /* Top, sides, bottom padding with extra space for nav bar */
     text-align: left;
     line-height: 1.6;
     /* overflow-x: hidden; */ /* REMOVED: This was preventing goal page scroll */
+    min-height: 100vh; /* Ensure the body takes up at least the full viewport height */
 }
 
 h1 {
@@ -574,6 +575,8 @@ textarea {
     box-shadow: 0 -1px 3px rgba(44, 62, 80, 0.1); /* Softer shadow */
     z-index: 1000;
     border-top: 1px solid #dde5eb; /* Subtle top border */
+    height: 60px; /* Fixed height */
+    box-sizing: border-box; /* Include padding in height */
 }
 
 .nav-item {

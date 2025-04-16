@@ -15,7 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const weightGoalChartCanvas = document.getElementById('weight-goal-chart');
     const weightChartMessage = document.getElementById('weight-chart-message');
     const userSelector = document.getElementById('user-selector');
+    const resetScaleButton = document.getElementById('reset-scale-button');
+    const xAxisScaleSlider = document.getElementById('x-axis-scale');
+    const yAxisScaleSlider = document.getElementById('y-axis-scale');
+    const xScaleValue = document.getElementById('x-scale-value');
+    const yScaleValue = document.getElementById('y-scale-value');
     let weightGoalChart = null; // To hold the Chart.js instance
+
+    // Calorie Target Elements
+    const calorieUserSelector = document.getElementById('calorie-user-selector');
+    const calorieTargetInput = document.getElementById('calorie-target');
+    const saveCalorieTargetBtn = document.getElementById('save-calorie-target');
+    const currentCalorieTarget = document.getElementById('current-calorie-target');
+    const calorieTargetStatus = document.getElementById('calorie-target-status');
+    const quickTargetButtons = document.querySelectorAll('.quick-target-btn');
+
+    // Default scale values
+    let xAxisScale = 1;
+    let yAxisScale = 1;
 
     // Load saved user preference from localStorage or default to 1
     let currentUserId = localStorage.getItem('weightUserPreference') || 1;
@@ -253,6 +270,34 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ensure logs are sorted by date (API should do this, but double-check)
             weightLogs.sort((a, b) => new Date(a.log_date) - new Date(b.log_date));
 
+            // Get today's date for the current day indicator
+            const today = new Date();
+            const todayFormatted = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+            // Check if today's date is already in the logs
+            const todayInLogs = weightLogs.some(log => log.log_date === todayFormatted);
+
+            // If today's date is not in the logs, add it to the logs array
+            if (!todayInLogs) {
+                // Find where to insert today's date (in chronological order)
+                let insertIndex = weightLogs.length; // Default to end of array
+                for (let i = 0; i < weightLogs.length; i++) {
+                    if (new Date(weightLogs[i].log_date) > today) {
+                        insertIndex = i;
+                        break;
+                    }
+                }
+
+                // Insert today's date at the appropriate position
+                weightLogs.splice(insertIndex, 0, {
+                    log_id: null,
+                    log_date: todayFormatted,
+                    weight: null // No weight data for today yet
+                });
+
+                console.log(`Added today's date (${todayFormatted}) to the chart at position ${insertIndex}`);
+            }
+
             const histLabels = weightLogs.map(log => new Date(log.log_date + 'T00:00:00Z').toLocaleDateString()); // Use UTC date for consistency
             const actualWeightData = weightLogs.map(log => log.weight);
 
@@ -329,7 +374,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // --- End Target Line Calculation ---
 
-            renderWeightChart(labels, paddedActualWeightData, targetWeightLine);
+            // Pass the target weight value to the renderWeightChart function
+            renderWeightChart(labels, paddedActualWeightData, targetWeightLine, parseFloat(goalData.target_weight));
             weightChartMessage.style.display = 'none'; // Hide message
             weightGoalChartCanvas.style.display = 'block'; // Show canvas
 
@@ -343,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderWeightChart(labels, actualData, targetData) {
+    function renderWeightChart(labels, actualData, targetData, targetWeight) {
         if (!weightGoalChartCanvas) return;
         const ctx = weightGoalChartCanvas.getContext('2d');
 
@@ -356,9 +402,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 label: 'Actual Weight (lbs)',
                 data: actualData,
                 borderColor: '#3498db', // Blue
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                tension: 0.1,
-                fill: false
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#3498db',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointHoverBackgroundColor: '#3498db',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
             }
         ];
 
@@ -369,10 +424,180 @@ document.addEventListener('DOMContentLoaded', () => {
                  data: targetData,
                  borderColor: '#e74c3c', // Red
                  borderDash: [5, 5], // Dashed line
-                 tension: 0.1,
+                 borderWidth: 2,
+                 tension: 0.3,
                  fill: false,
-                 pointRadius: 0 // Hide points on target line
+                 pointRadius: 0, // Hide points on target line
+                 pointHoverRadius: 0 // No hover effect on target line
              });
+        }
+
+        // Find today's date in the labels array
+        const today = new Date();
+        const todayFormatted = today.toLocaleDateString();
+
+        console.log('Today formatted:', todayFormatted);
+        console.log('Available labels:', labels);
+
+        // Try different date formats to find today in the labels
+        let todayIndex = -1;
+
+        // Method 1: Direct match
+        todayIndex = labels.findIndex(label => label === todayFormatted);
+
+        // Method 2: Try MM/DD/YYYY format
+        if (todayIndex === -1) {
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const year = today.getFullYear();
+            const altFormat = `${month}/${day}/${year}`;
+            todayIndex = labels.findIndex(label => label === altFormat);
+            console.log('Trying alternate format:', altFormat);
+        }
+
+        // Method 3: If still not found, find the closest date
+        if (todayIndex === -1) {
+            const todayTime = today.getTime();
+            let closestDiff = Infinity;
+
+            labels.forEach((label, index) => {
+                try {
+                    // Try to parse the date
+                    let labelDate;
+                    if (label.includes('/')) {
+                        const parts = label.split('/');
+                        if (parts.length === 3) {
+                            // MM/DD/YYYY format
+                            labelDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                        }
+                    } else {
+                        labelDate = new Date(label);
+                    }
+
+                    if (!isNaN(labelDate.getTime())) {
+                        const diff = Math.abs(labelDate.getTime() - todayTime);
+                        if (diff < closestDiff) {
+                            closestDiff = diff;
+                            todayIndex = index;
+                        }
+                    }
+                } catch (e) {
+                    // Skip invalid dates
+                }
+            });
+
+            console.log('Found closest date at index:', todayIndex);
+        }
+
+        // Create annotations for current day indicator and target weight
+        const annotations = {};
+
+        // 1. Today's date indicator
+        if (todayIndex !== -1) {
+            // Today's date is in our chart labels
+            annotations.todayLine = {
+                type: 'line',
+                xMin: todayIndex,
+                xMax: todayIndex,
+                borderColor: '#2ecc71', // Green color for today's line
+                borderWidth: 3,
+                borderDash: [6, 6],
+                label: {
+                    display: true,
+                    content: 'TODAY',
+                    position: 'start',
+                    backgroundColor: '#2ecc71',
+                    color: '#fff',
+                    font: {
+                        weight: 'bold',
+                        size: 14
+                    },
+                    padding: 6
+                }
+            };
+
+            console.log(`Today indicator added at index ${todayIndex} (${labels[todayIndex]})`);
+        } else {
+            // If we still can't find today, add indicator at the last actual data point
+            let lastDataIndex = -1;
+            for (let i = actualData.length - 1; i >= 0; i--) {
+                if (actualData[i] !== null) {
+                    lastDataIndex = i;
+                    break;
+                }
+            }
+
+            if (lastDataIndex !== -1) {
+                annotations.todayLine = {
+                    type: 'line',
+                    xMin: lastDataIndex,
+                    xMax: lastDataIndex,
+                    borderColor: '#2ecc71', // Green color for today's line
+                    borderWidth: 3,
+                    borderDash: [6, 6],
+                    label: {
+                        display: true,
+                        content: 'TODAY (approx)',
+                        position: 'start',
+                        backgroundColor: '#2ecc71',
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        },
+                        padding: 6
+                    }
+                };
+
+                console.log(`Today indicator added at last data point: ${lastDataIndex}`);
+            } else {
+                console.log('Could not find a suitable position for today indicator');
+            }
+        }
+
+        // 2. Target weight indicator - horizontal line across the chart
+        if (targetData && targetData.length > 0 && targetWeight) {
+            // Make sure targetWeight is a number
+            let targetWeightValue = parseFloat(targetWeight);
+
+            if (!isNaN(targetWeightValue)) {
+                annotations.targetWeightLine = {
+                    type: 'line',
+                    yMin: targetWeightValue,
+                    yMax: targetWeightValue,
+                    borderColor: '#9b59b6', // Purple color for target weight
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    label: {
+                        display: true,
+                        content: `TARGET: ${targetWeightValue.toFixed(2)} lbs`,
+                        position: 'end',
+                        backgroundColor: '#9b59b6',
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        },
+                        padding: 6
+                    }
+                };
+
+                // 3. Add a box highlight around the target weight area
+                const buffer = 3; // Buffer zone of 3 pounds around target
+                annotations.targetZone = {
+                    type: 'box',
+                    yMin: targetWeightValue - buffer,
+                    yMax: targetWeightValue + buffer,
+                    backgroundColor: 'rgba(155, 89, 182, 0.1)', // Light purple background
+                    borderColor: 'rgba(155, 89, 182, 0.3)',
+                    borderWidth: 1,
+                    drawTime: 'beforeDatasetsDraw' // Draw behind the data
+                };
+
+                console.log(`Target weight indicator added at ${targetWeightValue} lbs`);
+            } else {
+                console.log('Could not parse target weight value');
+            }
         }
 
         weightGoalChart = new Chart(ctx, {
@@ -384,25 +609,141 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 scales: {
                     y: {
                         beginAtZero: false, // Don't force y-axis to start at 0 for weight
                         title: {
                             display: true,
-                            text: 'Weight (lbs)'
+                            text: 'Weight (lbs)',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(200, 200, 200, 0.2)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            callback: function(value) {
+                                // Round to 2 decimal places for y-axis labels
+                                return parseFloat(value).toFixed(2) + ' lbs';
+                            }
+                        },
+                        // Apply the y-axis scale factor
+                        min: function(scale) {
+                            const originalMin = scale.min;
+                            const originalMax = scale.max;
+                            const range = originalMax - originalMin;
+                            const center = (originalMin + originalMax) / 2;
+                            const newRange = range / yAxisScale;
+                            return center - (newRange / 2);
+                        },
+                        max: function(scale) {
+                            const originalMin = scale.min;
+                            const originalMax = scale.max;
+                            const range = originalMax - originalMin;
+                            const center = (originalMin + originalMax) / 2;
+                            const newRange = range / yAxisScale;
+                            return center + (newRange / 2);
                         }
                     },
                     x: {
                         title: {
                             display: true,
-                            text: 'Date'
+                            text: 'Date',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(200, 200, 200, 0.2)'
+                        },
+                        // Apply the x-axis scale factor by controlling how many ticks/labels are shown
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: {
+                                size: 11
+                            },
+                            // Control the number of ticks based on the scale factor
+                            // Lower xAxisScale = more ticks (compressed view showing more dates)
+                            // Higher xAxisScale = fewer ticks (expanded view showing fewer dates)
+                            maxTicksLimit: function() {
+                                // Base number of ticks adjusted by the scale factor
+                                // Inverse relationship: higher scale = fewer ticks
+                                return Math.max(5, Math.round(20 / xAxisScale));
+                            }
                         }
                     }
                 },
                 plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                size: 14
+                            },
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
                     tooltip: {
                         mode: 'index',
                         intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        titleFont: {
+                            size: 14
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        padding: 10,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                // Format the date in the tooltip title
+                                if (tooltipItems.length > 0) {
+                                    const label = tooltipItems[0].label;
+                                    try {
+                                        // Try to parse and format the date
+                                        const date = new Date(label);
+                                        if (!isNaN(date.getTime())) {
+                                            // Format as Month Day, Year (e.g., April 4, 2025)
+                                            return date.toLocaleDateString('en-US', {
+                                                month: 'long',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            });
+                                        }
+                                    } catch (e) {
+                                        // If parsing fails, return the original label
+                                    }
+                                    return label;
+                                }
+                                return '';
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    // Round to 2 decimal places (nearest hundredth)
+                                    const roundedValue = parseFloat(context.parsed.y).toFixed(2);
+                                    label += roundedValue + ' lbs';
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    annotation: {
+                        annotations: annotations
                     }
                 }
             }
@@ -726,8 +1067,151 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Could not find user selector element (#user-selector) to attach listener.");
     }
 
+    // --- Add Event Listeners for Axis Scale Controls --- //
+
+    // X-Axis Scale Slider
+    if (xAxisScaleSlider) {
+        xAxisScaleSlider.addEventListener('input', function() {
+            xAxisScale = parseFloat(this.value);
+            xScaleValue.textContent = xAxisScale.toFixed(1) + 'x';
+            if (weightGoalChart) {
+                weightGoalChart.update();
+            }
+        });
+    } else {
+        console.error("Could not find x-axis scale slider element (#x-axis-scale) to attach listener.");
+    }
+
+    // Y-Axis Scale Slider
+    if (yAxisScaleSlider) {
+        yAxisScaleSlider.addEventListener('input', function() {
+            yAxisScale = parseFloat(this.value);
+            yScaleValue.textContent = yAxisScale.toFixed(1) + 'x';
+            if (weightGoalChart) {
+                weightGoalChart.update();
+            }
+        });
+    } else {
+        console.error("Could not find y-axis scale slider element (#y-axis-scale) to attach listener.");
+    }
+
+    // Reset Scale Button
+    if (resetScaleButton) {
+        resetScaleButton.addEventListener('click', function() {
+            // Reset both sliders to default value (1)
+            xAxisScaleSlider.value = 1;
+            yAxisScaleSlider.value = 1;
+            xAxisScale = 1;
+            yAxisScale = 1;
+            xScaleValue.textContent = '1.0x';
+            yScaleValue.textContent = '1.0x';
+
+            if (weightGoalChart) {
+                weightGoalChart.update();
+            }
+        });
+    } else {
+        console.error("Could not find reset scale button element (#reset-scale-button) to attach listener.");
+    }
+
+    // --- Calorie Target Functions --- //
+
+    // Save calorie target for the selected user
+    async function saveCalorieTarget() {
+        const userId = calorieUserSelector.value;
+        const calorieTarget = parseInt(calorieTargetInput.value);
+
+        if (isNaN(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
+            showStatus(calorieTargetStatus, 'Please enter a valid calorie target between 500 and 10000.', 'error');
+            return;
+        }
+
+        showStatus(calorieTargetStatus, 'Saving calorie target...', 'info');
+
+        try {
+            const response = await fetch('/api/calorie-targets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    daily_target: calorieTarget
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            showStatus(calorieTargetStatus, 'Calorie target saved successfully!', 'success');
+
+            // Update the displayed current target
+            loadCalorieTarget(userId);
+
+            // Clear the input
+            calorieTargetInput.value = '';
+
+        } catch (error) {
+            console.error('Error saving calorie target:', error);
+            showStatus(calorieTargetStatus, `Error saving calorie target: ${error.message}`, 'error');
+        }
+    }
+
+    // Load calorie target for the specified user
+    async function loadCalorieTarget(userId) {
+        try {
+            const response = await fetch(`/api/calorie-targets/${userId}`);
+
+            if (response.status === 404) {
+                // No target set for this user
+                currentCalorieTarget.textContent = 'Not set';
+                return;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            currentCalorieTarget.textContent = `${data.daily_target} calories`;
+
+        } catch (error) {
+            console.error('Error loading calorie target:', error);
+            currentCalorieTarget.textContent = 'Error loading';
+        }
+    }
+
+    // Event listener for the save calorie target button
+    if (saveCalorieTargetBtn) {
+        saveCalorieTargetBtn.addEventListener('click', saveCalorieTarget);
+    }
+
+    // Event listener for the calorie user selector
+    if (calorieUserSelector) {
+        calorieUserSelector.addEventListener('change', function() {
+            const userId = this.value;
+            loadCalorieTarget(userId);
+        });
+    }
+
+    // Event listeners for quick target buttons
+    if (quickTargetButtons.length > 0) {
+        quickTargetButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const calories = this.dataset.calories;
+                calorieTargetInput.value = calories;
+                saveCalorieTarget();
+            });
+        });
+    }
+
     // --- Initial Load --- //
     loadWeightGoal(); // Load saved goal
     loadAndRenderWeightChart(); // Attempt to load chart data
     loadRecipes();
+    loadCalorieTarget(calorieUserSelector.value); // Load calorie target for the default user
 });
