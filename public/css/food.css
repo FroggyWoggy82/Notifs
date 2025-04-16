@@ -58,10 +58,31 @@
     width: 100%;
 }
 
-#weight-goal-form button {
-    margin-top: 10px; /* Space between inputs and button */
-    align-self: center;
-    width: 200px;
+.weekly-goal-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.weekly-goal-container input {
+    flex: 1;
+}
+
+.save-goal-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.save-goal-btn:hover {
+    background-color: #2980b9;
 }
 
 .chart-container {

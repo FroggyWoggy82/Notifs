@@ -106,7 +106,109 @@ class WeightLog {
     }
 }
 
+/**
+ * Calorie Target Model
+ * Handles database operations for calorie targets
+ */
+class CalorieTarget {
+    /**
+     * Get the calorie target for a user
+     * @param {number} userId - The user ID
+     * @returns {Promise<Object|null>} The calorie target object or null if not found
+     */
+    static async getTarget(userId) {
+        try {
+            // Check if the calorie_targets table exists
+            const tableCheck = await db.query(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'calorie_targets')"
+            );
+
+            if (!tableCheck.rows[0].exists) {
+                // Create the table if it doesn't exist
+                await db.query(`
+                    CREATE TABLE calorie_targets (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        daily_target INTEGER NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                `);
+                return null; // No targets yet since table was just created
+            }
+
+            const result = await db.query(
+                'SELECT user_id, daily_target FROM calorie_targets WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
+                [userId]
+            );
+
+            if (result.rows.length > 0) {
+                return {
+                    user_id: parseInt(result.rows[0].user_id),
+                    daily_target: parseInt(result.rows[0].daily_target)
+                };
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.error('Error in getTarget:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Save a calorie target for a user
+     * @param {number} userId - The user ID
+     * @param {number} dailyTarget - The daily calorie target
+     * @returns {Promise<Object>} The saved calorie target
+     */
+    static async saveTarget(userId, dailyTarget) {
+        try {
+            // Check if the calorie_targets table exists
+            const tableCheck = await db.query(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'calorie_targets')"
+            );
+
+            if (!tableCheck.rows[0].exists) {
+                // Create the table if it doesn't exist
+                await db.query(`
+                    CREATE TABLE calorie_targets (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        daily_target INTEGER NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                `);
+            }
+
+            await db.query('BEGIN');
+
+            // Delete existing targets for this user
+            await db.query('DELETE FROM calorie_targets WHERE user_id = $1', [userId]);
+
+            // Insert new target
+            const result = await db.query(
+                'INSERT INTO calorie_targets (user_id, daily_target, updated_at) VALUES ($1, $2, CURRENT_TIMESTAMP) RETURNING user_id, daily_target',
+                [userId, dailyTarget]
+            );
+
+            await db.query('COMMIT');
+
+            return {
+                user_id: parseInt(result.rows[0].user_id),
+                daily_target: parseInt(result.rows[0].daily_target)
+            };
+        } catch (error) {
+            await db.query('ROLLBACK');
+            console.error('Error in saveTarget:', error);
+            throw error;
+        }
+    }
+}
+
 module.exports = {
     WeightGoal,
-    WeightLog
+    WeightLog,
+    CalorieTarget
 };

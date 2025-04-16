@@ -3872,12 +3872,25 @@ document.addEventListener('DOMContentLoaded', function() {
             progressPhotosData.forEach((photo, index) => {
                 // Add Image to Reel
                 const img = document.createElement('img');
-                // img.src = photo.file_path; // <<< CHANGE THIS
-                img.dataset.src = photo.file_path; // <<< TO THIS
-                img.src = ''; // <<< ADD THIS (Set src initially empty)
+                // Store the path in data-src for reference
+                img.dataset.src = photo.file_path;
+                // Set placeholder initially
+                img.src = PhotoLoader.placeholderImage;
                 img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
-                img.dataset.photoId = photo.photo_id; // Store ID if needed
-                img.loading = 'lazy'; // Add native lazy loading attribute as well
+                img.dataset.photoId = photo.photo_id; // Store ID for reference
+                img.loading = 'lazy'; // Add native lazy loading attribute
+
+                // Load the first image immediately
+                if (index === 0) {
+                    PhotoLoader.loadImage(
+                        photo.file_path,
+                        img,
+                        photo.photo_id,
+                        () => console.log(`[Photo Load] Successfully loaded first image (ID: ${photo.photo_id})`),
+                        (error) => console.error(`[Photo Load] Failed to load first image: ${error}`)
+                    );
+                }
+
                 photoReel.appendChild(img);
 
                 // Add Dot to Pagination
@@ -3970,17 +3983,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
         console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
 
-        // --- NEW: Find the specific image element and set its src for lazy loading ---
+        // --- Use PhotoLoader to load the current image and preload adjacent images ---
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
-            // Only set src if it's not already set or differs from data-src
-            if (currentImageElement.src !== currentImageElement.dataset.src) {
-                console.log(`[Photo Display DEBUG] Setting src for index ${currentPhotoIndex} from data-src: ${currentImageElement.dataset.src}`);
-                currentImageElement.src = currentImageElement.dataset.src;
-            }
+            const currentPhoto = progressPhotosData[currentPhotoIndex];
+
+            // Load the current image using PhotoLoader
+            PhotoLoader.loadImage(
+                currentPhoto.file_path,
+                currentImageElement,
+                currentPhoto.photo_id,
+                () => console.log(`[Photo Display] Successfully loaded current image (ID: ${currentPhoto.photo_id})`),
+                (error) => console.error(`[Photo Display] Failed to load current image: ${error}`)
+            );
+
+            // Preload adjacent images (one before and one after)
+            const preloadIndices = [
+                (currentPhotoIndex - 1 + imageElements.length) % imageElements.length, // Previous
+                (currentPhotoIndex + 1) % imageElements.length                       // Next
+            ];
+
+            preloadIndices.forEach(index => {
+                if (index !== currentPhotoIndex && index >= 0 && index < progressPhotosData.length) {
+                    const img = imageElements[index];
+                    const photo = progressPhotosData[index];
+
+                    if (img && photo) {
+                        // Preload using PhotoLoader but with lower priority
+                        setTimeout(() => {
+                            PhotoLoader.loadImage(
+                                photo.file_path,
+                                img,
+                                photo.photo_id,
+                                () => console.log(`[Photo Display] Successfully preloaded image at index ${index} (ID: ${photo.photo_id})`),
+                                (error) => console.log(`[Photo Display] Non-critical: Failed to preload image at index ${index}: ${error}`)
+                            );
+                        }, 100); // Small delay to prioritize current image
+                    }
+                }
+            });
         } else {
-            console.warn(`[Photo Display DEBUG] Could not find image element for index ${currentPhotoIndex}`);
+            console.warn(`[Photo Display] Could not find image element for index ${currentPhotoIndex}`);
         }
         // --- END NEW ---
 
@@ -4167,11 +4211,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const photo1 = selectedId1 ? progressPhotosData.find(p => p.photo_id == selectedId1) : null;
         const photo2 = selectedId2 ? progressPhotosData.find(p => p.photo_id == selectedId2) : null;
 
-        comparisonImage1.src = photo1 ? photo1.file_path : '';
+        // Set alt text first
         comparisonImage1.alt = photo1 ? `Comparison Photo 1: ${new Date(photo1.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 1';
-
-        comparisonImage2.src = photo2 ? photo2.file_path : '';
         comparisonImage2.alt = photo2 ? `Comparison Photo 2: ${new Date(photo2.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 2';
+
+        // Set placeholder images initially
+        if (!photo1) comparisonImage1.src = '';
+        if (!photo2) comparisonImage2.src = '';
+
+        // Load images using PhotoLoader if available
+        if (photo1) {
+            PhotoLoader.loadImage(
+                photo1.file_path,
+                comparisonImage1,
+                photo1.photo_id,
+                () => console.log(`[Comparison] Successfully loaded comparison image 1 (ID: ${photo1.photo_id})`),
+                (error) => console.error(`[Comparison] Failed to load comparison image 1: ${error}`)
+            );
+        }
+
+        if (photo2) {
+            PhotoLoader.loadImage(
+                photo2.file_path,
+                comparisonImage2,
+                photo2.photo_id,
+                () => console.log(`[Comparison] Successfully loaded comparison image 2 (ID: ${photo2.photo_id})`),
+                (error) => console.error(`[Comparison] Failed to load comparison image 2: ${error}`)
+            );
+        }
     }
 
     // Set up toggle button for exercise history

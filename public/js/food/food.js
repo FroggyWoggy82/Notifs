@@ -636,21 +636,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         },
                         // Apply the y-axis scale factor
-                        min: function(scale) {
-                            const originalMin = scale.min;
-                            const originalMax = scale.max;
-                            const range = originalMax - originalMin;
-                            const center = (originalMin + originalMax) / 2;
-                            const newRange = range / yAxisScale;
-                            return center - (newRange / 2);
+                        min: function(context) {
+                            // Get the auto-calculated min value
+                            const original = context.chart.scales.y.min;
+                            // Calculate a new min based on the scale factor
+                            const buffer = (context.chart.scales.y.max - original) * (1 - yAxisScale) / 2;
+                            return original - buffer;
                         },
-                        max: function(scale) {
-                            const originalMin = scale.min;
-                            const originalMax = scale.max;
-                            const range = originalMax - originalMin;
-                            const center = (originalMin + originalMax) / 2;
-                            const newRange = range / yAxisScale;
-                            return center + (newRange / 2);
+                        max: function(context) {
+                            // Get the auto-calculated max value
+                            const original = context.chart.scales.y.max;
+                            // Calculate a new max based on the scale factor
+                            const buffer = (original - context.chart.scales.y.min) * (1 - yAxisScale) / 2;
+                            return original + buffer;
                         }
                     },
                     x: {
@@ -675,6 +673,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Control the number of ticks based on the scale factor
                             // Lower xAxisScale = more ticks (compressed view showing more dates)
                             // Higher xAxisScale = fewer ticks (expanded view showing fewer dates)
+                            autoSkip: true,
+                            autoSkipPadding: 10,
                             maxTicksLimit: function() {
                                 // Base number of ticks adjusted by the scale factor
                                 // Inverse relationship: higher scale = fewer ticks

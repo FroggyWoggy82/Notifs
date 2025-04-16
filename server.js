@@ -78,6 +78,17 @@ app.use((req, res, next) => {
     next();
 });
 
+// Serve static files with special handling for progress photos
+// Disable caching for progress photos to prevent stale images
+app.use('/uploads/progress_photos', (req, res, next) => {
+    // Disable caching for progress photos
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 

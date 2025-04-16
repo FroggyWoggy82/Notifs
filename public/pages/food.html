@@ -66,11 +66,13 @@
                     </div>
                     <div class="form-group form-group-half">
                         <label for="weeklyGainGoal">Weekly Goal (lbs):</label>
-                        <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
+                        <div class="weekly-goal-container">
+                            <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
+                            <button type="submit" class="save-goal-btn">Save Goal</button>
+                        </div>
                         <small>Use positive values for gain, negative for loss</small>
                     </div>
                 </div>
-                <button type="submit">Save Goal</button>
             </div>
         </form>
         <div id="weight-goal-status" class="status"></div>
@@ -190,14 +192,19 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script> <!-- Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js"></script> <!-- Chart.js Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2/dist/chartjs-plugin-annotation.min.js"></script> <!-- Chart.js Annotation Plugin -->
     <script>
         // Register the annotation plugin
-        // The plugin exports itself as window.ChartAnnotation
-        if (window.ChartAnnotation) {
-            Chart.register(window.ChartAnnotation);
-        } else {
-            console.error('ChartAnnotation plugin not found');
+        try {
+            // The plugin exports itself to window.ChartAnnotation in this version
+            if (window.ChartAnnotation) {
+                Chart.register(window.ChartAnnotation);
+                console.log('ChartAnnotation plugin registered successfully');
+            } else {
+                console.error('ChartAnnotation plugin not found in window object');
+            }
+        } catch (error) {
+            console.error('Error registering ChartAnnotation plugin:', error);
         }
     </script>
 
