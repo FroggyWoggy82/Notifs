@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Calorie Target API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Calorie Target API</h1>
+    
+    <div class="form-group">
+        <label for="user-id">User ID:</label>
+        <input type="number" id="user-id" value="1">
+    </div>
+    
+    <div class="form-group">
+        <label for="calorie-target">Daily Calorie Target:</label>
+        <input type="number" id="calorie-target" value="2000">
+    </div>
+    
+    <button id="save-btn">Save Calorie Target</button>
+    <button id="get-btn">Get Calorie Target</button>
+    
+    <div id="status"></div>
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('save-btn').addEventListener('click', async function() {
+            const userId = document.getElementById('user-id').value;
+            const calorieTarget = document.getElementById('calorie-target').value;
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            statusDiv.textContent = 'Saving calorie target...';
+            statusDiv.className = '';
+            
+            try {
+                const response = await fetch('/api/weight/calorie-targets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        daily_target: calorieTarget
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.textContent = 'Calorie target saved successfully!';
+                    statusDiv.className = 'success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.textContent = `Error: ${data.error || 'Unknown error'}`;
+                    statusDiv.className = 'error';
+                }
+            } catch (error) {
+                statusDiv.textContent = `Error: ${error.message}`;
+                statusDiv.className = 'error';
+            }
+        });
+        
+        document.getElementById('get-btn').addEventListener('click', async function() {
+            const userId = document.getElementById('user-id').value;
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            statusDiv.textContent = 'Getting calorie target...';
+            statusDiv.className = '';
+            
+            try {
+                const response = await fetch(`/api/weight/calorie-targets/${userId}`);
+                
+                if (response.status === 404) {
+                    statusDiv.textContent = 'No calorie target found for this user.';
+                    statusDiv.className = 'error';
+                    resultDiv.textContent = '';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.textContent = 'Calorie target retrieved successfully!';
+                    statusDiv.className = 'success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.textContent = `Error: ${data.error || 'Unknown error'}`;
+                    statusDiv.className = 'error';
+                }
+            } catch (error) {
+                statusDiv.textContent = `Error: ${error.message}`;
+                statusDiv.className = 'error';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -17,14 +17,22 @@ const poolConfig = connectionString ?
         // Always enable SSL for Railway PostgreSQL connections
         ssl: {
             rejectUnauthorized: false
-        }
+        },
+        // Add connection timeout to prevent hanging
+        connectionTimeoutMillis: 10000, // 10 seconds
+        idleTimeoutMillis: 30000, // 30 seconds
+        max: 10 // Maximum number of clients in the pool
     } :
     {
         host: process.env.DB_HOST || 'localhost',
         port: process.env.DB_PORT || 5432,
         database: process.env.DB_NAME || 'notifs',
         user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres'
+        password: process.env.DB_PASSWORD || 'postgres',
+        // Add connection timeout to prevent hanging
+        connectionTimeoutMillis: 10000, // 10 seconds
+        idleTimeoutMillis: 30000, // 30 seconds
+        max: 10 // Maximum number of clients in the pool
     };
 
 console.log('Database connection config:', {
@@ -46,19 +54,41 @@ pool.on('error', (err) => {
     // process.exit(-1);
 });
 
-// Test the database connection
-pool.query('SELECT NOW()')
-    .then(res => {
+// Test the database connection with a timeout
+const testDbConnection = async () => {
+    try {
+        // Set a timeout for the query
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database connection test timed out after 10 seconds')), 10000);
+        });
+
+        // Run the query
+        const queryPromise = pool.query('SELECT NOW()');
+
+        // Race the query against the timeout
+        const res = await Promise.race([queryPromise, timeoutPromise]);
         console.log('Database connection test successful:', res.rows[0]);
-    })
-    .catch(err => {
+        return true;
+    } catch (err) {
         console.error('Database connection test failed:', err);
-    });
+        return false;
+    }
+};
+
+// Run the test
+testDbConnection();
 
 module.exports = {
     query: (text, params) => {
         console.log(`Executing query: ${text}`, params);
-        return pool.query(text, params)
+
+        // Create a promise that will reject after 30 seconds
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Query timed out after 30 seconds')), 30000);
+        });
+
+        // Create the query promise
+        const queryPromise = pool.query(text, params)
             .then(res => {
                 console.log(`Query completed successfully with ${res.rowCount} rows`);
                 if (text.includes('INSERT') && res.rows && res.rows.length > 0) {
@@ -72,6 +102,9 @@ module.exports = {
                 console.error('Parameters:', params);
                 throw err;
             });
+
+        // Race the query against the timeout
+        return Promise.race([queryPromise, timeoutPromise]);
     },
 
     // Get a client from the pool for transactions

@@ -21,10 +21,11 @@ const mobileUploadRoutes = require('./routes/mobile-upload'); // NEW: Mobile-spe
 const basicUploadRoutes = require('./routes/basic-upload'); // NEW: Ultra-basic photo upload route
 const habitRoutes = require('./routes/habitRoutesSimple'); // Using extremely simplified route handler
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
-const weightRoutes = require('./routes/weight'); // Using old pattern file name for compatibility
+const weightRoutes = require('./routes/weight'); // Main weight routes file
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
+const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for calorie targets
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -105,6 +106,7 @@ app.use('/api/weight', weightRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);
+app.use('/api/calorie-targets', calorieTargetRoutes);
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
@@ -135,17 +137,15 @@ NotificationModel.setupDailyCheck(cron.schedule);
 // Initialize task reminder service
 const TaskReminderService = require('./models/taskReminderService');
 
-// Schedule task reminders daily at 1:00 AM
+// Schedule task reminders daily at 1:00 AM (silently)
 cron.schedule('0 1 * * *', async () => {
-  console.log('Scheduling task reminders');
   await TaskReminderService.scheduleAllTaskReminders();
 }, {
   timezone: 'America/Chicago' // Central Time
 });
 
-// Setup habit reset at 11:59 PM Central Time
+// Setup habit reset at 11:59 PM Central Time (silently)
 cron.schedule('59 23 * * *', () => {
-  console.log('Running habit reset at 11:59 PM Central Time');
   // This cron job runs in the America/Chicago timezone by default
   // The actual reset happens client-side when users load the page after this time
 }, {
@@ -189,44 +189,88 @@ app.get('*', (_req, res) => {
 
 // Initialize database and start the server
 const initializeAndStart = async () => {
+  // Check if offline mode is enabled
+  const offlineMode = process.env.OFFLINE_MODE === 'true';
+
+  if (offlineMode) {
+    console.log('OFFLINE MODE ENABLED: Skipping database connection test');
+    startServer(false);
+    return;
+  }
+
   try {
     // Test database connection before starting the server
     console.log('Testing database connection...');
-    const result = await db.query('SELECT NOW()');
-    console.log('Database connection successful:', result.rows[0]);
 
-    // Check sharp features before starting the server
-    console.log('--- Sharp Feature Check ---');
-    console.log('Sharp Version:', sharp.versions.sharp);
-    console.log('Libvips Version:', sharp.versions.vips);
-    console.log('Formats:', sharp.format);
-    console.log('HEIF Support (via libvips):', sharp.format.heif ? 'Available' : 'NOT Available');
-    console.log('--- End Sharp Feature Check ---');
-
-    // Start the server with increased timeout
-    const server = app.listen(PORT, async () => {
-      console.log(`Server running on port ${PORT}`);
-
-      // Schedule all task reminders on server start
-      console.log('Scheduling all task reminders on server start');
-      await TaskReminderService.scheduleAllTaskReminders();
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database connection test timed out after 10 seconds')), 10000);
     });
 
-    // Set timeout to 5 minutes (300000 ms) for large uploads
-    server.timeout = 300000; // 5 minutes
-    console.log(`Server timeout set to ${server.timeout}ms (${server.timeout/60000} minutes)`);
+    // Create the query promise
+    const queryPromise = db.query('SELECT NOW()');
+
+    // Race the query against the timeout
+    const result = await Promise.race([queryPromise, timeoutPromise]);
+    console.log('Database connection successful:', result.rows[0]);
+
+    // Start the server with database connection
+    startServer(true);
   } catch (error) {
     console.error('Failed to connect to database:', error);
     console.log('Server will start anyway, but database features may not work');
 
-    // Start the server even if database connection fails
-    const server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT} (database connection failed)`);
+    // Start the server without database connection
+    startServer(false);
+  }
+};
+
+// Function to start the server
+const startServer = async (dbConnected) => {
+  // Check sharp features before starting the server
+  console.log('--- Sharp Feature Check ---');
+  console.log('Sharp Version:', sharp.versions.sharp);
+  console.log('Libvips Version:', sharp.versions.vips);
+  console.log('Formats:', sharp.format);
+  console.log('HEIF Support (via libvips):', sharp.format.heif ? 'Available' : 'NOT Available');
+  console.log('--- End Sharp Feature Check ---');
+
+  // Start the server with increased timeout and handle port conflicts
+  try {
+    const server = app.listen(PORT, async () => {
+      console.log(`Server running on port ${PORT}${!dbConnected ? ' (database connection failed)' : ''}`);
+
+      // Schedule all task reminders on server start (silently) if database is connected
+      if (dbConnected) {
+        try {
+          await TaskReminderService.scheduleAllTaskReminders();
+        } catch (err) {
+          console.error('Failed to schedule task reminders:', err);
+        }
+      }
     });
 
     // Set timeout to 5 minutes (300000 ms) for large uploads
     server.timeout = 300000; // 5 minutes
     console.log(`Server timeout set to ${server.timeout}ms (${server.timeout/60000} minutes)`);
+
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Please close the application using this port or use a different port.`);
+        console.error(`You can run 'node kill-server.js' to attempt to kill the process using port ${PORT}.`);
+        process.exit(1);
+      } else {
+        console.error(`Server error: ${error.message}`);
+      }
+    });
+  } catch (error) {
+    console.error(`Failed to start server: ${error.message}`);
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use. Please close the application using this port or use a different port.`);
+      console.error(`You can run 'node kill-server.js' to attempt to kill the process using port ${PORT}.`);
+    }
+    process.exit(1);
   }
 };
 

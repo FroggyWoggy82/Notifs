@@ -97,6 +97,9 @@
             <p id="weight-chart-message" style="text-align: center;">Weight data needed to display graph.</p>
         </div>
 
+        <!-- Visual separator -->
+        <div class="section-separator"></div>
+
         <!-- Calorie Target Section -->
         <div class="calorie-target-section">
             <h3>Daily Calorie Target</h3>
@@ -194,19 +197,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script> <!-- Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2/dist/chartjs-plugin-annotation.min.js"></script> <!-- Chart.js Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script> <!-- Updated to newer version -->
     <script>
         // Register the annotation plugin
         try {
-            // The plugin exports itself to window.ChartAnnotation in this version
-            if (window.ChartAnnotation) {
-                Chart.register(window.ChartAnnotation);
-                console.log('ChartAnnotation plugin registered successfully');
-            } else {
-                console.error('ChartAnnotation plugin not found in window object');
-            }
+            // In newer versions, the plugin registers itself automatically
+            console.log('ChartAnnotation plugin should auto-register with Chart.js');
         } catch (error) {
-            console.error('Error registering ChartAnnotation plugin:', error);
+            console.error('Error with ChartAnnotation plugin:', error);
         }
     </script>
 

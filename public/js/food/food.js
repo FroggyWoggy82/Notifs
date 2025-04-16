@@ -302,13 +302,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // --- Generate Future Dates and Labels ---
             const futureLabels = [];
-            const WEEKS_TO_PROJECT = 6; // Project ~6 weeks into the future
+            const WEEKS_TO_PROJECT = 12; // Project ~12 weeks into the future for longer-term goals
             const lastLogDate = new Date(weightLogs[weightLogs.length - 1].log_date + 'T00:00:00Z');
 
+            // Generate future dates exactly 7 days apart (weekly)
             for (let i = 1; i <= WEEKS_TO_PROJECT; i++) {
                 const futureDate = new Date(lastLogDate);
-                futureDate.setDate(lastLogDate.getDate() + (i * 7)); // Add weeks
+                futureDate.setDate(lastLogDate.getDate() + (i * 7)); // Add exactly 7 days each time
                 futureLabels.push(futureDate.toLocaleDateString());
+                console.log(`Added future date: ${futureDate.toLocaleDateString()} (week ${i})`);
             }
 
             // --- Combine Labels and Pad Actual Data ---
@@ -334,21 +336,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Iterate through the COMBINED labels array to calculate target for each date point
                 labels.forEach(labelStr => {
                     // Convert label string back to Date object for calculation
-                    // This relies on toLocaleDateString and new Date() parsing it correctly - might need adjustment based on locale
-                    // A more robust way might be to store Date objects initially, then format for labels later.
-                    // Let's try parsing it directly for now.
-                    const currentDate = new Date(labelStr); // Attempt to parse the label string
+                    // We need to handle different date formats
+                    let currentDate;
+
+                    // Try parsing MM/DD/YYYY format first
+                    if (labelStr.includes('/')) {
+                        const parts = labelStr.split('/');
+                        if (parts.length === 3) {
+                            // MM/DD/YYYY format
+                            currentDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                        }
+                    }
+
+                    // If that didn't work, try direct parsing
+                    if (!currentDate || isNaN(currentDate.getTime())) {
+                        currentDate = new Date(labelStr);
+                    }
+
+                    // If still invalid, log and skip
                     if (isNaN(currentDate.getTime())) {
                         console.warn(`Could not parse date label for target line calculation: ${labelStr}`);
-                        // Decide how to handle unparseable date - push null or skip?
                         targetWeightLine.push(null); // Push null if date is invalid
                         return; // Skip to next iteration
                     }
 
-                    // Ensure currentDate uses the same time basis as startDate (e.g., UTC midnight)
+                    // Ensure both dates use the same time basis
                     currentDate.setUTCHours(0, 0, 0, 0);
 
-                    const weeksDiff = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 7);
+                    // Calculate exact number of weeks between dates
+                    // Use milliseconds for precise calculation
+                    const msDiff = currentDate.getTime() - startDate.getTime();
+                    const daysDiff = msDiff / (1000 * 60 * 60 * 24);
+                    const weeksDiff = daysDiff / 7;
+
+                    console.log(`Date: ${labelStr}, Weeks diff: ${weeksDiff.toFixed(2)}`);
+
                     // Only calculate projection if weeksDiff is non-negative (i.e., date is after start)
                     if (weeksDiff >= 0) {
                         const projectedWeight = startWeight + (weeksDiff * weeklyGain);
@@ -396,10 +418,34 @@ document.addEventListener('DOMContentLoaded', () => {
             weightGoalChart.destroy(); // Destroy previous instance
         }
 
+        // Convert data to proper format for Chart.js
+        const formattedActualData = [];
+        const formattedTargetData = [];
+
+        // Format actual weight data
+        for (let i = 0; i < labels.length; i++) {
+            if (actualData[i] !== null) {
+                formattedActualData.push({
+                    x: i,
+                    y: actualData[i]
+                });
+            }
+        }
+
+        // Format target weight data
+        for (let i = 0; i < labels.length; i++) {
+            if (targetData[i] !== null) {
+                formattedTargetData.push({
+                    x: i,
+                    y: targetData[i]
+                });
+            }
+        }
+
         const datasets = [
             {
                 label: 'Actual Weight (lbs)',
-                data: actualData,
+                data: formattedActualData,
                 borderColor: '#3498db', // Blue
                 backgroundColor: 'rgba(52, 152, 219, 0.2)',
                 borderWidth: 3,
@@ -417,10 +463,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         // Add target weight line dataset if data exists
-        if (targetData && targetData.length > 0) {
+        if (formattedTargetData.length > 0) {
              datasets.push({
                  label: 'Goal Weight Path (lbs)',
-                 data: targetData,
+                 data: formattedTargetData,
                  borderColor: '#e74c3c', // Red
                  borderDash: [5, 5], // Dashed line
                  borderWidth: 2,
@@ -605,12 +651,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: labels,
                 datasets: datasets
             },
+            plugins: [{
+                id: 'customCanvasBackgroundColor',
+                beforeDraw: (chart) => {
+                    // Clear the canvas completely before drawing
+                    const ctx = chart.canvas.getContext('2d');
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'destination-over';
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, chart.width, chart.height);
+                    ctx.restore();
+                }
+            }],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: {
                     mode: 'index',
                     intersect: false
+                },
+                parsing: {
+                    xAxisKey: 'x',
+                    yAxisKey: 'y'
                 },
                 scales: {
                     y: {
@@ -639,16 +701,116 @@ document.addEventListener('DOMContentLoaded', () => {
                         min: function(context) {
                             // Get the auto-calculated min value
                             const original = context.chart.scales.y.min;
-                            // Calculate a new min based on the scale factor
-                            const buffer = (context.chart.scales.y.max - original) * (1 - yAxisScale) / 2;
-                            return original - buffer;
+
+                            // Find the min and max data points
+                            let minDataPoint = Number.MAX_VALUE;
+                            let maxDataPoint = Number.MIN_VALUE;
+
+                            context.chart.data.datasets.forEach(dataset => {
+                                dataset.data.forEach(point => {
+                                    if (point.y !== null) {
+                                        if (point.y < minDataPoint) minDataPoint = point.y;
+                                        if (point.y > maxDataPoint) maxDataPoint = point.y;
+                                    }
+                                });
+                            });
+
+                            // Store these values on the chart object so max function can access them
+                            context.chart.$minDataPoint = minDataPoint;
+                            context.chart.$maxDataPoint = maxDataPoint;
+
+                            // If no valid data points, return null
+                            if (minDataPoint === Number.MAX_VALUE) return null;
+
+                            // Calculate the range of the data
+                            const dataRange = maxDataPoint - minDataPoint;
+
+                            // Calculate the center of the data range
+                            const dataCenter = (maxDataPoint + minDataPoint) / 2;
+
+                            // Calculate the scaled range based on the scale factor
+                            // We need to invert the scale for proper zooming behavior
+                            // For values < 1: We want to zoom out (show more data)
+                            // For values > 1: We want to zoom in (show less data)
+                            let scaledRange;
+                            if (yAxisScale <= 1) {
+                                // Zoom out (show more data)
+                                // For values < 1, we want to show more data (larger range)
+                                // The smaller the scale, the larger the visible range should be
+                                scaledRange = dataRange / yAxisScale;
+
+                                // Add extra padding when zoomed out
+                                const extraPadding = dataRange * (1 - yAxisScale) * 0.5;
+                                scaledRange += extraPadding;
+                            } else {
+                                // Zoom in (show less data)
+                                // For values > 1, we need to make the range smaller
+                                // The higher the scale, the smaller the visible range should be
+                                // Use a much more aggressive formula for values > 1
+                                // Square the scale factor to make the effect exponential
+                                const factor = yAxisScale * yAxisScale * 2;
+                                scaledRange = dataRange / factor;
+                                console.log(`Y-axis zoom in: scale=${yAxisScale}, factor=${factor}, range=${dataRange}, scaledRange=${scaledRange}`);
+                            }
+
+                            // Log the calculation for debugging
+                            console.log(`Y-axis scale: ${yAxisScale}, Data range: ${dataRange}, Scaled range: ${scaledRange}`);
+
+                            // Calculate the new min based on the scaled range
+                            const calculatedMin = dataCenter - (scaledRange / 2);
+
+                            // Add a small padding below the minimum data point (0.5% of the range)
+                            const padding = dataRange * 0.005;
+                            return Math.min(calculatedMin, minDataPoint - padding);
                         },
                         max: function(context) {
-                            // Get the auto-calculated max value
-                            const original = context.chart.scales.y.max;
-                            // Calculate a new max based on the scale factor
-                            const buffer = (original - context.chart.scales.y.min) * (1 - yAxisScale) / 2;
-                            return original + buffer;
+                            // Get the min/max data points from the chart object (set by min function)
+                            const minDataPoint = context.chart.$minDataPoint;
+                            const maxDataPoint = context.chart.$maxDataPoint;
+
+                            // If no valid data points, return null
+                            if (!minDataPoint || minDataPoint === Number.MAX_VALUE ||
+                                !maxDataPoint || maxDataPoint === Number.MIN_VALUE) {
+                                return null;
+                            }
+
+                            // Calculate the range of the data
+                            const dataRange = maxDataPoint - minDataPoint;
+
+                            // Calculate the center of the data range
+                            const dataCenter = (maxDataPoint + minDataPoint) / 2;
+
+                            // Calculate the scaled range based on the scale factor
+                            // We need to invert the scale for proper zooming behavior
+                            // For values < 1: We want to zoom out (show more data)
+                            // For values > 1: We want to zoom in (show less data)
+                            let scaledRange;
+                            if (yAxisScale <= 1) {
+                                // Zoom out (show more data)
+                                // For values < 1, we want to show more data (larger range)
+                                // The smaller the scale, the larger the visible range should be
+                                scaledRange = dataRange / yAxisScale;
+
+                                // Add extra padding when zoomed out
+                                const extraPadding = dataRange * (1 - yAxisScale) * 0.5;
+                                scaledRange += extraPadding;
+                            } else {
+                                // Zoom in (show less data)
+                                // For values > 1, we need to make the range smaller
+                                // The higher the scale, the smaller the visible range should be
+                                // Use a much more aggressive formula for values > 1
+                                // Square the scale factor to make the effect exponential
+                                const factor = yAxisScale * yAxisScale * 2;
+                                scaledRange = dataRange / factor;
+                                console.log(`Y-axis zoom in: scale=${yAxisScale}, factor=${factor}, range=${dataRange}, scaledRange=${scaledRange}`);
+                            }
+
+                            // Calculate the new max based on the scaled range
+                            const calculatedMax = dataCenter + (scaledRange / 2);
+
+                            // Add a small padding above the maximum data point (0.5% of the range)
+                            const padding = dataRange * 0.005;
+                            return Math.max(calculatedMax, maxDataPoint + padding);
                         }
                     },
                     x: {
@@ -680,7 +842,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 // Inverse relationship: higher scale = fewer ticks
                                 return Math.max(5, Math.round(20 / xAxisScale));
                             }
-                        }
+                        },
+                        // Enable zooming on the x-axis
+                        min: 0,
+                        max: labels.length - 1
                     }
                 },
                 plugins: {
@@ -1073,8 +1238,193 @@ document.addEventListener('DOMContentLoaded', () => {
         xAxisScaleSlider.addEventListener('input', function() {
             xAxisScale = parseFloat(this.value);
             xScaleValue.textContent = xAxisScale.toFixed(1) + 'x';
+            console.log(`X-axis scale set to ${xAxisScale}x`);
             if (weightGoalChart) {
-                weightGoalChart.update();
+                // Update the chart's x-axis min and max
+                const chart = weightGoalChart;
+                const dataLength = chart.data.labels.length;
+
+                if (dataLength <= 1) {
+                    // Not enough data points to scale
+                    return;
+                }
+
+                // Calculate the visible range based on the scale
+                // For values < 1: Show more data points (zoom out)
+                // For values > 1: Show fewer data points (zoom in)
+                let visiblePoints;
+
+                // Base calculation on the total data length and scale
+                if (xAxisScale <= 1) {
+                    // Zoom out (show more data)
+                    // When scale is very small, show more than the available data points
+                    // to allow for future projections and past data
+                    const extraPoints = Math.round((1 - xAxisScale) * 10); // Add extra points as scale decreases
+                    visiblePoints = Math.min(dataLength * 2, Math.round(dataLength / xAxisScale) + extraPoints);
+                } else {
+                    // Zoom in (show less data)
+                    visiblePoints = Math.max(5, Math.round(dataLength / xAxisScale));
+                }
+
+                // Always show all data points plus extra when scale is at minimum
+                if (xAxisScale === 0.1) {
+                    visiblePoints = dataLength * 2; // Show twice as many points as we have data
+                }
+
+                // Ensure we always show at least 2 weeks of data (14 points)
+                visiblePoints = Math.max(visiblePoints, 14);
+
+                console.log(`X-axis scale: ${xAxisScale}, Data length: ${dataLength}, Visible points: ${visiblePoints}`);
+
+                // Find today's index or the most recent data point
+                let todayIndex = -1;
+                const today = new Date().toLocaleDateString();
+
+                // First try to find exact match for today
+                for (let i = 0; i < chart.data.labels.length; i++) {
+                    const labelDate = new Date(chart.data.labels[i]).toLocaleDateString();
+                    if (labelDate === today) {
+                        todayIndex = i;
+                        break;
+                    }
+                }
+
+                // If today not found, use the most recent data point
+                if (todayIndex === -1) {
+                    todayIndex = dataLength - 1;
+                }
+
+                // Calculate the center point for our view
+                const centerIndex = todayIndex;
+
+                // Calculate min and max indices centered around today/most recent point
+                // Allow for negative minIndex and maxIndex beyond dataLength to show past/future dates
+                let minIndex = centerIndex - Math.floor(visiblePoints / 2);
+                let maxIndex = minIndex + visiblePoints - 1;
+
+                // When zoomed out (scale < 1), allow showing dates beyond the available data
+                // This enables seeing future projections and past data
+                if (xAxisScale < 1) {
+                    // Allow negative minIndex (past dates before first data point)
+                    // and maxIndex beyond dataLength (future dates after last data point)
+
+                    // Ensure we're centered around today/most recent point
+                    minIndex = centerIndex - Math.floor(visiblePoints / 2);
+                    maxIndex = minIndex + visiblePoints - 1;
+
+                    // Add extra padding for future dates when zoomed out
+                    const futurePadding = Math.round((1 - xAxisScale) * 10);
+                    maxIndex += futurePadding;
+                } else {
+                    // When zoomed in, ensure we stay within data boundaries
+                    minIndex = Math.max(0, minIndex);
+                    maxIndex = Math.min(dataLength - 1, maxIndex);
+
+                    // If we hit the right boundary, adjust the left boundary
+                    if (maxIndex === dataLength - 1 && minIndex > 0) {
+                        minIndex = Math.max(0, dataLength - visiblePoints);
+                    }
+
+                    // If we hit the left boundary, adjust the right boundary
+                    if (minIndex === 0 && maxIndex < dataLength - 1) {
+                        maxIndex = Math.min(dataLength - 1, visiblePoints - 1);
+                    }
+                }
+
+                console.log(`X-axis range: ${minIndex} to ${maxIndex} (${maxIndex - minIndex + 1} points)`);
+
+                // Add margin to the left side of the chart (1 extra point)
+                let adjustedMinIndex = minIndex - 1;
+
+                // Set the min and max for the x-axis
+                chart.options.scales.x.min = adjustedMinIndex;
+                chart.options.scales.x.max = maxIndex;
+
+                // Update the chart
+                chart.update();
+            }
+        });
+
+        // Also add change event for when slider is released
+        xAxisScaleSlider.addEventListener('change', function() {
+            // This event fires when the slider is released
+            // Force a more aggressive update
+            if (weightGoalChart) {
+                const chart = weightGoalChart;
+                const dataLength = chart.data.labels.length;
+
+                if (dataLength <= 1) {
+                    // Not enough data points to scale
+                    return;
+                }
+
+                // Force update with the final scale value
+                console.log(`X-axis scale finalized at ${xAxisScale}x`);
+
+                // Recalculate everything and update
+                // This is the same code as in the input event, but we call it again to ensure it takes effect
+                // Calculate the visible range based on the scale
+                let visiblePoints;
+                if (xAxisScale <= 1) {
+                    const extraPoints = Math.round((1 - xAxisScale) * 10);
+                    visiblePoints = Math.min(dataLength * 2, Math.round(dataLength / xAxisScale) + extraPoints);
+                } else {
+                    visiblePoints = Math.max(5, Math.round(dataLength / xAxisScale));
+                }
+
+                if (xAxisScale === 0.1) {
+                    visiblePoints = dataLength * 2;
+                }
+
+                visiblePoints = Math.max(visiblePoints, 14);
+
+                // Find today's index or the most recent data point
+                let todayIndex = -1;
+                const today = new Date().toLocaleDateString();
+
+                for (let i = 0; i < chart.data.labels.length; i++) {
+                    const labelDate = new Date(chart.data.labels[i]).toLocaleDateString();
+                    if (labelDate === today) {
+                        todayIndex = i;
+                        break;
+                    }
+                }
+
+                if (todayIndex === -1) {
+                    todayIndex = dataLength - 1;
+                }
+
+                const centerIndex = todayIndex;
+
+                // Calculate min and max indices
+                let minIndex = centerIndex - Math.floor(visiblePoints / 2);
+                let maxIndex = minIndex + visiblePoints - 1;
+
+                if (xAxisScale < 1) {
+                    minIndex = centerIndex - Math.floor(visiblePoints / 2);
+                    maxIndex = minIndex + visiblePoints - 1;
+
+                    const futurePadding = Math.round((1 - xAxisScale) * 10);
+                    maxIndex += futurePadding;
+                } else {
+                    minIndex = Math.max(0, minIndex);
+                    maxIndex = Math.min(dataLength - 1, maxIndex);
+
+                    if (maxIndex === dataLength - 1 && minIndex > 0) {
+                        minIndex = Math.max(0, dataLength - visiblePoints);
+                    }
+
+                    if (minIndex === 0 && maxIndex < dataLength - 1) {
+                        maxIndex = Math.min(dataLength - 1, visiblePoints - 1);
+                    }
+                }
+
+                let adjustedMinIndex = minIndex - 1;
+
+                chart.options.scales.x.min = adjustedMinIndex;
+                chart.options.scales.x.max = maxIndex;
+
+                chart.update();
             }
         });
     } else {
@@ -1087,7 +1437,39 @@ document.addEventListener('DOMContentLoaded', () => {
             yAxisScale = parseFloat(this.value);
             yScaleValue.textContent = yAxisScale.toFixed(1) + 'x';
             if (weightGoalChart) {
+                // Force recalculation of min/max by clearing any cached values
+                if (weightGoalChart.$minDataPoint) {
+                    delete weightGoalChart.$minDataPoint;
+                }
+                if (weightGoalChart.$maxDataPoint) {
+                    delete weightGoalChart.$maxDataPoint;
+                }
+
+                // Update the chart to apply the new scale
                 weightGoalChart.update();
+
+                // Log the current scale for debugging
+                console.log(`Y-axis scale set to ${yAxisScale}x`);
+            }
+        });
+
+        // Also add change event for when slider is released
+        yAxisScaleSlider.addEventListener('change', function() {
+            // This event fires when the slider is released
+            // Force a more aggressive update
+            if (weightGoalChart) {
+                // Force recalculation of min/max by clearing any cached values
+                if (weightGoalChart.$minDataPoint) {
+                    delete weightGoalChart.$minDataPoint;
+                }
+                if (weightGoalChart.$maxDataPoint) {
+                    delete weightGoalChart.$maxDataPoint;
+                }
+
+                // Update the chart to apply the new scale
+                weightGoalChart.update();
+
+                console.log(`Y-axis scale finalized at ${yAxisScale}x`);
             }
         });
     } else {
@@ -1106,7 +1488,24 @@ document.addEventListener('DOMContentLoaded', () => {
             yScaleValue.textContent = '1.0x';
 
             if (weightGoalChart) {
-                weightGoalChart.update();
+                // Reset the chart's axes to show all data
+                const chart = weightGoalChart;
+
+                // Reset x-axis limits to show all data
+                if (chart.options.scales.x) {
+                    chart.options.scales.x.min = 0;
+                    chart.options.scales.x.max = chart.data.labels.length - 1;
+                }
+
+                // Reset y-axis limits by removing custom min/max functions
+                // This will force Chart.js to recalculate appropriate min/max values
+                if (chart.options.scales.y) {
+                    // We don't delete these because they're functions in our code
+                    // Instead, the functions will use yAxisScale=1 which gives the full range
+                }
+
+                // Update the chart with the reset scales
+                chart.update();
             }
         });
     } else {
@@ -1128,7 +1527,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus(calorieTargetStatus, 'Saving calorie target...', 'info');
 
         try {
-            const response = await fetch('/api/weight/calorie-targets', {
+            console.log(`Attempting to save calorie target for user ${userId}: ${calorieTarget} calories`);
+            const response = await fetch('/api/calorie-targets', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1138,13 +1538,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     daily_target: calorieTarget
                 })
             });
+            console.log(`Received response with status: ${response.status}`);
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (e) {
+                    console.error('Could not parse error response:', e);
+                }
+                throw new Error(errorMessage);
             }
 
             const result = await response.json();
+            console.log('Save result:', result);
             showStatus(calorieTargetStatus, 'Calorie target saved successfully!', 'success');
 
             // Update the displayed current target
@@ -1156,31 +1564,46 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error saving calorie target:', error);
             showStatus(calorieTargetStatus, `Error saving calorie target: ${error.message}`, 'error');
+
+            // Still update the display to show the current value
+            setTimeout(() => {
+                loadCalorieTarget(userId);
+            }, 2000);
         }
     }
 
     // Load calorie target for the specified user
     async function loadCalorieTarget(userId) {
         try {
-            const response = await fetch(`/api/weight/calorie-targets/${userId}`);
+            console.log(`Attempting to fetch calorie target for user ${userId}`);
+            const response = await fetch(`/api/calorie-targets/${userId}`);
+            console.log(`Received response with status: ${response.status}`);
 
             if (response.status === 404) {
                 // No target set for this user
+                console.log('No calorie target found for this user');
                 currentCalorieTarget.textContent = 'Not set';
                 return;
             }
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (e) {
+                    console.error('Could not parse error response:', e);
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
+            console.log('Calorie target data:', data);
             currentCalorieTarget.textContent = `${data.daily_target} calories`;
 
         } catch (error) {
             console.error('Error loading calorie target:', error);
-            currentCalorieTarget.textContent = 'Error loading';
+            currentCalorieTarget.textContent = 'Not set'; // Default to 'Not set' instead of error
         }
     }
 

@@ -67,7 +67,7 @@ async function scheduleTaskReminder(task) {
         repeat: 'none'
     };
 
-    console.log(`Scheduling reminder for task ${task.id} (${task.title}) due ${dueText}`);
+    // Removed scheduling log message
     NotificationModel.scheduleNotification(notificationData);
 }
 
@@ -85,7 +85,7 @@ async function scheduleAllTaskReminders() {
             [now.toISOString()]
         );
 
-        console.log(`Found ${result.rowCount} tasks with upcoming reminders`);
+        // Removed log message about found tasks
 
         // Schedule a reminder for each task
         for (const task of result.rows) {

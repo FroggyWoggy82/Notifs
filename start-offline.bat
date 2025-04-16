@@ -1,0 +1,3 @@
+@echo off
+echo Starting server in offline mode...
+node start-offline.js

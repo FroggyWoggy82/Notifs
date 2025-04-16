@@ -84,7 +84,7 @@ function saveSubscription(subscription) {
         subscriptions.push(subscription);
         console.log('Added new subscription');
     }
-    
+
     saveSubscriptionsToFile();
     return { success: true, message: 'Subscription saved' };
 }
@@ -103,11 +103,11 @@ function scheduleNotification(notificationData) {
         repeat: notificationData.repeat,
         createdAt: Date.now()
     };
-    
+
     scheduledNotifications.push(notification);
     saveNotificationsToFile();
     scheduleNotificationJob(notification);
-    
+
     return notification;
 }
 
@@ -127,17 +127,17 @@ function getScheduledNotifications() {
 function deleteNotification(id) {
     const initialLength = scheduledNotifications.length;
     scheduledNotifications = scheduledNotifications.filter(n => n.id !== id);
-    
+
     if (scheduledNotifications.length === initialLength) {
         throw new Error('Notification not found');
     }
-    
+
     // Cancel the scheduled job if it exists
     if (notificationJobs.has(id)) {
         clearTimeout(notificationJobs.get(id));
         notificationJobs.delete(id);
     }
-    
+
     saveNotificationsToFile();
     return { success: true, message: 'Notification deleted' };
 }
@@ -153,9 +153,9 @@ async function sendTestNotification() {
         icon: '/icon-192x192.png',
         timestamp: Date.now()
     };
-    
+
     const results = await sendToAllSubscriptions(testNotification);
-    
+
     return {
         success: true,
         message: `Test notification sent to ${subscriptions.length} subscriptions`,
@@ -169,8 +169,8 @@ async function sendTestNotification() {
  * @returns {Object} - Result of the operation
  */
 async function sendToAllSubscriptions(notification) {
-    console.log(`Sending notification: ${notification.title}`);
-    
+    // Removed sending notification log message
+
     const payload = JSON.stringify({
         title: notification.title,
         body: notification.body,
@@ -180,7 +180,7 @@ async function sendToAllSubscriptions(notification) {
             notificationId: notification.id
         }
     });
-    
+
     const sendPromises = subscriptions.map(subscription => {
         return webpush.sendNotification(subscription, payload)
             .catch(error => {
@@ -192,14 +192,14 @@ async function sendToAllSubscriptions(notification) {
                 return { error: true, endpoint: subscription.endpoint };
             });
     });
-    
+
     const results = await Promise.all(sendPromises);
-    
+
     // Filter out expired subscriptions
     const expiredEndpoints = results
         .filter(result => result && result.expired)
         .map(result => result.endpoint);
-    
+
     let expiredCount = 0;
     if (expiredEndpoints.length > 0) {
         subscriptions = subscriptions.filter(sub => !expiredEndpoints.includes(sub.endpoint));
@@ -207,7 +207,7 @@ async function sendToAllSubscriptions(notification) {
         console.log(`Removed ${expiredEndpoints.length} expired subscriptions`);
         expiredCount = expiredEndpoints.length;
     }
-    
+
     return { success: true, expiredCount };
 }
 
@@ -217,30 +217,47 @@ async function sendToAllSubscriptions(notification) {
  */
 function scheduleNotificationJob(notification) {
     const scheduledTime = new Date(notification.scheduledTime);
-    console.log(`Scheduling notification "${notification.title}" for ${scheduledTime.toLocaleString()}`);
-    
+    // Removed scheduling log message
+
     // Check if the scheduled time is in the past
     if (scheduledTime <= new Date()) {
-        console.log(`Notification time ${scheduledTime.toLocaleString()} is in the past, sending immediately`);
+        // Removed past time log message
         sendToAllSubscriptions(notification);
         return;
     }
-    
-    // Schedule the notification
+
+    // Calculate the delay in milliseconds (capped at max safe integer)
+    const now = new Date();
+    const delay = Math.min(
+        scheduledTime - now,
+        // Use a maximum delay of 24 hours (in milliseconds)
+        // This prevents timeout overflow warnings
+        24 * 60 * 60 * 1000
+    );
+
+    // Schedule the notification with a safe delay
     const job = setTimeout(async () => {
-        console.log(`Executing scheduled notification: ${notification.title}`);
-        await sendToAllSubscriptions(notification);
-        
-        // Handle repeating notifications
-        if (notification.repeat) {
-            // Implement repeat logic here
-            console.log(`This notification should repeat: ${notification.repeat}`);
+        const currentTime = new Date();
+
+        if (currentTime >= scheduledTime) {
+            // Time has arrived, send the notification
+            await sendToAllSubscriptions(notification);
+
+            // Handle repeating notifications
+            if (notification.repeat) {
+                // Implement repeat logic here
+                // Removed repeat log message
+            }
+
+            // Remove the job reference
+            notificationJobs.delete(notification.id);
+        } else {
+            // Not yet time, reschedule with remaining time
+            notificationJobs.delete(notification.id);
+            scheduleNotificationJob(notification);
         }
-        
-        // Remove the job reference
-        notificationJobs.delete(notification.id);
-    }, scheduledTime - new Date());
-    
+    }, delay);
+
     // Store the job reference for potential cancellation
     notificationJobs.set(notification.id, job);
 }

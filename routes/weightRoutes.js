@@ -104,7 +104,7 @@ router.post('/log', WeightController.addLog);
 
 /**
  * @swagger
- * /api/calorie-targets/{userId}:
+ * /api/weight/calorie-targets/{userId}:
  *   get:
  *     summary: Get calorie target for a user
  *     parameters:
@@ -126,7 +126,7 @@ router.get('/calorie-targets/:userId', WeightController.getCalorieTarget);
 
 /**
  * @swagger
- * /api/calorie-targets:
+ * /api/weight/calorie-targets:
  *   post:
  *     summary: Save calorie target for a user
  *     requestBody:

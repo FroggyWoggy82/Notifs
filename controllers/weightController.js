@@ -147,7 +147,7 @@ class WeightController {
     static async getCalorieTarget(req, res) {
         try {
             const userId = req.params.userId;
-            console.log(`Received GET /api/calorie-targets/${userId}`);
+            console.log(`Received GET /api/weight/calorie-targets/${userId}`);
 
             // Ensure userId is a number
             const userIdNum = parseInt(userId, 10);
@@ -175,7 +175,7 @@ class WeightController {
     static async saveCalorieTarget(req, res) {
         try {
             const { user_id, daily_target } = req.body;
-            console.log(`Received POST /api/calorie-targets: user_id=${user_id}, daily_target=${daily_target}`);
+            console.log(`Received POST /api/weight/calorie-targets: user_id=${user_id}, daily_target=${daily_target}`);
 
             // Ensure user_id is a number
             const userIdNum = parseInt(user_id, 10);
