@@ -1128,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus(calorieTargetStatus, 'Saving calorie target...', 'info');
 
         try {
-            const response = await fetch('/api/calorie-targets', {
+            const response = await fetch('/api/weight/calorie-targets', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1162,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load calorie target for the specified user
     async function loadCalorieTarget(userId) {
         try {
-            const response = await fetch(`/api/calorie-targets/${userId}`);
+            const response = await fetch(`/api/weight/calorie-targets/${userId}`);
 
             if (response.status === 404) {
                 // No target set for this user

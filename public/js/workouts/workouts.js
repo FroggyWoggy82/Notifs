@@ -3876,7 +3876,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.dataset.src = photo.file_path;
                 // Set placeholder initially
                 img.src = PhotoLoader.placeholderImage;
-                img.alt = `Progress photo from ${new Date(photo.date_taken + 'T00:00:00').toLocaleDateString()} (ID: ${photo.photo_id})`;
+                // Format date with explicit options to avoid browser-specific issues
+                const photoDate = new Date(photo.date_taken);
+                const formattedDate = photoDate.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric'
+                });
+                img.alt = `Progress photo from ${formattedDate} (ID: ${photo.photo_id})`;
                 img.dataset.photoId = photo.photo_id; // Store ID for reference
                 img.loading = 'lazy'; // Add native lazy loading attribute
 
@@ -3972,10 +3979,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`[Photo Display] Attempting to display data:`, currentPhoto); // <<< Log the photo object
         let formattedDate = '';
         if (currentPhoto && currentPhoto.date_taken) {
-            // Assuming date_taken is 'YYYY-MM-DD'. Adding T00:00:00 ensures it's treated as local time.
-            formattedDate = new Date(currentPhoto.date_taken + 'T00:00:00').toLocaleDateString(undefined, {
+            // Create a date object directly from the date string
+            const photoDate = new Date(currentPhoto.date_taken);
+            // Format with explicit options
+            formattedDate = photoDate.toLocaleDateString(undefined, {
                 year: 'numeric', month: 'long', day: 'numeric'
             });
+            console.log(`[Photo Display] Date from DB: ${currentPhoto.date_taken}, Parsed as: ${photoDate.toISOString()}, Formatted as: ${formattedDate}`);
         }
         dateDisplayEl.textContent = formattedDate; // Update the date display
 
@@ -4132,9 +4142,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const photoToDelete = progressPhotosData[currentPhotoIndex];
         const photoId = photoToDelete.photo_id;
-        const photoDate = new Date(photoToDelete.date_taken + 'T00:00:00').toLocaleDateString();
+        const photoDate = new Date(photoToDelete.date_taken);
+        const formattedDate = photoDate.toLocaleDateString(undefined, {
+            year: 'numeric', month: 'numeric', day: 'numeric'
+        });
 
-        if (!confirm(`Are you sure you want to delete the photo from ${photoDate}? This cannot be undone.`)) {
+        if (!confirm(`Are you sure you want to delete the photo from ${formattedDate}? This cannot be undone.`)) {
             return;
         }
 
@@ -4191,7 +4204,10 @@ document.addEventListener('DOMContentLoaded', function() {
             sortedPhotos.forEach(photo => {
                 const option1 = document.createElement('option');
                 option1.value = photo.photo_id; // Use photo_id as value
-                option1.textContent = new Date(photo.date_taken + 'T00:00:00').toLocaleDateString();
+                const photoDate = new Date(photo.date_taken);
+                option1.textContent = photoDate.toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'numeric', day: 'numeric'
+                });
 
                 const option2 = option1.cloneNode(true); // Clone for the second dropdown
 
@@ -4212,8 +4228,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const photo2 = selectedId2 ? progressPhotosData.find(p => p.photo_id == selectedId2) : null;
 
         // Set alt text first
-        comparisonImage1.alt = photo1 ? `Comparison Photo 1: ${new Date(photo1.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 1';
-        comparisonImage2.alt = photo2 ? `Comparison Photo 2: ${new Date(photo2.date_taken + 'T00:00:00').toLocaleDateString()}` : 'Comparison Photo 2';
+        comparisonImage1.alt = photo1 ? `Comparison Photo 1: ${new Date(photo1.date_taken).toLocaleDateString(undefined, {year: 'numeric', month: 'numeric', day: 'numeric'})}` : 'Comparison Photo 1';
+        comparisonImage2.alt = photo2 ? `Comparison Photo 2: ${new Date(photo2.date_taken).toLocaleDateString(undefined, {year: 'numeric', month: 'numeric', day: 'numeric'})}` : 'Comparison Photo 2';
 
         // Set placeholder images initially
         if (!photo1) comparisonImage1.src = '';

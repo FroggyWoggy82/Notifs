@@ -100,18 +100,20 @@
         <!-- Calorie Target Section -->
         <div class="calorie-target-section">
             <h3>Daily Calorie Target</h3>
-            <div class="calorie-target-controls">
-                <div class="user-selector-container">
+            <div class="calorie-target-row">
+                <div class="calorie-target-group">
                     <label for="calorie-user-selector">Select User:</label>
                     <select id="calorie-user-selector">
                         <option value="1" selected>My Data</option>
                         <option value="2">Mom's Data</option>
                     </select>
                 </div>
-                <div class="calorie-input-container">
+                <div class="calorie-target-group">
                     <label for="calorie-target">Daily Calorie Target:</label>
-                    <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
-                    <button id="save-calorie-target" class="save-btn">Save Target</button>
+                    <div class="calorie-input-with-button">
+                        <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
+                        <button id="save-calorie-target" class="save-btn">Save Target</button>
+                    </div>
                 </div>
             </div>
             <div class="calorie-target-display">
