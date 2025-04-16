@@ -6,12 +6,22 @@
 const db = require('../db');
 
 /**
- * Get today's date in YYYY-MM-DD format
- * @returns {string} - Today's date in YYYY-MM-DD format
+ * Get today's date in YYYY-MM-DD format using Central Time
+ * @returns {string} - Today's date in YYYY-MM-DD format in Central Time
  */
 function getTodayDateKey() {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    // Create a date object for the current time
+    const now = new Date();
+
+    // Convert to Central Time (America/Chicago)
+    const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+
+    // Format as YYYY-MM-DD
+    const year = centralTime.getFullYear();
+    const month = String(centralTime.getMonth() + 1).padStart(2, '0');
+    const day = String(centralTime.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
 }
 
 /**

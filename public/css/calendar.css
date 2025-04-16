@@ -382,32 +382,33 @@
     gap: 8px;
 }
 
-#selectedTaskList .edit-task-btn,
-#selectedTaskList .delete-btn {
-    padding: 4px 8px;
+/* Icon buttons in calendar view */
+#selectedTaskList .icon-btn {
+    background: none;
     border: none;
-    border-radius: 4px;
+    padding: 5px;
     cursor: pointer;
-    font-size: 0.85em;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: background-color 0.2s;
 }
 
-#selectedTaskList .edit-task-btn {
-    background-color: #4db6ac;
-    color: white;
-}
-
 #selectedTaskList .edit-task-btn:hover {
-    background-color: #3a9d91;
-}
-
-#selectedTaskList .delete-btn {
-    background-color: #e57373;
-    color: white;
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 #selectedTaskList .delete-btn:hover {
-    background-color: #d32f2f;
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* Pencil and X icons */
+#selectedTaskList .pencil-icon,
+#selectedTaskList .x-icon {
+    font-style: normal;
+    display: inline-block;
+    line-height: 1;
 }
 
 /* Modal Styles */

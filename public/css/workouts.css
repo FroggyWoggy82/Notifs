@@ -891,10 +891,11 @@ h1, h2 {
     background-color: #d32f2f;
 }
 
-/* Style for the delete button within an active exercise item */
+/* Style for the action buttons within an active exercise item */
 /* INCREASE SPECIFICITY by adding parent context */
 .exercise-item .btn-delete-exercise,
-.exercise-item .btn-delete-template-exercise {
+.exercise-item .btn-delete-template-exercise,
+.exercise-item .btn-edit-exercise {
     /* REMOVE Absolute Positioning */
     /* position: absolute; */
     /* top: 10px; */
@@ -923,13 +924,19 @@ h1, h2 {
     /* margin-left: auto; */ /* <<< REMOVE THIS */
 }
 
-/* Hover/Focus for active exercise delete */
+/* Hover/Focus for active exercise buttons */
 /* INCREASE SPECIFICITY */
 .exercise-item .btn-delete-exercise:focus,
 .exercise-item .btn-delete-exercise:hover,
 .exercise-item .btn-delete-template-exercise:focus,
 .exercise-item .btn-delete-template-exercise:hover {
     color: #f44336; /* Red */
+    outline: none;
+}
+
+.exercise-item .btn-edit-exercise:focus,
+.exercise-item .btn-edit-exercise:hover {
+    color: #03dac6; /* Teal */
     outline: none;
 }
 

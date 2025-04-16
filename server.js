@@ -121,6 +121,26 @@ NotificationModel.initialize();
 // Setup daily notification check
 NotificationModel.setupDailyCheck(cron.schedule);
 
+// Initialize task reminder service
+const TaskReminderService = require('./models/taskReminderService');
+
+// Schedule task reminders daily at 1:00 AM
+cron.schedule('0 1 * * *', async () => {
+  console.log('Scheduling task reminders');
+  await TaskReminderService.scheduleAllTaskReminders();
+}, {
+  timezone: 'America/Chicago' // Central Time
+});
+
+// Setup habit reset at 11:59 PM Central Time
+cron.schedule('59 23 * * *', () => {
+  console.log('Running habit reset at 11:59 PM Central Time');
+  // This cron job runs in the America/Chicago timezone by default
+  // The actual reset happens client-side when users load the page after this time
+}, {
+  timezone: 'America/Chicago' // Explicitly set timezone to Central Time
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   // ADD More logging here
@@ -173,8 +193,12 @@ const initializeAndStart = async () => {
     console.log('--- End Sharp Feature Check ---');
 
     // Start the server with increased timeout
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, async () => {
       console.log(`Server running on port ${PORT}`);
+
+      // Schedule all task reminders on server start
+      console.log('Scheduling all task reminders on server start');
+      await TaskReminderService.scheduleAllTaskReminders();
     });
 
     // Set timeout to 5 minutes (300000 ms) for large uploads

@@ -1,4 +1,5 @@
 const Task = require('../models/taskModel');
+const TaskReminderService = require('../models/taskReminderService');
 
 /**
  * Task Controller
@@ -48,6 +49,12 @@ class TaskController {
 
             const newTask = await Task.createTask(taskData);
             console.log(`Task created successfully with ID: ${newTask.id}`);
+
+            // Schedule a reminder if the task has a reminder time
+            if (newTask.reminder_time) {
+                await TaskReminderService.scheduleReminderForTask(newTask.id);
+            }
+
             res.status(201).json(newTask);
         } catch (err) {
             console.error('Error creating task:', err);
@@ -152,6 +159,11 @@ class TaskController {
                     id: nextOccurrenceResult.id,
                     due_date: nextOccurrenceResult.due_date
                 };
+            }
+
+            // Schedule a reminder if the task has a reminder time
+            if (updatedTask.reminder_time) {
+                await TaskReminderService.scheduleReminderForTask(updatedTask.id);
             }
 
             console.log(`Task ${id} updated successfully.`);

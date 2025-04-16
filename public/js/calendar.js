@@ -673,6 +673,60 @@ document.addEventListener('DOMContentLoaded', () => {
         tasksHeading.style.color = '#13523e';
         selectedTaskListEl.appendChild(tasksHeading);
 
+        // Add multi-select controls container
+        const multiSelectControls = document.createElement('div');
+        multiSelectControls.className = 'multi-select-controls';
+        multiSelectControls.style.display = 'flex';
+        multiSelectControls.style.justifyContent = 'space-between';
+        multiSelectControls.style.alignItems = 'center';
+        multiSelectControls.style.marginBottom = '10px';
+
+        // Add select all checkbox
+        const selectAllContainer = document.createElement('div');
+        selectAllContainer.style.display = 'flex';
+        selectAllContainer.style.alignItems = 'center';
+
+        const selectAllCheckbox = document.createElement('input');
+        selectAllCheckbox.type = 'checkbox';
+        selectAllCheckbox.id = 'select-all-tasks';
+        selectAllCheckbox.style.marginRight = '5px';
+        selectAllCheckbox.addEventListener('change', () => {
+            // Select or deselect all task checkboxes
+            const taskCheckboxes = document.querySelectorAll('.task-select-checkbox');
+            taskCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+
+            // Update delete button state
+            updateDeleteSelectedButton();
+        });
+
+        const selectAllLabel = document.createElement('label');
+        selectAllLabel.htmlFor = 'select-all-tasks';
+        selectAllLabel.textContent = 'Select All';
+        selectAllLabel.style.fontSize = '0.9em';
+
+        selectAllContainer.appendChild(selectAllCheckbox);
+        selectAllContainer.appendChild(selectAllLabel);
+
+        // Add delete selected button
+        const deleteSelectedBtn = document.createElement('button');
+        deleteSelectedBtn.id = 'delete-selected-tasks';
+        deleteSelectedBtn.textContent = 'Delete Selected';
+        deleteSelectedBtn.style.padding = '4px 8px';
+        deleteSelectedBtn.style.backgroundColor = '#e57373';
+        deleteSelectedBtn.style.color = 'white';
+        deleteSelectedBtn.style.border = 'none';
+        deleteSelectedBtn.style.borderRadius = '4px';
+        deleteSelectedBtn.style.cursor = 'pointer';
+        deleteSelectedBtn.style.display = 'none'; // Hide initially
+        deleteSelectedBtn.addEventListener('click', handleDeleteSelectedTasks);
+
+        multiSelectControls.appendChild(selectAllContainer);
+        multiSelectControls.appendChild(deleteSelectedBtn);
+
+        selectedTaskListEl.appendChild(multiSelectControls);
+
         // First, find all tasks directly assigned to this date
         const directlyAssignedTasks = tasks.filter(task => {
             const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
@@ -735,6 +789,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (task.isOverdue) classes.push('overdue');
                 li.className = classes.join(' ');
 
+                // Create a container for the checkbox and content
+                const itemContainer = document.createElement('div');
+                itemContainer.style.display = 'flex';
+                itemContainer.style.alignItems = 'flex-start';
+                itemContainer.style.gap = '8px';
+
+                // Add checkbox for multi-select
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'task-select-checkbox';
+                checkbox.setAttribute('data-task-id', task.id);
+                checkbox.style.marginTop = '3px';
+                checkbox.addEventListener('change', updateDeleteSelectedButton);
+                itemContainer.appendChild(checkbox);
+
+                // Create content container
+                const contentContainer = document.createElement('div');
+                contentContainer.style.flex = '1';
+
                 // Create a container for the task title and badge
                 const titleContainer = document.createElement('div');
                 titleContainer.style.display = 'flex';
@@ -792,7 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     titleContainer.appendChild(badgeSpan);
                 }
 
-                li.appendChild(titleContainer);
+                contentContainer.appendChild(titleContainer);
 
                 // Add description if available
                 if (task.description) {
@@ -801,10 +874,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     descDiv.style.fontSize = '0.85em';
                     descDiv.style.color = '#666';
                     descDiv.style.marginTop = '3px';
-                    li.appendChild(descDiv);
+                    contentContainer.appendChild(descDiv);
                 }
 
-                // Add action buttons (Edit and Delete)
+                // Add action buttons (Edit and Delete Icons)
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'task-actions';
                 actionsDiv.style.marginTop = '8px';
@@ -813,31 +886,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Edit button
                 const editBtn = document.createElement('button');
-                editBtn.className = 'edit-task-btn';
-                editBtn.textContent = 'Edit';
-                editBtn.style.padding = '4px 8px';
-                editBtn.style.backgroundColor = '#4db6ac';
-                editBtn.style.color = 'white';
+                editBtn.className = 'icon-btn edit-task-btn';
+                editBtn.innerHTML = '<i class="pencil-icon">✏️</i>'; // Pencil emoji
+                editBtn.title = 'Edit task';
+                editBtn.style.background = 'none';
                 editBtn.style.border = 'none';
-                editBtn.style.borderRadius = '4px';
+                editBtn.style.padding = '5px';
                 editBtn.style.cursor = 'pointer';
+                editBtn.style.borderRadius = '50%';
                 editBtn.addEventListener('click', () => handleEditTask(task));
                 actionsDiv.appendChild(editBtn);
 
                 // Delete button
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.style.padding = '4px 8px';
-                deleteBtn.style.backgroundColor = '#e57373';
-                deleteBtn.style.color = 'white';
+                deleteBtn.className = 'icon-btn delete-btn';
+                deleteBtn.innerHTML = '<i class="x-icon">❌</i>'; // X emoji
+                deleteBtn.title = 'Delete task';
+                deleteBtn.style.background = 'none';
                 deleteBtn.style.border = 'none';
-                deleteBtn.style.borderRadius = '4px';
+                deleteBtn.style.padding = '5px';
                 deleteBtn.style.cursor = 'pointer';
+                deleteBtn.style.borderRadius = '50%';
                 deleteBtn.addEventListener('click', () => handleDeleteTask(task));
                 actionsDiv.appendChild(deleteBtn);
 
-                li.appendChild(actionsDiv);
+                contentContainer.appendChild(actionsDiv);
+
+                // Add content container to item container
+                itemContainer.appendChild(contentContainer);
+
+                // Add item container to list item
+                li.appendChild(itemContainer);
 
                 selectedTaskListEl.appendChild(li);
             });
@@ -1101,6 +1180,79 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error deleting task:', error);
             updateStatus(`Error deleting task: ${error.message}`, true);
         }
+    }
+
+    // Function to update the Delete Selected button visibility
+    function updateDeleteSelectedButton() {
+        const deleteSelectedBtn = document.getElementById('delete-selected-tasks');
+        if (!deleteSelectedBtn) return;
+
+        // Check if any checkboxes are selected
+        const selectedCheckboxes = document.querySelectorAll('.task-select-checkbox:checked');
+        deleteSelectedBtn.style.display = selectedCheckboxes.length > 0 ? 'block' : 'none';
+    }
+
+    // Handle deleting multiple selected tasks
+    async function handleDeleteSelectedTasks() {
+        const selectedCheckboxes = document.querySelectorAll('.task-select-checkbox:checked');
+        if (selectedCheckboxes.length === 0) return;
+
+        const taskIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.getAttribute('data-task-id'));
+
+        if (!confirm(`Are you sure you want to delete ${taskIds.length} selected task(s)?`)) {
+            return;
+        }
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        // Show loading status
+        updateStatus(`Deleting ${taskIds.length} tasks...`, false);
+
+        // Delete each task one by one
+        for (const taskId of taskIds) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                    console.error(`Failed to delete task ${taskId}:`, await response.text());
+                }
+            } catch (error) {
+                errorCount++;
+                console.error(`Error deleting task ${taskId}:`, error);
+            }
+        }
+
+        // Refresh the tasks data
+        await fetchTasks();
+
+        // Get the currently selected date
+        const selectedDay = document.querySelector('.calendar-day.selected');
+        if (selectedDay) {
+            const dateKey = selectedDay.getAttribute('data-date');
+            if (dateKey) {
+                const date = new Date(dateKey + 'T00:00:00');
+                // Refresh the task list for the selected date
+                showTasksForDate(date, allTasks);
+            }
+        }
+
+        // Refresh the calendar view
+        renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
+
+        // Show a success/error message
+        if (errorCount === 0) {
+            updateStatus(`Successfully deleted ${successCount} task(s)`, false);
+        } else {
+            updateStatus(`Deleted ${successCount} task(s), but failed to delete ${errorCount} task(s)`, true);
+        }
+
+        setTimeout(() => updateStatus("", false), 3000);
     }
 
     // --- Event Listeners ---

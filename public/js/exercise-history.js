@@ -289,6 +289,12 @@ document.addEventListener('DOMContentLoaded', function() {
         historySearchResultsEl.innerHTML = '';
         historySearchResultsEl.style.display = 'none';
 
+        // Hide the prediction table until new data is loaded
+        const tableContainer = document.getElementById('prediction-table-container');
+        if (tableContainer) {
+            tableContainer.style.display = 'none';
+        }
+
         fetchAndRenderHistoryChart(exerciseId);
 
         // Store selected exercise and show Edit button
@@ -424,6 +430,139 @@ document.addEventListener('DOMContentLoaded', function() {
         return oneRepMax;
     }
 
+    // --- Prediction Table Functions ---
+    function generatePredictionTable(oneRepMax, bestSet, unit, historyData) {
+        console.log('Generating prediction table with 1RM:', oneRepMax, 'Best set:', bestSet, 'Unit:', unit);
+
+        // Get the table container and body elements
+        const tableContainer = document.getElementById('prediction-table-container');
+        const tableBody = document.getElementById('prediction-table-body');
+        const bestSetInfo = document.getElementById('best-set-info');
+
+        if (!tableContainer || !tableBody || !bestSetInfo) {
+            console.error('Prediction table elements not found');
+            return;
+        }
+
+        // Show the table container
+        tableContainer.style.display = 'block';
+
+        // Update the best set info
+        bestSetInfo.textContent = `${bestSet.weight} ${unit} × ${bestSet.reps} reps`;
+
+        // Clear existing table rows
+        tableBody.innerHTML = '';
+
+        // Get the percentages for 1-30 reps
+        const percentages = {
+            1: 100,
+            2: 97,
+            3: 94,
+            4: 92,
+            5: 89,
+            6: 86,
+            7: 83,
+            8: 81,
+            9: 78,
+            10: 75,
+            11: 73,
+            12: 71,
+            13: 70,
+            14: 68,
+            15: 67,
+            16: 65,
+            17: 64,
+            18: 63,
+            19: 61,
+            20: 60,
+            21: 59,
+            22: 58,
+            23: 57,
+            24: 56,
+            25: 55,
+            26: 54,
+            27: 53,
+            28: 52,
+            29: 51,
+            30: 50
+        };
+
+        // Extract all sets from history data for comparison
+        const historySets = [];
+        if (historyData && historyData.length > 0) {
+            historyData.forEach(log => {
+                // Parse the comma-separated strings into arrays
+                const reps = log.reps_completed ? log.reps_completed.split(',').map(Number) : [];
+                const weights = log.weight_used ? log.weight_used.split(',').map(Number) : [];
+
+                // Create set objects for each set in the log
+                for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
+                    historySets.push({
+                        reps: reps[i],
+                        weight: weights[i]
+                    });
+                }
+            });
+        }
+
+        console.log('History sets for comparison:', historySets);
+
+        // Create a map of actual weights achieved for each rep count
+        const actualWeightsByReps = {};
+
+        // Find the best weight for each rep count from history
+        historySets.forEach(set => {
+            const reps = set.reps;
+            const weight = set.weight;
+
+            // If we don't have a weight for this rep count yet, or this weight is higher
+            if (!actualWeightsByReps[reps] || weight > actualWeightsByReps[reps]) {
+                actualWeightsByReps[reps] = weight;
+            }
+        });
+
+        console.log('Actual weights by rep count:', actualWeightsByReps);
+
+        // Generate table rows for 1-30 reps
+        for (let reps = 1; reps <= 30; reps++) {
+            const percentage = percentages[reps];
+
+            // Use actual weight if available, otherwise use prediction
+            let weight;
+            let isActual = false;
+
+            if (actualWeightsByReps[reps]) {
+                // Use the actual weight from history
+                weight = actualWeightsByReps[reps];
+                isActual = true;
+            } else {
+                // Calculate the predicted weight for this rep count
+                // Formula: 1RM * (percentage / 100)
+                weight = oneRepMax * (percentage / 100);
+
+                // Round down to nearest 5
+                weight = Math.floor(weight / 5) * 5;
+            }
+
+            // Create a new table row
+            const row = document.createElement('tr');
+
+            // Add 'achieved' class if this is an actual weight from history
+            if (isActual) {
+                row.classList.add('achieved');
+            }
+
+            row.innerHTML = `
+                <td>${reps}${isActual ? ' ✓' : ''}</td>
+                <td>${weight} ${unit}</td>
+                <td>${percentage}%</td>
+            `;
+
+            // Add the row to the table
+            tableBody.appendChild(row);
+        }
+    }
+
     // --- History Chart Functions ---
     async function fetchAndRenderHistoryChart(exerciseId) {
         // Get the history message element
@@ -459,6 +598,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     exerciseHistoryChart.destroy();
                     exerciseHistoryChart = null;
                 }
+
+                // Hide the prediction table
+                const tableContainer = document.getElementById('prediction-table-container');
+                if (tableContainer) {
+                    tableContainer.style.display = 'none';
+                }
+
                 return;
             }
 
@@ -530,9 +676,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Data for Chart - Volumes:", volumes);
             console.log("Data for Chart - 1RM:", oneRepMaxes);
 
-            // Get the most recent 1RM value
+            // Get the most recent 1RM value and best set
             const latestOneRepMax = oneRepMaxes[oneRepMaxes.length - 1];
             const unit = processedData[processedData.length - 1].unit;
+            const latestBestSet = processedData[processedData.length - 1].bestSet;
 
             // Create a message with the latest 1RM value
             let message = '';
@@ -545,6 +692,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Display the 1RM message
             historyMessageEl.textContent = message;
 
+            // Generate and display the prediction table
+            if (latestOneRepMax > 0 && latestBestSet) {
+                generatePredictionTable(latestOneRepMax, latestBestSet, unit, historyData);
+            }
+
         } catch (error) {
             console.error('Error fetching or processing exercise history:', error);
 
@@ -554,6 +706,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (exerciseHistoryChart) {
                 exerciseHistoryChart.destroy();
                 exerciseHistoryChart = null;
+            }
+
+            // Hide the prediction table
+            const tableContainer = document.getElementById('prediction-table-container');
+            if (tableContainer) {
+                tableContainer.style.display = 'none';
             }
         }
     }

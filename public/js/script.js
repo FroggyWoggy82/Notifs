@@ -88,9 +88,15 @@ function isDayChanged() {
     // Get the last counter reset date from localStorage
     const lastCounterResetDate = localStorage.getItem('lastCounterResetDate');
 
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Get today's date in YYYY-MM-DD format using Central Time
+    const now = new Date();
+    const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+
+    // Format as YYYY-MM-DD
+    const year = centralTime.getFullYear();
+    const month = String(centralTime.getMonth() + 1).padStart(2, '0');
+    const day = String(centralTime.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
 
     // If no reset date is stored, or if it's a different day, we should reset
     if (!lastCounterResetDate) {
@@ -127,7 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const addTaskForm = document.getElementById('addTaskForm');
     const taskTitleInput = document.getElementById('taskTitle');
     const taskDescriptionInput = document.getElementById('taskDescription');
+    const taskReminderTypeInput = document.getElementById('taskReminderType');
     const taskReminderTimeInput = document.getElementById('taskReminderTime');
+    const customReminderGroup = document.getElementById('customReminderGroup');
     const addTaskBtn = document.getElementById('addTaskBtn');
     const taskListDiv = document.getElementById('taskList');
     const addTaskStatusDiv = document.getElementById('addTaskStatus');
@@ -189,7 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const editTaskIdInput = document.getElementById('editTaskId');
     const editTaskTitleInput = document.getElementById('editTaskTitle');
     const editTaskDescriptionInput = document.getElementById('editTaskDescription');
+    const editTaskReminderTypeInput = document.getElementById('editTaskReminderType');
     const editTaskReminderTimeInput = document.getElementById('editTaskReminderTime');
+    const editCustomReminderGroup = document.getElementById('editCustomReminderGroup');
     const editTaskDueDateInput = document.getElementById('editTaskDueDate');
     const editTaskDurationInput = document.getElementById('editTaskDuration');
     const editTaskRecurrenceTypeSelect = document.getElementById('editTaskRecurrenceType');
@@ -1241,23 +1251,23 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.error("Error parsing reminder date for display:", task.reminder_time, e); }
         }
 
-        // Task Actions (Edit and Delete Buttons - Edit First)
+        // Task Actions (Edit and Delete Icons)
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'task-actions';
 
         const editBtn = document.createElement('button');
-        editBtn.className = 'edit-task-btn'; // Class to be styled
-        editBtn.textContent = 'Edit';
-        editBtn.style.order = '1'; // Explicitly set order
+        editBtn.className = 'icon-btn edit-task-btn'; // Class to be styled
+        editBtn.innerHTML = '<i class="pencil-icon">✏️</i>'; // Pencil emoji
+        editBtn.title = 'Edit task';
         editBtn.addEventListener('click', () => openEditTaskModal(task)); // Pass the task data
-        actionsDiv.appendChild(editBtn); // Edit first
+        actionsDiv.appendChild(editBtn);
 
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.style.order = '2'; // Explicitly set order
+        deleteBtn.className = 'icon-btn delete-btn';
+        deleteBtn.innerHTML = '<i class="x-icon">❌</i>'; // X emoji
+        deleteBtn.title = 'Delete task';
         deleteBtn.addEventListener('click', handleDeleteTask);
-        actionsDiv.appendChild(deleteBtn); // Delete second
+        actionsDiv.appendChild(deleteBtn);
 
         // Assemble the task item
         div.appendChild(checkbox);
@@ -1276,7 +1286,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const title = taskTitleInput.value.trim();
         const description = taskDescriptionInput.value.trim();
-        const reminderTime = taskReminderTimeInput.value;
+        const reminderType = taskReminderTypeInput.value;
 
         // Set due date to today if not provided
         let dueDate = taskDueDateInput.value;
@@ -1284,6 +1294,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             dueDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
             console.log('Setting default due date to today:', dueDate);
+        }
+
+        // Calculate reminder time based on selected option
+        let reminderTime = null;
+        if (reminderType !== 'none') {
+            if (reminderType === 'custom') {
+                // Use the custom time input
+                reminderTime = taskReminderTimeInput.value;
+            } else {
+                // Calculate based on due date
+                const dueDateTime = new Date(dueDate);
+
+                if (reminderType === 'same-day') {
+                    // Set to 9:00 AM on the due date
+                    dueDateTime.setHours(9, 0, 0, 0);
+                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                } else if (reminderType === 'day-before') {
+                    // Set to 9:00 AM on the day before
+                    dueDateTime.setDate(dueDateTime.getDate() - 1);
+                    dueDateTime.setHours(9, 0, 0, 0);
+                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                } else if (reminderType === 'week-before') {
+                    // Set to 9:00 AM one week before
+                    dueDateTime.setDate(dueDateTime.getDate() - 7);
+                    dueDateTime.setHours(9, 0, 0, 0);
+                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                }
+            }
         }
 
         // Get duration value (default to 1 if not set)
@@ -1302,6 +1340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: title,
             description: description || null, // Send null if empty
             reminderTime: reminderTime || null, // Send null if empty
+            reminderType: reminderType, // Store the reminder type for future reference
             // Add new fields to the payload
             dueDate: dueDate,
             duration: duration,
@@ -1823,11 +1862,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset other form fields
         taskTitleInput.value = '';
         taskDescriptionInput.value = '';
+        taskReminderTypeInput.value = 'none';
         taskReminderTimeInput.value = '';
+        customReminderGroup.style.display = 'none';
         taskRecurrenceTypeInput.value = 'none';
 
         // Update recurrence display
         recurrenceIntervalGroup.style.display = 'none';
+    });
+
+    // Add event listener for reminder type change
+    taskReminderTypeInput.addEventListener('change', () => {
+        // Show/hide custom reminder time input based on selection
+        customReminderGroup.style.display =
+            taskReminderTypeInput.value === 'custom' ? 'block' : 'none';
+    });
+
+    // Add event listener for edit reminder type change
+    editTaskReminderTypeInput.addEventListener('change', () => {
+        // Show/hide custom reminder time input based on selection
+        editCustomReminderGroup.style.display =
+            editTaskReminderTypeInput.value === 'custom' ? 'block' : 'none';
     });
 
     closeTaskModalBtn.addEventListener('click', () => {
@@ -3617,6 +3672,60 @@ document.addEventListener('DOMContentLoaded', () => {
         editTaskTitleInput.value = task.title || '';
         editTaskDescriptionInput.value = task.description || '';
 
+        // Determine reminder type based on reminder_time and due_date
+        let reminderType = 'none';
+        if (task.reminder_time) {
+            // If reminder_type is stored, use it
+            if (task.reminder_type) {
+                reminderType = task.reminder_type;
+            } else {
+                // Otherwise try to determine it based on the time
+                const reminderDate = new Date(task.reminder_time);
+                const dueDate = task.due_date ? new Date(task.due_date) : null;
+
+                if (dueDate) {
+                    // Check if it's same day
+                    const sameDay = reminderDate.getFullYear() === dueDate.getFullYear() &&
+                                   reminderDate.getMonth() === dueDate.getMonth() &&
+                                   reminderDate.getDate() === dueDate.getDate();
+
+                    if (sameDay) {
+                        reminderType = 'same-day';
+                    } else {
+                        // Check if it's day before
+                        const dayBefore = new Date(dueDate);
+                        dayBefore.setDate(dayBefore.getDate() - 1);
+                        const isDayBefore = reminderDate.getFullYear() === dayBefore.getFullYear() &&
+                                          reminderDate.getMonth() === dayBefore.getMonth() &&
+                                          reminderDate.getDate() === dayBefore.getDate();
+
+                        if (isDayBefore) {
+                            reminderType = 'day-before';
+                        } else {
+                            // Check if it's week before
+                            const weekBefore = new Date(dueDate);
+                            weekBefore.setDate(weekBefore.getDate() - 7);
+                            const isWeekBefore = reminderDate.getFullYear() === weekBefore.getFullYear() &&
+                                              reminderDate.getMonth() === weekBefore.getMonth() &&
+                                              reminderDate.getDate() === weekBefore.getDate();
+
+                            if (isWeekBefore) {
+                                reminderType = 'week-before';
+                            } else {
+                                reminderType = 'custom';
+                            }
+                        }
+                    }
+                } else {
+                    reminderType = 'custom';
+                }
+            }
+        }
+
+        // Set reminder type and show/hide custom reminder field
+        editTaskReminderTypeInput.value = reminderType;
+        editCustomReminderGroup.style.display = reminderType === 'custom' ? 'block' : 'none';
+
         // Format dates/times for input fields
         editTaskReminderTimeInput.value = task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : '';
         editTaskDueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
@@ -3678,10 +3787,41 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Updating task with due date:', dueDate);
         }
 
+        // Calculate reminder time based on selected option
+        const reminderType = editTaskReminderTypeInput.value;
+        let reminderTime = null;
+
+        if (reminderType !== 'none') {
+            if (reminderType === 'custom') {
+                // Use the custom time input
+                reminderTime = editTaskReminderTimeInput.value;
+            } else if (dueDate) {
+                // Calculate based on due date
+                const dueDateTime = new Date(dueDate);
+
+                if (reminderType === 'same-day') {
+                    // Set to 9:00 AM on the due date
+                    dueDateTime.setHours(9, 0, 0, 0);
+                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                } else if (reminderType === 'day-before') {
+                    // Set to 9:00 AM on the day before
+                    dueDateTime.setDate(dueDateTime.getDate() - 1);
+                    dueDateTime.setHours(9, 0, 0, 0);
+                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                } else if (reminderType === 'week-before') {
+                    // Set to 9:00 AM one week before
+                    dueDateTime.setDate(dueDateTime.getDate() - 7);
+                    dueDateTime.setHours(9, 0, 0, 0);
+                    reminderTime = dueDateTime.toISOString().slice(0, 16);
+                }
+            }
+        }
+
         const updatedData = {
             title: editTaskTitleInput.value.trim(),
             description: editTaskDescriptionInput.value.trim() || null,
-            reminderTime: editTaskReminderTimeInput.value || null,
+            reminderTime: reminderTime,
+            reminderType: reminderType,
             dueDate: dueDate,
             duration: parseInt(editTaskDurationInput.value, 10) || 1,
             recurrenceType: editTaskRecurrenceTypeSelect.value,

@@ -86,24 +86,39 @@ function reloadPageAfterDelay(delay = 1000) {
 
 // Function to force a day change for habit counters
 function forceDayChange() {
-    // Set the last counter reset date to yesterday
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayString = yesterday.toISOString().split('T')[0];
+    // Set the last counter reset date to yesterday using Central Time
+    const now = new Date();
+    const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+    centralTime.setDate(centralTime.getDate() - 1);
+
+    // Format as YYYY-MM-DD
+    const year = centralTime.getFullYear();
+    const month = String(centralTime.getMonth() + 1).padStart(2, '0');
+    const day = String(centralTime.getDate()).padStart(2, '0');
+    const yesterdayString = `${year}-${month}-${day}`;
+
     localStorage.setItem('lastCounterResetDate', yesterdayString);
-    console.log(`Forced day change by setting lastCounterResetDate to ${yesterdayString}`);
+    console.log(`Forced day change by setting lastCounterResetDate to ${yesterdayString} (Central Time)`);
 
     // Reload the page to apply the change
     reloadPageAfterDelay(500);
 
-    return `Day change forced. Reset date set to ${yesterdayString}. Page will reload.`;
+    return `Day change forced. Reset date set to ${yesterdayString} (Central Time). Page will reload.`;
 }
 
 // Function to check the current day change status
 function checkDayChangeStatus() {
     const lastCounterResetDate = localStorage.getItem('lastCounterResetDate');
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0];
+
+    // Get today's date in Central Time
+    const now = new Date();
+    const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+
+    // Format as YYYY-MM-DD
+    const year = centralTime.getFullYear();
+    const month = String(centralTime.getMonth() + 1).padStart(2, '0');
+    const day = String(centralTime.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
 
     if (!lastCounterResetDate) {
         return 'No last reset date found. Habits will reset on next load.';
@@ -112,9 +127,9 @@ function checkDayChangeStatus() {
     const dayChanged = lastCounterResetDate !== todayString;
 
     if (dayChanged) {
-        return `Day has changed. Last reset: ${lastCounterResetDate}, Today: ${todayString}. Habits will reset on next load.`;
+        return `Day has changed. Last reset: ${lastCounterResetDate}, Today: ${todayString} (Central Time). Habits will reset on next load.`;
     } else {
-        return `Same day as last reset. Last reset: ${lastCounterResetDate}, Today: ${todayString}. Habits will NOT reset.`;
+        return `Same day as last reset. Last reset: ${lastCounterResetDate}, Today: ${todayString} (Central Time). Habits will NOT reset.`;
     }
 }
 

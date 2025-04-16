@@ -26,6 +26,7 @@ class Task {
             title,
             description,
             reminderTime,
+            reminderType,
             assignedDate,
             dueDate,
             recurrenceType,
@@ -60,6 +61,12 @@ class Task {
         if (reminderTime !== undefined) {
             fields.push('reminder_time');
             values.push(reminderTime);
+            valuePlaceholders.push(`$${placeholderIndex++}`);
+        }
+
+        if (reminderType !== undefined) {
+            fields.push('reminder_type');
+            values.push(reminderType);
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 
@@ -172,7 +179,7 @@ class Task {
     static async createNextOccurrence(id) {
         // 1. Get the task details
         const taskResult = await db.query(
-            `SELECT id, title, description, due_date,
+            `SELECT id, title, description, due_date, reminder_time, reminder_type,
                     recurrence_type, recurrence_interval
              FROM tasks WHERE id = $1`,
             [id]
@@ -220,15 +227,50 @@ class Task {
         // 4. Create a new task for the next occurrence
         // IMPORTANT: Set both assigned_date and due_date to ensure it appears on the calendar
         const formattedDate = nextDueDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+        // Calculate new reminder time if needed
+        let newReminderTime = null;
+        if (task.reminder_type && task.reminder_type !== 'none') {
+            if (task.reminder_type === 'custom' && task.reminder_time) {
+                // For custom reminders, calculate the same relative time before the due date
+                const oldDueDate = new Date(task.due_date);
+                const oldReminderTime = new Date(task.reminder_time);
+                const timeDiff = oldDueDate.getTime() - oldReminderTime.getTime();
+
+                const newReminderDate = new Date(nextDueDate.getTime() - timeDiff);
+                newReminderTime = newReminderDate.toISOString().slice(0, 16);
+            } else if (task.reminder_type === 'same-day') {
+                // Set to 9:00 AM on the due date
+                const reminderDate = new Date(nextDueDate);
+                reminderDate.setHours(9, 0, 0, 0);
+                newReminderTime = reminderDate.toISOString().slice(0, 16);
+            } else if (task.reminder_type === 'day-before') {
+                // Set to 9:00 AM on the day before
+                const reminderDate = new Date(nextDueDate);
+                reminderDate.setDate(reminderDate.getDate() - 1);
+                reminderDate.setHours(9, 0, 0, 0);
+                newReminderTime = reminderDate.toISOString().slice(0, 16);
+            } else if (task.reminder_type === 'week-before') {
+                // Set to 9:00 AM one week before
+                const reminderDate = new Date(nextDueDate);
+                reminderDate.setDate(reminderDate.getDate() - 7);
+                reminderDate.setHours(9, 0, 0, 0);
+                newReminderTime = reminderDate.toISOString().slice(0, 16);
+            }
+        }
+
         const result = await db.query(
             `INSERT INTO tasks (title, description, assigned_date, due_date,
-                             recurrence_type, recurrence_interval, is_complete)
-             VALUES ($1, $2, $3, $4, $5, $6, false) RETURNING *`,
+                             reminder_time, reminder_type, recurrence_type,
+                             recurrence_interval, is_complete)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false) RETURNING *`,
             [
                 task.title,
                 task.description,
                 formattedDate, // Set assigned_date to ensure it appears on calendar
                 formattedDate, // Set due_date
+                newReminderTime,
+                task.reminder_type,
                 task.recurrence_type,
                 task.recurrence_interval
             ]

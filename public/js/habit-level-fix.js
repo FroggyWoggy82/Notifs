@@ -9,9 +9,15 @@ function isDayChanged() {
     // Get the last counter reset date from localStorage
     const lastCounterResetDate = localStorage.getItem('lastCounterResetDate');
 
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Get today's date in YYYY-MM-DD format using Central Time
+    const now = new Date();
+    const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+
+    // Format as YYYY-MM-DD
+    const year = centralTime.getFullYear();
+    const month = String(centralTime.getMonth() + 1).padStart(2, '0');
+    const day = String(centralTime.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
 
     // If no reset date is stored, or if it's a different day, we should reset
     if (!lastCounterResetDate) {

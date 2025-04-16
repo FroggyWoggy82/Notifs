@@ -192,6 +192,85 @@
     margin: 20px 0;
 }
 
+/* Prediction Table Styles */
+#prediction-table-container {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
+}
+
+#prediction-table-container h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #4CAF50;
+    text-align: center;
+}
+
+#prediction-info {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #ccc;
+}
+
+#best-set-info {
+    font-weight: bold;
+    color: #fff;
+}
+
+.prediction-legend {
+    color: #aaa;
+    font-size: 0.9em !important;
+    margin-bottom: 15px !important;
+    text-align: center;
+}
+
+.legend-item {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-right: 10px;
+    border-radius: 3px;
+    font-weight: normal;
+}
+
+.prediction-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.prediction-table th {
+    background-color: #1e1e1e;
+    color: #4CAF50;
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.prediction-table td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #444;
+}
+
+.prediction-table tr:nth-child(even) {
+    background-color: #333;
+}
+
+.prediction-table tr:hover {
+    background-color: #444;
+}
+
+.prediction-table tr.achieved {
+    background-color: rgba(76, 175, 80, 0.2) !important;
+}
+
+.prediction-table tr.achieved:hover {
+    background-color: rgba(76, 175, 80, 0.3) !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .history-search-filter-container {
@@ -212,5 +291,17 @@
     .chart-container {
         width: 95vw !important;
         margin: 10px auto !important;
+    }
+
+    #prediction-table-container {
+        width: 95vw !important;
+        margin: 20px auto !important;
+        padding: 15px 10px;
+    }
+
+    .prediction-table th,
+    .prediction-table td {
+        padding: 8px 4px;
+        font-size: 0.9em;
     }
 }

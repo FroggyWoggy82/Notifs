@@ -88,6 +88,29 @@
                     <canvas id="exercise-history-chart"></canvas>
                     <p id="history-message" style="text-align: center; margin-top: 20px;"></p> <!-- Message area -->
                 </div>
+
+                <!-- 1RM Prediction Table -->
+                <div id="prediction-table-container" style="display: none;">
+                    <h3>Predicted Weights by Rep Count</h3>
+                    <p id="prediction-info">Based on your best set: <span id="best-set-info">-</span></p>
+                    <p class="prediction-legend">
+                        <span class="legend-item" style="background-color: rgba(76, 175, 80, 0.2);">Highlighted rows</span> = weights you've already achieved (actual weights shown)
+                    </p>
+                    <div style="overflow-x: auto;">
+                        <table class="prediction-table">
+                            <thead>
+                                <tr>
+                                    <th>Reps</th>
+                                    <th>Weight</th>
+                                    <th>% of 1RM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prediction-table-body">
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <!-- End Exercise History Section -->
 

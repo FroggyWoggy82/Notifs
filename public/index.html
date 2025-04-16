@@ -143,7 +143,17 @@
                     <textarea id="taskDescription" placeholder="Add more details..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="taskReminderTime">Reminder Time (Optional):</label>
+                    <label for="taskReminderType">Reminder (Optional):</label>
+                    <select id="taskReminderType">
+                        <option value="none" selected>No Reminder</option>
+                        <option value="same-day">On the due date</option>
+                        <option value="day-before">1 day before</option>
+                        <option value="week-before">1 week before</option>
+                        <option value="custom">Custom time</option>
+                    </select>
+                </div>
+                <div class="form-group" id="customReminderGroup" style="display: none;">
+                    <label for="taskReminderTime">Custom Reminder Time:</label>
                     <input type="datetime-local" id="taskReminderTime">
                 </div>
                 <div class="form-row">
@@ -199,7 +209,17 @@
                     <textarea id="editTaskDescription" placeholder="Add more details..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="editTaskReminderTime">Reminder Time (Optional):</label>
+                    <label for="editTaskReminderType">Reminder (Optional):</label>
+                    <select id="editTaskReminderType">
+                        <option value="none" selected>No Reminder</option>
+                        <option value="same-day">On the due date</option>
+                        <option value="day-before">1 day before</option>
+                        <option value="week-before">1 week before</option>
+                        <option value="custom">Custom time</option>
+                    </select>
+                </div>
+                <div class="form-group" id="editCustomReminderGroup" style="display: none;">
+                    <label for="editTaskReminderTime">Custom Reminder Time:</label>
                     <input type="datetime-local" id="editTaskReminderTime">
                 </div>
                 <div class="form-row">

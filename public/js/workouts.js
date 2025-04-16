@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 'landing'; // <<< ADDED: Declare currentPage in top-level scope
     let lastInputSaveTime = 0; // Track when inputs were last saved
 
+    // Variables to track the exercise being edited
+    let currentEditingExerciseIndex = -1;
+    let currentEditingExerciseId = null;
+
     // --- Local Storage Keys ---
     const STORAGE_KEYS = {
         CURRENT_WORKOUT: 'workout_tracker_current_workout',
@@ -70,6 +74,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const templateListContainer = document.getElementById('workout-template-list');
     const templateSearchInput = document.getElementById('template-search');
     const createTemplateBtn = document.getElementById('create-template-btn');
+
+    // --- Exercise Edit Modal Elements ---
+    const exerciseEditModal = document.getElementById('exercise-edit-modal');
+    const exerciseEditForm = document.getElementById('exercise-edit-form');
+    const editExerciseNameInput = document.getElementById('edit-exercise-name');
+    const saveAsNewExerciseCheckbox = document.getElementById('save-as-new-exercise');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const saveEditBtn = document.getElementById('save-edit-btn');
+    const exerciseEditModalCloseBtn = exerciseEditModal ? exerciseEditModal.querySelector('.close-button') : null;
 
     const currentWorkoutNameEl = document.getElementById('current-workout-name');
     const workoutTimerEl = document.getElementById('workout-timer');
@@ -538,6 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
                     <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
                 </select>
+                ${!isTemplate ? `<button class="btn-edit-exercise" data-workout-index="${index}" title="Edit Exercise Name">✎</button>` : ''}
                 <button class="${isTemplate ? 'btn-delete-template-exercise' : 'btn-delete-exercise'}" title="Remove Exercise">&times;</button>
             </div>
             <div class="exercise-notes-group">  <!-- <<< MOVED UP -->
@@ -564,6 +578,97 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Event Handlers ---\
+
+    // --- Exercise Name Edit Functions ---
+    function openExerciseEditModal(index) {
+        if (!exerciseEditModal) return;
+
+        currentEditingExerciseIndex = index;
+        const exercise = currentWorkout.exercises[index];
+        currentEditingExerciseId = exercise.exercise_id;
+
+        // Set the current name in the input field
+        if (editExerciseNameInput) {
+            editExerciseNameInput.value = exercise.name;
+        }
+
+        // Reset the checkbox
+        if (saveAsNewExerciseCheckbox) {
+            saveAsNewExerciseCheckbox.checked = false;
+        }
+
+        // Show the modal
+        exerciseEditModal.style.display = 'block';
+    }
+
+    function closeExerciseEditModal() {
+        if (!exerciseEditModal) return;
+
+        // Reset state variables
+        currentEditingExerciseIndex = -1;
+        currentEditingExerciseId = null;
+
+        // Hide the modal
+        exerciseEditModal.style.display = 'none';
+    }
+
+    async function handleSaveExerciseName(event) {
+        event.preventDefault();
+
+        if (currentEditingExerciseIndex < 0 || !editExerciseNameInput) return;
+
+        const newName = editExerciseNameInput.value.trim();
+        if (!newName) {
+            alert('Please enter a valid exercise name');
+            return;
+        }
+
+        const exercise = currentWorkout.exercises[currentEditingExerciseIndex];
+
+        // Update the exercise name in the current workout
+        exercise.name = newName;
+
+        // If the user wants to save this as a new exercise for future use
+        if (saveAsNewExerciseCheckbox && saveAsNewExerciseCheckbox.checked) {
+            try {
+                // Create a new exercise in the database
+                const response = await fetch('/api/workouts/exercises', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: newName,
+                        category: exercise.category || 'Other'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const newExercise = await response.json();
+                console.log('New exercise created:', newExercise);
+
+                // Update the exercise ID in the current workout
+                exercise.exercise_id = newExercise.exercise_id;
+
+                // Add the new exercise to the available exercises list
+                availableExercises.push(newExercise);
+
+                alert(`Exercise "${newName}" has been saved for future use.`);
+            } catch (error) {
+                console.error('Error creating new exercise:', error);
+                alert(`Error saving new exercise: ${error.message}`);
+            }
+        }
+
+        // Re-render the current workout to show the updated name
+        renderCurrentWorkout();
+
+        // Close the modal
+        closeExerciseEditModal();
+    }
 
     function handleFilterChange() {
         const searchTerm = exerciseSearchInput.value;
@@ -611,6 +716,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Only save if we have an active workout
             if (currentWorkout && (Array.isArray(currentWorkout) ? currentWorkout.length > 0 : currentWorkout.exercises?.length > 0)) {
                 console.log('Saving workout state to localStorage');
+
+                // Update weight units from UI before saving
+                updateWeightUnitsFromUI();
+
                 localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(currentWorkout));
 
                 // Save workout start time if it exists
@@ -635,6 +744,28 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error saving workout state:', error);
             return false;
         }
+    }
+
+    // Update weight units in currentWorkout from UI
+    function updateWeightUnitsFromUI() {
+        if (currentPage !== 'active') return;
+
+        const exerciseItems = document.querySelectorAll('.exercise-item');
+        if (!exerciseItems.length) return;
+
+        exerciseItems.forEach(item => {
+            const workoutIndex = parseInt(item.dataset.workoutIndex, 10);
+            if (isNaN(workoutIndex)) return;
+
+            const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+            if (!exercises || !exercises[workoutIndex]) return;
+
+            const unitSelect = item.querySelector('.exercise-unit-select');
+            if (unitSelect) {
+                // Update the weight_unit in the currentWorkout object
+                exercises[workoutIndex].weight_unit = unitSelect.value;
+            }
+        });
     }
 
     // Save all input values from the active workout
@@ -2164,6 +2295,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Save input values when navigating away from the page
         window.addEventListener('beforeunload', () => {
             if (currentPage === 'active') {
+                // Update weight units from UI before saving
+                updateWeightUnitsFromUI();
+
                 // Save using our persistence module if available
                 if (typeof saveWorkoutData === 'function') {
                     saveWorkoutData();
@@ -2179,6 +2313,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Busy wait to ensure the save completes
                 }
             }
+        });
+
+        // Add event listeners to all navigation links to save weight units before navigation
+        document.querySelectorAll('.sidebar-nav-item, .nav-item').forEach(link => {
+            link.addEventListener('click', () => {
+                if (currentPage === 'active') {
+                    // Update weight units from UI before navigating
+                    updateWeightUnitsFromUI();
+                    saveWorkoutState();
+                }
+            });
         });
 
         // Save input values when clicking on navigation links
@@ -2262,6 +2407,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleRemoveSet(event);
                 } else if (target.classList.contains('set-complete-toggle')) { // <<< ADD THIS CHECK
                     handleSetToggle(event);                             // <<< CALL THE HANDLER
+                } else if (target.classList.contains('btn-edit-exercise')) {
+                    // Get the workout index from the data attribute
+                    const index = parseInt(target.dataset.workoutIndex);
+                    if (!isNaN(index)) {
+                        openExerciseEditModal(index);
+                    }
                 } else if (target.classList.contains('exercise-unit-select')) { // <<< NEW: Handle header unit change
                     handleExerciseUnitChange(event);
                 } else if (target.classList.contains('btn-delete-exercise')) { // <<< ADD THIS CHECK
@@ -2587,6 +2738,24 @@ document.addEventListener('DOMContentLoaded', function() {
             comparePhotosBtn.addEventListener('click', togglePhotoComparison);
         } else {
             console.error('[Initialize] comparePhotosBtn not found!');
+        }
+
+        // Exercise Edit Modal Listeners
+        if (exerciseEditForm) {
+            exerciseEditForm.addEventListener('submit', handleSaveExerciseName);
+        }
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', closeExerciseEditModal);
+        }
+        if (exerciseEditModalCloseBtn) {
+            exerciseEditModalCloseBtn.addEventListener('click', closeExerciseEditModal);
+        }
+        if (exerciseEditModal) {
+            exerciseEditModal.addEventListener('click', (event) => {
+                if (event.target === exerciseEditModal) {
+                    closeExerciseEditModal();
+                }
+            });
         }
 
         // Comparison Select Listeners
@@ -4020,6 +4189,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const exerciseId = exercises[exerciseIndex].exercise_id;
         if (exerciseId) {
             saveExerciseUnitPreference(exerciseId, newUnit);
+        }
+
+        // Save the workout state to ensure the unit change persists
+        saveWorkoutState();
+
+        // Also save using the workout-persistence module if available
+        if (typeof saveWorkoutData === 'function') {
+            saveWorkoutData();
         }
     }
 

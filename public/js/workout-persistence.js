@@ -20,6 +20,12 @@ function initWorkoutPersistence() {
 
     // Add a MutationObserver to detect when exercise items are added to the DOM
     setupMutationObserver();
+
+    // Export functions to window
+    window.saveWorkoutData = saveWorkoutData;
+    window.restoreWorkoutData = restoreWorkoutData;
+    window.clearWorkoutData = clearWorkoutData;
+    window.updateCurrentWorkoutFromUI = updateCurrentWorkoutFromUI;
 }
 
 // Add event listeners to save data when inputs change
@@ -51,6 +57,15 @@ function addInputChangeListeners() {
         if (target instanceof HTMLElement && target.classList.contains('set-complete-toggle')) {
             // Wait a moment for the toggle to complete
             setTimeout(saveWorkoutData, 50);
+        }
+    });
+
+    // Add a delegated event listener for weight unit changes
+    exerciseListEl.addEventListener('change', (event) => {
+        const target = event.target;
+        if (target instanceof HTMLElement && target.classList.contains('exercise-unit-select')) {
+            // Save workout data when unit changes
+            saveWorkoutData();
         }
     });
 }
@@ -143,6 +158,12 @@ function saveWorkoutData() {
             return false;
         }
 
+        // Update the currentWorkout object with weight units from UI
+        updateCurrentWorkoutFromUI(currentWorkout);
+
+        // Save the updated currentWorkout back to localStorage
+        localStorage.setItem('workout_tracker_current_workout', JSON.stringify(currentWorkout));
+
         // Initialize workout data object
         const workoutData = {
             exercises: [],
@@ -170,7 +191,8 @@ function saveWorkoutData() {
                 exercise_id: exerciseData.exercise_id,
                 name: exerciseData.name,
                 sets: [],
-                notes: ''
+                notes: '',
+                weight_unit: exerciseData.weight_unit || 'kg' // Save the weight unit
             };
 
             // Get all set rows
@@ -191,6 +213,12 @@ function saveWorkoutData() {
             const notesTextarea = item.querySelector('.exercise-notes-textarea');
             if (notesTextarea) {
                 exerciseInfo.notes = notesTextarea.value;
+            }
+
+            // Get weight unit from the dropdown
+            const unitSelect = item.querySelector('.exercise-unit-select');
+            if (unitSelect) {
+                exerciseInfo.weight_unit = unitSelect.value;
             }
 
             // Add exercise to workout data
@@ -300,6 +328,17 @@ function restoreWorkoutData() {
                     notesTextarea.value = savedExercise.notes;
                 }
             }
+
+            // Restore weight unit
+            if (savedExercise.weight_unit) {
+                const unitSelect = item.querySelector('.exercise-unit-select');
+                if (unitSelect) {
+                    unitSelect.value = savedExercise.weight_unit;
+
+                    // Also update the weight_unit in the currentWorkout data
+                    exercises[workoutIndex].weight_unit = savedExercise.weight_unit;
+                }
+            }
         });
 
         return true;
@@ -307,6 +346,36 @@ function restoreWorkoutData() {
         console.error('Error restoring workout data:', error);
         return false;
     }
+}
+
+// Update the currentWorkout object with weight units from UI
+function updateCurrentWorkoutFromUI(currentWorkout) {
+    // Get all exercise items
+    const exerciseItems = document.querySelectorAll('.exercise-item');
+    if (!exerciseItems.length) return;
+
+    // Determine if currentWorkout is an array or an object with exercises property
+    const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+    if (!exercises) return;
+
+    // Update each exercise with its current weight unit from the UI
+    exerciseItems.forEach(item => {
+        const workoutIndex = parseInt(item.dataset.workoutIndex, 10);
+        if (isNaN(workoutIndex) || !exercises[workoutIndex]) return;
+
+        const unitSelect = item.querySelector('.exercise-unit-select');
+        if (unitSelect) {
+            // Update the weight_unit in the currentWorkout object
+            exercises[workoutIndex].weight_unit = unitSelect.value;
+
+            // Also update any sets_completed units
+            if (exercises[workoutIndex].sets_completed && Array.isArray(exercises[workoutIndex].sets_completed)) {
+                exercises[workoutIndex].sets_completed.forEach(set => {
+                    if (set) set.unit = unitSelect.value;
+                });
+            }
+        }
+    });
 }
 
 // Initialize the module when the page loads
