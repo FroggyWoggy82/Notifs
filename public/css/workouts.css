@@ -1249,6 +1249,7 @@ h1, h2 {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    min-height: 200px; /* Ensure minimum height even when image fails to load */
 }
 
 /* Slider Navigation Buttons (Keep existing styles) */
@@ -1362,8 +1363,9 @@ h1, h2 {
 
 /* ============================================ */
 
-/* Mobile Adjustments for Template List */
+/* Mobile Adjustments */
 @media screen and (max-width: 600px) {
+    /* Template List Adjustments */
     .my-workouts-section {
         /* Keep existing styles */
     }
@@ -1391,6 +1393,25 @@ h1, h2 {
     /* Adjust button header for mobile if needed */
     .template-actions-header {
         max-width: 95%; /* Example: Use percentage on mobile */
+    }
+
+    /* Photo Carousel Mobile Adjustments */
+    .photo-reel img {
+        min-height: 250px; /* Ensure taller minimum height on mobile */
+        background-color: #444; /* Darker background for better visibility */
+        border: 1px solid #666; /* Add border for visibility */
+    }
+
+    .photo-slider-container {
+        margin-bottom: 20px; /* Add more space below slider */
+    }
+
+    /* Make navigation buttons larger and more visible on mobile */
+    .slider-nav-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        background-color: rgba(0, 0, 0, 0.6);
     }
 }
 
