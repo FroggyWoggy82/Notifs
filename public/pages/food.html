@@ -196,20 +196,58 @@
         </a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script> <!-- Chart.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script> <!-- Updated to newer version -->
+    <!-- Chart.js with annotation plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
     <script>
-        // Register the annotation plugin
-        try {
-            // In newer versions, the plugin registers itself automatically
-            console.log('ChartAnnotation plugin should auto-register with Chart.js');
-        } catch (error) {
-            console.error('Error with ChartAnnotation plugin:', error);
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Chart.js to load completely
+            setTimeout(function() {
+                try {
+                    // Check if Chart.js is loaded
+                    if (typeof Chart === 'undefined') {
+                        console.error('Chart.js not loaded');
+                        return;
+                    }
+
+                    // First check if it's already registered
+                    let annotationRegistered = false;
+
+                    if (Chart.registry && Chart.registry.plugins) {
+                        const plugins = Object.values(Chart.registry.plugins.items);
+                        annotationRegistered = plugins.some(p => p.id === 'annotation');
+
+                        if (annotationRegistered) {
+                            console.log('ChartAnnotation already registered in registry');
+                        }
+                    }
+
+                    // If not registered, try to register it
+                    if (!annotationRegistered) {
+                        // Try global ChartAnnotation
+                        if (typeof ChartAnnotation !== 'undefined') {
+                            Chart.register(ChartAnnotation);
+                            console.log('ChartAnnotation registered from global');
+                        }
+                        // Try Chart.Annotation
+                        else if (Chart.Annotation) {
+                            Chart.register(Chart.Annotation);
+                            console.log('ChartAnnotation registered from Chart.Annotation');
+                        }
+                        else {
+                            console.warn('ChartAnnotation plugin not found');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error registering annotation plugin:', error);
+                }
+            }, 1000); // Give more time for all scripts to load
+        });
     </script>
 
     <!-- Common utilities -->
     <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/chart-config.js"></script>
 
     <!-- Food functionality -->
     <script src="../js/food/food.js"></script> <!-- Food specific JS -->

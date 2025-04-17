@@ -88,11 +88,16 @@
 .chart-container {
     margin-top: 30px;
     position: relative;
-    height: 300px; /* Adjust height as needed */
+    height: 400px; /* Increased height for better visualization */
     width: 100%;
-    margin-bottom: 100px; /* Significantly increased space after chart */
+    margin-bottom: 120px; /* Significantly increased space after chart */
     overflow: visible; /* Allow annotations to be visible outside container */
-    padding-bottom: 40px; /* Add padding at the bottom for x-axis labels */
+    padding-bottom: 60px; /* Increased padding at the bottom for x-axis labels */
+    padding-left: 20px; /* Add padding on the left for y-axis labels */
+    padding-right: 20px; /* Add padding on the right for balance */
+    /* Add a subtle border to visualize the chart container boundaries */
+    border: 1px dashed rgba(200, 200, 200, 0.3);
+    border-radius: 8px;
 }
 
 .chart-controls {
@@ -442,9 +447,13 @@
 
     /* Chart container adjustments */
     .chart-container {
-        margin-bottom: 120px; /* Further increased space after chart on mobile */
-        height: 250px; /* Reduce height on mobile */
-        padding-bottom: 60px; /* Extra padding for x-axis labels on mobile */
+        margin-bottom: 140px; /* Further increased space after chart on mobile */
+        height: 350px; /* Increased height on mobile for better visualization */
+        padding-bottom: 80px; /* Extra padding for x-axis labels on mobile */
+        padding-left: 10px; /* Reduced side padding on mobile */
+        padding-right: 10px;
+        /* Add more visible border on mobile to help with visualization */
+        border: 1px dashed rgba(200, 200, 200, 0.5);
     }
 
     /* Scale adjustments for mobile */

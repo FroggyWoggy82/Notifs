@@ -422,24 +422,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const formattedActualData = [];
         const formattedTargetData = [];
 
-        // Format actual weight data
+        // Format actual weight data - use actual array indices for x values
         for (let i = 0; i < labels.length; i++) {
-            if (actualData[i] !== null) {
-                formattedActualData.push({
-                    x: i,
-                    y: actualData[i]
-                });
-            }
+            formattedActualData.push({
+                x: i,
+                y: actualData[i] // Keep null values to maintain line continuity
+            });
         }
 
-        // Format target weight data
+        // Format target weight data - use actual array indices for x values
         for (let i = 0; i < labels.length; i++) {
-            if (targetData[i] !== null) {
-                formattedTargetData.push({
-                    x: i,
-                    y: targetData[i]
-                });
-            }
+            formattedTargetData.push({
+                x: i,
+                y: targetData[i] // Keep null values to maintain line continuity
+            });
         }
 
         const datasets = [
@@ -458,7 +454,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 pointHoverRadius: 7,
                 pointHoverBackgroundColor: '#3498db',
                 pointHoverBorderColor: '#fff',
-                pointHoverBorderWidth: 2
+                pointHoverBorderWidth: 2,
+                spanGaps: true, // Connect points across gaps (null values)
+                // Ensure points are always drawn regardless of zoom level
+                pointRadius: 5, // Fixed point size
+                // Make sure points are always visible
+                z: 10, // Higher z-index to keep points on top
+                // Don't clip points at the edges
+                clip: false,
+                // Keep points in view when zooming
+                borderJoinStyle: 'round',
+                segment: {
+                    borderColor: ctx => {
+                        // Only draw line segments where we have actual data
+                        const p0 = ctx.p0.parsed;
+                        const p1 = ctx.p1.parsed;
+                        return (p0.y === null || p1.y === null) ? 'transparent' : '#3498db';
+                    }
+                }
             }
         ];
 
@@ -473,7 +486,16 @@ document.addEventListener('DOMContentLoaded', () => {
                  tension: 0.3,
                  fill: false,
                  pointRadius: 0, // Hide points on target line
-                 pointHoverRadius: 0 // No hover effect on target line
+                 pointHoverRadius: 0, // No hover effect on target line
+                 spanGaps: true, // Connect points across gaps (null values)
+                 segment: {
+                     borderColor: ctx => {
+                         // Only draw line segments where we have actual data
+                         const p0 = ctx.p0.parsed;
+                         const p1 = ctx.p1.parsed;
+                         return (p0.y === null || p1.y === null) ? 'transparent' : '#e74c3c';
+                     }
+                 }
              });
         }
 
@@ -645,7 +667,70 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        weightGoalChart = new Chart(ctx, {
+        // Make sure the annotation plugin is registered before creating the chart
+        try {
+            // Check if annotation plugin is available
+            let annotationPluginAvailable = false;
+
+            if (Chart.registry && Chart.registry.plugins) {
+                const plugins = Object.values(Chart.registry.plugins.items);
+                annotationPluginAvailable = plugins.some(p => p.id === 'annotation');
+            }
+
+            if (!annotationPluginAvailable) {
+                console.warn('Annotation plugin not found in registry, trying to register manually');
+
+                // Try global ChartAnnotation
+                if (typeof ChartAnnotation !== 'undefined') {
+                    Chart.register(ChartAnnotation);
+                    console.log('Registered annotation plugin from global ChartAnnotation');
+                }
+                // Try Chart.Annotation
+                else if (Chart.Annotation) {
+                    Chart.register(Chart.Annotation);
+                    console.log('Registered annotation plugin from Chart.Annotation');
+                }
+            }
+        } catch (error) {
+            console.error('Error checking/registering annotation plugin:', error);
+        }
+
+        // Find the minimum and maximum weights for better scaling
+        const validWeights = actualData.filter(w => w !== null && w !== undefined);
+
+        // Add significant buffer below the minimum to ensure points don't go below the view
+        const minWeight = Math.min(...validWeights) * 0.90; // 10% buffer below min
+        const maxWeight = Math.max(...validWeights) * 1.05; // 5% buffer above max
+
+        // If we have a target weight, include it in the scale calculation
+        let yMin = minWeight;
+        let yMax = maxWeight;
+
+        if (targetWeight && !isNaN(targetWeight)) {
+            // If target weight is higher than current weights, add more buffer
+            if (targetWeight > maxWeight) {
+                yMax = targetWeight * 1.05; // 5% buffer above target
+            } else if (targetWeight < minWeight) {
+                yMin = targetWeight * 0.90; // 10% buffer below target
+            } else {
+                yMin = Math.min(yMin, targetWeight * 0.90);
+                yMax = Math.max(yMax, targetWeight * 1.05);
+            }
+        }
+
+        // Add extra padding to ensure points are fully visible
+        const range = yMax - yMin;
+        yMin -= range * 0.15; // Additional 15% padding at bottom
+        yMax += range * 0.05; // Additional 5% padding at top
+
+        // Ensure there's always a minimum visible range, even with high zoom
+        const minVisibleRange = Math.max(...validWeights) * 0.1; // At least 10% of max weight
+        if ((yMax - yMin) < minVisibleRange) {
+            yMin = yMax - minVisibleRange;
+        }
+
+        // Create the chart configuration
+        const chartConfig = {
             type: 'line',
             data: {
                 labels: labels,
@@ -674,6 +759,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     xAxisKey: 'x',
                     yAxisKey: 'y'
                 },
+                // Add layout configuration to ensure proper padding
+                layout: {
+                    padding: {
+                        left: 15,
+                        right: 15,
+                        top: 10,
+                        bottom: 10
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: false, // Don't force y-axis to start at 0 for weight
@@ -683,7 +777,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             font: {
                                 weight: 'bold',
                                 size: 14
-                            }
+                            },
+                            padding: { top: 0, bottom: 10 } // Add padding to title
                         },
                         grid: {
                             color: 'rgba(200, 200, 200, 0.2)'
@@ -695,122 +790,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             callback: function(value) {
                                 // Round to 2 decimal places for y-axis labels
                                 return parseFloat(value).toFixed(2) + ' lbs';
-                            }
+                            },
+                            padding: 15, // Increased padding to ensure ticks don't get cut off
+                            // Ensure we don't have too many ticks
+                            maxTicksLimit: 10
                         },
-                        // Apply the y-axis scale factor
-                        min: function(context) {
-                            // Get the auto-calculated min value
-                            const original = context.chart.scales.y.min;
-
-                            // Find the min and max data points
-                            let minDataPoint = Number.MAX_VALUE;
-                            let maxDataPoint = Number.MIN_VALUE;
-
-                            context.chart.data.datasets.forEach(dataset => {
-                                dataset.data.forEach(point => {
-                                    if (point.y !== null) {
-                                        if (point.y < minDataPoint) minDataPoint = point.y;
-                                        if (point.y > maxDataPoint) maxDataPoint = point.y;
-                                    }
-                                });
-                            });
-
-                            // Store these values on the chart object so max function can access them
-                            context.chart.$minDataPoint = minDataPoint;
-                            context.chart.$maxDataPoint = maxDataPoint;
-
-                            // If no valid data points, return null
-                            if (minDataPoint === Number.MAX_VALUE) return null;
-
-                            // Calculate the range of the data
-                            const dataRange = maxDataPoint - minDataPoint;
-
-                            // Calculate the center of the data range
-                            const dataCenter = (maxDataPoint + minDataPoint) / 2;
-
-                            // Calculate the scaled range based on the scale factor
-                            // We need to invert the scale for proper zooming behavior
-                            // For values < 1: We want to zoom out (show more data)
-                            // For values > 1: We want to zoom in (show less data)
-                            let scaledRange;
-                            if (yAxisScale <= 1) {
-                                // Zoom out (show more data)
-                                // For values < 1, we want to show more data (larger range)
-                                // The smaller the scale, the larger the visible range should be
-                                scaledRange = dataRange / yAxisScale;
-
-                                // Add extra padding when zoomed out
-                                const extraPadding = dataRange * (1 - yAxisScale) * 0.5;
-                                scaledRange += extraPadding;
-                            } else {
-                                // Zoom in (show less data)
-                                // For values > 1, we need to make the range smaller
-                                // The higher the scale, the smaller the visible range should be
-                                // Use a much more aggressive formula for values > 1
-                                // Square the scale factor to make the effect exponential
-                                const factor = yAxisScale * yAxisScale * 2;
-                                scaledRange = dataRange / factor;
-                                console.log(`Y-axis zoom in: scale=${yAxisScale}, factor=${factor}, range=${dataRange}, scaledRange=${scaledRange}`);
-                            }
-
-                            // Log the calculation for debugging
-                            console.log(`Y-axis scale: ${yAxisScale}, Data range: ${dataRange}, Scaled range: ${scaledRange}`);
-
-                            // Calculate the new min based on the scaled range
-                            const calculatedMin = dataCenter - (scaledRange / 2);
-
-                            // Add a small padding below the minimum data point (0.5% of the range)
-                            const padding = dataRange * 0.005;
-                            return Math.min(calculatedMin, minDataPoint - padding);
-                        },
-                        max: function(context) {
-                            // Get the min/max data points from the chart object (set by min function)
-                            const minDataPoint = context.chart.$minDataPoint;
-                            const maxDataPoint = context.chart.$maxDataPoint;
-
-                            // If no valid data points, return null
-                            if (!minDataPoint || minDataPoint === Number.MAX_VALUE ||
-                                !maxDataPoint || maxDataPoint === Number.MIN_VALUE) {
-                                return null;
-                            }
-
-                            // Calculate the range of the data
-                            const dataRange = maxDataPoint - minDataPoint;
-
-                            // Calculate the center of the data range
-                            const dataCenter = (maxDataPoint + minDataPoint) / 2;
-
-                            // Calculate the scaled range based on the scale factor
-                            // We need to invert the scale for proper zooming behavior
-                            // For values < 1: We want to zoom out (show more data)
-                            // For values > 1: We want to zoom in (show less data)
-                            let scaledRange;
-                            if (yAxisScale <= 1) {
-                                // Zoom out (show more data)
-                                // For values < 1, we want to show more data (larger range)
-                                // The smaller the scale, the larger the visible range should be
-                                scaledRange = dataRange / yAxisScale;
-
-                                // Add extra padding when zoomed out
-                                const extraPadding = dataRange * (1 - yAxisScale) * 0.5;
-                                scaledRange += extraPadding;
-                            } else {
-                                // Zoom in (show less data)
-                                // For values > 1, we need to make the range smaller
-                                // The higher the scale, the smaller the visible range should be
-                                // Use a much more aggressive formula for values > 1
-                                // Square the scale factor to make the effect exponential
-                                const factor = yAxisScale * yAxisScale * 2;
-                                scaledRange = dataRange / factor;
-                                console.log(`Y-axis zoom in: scale=${yAxisScale}, factor=${factor}, range=${dataRange}, scaledRange=${scaledRange}`);
-                            }
-
-                            // Calculate the new max based on the scaled range
-                            const calculatedMax = dataCenter + (scaledRange / 2);
-
-                            // Add a small padding above the maximum data point (0.5% of the range)
-                            const padding = dataRange * 0.005;
-                            return Math.max(calculatedMax, maxDataPoint + padding);
+                        // Set fixed min/max values to prevent scaling issues
+                        min: yMin,
+                        max: yMax,
+                        // Ensure the axis doesn't get cut off
+                        position: 'left',
+                        // Add extra space to prevent overlap with y-axis labels
+                        afterFit: function(scaleInstance) {
+                            // Add extra width to ensure labels are fully visible
+                            scaleInstance.width = Math.max(scaleInstance.width, 80);
                         }
                     },
                     x: {
@@ -820,7 +813,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             font: {
                                 weight: 'bold',
                                 size: 14
-                            }
+                            },
+                            padding: { top: 10, bottom: 0 } // Add padding to title
                         },
                         grid: {
                             color: 'rgba(200, 200, 200, 0.2)'
@@ -836,16 +830,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Lower xAxisScale = more ticks (compressed view showing more dates)
                             // Higher xAxisScale = fewer ticks (expanded view showing fewer dates)
                             autoSkip: true,
-                            autoSkipPadding: 10,
-                            maxTicksLimit: function() {
-                                // Base number of ticks adjusted by the scale factor
-                                // Inverse relationship: higher scale = fewer ticks
-                                return Math.max(5, Math.round(20 / xAxisScale));
-                            }
+                            autoSkipPadding: 15, // Increased padding between ticks
+                            maxTicksLimit: Math.max(5, Math.round(20 / xAxisScale)),
+                            padding: 10 // Add padding to ensure ticks don't get cut off
                         },
                         // Enable zooming on the x-axis
                         min: 0,
-                        max: labels.length - 1
+                        max: labels.length - 1,
+                        // Ensure the axis doesn't get cut off
+                        offset: true, // Add offset to prevent labels from being cut off
+                        // Add extra space to prevent overlap with x-axis labels
+                        afterFit: function(scaleInstance) {
+                            // Add extra height to ensure labels are fully visible
+                            scaleInstance.height = Math.max(scaleInstance.height, 60);
+                        }
                     }
                 },
                 plugins: {
@@ -905,13 +903,92 @@ document.addEventListener('DOMContentLoaded', () => {
                                 return label;
                             }
                         }
-                    },
-                    annotation: {
-                        annotations: annotations
                     }
                 }
             }
-        });
+        };
+
+        // Add annotations if the plugin is available
+        try {
+            // Create a safer version of annotations that won't cause errors
+            const safeAnnotations = {};
+
+            // Only add the today indicator and target weight line if they exist
+            if (annotations.todayIndicator) {
+                safeAnnotations.todayIndicator = {
+                    type: 'line',
+                    scaleID: 'x',
+                    value: annotations.todayIndicator.value,
+                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                    borderWidth: 2,
+                    borderDash: [6, 6],
+                    label: {
+                        display: true,
+                        content: 'Today',
+                        position: 'start',
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                        font: { weight: 'bold' }
+                    }
+                };
+            }
+
+            if (annotations.targetWeightLine) {
+                safeAnnotations.targetWeightLine = {
+                    type: 'line',
+                    scaleID: 'y',
+                    value: annotations.targetWeightLine.value,
+                    borderColor: 'rgba(54, 162, 235, 0.8)',
+                    borderWidth: 2,
+                    borderDash: [6, 6],
+                    label: {
+                        display: true,
+                        content: 'Target: ' + annotations.targetWeightLine.value + ' lbs',
+                        position: 'end',
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        font: { weight: 'bold' }
+                    }
+                };
+            }
+
+            // Check if annotation plugin is registered
+            if (Chart.registry && Chart.registry.plugins &&
+                Object.values(Chart.registry.plugins.items).some(p => p.id === 'annotation')) {
+                // Add annotations to chart config with safety options
+                chartConfig.options.plugins.annotation = {
+                    annotations: safeAnnotations,
+                    // Add additional options to make annotations more stable
+                    clip: false, // Don't clip annotations
+                    interaction: { mode: 'nearest' },
+                    // Disable animations for annotations to prevent errors
+                    animations: { duration: 0 },
+                    // Ensure annotations are drawn on top
+                    drawTime: 'afterDatasetsDraw',
+                    // Add extra configuration for better stability
+                    common: {
+                        drawTime: 'afterDraw',
+                        z: 100 // Ensure annotations are on top
+                    }
+                };
+                console.log('Added annotations to chart config');
+            } else {
+                console.warn('Annotation plugin not available, skipping annotations');
+            }
+        } catch (error) {
+            console.error('Error adding annotations to chart:', error);
+            // Continue without annotations if there's an error
+        }
+
+        // Create the chart
+        weightGoalChart = new Chart(ctx, chartConfig);
+
+        // Initialize the chart with the current y-axis scale
+        // This ensures the scale is applied correctly on initial load
+        setTimeout(() => {
+            if (weightGoalChart && typeof updateChartYAxisScale === 'function') {
+                updateChartYAxisScale(weightGoalChart, yAxisScale, false);
+                console.log('Applied initial y-axis scale:', yAxisScale);
+            }
+        }, 100);
     }
 
     // --- Recipe Loading and Display --- //
@@ -1340,8 +1417,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 chart.options.scales.x.min = adjustedMinIndex;
                 chart.options.scales.x.max = maxIndex;
 
-                // Update the chart
-                chart.update();
+                // IMPORTANT: Temporarily disable annotations during x-axis scaling
+                let originalAnnotationConfig = null;
+
+                // Safely backup and remove annotation plugin
+                if (chart.options.plugins && chart.options.plugins.annotation) {
+                    try {
+                        // Store the original annotation configuration
+                        originalAnnotationConfig = chart.options.plugins.annotation;
+
+                        // Completely remove the annotation plugin during the update
+                        delete chart.options.plugins.annotation;
+                    } catch (error) {
+                        console.error('Error backing up annotations during x-axis scaling:', error);
+                        // If we can't backup, just remove the annotation plugin
+                        delete chart.options.plugins.annotation;
+                    }
+                }
+
+                // Disable animations during scale changes
+                chart.options.animation = false;
+
+                try {
+                    // First update without annotations
+                    chart.update('none');
+
+                    // If we had annotations before, restore them after the update
+                    if (originalAnnotationConfig) {
+                        // Wait a short time before re-enabling annotations
+                        setTimeout(() => {
+                            try {
+                                // Restore the annotation plugin with the original configuration
+                                chart.options.plugins.annotation = originalAnnotationConfig;
+
+                                // Update again with annotations, but with animations disabled
+                                chart.update('none');
+                            } catch (annotationError) {
+                                console.error('Error restoring annotations after x-axis scaling:', annotationError);
+                                // If restoring annotations fails, continue without them
+                            }
+                        }, 300); // Increased timeout to ensure chart is fully updated first
+                    }
+                } catch (error) {
+                    console.error('Error updating chart during x-axis scaling:', error);
+                    // If update fails, try a simpler update
+                    chart.update();
+                }
             }
         });
 
@@ -1424,7 +1545,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 chart.options.scales.x.min = adjustedMinIndex;
                 chart.options.scales.x.max = maxIndex;
 
-                chart.update();
+                // IMPORTANT: Temporarily disable annotations during x-axis scaling
+                let originalAnnotationConfig = null;
+
+                // Safely backup and remove annotation plugin
+                if (chart.options.plugins && chart.options.plugins.annotation) {
+                    try {
+                        // Store the original annotation configuration
+                        originalAnnotationConfig = chart.options.plugins.annotation;
+
+                        // Completely remove the annotation plugin during the update
+                        delete chart.options.plugins.annotation;
+                    } catch (error) {
+                        console.error('Error backing up annotations during x-axis scaling:', error);
+                        // If we can't backup, just remove the annotation plugin
+                        delete chart.options.plugins.annotation;
+                    }
+                }
+
+                // Disable animations during scale changes
+                chart.options.animation = false;
+
+                try {
+                    // First update without annotations
+                    chart.update('none');
+
+                    // If we had annotations before, restore them after the update
+                    if (originalAnnotationConfig) {
+                        // Wait a short time before re-enabling annotations
+                        setTimeout(() => {
+                            try {
+                                // Restore the annotation plugin with the original configuration
+                                chart.options.plugins.annotation = originalAnnotationConfig;
+
+                                // Update again with annotations, but with animations disabled
+                                chart.update('none');
+                            } catch (annotationError) {
+                                console.error('Error restoring annotations after x-axis scaling:', annotationError);
+                                // If restoring annotations fails, continue without them
+                            }
+                        }, 300); // Increased timeout to ensure chart is fully updated first
+                    }
+                } catch (error) {
+                    console.error('Error updating chart during x-axis scaling:', error);
+                    // If update fails, try a simpler update
+                    chart.update();
+                }
             }
         });
     } else {
@@ -1433,42 +1599,179 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Y-Axis Scale Slider
     if (yAxisScaleSlider) {
+        // Function to calculate and set y-axis min/max based on scale
+        function updateChartYAxisScale(chart, scale, animate = false) {
+            if (!chart || !chart.data || !chart.data.datasets || chart.data.datasets.length === 0) {
+                return;
+            }
+
+            // Find min and max data points
+            let minDataPoint = Number.MAX_VALUE;
+            let maxDataPoint = Number.MIN_VALUE;
+            const validPoints = [];
+
+            // Collect all valid data points
+            chart.data.datasets.forEach(dataset => {
+                if (dataset.data && Array.isArray(dataset.data)) {
+                    dataset.data.forEach(point => {
+                        // Handle different data formats
+                        let yValue = null;
+
+                        if (typeof point === 'number') {
+                            // Simple number format
+                            yValue = point;
+                        } else if (point && typeof point === 'object') {
+                            // Object format with y property
+                            yValue = point.y;
+                        }
+
+                        if (yValue !== null && yValue !== undefined && !isNaN(yValue)) {
+                            validPoints.push(yValue);
+                            if (yValue < minDataPoint) minDataPoint = yValue;
+                            if (yValue > maxDataPoint) maxDataPoint = yValue;
+                        }
+                    });
+                }
+            });
+
+            // If no valid data points, return
+            if (minDataPoint === Number.MAX_VALUE || validPoints.length === 0) {
+                console.warn('No valid data points found for y-axis scaling');
+                return;
+            }
+
+            // Calculate the range of the data
+            const dataRange = maxDataPoint - minDataPoint;
+
+            // Add a minimum range to prevent division by zero or tiny ranges
+            const effectiveRange = Math.max(dataRange, 0.1);
+
+            // Calculate the center of the data range
+            const dataCenter = (maxDataPoint + minDataPoint) / 2;
+
+            // Calculate the scaled range based on the scale factor
+            let scaledRange;
+
+            if (scale <= 1) {
+                // Zoom out (show more data)
+                scaledRange = effectiveRange / scale;
+
+                // Add extra padding when zoomed out
+                const extraPadding = effectiveRange * (1 - scale) * 0.5;
+                scaledRange += extraPadding;
+            } else {
+                // Zoom in (show less data)
+                scaledRange = effectiveRange / scale;
+                console.log(`Y-axis zoom in: scale=${scale}, range=${effectiveRange}, scaledRange=${scaledRange}`);
+            }
+
+            // Log the calculation for debugging
+            console.log(`Y-axis scale: ${scale}, Data range: ${effectiveRange}, Scaled range: ${scaledRange}`);
+
+            // Calculate the new min/max based on the scaled range
+            const topPadding = effectiveRange * 0.05; // 5% padding at top
+            const bottomPadding = effectiveRange * 0.15; // 15% padding at bottom
+
+            const calculatedMin = dataCenter - (scaledRange / 2) - bottomPadding;
+            const calculatedMax = dataCenter + (scaledRange / 2) + topPadding;
+
+            // Add extra padding at the bottom to ensure points don't go below view
+            const extraBottomPadding = effectiveRange * 0.15; // 15% extra padding at bottom
+            const finalMin = calculatedMin - extraBottomPadding;
+
+            // Ensure there's always a minimum visible range, even with high zoom
+            const minVisibleRange = maxDataPoint * 0.1; // At least 10% of max value
+            const adjustedMin = (calculatedMax - finalMin < minVisibleRange) ?
+                calculatedMax - minVisibleRange : finalMin;
+
+            // IMPORTANT: Completely disable annotations during scaling to prevent errors
+            // Store the original annotation configuration to restore it later
+            let originalAnnotationConfig = null;
+
+            // Safely backup and remove annotation plugin
+            if (chart.options.plugins && chart.options.plugins.annotation) {
+                try {
+                    // Store the original annotation configuration
+                    originalAnnotationConfig = chart.options.plugins.annotation;
+
+                    // Completely remove the annotation plugin during the update
+                    delete chart.options.plugins.annotation;
+                } catch (error) {
+                    console.error('Error backing up annotations:', error);
+                    // If we can't backup, just remove the annotation plugin
+                    delete chart.options.plugins.annotation;
+                }
+            }
+
+            // Update the chart's y-axis min/max
+            chart.options.scales.y.min = adjustedMin; // Use adjustedMin with extra bottom padding
+            chart.options.scales.y.max = calculatedMax;
+
+            // Disable animations during scale changes to prevent visual glitches
+            chart.options.animation = false;
+
+            try {
+                // First update without annotations
+                chart.update('none');
+
+                // If we had annotations before, restore them after the update
+                if (originalAnnotationConfig) {
+                    // Wait a short time before re-enabling annotations
+                    setTimeout(() => {
+                        try {
+                            // Restore the annotation plugin with the original configuration
+                            chart.options.plugins.annotation = originalAnnotationConfig;
+
+                            // Update again with annotations, but with animations disabled
+                            chart.update('none');
+                        } catch (annotationError) {
+                            console.error('Error restoring annotations:', annotationError);
+                            // If restoring annotations fails, continue without them
+                        }
+                    }, 300); // Increased timeout to ensure chart is fully updated first
+                }
+            } catch (error) {
+                console.error('Error updating chart:', error);
+
+                // If the update fails, try a more aggressive approach
+                try {
+                    // Disable all plugins temporarily
+                    const originalPlugins = {...chart.options.plugins};
+                    chart.options.plugins = {};
+
+                    // Update with minimal configuration
+                    chart.update('none');
+
+                    // Restore original plugins except annotation
+                    const cleanPlugins = {...originalPlugins};
+                    delete cleanPlugins.annotation; // Ensure annotation is removed
+                    chart.options.plugins = cleanPlugins;
+
+                    // Final update with clean plugins
+                    chart.update('none');
+                } catch (fallbackError) {
+                    console.error('Fallback update also failed:', fallbackError);
+                }
+            }
+        }
+
+        // Handle slider input (during drag)
         yAxisScaleSlider.addEventListener('input', function() {
             yAxisScale = parseFloat(this.value);
             yScaleValue.textContent = yAxisScale.toFixed(1) + 'x';
+
             if (weightGoalChart) {
-                // Force recalculation of min/max by clearing any cached values
-                if (weightGoalChart.$minDataPoint) {
-                    delete weightGoalChart.$minDataPoint;
-                }
-                if (weightGoalChart.$maxDataPoint) {
-                    delete weightGoalChart.$maxDataPoint;
-                }
-
-                // Update the chart to apply the new scale
-                weightGoalChart.update();
-
-                // Log the current scale for debugging
+                // Update the chart with the new scale (no animation during drag)
+                updateChartYAxisScale(weightGoalChart, yAxisScale, false);
                 console.log(`Y-axis scale set to ${yAxisScale}x`);
             }
         });
 
-        // Also add change event for when slider is released
+        // Handle slider change (on release)
         yAxisScaleSlider.addEventListener('change', function() {
-            // This event fires when the slider is released
-            // Force a more aggressive update
             if (weightGoalChart) {
-                // Force recalculation of min/max by clearing any cached values
-                if (weightGoalChart.$minDataPoint) {
-                    delete weightGoalChart.$minDataPoint;
-                }
-                if (weightGoalChart.$maxDataPoint) {
-                    delete weightGoalChart.$maxDataPoint;
-                }
-
-                // Update the chart to apply the new scale
-                weightGoalChart.update();
-
+                // Update the chart with the new scale (with animation on release)
+                updateChartYAxisScale(weightGoalChart, yAxisScale, true);
                 console.log(`Y-axis scale finalized at ${yAxisScale}x`);
             }
         });
@@ -1497,15 +1800,155 @@ document.addEventListener('DOMContentLoaded', () => {
                     chart.options.scales.x.max = chart.data.labels.length - 1;
                 }
 
-                // Reset y-axis limits by removing custom min/max functions
-                // This will force Chart.js to recalculate appropriate min/max values
-                if (chart.options.scales.y) {
-                    // We don't delete these because they're functions in our code
-                    // Instead, the functions will use yAxisScale=1 which gives the full range
+                // Find min and max data points for y-axis
+                let minDataPoint = Number.MAX_VALUE;
+                let maxDataPoint = Number.MIN_VALUE;
+
+                // Collect all valid data points
+                chart.data.datasets.forEach(dataset => {
+                    dataset.data.forEach(point => {
+                        if (point && point.y !== null && point.y !== undefined && !isNaN(point.y)) {
+                            if (point.y < minDataPoint) minDataPoint = point.y;
+                            if (point.y > maxDataPoint) maxDataPoint = point.y;
+                        }
+                    });
+                });
+
+                // If we have valid data points, set the y-axis range with generous padding
+                if (minDataPoint !== Number.MAX_VALUE && maxDataPoint !== Number.MIN_VALUE) {
+                    const dataRange = maxDataPoint - minDataPoint;
+                    const topPadding = dataRange * 0.05; // 5% padding at top
+                    const bottomPadding = dataRange * 0.15; // 15% padding at bottom
+
+                    // Add extra padding at the bottom to ensure points don't go below view
+                    const extraBottomPadding = dataRange * 0.15; // 15% extra padding
+
+                    // Reset y-axis limits to show all data with padding
+                    const calculatedMin = minDataPoint - bottomPadding - extraBottomPadding;
+                    const calculatedMax = maxDataPoint + topPadding;
+
+                    // Ensure there's always a minimum visible range
+                    const minVisibleRange = maxDataPoint * 0.1; // At least 10% of max value
+                    const adjustedMin = (calculatedMax - calculatedMin < minVisibleRange) ?
+                        calculatedMax - minVisibleRange : calculatedMin;
+
+                    chart.options.scales.y.min = adjustedMin;
+                    chart.options.scales.y.max = calculatedMax;
+                } else {
+                    // If no valid data points, use undefined to let Chart.js decide
+                    chart.options.scales.y.min = undefined;
+                    chart.options.scales.y.max = undefined;
                 }
 
-                // Update the chart with the reset scales
-                chart.update();
+                // Add a brief animation for the reset
+                chart.options.animation = {
+                    duration: 500,
+                    easing: 'easeOutQuad'
+                };
+
+                // Save current annotations
+                let hasAnnotations = false;
+                let safeAnnotations = null;
+
+                // Safely extract annotation configuration
+                if (chart.options.plugins && chart.options.plugins.annotation &&
+                    chart.options.plugins.annotation.annotations) {
+                    hasAnnotations = true;
+
+                    // Create a clean copy of annotations
+                    safeAnnotations = {};
+                    const originalAnnotations = chart.options.plugins.annotation.annotations;
+
+                    // Only copy the essential properties to avoid reference issues
+                    if (originalAnnotations.todayIndicator) {
+                        safeAnnotations.todayIndicator = {
+                            type: 'line',
+                            scaleID: 'x',
+                            value: originalAnnotations.todayIndicator.value,
+                            borderColor: 'rgba(255, 99, 132, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            label: {
+                                display: true,
+                                content: 'Today',
+                                position: 'start',
+                                backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                                font: { weight: 'bold' }
+                            }
+                        };
+                    }
+
+                    if (originalAnnotations.targetWeightLine) {
+                        safeAnnotations.targetWeightLine = {
+                            type: 'line',
+                            scaleID: 'y',
+                            value: originalAnnotations.targetWeightLine.value,
+                            borderColor: 'rgba(54, 162, 235, 0.8)',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            label: {
+                                display: true,
+                                content: 'Target: ' + originalAnnotations.targetWeightLine.value + ' lbs',
+                                position: 'end',
+                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                font: { weight: 'bold' }
+                            }
+                        };
+                    }
+
+                    // Temporarily remove annotations
+                    chart.options.plugins.annotation = false;
+                }
+
+                // IMPORTANT: Completely disable annotations during reset to prevent errors
+                let originalAnnotationConfig = null;
+
+                // Safely backup and remove annotation plugin
+                if (chart.options.plugins && chart.options.plugins.annotation) {
+                    try {
+                        // Store the original annotation configuration
+                        originalAnnotationConfig = chart.options.plugins.annotation;
+
+                        // Completely remove the annotation plugin during the update
+                        delete chart.options.plugins.annotation;
+                    } catch (error) {
+                        console.error('Error backing up annotations during reset:', error);
+                        // If we can't backup, just remove the annotation plugin
+                        delete chart.options.plugins.annotation;
+                    }
+                }
+
+                // Perform a complete reset and update
+                chart.reset();
+                chart.update('none');
+
+                // Re-add annotations after the update if they existed
+                if (hasAnnotations && safeAnnotations) {
+                    try {
+                        // Wait a short time before re-enabling annotations
+                        setTimeout(() => {
+                            try {
+                                // Re-enable annotation plugin with safe configuration
+                                chart.options.plugins.annotation = {
+                                    annotations: safeAnnotations,
+                                    clip: false,
+                                    interaction: { mode: 'nearest' },
+                                    animations: { duration: 0 }
+                                };
+
+                                // Do a final update with annotations
+                                chart.update('none');
+                            } catch (annotationError) {
+                                console.error('Error re-enabling annotations during reset:', annotationError);
+                                // Continue without annotations if there's an error
+                            }
+                        }, 100);
+                    } catch (annotationError) {
+                        console.error('Error scheduling annotation update during reset:', annotationError);
+                    }
+                }
+
+                console.log('Chart scales reset to default (1.0x)');
             }
         });
     } else {
@@ -1528,7 +1971,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             console.log(`Attempting to save calorie target for user ${userId}: ${calorieTarget} calories`);
-            const response = await fetch('/api/calorie-targets', {
+
+            // First try the dedicated calorie targets API
+            let response = await fetch('/api/calorie-targets', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1539,6 +1984,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
             console.log(`Received response with status: ${response.status}`);
+
+            // If the API returns 404, try the weight API endpoint
+            if (response.status === 404) {
+                console.log('Calorie targets API not found, trying weight API endpoint');
+                response = await fetch('/api/weight/calorie-targets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        daily_target: calorieTarget
+                    })
+                });
+                console.log(`Received response from weight API with status: ${response.status}`);
+            }
 
             if (!response.ok) {
                 let errorMessage = `HTTP error! status: ${response.status}`;
@@ -1576,11 +2037,25 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadCalorieTarget(userId) {
         try {
             console.log(`Attempting to fetch calorie target for user ${userId}`);
-            const response = await fetch(`/api/calorie-targets/${userId}`);
+
+            // First try the dedicated calorie targets API
+            let response = await fetch(`/api/calorie-targets/${userId}`);
             console.log(`Received response with status: ${response.status}`);
 
+            // If the API returns 404, try the weight API endpoint
             if (response.status === 404) {
-                // No target set for this user
+                // Try the weight API endpoint
+                try {
+                    console.log('Calorie targets API not found or no target, trying weight API endpoint');
+                    response = await fetch(`/api/weight/calorie-targets/${userId}`);
+                    console.log(`Received response from weight API with status: ${response.status}`);
+                } catch (weightApiError) {
+                    console.error('Error fetching from weight API:', weightApiError);
+                }
+            }
+
+            if (response.status === 404) {
+                // No target set for this user in either API
                 console.log('No calorie target found for this user');
                 currentCalorieTarget.textContent = 'Not set';
                 return;
@@ -1599,7 +2074,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             console.log('Calorie target data:', data);
-            currentCalorieTarget.textContent = `${data.daily_target} calories`;
+
+            // Handle different response formats
+            const dailyTarget = data.daily_target || data.target || data.calories || data.value;
+
+            if (dailyTarget) {
+                currentCalorieTarget.textContent = `${dailyTarget} calories`;
+            } else {
+                console.warn('Unexpected calorie target data format:', data);
+                currentCalorieTarget.textContent = 'Not set';
+            }
 
         } catch (error) {
             console.error('Error loading calorie target:', error);

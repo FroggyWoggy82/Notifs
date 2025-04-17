@@ -2997,7 +2997,7 @@ document.addEventListener('DOMContentLoaded', function() {
         historyEditBtn.style.display = 'inline-block';
     }
 
-    async function fetchAndRenderHistoryChart(exerciseId) { // Renamed function
+    async function fetchAndRenderHistoryChart(exerciseId) {
         // Get the history message element
         const historyMessageEl = document.getElementById('history-message');
 
@@ -3007,115 +3007,148 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         historyMessageEl.textContent = ''; // Clear previous messages
-        console.log(`[DEBUG] fetchAndRenderHistoryChart called for ID: ${exerciseId}`); // <<< Log function call
+        console.log(`[DEBUG] fetchAndRenderHistoryChart called for ID: ${exerciseId}`);
 
         if (!exerciseId) {
             historyMessageEl.textContent = 'Please select an exercise to view its history.';
-            console.warn("[DEBUG] fetchAndRenderHistoryChart - No exercise ID provided."); // <<< Log warning
+            console.warn("[DEBUG] fetchAndRenderHistoryChart - No exercise ID provided.");
             return;
         }
 
         historyMessageEl.textContent = 'Loading history...';
 
         try {
+            // Fetch exercise history data
+            console.log(`[DEBUG] Fetching history data for exercise ID: ${exerciseId}`);
             const response = await fetch(`/api/workouts/exercises/${exerciseId}/history`);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const historyData = await response.json();
-            console.log("[DEBUG] Raw History Data Received:", JSON.stringify(historyData)); // <<< Log raw data
 
-            if (historyData.length === 0) {
-                const historyMessageEl = document.getElementById('history-message');
-                if (historyMessageEl) {
-                    historyMessageEl.textContent = 'No logged history found for this exercise.'
+            const historyData = await response.json();
+            console.log(`[DEBUG] Received ${historyData.length} history records`);
+
+            // Handle empty data case
+            if (!historyData || historyData.length === 0) {
+                historyMessageEl.textContent = 'No logged history found for this exercise.';
+
+                if (exerciseHistoryChart) {
+                    exerciseHistoryChart.destroy();
+                    exerciseHistoryChart = null;
                 }
-                 if (exerciseHistoryChart) { // Clear chart if no data
-                     exerciseHistoryChart.destroy();
-                     exerciseHistoryChart = null;
-                 }
                 return;
             }
 
             // Process data for chart
-            const labels = historyData.map(log => new Date(log.date_performed).toLocaleDateString());
-            const volumes = historyData.map((log, index) => { // <<< Add index for logging
+            const labels = [];
+            const volumes = [];
+
+            // Sort data by date (oldest to newest)
+            historyData.sort((a, b) => new Date(a.date_performed) - new Date(b.date_performed));
+
+            historyData.forEach((log, index) => {
+                // Format date for label
+                const date = new Date(log.date_performed);
+                labels.push(date.toLocaleDateString());
+
                 // Calculate volume (Sum of Weight * Reps for each set)
                 if (!log.reps_completed || !log.weight_used) {
-                    console.warn(`[DEBUG] Log index ${index} missing reps/weight:`, log); // <<< Log problematic log
-                    return 0;
+                    console.warn(`[DEBUG] Log index ${index} missing reps/weight data`);
+                    volumes.push(0);
+                    return;
                 }
 
-                const repsArray = log.reps_completed.split(',').map(Number);
-                const weightsArray = log.weight_used.split(',').map(Number);
-                let totalVolume = 0;
+                try {
+                    const repsArray = log.reps_completed.split(',').map(Number);
+                    const weightsArray = log.weight_used.split(',').map(Number);
+                    let totalVolume = 0;
 
-                const numSets = Math.min(repsArray.length, weightsArray.length);
-                 if (repsArray.length !== weightsArray.length) {
-                     console.warn(`[DEBUG] Log index ${index} has mismatched reps (${repsArray.length}) and weights (${weightsArray.length}):`, log); // <<< Log mismatch
-                 }
+                    const numSets = Math.min(repsArray.length, weightsArray.length);
 
-                for (let i = 0; i < numSets; i++) {
-                    const reps = repsArray[i];
-                    const weight = weightsArray[i];
-                    // Check for NaN
-                    if (isNaN(reps) || isNaN(weight)) {
-                         console.warn(`[DEBUG] Log index ${index}, Set ${i + 1} has NaN reps (${repsArray[i]}) or weight (${weightsArray[i]}):`, log); // <<< Log NaN issues
-                         continue; // Skip this set in calculation
+                    if (repsArray.length !== weightsArray.length) {
+                        console.warn(`[DEBUG] Log index ${index} has mismatched reps (${repsArray.length}) and weights (${weightsArray.length})`);
                     }
 
-                    if (log.weight_unit !== 'bodyweight') {
-                        totalVolume += weight * reps;
+                    for (let i = 0; i < numSets; i++) {
+                        const reps = repsArray[i];
+                        const weight = weightsArray[i];
+
+                        // Skip invalid values
+                        if (isNaN(reps) || isNaN(weight)) {
+                            console.warn(`[DEBUG] Log index ${index}, Set ${i + 1} has invalid reps or weight values`);
+                            continue;
+                        }
+
+                        // Only count if not bodyweight exercise
+                        if (log.weight_unit !== 'bodyweight') {
+                            totalVolume += weight * reps;
+                        }
                     }
+
+                    console.log(`[DEBUG] Log ${index} (${date.toLocaleDateString()}) volume: ${totalVolume}`);
+                    volumes.push(totalVolume);
+
+                } catch (parseError) {
+                    console.error(`[ERROR] Failed to parse log data at index ${index}:`, parseError);
+                    volumes.push(0); // Push 0 as fallback
                 }
-                 console.log(`[DEBUG] Log index ${index} calculated volume: ${totalVolume}`); // <<< Log calculated volume
-                return totalVolume;
             });
 
             // Clear loading message
-            const historyMessageEl = document.getElementById('history-message');
-            if (historyMessageEl) {
-                historyMessageEl.textContent = ''; // Clear loading message
+            historyMessageEl.textContent = '';
+
+            // Check if we have valid data to display
+            if (volumes.every(v => v === 0)) {
+                historyMessageEl.textContent = 'No valid volume data found for this exercise.';
+                return;
             }
 
-            console.log("[DEBUG] Data for Chart - Labels:", labels); // <<< Log chart labels
-            console.log("[DEBUG] Data for Chart - Volumes:", volumes); // <<< Log chart volumes
+            console.log(`[DEBUG] Prepared ${labels.length} data points for chart`);
+            console.log(`[DEBUG] Volume range: ${Math.min(...volumes)} to ${Math.max(...volumes)}`);
+
+            // Render the chart with the processed data
             renderHistoryChart(labels, volumes, 'Volume (Weight * Reps)');
 
         } catch (error) {
-            console.error('[DEBUG] Error fetching or processing exercise history:', error); // <<< Log full error
+            console.error('[ERROR] Failed to fetch or process exercise history:', error);
 
             // Display error message
-            const historyMessageEl = document.getElementById('history-message');
-            if (historyMessageEl) {
-                historyMessageEl.textContent = `Error loading history: ${error.message}`;
-            }
-             if (exerciseHistoryChart) { // Clear chart on error
-                 exerciseHistoryChart.destroy();
-                 exerciseHistoryChart = null;
+            historyMessageEl.textContent = `Error loading history: ${error.message}`;
+
+            // Clean up any existing chart
+            if (exerciseHistoryChart) {
+                exerciseHistoryChart.destroy();
+                exerciseHistoryChart = null;
             }
         }
     }
 
     function renderHistoryChart(labels, data, chartLabel = 'Volume') {
-        if (!historyChartCanvas) return;
+        if (!historyChartCanvas) {
+            console.error("[ERROR] History chart canvas not found!");
+            return;
+        }
+
         const ctx = historyChartCanvas.getContext('2d');
-        console.log("[DEBUG] Rendering chart with Labels:", labels, "Data:", data); // <<< Log data before rendering
+        console.log("[DEBUG] Rendering chart with Labels:", labels, "Data:", data);
 
         // Destroy existing chart before creating new one
         if (exerciseHistoryChart) {
-            console.log("[DEBUG] Destroying existing chart instance."); // <<< Log destruction
+            console.log("[DEBUG] Destroying existing chart instance.");
             exerciseHistoryChart.destroy();
-             exerciseHistoryChart = null; // Explicitly nullify
+            exerciseHistoryChart = null;
         } else {
-             console.log("[DEBUG] No existing chart instance to destroy.");
+            console.log("[DEBUG] No existing chart instance to destroy.");
         }
 
+        try {
+            // Check if we have the global chart creation function
+            if (typeof window.createScaledChart === 'function') {
+                console.log("[DEBUG] Using global chart creation function");
 
-        try { // <<< Add try-catch around chart creation
-            exerciseHistoryChart = new Chart(ctx, {
-                type: 'line',
-                data: {
+                // Prepare chart data
+                const chartData = {
                     labels: labels,
                     datasets: [{
                         label: chartLabel,
@@ -3125,13 +3158,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         tension: 0.1,
                         fill: true
                     }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                };
+
+                // Prepare chart options
+                const chartOptions = {
                     scales: {
                         y: {
-                            beginAtZero: true,
                             title: {
                                 display: true,
                                 text: chartLabel
@@ -3143,35 +3175,121 @@ document.addEventListener('DOMContentLoaded', function() {
                                 text: 'Date'
                             }
                         }
+                    }
+                };
+
+                // Create the chart using our global function
+                exerciseHistoryChart = window.createScaledChart(ctx, 'line', labels, chartData, chartOptions);
+            } else {
+                console.log("[DEBUG] Global chart function not available, using fallback");
+
+                // Calculate appropriate y-axis range
+                let maxValue = 100; // Default if no data
+                if (data && data.length > 0) {
+                    // Filter out any non-numeric values
+                    const validData = data.filter(val => !isNaN(val) && val !== null && val !== undefined);
+                    if (validData.length > 0) {
+                        maxValue = Math.max(...validData);
+                        // Add padding to the max value (20% padding)
+                        maxValue = maxValue * 1.2;
+                    }
+                }
+
+                console.log("[DEBUG] Calculated max value for y-axis:", maxValue);
+
+                // Format data for display
+                const formatLargeNumber = (value) => {
+                    if (value >= 1000000) {
+                        return (value / 1000000).toFixed(1) + 'M';
+                    } else if (value >= 1000) {
+                        return (value / 1000).toFixed(1) + 'k';
+                    }
+                    return value;
+                };
+
+                // Create a new chart with explicit y-axis range
+                exerciseHistoryChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: chartLabel,
+                            data: data,
+                            borderColor: '#4CAF50', // Green line
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)', // Light green fill
+                            tension: 0.1,
+                            fill: true
+                        }]
                     },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 500 // Faster animation for better responsiveness
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                suggestedMin: 0,
+                                suggestedMax: maxValue,
+                                title: {
+                                    display: true,
+                                    text: chartLabel
+                                },
+                                ticks: {
+                                    // This ensures the y-axis adapts to large values
+                                    precision: 0,
+                                    callback: function(value) {
+                                        return formatLargeNumber(value);
                                     }
-                                    if (context.parsed.y !== null) {
-                                         // Use locale string for better number formatting
-                                         label += context.parsed.y.toLocaleString();
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            // Always show full value in tooltip
+                                            label += context.parsed.y.toLocaleString();
+
+                                            // Add formatted version for readability if value is large
+                                            if (context.parsed.y >= 1000) {
+                                                label += ` (${formatLargeNumber(context.parsed.y)})`;
+                                            }
+                                        }
+                                        return label;
                                     }
-                                    return label;
                                 }
                             }
                         }
                     }
-                }
-            });
-             console.log("[DEBUG] Chart instance created successfully."); // <<< Log success
-        } catch (chartError) {
-             console.error("[DEBUG] Error creating Chart.js instance:", chartError); // <<< Log chart creation errors
+                });
+            }
 
-             // Display error message
-             const historyMessageEl = document.getElementById('history-message');
-             if (historyMessageEl) {
-                 historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
-             }
+            console.log("[DEBUG] Chart instance created successfully.");
+
+            // Force an update to ensure the chart renders correctly
+            exerciseHistoryChart.update();
+
+        } catch (chartError) {
+            console.error("[DEBUG] Error creating Chart.js instance:", chartError);
+
+            // Display error message
+            const historyMessageEl = document.getElementById('history-message');
+            if (historyMessageEl) {
+                historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
+            }
         }
     }
 

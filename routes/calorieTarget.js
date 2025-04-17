@@ -1,5 +1,5 @@
 const express = require('express');
-const WeightController = require('../controllers/weightController');
+const CalorieTargetController = require('../controllers/calorieTargetController');
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/:userId', WeightController.getCalorieTarget);
+router.get('/:userId', CalorieTargetController.getCalorieTarget);
 
 /**
  * @swagger
@@ -49,6 +49,16 @@ router.get('/:userId', WeightController.getCalorieTarget);
  *       500:
  *         description: Server error
  */
-router.post('/', WeightController.saveCalorieTarget);
+router.post('/', CalorieTargetController.saveCalorieTarget);
+
+// Log all routes for debugging
+console.log('Calorie Target Routes:');
+router.stack.forEach((r) => {
+    if (r.route && r.route.path) {
+        Object.keys(r.route.methods).forEach((method) => {
+            console.log(`${method.toUpperCase()} /api/calorie-targets${r.route.path}`);
+        });
+    }
+});
 
 module.exports = router;

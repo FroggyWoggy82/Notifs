@@ -112,11 +112,10 @@ class WeightLog {
  */
 class CalorieTarget {
     /**
-     * Get the calorie target for a user
-     * @param {number} userId - The user ID
-     * @returns {Promise<Object|null>} The calorie target object or null if not found
+     * Initialize the calorie_targets table
+     * @returns {Promise<void>}
      */
-    static async getTarget(userId) {
+    static async initializeTable() {
         try {
             // Check if the calorie_targets table exists
             const tableCheck = await db.query(
@@ -124,6 +123,7 @@ class CalorieTarget {
             );
 
             if (!tableCheck.rows[0].exists) {
+                console.log('Creating calorie_targets table...');
                 // Create the table if it doesn't exist
                 await db.query(`
                     CREATE TABLE calorie_targets (
@@ -134,8 +134,23 @@ class CalorieTarget {
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 `);
-                return null; // No targets yet since table was just created
+                console.log('calorie_targets table created successfully');
             }
+        } catch (error) {
+            console.error('Error initializing calorie_targets table:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get the calorie target for a user
+     * @param {number} userId - The user ID
+     * @returns {Promise<Object|null>} The calorie target object or null if not found
+     */
+    static async getTarget(userId) {
+        try {
+            // Ensure the table exists
+            await this.initializeTable();
 
             const result = await db.query(
                 'SELECT user_id, daily_target FROM calorie_targets WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
@@ -164,23 +179,8 @@ class CalorieTarget {
      */
     static async saveTarget(userId, dailyTarget) {
         try {
-            // Check if the calorie_targets table exists
-            const tableCheck = await db.query(
-                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'calorie_targets')"
-            );
-
-            if (!tableCheck.rows[0].exists) {
-                // Create the table if it doesn't exist
-                await db.query(`
-                    CREATE TABLE calorie_targets (
-                        id SERIAL PRIMARY KEY,
-                        user_id INTEGER NOT NULL,
-                        daily_target INTEGER NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                `);
-            }
+            // Ensure the table exists
+            await this.initializeTable();
 
             await db.query('BEGIN');
 
@@ -200,7 +200,11 @@ class CalorieTarget {
                 daily_target: parseInt(result.rows[0].daily_target)
             };
         } catch (error) {
-            await db.query('ROLLBACK');
+            try {
+                await db.query('ROLLBACK');
+            } catch (rollbackError) {
+                console.error('Error during rollback:', rollbackError);
+            }
             console.error('Error in saveTarget:', error);
             throw error;
         }

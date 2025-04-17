@@ -1,4 +1,4 @@
-const { WeightGoal, WeightLog, CalorieTarget } = require('../models/weightModel');
+const { WeightGoal, WeightLog } = require('../models/weightModel');
 
 /**
  * Weight Controller
@@ -152,12 +152,15 @@ class WeightController {
             // Ensure userId is a number
             const userIdNum = parseInt(userId, 10);
             if (isNaN(userIdNum)) {
-                return res.status(400).json({ error: 'Invalid user ID. Must be a number.' });
+                return res.status(400).json({ error: 'Invalid user_id parameter. Must be a number.' });
             }
 
-            const target = await CalorieTarget.getTarget(userIdNum);
+            // Forward the request to the CalorieTarget controller
+            const CalorieTarget = require('../models/calorieTargetModel');
+            const target = await CalorieTarget.getCalorieTarget(userIdNum);
+
             if (!target) {
-                return res.status(404).json({ error: 'No calorie target found for this user.' });
+                return res.status(404).json({ error: 'No calorie target found for this user' });
             }
 
             res.json(target);
@@ -177,19 +180,23 @@ class WeightController {
             const { user_id, daily_target } = req.body;
             console.log(`Received POST /api/weight/calorie-targets: user_id=${user_id}, daily_target=${daily_target}`);
 
-            // Ensure user_id is a number
+            // Ensure userId is a number
             const userIdNum = parseInt(user_id, 10);
             if (isNaN(userIdNum)) {
-                return res.status(400).json({ error: 'Invalid user ID. Must be a number.' });
+                return res.status(400).json({ error: 'Invalid user_id parameter. Must be a number.' });
             }
 
             // Ensure daily_target is a number
             const dailyTargetNum = parseInt(daily_target, 10);
-            if (isNaN(dailyTargetNum) || dailyTargetNum < 500 || dailyTargetNum > 10000) {
-                return res.status(400).json({ error: 'Invalid daily target. Must be a number between 500 and 10000.' });
+            if (isNaN(dailyTargetNum) || dailyTargetNum <= 0) {
+                return res.status(400).json({ error: 'Invalid daily_target parameter. Must be a positive number.' });
             }
 
-            const savedTarget = await CalorieTarget.saveTarget(userIdNum, dailyTargetNum);
+            // Forward the request to the CalorieTarget controller
+            const CalorieTarget = require('../models/calorieTargetModel');
+            const savedTarget = await CalorieTarget.saveCalorieTarget(userIdNum, dailyTargetNum);
+
+            console.log('Calorie target saved:', savedTarget);
             res.status(201).json(savedTarget);
         } catch (err) {
             console.error('Error saving calorie target:', err);

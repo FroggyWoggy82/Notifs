@@ -26,6 +26,7 @@ const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
 const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for calorie targets
+const journalRoutes = require('./routes/journal'); // New route for journal entries
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -107,6 +108,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 app.use('/api/calorie-targets', calorieTargetRoutes);
+app.use('/api/journal', journalRoutes); // NEW: Journal entries route
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
@@ -187,6 +189,9 @@ app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Import models that need initialization
+const JournalModel = require('./models/journalModel');
+
 // Initialize database and start the server
 const initializeAndStart = async () => {
   // Check if offline mode is enabled
@@ -213,6 +218,23 @@ const initializeAndStart = async () => {
     // Race the query against the timeout
     const result = await Promise.race([queryPromise, timeoutPromise]);
     console.log('Database connection successful:', result.rows[0]);
+
+    // Initialize models
+    try {
+      await JournalModel.initialize();
+      console.log('Journal model initialized successfully');
+
+      try {
+        // Initialize the calorie target model
+        const CalorieTarget = require('./models/calorieTargetModel');
+        await CalorieTarget.initializeTable();
+        console.log('Calorie target model initialized successfully');
+      } catch (calorieError) {
+        console.error('Error initializing calorie target model:', calorieError);
+      }
+    } catch (modelError) {
+      console.error('Error initializing models:', modelError);
+    }
 
     // Start the server with database connection
     startServer(true);
