@@ -1,4 +1,5 @@
 const JournalModel = require('../models/journalModel');
+const aiService = require('../services/aiService');
 
 /**
  * Journal Controller
@@ -28,17 +29,17 @@ class JournalController {
     static async getEntryById(req, res) {
         try {
             const id = parseInt(req.params.id, 10);
-            
+
             if (isNaN(id)) {
                 return res.status(400).json({ error: 'Invalid entry ID. Must be a number.' });
             }
-            
+
             const entry = await JournalModel.getEntryById(id);
-            
+
             if (!entry) {
                 return res.status(404).json({ error: 'Journal entry not found.' });
             }
-            
+
             res.json(entry);
         } catch (err) {
             console.error('Error fetching journal entry:', err);
@@ -54,18 +55,18 @@ class JournalController {
     static async getEntryByDate(req, res) {
         try {
             const date = req.params.date;
-            
+
             // Validate date format (YYYY-MM-DD)
             if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
                 return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD.' });
             }
-            
+
             const entry = await JournalModel.getEntryByDate(date);
-            
+
             if (!entry) {
                 return res.status(404).json({ error: 'No journal entry found for this date.' });
             }
-            
+
             res.json(entry);
         } catch (err) {
             console.error('Error fetching journal entry by date:', err);
@@ -81,21 +82,21 @@ class JournalController {
     static async saveEntry(req, res) {
         try {
             const { date, content, analysis } = req.body;
-            
+
             // Validate required fields
             if (!date) {
                 return res.status(400).json({ error: 'Date is required.' });
             }
-            
+
             if (!content) {
                 return res.status(400).json({ error: 'Content is required.' });
             }
-            
+
             // Validate date format (YYYY-MM-DD)
             if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
                 return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD.' });
             }
-            
+
             const entry = await JournalModel.saveEntry(date, content, analysis);
             res.status(201).json(entry);
         } catch (err) {
@@ -111,17 +112,29 @@ class JournalController {
      */
     static async analyzeEntry(req, res) {
         try {
-            const { content } = req.body;
-            
+            const { content, date } = req.body;
+
             if (!content) {
                 return res.status(400).json({ error: 'Content is required for analysis.' });
             }
-            
-            // This is a placeholder for actual AI analysis
-            // In a real implementation, you would call an AI service here
-            const analysis = await JournalController.performAnalysis(content);
-            
-            res.json({ analysis });
+
+            // Call the AI service to analyze the journal entry
+            const result = await aiService.analyzeJournalEntry(content);
+
+            // If a date was provided, save the analysis to the journal entry
+            if (date) {
+                try {
+                    const entry = await JournalModel.getEntryByDate(date);
+                    if (entry) {
+                        await JournalModel.updateAnalysis(entry.id, result.analysis);
+                    }
+                } catch (saveError) {
+                    console.error('Error saving analysis to journal entry:', saveError);
+                    // Continue even if saving fails
+                }
+            }
+
+            res.json({ analysis: result.analysis, summary: result.summary });
         } catch (err) {
             console.error('Error analyzing journal entry:', err);
             res.status(500).json({ error: `Failed to analyze journal entry: ${err.message}` });
@@ -129,71 +142,47 @@ class JournalController {
     }
 
     /**
-     * Perform AI analysis on journal content
-     * @param {string} content - The journal content to analyze
-     * @returns {Promise<string>} The analysis result
+     * Get memory entries for the journal
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
      */
-    static async performAnalysis(content) {
-        // This is a placeholder for actual AI analysis
-        // In a real implementation, you would call an AI service here
-        
-        // For now, we'll return a simple analysis based on the content length and some keywords
-        const wordCount = content.split(/\s+/).length;
-        let sentiment = 'neutral';
-        
-        // Very basic sentiment analysis
-        const positiveWords = ['happy', 'good', 'great', 'excellent', 'joy', 'love', 'excited', 'positive'];
-        const negativeWords = ['sad', 'bad', 'terrible', 'awful', 'angry', 'upset', 'negative', 'worried', 'stress'];
-        
-        let positiveCount = 0;
-        let negativeCount = 0;
-        
-        const contentLower = content.toLowerCase();
-        
-        positiveWords.forEach(word => {
-            const regex = new RegExp(`\\b${word}\\b`, 'gi');
-            const matches = contentLower.match(regex);
-            if (matches) {
-                positiveCount += matches.length;
-            }
-        });
-        
-        negativeWords.forEach(word => {
-            const regex = new RegExp(`\\b${word}\\b`, 'gi');
-            const matches = contentLower.match(regex);
-            if (matches) {
-                negativeCount += matches.length;
-            }
-        });
-        
-        if (positiveCount > negativeCount) {
-            sentiment = 'positive';
-        } else if (negativeCount > positiveCount) {
-            sentiment = 'negative';
+    static async getMemoryEntries(req, res) {
+        try {
+            const memory = aiService.loadMemory();
+            res.json(memory.entries);
+        } catch (err) {
+            console.error('Error fetching memory entries:', err);
+            res.status(500).json({ error: `Failed to fetch memory entries: ${err.message}` });
         }
-        
-        // Generate analysis HTML
-        return `
-            <div class="analysis-section">
-                <h4>Basic Analysis</h4>
-                <p>Your journal entry contains <strong>${wordCount} words</strong>.</p>
-                <p>The overall tone appears to be <strong>${sentiment}</strong>.</p>
-                <p>Positive words detected: <strong>${positiveCount}</strong></p>
-                <p>Negative words detected: <strong>${negativeCount}</strong></p>
-            </div>
-            
-            <div class="analysis-section">
-                <h4>Insights</h4>
-                <p>This is a placeholder for more detailed AI analysis. In a real implementation, this would include:</p>
-                <ul>
-                    <li>Deeper sentiment analysis</li>
-                    <li>Key themes and topics</li>
-                    <li>Emotional patterns</li>
-                    <li>Personalized insights</li>
-                    <li>Suggestions for reflection</li>
-                </ul>
-            </div>
-        `;
+    }
+
+    /**
+     * Save a memory entry
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async saveMemoryEntry(req, res) {
+        try {
+            const { date, text, summary } = req.body;
+
+            if (!summary) {
+                return res.status(400).json({ error: 'Summary is required.' });
+            }
+
+            const memory = aiService.loadMemory();
+
+            memory.entries.push({
+                date: date || new Date().toISOString(),
+                text: text || '',
+                summary: summary
+            });
+
+            aiService.saveMemory(memory);
+            res.status(201).json({ message: 'Memory entry saved successfully.' });
+        } catch (err) {
+            console.error('Error saving memory entry:', err);
+            res.status(500).json({ error: `Failed to save memory entry: ${err.message}` });
+        }
     }
 
     /**
@@ -204,17 +193,17 @@ class JournalController {
     static async deleteEntry(req, res) {
         try {
             const id = parseInt(req.params.id, 10);
-            
+
             if (isNaN(id)) {
                 return res.status(400).json({ error: 'Invalid entry ID. Must be a number.' });
             }
-            
+
             const deleted = await JournalModel.deleteEntry(id);
-            
+
             if (!deleted) {
                 return res.status(404).json({ error: 'Journal entry not found.' });
             }
-            
+
             res.json({ message: 'Journal entry deleted successfully.' });
         } catch (err) {
             console.error('Error deleting journal entry:', err);

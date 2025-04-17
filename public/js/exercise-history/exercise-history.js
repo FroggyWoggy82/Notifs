@@ -385,8 +385,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- Unit Conversion Utility Functions ---
+    function convertWeight(weight, fromUnit, toUnit) {
+        if (fromUnit === toUnit) return weight;
+
+        // Convert kg to lbs
+        if (fromUnit === 'kg' && toUnit === 'lbs') {
+            return weight * 2.20462;
+        }
+
+        // Convert lbs to kg
+        if (fromUnit === 'lbs' && toUnit === 'kg') {
+            return weight / 2.20462;
+        }
+
+        // If units are not recognized, return original weight
+        return weight;
+    }
+
     // --- 1RM Calculation Function ---
-    function calculate1RM(weight, reps) {
+    function calculate1RM(weight, reps, unit) {
         // Based on the repetition percentages table
         const percentages = {
             1: 100,
@@ -494,21 +512,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Parse the comma-separated strings into arrays
                 const reps = log.reps_completed ? log.reps_completed.split(',').map(Number) : [];
                 const weights = log.weight_used ? log.weight_used.split(',').map(Number) : [];
+                const logUnit = log.weight_unit || 'kg';
 
                 // Create set objects for each set in the log
                 for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
+                    if (isNaN(reps[i]) || isNaN(weights[i])) continue;
+
+                    // Convert weight to the current display unit if needed
+                    let convertedWeight = weights[i];
+                    if (logUnit !== unit) {
+                        convertedWeight = convertWeight(weights[i], logUnit, unit);
+                    }
+
                     historySets.push({
                         reps: reps[i],
-                        weight: weights[i]
+                        weight: convertedWeight,
+                        originalWeight: weights[i],
+                        originalUnit: logUnit
                     });
                 }
             });
         }
 
-        console.log('History sets for comparison:', historySets);
+        console.log('History sets for comparison (converted to display unit):', historySets);
 
         // Create a map of actual weights achieved for each rep count
         const actualWeightsByReps = {};
+        const actualSetsByReps = {}; // Store the full set info for each rep count
 
         // Find the best weight for each rep count from history
         historySets.forEach(set => {
@@ -518,10 +548,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // If we don't have a weight for this rep count yet, or this weight is higher
             if (!actualWeightsByReps[reps] || weight > actualWeightsByReps[reps]) {
                 actualWeightsByReps[reps] = weight;
+                actualSetsByReps[reps] = set; // Store the full set info
             }
         });
 
-        console.log('Actual weights by rep count:', actualWeightsByReps);
+        console.log('Actual weights by rep count (converted to display unit):', actualWeightsByReps);
 
         // Generate table rows for 1-30 reps
         for (let reps = 1; reps <= 30; reps++) {
@@ -530,11 +561,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Use actual weight if available, otherwise use prediction
             let weight;
             let isActual = false;
+            let actualSet = null;
 
             if (actualWeightsByReps[reps]) {
                 // Use the actual weight from history
                 weight = actualWeightsByReps[reps];
                 isActual = true;
+                actualSet = actualSetsByReps[reps];
             } else {
                 // Calculate the predicted weight for this rep count
                 // Formula: 1RM * (percentage / 100)
@@ -552,9 +585,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.classList.add('achieved');
             }
 
+            // Special handling for the row that matches the best set
+            const isBestSet = (reps === bestSet.reps && Math.abs(weight - bestSet.weight) < 0.1);
+
+            // Add checkmark only if this is an actual weight from history
+            // AND it's not the same as the best set (to avoid duplicate checkmarks)
+            const showCheckmark = isActual && !isBestSet;
+
+            // For the best set row, add a special indicator
+            const bestSetIndicator = isBestSet ? ' ✓' : '';
+
             row.innerHTML = `
-                <td>${reps}${isActual ? ' ✓' : ''}</td>
-                <td>${weight} ${unit}</td>
+                <td>${reps}${showCheckmark ? ' ✓' : ''}${bestSetIndicator}</td>
+                <td>${Math.round(weight)} ${unit}</td>
                 <td>${percentage}%</td>
             `;
 
@@ -628,16 +671,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 let bestSetVolume = 0;
 
                 for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
+                    // Make sure we're working with valid numbers
+                    if (isNaN(reps[i]) || isNaN(weights[i])) continue;
+
                     const setVolume = reps[i] * weights[i];
                     totalVolume += setVolume;
 
                     // Track the best set (highest volume)
                     if (setVolume > bestSetVolume) {
                         bestSetVolume = setVolume;
-                        bestSet = { weight: weights[i], reps: reps[i] };
+                        bestSet = { weight: weights[i], reps: reps[i], unit: unit };
                     }
 
                     // Calculate 1RM for each set and keep the highest value
+                    // Always calculate 1RM in the original unit to avoid conversion errors
                     const setOneRepMax = calculate1RM(weights[i], reps[i]);
                     if (setOneRepMax > maxOneRepMax) {
                         maxOneRepMax = setOneRepMax;
@@ -927,11 +974,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const weights = log.weight_used ? log.weight_used.split(',').map(Number) : [];
                 const unit = log.weight_unit || 'kg';
 
-                // Create a summary string
+                // Create a formatted summary with better alignment
                 let summary = '';
                 for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
-                    if (i > 0) summary += ' | ';
-                    summary += `${weights[i]}${unit} × ${reps[i]}`;
+                    if (i > 0) summary += ' ';
+                    summary += `<span class="weight-reps-pair">
+                        <span class="weight-value">${weights[i]}${unit}</span>
+                        <span class="multiply-symbol">×</span>
+                        <span class="reps-value">${reps[i]}</span>
+                    </span>`;
                 }
 
                 const logItem = document.createElement('div');
@@ -939,7 +990,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 logItem.innerHTML = `
                     <div class="log-item-details">
                         <span class="log-item-date">${new Date(log.date_performed).toLocaleDateString()}</span>
-                        <span class="log-item-summary">${summary}</span>
+                        <div class="log-item-summary">${summary}</div>
                     </div>
                     <button class="btn-delete-log-entry btn-danger btn-tiny" data-log-id="${log.workout_log_id}" title="Delete this log entry">&times;</button>
                 `;

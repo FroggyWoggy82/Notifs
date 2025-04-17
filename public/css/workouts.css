@@ -452,7 +452,7 @@ h1, h2 {
 #current-exercise-list .set-row {
     display: grid;
     /* Set#, Previous, Weight Input, Reps Input, Toggle */
-    grid-template-columns: auto 90px 1fr 1fr auto;
+    grid-template-columns: auto 90px 1fr 1fr 36px;
     gap: 10px;
     align-items: center;
     padding: 8px 0;
@@ -506,8 +506,8 @@ h1, h2 {
 
 .set-complete-toggle {
     /* Style as a checkmark button */
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     border: 2px solid #555;
     border-radius: 50%;
     cursor: pointer;
@@ -519,6 +519,7 @@ h1, h2 {
     font-size: 1.2rem;
     font-weight: bold;
     padding: 0;
+    margin: 0 auto; /* Center horizontally in the grid cell */
 }
 .set-complete-toggle.completed {
     background-color: #4CAF50;
@@ -733,8 +734,31 @@ h1, h2 {
 }
 
 
-/* --- Media Queries for Larger Screens --- */
+/* --- Media Queries --- */
 
+/* Mobile-specific adjustments */
+@media screen and (max-width: 599px) {
+    /* Adjust set row layout for smaller screens */
+    #current-exercise-list .set-row {
+        grid-template-columns: auto 80px 1fr 1fr 36px;
+        gap: 8px; /* Slightly smaller gap on mobile */
+    }
+
+    /* Make previous log text smaller on mobile */
+    .previous-log {
+        font-size: 0.75rem;
+        width: 80px;
+    }
+
+    /* Ensure inputs are large enough to tap on mobile */
+    .set-row input[type="number"],
+    .set-row input[type="text"] {
+        padding: 8px 6px;
+        font-size: 1rem;
+    }
+}
+
+/* Larger screen adjustments */
 @media screen and (min-width: 600px) {
     /* Removed grid-template-columns rule - base rule is now sufficient */
     /* .card-list { */

@@ -18,6 +18,48 @@ router.get('/', JournalController.getAllEntries);
 
 /**
  * @swagger
+ * /api/journal/memory:
+ *   get:
+ *     summary: Get journal memory entries
+ *     responses:
+ *       200:
+ *         description: List of memory entries
+ *       500:
+ *         description: Server error
+ */
+router.get('/memory', JournalController.getMemoryEntries);
+
+/**
+ * @swagger
+ * /api/journal/memory:
+ *   post:
+ *     summary: Save a memory entry
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *               text:
+ *                 type: string
+ *               summary:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Memory entry saved
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.post('/memory', JournalController.saveMemoryEntry);
+
+/**
+ * @swagger
  * /api/journal/{id}:
  *   get:
  *     summary: Get a journal entry by ID

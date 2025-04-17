@@ -143,6 +143,52 @@
 .log-item-date {
     font-weight: bold;
     margin-right: 10px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.log-item-summary {
+    display: block;
+    line-height: 1.5;
+}
+
+/* Styling for the weight x reps format */
+.weight-reps-pair {
+    display: inline-block;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+
+.weight-value {
+    font-weight: bold;
+}
+
+.reps-value {
+    font-weight: bold;
+}
+
+.multiply-symbol {
+    font-size: 0.8em;
+    vertical-align: super;
+    margin: 0 2px;
+    opacity: 0.7;
+}
+
+/* Delete button styling */
+.btn-delete-log-entry {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.btn-delete-log-entry:hover {
+    background-color: #d32f2f;
 }
 
 .set-row {

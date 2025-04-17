@@ -19,33 +19,54 @@ if (!fs.existsSync(progressPhotosDir)) {
     console.log(`[MOBILE UPLOAD] Created persistent directory: ${progressPhotosDir}`);
 }
 
-// Create a symlink from the persistent storage to the public directory
-const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
-try {
-    // Ensure the public uploads directory exists
-    const publicUploadsDir = path.join(__dirname, '..', 'public', 'uploads');
-    if (!fs.existsSync(publicUploadsDir)) {
-        fs.mkdirSync(publicUploadsDir, { recursive: true });
-    }
+// Check if we're running on Windows
+const isWindows = process.platform === 'win32';
 
-    // Remove existing directory if it exists and is not a symlink
-    if (fs.existsSync(publicPhotosDir)) {
-        const stats = fs.lstatSync(publicPhotosDir);
-        if (!stats.isSymbolicLink()) {
-            fs.rmdirSync(publicPhotosDir, { recursive: true });
-            console.log(`[MOBILE UPLOAD] Removed existing directory: ${publicPhotosDir}`);
-        } else {
-            console.log(`[MOBILE UPLOAD] Symlink already exists: ${publicPhotosDir}`);
+// Create a symlink from the persistent storage to the public directory (skip on Windows)
+const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+
+// Ensure the public uploads directory exists
+const publicUploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+if (!fs.existsSync(publicUploadsDir)) {
+    fs.mkdirSync(publicUploadsDir, { recursive: true });
+}
+
+if (isWindows) {
+    console.log(`[MOBILE UPLOAD] Running on Windows - skipping symlink creation and using direct storage in public directory`);
+
+    // Ensure the public directory exists
+    if (!fs.existsSync(publicPhotosDir)) {
+        fs.mkdirSync(publicPhotosDir, { recursive: true });
+        console.log(`[MOBILE UPLOAD] Created public directory: ${publicPhotosDir}`);
+    }
+} else {
+    // On non-Windows platforms, try to create symlink
+    try {
+        // Remove existing directory if it exists and is not a symlink
+        if (fs.existsSync(publicPhotosDir)) {
+            const stats = fs.lstatSync(publicPhotosDir);
+            if (!stats.isSymbolicLink()) {
+                fs.rmdirSync(publicPhotosDir, { recursive: true });
+                console.log(`[MOBILE UPLOAD] Removed existing directory: ${publicPhotosDir}`);
+            } else {
+                console.log(`[MOBILE UPLOAD] Symlink already exists: ${publicPhotosDir}`);
+            }
+        }
+
+        // Create the symlink if it doesn't exist
+        if (!fs.existsSync(publicPhotosDir)) {
+            fs.symlinkSync(progressPhotosDir, publicPhotosDir, 'dir');
+            console.log(`[MOBILE UPLOAD] Created symlink from ${progressPhotosDir} to ${publicPhotosDir}`);
+        }
+    } catch (error) {
+        console.error(`[MOBILE UPLOAD] Error creating symlink: ${error.message}`);
+
+        // Ensure the public directory exists as fallback
+        if (!fs.existsSync(publicPhotosDir)) {
+            fs.mkdirSync(publicPhotosDir, { recursive: true });
+            console.log(`[MOBILE UPLOAD] Created public directory: ${publicPhotosDir}`);
         }
     }
-
-    // Create the symlink if it doesn't exist
-    if (!fs.existsSync(publicPhotosDir)) {
-        fs.symlinkSync(progressPhotosDir, publicPhotosDir, 'dir');
-        console.log(`[MOBILE UPLOAD] Created symlink from ${progressPhotosDir} to ${publicPhotosDir}`);
-    }
-} catch (error) {
-    console.error(`[MOBILE UPLOAD] Error creating symlink: ${error.message}`);
 }
 
 // Configure multer storage
