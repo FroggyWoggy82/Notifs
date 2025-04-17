@@ -10,15 +10,45 @@ const { promisify } = require('util'); // For promisifying fs functions
 const fsStatAsync = promisify(fs.stat); // Promisified fs.stat
 
 // --- Multer Configuration for Progress Photos ---
-const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+// Use Railway persistent volume for storage
+const progressPhotosDir = path.join('/data', 'uploads', 'progress_photos');
 const MAX_FILE_SIZE_MB = 25;
 let TARGET_FILE_SIZE_KB = 800; // Target file size in KB for compression - can be modified for mobile
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-// Ensure the upload directory exists
+// Ensure the persistent directory exists
 if (!fs.existsSync(progressPhotosDir)){
-    console.log(`Creating directory: ${progressPhotosDir}`);
+    console.log(`Creating persistent directory: ${progressPhotosDir}`);
     fs.mkdirSync(progressPhotosDir, { recursive: true });
+}
+
+// Create a symlink from the persistent storage to the public directory
+const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+try {
+    // Ensure the public uploads directory exists
+    const publicUploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+    if (!fs.existsSync(publicUploadsDir)) {
+        fs.mkdirSync(publicUploadsDir, { recursive: true });
+    }
+
+    // Remove existing directory if it exists and is not a symlink
+    if (fs.existsSync(publicPhotosDir)) {
+        const stats = fs.lstatSync(publicPhotosDir);
+        if (!stats.isSymbolicLink()) {
+            fs.rmdirSync(publicPhotosDir, { recursive: true });
+            console.log(`[WORKOUTS] Removed existing directory: ${publicPhotosDir}`);
+        } else {
+            console.log(`[WORKOUTS] Symlink already exists: ${publicPhotosDir}`);
+        }
+    }
+
+    // Create the symlink if it doesn't exist
+    if (!fs.existsSync(publicPhotosDir)) {
+        fs.symlinkSync(progressPhotosDir, publicPhotosDir, 'dir');
+        console.log(`[WORKOUTS] Created symlink from ${progressPhotosDir} to ${publicPhotosDir}`);
+    }
+} catch (error) {
+    console.error(`[WORKOUTS] Error creating symlink: ${error.message}`);
 }
 
 const storage = multer.diskStorage({

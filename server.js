@@ -7,6 +7,14 @@ const webpush = require('web-push');
 const path = require('path');
 const cron = require('node-cron');
 const sharp = require('sharp');
+const fs = require('fs');
+
+// Ensure persistent volume directory exists
+const persistentDir = '/data/uploads/progress_photos';
+if (!fs.existsSync(persistentDir)) {
+    console.log(`Creating persistent directory: ${persistentDir}`);
+    fs.mkdirSync(persistentDir, { recursive: true });
+}
 
 // Database connection
 const db = require('./utils/db'); // Required for database connection initialization

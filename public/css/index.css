@@ -224,11 +224,13 @@ textarea {
     display: flex;
     gap: 15px; /* Space between fields */
     align-items: flex-end; /* Align bottom edges if labels wrap */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
 }
 
 .form-group-half {
     flex: 1; /* Each takes half the space */
     min-width: 0; /* Allow shrinking */
+    min-width: 150px; /* Ensure minimum width before wrapping */
 }
 
 
@@ -696,7 +698,7 @@ input:checked + .toggle-slider:before {
 .modal-content {
     background-color: #ffffff; /* Light background for task modal */
     color: #2c3e50; /* Dark text */
-    margin: 10% auto; /* Centered vertically & horizontally */
+    margin: 5% auto; /* Reduced top margin for mobile */
     padding: 25px;
     border: 1px solid #dde5eb; /* Light border */
     border-radius: 8px;
@@ -706,7 +708,8 @@ input:checked + .toggle-slider:before {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
-    max-height: 80vh; /* Limit height, allow scrolling */
+    max-height: 90vh; /* Increased max height */
+    overflow-y: auto; /* Enable scrolling */
 }
 
 .modal-content h2 {
@@ -731,9 +734,36 @@ input:checked + .toggle-slider:before {
     text-decoration: none;
 }
 
+/* Modal header with controls */
+.modal-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.modal-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-label {
+    font-size: 0.8em;
+    color: #666;
+}
+
 /* Ensure form inside modal doesn't have extra padding/margin */
 .modal-content #addTaskForm,
-.modal-content #addHabitForm { /* Apply to both forms */
+.modal-content #addHabitForm,
+.modal-content #editTaskForm,
+.modal-content #editHabitForm { /* Apply to all forms */
     margin: 0;
     padding: 0;
 }
@@ -796,7 +826,47 @@ input:checked + .toggle-slider:before {
 }
 
 /* --- Media Queries --- */
-/* Add specific media queries if needed */
+
+/* Mobile-specific styles */
+@media screen and (max-width: 480px) {
+    .modal-content {
+        margin: 0; /* Remove margin on mobile */
+        padding: 15px; /* Reduce padding */
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        max-height: 100%; /* Full height */
+        border-radius: 0; /* No rounded corners on mobile */
+        overflow-y: auto; /* Enable scrolling */
+    }
+
+    /* Adjust form elements for better mobile fit */
+    .form-row {
+        flex-direction: column; /* Stack form elements vertically */
+    }
+
+    .form-group-half {
+        width: 100%; /* Full width on mobile */
+    }
+
+    /* Make the modal header sticky */
+    .modal-header {
+        position: sticky;
+        top: 0;
+        background-color: #ffffff;
+        z-index: 10;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    /* Ensure the Add Task button is always visible */
+    #addTaskBtn, #submitHabitBtn, #saveTaskBtn, #submitEditHabitBtn {
+        position: sticky;
+        bottom: 0;
+        margin-top: 15px;
+        z-index: 10;
+        background-color: #4db6ac;
+    }
+}
 
 /* Adjust FAB position slightly on larger screens if bottom nav changes */
 @media screen and (min-width: 600px) {

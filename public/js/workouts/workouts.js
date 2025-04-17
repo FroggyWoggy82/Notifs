@@ -624,6 +624,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const exercise = currentWorkout.exercises[currentEditingExerciseIndex];
+        const originalExerciseId = exercise.exercise_id; // Store the original ID
+        const originalName = exercise.name; // Store the original name
 
         // Update the exercise name in the current workout
         exercise.name = newName;
@@ -631,36 +633,112 @@ document.addEventListener('DOMContentLoaded', function() {
         // If the user wants to save this as a new exercise for future use
         if (saveAsNewExerciseCheckbox && saveAsNewExerciseCheckbox.checked) {
             try {
-                // Create a new exercise in the database
-                const response = await fetch('/api/workouts/exercises', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: newName,
-                        category: exercise.category || 'Other'
-                    })
-                });
+                // First check if an exercise with this name already exists
+                const existingExercise = availableExercises.find(ex =>
+                    ex.name.toLowerCase() === newName.toLowerCase());
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                if (existingExercise) {
+                    // Exercise with this name already exists, ask user what to do
+                    const useExisting = confirm(
+                        `An exercise named "${newName}" already exists. \n\n` +
+                        `• Click OK to use the existing exercise (ID: ${existingExercise.exercise_id}). \n` +
+                        `• Click Cancel to keep your original exercise name.`
+                    );
+
+                    if (useExisting) {
+                        // Use the existing exercise ID
+                        exercise.exercise_id = existingExercise.exercise_id;
+                        console.log(`Using existing exercise ID ${existingExercise.exercise_id} for "${newName}"`);
+                    } else {
+                        // Revert to original name but keep the edit in the current workout
+                        exercise.name = originalName;
+                        exercise.exercise_id = originalExerciseId;
+                        console.log(`Keeping original exercise name "${originalName}" and ID ${originalExerciseId}`);
+                    }
+                } else {
+                    // Create a new exercise in the database
+                    const response = await fetch('/api/workouts/exercises', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: newName,
+                            category: exercise.category || 'Other'
+                        })
+                    });
+
+                    // Handle 409 Conflict (exercise name already exists)
+                    if (response.status === 409) {
+                        const errorData = await response.json();
+                        console.log('Exercise name conflict:', errorData);
+
+                        // Try to find the existing exercise in the database
+                        let existingId = null;
+                        try {
+                            // Fetch all exercises to get the latest list
+                            const refreshResponse = await fetch('/api/workouts/exercises');
+                            if (refreshResponse.ok) {
+                                const refreshedExercises = await refreshResponse.json();
+                                // Update our local list
+                                availableExercises = refreshedExercises;
+                                // Find the exercise with the same name
+                                const existingEx = refreshedExercises.find(ex =>
+                                    ex.name.toLowerCase() === newName.toLowerCase());
+                                if (existingEx) {
+                                    existingId = existingEx.exercise_id;
+                                }
+                            }
+                        } catch (refreshError) {
+                            console.error('Error refreshing exercise list:', refreshError);
+                        }
+
+                        // Ask user if they want to use the existing exercise
+                        const useExisting = confirm(
+                            `An exercise named "${newName}" already exists. \n\n` +
+                            `• Click OK to use the existing exercise${existingId ? ` (ID: ${existingId})` : ''}. \n` +
+                            `• Click Cancel to keep your original exercise name.`
+                        );
+
+                        if (useExisting && existingId) {
+                            // Use the existing exercise ID
+                            exercise.exercise_id = existingId;
+                            console.log(`Using existing exercise ID ${existingId} for "${newName}"`);
+                        } else {
+                            // Revert to original name but keep the edit in the current workout
+                            exercise.name = originalName;
+                            exercise.exercise_id = originalExerciseId;
+                            console.log(`Keeping original exercise name "${originalName}" and ID ${originalExerciseId}`);
+                        }
+                    } else if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    } else {
+                        // Success - new exercise created
+                        const newExercise = await response.json();
+                        console.log('New exercise created:', newExercise);
+
+                        // Update the exercise ID in the current workout
+                        exercise.exercise_id = newExercise.exercise_id;
+
+                        // Add the new exercise to the available exercises list
+                        availableExercises.push(newExercise);
+
+                        alert(`Exercise "${newName}" has been saved as a new exercise for future use.`);
+                    }
                 }
-
-                const newExercise = await response.json();
-                console.log('New exercise created:', newExercise);
-
-                // Update the exercise ID in the current workout
-                exercise.exercise_id = newExercise.exercise_id;
-
-                // Add the new exercise to the available exercises list
-                availableExercises.push(newExercise);
-
-                alert(`Exercise "${newName}" has been saved for future use.`);
             } catch (error) {
                 console.error('Error creating new exercise:', error);
                 alert(`Error saving new exercise: ${error.message}`);
+
+                // Revert to original name and ID on error
+                exercise.name = originalName;
+                exercise.exercise_id = originalExerciseId;
             }
+        } else {
+            // If not saving as new, keep the original exercise ID
+            // This ensures we don't reset the workout history
+            exercise.exercise_id = originalExerciseId;
+            console.log(`Updated exercise name to "${newName}" while preserving history for ID ${originalExerciseId}`);
         }
 
         // Re-render the current workout to show the updated name
@@ -3956,6 +4034,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log(`[Photo Load] Fetched progress photos count: ${progressPhotosData.length}`);
 
+            // Log the first couple of photo objects for debugging
+            if (progressPhotosData.length > 0) {
+                console.log('[Photo Load DEBUG] First photo data object:', JSON.stringify(progressPhotosData[0]));
+                if (progressPhotosData.length > 1) {
+                    console.log('[Photo Load DEBUG] Second photo data object:', JSON.stringify(progressPhotosData[1]));
+                }
+            }
+
+            // Preload all images in the background before populating the reel
+            console.log('[Photo Load] Preloading all images in the background...');
+            await new Promise(resolve => {
+                PhotoLoader.preloadAllImages(progressPhotosData, () => {
+                    console.log('[Photo Load] All images preloaded successfully');
+                    resolve();
+                });
+            });
+
+            console.log('[Photo Load] Clearing loading message from photoReel...');
+
             // --- Populate Comparison Dropdowns --- (Keep this)
             populateComparisonDropdowns();
 
@@ -3992,8 +4089,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const img = document.createElement('img');
                 // Store the path in data-src for reference
                 img.dataset.src = photo.file_path;
-                // Set placeholder initially
-                img.src = PhotoLoader.placeholderImage;
                 // Format date with explicit options to avoid browser-specific issues
                 const photoDate = new Date(photo.date_taken);
                 const formattedDate = photoDate.toLocaleDateString(undefined, {
@@ -4001,18 +4096,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     month: 'numeric',
                     day: 'numeric'
                 });
-                img.alt = `Progress photo from ${formattedDate} (ID: ${photo.photo_id})`;
+                // Use empty alt text to prevent any text from showing
+                img.alt = '';
+                // Set aria-hidden to prevent screen readers from announcing anything
+                img.setAttribute('aria-hidden', 'true');
                 img.dataset.photoId = photo.photo_id; // Store ID for reference
                 img.loading = 'lazy'; // Add native lazy loading attribute
 
-                // Load the first image immediately
-                if (index === 0) {
+                // Set image source from cache if available, otherwise use placeholder
+                if (PhotoLoader.imageCache[photo.photo_id]) {
+                    img.src = PhotoLoader.imageCache[photo.photo_id];
+                    console.log(`[Photo Load] Using cached image for ID: ${photo.photo_id}`);
+                } else {
+                    // Set placeholder initially but make it invisible
+                    img.src = PhotoLoader.placeholderImage;
+                    img.style.opacity = '0'; // Hide placeholder
+
+                    // Load the image immediately
                     PhotoLoader.loadImage(
                         photo.file_path,
                         img,
                         photo.photo_id,
-                        () => console.log(`[Photo Load] Successfully loaded first image (ID: ${photo.photo_id})`),
-                        (error) => console.error(`[Photo Load] Failed to load first image: ${error}`)
+                        () => {
+                            console.log(`[Photo Load] Successfully loaded image (ID: ${photo.photo_id})`);
+                            img.style.opacity = '1'; // Show image once loaded
+                        },
+                        (error) => console.error(`[Photo Load] Failed to load image: ${error}`)
                     );
                 }
 
@@ -4076,6 +4185,37 @@ document.addEventListener('DOMContentLoaded', function() {
             return; // Nothing to display
         }
 
+        // Hide any placeholder text or elements that might be showing
+        const placeholderElements = photoReel.querySelectorAll('p');
+        placeholderElements.forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // Remove any text nodes that might be in the photoReel
+        Array.from(photoReel.childNodes).forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                photoReel.removeChild(node);
+            }
+        });
+
+        // Make sure all images are initially invisible until properly loaded
+        const allImages = photoReel.querySelectorAll('img');
+        allImages.forEach(img => {
+            // Remove any text content that might be in the alt attribute
+            img.alt = '';
+
+            // Set aria-hidden to prevent screen readers from announcing anything
+            img.setAttribute('aria-hidden', 'true');
+
+            if (img.complete && img.naturalWidth > 0) {
+                // Image is already loaded, make it visible
+                img.style.opacity = '1';
+            } else {
+                // Image is not loaded yet, keep it invisible
+                img.style.opacity = '0';
+            }
+        });
+
         // --- BEGIN ADDED DEBUG LOG ---
         console.log(`[Photo Display DEBUG] Current index before bounds check: ${currentPhotoIndex}`);
         // --- END ADDED DEBUG LOG ---
@@ -4111,13 +4251,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const filePathToLoad = currentPhoto ? currentPhoto.file_path : '[No Photo Object]';
         console.log(`[Photo Display] Setting image src to: ${filePathToLoad}`); // <<< Log the file path being used
 
-        // --- Use PhotoLoader to load the current image and preload adjacent images ---
+        // --- Use PhotoLoader to load the current image from cache ---
         const imageElements = photoReel.querySelectorAll('img');
         if (imageElements && imageElements[currentPhotoIndex]) {
             const currentImageElement = imageElements[currentPhotoIndex];
             const currentPhoto = progressPhotosData[currentPhotoIndex];
 
-            // Load the current image using PhotoLoader
+            // Load the current image using PhotoLoader (will use cache if available)
             PhotoLoader.loadImage(
                 currentPhoto.file_path,
                 currentImageElement,
@@ -4126,31 +4266,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 (error) => console.error(`[Photo Display] Failed to load current image: ${error}`)
             );
 
-            // Preload adjacent images (one before and one after)
-            const preloadIndices = [
-                (currentPhotoIndex - 1 + imageElements.length) % imageElements.length, // Previous
-                (currentPhotoIndex + 1) % imageElements.length                       // Next
-            ];
-
-            preloadIndices.forEach(index => {
-                if (index !== currentPhotoIndex && index >= 0 && index < progressPhotosData.length) {
-                    const img = imageElements[index];
-                    const photo = progressPhotosData[index];
-
-                    if (img && photo) {
-                        // Preload using PhotoLoader but with lower priority
-                        setTimeout(() => {
-                            PhotoLoader.loadImage(
-                                photo.file_path,
-                                img,
-                                photo.photo_id,
-                                () => console.log(`[Photo Display] Successfully preloaded image at index ${index} (ID: ${photo.photo_id})`),
-                                (error) => console.log(`[Photo Display] Non-critical: Failed to preload image at index ${index}: ${error}`)
-                            );
-                        }, 100); // Small delay to prioritize current image
-                    }
-                }
-            });
+            // No need to preload adjacent images - they're already preloaded by PhotoLoader.preloadAllImages
         } else {
             console.warn(`[Photo Display] Could not find image element for index ${currentPhotoIndex}`);
         }

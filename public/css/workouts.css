@@ -1224,8 +1224,11 @@ h1, h2 {
     display: flex; /* Arrange images horizontally */
     /* Width calculated by JS: numPhotos * 100% */
     height: auto; /* Adjust based on image aspect ratios? Or keep fixed like viewport? */
-    /* REMOVED transition: transform 0.5s ease-in-out; */
+    transition: transform 0.3s ease-in-out; /* Smooth transition between photos */
     /* transform: translateX(0); */ /* Initial position set by JS */
+    color: transparent !important; /* Hide any text */
+    font-size: 0 !important; /* Further ensure text is not visible */
+    text-indent: -9999px !important; /* Move text off-screen */
 }
 
 .photo-reel img {
@@ -1236,6 +1239,16 @@ h1, h2 {
     aspect-ratio: 4 / 3; /* Match viewport aspect ratio */
     object-fit: contain; /* Scale image within bounds */
     background-color: #333; /* Placeholder background */
+    transition: opacity 0.3s ease-in-out; /* Smooth transition for opacity changes */
+    color: transparent !important; /* Hide alt text */
+    font-size: 0 !important; /* Further ensure alt text is not visible */
+    text-indent: -9999px !important; /* Move alt text off-screen */
+    overflow: hidden; /* Prevent text from overflowing */
+    text-shadow: none !important; /* Remove any text shadow */
+    -webkit-user-select: none; /* Prevent text selection */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* Slider Navigation Buttons (Keep existing styles) */

@@ -8,16 +8,50 @@ const db = require('../utils/db');
 const router = express.Router();
 
 // --- Configuration ---
-const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+// Use Railway persistent volume for storage
+const progressPhotosDir = path.join('/data', 'uploads', 'progress_photos');
+
+// Create a symlink from the persistent storage to the public directory
+const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+if (!fs.existsSync(path.dirname(publicPhotosDir))) {
+    fs.mkdirSync(path.dirname(publicPhotosDir), { recursive: true });
+}
 const MAX_FILE_SIZE_MB = 100; // Increased to 100MB to handle any mobile camera
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 console.log(`[PHOTO UPLOAD] Configured with file size limit: ${MAX_FILE_SIZE_MB} MB`);
 
-// Ensure the upload directory exists
+// Ensure the upload directory exists in the persistent volume
 if (!fs.existsSync(progressPhotosDir)) {
     fs.mkdirSync(progressPhotosDir, { recursive: true });
-    console.log(`Created directory: ${progressPhotosDir}`);
+    console.log(`Created persistent directory: ${progressPhotosDir}`);
+}
+
+// Create a symlink from the persistent storage to the public directory
+try {
+    // Remove existing directory if it exists
+    if (fs.existsSync(publicPhotosDir)) {
+        // Check if it's already a symlink
+        const stats = fs.lstatSync(publicPhotosDir);
+        if (!stats.isSymbolicLink()) {
+            // If it's a regular directory, remove it
+            fs.rmdirSync(publicPhotosDir, { recursive: true });
+            console.log(`Removed existing directory: ${publicPhotosDir}`);
+        } else {
+            // It's already a symlink, leave it
+            console.log(`Symlink already exists: ${publicPhotosDir}`);
+        }
+    }
+
+    // Create the symlink if it doesn't exist
+    if (!fs.existsSync(publicPhotosDir)) {
+        fs.symlinkSync(progressPhotosDir, publicPhotosDir, 'dir');
+        console.log(`Created symlink from ${progressPhotosDir} to ${publicPhotosDir}`);
+    }
+} catch (error) {
+    console.error(`Error creating symlink: ${error.message}`);
+    // If symlink fails, fall back to copying files
+    console.log(`Falling back to direct storage in public directory`);
 }
 
 // --- Multer Configuration ---

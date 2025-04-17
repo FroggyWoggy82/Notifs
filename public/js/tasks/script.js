@@ -3906,13 +3906,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NEW: Open and populate the edit task modal ---
     function openEditTaskModal(task) {
         console.log("Opening edit modal for task:", task);
-        editTaskStatus.textContent = ''; // Clear any previous status
-        editTaskStatus.className = 'status';
 
-        // Populate the form fields
-        editTaskIdInput.value = task.id;
-        editTaskTitleInput.value = task.title || '';
-        editTaskDescriptionInput.value = task.description || '';
+        // Check if all required elements exist
+        if (!editTaskModal || !editTaskForm) {
+            console.error("Edit task modal or form elements not found");
+            return;
+        }
+
+        // Safely update elements with null checks
+        if (editTaskStatus) {
+            editTaskStatus.textContent = ''; // Clear any previous status
+            editTaskStatus.className = 'status';
+        }
+
+        // Populate the form fields with null checks
+        if (editTaskIdInput) editTaskIdInput.value = task.id;
+        if (editTaskTitleInput) editTaskTitleInput.value = task.title || '';
+        if (editTaskDescriptionInput) editTaskDescriptionInput.value = task.description || '';
 
         // Determine reminder type based on reminder_time and due_date
         let reminderType = 'none';
@@ -3965,20 +3975,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Set reminder type and show/hide custom reminder field
-        editTaskReminderTypeInput.value = reminderType;
-        editCustomReminderGroup.style.display = reminderType === 'custom' ? 'block' : 'none';
+        if (editTaskReminderTypeInput) editTaskReminderTypeInput.value = reminderType;
+        if (editCustomReminderGroup) {
+            editCustomReminderGroup.style.display = reminderType === 'custom' ? 'block' : 'none';
+        }
 
         // Format dates/times for input fields
-        editTaskReminderTimeInput.value = task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : '';
-        editTaskDueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
+        if (editTaskReminderTimeInput) {
+            editTaskReminderTimeInput.value = task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : '';
+        }
+        if (editTaskDueDateInput) {
+            editTaskDueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
+        }
 
         // Set duration (default to 1 if not set)
-        editTaskDurationInput.value = task.duration || 1;
+        if (editTaskDurationInput) editTaskDurationInput.value = task.duration || 1;
 
         // Set recurrence type and interval
-        editTaskRecurrenceTypeSelect.value = task.recurrence_type || 'none';
-        handleEditRecurrenceChange(); // Update interval display based on type
-        editTaskRecurrenceIntervalInput.value = task.recurrence_interval || '1';
+        if (editTaskRecurrenceTypeSelect) {
+            editTaskRecurrenceTypeSelect.value = task.recurrence_type || 'none';
+            // Only call handleEditRecurrenceChange if it exists
+            if (typeof handleEditRecurrenceChange === 'function') {
+                handleEditRecurrenceChange(); // Update interval display based on type
+            }
+        }
+        if (editTaskRecurrenceIntervalInput) {
+            editTaskRecurrenceIntervalInput.value = task.recurrence_interval || '1';
+        }
 
         // Display the modal
         editTaskModal.style.display = 'block';
@@ -3986,23 +4009,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- NEW: Show/hide recurrence interval in EDIT modal ---
     function handleEditRecurrenceChange() {
+        // Check if required elements exist
+        if (!editTaskRecurrenceTypeSelect || !editRecurrenceIntervalGroup) {
+            console.error("Required elements for handleEditRecurrenceChange not found");
+            return;
+        }
+
         const type = editTaskRecurrenceTypeSelect.value;
         if (type === 'none') {
             editRecurrenceIntervalGroup.style.display = 'none';
         } else {
             editRecurrenceIntervalGroup.style.display = 'flex'; // Or 'block'
-            // Update unit text
-            switch(type) {
-                case 'daily': editRecurrenceIntervalUnit.textContent = 'days'; break;
-                case 'weekly': editRecurrenceIntervalUnit.textContent = 'weeks'; break;
-                case 'monthly': editRecurrenceIntervalUnit.textContent = 'months'; break;
-                case 'yearly': editRecurrenceIntervalUnit.textContent = 'years'; break;
-                default: editRecurrenceIntervalUnit.textContent = 'interval';
+            // Update unit text if element exists
+            if (editRecurrenceIntervalUnit) {
+                switch(type) {
+                    case 'daily': editRecurrenceIntervalUnit.textContent = 'days'; break;
+                    case 'weekly': editRecurrenceIntervalUnit.textContent = 'weeks'; break;
+                    case 'monthly': editRecurrenceIntervalUnit.textContent = 'months'; break;
+                    case 'yearly': editRecurrenceIntervalUnit.textContent = 'years'; break;
+                    default: editRecurrenceIntervalUnit.textContent = 'interval';
+                }
             }
         }
     }
     // Add listener for the change event on the edit modal's recurrence select
-    editTaskRecurrenceTypeSelect.addEventListener('change', handleEditRecurrenceChange);
+    if (editTaskRecurrenceTypeSelect) {
+        editTaskRecurrenceTypeSelect.addEventListener('change', handleEditRecurrenceChange);
+    }
 
     // --- NEW: Add event listeners for Edit Task Modal ---
 

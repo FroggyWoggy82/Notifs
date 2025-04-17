@@ -7,15 +7,45 @@ const sharp = require('sharp');
 const db = require('../utils/db');
 
 // --- Configuration ---
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Use Railway persistent volume for storage
+const progressPhotosDir = path.join('/data', 'uploads', 'progress_photos');
 
-const progressPhotosDir = path.join(uploadsDir, 'progress_photos');
+// Reference to the public directory path (for file paths in the database)
+const publicPhotosPath = '/uploads/progress_photos';
+
+// Ensure the persistent directory exists
 if (!fs.existsSync(progressPhotosDir)) {
     fs.mkdirSync(progressPhotosDir, { recursive: true });
+    console.log(`[MOBILE UPLOAD] Created persistent directory: ${progressPhotosDir}`);
+}
+
+// Create a symlink from the persistent storage to the public directory
+const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+try {
+    // Ensure the public uploads directory exists
+    const publicUploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+    if (!fs.existsSync(publicUploadsDir)) {
+        fs.mkdirSync(publicUploadsDir, { recursive: true });
+    }
+
+    // Remove existing directory if it exists and is not a symlink
+    if (fs.existsSync(publicPhotosDir)) {
+        const stats = fs.lstatSync(publicPhotosDir);
+        if (!stats.isSymbolicLink()) {
+            fs.rmdirSync(publicPhotosDir, { recursive: true });
+            console.log(`[MOBILE UPLOAD] Removed existing directory: ${publicPhotosDir}`);
+        } else {
+            console.log(`[MOBILE UPLOAD] Symlink already exists: ${publicPhotosDir}`);
+        }
+    }
+
+    // Create the symlink if it doesn't exist
+    if (!fs.existsSync(publicPhotosDir)) {
+        fs.symlinkSync(progressPhotosDir, publicPhotosDir, 'dir');
+        console.log(`[MOBILE UPLOAD] Created symlink from ${progressPhotosDir} to ${publicPhotosDir}`);
+    }
+} catch (error) {
+    console.error(`[MOBILE UPLOAD] Error creating symlink: ${error.message}`);
 }
 
 // Configure multer storage
