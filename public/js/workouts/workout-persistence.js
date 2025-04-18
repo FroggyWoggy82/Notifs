@@ -343,6 +343,13 @@ function restoreWorkoutData() {
                         repsInput.pattern = '[0-9]*';
                         newRow.appendChild(repsInput);
 
+                        // Create goal target span
+                        const goalTarget = document.createElement('span');
+                        goalTarget.className = 'goal-target';
+                        goalTarget.title = 'Goal for next workout';
+                        goalTarget.textContent = '';
+                        newRow.appendChild(goalTarget);
+
                         // Create complete toggle button
                         const completeToggle = document.createElement('button');
                         completeToggle.className = 'set-complete-toggle';

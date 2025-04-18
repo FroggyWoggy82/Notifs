@@ -351,14 +351,80 @@
 }
 
 .ingredient-item {
-    display: grid;
-    grid-template-columns: 2fr repeat(6, 1fr) auto; /* Adjust columns as needed */
+    display: flex;
+    flex-direction: column;
     gap: 10px;
-    align-items: center;
-    padding: 10px;
+    padding: 15px;
     border: 1px solid #e8eef2;
     border-radius: 4px;
     background-color: #f8f9fa;
+}
+
+.ingredient-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+.nutrition-inputs {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.nutrition-scan-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scan-nutrition-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.scan-nutrition-btn:hover {
+    background-color: #2980b9;
+}
+
+.scan-status {
+    margin-top: 5px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.scan-status.loading {
+    background-color: #f8f9fa;
+    border: 1px solid #e8eef2;
+    color: #2c3e50;
+}
+
+.scan-status.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.scan-status.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.scan-status.warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
 }
 
 /* Style inputs within the grid */
@@ -427,15 +493,30 @@
 @media (max-width: 768px) {
     /* Ingredient item adjustments */
     .ingredient-item {
-        grid-template-columns: 1fr; /* Stack ingredients on smaller screens */
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .ingredient-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .nutrition-inputs {
+        grid-template-columns: 1fr;
         gap: 8px;
     }
-    .ingredient-item input,
-    .ingredient-item button {
-        grid-column: 1 / -1; /* Make each element take full width */
+
+    .nutrition-scan-container {
+        margin-top: 5px;
     }
+
+    .scan-nutrition-btn {
+        width: 100%;
+    }
+
     .remove-ingredient-btn {
-        justify-self: center; /* Center remove button */
+        width: 100%;
         margin-top: 5px;
     }
 

@@ -145,14 +145,23 @@
             <div id="ingredients-list">
                 <!-- Ingredient inputs will be added dynamically here -->
                 <div class="ingredient-item">
-                    <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-                    <input type="number" placeholder="Calories" class="ingredient-calories" step="0.1" required>
-                    <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.1" required>
-                    <input type="number" placeholder="Protein (g)" class="ingredient-protein" step="0.1" required>
-                    <input type="number" placeholder="Fat (g)" class="ingredient-fat" step="0.1" required>
-                    <input type="number" placeholder="Carbs (g)" class="ingredient-carbs" step="0.1" required>
-                    <input type="number" placeholder="Price" class="ingredient-price" step="0.01" required>
-                    <button type="button" class="remove-ingredient-btn">Remove</button>
+                    <div class="ingredient-row">
+                        <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
+                        <div class="nutrition-scan-container">
+                            <button type="button" class="scan-nutrition-btn">Scan Nutrition Label</button>
+                            <input type="file" class="nutrition-image-input" accept="image/*" style="display:none">
+                        </div>
+                    </div>
+                    <div class="ingredient-row nutrition-inputs">
+                        <input type="number" placeholder="Calories" class="ingredient-calories" step="0.1" required>
+                        <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.1" required>
+                        <input type="number" placeholder="Protein (g)" class="ingredient-protein" step="0.1" required>
+                        <input type="number" placeholder="Fat (g)" class="ingredient-fat" step="0.1" required>
+                        <input type="number" placeholder="Carbs (g)" class="ingredient-carbs" step="0.1" required>
+                        <input type="number" placeholder="Price" class="ingredient-price" step="0.01" required>
+                        <button type="button" class="remove-ingredient-btn">Remove</button>
+                    </div>
+                    <div class="scan-status" style="display:none"></div>
                 </div>
             </div>
             <button type="button" id="add-ingredient-btn">Add Ingredient</button>
@@ -250,6 +259,8 @@
     <script src="../js/common/chart-config.js"></script>
 
     <!-- Food functionality -->
+    <script src="../js/food/custom-tooltip.js"></script> <!-- Custom tooltip implementation -->
     <script src="../js/food/food.js"></script> <!-- Food specific JS -->
+    <script src="../js/food/nutrition-scan.js"></script> <!-- Nutrition scanning functionality -->
 </body>
 </html>

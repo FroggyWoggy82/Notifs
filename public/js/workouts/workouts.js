@@ -230,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let weightValue = ''; // Pre-fill value for weight input
             let repsValue = '';   // Pre-fill value for reps input
             let previousLogTextHtml = '- kg x -'; // Display text for previous log span
+            let goalTextHtml = ''; // Default empty goal
             const currentUnit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
 
             // For template exercises, use the default reps value if available
@@ -252,6 +253,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Always update the display text if data exists for this set index
                 previousLogTextHtml = `${prevWeight || '-'} ${prevUnit} x ${prevReps || '-'}`;
                  console.log(`[generateSetRowsHtml] Set ${i}: Pre-filling weight=${weightValue}, reps=${repsValue}. Display='${previousLogTextHtml}'`);
+
+                // Calculate goal for next workout if not a template
+                if (!isTemplate) {
+                    const goal = calculateGoal(exerciseData);
+                    if (goal && i < goal.sets.length) {
+                        const goalSet = goal.sets[i];
+                        goalTextHtml = `${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
+                    }
+                }
             } else if (!isTemplate){
                 // If no specific data for this set index, keep inputs empty, show placeholder text
                  console.log(`[generateSetRowsHtml] Set ${i}: No previous data found for this index.`);
@@ -274,6 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="previous-log">${previousLogTextHtml}</span>
                     <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
                     <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+                    <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
                     ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
                 </div>
             `;
@@ -577,6 +588,14 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="exercise-notes-group">  <!-- <<< MOVED UP -->
                  <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
+            </div>
+            <div class="column-headers">
+                <span>Set</span>
+                <span>Previous</span>
+                <span>Weight</span>
+                <span>Reps</span>
+                <span>Goal</span>
+                <span></span>
             </div>
             <div class="sets-container"> ${setsHtml} </div>  <!-- <<< MOVED DOWN -->
             <div class="set-actions-container">
@@ -2058,6 +2077,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                     <!-- Corrected: Hardcode class and add data-index -->
                     <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times;</button>
+                </div>
+                <div class="column-headers">
+                    <span>Set</span>
+                    <span>Previous</span>
+                    <span>Weight</span>
+                    <span>Reps</span>
+                    <span>Goal</span>
+                    <span></span>
                 </div>
                 <div class="exercise-notes-group">
                     <label for="exercise-notes-${index}">Notes:</label>
@@ -4733,6 +4760,108 @@ function escapeHtml(unsafe) {
          .replace(/'/g, "&#039;");
 }
 
+// Helper function to calculate 1RM based on weight and reps
+function calculate1RM(weight, reps) {
+    // Based on the repetition percentages table
+    const percentages = {
+        1: 100,
+        2: 97,
+        3: 94,
+        4: 92,
+        5: 89,
+        6: 86,
+        7: 83,
+        8: 81,
+        9: 78,
+        10: 75,
+        11: 73,
+        12: 71,
+        13: 70,
+        14: 68,
+        15: 67,
+        16: 65,
+        17: 64,
+        18: 63,
+        19: 61,
+        20: 60,
+        21: 59,
+        22: 58,
+        23: 57,
+        24: 56,
+        25: 55,
+        26: 54,
+        27: 53,
+        28: 52,
+        29: 51,
+        30: 50
+    };
+
+    // If reps is beyond our table, default to 50%
+    const percentage = percentages[reps] || 50;
+
+    // Calculate 1RM: weight / percentage * 100
+    const oneRepMax = Math.round((weight / percentage) * 100);
+
+    return oneRepMax;
+}
+
+// Helper function to calculate the goal for the next workout
+function calculateGoal(exerciseData) {
+    if (!exerciseData.lastLog || !exerciseData.lastLog.weight_used || !exerciseData.lastLog.reps_completed) {
+        return null; // No previous data to base goal on
+    }
+
+    const prevWeights = exerciseData.lastLog.weight_used.split(',').map(w => parseFloat(w.trim()));
+    const prevReps = exerciseData.lastLog.reps_completed.split(',').map(r => parseInt(r.trim()));
+    const prevUnit = exerciseData.lastLog.weight_unit || 'lbs';
+
+    // Filter out any invalid entries
+    const validSets = [];
+    for (let i = 0; i < Math.min(prevWeights.length, prevReps.length); i++) {
+        if (!isNaN(prevWeights[i]) && !isNaN(prevReps[i])) {
+            validSets.push({
+                weight: prevWeights[i],
+                reps: prevReps[i],
+                index: i
+            });
+        }
+    }
+
+    if (validSets.length === 0) {
+        return null; // No valid sets to base goal on
+    }
+
+    // Check if all sets in the last workout reached the target reps (e.g., 10)
+    const targetReps = 10; // This could be configurable
+    const allSetsReachedTarget = validSets.every(set => set.reps >= targetReps);
+
+    // Create a copy of the previous workout's sets
+    const goalSets = JSON.parse(JSON.stringify(validSets));
+
+    if (allSetsReachedTarget) {
+        // If all sets reached the target reps, increase weight for the first set
+        // and keep the same weight for the remaining sets
+        const firstSetWeight = goalSets[0].weight;
+        const weightIncrement = 5; // This could be configurable or based on the unit
+
+        goalSets[0].weight = firstSetWeight + weightIncrement;
+        goalSets[0].reps = 8; // Start with fewer reps at the higher weight
+    } else {
+        // Find the first set that didn't reach the target reps
+        const incompleteSetIndex = goalSets.findIndex(set => set.reps < targetReps);
+
+        if (incompleteSetIndex >= 0) {
+            // Increase the reps for this set by 1
+            goalSets[incompleteSetIndex].reps += 1;
+        }
+    }
+
+    return {
+        sets: goalSets,
+        unit: prevUnit
+    };
+}
+
 // Helper function to generate HTML for a single set row
 function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     // Default values
@@ -4768,6 +4897,9 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     // For the previous log display, use the current unit
     let previousLogTextHtml = `- ${unit} x -`;
 
+    // Default empty goal
+    let goalTextHtml = '';
+
     // Only show previous log data if this set index exists in the last log
     if (exerciseData.lastLog && exerciseData.lastLog.weight_used && exerciseData.lastLog.reps_completed) {
         const prevWeights = exerciseData.lastLog.weight_used.split(',');
@@ -4780,6 +4912,15 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
             const prevRep = prevReps[setIndex].trim() || '-';
             previousLogTextHtml = `${prevWeight} ${prevUnit} x ${prevRep}`;
         }
+
+        // Calculate goal for next workout if not a template
+        if (!isTemplate) {
+            const goal = calculateGoal(exerciseData);
+            if (goal && setIndex < goal.sets.length) {
+                const goalSet = goal.sets[setIndex];
+                goalTextHtml = `${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
+            }
+        }
     }
 
     return `
@@ -4788,6 +4929,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
             <span class="previous-log">${previousLogTextHtml}</span>
             <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
             <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+            <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
             ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
         </div>
     `;

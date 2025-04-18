@@ -1,5 +1,10 @@
 /* Exercise History Specific Styles */
 
+/* Add styling for the Workout Analytics heading to match the green accent color */
+h1 {
+    color: #4CAF50; /* Green accent color to match the rest of the page */
+}
+
 .history-section {
     margin: 20px 0;
     padding: 15px;

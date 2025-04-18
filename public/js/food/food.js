@@ -45,14 +45,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to create HTML for a single ingredient row
     function createIngredientRowHtml() {
         return `
-            <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-            <input type="number" placeholder="Calories" class="ingredient-calories" step="any" required>
-            <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="any" required>
-            <input type="number" placeholder="Protein (g)" class="ingredient-protein" step="any" required>
-            <input type="number" placeholder="Fat (g)" class="ingredient-fat" step="any" required>
-            <input type="number" placeholder="Carbs (g)" class="ingredient-carbs" step="any" required>
-            <input type="number" placeholder="Price" class="ingredient-price" step="any" required>
-            <button type="button" class="remove-ingredient-btn">Remove</button>
+            <div class="ingredient-row">
+                <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
+                <div class="nutrition-scan-container">
+                    <button type="button" class="scan-nutrition-btn">Scan Nutrition Label</button>
+                    <input type="file" class="nutrition-image-input" accept="image/*" style="display:none">
+                </div>
+            </div>
+            <div class="ingredient-row nutrition-inputs">
+                <input type="number" placeholder="Calories" class="ingredient-calories" step="any" required>
+                <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="any" required>
+                <input type="number" placeholder="Protein (g)" class="ingredient-protein" step="any" required>
+                <input type="number" placeholder="Fat (g)" class="ingredient-fat" step="any" required>
+                <input type="number" placeholder="Carbs (g)" class="ingredient-carbs" step="any" required>
+                <input type="number" placeholder="Price" class="ingredient-price" step="any" required>
+                <button type="button" class="remove-ingredient-btn">Remove</button>
+            </div>
+            <div class="scan-status" style="display:none"></div>
         `;
     }
 
@@ -445,16 +454,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 borderColor: '#3498db', // Blue
                 backgroundColor: 'rgba(52, 152, 219, 0.2)',
                 borderWidth: 3,
-                tension: 0.3,
+                tension: 0, // Set to 0 for straight lines
                 fill: true,
                 pointBackgroundColor: '#3498db',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 pointRadius: 5,
-                pointHoverRadius: 7,
-                pointHoverBackgroundColor: '#3498db',
+                pointHoverRadius: 10, // Even larger hover radius for better visibility
+                pointHoverBackgroundColor: '#2980b9', // Darker blue on hover
                 pointHoverBorderColor: '#fff',
-                pointHoverBorderWidth: 2,
+                pointHoverBorderWidth: 3, // Thicker border on hover
+                // Add shadow effect on hover
+                pointHoverShadowColor: 'rgba(0, 0, 0, 0.5)',
+                pointHoverShadowBlur: 10,
+                pointHoverShadowOffsetX: 0,
+                pointHoverShadowOffsetY: 4,
+                // Ensure tooltips work properly
+                hitRadius: 15, // Increase hit detection radius for easier interaction
                 spanGaps: true, // Connect points across gaps (null values)
                 // Ensure points are always drawn regardless of zoom level
                 pointRadius: 5, // Fixed point size
@@ -464,6 +480,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 clip: false,
                 // Keep points in view when zooming
                 borderJoinStyle: 'round',
+                // Improve tooltip interaction
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'xy',
+                    intersect: false
+                },
                 segment: {
                     borderColor: ctx => {
                         // Only draw line segments where we have actual data
@@ -483,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  borderColor: '#e74c3c', // Red
                  borderDash: [5, 5], // Dashed line
                  borderWidth: 2,
-                 tension: 0.3,
+                 tension: 0, // Set to 0 for straight lines
                  fill: false,
                  pointRadius: 0, // Hide points on target line
                  pointHoverRadius: 0, // No hover effect on target line
@@ -752,8 +774,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: {
-                    mode: 'index',
-                    intersect: false
+                    mode: 'point',
+                    intersect: true,
+                    axis: 'xy'
                 },
                 parsing: {
                     xAxisKey: 'x',
@@ -794,6 +817,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             padding: 15, // Increased padding to ensure ticks don't get cut off
                             // Ensure we don't have too many ticks
                             maxTicksLimit: 10
+                        },
+                        // Add reasonable defaults for the y-axis
+                        grace: '5%', // Add 5% padding to the scale
+                        // Ensure the axis adapts to the data
+                        adapters: {
+                            date: false
                         },
                         // Set fixed min/max values to prevent scaling issues
                         min: yMin,
@@ -857,16 +886,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     },
                     tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                        titleFont: {
-                            size: 14
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        padding: 10,
+                        enabled: false // Disable built-in tooltips, we'll use our own
+                    },
+                    // Custom plugin for tooltips
+                    customTooltips: {
                         callbacks: {
                             title: function(tooltipItems) {
                                 // Format the date in the tooltip title
@@ -891,16 +914,54 @@ document.addEventListener('DOMContentLoaded', () => {
                                 return '';
                             },
                             label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
+                                try {
+                                    // First, check if we have valid data
+                                    if (!context || !context.parsed || context.parsed.y === null || context.parsed.y === undefined) {
+                                        return 'No data available';
+                                    }
+
+                                    // Get the weight value regardless of dataset type
+                                    const weightValue = parseFloat(context.parsed.y).toFixed(2);
+
+                                    // Check dataset type by label if available
+                                    const datasetLabel = context.dataset.label || '';
+
+                                    if (datasetLabel.includes('Actual')) {
+                                        return `Weight: ${weightValue} lbs`;
+                                    } else if (datasetLabel.includes('Goal')) {
+                                        return `Goal: ${weightValue} lbs`;
+                                    } else {
+                                        // Fallback for any dataset
+                                        return `Value: ${weightValue} lbs`;
+                                    }
+                                } catch (error) {
+                                    console.error('Error in tooltip label callback:', error);
+                                    return 'Error displaying data';
                                 }
-                                if (context.parsed.y !== null) {
-                                    // Round to 2 decimal places (nearest hundredth)
-                                    const roundedValue = parseFloat(context.parsed.y).toFixed(2);
-                                    label += roundedValue + ' lbs';
+                            },
+                            // Add afterLabel to show additional information
+                            afterLabel: function(context) {
+                                try {
+                                    // First, check if we have valid data
+                                    if (!context || !context.parsed || context.parsed.y === null || context.parsed.y === undefined) {
+                                        return null;
+                                    }
+
+                                    const datasetLabel = context.dataset.label || '';
+
+                                    // Only add this for actual weight points
+                                    if (datasetLabel.includes('Actual')) {
+                                        // If we have a target weight, show the difference
+                                        if (targetWeight && !isNaN(targetWeight)) {
+                                            const diff = context.parsed.y - targetWeight;
+                                            const sign = diff >= 0 ? '+' : '';
+                                            return `${sign}${diff.toFixed(2)} lbs from target`;
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Error in tooltip afterLabel callback:', error);
                                 }
-                                return label;
+                                return null;
                             }
                         }
                     }
@@ -908,85 +969,71 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Add annotations if the plugin is available
-        try {
-            // Create a safer version of annotations that won't cause errors
-            const safeAnnotations = {};
+        // Temporarily disable annotations to prevent errors
+        console.log('Annotations disabled to prevent errors');
+        // We'll use simple lines instead of the annotation plugin
 
-            // Only add the today indicator and target weight line if they exist
-            if (annotations.todayIndicator) {
-                safeAnnotations.todayIndicator = {
-                    type: 'line',
-                    scaleID: 'x',
-                    value: annotations.todayIndicator.value,
-                    borderColor: 'rgba(255, 99, 132, 0.8)',
-                    borderWidth: 2,
-                    borderDash: [6, 6],
-                    label: {
-                        display: true,
-                        content: 'Today',
-                        position: 'start',
-                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                        font: { weight: 'bold' }
-                    }
-                };
-            }
+        // Set better default Y-axis range before creating the chart
+        // Find min and max values in the actual data
+        let minValue = Number.MAX_VALUE;
+        let maxValue = Number.MIN_VALUE;
 
-            if (annotations.targetWeightLine) {
-                safeAnnotations.targetWeightLine = {
-                    type: 'line',
-                    scaleID: 'y',
-                    value: annotations.targetWeightLine.value,
-                    borderColor: 'rgba(54, 162, 235, 0.8)',
-                    borderWidth: 2,
-                    borderDash: [6, 6],
-                    label: {
-                        display: true,
-                        content: 'Target: ' + annotations.targetWeightLine.value + ' lbs',
-                        position: 'end',
-                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                        font: { weight: 'bold' }
-                    }
-                };
+        formattedActualData.forEach(point => {
+            if (point.y !== null && !isNaN(point.y)) {
+                minValue = Math.min(minValue, point.y);
+                maxValue = Math.max(maxValue, point.y);
             }
+        });
 
-            // Check if annotation plugin is registered
-            if (Chart.registry && Chart.registry.plugins &&
-                Object.values(Chart.registry.plugins.items).some(p => p.id === 'annotation')) {
-                // Add annotations to chart config with safety options
-                chartConfig.options.plugins.annotation = {
-                    annotations: safeAnnotations,
-                    // Add additional options to make annotations more stable
-                    clip: false, // Don't clip annotations
-                    interaction: { mode: 'nearest' },
-                    // Disable animations for annotations to prevent errors
-                    animations: { duration: 0 },
-                    // Ensure annotations are drawn on top
-                    drawTime: 'afterDatasetsDraw',
-                    // Add extra configuration for better stability
-                    common: {
-                        drawTime: 'afterDraw',
-                        z: 100 // Ensure annotations are on top
-                    }
-                };
-                console.log('Added annotations to chart config');
-            } else {
-                console.warn('Annotation plugin not available, skipping annotations');
-            }
-        } catch (error) {
-            console.error('Error adding annotations to chart:', error);
-            // Continue without annotations if there's an error
+        // Add target weight to the range calculation if available
+        if (targetWeight && !isNaN(targetWeight)) {
+            minValue = Math.min(minValue, targetWeight);
+            maxValue = Math.max(maxValue, targetWeight);
         }
+
+        // If we have valid min/max values, set a reasonable range
+        if (minValue !== Number.MAX_VALUE && maxValue !== Number.MIN_VALUE) {
+            // Calculate a reasonable padding (about 5% of the range)
+            const range = maxValue - minValue;
+            const padding = Math.max(range * 0.05, 2); // At least 2 lbs padding
+
+            // Set the min/max with padding
+            chartConfig.options.scales.y.min = Math.max(0, minValue - padding);
+            chartConfig.options.scales.y.max = maxValue + padding;
+
+            console.log(`Setting initial Y-axis range: ${chartConfig.options.scales.y.min} to ${chartConfig.options.scales.y.max}`);
+        }
+
+        // Store target weight in chart options for tooltip access
+        chartConfig.options.targetWeight = parseFloat(targetWeight);
+        console.log('Setting target weight in chart options:', chartConfig.options.targetWeight);
 
         // Create the chart
         weightGoalChart = new Chart(ctx, chartConfig);
+        weightGoalChart._initialScaleApplied = false; // Mark as needing initial scale
+
+        // Attach custom tooltip events
+        if (window.attachWeightChartTooltipEvents) {
+            window.attachWeightChartTooltipEvents(weightGoalChart);
+        } else {
+            console.error('Custom tooltip functions not available');
+        }
 
         // Initialize the chart with the current y-axis scale
         // This ensures the scale is applied correctly on initial load
         setTimeout(() => {
             if (weightGoalChart && typeof updateChartYAxisScale === 'function') {
-                updateChartYAxisScale(weightGoalChart, yAxisScale, false);
-                console.log('Applied initial y-axis scale:', yAxisScale);
+                // Force scale to 1.0 for initial render
+                updateChartYAxisScale(weightGoalChart, 1.0, false);
+                console.log('Applied initial y-axis scale: 1.0x');
+
+                // Reset the sliders to 1.0
+                if (xAxisScaleSlider) xAxisScaleSlider.value = 1.0;
+                if (yAxisScaleSlider) yAxisScaleSlider.value = 1.0;
+                if (xScaleValue) xScaleValue.textContent = '1.0x';
+                if (yScaleValue) yScaleValue.textContent = '1.0x';
+                xAxisScale = 1.0;
+                yAxisScale = 1.0;
             }
         }, 100);
     }
@@ -1297,6 +1344,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Reload data for the selected user
             loadWeightGoal();
+
+            // Destroy existing chart before loading new data
+            if (weightGoalChart) {
+                weightGoalChart.destroy();
+                weightGoalChart = null;
+            }
+
+            // Load and render the chart with the new user data
+            console.log(`Loading chart data for user ID: ${currentUserId}`);
             loadAndRenderWeightChart();
 
             // Update the user selector label
@@ -1605,6 +1661,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // On initial load, use scale=1 to ensure proper display
+            if (scale !== 1 && !chart._initialScaleApplied) {
+                console.log('Forcing initial scale to 1.0x for first render');
+                scale = 1.0;
+                chart._initialScaleApplied = true;
+            }
+
             // Find min and max data points
             let minDataPoint = Number.MAX_VALUE;
             let maxDataPoint = Number.MIN_VALUE;
@@ -1664,6 +1727,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 scaledRange = effectiveRange / scale;
                 console.log(`Y-axis zoom in: scale=${scale}, range=${effectiveRange}, scaledRange=${scaledRange}`);
             }
+
+            // Ensure we have a reasonable minimum range (at least 5 units)
+            scaledRange = Math.max(scaledRange, 5);
 
             // Log the calculation for debugging
             console.log(`Y-axis scale: ${scale}, Data range: ${effectiveRange}, Scaled range: ${scaledRange}`);
@@ -2106,9 +2172,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Quick target buttons have been removed
 
+    // Event listener for the user selector (weight goals)
+    if (userSelector) {
+        userSelector.addEventListener('change', function() {
+            // Update the current user ID
+            currentUserId = this.value;
+
+            // Save the preference to localStorage
+            localStorage.setItem('weightUserPreference', currentUserId);
+
+            // Destroy the current chart to prevent tooltip issues
+            if (weightGoalChart) {
+                weightGoalChart.destroy();
+                weightGoalChart = null;
+            }
+
+            // Load data for the new user
+            loadWeightGoal();
+            loadAndRenderWeightChart();
+
+            // Fix tooltips after chart is reloaded
+            setTimeout(fixTooltips, 1000);
+
+            console.log(`Switched to user ID: ${currentUserId}`);
+        });
+    }
+
+    // Function to ensure tooltips work properly
+    function fixTooltips() {
+        if (!weightGoalChart || !weightGoalChartCanvas) return;
+
+        // Re-attach custom tooltip events
+        if (window.attachWeightChartTooltipEvents) {
+            window.attachWeightChartTooltipEvents(weightGoalChart);
+            console.log('Re-attached custom tooltip events to chart');
+        } else {
+            console.error('Custom tooltip functions not available');
+        }
+    }
+
     // --- Initial Load --- //
     loadWeightGoal(); // Load saved goal
     loadAndRenderWeightChart(); // Attempt to load chart data
     loadRecipes();
     loadCalorieTarget(calorieUserSelector.value); // Load calorie target for the default user
+
+    // Fix tooltips after a short delay to ensure chart is fully rendered
+    setTimeout(fixTooltips, 1000);
 });

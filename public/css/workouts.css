@@ -459,12 +459,25 @@ h1, h2 {
     order: 2; /* Control the order of flex items */
 }
 
+/* Column headers for exercise items */
+.column-headers {
+    display: grid;
+    grid-template-columns: auto 90px 1fr 1fr 90px 36px;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 0.8rem;
+    color: #aaa;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
 /* Style for set rows within an exercise */
 /* Target ONLY set rows directly inside .exercise-list (Active Workout), NOT .template-editor-list */
 #current-exercise-list .set-row {
     display: grid;
-    /* Set#, Previous, Weight Input, Reps Input, Toggle */
-    grid-template-columns: auto 90px 1fr 1fr 36px;
+    /* Set#, Previous, Weight Input, Reps Input, Goal, Toggle */
+    grid-template-columns: auto 90px 1fr 1fr 90px 36px;
     gap: 10px;
     align-items: center;
     padding: 8px 0;
@@ -485,6 +498,18 @@ h1, h2 {
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Show ... if overflow */
     padding-right: 5px; /* Add a little space before next column */
+}
+
+/* Style for the goal target span */
+.goal-target {
+    color: #03dac6; /* Blue/teal color to match the UI */
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 5px;
 }
 
 .set-number {
@@ -751,8 +776,9 @@ h1, h2 {
 /* Mobile-specific adjustments */
 @media screen and (max-width: 599px) {
     /* Adjust set row layout for smaller screens */
-    #current-exercise-list .set-row {
-        grid-template-columns: auto 80px 1fr 1fr 36px;
+    #current-exercise-list .set-row,
+    .column-headers {
+        grid-template-columns: auto 80px 1fr 1fr 80px 36px;
         gap: 8px; /* Slightly smaller gap on mobile */
     }
 
