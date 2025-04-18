@@ -32,9 +32,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const navigationDebounceTime = 100; // Milliseconds to wait
 
-    // --- Device Detection ---
+    // --- Device Detection and Touch Utilities ---
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     console.log('[Device Detection] Running on mobile device:', isMobile);
+
+    // Add touch-device class to body for CSS targeting
+    if (isMobile || ('ontouchstart' in window)) {
+        document.body.classList.add('touch-device');
+    }
+
+    // Utility function to make touch events more responsive
+    function addPassiveTouchListener(element, eventType, handler) {
+        if (!element) return;
+        // Use passive: true to improve scrolling performance
+        element.addEventListener(eventType, handler, { passive: true });
+    }
 
     // --- State Variables ---
     let availableExercises = []; // Populated from API
@@ -178,18 +190,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Helper function to generate HTML for set rows ---
     function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
         let setRowsHtml = '';
-        // Determine the number of sets based on previously logged sets count,
-        // or fall back to the template/default 'sets' property.
+        // Determine the number of sets based on the exercise's 'sets' property first,
+        // then fall back to previously logged sets count or default.
         let numSets = 1; // Default to 1 set
-        if (!isTemplate && exerciseData.lastLog && exerciseData.lastLog.reps_completed) {
+
+        // First priority: Use the sets property if it exists and is valid
+        if (exerciseData.sets && parseInt(exerciseData.sets) > 0) {
+            numSets = parseInt(exerciseData.sets);
+            console.log(`Using exercise.sets property for ${exerciseData.name}: ${numSets} sets`);
+        }
+        // Second priority: Use last log data if available
+        else if (!isTemplate && exerciseData.lastLog && exerciseData.lastLog.reps_completed) {
             // If we have a last log, use the number of rep entries as the set count for rendering
             numSets = exerciseData.lastLog.reps_completed.split(',').length;
-        } else {
-            // Otherwise, use the 'sets' property from the template/exercise data
-            numSets = parseInt(exerciseData.sets) || 1;
+            console.log(`Using lastLog data for ${exerciseData.name}: ${numSets} sets`);
         }
         // Ensure at least one set is rendered
         numSets = Math.max(1, numSets);
+        console.log(`Final set count for ${exerciseData.name}: ${numSets} sets`);
 
         // Parse the *entire* previous log data ONCE, if available
         let weightsArray = [];
@@ -242,8 +260,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const isCompleted = !isTemplate && exerciseData.completedSets && exerciseData.completedSets[i];
             const isDisabled = isTemplate;
-            const weightInputType = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? 'hidden' : 'number';
-            const weightPlaceholder = (currentUnit === 'bodyweight' || currentUnit === 'assisted') ? '' : 'Wt';
+            // Always show weight input for bodyweight to record the user's current body weight
+            // Only hide for assisted exercises
+            const weightInputType = (currentUnit === 'assisted') ? 'hidden' : 'number';
+            // Set appropriate placeholder based on unit type
+            const weightPlaceholder = (currentUnit === 'bodyweight') ? 'BW' : (currentUnit === 'assisted') ? '' : 'Wt';
             const repsPlaceholder = 'Reps';
 
             // Generate the HTML for this specific set row
@@ -546,8 +567,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="exercise-item-header">
                 <h4>${escapeHtml(exerciseData.name)}</h4>
                 <select class="exercise-unit-select" data-workout-index="${index}">
+                    <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
                     <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                    <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
                     <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
                     <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
                 </select>
@@ -798,6 +819,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update weight units from UI before saving
                 updateWeightUnitsFromUI();
 
+                // Update set counts from UI before saving
+                updateSetCountsFromUI();
+
                 localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(currentWorkout));
 
                 // Save workout start time if it exists
@@ -843,6 +867,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the weight_unit in the currentWorkout object
                 exercises[workoutIndex].weight_unit = unitSelect.value;
             }
+        });
+    }
+
+    // Update set counts in currentWorkout from UI
+    function updateSetCountsFromUI() {
+        if (currentPage !== 'active') return;
+
+        const exerciseItems = document.querySelectorAll('.exercise-item');
+        if (!exerciseItems.length) return;
+
+        exerciseItems.forEach(item => {
+            const workoutIndex = parseInt(item.dataset.workoutIndex, 10);
+            if (isNaN(workoutIndex)) return;
+
+            const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+            if (!exercises || !exercises[workoutIndex]) return;
+
+            // Count the number of set rows in this exercise item
+            const setRows = item.querySelectorAll('.set-row');
+            const setCount = setRows.length;
+
+            // Update the sets property in the currentWorkout object
+            exercises[workoutIndex].sets = setCount;
+            console.log(`Updated exercise ${workoutIndex} (${exercises[workoutIndex].name}) sets to ${setCount}`);
         });
     }
 
@@ -952,15 +1000,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     console.log(`Saving data for exercise ID ${exerciseId} (${exerciseData.name})`);
 
-                    inputValues[exerciseId] = {
-                        sets: [],
-                        name: exerciseData.name,
-                        workoutIndex: workoutIndex
-                    };
-
                     // Get all set rows for this exercise
                     const setRows = item.querySelectorAll('.set-row');
                     console.log(`Found ${setRows.length} set rows for exercise ${exerciseId}`);
+
+                    inputValues[exerciseId] = {
+                        sets: [],
+                        name: exerciseData.name,
+                        workoutIndex: workoutIndex,
+                        set_count: setRows.length // Save the current number of sets
+                    };
 
                     setRows.forEach((row, setIndex) => {
                         const weightInput = row.querySelector('.weight-input');
@@ -1110,6 +1159,83 @@ document.addEventListener('DOMContentLoaded', function() {
                 const setRows = item.querySelectorAll('.set-row');
                 console.log(`Found ${setRows.length} set rows for exercise ${exerciseId}`);
 
+                // Check if we need to adjust the number of sets
+                const savedSetCount = inputValues[exerciseId].set_count || inputValues[exerciseId].sets.length;
+                if (savedSetCount !== setRows.length) {
+                    console.log(`Adjusting set count for exercise ${exerciseId} from ${setRows.length} to ${savedSetCount}`);
+
+                    // Get the sets container
+                    const setsContainer = item.querySelector('.sets-container');
+                    if (!setsContainer) {
+                        console.error('Sets container not found');
+                        return;
+                    }
+
+                    // If we need to add sets
+                    if (savedSetCount > setRows.length) {
+                        // Generate HTML for the new set rows
+                        for (let i = setRows.length; i < savedSetCount; i++) {
+                            // Create a new set row
+                            const newRow = document.createElement('div');
+                            newRow.className = 'set-row';
+                            newRow.dataset.setIndex = i;
+
+                            // Create set number span
+                            const setNumber = document.createElement('span');
+                            setNumber.className = 'set-number';
+                            setNumber.textContent = i + 1;
+                            newRow.appendChild(setNumber);
+
+                            // Create previous log span
+                            const prevLog = document.createElement('span');
+                            prevLog.className = 'previous-log';
+                            prevLog.textContent = '- kg x -';
+                            newRow.appendChild(prevLog);
+
+                            // Get the current unit from the exercise
+                            const currentUnit = exercises[workoutIndex].weight_unit || 'lbs';
+
+                            // Create weight input (always visible for bodyweight to record user's weight)
+                            const weightInput = document.createElement('input');
+                            weightInput.type = (currentUnit === 'assisted') ? 'hidden' : 'number';
+                            weightInput.className = 'weight-input';
+                            weightInput.placeholder = (currentUnit === 'bodyweight') ? 'BW' : (currentUnit === 'assisted') ? '' : 'Wt';
+                            weightInput.step = 'any';
+                            weightInput.inputMode = 'decimal';
+                            newRow.appendChild(weightInput);
+
+                            // Create reps input
+                            const repsInput = document.createElement('input');
+                            repsInput.type = 'text';
+                            repsInput.className = 'reps-input';
+                            repsInput.placeholder = 'Reps';
+                            repsInput.inputMode = 'numeric';
+                            repsInput.pattern = '[0-9]*';
+                            newRow.appendChild(repsInput);
+
+                            // Create complete toggle button
+                            const completeToggle = document.createElement('button');
+                            completeToggle.className = 'set-complete-toggle';
+                            completeToggle.dataset.workoutIndex = workoutIndex;
+                            completeToggle.dataset.setIndex = i;
+                            completeToggle.title = 'Mark Set Complete';
+                            newRow.appendChild(completeToggle);
+
+                            // Add the new row to the sets container
+                            setsContainer.appendChild(newRow);
+                        }
+                    }
+                    // If we need to remove sets
+                    else if (savedSetCount < setRows.length) {
+                        // Remove the extra set rows
+                        for (let i = savedSetCount; i < setRows.length; i++) {
+                            if (setRows[i]) {
+                                setRows[i].remove();
+                            }
+                        }
+                    }
+                }
+
                 // Check if we have any non-empty values to restore
                 let hasNonEmptyValues = false;
                 if (inputValues[exerciseId].sets) {
@@ -1247,6 +1373,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function switchPage(pageToShow) {
         console.log('switchPage called with:', pageToShow); // Log function call and argument
+
+        // If we're navigating away from the active page, save the workout data
+        if (currentPage === 'active' && pageToShow !== 'active') {
+            console.log('Navigating away from active page, saving workout data');
+
+            // First, update the set counts from the UI
+            updateSetCountsFromUI();
+
+            // Save the workout state
+            saveWorkoutState();
+
+            // Save using our persistence module if available
+            if (typeof saveWorkoutData === 'function') {
+                saveWorkoutData();
+            } else {
+                // Fallback to regular save
+                saveInputValues();
+            }
+        }
+
         currentPage = pageToShow; // <<< Ensure this modifies the top-level variable (no 'let')
         workoutLandingPage.classList.remove('active');
         activeWorkoutPage.classList.remove('active');
@@ -1905,8 +2051,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="exercise-item-header">
                     <h4>${escapeHtml(exercise.name)}</h4>
                     <select class="exercise-unit-select" data-workout-index="${index}">
+                        <option value="lbs" ${exercise.weight_unit === 'lbs' || !exercise.weight_unit ? 'selected' : ''}>lbs</option>
                         <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                        <option value="lbs" ${exercise.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
                         <option value="bodyweight" ${exercise.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
                         <option value="assisted" ${exercise.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
                     </select>
@@ -2042,7 +2188,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sets: parseInt(exercise.sets) || 1, // Ensure sets is a number, default to 1
                 reps: exercise.reps || '', // Default empty string if not set
                 weight: exercise.weight,
-                weight_unit: exercise.weight_unit || 'kg', // Default to kg if not set
+                weight_unit: exercise.weight_unit || 'lbs', // Default to lbs if not set
                 notes: exercise.notes || '' // Default empty string if not set
             };
             return simplifiedExercise;
@@ -2163,12 +2309,12 @@ document.addEventListener('DOMContentLoaded', function() {
          const setRows = exerciseItemElement.querySelectorAll('.sets-container .set-row');
          let prevRepsArray = [];
          let prevWeightsArray = [];
-         let prevUnit = 'kg';
+         let prevUnit = 'lbs';
 
          if (lastLogData && lastLogData.reps_completed && lastLogData.weight_used) {
              prevRepsArray = lastLogData.reps_completed.split(',');
              prevWeightsArray = lastLogData.weight_used.split(',');
-             prevUnit = lastLogData.weight_unit || 'kg';
+             prevUnit = lastLogData.weight_unit || 'lbs';
          }
 
          setRows.forEach((row, i) => {
@@ -2181,7 +2327,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          const prevWeight = prevWeightsArray[i]?.trim() || '-';
                          previousLogText = `${prevWeight} ${prevUnit} x ${prevRep}`;
                      } else if (!lastLogData) {
-                         previousLogText = '- kg x -'; // No data placeholder
+                         previousLogText = '- lbs x -'; // No data placeholder
                      } // else keep 'Error' if isError and no specific data
                  } // else keep 'Error' if isError
 
@@ -2245,6 +2391,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // --- End corrected completedSets update ---
 
+        // Update the sets property in the exercise data to match the new count
+        exerciseData.sets = currentSetCount + 1;
+        console.log(`Updated exercise ${exerciseIndex} sets property to ${exerciseData.sets}`);
+
         // Ensure remove button is enabled if it was disabled
         const removeButton = exerciseItem.querySelector('.btn-remove-set');
         if (removeButton) {
@@ -2253,8 +2403,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`Added set ${newSetIndex + 1} to exercise ${exerciseIndex}`);
 
+        // Save workout state to persist the updated sets count
+        saveWorkoutState();
+
         // Save input values after adding a set
-        saveInputValues();
+        if (typeof saveWorkoutData === 'function') {
+            saveWorkoutData();
+        } else {
+            saveInputValues();
+        }
     }
 
     // --- Remove Set Handler ---
@@ -2296,13 +2453,9 @@ document.addEventListener('DOMContentLoaded', function() {
             setRows[setRows.length - 1].remove();
         }
 
-        // Decrement set count in the underlying data (if using a 'sets' property)
-        // This might need adjustment depending on how you track sets internally
-        // if (typeof exercise.sets === 'number') {
-        //     exercise.sets = Math.max(1, exercise.sets - 1);
-        // } else {
-        //     exercise.sets = currentSetCount - 1; // Or update based on new DOM count
-        // }
+        // Update the sets property in the exercise data to match the new count
+        exercise.sets = currentSetCount - 1;
+        console.log(`Updated exercise ${workoutIndex} sets property to ${exercise.sets}`);
 
          // Also shorten the completedSets array if it exists
          if (exercise.completedSets && Array.isArray(exercise.completedSets)) {
@@ -2316,8 +2469,15 @@ document.addEventListener('DOMContentLoaded', function() {
             removeButton.disabled = true;
         }
 
+        // Save workout state to persist the updated sets count
+        saveWorkoutState();
+
         // Save input values after removing a set
-        saveInputValues();
+        if (typeof saveWorkoutData === 'function') {
+            saveWorkoutData();
+        } else {
+            saveInputValues();
+        }
 
         // No need to re-render the whole item, just removed the row
         // renderSingleExerciseItem(exerciseItemElement, exercise, workoutIndex);
@@ -2740,68 +2900,58 @@ document.addEventListener('DOMContentLoaded', function() {
         // Form Submission Listener
         if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
 
-        // --- NEW: Event Delegation for Slider Buttons ---
+        // --- OPTIMIZED: Event Handling for Slider with Touch Support ---
         if (photoSliderContainer) {
-            console.log('[Initialize] Attaching DELEGATED listener to photoSliderContainer');
-            // Create debounced functions once - REMOVED
-            // const debouncedShowPrevious = debounce(showPreviousPhoto, navigationDebounceTime);
-            // const debouncedShowNext = debounce(showNextPhoto, navigationDebounceTime);
+            console.log('[Initialize] Setting up optimized photo slider navigation');
 
-            photoSliderContainer.addEventListener('click', (event) => {
-                // We already have references to photoPrevBtn and photoNextBtn from initialize
-                if (!photoPrevBtn || !photoNextBtn) {
-                    console.error("[Delegated Click] Button references are missing!");
-                    return;
-                }
+            // Direct button click handlers with debouncing
+            if (photoPrevBtn) {
+                const debouncedPrev = debounce(showPreviousPhoto, navigationDebounceTime);
+                photoPrevBtn.addEventListener('click', debouncedPrev);
+                // Add passive touch listener for better mobile performance
+                addPassiveTouchListener(photoPrevBtn, 'touchstart', debouncedPrev);
+            }
 
-                const clickX = event.clientX;
-                const clickY = event.clientY;
-                // console.log(`[Delegated Click] Coords: X=${clickX}, Y=${clickY}`); // REMOVED DEBUG LOG
+            if (photoNextBtn) {
+                const debouncedNext = debounce(showNextPhoto, navigationDebounceTime);
+                photoNextBtn.addEventListener('click', debouncedNext);
+                // Add passive touch listener for better mobile performance
+                addPassiveTouchListener(photoNextBtn, 'touchstart', debouncedNext);
+            }
 
-                // Get button boundaries
-                const prevBtnRect = photoPrevBtn.getBoundingClientRect();
-                const nextBtnRect = photoNextBtn.getBoundingClientRect();
+            // Add swipe support for mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
 
-                // Check if click is within Previous Button bounds
-                if (
-                    clickX >= prevBtnRect.left &&
-                    clickX <= prevBtnRect.right &&
-                    clickY >= prevBtnRect.top &&
-                    clickY <= prevBtnRect.bottom
-                ) {
-                    // console.log('[Delegated Click] Click coordinates are within Previous Button bounds.'); // REMOVED DEBUG LOG
-                    if (!photoPrevBtn.disabled) {
-                        // console.log('[Delegated Click] Previous button is enabled. Calling DIRECT function...'); // REMOVED DEBUG LOG
-                        showPreviousPhoto();
-                    } else {
-                        // console.log('[Delegated Click] Previous button is disabled.'); // REMOVED DEBUG LOG
-                    }
-                    return; // Click handled (or ignored due to disabled state)
-                }
-
-                // Check if click is within Next Button bounds
-                if (
-                    clickX >= nextBtnRect.left &&
-                    clickX <= nextBtnRect.right &&
-                    clickY >= nextBtnRect.top &&
-                    clickY <= nextBtnRect.bottom
-                ) {
-                    // console.log('[Delegated Click] Click coordinates are within Next Button bounds.'); // REMOVED DEBUG LOG
-                    if (!photoNextBtn.disabled) {
-                        // console.log('[Delegated Click] Next button is enabled. Calling DIRECT function...'); // REMOVED DEBUG LOG
-                        showNextPhoto();
-                    } else {
-                        // console.log('[Delegated Click] Next button is disabled.'); // REMOVED DEBUG LOG
-                    }
-                    return; // Click handled (or ignored due to disabled state)
-                }
-
-                // If the code reaches here, the click was outside both button bounds
-                // console.log('[Delegated Click] Click coordinates were outside known button bounds. Target was:', event.target); // REMOVED DEBUG LOG
-
+            // Handle touch start
+            addPassiveTouchListener(photoReel, 'touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
             });
+
+            // Handle touch end
+            addPassiveTouchListener(photoReel, 'touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+
+            // Process swipe direction
+            function handleSwipe() {
+                // Minimum distance required for swipe - adjust as needed
+                const minSwipeDistance = 50;
+                const swipeDistance = touchEndX - touchStartX;
+
+                if (Math.abs(swipeDistance) < minSwipeDistance) return;
+
+                if (swipeDistance > 0) {
+                    // Swiped right - show previous photo
+                    showPreviousPhoto();
+                } else {
+                    // Swiped left - show next photo
+                    showNextPhoto();
+                }
+            }
         } else {
-            console.error('[Initialize] photoSliderContainer not found for delegation!');
+            console.error('[Initialize] photoSliderContainer not found!');
         }
 
         // Delete Photo Listener (Keep this direct)
@@ -4003,19 +4153,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // --- END NEW ---
 
-    // --- NEW: Fetch and Display Photos Function (Redesigned for Carousel) ---
+    // --- Optimized: Fetch and Display Photos Function (Redesigned for Carousel) ---
     async function fetchAndDisplayPhotos() {
         console.log('[Photo Load] fetchAndDisplayPhotos STARTED.'); // Log start
         // Use the slider container elements, not the old galleryEl
-        // if (!currentPhotoDisplay || !currentPhotoDate || !photoPrevBtn || !photoNextBtn) return; // Updated condition
         if (!photoReel || !paginationDotsContainer || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
             console.error("[Photo Load] Missing required slider elements (reel, dots container, nav buttons, delete button).");
             return;
         }
 
+        // Prevent multiple simultaneous calls
+        if (window.isLoadingPhotos) {
+            console.log('[Photo Load] Already loading photos, skipping duplicate call');
+            return;
+        }
+        window.isLoadingPhotos = true;
+
         console.log('[Photo Load] Setting loading state...'); // Log before UI update
-        // currentPhotoDisplay.style.display = 'none'; // Hide image while loading
-        // currentPhotoDate.textContent = 'Loading photos...';
         photoReel.innerHTML = '<p>Loading photos...</p>'; // Show loading in reel
         paginationDotsContainer.innerHTML = ''; // Clear dots
         photoPrevBtn.disabled = true;
@@ -4166,6 +4320,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentPhotoDateDisplay) currentPhotoDateDisplay.textContent = '';
         } finally {
             console.log('[Photo Load] fetchAndDisplayPhotos FINISHED.'); // Log finish
+            // Reset loading flag
+            window.isLoadingPhotos = false;
         }
     }
     // --- END NEW ---
@@ -4582,7 +4738,8 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     // Default values
     let weightValue = '';
     let repsValue = '';
-    const unit = exerciseData.weight_unit || 'kg';
+    // Use the exercise's current weight unit, or default to lbs instead of kg
+    const unit = exerciseData.weight_unit || 'lbs';
 
     // Check if this is the first set (index 0) and if last log data exists
     if (setIndex === 0 && exerciseData.lastLog) {
@@ -4601,12 +4758,29 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     }
 
     const isDisabled = isTemplate;
-    const weightInputType = (unit === 'bodyweight' || unit === 'assisted') ? 'hidden' : 'number';
-    const weightPlaceholder = (unit === 'bodyweight' || unit === 'assisted') ? '' : 'Wt';
+    // Always show weight input for bodyweight to record the user's current body weight
+    // Only hide for assisted exercises
+    const weightInputType = (unit === 'assisted') ? 'hidden' : 'number';
+    // Set appropriate placeholder based on unit type
+    const weightPlaceholder = (unit === 'bodyweight') ? 'BW' : (unit === 'assisted') ? '' : 'Wt';
     const repsPlaceholder = 'Reps';
 
-    // Always show "- kg x -" for previous log when there's no data
-    const previousLogTextHtml = '- kg x -';
+    // For the previous log display, use the current unit
+    let previousLogTextHtml = `- ${unit} x -`;
+
+    // Only show previous log data if this set index exists in the last log
+    if (exerciseData.lastLog && exerciseData.lastLog.weight_used && exerciseData.lastLog.reps_completed) {
+        const prevWeights = exerciseData.lastLog.weight_used.split(',');
+        const prevReps = exerciseData.lastLog.reps_completed.split(',');
+        const prevUnit = exerciseData.lastLog.weight_unit || 'lbs'; // Default to lbs instead of kg
+
+        // Only use previous log data if this set index exists in the previous log
+        if (setIndex < prevWeights.length && setIndex < prevReps.length) {
+            const prevWeight = prevWeights[setIndex].trim() || '-';
+            const prevRep = prevReps[setIndex].trim() || '-';
+            previousLogTextHtml = `${prevWeight} ${prevUnit} x ${prevRep}`;
+        }
+    }
 
     return `
         <div class="set-row" data-set-index="${setIndex}">

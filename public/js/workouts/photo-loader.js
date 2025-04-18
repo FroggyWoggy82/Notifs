@@ -11,6 +11,12 @@ const PhotoLoader = {
     // Track loading status of images
     loadingStatus: {},
 
+    // Maximum number of images to keep in cache
+    MAX_CACHE_SIZE: 10,
+
+    // Track cache usage order (for LRU eviction)
+    cacheOrder: [],
+
     // Default placeholder image (base64 encoded small gray image)
     placeholderImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjQtMDUtMDJUMTI6MzQ6MTAtMDU6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI0LTA1LTAyVDEyOjM0OjM3LTA1OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDI0LTA1LTAyVDEyOjM0OjM3LTA1OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgcGhvdG9zaG9wOklDQ1Byb2ZpbGU9InNSR0IgSUVDNjE5NjYtMi4xIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjRkYTBmZjEwLTU5MDEtNDZiYi05NWE0LTliZDQ3YTUxZDVkYiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo0ZGEwZmYxMC01OTAxLTQ2YmItOTVhNC05YmQ0N2E1MWQ1ZGIiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo0ZGEwZmYxMC01OTAxLTQ2YmItOTVhNC05YmQ0N2E1MWQ1ZGIiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjRkYTBmZjEwLTU5MDEtNDZiYi05NWE0LTliZDQ3YTUxZDVkYiIgc3RFdnQ6d2hlbj0iMjAyNC0wNS0wMlQxMjozNDoxMC0wNTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKE1hY2ludG9zaCkiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Gy6OrQAABFVJREFUeJzt3U9oHGUcx/HPb2aTbJJNUkHQg4IHD4IHC1J78GDRXrwUehARPAiCeBHEkyAIHjwUehMUwYsXL4J48OJBELRIQRBEqCAIYv9omm6S3ezu/Hx4pnQJu9nZzTPPk+z3DYFuZpP5zXee+c3sbCYyMwIQR9F1AYDrCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAgjkCAOAIB4ggEiCMQII5AgDgCAeIIBIgjECCOQIA4AgHiCASIIxAg7m9U+1fAX3o3WAAAAABJRU5ErkJggg==',
 
@@ -99,8 +105,8 @@ const PhotoLoader = {
         // Set up success handler
         tempImg.onload = () => {
             console.log(`[PhotoLoader] Successfully loaded: ${cacheBustSrc}`);
-            // Store in cache
-            this.imageCache[photoId] = cacheBustSrc;
+            // Store in cache with LRU tracking
+            this.addToCache(photoId, cacheBustSrc);
             this.loadingStatus[photoId] = 'loaded';
             // Set the image source directly with cache busting
             imgElement.src = cacheBustSrc;
@@ -122,8 +128,8 @@ const PhotoLoader = {
             const secondTempImg = new Image();
             secondTempImg.onload = () => {
                 console.log(`[PhotoLoader] Second attempt succeeded: ${secondAttemptSrc}`);
-                // Store in cache
-                this.imageCache[photoId] = secondAttemptSrc;
+                // Store in cache with LRU tracking
+                this.addToCache(photoId, secondAttemptSrc);
                 this.loadingStatus[photoId] = 'loaded';
                 imgElement.src = secondAttemptSrc;
                 // Use a timeout to ensure the browser has time to process the new src
@@ -142,8 +148,8 @@ const PhotoLoader = {
                 const finalTempImg = new Image();
                 finalTempImg.onload = () => {
                     console.log(`[PhotoLoader] Original URL succeeded: ${src}`);
-                    // Store in cache
-                    this.imageCache[photoId] = src;
+                    // Store in cache with LRU tracking
+                    this.addToCache(photoId, src);
                     this.loadingStatus[photoId] = 'loaded';
                     imgElement.src = src;
                     // Use a timeout to ensure the browser has time to process the new src
@@ -162,12 +168,12 @@ const PhotoLoader = {
                     imgElement.style.backgroundColor = '#555'; // Ensure background is visible
                     imgElement.style.border = '1px solid #777'; // Add border for visibility
                     // Store the fallback in cache to prevent future attempts
-                    this.imageCache[photoId] = this.fallbackImage;
+                    this.addToCache(photoId, this.fallbackImage);
                     // Store the style information in the cache
-                    this.imageCache[photoId + '_style'] = {
+                    this.addToCache(photoId + '_style', {
                         backgroundColor: '#555',
                         border: '1px solid #777'
-                    };
+                    });
                     if (onError) onError('Failed to load image after multiple attempts');
                 };
 
@@ -212,83 +218,166 @@ const PhotoLoader = {
         console.log(`[PhotoLoader] Preloading ${photoData.length} images...`);
         let loadedCount = 0;
 
-        // Create a function to track when all images are loaded
-        const checkAllLoaded = () => {
-            loadedCount++;
-            if (loadedCount === photoData.length) {
-                console.log('[PhotoLoader] All images preloaded successfully');
-                if (onComplete) onComplete();
+        // Limit the number of concurrent image loads to prevent memory issues
+        const MAX_CONCURRENT_LOADS = 3;
+        let activeLoads = 0;
+        let queue = [...photoData]; // Create a copy of the array to use as a queue
+
+        // Function to load the next image in the queue
+        const loadNextImage = () => {
+            if (queue.length === 0) return;
+            if (activeLoads >= MAX_CONCURRENT_LOADS) return;
+
+            activeLoads++;
+            const photo = queue.shift();
+            this.preloadSingleImage(photo, () => {
+                activeLoads--;
+                loadedCount++;
+
+                // Check if all images are loaded
+                if (loadedCount === photoData.length) {
+                    console.log('[PhotoLoader] All images preloaded successfully');
+                    if (onComplete) onComplete();
+                } else {
+                    // Load the next image
+                    loadNextImage();
+                }
+            });
+
+            // Start loading more images if we haven't reached the limit
+            if (activeLoads < MAX_CONCURRENT_LOADS) {
+                loadNextImage();
             }
         };
 
-        // Preload each image
-        photoData.forEach(photo => {
-            // Mark this image as currently loading
-            this.loadingStatus[photo.photo_id] = 'loading';
+        // Start the initial batch of image loads
+        for (let i = 0; i < Math.min(MAX_CONCURRENT_LOADS, photoData.length); i++) {
+            loadNextImage();
+        }
+    },
 
-            // Skip if already in cache
-            if (this.imageCache[photo.photo_id]) {
-                console.log(`[PhotoLoader] Image ${photo.photo_id} already in cache`);
+    /**
+     * Preload a single image
+     * @param {Object} photo - Photo object with file_path and photo_id
+     * @param {Function} onComplete - Callback when image is loaded or failed
+     */
+    preloadSingleImage: function(photo, onComplete) {
+        // Mark this image as currently loading
+        this.loadingStatus[photo.photo_id] = 'loading';
+
+        // Skip if already in cache
+        if (this.imageCache[photo.photo_id]) {
+            console.log(`[PhotoLoader] Image ${photo.photo_id} already in cache`);
+            this.loadingStatus[photo.photo_id] = 'loaded';
+            if (onComplete) onComplete();
+            return;
+        }
+
+        const img = new Image();
+        const cacheBustSrc = this.addCacheBustingParam(photo.file_path);
+
+        img.onload = () => {
+            // Store in cache with LRU tracking
+            this.addToCache(photo.photo_id, cacheBustSrc);
+            this.loadingStatus[photo.photo_id] = 'loaded';
+            console.log(`[PhotoLoader] Preloaded image ${photo.photo_id}`);
+            if (onComplete) onComplete();
+        };
+
+        img.onerror = () => {
+            // Try with a different cache busting parameter
+            const secondAttemptSrc = this.addCacheBustingParam(photo.file_path, true);
+            const secondImg = new Image();
+
+            secondImg.onload = () => {
+                this.addToCache(photo.photo_id, secondAttemptSrc);
                 this.loadingStatus[photo.photo_id] = 'loaded';
-                checkAllLoaded();
-                return;
+                console.log(`[PhotoLoader] Preloaded image ${photo.photo_id} on second attempt`);
+                if (onComplete) onComplete();
+            };
+
+            secondImg.onerror = () => {
+                // Final attempt with original URL
+                const finalImg = new Image();
+
+                finalImg.onload = () => {
+                    this.addToCache(photo.photo_id, photo.file_path);
+                    this.loadingStatus[photo.photo_id] = 'loaded';
+                    console.log(`[PhotoLoader] Preloaded image ${photo.photo_id} on final attempt`);
+                    if (onComplete) onComplete();
+                };
+
+                finalImg.onerror = () => {
+                    console.error(`[PhotoLoader] Failed to preload image ${photo.photo_id}`);
+                    this.loadingStatus[photo.photo_id] = 'failed';
+                    // Store the fallback in cache to prevent future attempts
+                    this.addToCache(photo.photo_id, this.fallbackImage);
+                    // Add styling information to the cache entry
+                    this.addToCache(photo.photo_id + '_style', {
+                        backgroundColor: '#555',
+                        border: '1px solid #777'
+                    });
+                    if (onComplete) onComplete();
+                };
+
+                finalImg.src = photo.file_path;
+            };
+
+            secondImg.src = secondAttemptSrc;
+        };
+
+        img.src = cacheBustSrc;
+    },
+
+    /**
+     * Add an item to the cache with LRU tracking
+     * @param {string} key - The cache key
+     * @param {*} value - The value to store
+     */
+    addToCache: function(key, value) {
+        // Add or update the cache entry
+        this.imageCache[key] = value;
+
+        // Update the LRU tracking
+        // Remove the key if it already exists in the order array
+        const existingIndex = this.cacheOrder.indexOf(key);
+        if (existingIndex !== -1) {
+            this.cacheOrder.splice(existingIndex, 1);
+        }
+
+        // Add the key to the end of the order array (most recently used)
+        this.cacheOrder.push(key);
+
+        // Check if we need to evict items from the cache
+        this.enforceCacheLimit();
+    },
+
+    /**
+     * Enforce the cache size limit by removing least recently used items
+     */
+    enforceCacheLimit: function() {
+        // If we're under the limit, do nothing
+        if (this.cacheOrder.length <= this.MAX_CACHE_SIZE) {
+            return;
+        }
+
+        // Remove items until we're at the limit
+        while (this.cacheOrder.length > this.MAX_CACHE_SIZE) {
+            const keyToRemove = this.cacheOrder.shift(); // Remove the oldest item
+
+            // Don't remove style entries for images that are still in the cache
+            if (keyToRemove.endsWith('_style')) {
+                const imageKey = keyToRemove.replace('_style', '');
+                if (this.cacheOrder.includes(imageKey)) {
+                    // Keep the style entry and put it back at the end
+                    this.cacheOrder.push(keyToRemove);
+                    continue;
+                }
             }
 
-            const img = new Image();
-            const cacheBustSrc = this.addCacheBustingParam(photo.file_path);
-
-            img.onload = () => {
-                // Store in cache
-                this.imageCache[photo.photo_id] = cacheBustSrc;
-                this.loadingStatus[photo.photo_id] = 'loaded';
-                console.log(`[PhotoLoader] Preloaded image ${photo.photo_id}`);
-                checkAllLoaded();
-            };
-
-            img.onerror = () => {
-                // Try with a different cache busting parameter
-                const secondAttemptSrc = this.addCacheBustingParam(photo.file_path, true);
-                const secondImg = new Image();
-
-                secondImg.onload = () => {
-                    this.imageCache[photo.photo_id] = secondAttemptSrc;
-                    this.loadingStatus[photo.photo_id] = 'loaded';
-                    console.log(`[PhotoLoader] Preloaded image ${photo.photo_id} on second attempt`);
-                    checkAllLoaded();
-                };
-
-                secondImg.onerror = () => {
-                    // Final attempt with original URL
-                    const finalImg = new Image();
-
-                    finalImg.onload = () => {
-                        this.imageCache[photo.photo_id] = photo.file_path;
-                        this.loadingStatus[photo.photo_id] = 'loaded';
-                        console.log(`[PhotoLoader] Preloaded image ${photo.photo_id} on final attempt`);
-                        checkAllLoaded();
-                    };
-
-                    finalImg.onerror = () => {
-                        console.error(`[PhotoLoader] Failed to preload image ${photo.photo_id}`);
-                        this.loadingStatus[photo.photo_id] = 'failed';
-                        // Store the fallback in cache to prevent future attempts
-                        this.imageCache[photo.photo_id] = this.fallbackImage;
-                        // Add styling information to the cache entry
-                        this.imageCache[photo.photo_id + '_style'] = {
-                            backgroundColor: '#555',
-                            border: '1px solid #777'
-                        };
-                        // Still count it as loaded to continue
-                        checkAllLoaded();
-                    };
-
-                    finalImg.src = photo.file_path;
-                };
-
-                secondImg.src = secondAttemptSrc;
-            };
-
-            img.src = cacheBustSrc;
-        });
+            // Remove the item from the cache
+            delete this.imageCache[keyToRemove];
+            console.log(`[PhotoLoader] Removed ${keyToRemove} from cache (LRU eviction)`);
+        }
     }
 };

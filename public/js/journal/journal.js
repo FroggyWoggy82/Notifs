@@ -7,11 +7,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const entryListElement = document.getElementById('entry-list');
     const analysisContentElement = document.getElementById('analysis-content');
     const statusMessage = document.getElementById('status-message');
+    const wordCountElement = document.getElementById('word-count');
 
-    // Set today's date as default
+    // Set today's date as default (using local date to avoid timezone issues)
     const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(today.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`; // YYYY-MM-DD format
     journalDateInput.value = formattedDate;
+    console.log('Setting journal date to local date:', formattedDate);
 
     // Initialize
     loadEntries();
@@ -21,6 +26,10 @@ document.addEventListener('DOMContentLoaded', function() {
     saveEntryButton.addEventListener('click', saveEntry);
     analyzeEntryButton.addEventListener('click', analyzeEntry);
     journalDateInput.addEventListener('change', loadEntryForDate);
+    journalContentTextarea.addEventListener('input', updateWordCount);
+
+    // Initialize word count
+    updateWordCount();
 
     // Test Ollama button
     const testOllamaButton = document.getElementById('test-ollama');
@@ -347,6 +356,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set the content textarea to the entry's content
         journalContentTextarea.value = entry.content;
 
+        // Update word count
+        updateWordCount();
+
         // Clear any previous analysis
         analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
 
@@ -363,6 +375,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.status === 404) {
                 // No entry for this date, clear the textarea
                 journalContentTextarea.value = '';
+                // Update word count
+                updateWordCount();
                 analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
                 return;
             }
@@ -374,6 +388,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const entry = await response.json();
             journalContentTextarea.value = entry.content;
+
+            // Update word count
+            updateWordCount();
 
             // Clear any previous analysis
             analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
@@ -416,6 +433,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error loading memory entries:', error);
         }
+    }
+
+    // Function to update word count
+    function updateWordCount() {
+        const text = journalContentTextarea.value.trim();
+        const wordCount = text ? text.split(/\s+/).length : 0;
+        wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
     }
 
     async function testOllama() {

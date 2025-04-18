@@ -57,6 +57,14 @@
     font-family: 'Roboto', Arial, sans-serif;
 }
 
+.word-count {
+    text-align: right;
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+    padding-right: 5px;
+}
+
 .journal-analysis {
     background-color: #f9f9f9;
     border: 1px solid #ddd;

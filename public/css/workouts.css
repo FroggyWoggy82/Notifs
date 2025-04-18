@@ -306,7 +306,9 @@ h1, h2 {
 
 /* Style for the delete button on the card */
 .btn-delete-template,
-.btn-edit-template {
+.btn-edit-template,
+.btn-edit-exercise,
+.btn-delete-exercise {
     background: none;
     border: none;
     color: #aaa;
@@ -315,8 +317,8 @@ h1, h2 {
     cursor: pointer;
     padding: 0;
     line-height: 1;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -326,21 +328,25 @@ h1, h2 {
 /* Combine focus and hover for consistent styling, remove default outline */
 .btn-delete-template:focus,
 .btn-delete-template:hover,
-.btn-edit-template:focus,
-.btn-edit-template:hover {
+.btn-delete-exercise:focus,
+.btn-delete-exercise:hover {
     color: #f44336;
     outline: none;
 }
 
 /* Different hover/focus color for edit button */
 .btn-edit-template:focus,
-.btn-edit-template:hover {
+.btn-edit-template:hover,
+.btn-edit-exercise:focus,
+.btn-edit-exercise:hover {
     color: #2196F3;
 }
 
 /* Ensure outline is visible for keyboard navigation (accessibility) */
 .btn-delete-template:focus-visible,
-.btn-edit-template:focus-visible {
+.btn-edit-template:focus-visible,
+.btn-delete-exercise:focus-visible,
+.btn-edit-exercise:focus-visible {
      outline: 2px solid #bb86fc;
      outline-offset: 1px;
 }
@@ -416,8 +422,9 @@ h1, h2 {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-    gap: 10px; /* Keep gap for spacing between title, dropdown, and button */
+    gap: 5px; /* Reduced gap for tighter spacing */
     padding-top: 5px;
+    flex-wrap: nowrap; /* Prevent wrapping */
 }
 
 .exercise-item-header h4 {
@@ -430,6 +437,7 @@ h1, h2 {
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
+    order: 1; /* Place title first */
 }
 
 /* Style for the new header unit select */
@@ -445,6 +453,10 @@ h1, h2 {
     flex-shrink: 0;
     flex-basis: 65px;
     max-width: 65px;
+    margin-left: auto; /* Push to the right side */
+    margin-right: 0; /* No gap between dropdown and buttons */
+    height: 28px; /* Match height with buttons */
+    order: 2; /* Control the order of flex items */
 }
 
 /* Style for set rows within an exercise */
@@ -755,6 +767,35 @@ h1, h2 {
     .set-row input[type="text"] {
         padding: 8px 6px;
         font-size: 1rem;
+        /* Improve touch target size */
+        min-height: 44px;
+    }
+
+    /* Improve touch targets for buttons */
+    .set-complete-toggle,
+    .btn-add-set,
+    .btn-remove-set,
+    .btn-edit-exercise,
+    .btn-delete-exercise {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Optimize photo slider for mobile */
+    .photo-reel {
+        will-change: transform; /* Hardware acceleration hint */
+    }
+
+    /* Prevent text selection on touch devices */
+    .touch-device .set-row,
+    .touch-device .exercise-item-header,
+    .touch-device .photo-reel,
+    .touch-device .pagination-dots {
+        -webkit-user-select: none;
+        user-select: none;
     }
 }
 
@@ -920,13 +961,15 @@ h1, h2 {
 .exercise-item .btn-delete-exercise,
 .exercise-item .btn-delete-template-exercise,
 .exercise-item .btn-edit-exercise {
-    /* REMOVE Absolute Positioning */
-    /* position: absolute; */
-    /* top: 10px; */
-    /* right: 10px; */
-
-    /* Keep existing styles for appearance */
+    /* Use flexbox ordering instead of absolute positioning */
     background: none;
+    order: 3; /* Place after the dropdown */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px; /* Match height with dropdown */
     border: none;
     color: #aaa;
     /* Reduce font size */

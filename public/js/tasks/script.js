@@ -1422,8 +1422,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Reset form to defaults
             addTaskForm.reset();
-            const today = new Date();
-            taskDueDateInput.value = today.toISOString().split('T')[0];
+            // No default due date - leave it unassigned
+            taskDueDateInput.value = '';
             taskDurationInput.value = 1;
             customReminderGroup.style.display = 'none';
             recurrenceIntervalGroup.style.display = 'none';
@@ -1446,13 +1446,9 @@ document.addEventListener('DOMContentLoaded', () => {
             reminderTypes.push(checkbox.value);
         });
 
-        // Set due date to today if not provided
+        // Get due date (can be null/empty for unassigned tasks)
         let dueDate = taskDueDateInput.value;
-        if (!dueDate) {
-            const today = new Date();
-            dueDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-            console.log('Setting default due date to today:', dueDate);
-        }
+        // No default due date - leave it unassigned if not provided
 
         // Calculate reminder times based on selected options
         const reminderTimes = [];
@@ -2089,9 +2085,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Load the last saved inputs
             loadLastInputs();
         } else {
-            // Set due date to today by default
-            const today = new Date();
-            taskDueDateInput.value = today.toISOString().split('T')[0];
+            // No default due date - leave it unassigned
+            taskDueDateInput.value = '';
 
             // Set duration to 1 by default
             taskDurationInput.value = 1;

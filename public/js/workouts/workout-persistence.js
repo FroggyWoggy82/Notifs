@@ -192,7 +192,8 @@ function saveWorkoutData() {
                 name: exerciseData.name,
                 sets: [],
                 notes: '',
-                weight_unit: exerciseData.weight_unit || 'kg' // Save the weight unit
+                weight_unit: exerciseData.weight_unit || 'kg', // Save the weight unit
+                set_count: setRows.length // Save the current number of sets
             };
 
             // Get all set rows
@@ -283,6 +284,87 @@ function restoreWorkoutData() {
             const savedExercise = workoutData.exercises.find(e => e.exercise_id === exerciseId);
             if (!savedExercise) {
                 return;
+            }
+
+            // Check if we need to adjust the number of sets
+            const currentSetCount = item.querySelectorAll('.set-row').length;
+            const savedSetCount = savedExercise.set_count || savedExercise.sets.length;
+
+            // If the saved set count is different from the current set count, we need to adjust
+            if (savedSetCount !== currentSetCount) {
+                console.log(`Adjusting set count for exercise ${exerciseId} from ${currentSetCount} to ${savedSetCount}`);
+
+                // Get the sets container
+                const setsContainer = item.querySelector('.sets-container');
+                if (!setsContainer) {
+                    console.error('Sets container not found');
+                    return;
+                }
+
+                // If we need to add sets
+                if (savedSetCount > currentSetCount) {
+                    // Generate HTML for the new set rows
+                    for (let i = currentSetCount; i < savedSetCount; i++) {
+                        // Create a new set row
+                        const newRow = document.createElement('div');
+                        newRow.className = 'set-row';
+                        newRow.dataset.setIndex = i;
+
+                        // Create set number span
+                        const setNumber = document.createElement('span');
+                        setNumber.className = 'set-number';
+                        setNumber.textContent = i + 1;
+                        newRow.appendChild(setNumber);
+
+                        // Create previous log span
+                        const prevLog = document.createElement('span');
+                        prevLog.className = 'previous-log';
+                        prevLog.textContent = '- lbs x -';
+                        newRow.appendChild(prevLog);
+
+                        // Get the current unit from the exercise
+                        const currentUnit = exercises[workoutIndex].weight_unit || 'lbs';
+
+                        // Create weight input (always visible for bodyweight to record user's weight)
+                        const weightInput = document.createElement('input');
+                        weightInput.type = (currentUnit === 'assisted') ? 'hidden' : 'number';
+                        weightInput.className = 'weight-input';
+                        weightInput.placeholder = (currentUnit === 'bodyweight') ? 'BW' : (currentUnit === 'assisted') ? '' : 'Wt';
+                        weightInput.step = 'any';
+                        weightInput.inputMode = 'decimal';
+                        newRow.appendChild(weightInput);
+
+                        // Create reps input
+                        const repsInput = document.createElement('input');
+                        repsInput.type = 'text';
+                        repsInput.className = 'reps-input';
+                        repsInput.placeholder = 'Reps';
+                        repsInput.inputMode = 'numeric';
+                        repsInput.pattern = '[0-9]*';
+                        newRow.appendChild(repsInput);
+
+                        // Create complete toggle button
+                        const completeToggle = document.createElement('button');
+                        completeToggle.className = 'set-complete-toggle';
+                        completeToggle.dataset.workoutIndex = workoutIndex;
+                        completeToggle.dataset.setIndex = i;
+                        completeToggle.title = 'Mark Set Complete';
+                        newRow.appendChild(completeToggle);
+
+                        // Add the new row to the sets container
+                        setsContainer.appendChild(newRow);
+                    }
+                }
+                // If we need to remove sets
+                else if (savedSetCount < currentSetCount) {
+                    // Remove the extra set rows
+                    const setRows = setsContainer.querySelectorAll('.set-row');
+                    for (let i = savedSetCount; i < currentSetCount; i++) {
+                        if (setRows[i]) {
+                            setRows[i].remove();
+                        }
+                    }
+                }
             }
 
             // Restore set values
