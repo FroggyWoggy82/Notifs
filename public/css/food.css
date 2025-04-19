@@ -369,7 +369,7 @@
 
 .nutrition-inputs {
     display: grid;
-    grid-template-columns: repeat(6, 1fr) auto;
+    grid-template-columns: 1fr 1fr auto;
     gap: 10px;
     align-items: center;
 }
@@ -394,6 +394,77 @@
 
 .scan-nutrition-btn:hover {
     background-color: #2980b9;
+}
+
+/* Detailed Nutrition Panel Styles */
+.detailed-nutrition-toggle {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.toggle-detailed-nutrition {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.toggle-detailed-nutrition:hover {
+    background-color: #e0e0e0;
+}
+
+.detailed-nutrition-panel {
+    margin-top: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: #f9f9f9;
+}
+
+.nutrition-section {
+    margin-bottom: 20px;
+}
+
+.nutrition-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+}
+
+.nutrition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.nutrition-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.nutrition-item label {
+    font-size: 0.85em;
+    margin-bottom: 3px;
+    color: #555;
+}
+
+.nutrition-item input {
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .nutrition-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
 }
 
 .scan-status {
@@ -425,6 +496,7 @@
     background-color: #fff3cd;
     border: 1px solid #ffeeba;
     color: #856404;
+    font-style: italic;
 }
 
 /* Style inputs within the grid */

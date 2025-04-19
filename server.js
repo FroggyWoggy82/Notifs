@@ -35,18 +35,16 @@ const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pa
 const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
 const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for calorie targets
 const journalRoutes = require('./routes/journal'); // New route for journal entries
-const ocrRoutes = require('./routes/ocrRoutes'); // New route for OCR processing
-const simpleOcrRoutes = require('./routes/simple-ocr'); // Simple OCR route for testing
-const ocrTestRoutes = require('./routes/ocr-test'); // New OCR test route
-const ocrFullRoutes = require('./routes/ocr-full'); // Full OCR implementation
-const energyOcrRoutes = require('./routes/energy-ocr'); // Energy-specific OCR implementation
+const ocrRoutes = require('./routes/ocrRoutes'); // Main OCR processing route
+const improvedOcrRoutes = require('./routes/improved-ocr'); // Improved OCR implementation (used as fallback)
+const energyOcrFixedRoutes = require('./routes/energy-ocr-fixed'); // Energy-specific fixed OCR implementation (primary)
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
@@ -126,11 +124,11 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 app.use('/api/calorie-targets', calorieTargetRoutes);
 app.use('/api/journal', journalRoutes); // NEW: Journal entries route
-app.use('/api/ocr', ocrRoutes); // NEW: OCR processing route
-app.use('/api/simple-ocr', simpleOcrRoutes); // NEW: Simple OCR route for testing
-app.use('/api/ocr-test', ocrTestRoutes); // NEW: OCR test route
-app.use('/api/ocr-full', ocrFullRoutes); // NEW: Full OCR implementation
-app.use('/api/energy-ocr', energyOcrRoutes); // NEW: Energy-specific OCR implementation
+app.use('/api/ocr', ocrRoutes); // Main OCR processing route
+app.use('/api/improved-ocr', improvedOcrRoutes); // Improved OCR implementation (used as fallback)
+console.log('Registering energy-ocr-fixed routes...');
+app.use('/api/energy-ocr-fixed', energyOcrFixedRoutes); // Energy-specific fixed OCR implementation (primary)
+console.log('Energy-ocr-fixed routes registered successfully!');
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {

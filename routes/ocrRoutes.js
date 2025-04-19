@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { createWorker } = require('tesseract.js');
+const { createWorker, PSM } = require('tesseract.js');
 
 const router = express.Router();
 
@@ -106,15 +106,11 @@ router.post('/nutrition', upload.single('image'), async (req, res) => {
         console.log(`Processing image: ${req.file.path}`);
 
         // Create a worker for OCR
-        const worker = await createWorker();
-
-        // Initialize the worker with English language
-        await worker.loadLanguage('eng');
-        await worker.initialize('eng');
+        const worker = await createWorker('eng');
 
         // Set page segmentation mode to treat the image as a single block of text
         await worker.setParameters({
-            tessedit_pageseg_mode: '6', // Assume a single uniform block of text
+            tessedit_pageseg_mode: PSM.SINGLE_BLOCK, // Assume a single uniform block of text
         });
 
         // Recognize text from the image
@@ -163,9 +159,9 @@ function extractNutritionInfo(text) {
         const normalizedText = text.toLowerCase().replace(/\\s+/g, ' ');
 
         // Extract calories
-        const caloriesMatch = normalizedText.match(/calories?[:\s]+(\d+)/i) ||
-                             normalizedText.match(/energy[:\s]+(\d+)\s*kcal/i) ||
-                             normalizedText.match(/(\d+)\s*calories/i);
+        const caloriesMatch = normalizedText.match(/calories?[:\s]+(\d+\.?\d*)/i) ||
+                             normalizedText.match(/energy[:\s]+(\d+\.?\d*)\s*kcal/i) ||
+                             normalizedText.match(/(\d+\.?\d*)\s*calories/i);
         if (caloriesMatch) {
             result.calories = parseFloat(caloriesMatch[1]);
         }
