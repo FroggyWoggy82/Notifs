@@ -481,7 +481,8 @@ h1, h2 {
     z-index: 100;
     display: none;
     padding: 8px;
-    min-width: 150px;
+    min-width: 180px;
+    text-align: center;
 }
 
 .exercise-options-menu.show {
@@ -492,8 +493,9 @@ h1, h2 {
 .exercise-options-menu-item {
     display: flex;
     align-items: center;
-    padding: 6px 8px;
-    margin-bottom: 4px;
+    justify-content: center;
+    padding: 8px 10px;
+    margin-bottom: 6px;
     border-radius: 3px;
     cursor: pointer;
     color: #f5f5f5;
@@ -503,22 +505,24 @@ h1, h2 {
 /* Weight unit option in menu */
 .exercise-options-menu-item.weight-unit {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     gap: 8px;
+    flex-direction: column;
 }
 
 .exercise-options-menu-item.weight-unit .exercise-unit-select {
     display: inline-block;
-    padding: 4px 8px;
+    padding: 6px 10px;
     background-color: #444;
     border: 1px solid #555;
     color: #f5f5f5;
     border-radius: 3px;
     font-size: 0.9rem;
     cursor: pointer;
-    width: auto;
+    width: 100%;
     max-width: none;
-    margin: 0;
+    margin: 5px auto 0;
+    text-align: center;
 }
 
 .exercise-options-menu-item:last-child {
@@ -543,13 +547,14 @@ h1, h2 {
 .exercise-options-menu-item .btn-delete-template-exercise {
     display: flex;
     align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     color: inherit;
-    font-size: 0.95rem;
+    font-size: 1rem;
     padding: 0;
     width: 100%;
-    text-align: left;
+    text-align: center;
     cursor: pointer;
 }
 

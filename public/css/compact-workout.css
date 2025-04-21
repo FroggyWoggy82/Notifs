@@ -48,6 +48,9 @@
 .exercise-item-header h4 {
     font-size: 1rem;
     color: #ff9800; /* Orange color like in the first image */
+    line-height: 1.2;
+    margin: 0;
+    padding: 0;
 }
 
 /* Options button */
@@ -56,6 +59,11 @@
     height: 24px;
     font-size: 1rem;
     align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+    line-height: 1;
 }
 
 /* Column headers */
@@ -133,7 +141,7 @@
 }
 
 /* Add/Remove set buttons */
-.btn-add-set, 
+.btn-add-set,
 .btn-remove-set {
     padding: 4px 8px;
     font-size: 0.8rem;
@@ -173,21 +181,21 @@
     .workout-content {
         padding: 5px;
     }
-    
+
     .exercise-item {
         padding: 5px 4px;
     }
-    
+
     #current-exercise-list .set-row {
         grid-template-columns: 30px 1fr 1fr 30px; /* Smaller set number and complete button */
     }
-    
+
     .set-row input[type="number"],
     .set-row input[type="text"] {
         height: 32px;
         font-size: 0.85rem;
     }
-    
+
     .set-complete-toggle {
         width: 22px;
         height: 22px;
@@ -199,13 +207,13 @@
     #current-exercise-list .set-row {
         grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Previous, Weight, Reps, Goal, Complete */
     }
-    
+
     .previous-log,
     .goal-target {
         display: block;
         font-size: 0.75rem;
     }
-    
+
     .column-headers {
         grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Match set row */
     }
