@@ -32,11 +32,12 @@
 
 /* Exercise item */
 .exercise-item {
-    background-color: #1e1e1e; /* Darker background */
+    background-color: transparent; /* Remove background */
     border: none; /* Remove border */
     border-radius: 0; /* Remove rounded corners */
-    padding: 8px 6px; /* Reduced padding */
+    padding: 8px 0; /* Reduced padding and removed horizontal padding */
     margin-bottom: 5px; /* Reduced margin */
+    border-bottom: 1px solid #333; /* Add subtle separator */
 }
 
 /* Exercise header */
@@ -69,7 +70,7 @@
 /* Column headers */
 .column-headers {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr 40px; /* Set#, Weight, Reps, Complete */
+    grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Previous, Weight, Reps, Goal, Complete */
     gap: 4px;
     padding: 2px 0;
     font-size: 0.7rem;
@@ -79,7 +80,7 @@
 /* Set rows */
 #current-exercise-list .set-row {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr 40px; /* Set#, Weight, Reps, Complete */
+    grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Previous, Weight, Reps, Goal, Complete */
     gap: 4px;
     padding: 2px 0;
     border-bottom: 1px solid #333;
@@ -94,14 +95,22 @@
     justify-content: center;
 }
 
-/* Previous log - hide on mobile to save space */
+/* Previous log */
 .previous-log {
-    display: none;
+    font-size: 0.75rem;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Goal target - hide on mobile to save space */
+/* Goal target */
 .goal-target {
-    display: none;
+    font-size: 0.75rem;
+    color: #03dac6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Input fields */
@@ -183,11 +192,20 @@
     }
 
     .exercise-item {
-        padding: 5px 4px;
+        padding: 5px 0;
+    }
+
+    /* On very small screens, hide previous and goal */
+    .column-headers {
+        grid-template-columns: 30px 1fr 1fr 30px; /* Set#, Weight, Reps, Complete */
     }
 
     #current-exercise-list .set-row {
         grid-template-columns: 30px 1fr 1fr 30px; /* Smaller set number and complete button */
+    }
+
+    .previous-log, .goal-target {
+        display: none;
     }
 
     .set-row input[type="number"],

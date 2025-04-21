@@ -336,6 +336,12 @@ function restoreWorkoutData() {
                         setNumber.textContent = i + 1;
                         newRow.appendChild(setNumber);
 
+                        // Create previous log span
+                        const prevLog = document.createElement('span');
+                        prevLog.className = 'previous-log';
+                        prevLog.textContent = '- lbs x -';
+                        newRow.appendChild(prevLog);
+
 
 
                         // Get the current unit from the exercise, default to lbs
@@ -358,6 +364,13 @@ function restoreWorkoutData() {
                         repsInput.inputMode = 'numeric';
                         repsInput.pattern = '[0-9]*';
                         newRow.appendChild(repsInput);
+
+                        // Create goal target span
+                        const goalTarget = document.createElement('span');
+                        goalTarget.className = 'goal-target';
+                        goalTarget.title = 'Goal for next workout';
+                        goalTarget.textContent = '';
+                        newRow.appendChild(goalTarget);
 
 
 

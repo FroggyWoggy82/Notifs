@@ -474,14 +474,14 @@ h1, h2 {
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #333;
-    border: 1px solid #444;
+    background-color: #1a3a3a; /* Tealish blue background */
+    border: 1px solid #03dac6;
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(3, 218, 198, 0.3);
     z-index: 100;
     display: none;
     padding: 8px;
-    min-width: 180px;
+    min-width: 160px;
     text-align: center;
 }
 
@@ -512,16 +512,16 @@ h1, h2 {
 
 .exercise-options-menu-item.weight-unit .exercise-unit-select {
     display: inline-block;
-    padding: 6px 10px;
-    background-color: #444;
-    border: 1px solid #555;
+    padding: 4px 6px;
+    background-color: #2a4a4a;
+    border: 1px solid #03dac6;
     color: #f5f5f5;
     border-radius: 3px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     cursor: pointer;
-    width: 100%;
+    width: 80%;
     max-width: none;
-    margin: 5px auto 0;
+    margin: 3px auto 0;
     text-align: center;
 }
 
