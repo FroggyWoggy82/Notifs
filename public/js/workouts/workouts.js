@@ -2024,6 +2024,16 @@ document.addEventListener('DOMContentLoaded', function() {
             completeWorkoutBtn.textContent = '✓ Complete';
             completeWorkoutBtn.classList.add('success');
 
+            // Start confetti animation
+            if (typeof confetti !== 'undefined') {
+                confetti.start();
+
+                // Stop confetti after 3 seconds
+                setTimeout(() => {
+                    confetti.stop();
+                }, 3000);
+            }
+
             // Short delay before redirecting to landing page
             setTimeout(() => {
                 // Reset state and go back to landing page
@@ -2036,7 +2046,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 switchPage('landing');
                 // Refresh templates list
                 fetchTemplates();
-            }, 500); // Half-second delay for visual feedback
+            }, 1500); // Longer delay to enjoy the confetti
 
         } catch (error) {
             console.error('Error saving workout:', error);
@@ -2523,6 +2533,11 @@ document.addEventListener('DOMContentLoaded', function() {
             saveWorkoutData();
         } else {
             saveInputValues();
+        }
+
+        // Vibrate to provide feedback that a set was added
+        if (navigator.vibrate) {
+            navigator.vibrate(100); // Vibrate for 100ms
         }
     }
 

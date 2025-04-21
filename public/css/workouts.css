@@ -461,6 +461,8 @@ h1, h2 {
     transition: color 0.2s ease;
     margin-left: auto;
     order: 2;
+    align-self: center; /* Align vertically with the exercise name */
+    margin-top: -2px; /* Fine-tune vertical alignment */
 }
 
 .btn-exercise-options:hover {
