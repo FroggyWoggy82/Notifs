@@ -1944,7 +1944,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Get the unit from the header dropdown for this exercise
             const unitSelectHeader = item.querySelector('.exercise-unit-select');
-            const weightUnit = unitSelectHeader ? unitSelectHeader.value : 'kg'; // Default to kg if not found
+            const weightUnit = unitSelectHeader ? unitSelectHeader.value : 'lbs'; // Default to lbs if not found
 
             setRows.forEach((setRow, setIndex) => {
                 const repsInput = setRow.querySelector('.reps-input').value.trim() || '0'; // Default to '0' if empty

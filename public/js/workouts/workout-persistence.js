@@ -208,7 +208,7 @@ function saveWorkoutData() {
                 name: exerciseData.name,
                 sets: [],
                 notes: '',
-                weight_unit: exerciseData.weight_unit || 'kg', // Save the weight unit
+                weight_unit: exerciseData.weight_unit || 'lbs', // Save the weight unit
                 set_count: setRows.length // Save the current number of sets
             };
 
@@ -342,7 +342,7 @@ function restoreWorkoutData() {
                         prevLog.textContent = '- lbs x -';
                         newRow.appendChild(prevLog);
 
-                        // Get the current unit from the exercise
+                        // Get the current unit from the exercise, default to lbs
                         const currentUnit = exercises[workoutIndex].weight_unit || 'lbs';
 
                         // Create weight input (always visible for bodyweight to record user's weight)
