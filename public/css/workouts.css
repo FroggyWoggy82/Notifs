@@ -513,6 +513,7 @@ h1, h2 {
     overflow: hidden;
     text-overflow: ellipsis;
     padding-right: 5px;
+    min-width: 75px; /* Ensure minimum width for goal text */
 }
 
 .set-number {
@@ -781,8 +782,8 @@ h1, h2 {
     /* Adjust set row layout for smaller screens - use more space for inputs */
     #current-exercise-list .set-row,
     .column-headers {
-        grid-template-columns: auto 65px 1.5fr 1.5fr 65px 36px;
-        gap: 4px; /* Even smaller gap on mobile to maximize input space */
+        grid-template-columns: auto 60px 1.4fr 1.4fr 75px 36px;
+        gap: 3px; /* Even smaller gap on mobile to maximize input space */
     }
 
     /* Make previous log text smaller on mobile */
@@ -821,13 +822,16 @@ h1, h2 {
         justify-content: center;
     }
 
-    /* Make the goal column more compact */
-    .goal-display {
+    /* Make the goal column more compact but ensure text is visible */
+    .goal-display,
+    .goal-target {
         font-size: 0.65rem;
-        width: 65px;
+        width: 75px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding-right: 2px;
+        text-align: left; /* Left align for better readability */
     }
 
     /* Optimize photo slider for mobile */
@@ -947,22 +951,24 @@ h1, h2 {
 
 .exercise-notes-textarea {
     width: 100%;
-    padding: 8px;
+    padding: 6px;
     border-radius: 4px;
     border: 1px solid #444;
     background-color: #222;
     color: #f5f5f5;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     box-sizing: border-box;
     resize: vertical; /* Allow vertical resize */
+    min-height: 40px; /* Reduced minimum height */
+    max-height: 100px; /* Limit maximum height */
 }
 
 /* Container for Add/Remove Set buttons */
 .set-actions-container {
     display: flex; /* Arrange buttons side-by-side */
     justify-content: center; /* Center the buttons */
-    gap: 10px; /* Reduced space between buttons */
-    margin-top: 8px; /* Reduced top margin */
+    gap: 8px; /* Further reduced space between buttons */
+    margin-top: 5px; /* Further reduced top margin */
     margin-bottom: 5px; /* Added bottom margin */
 }
 

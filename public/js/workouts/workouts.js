@@ -1614,7 +1614,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sets: defaultSets, // Use default sets from template settings
             reps: defaultReps, // Use default reps from template settings
             weight: null,
-            weight_unit: 'kg', // Default unit, will be updated from preferences if available
+            weight_unit: 'lbs', // Default to lbs instead of kg
             order_position: (targetList === 'active' ? currentWorkout.length : currentTemplateExercises.length),
             notes: '',
             // Only add completedSets for active workouts, not templates

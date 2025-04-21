@@ -139,7 +139,7 @@ async function createWorkoutTemplate(name, description, exercises) {
                     ex.sets || null,
                     ex.reps || null,
                     ex.weight || null,
-                    ex.weight_unit || 'kg',
+                    ex.weight_unit || 'lbs',
                     i + 1, // Use array index + 1 for order
                     ex.notes || null
                 ]
@@ -218,7 +218,7 @@ async function updateWorkoutTemplate(templateId, name, description, exercises) {
                     ex.sets || null,
                     ex.reps || null,
                     ex.weight || null,
-                    ex.weight_unit || 'kg',
+                    ex.weight_unit || 'lbs',
                     i + 1, // Use array index + 1 for order
                     ex.notes || null
                 ]
@@ -334,7 +334,7 @@ async function logWorkout(workoutName, duration, notes, exercises) {
                     setsCompleted,
                     exLog.reps_completed,
                     weightUsed,
-                    exLog.weight_unit || 'kg',
+                    exLog.weight_unit || 'lbs',
                     exLog.notes || null
                 ]
             );
