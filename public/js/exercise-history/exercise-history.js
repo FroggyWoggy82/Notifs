@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentHistoryCategoryFilter = 'all'; // State for history category filter
     let currentHistoryExerciseId = null; // Store the currently selected exercise ID
     let currentHistoryExerciseName = null; // Store the name
-    let historyEditSets = [{ reps: '', weight: '', unit: 'kg' }]; // For the edit modal
+    let historyEditSets = [{ reps: '', weight: '', unit: 'lbs' }]; // For the edit modal
 
     // --- DOM Elements ---
     // History section elements
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // History Edit Modal - Add/Remove Set buttons
         if (historyEditAddSetBtn) {
             historyEditAddSetBtn.addEventListener('click', () => {
-                historyEditSets.push({ reps: '', weight: '', unit: 'kg' });
+                historyEditSets.push({ reps: '', weight: '', unit: 'lbs' });
                 renderHistoryEditSets();
             });
         }
@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Clear the add form
             historyEditForm.reset();
-            historyEditSets = [{ reps: '', weight: '', unit: 'kg' }];
+            historyEditSets = [{ reps: '', weight: '', unit: 'lbs' }];
             renderHistoryEditSets();
             historyEditDateInput.valueAsDate = new Date();
 
@@ -932,8 +932,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="weight-input-group">
                     <input type="number" class="weight-input history-edit-weight" placeholder="Wt" value="${set.weight}" step="0.5">
                     <select class="unit-select history-edit-unit">
+                        <option value="lbs" ${set.unit === 'lbs' || !set.unit ? 'selected' : ''}>lbs</option>
                         <option value="kg" ${set.unit === 'kg' ? 'selected' : ''}>kg</option>
-                        <option value="lbs" ${set.unit === 'lbs' ? 'selected' : ''}>lbs</option>
                         <option value="bw" ${set.unit === 'bw' ? 'selected' : ''}>bw</option>
                     </select>
                 </div>

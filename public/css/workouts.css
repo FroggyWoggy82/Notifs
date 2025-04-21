@@ -811,8 +811,6 @@ h1, h2 {
 
     /* Improve touch targets for buttons */
     .set-complete-toggle,
-    .btn-add-set,
-    .btn-remove-set,
     .btn-edit-exercise,
     .btn-delete-exercise {
         min-width: 36px;
@@ -820,6 +818,15 @@ h1, h2 {
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    /* Override for add/remove set buttons on mobile */
+    .btn-add-set,
+    .btn-remove-set {
+        min-width: 36px;
+        min-height: 30px; /* Keep consistent with desktop */
+        height: 30px;
+        padding: 6px 8px; /* Slightly smaller horizontal padding on mobile */
     }
 
     /* Make the goal column more compact but ensure text is visible */
@@ -967,9 +974,21 @@ h1, h2 {
 .set-actions-container {
     display: flex; /* Arrange buttons side-by-side */
     justify-content: center; /* Center the buttons */
-    gap: 8px; /* Further reduced space between buttons */
-    margin-top: 5px; /* Further reduced top margin */
-    margin-bottom: 5px; /* Added bottom margin */
+    gap: 6px; /* Further reduced space between buttons */
+    margin-top: 3px; /* Further reduced top margin */
+    margin-bottom: 3px; /* Reduced bottom margin */
+}
+
+/* Specific styles for add/remove set buttons */
+.btn-add-set, .btn-remove-set {
+    padding: 6px 10px; /* Smaller padding */
+    font-size: 0.8rem; /* Smaller font */
+    height: 30px; /* Fixed height */
+    min-height: 30px; /* Override mobile styles */
+    margin: 0; /* Remove margin */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Remove set button specific styles */
