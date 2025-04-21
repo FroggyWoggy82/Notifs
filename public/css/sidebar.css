@@ -5,7 +5,7 @@
     left: 0;
     height: 100vh;
     width: 250px;
-    background-color: #ffffff; /* Changed from #222 to match page background */
+    background-color: #121212; /* Match the workout page background color */
     box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Lighter shadow */
     z-index: 1100;
     transform: translateX(-100%);

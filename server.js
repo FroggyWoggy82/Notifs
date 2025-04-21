@@ -299,6 +299,7 @@ const startServer = async (dbConnected) => {
       // Schedule all task reminders on server start (silently) if database is connected
       if (dbConnected) {
         try {
+          // Silently schedule task reminders without logging each one
           await TaskReminderService.scheduleAllTaskReminders();
         } catch (err) {
           console.error('Failed to schedule task reminders:', err);

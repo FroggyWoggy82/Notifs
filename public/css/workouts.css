@@ -927,30 +927,31 @@ h1, h2 {
 
 /* Mobile-specific adjustments */
 @media screen and (max-width: 599px) {
-    /* Adjust set row layout for smaller screens - use more space for inputs */
+    /* Adjust set row layout for smaller screens - ensure previous and goal columns are visible */
     #current-exercise-list .set-row,
     .column-headers {
-        grid-template-columns: auto 60px 1.4fr 1.4fr 75px 36px;
-        gap: 3px; /* Even smaller gap on mobile to maximize input space */
+        grid-template-columns: auto 50px 1fr 1fr 50px 36px;
+        gap: 2px; /* Minimal gap on mobile to maximize space */
     }
 
     /* Make previous log text smaller on mobile */
     .previous-log {
-        font-size: 0.65rem;
-        width: 65px;
+        font-size: 0.6rem;
+        width: 50px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding-right: 1px;
     }
 
     /* Ensure inputs are large enough to tap on mobile but not too tall */
     .set-row input[type="number"],
     .set-row input[type="text"] {
-        padding: 6px 4px;
-        font-size: 1rem;
-        /* Improve touch target size but keep it compact */
-        min-height: 36px;
-        height: 36px;
+        padding: 4px 2px;
+        font-size: 0.9rem;
+        /* Smaller touch target size to save space */
+        min-height: 30px;
+        height: 30px;
         /* Remove border radius for more space */
         border-radius: 2px;
         /* Maximize width */
@@ -990,12 +991,12 @@ h1, h2 {
     /* Make the goal column more compact but ensure text is visible */
     .goal-display,
     .goal-target {
-        font-size: 0.65rem;
-        width: 75px;
+        font-size: 0.6rem;
+        width: 50px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding-right: 2px;
+        padding-right: 1px;
         text-align: left; /* Left align for better readability */
     }
 
