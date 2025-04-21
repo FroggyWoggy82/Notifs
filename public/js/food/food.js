@@ -342,11 +342,26 @@ document.addEventListener('DOMContentLoaded', () => {
         ingredientsList.appendChild(ingredientItem);
 
         // Initialize the paste area in the new row
-        if (typeof initializeSimplifiedPasteAreas === 'function') {
-            initializeSimplifiedPasteAreas();
-        } else {
-            console.error('initializeSimplifiedPasteAreas function not found');
-        }
+        // Wait for the DOM to update before initializing
+        setTimeout(() => {
+            if (typeof initializeSimplifiedPasteAreas === 'function') {
+                initializeSimplifiedPasteAreas();
+                console.log('Paste areas initialized in new ingredient row');
+            } else {
+                console.error('initializeSimplifiedPasteAreas function not found');
+                // Try to load the simplified-nutrition-scan.js script if it's not loaded
+                const scriptElement = document.createElement('script');
+                scriptElement.src = '/js/food/simplified-nutrition-scan.js';
+                scriptElement.onload = function() {
+                    console.log('Simplified nutrition scan script loaded');
+                    if (typeof initializeSimplifiedPasteAreas === 'function') {
+                        initializeSimplifiedPasteAreas();
+                        console.log('Paste areas initialized after script load');
+                    }
+                };
+                document.head.appendChild(scriptElement);
+            }
+        }, 50); // Slightly longer timeout to ensure DOM is updated
 
         // Note: Remove button listener is handled by delegation
     }

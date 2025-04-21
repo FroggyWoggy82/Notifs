@@ -4880,7 +4880,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     // Default values
     let weightValue = '';
     let repsValue = '';
-    // Use the exercise's current weight unit, or default to lbs instead of kg
+    // Use the exercise's current weight unit, or default to lbs
     const unit = exerciseData.weight_unit || 'lbs';
 
     // Check if this is the first set (index 0) and if last log data exists

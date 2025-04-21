@@ -22,7 +22,7 @@ router.get('/:exerciseId', async (req, res) => {
             // Return default preferences if none exist
             return res.json({
                 exercise_id: parseInt(exerciseId),
-                weight_unit: 'kg' // Default unit
+                weight_unit: 'lbs' // Default unit changed to lbs
             });
         }
 

@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS exercise_preferences (
     preference_id SERIAL PRIMARY KEY,
     exercise_id INTEGER NOT NULL REFERENCES exercises(exercise_id) ON DELETE CASCADE,
-    weight_unit VARCHAR(20) NOT NULL DEFAULT 'kg',
+    weight_unit VARCHAR(20) NOT NULL DEFAULT 'lbs',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -15,8 +15,8 @@ DO $$
 BEGIN
     RAISE NOTICE 'Verifying exercise_preferences table...';
     IF EXISTS (
-        SELECT 1 
-        FROM information_schema.tables 
+        SELECT 1
+        FROM information_schema.tables
         WHERE table_name = 'exercise_preferences'
     ) THEN
         RAISE NOTICE 'exercise_preferences table exists.';

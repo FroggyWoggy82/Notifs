@@ -67,6 +67,25 @@ document.addEventListener('DOMContentLoaded', () => {
         setupClipboardPaste();
     }
 
+    // Function to set up PaddleOCR toggle
+    function setupPaddleOCRToggle() {
+        // Use event delegation for PaddleOCR toggle
+        document.addEventListener('change', (event) => {
+            if (event.target.classList.contains('paddle-ocr-toggle')) {
+                const ingredientItem = event.target.closest('.ingredient-item');
+                if (ingredientItem) {
+                    if (event.target.checked) {
+                        ingredientItem.dataset.ocrType = 'paddle';
+                        console.log('PaddleOCR enabled for this ingredient');
+                    } else {
+                        ingredientItem.dataset.ocrType = 'auto';
+                        console.log('PaddleOCR disabled for this ingredient');
+                    }
+                }
+            }
+        });
+    }
+
     // Function to set up clipboard paste functionality
     function setupClipboardPaste() {
         // Use event delegation for paste events
@@ -208,9 +227,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     '/api/improved-ocr/simple',
                     '/api/ocr/nutrition'
                 ];
-            } else {
-                // Auto-detect: try template first, then fall back to regular OCR
+            } else if (ocrType === 'paddle') {
+                // Use only PaddleOCR endpoint
+                console.log('OCR engine set to: PaddleOCR');
+                scanStatus.textContent = 'Processing image with PaddleOCR...';
                 endpoints = [
+                    '/api/paddle-ocr/nutrition'
+                ];
+            } else {
+                // Auto-detect: try PaddleOCR first, then template, then fall back to regular OCR
+                endpoints = [
+                    '/api/paddle-ocr/nutrition',
                     '/api/template-ocr/nutrition',
                     '/api/improved-ocr/nutrition',
                     '/api/improved-ocr/simple',
@@ -252,8 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show appropriate message based on whether fallback data was used or auto-corrections were made
             if (nutritionData.fallback) {
-                scanStatus.textContent = 'Using sample nutrition data (OCR could not extract values)';
-                scanStatus.className = 'scan-status warning';
+                if (nutritionData.ocrResults && nutritionData.ocrResults.some(result => result.text && result.text.includes('PaddleOCR not installed'))) {
+                    scanStatus.textContent = 'Using sample nutrition data (PaddleOCR not installed)';
+                    scanStatus.className = 'scan-status warning';
+                } else {
+                    scanStatus.textContent = 'Using sample nutrition data (OCR could not extract values)';
+                    scanStatus.className = 'scan-status warning';
+                }
             } else if (nutritionData.caloriesCorrected || nutritionData.proteinCorrected ||
                        nutritionData.fatCorrected || nutritionData.carbsCorrected ||
                        nutritionData.amountCorrected) {
@@ -863,6 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize the scanner functionality
     setupScanButtons();
+    setupPaddleOCRToggle();
     setupDetailedNutritionToggles();
     setupNutritionFieldSync();
 });

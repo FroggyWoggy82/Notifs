@@ -780,20 +780,23 @@ h1, h2 {
     /* Adjust set row layout for smaller screens - use more space for inputs */
     #current-exercise-list .set-row,
     .column-headers {
-        grid-template-columns: auto 70px 1.5fr 1.5fr 70px 36px;
-        gap: 5px; /* Smaller gap on mobile to maximize input space */
+        grid-template-columns: auto 65px 1.5fr 1.5fr 65px 36px;
+        gap: 4px; /* Even smaller gap on mobile to maximize input space */
     }
 
     /* Make previous log text smaller on mobile */
     .previous-log {
-        font-size: 0.7rem;
-        width: 70px;
+        font-size: 0.65rem;
+        width: 65px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Ensure inputs are large enough to tap on mobile */
     .set-row input[type="number"],
     .set-row input[type="text"] {
-        padding: 10px 5px;
+        padding: 10px 4px;
         font-size: 1.1rem;
         /* Improve touch target size */
         min-height: 48px;
@@ -810,7 +813,7 @@ h1, h2 {
     .btn-remove-set,
     .btn-edit-exercise,
     .btn-delete-exercise {
-        min-width: 44px;
+        min-width: 36px;
         min-height: 44px;
         display: flex;
         align-items: center;
@@ -819,8 +822,11 @@ h1, h2 {
 
     /* Make the goal column more compact */
     .goal-display {
-        font-size: 0.7rem;
-        width: 70px;
+        font-size: 0.65rem;
+        width: 65px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Optimize photo slider for mobile */

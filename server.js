@@ -40,13 +40,14 @@ const improvedOcrRoutes = require('./routes/improved-ocr'); // Improved OCR impl
 const energyOcrFixedRoutes = require('./routes/energy-ocr-fixed'); // Energy-specific fixed OCR implementation (primary)
 const templateOcrRoutes = require('./routes/template-ocr'); // Template-based OCR for specific nutrition label format
 const cronometerOcrRoutes = require('./routes/cronometer-ocr'); // Cronometer-specific OCR implementation
+const paddleOcrRoutes = require('./routes/paddle-ocr'); // PaddleOCR implementation (best accuracy)
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002; // Changed to 3002 to avoid conflicts
 
 // Middleware
 app.use(cors({
@@ -138,6 +139,10 @@ console.log('Template-ocr routes registered successfully!');
 console.log('Registering cronometer-ocr routes...');
 app.use('/api/cronometer-ocr', cronometerOcrRoutes); // Cronometer-specific OCR implementation
 console.log('Cronometer-ocr routes registered successfully!');
+
+console.log('Registering paddle-ocr routes...');
+app.use('/api/paddle-ocr', paddleOcrRoutes); // PaddleOCR implementation (best accuracy)
+console.log('Paddle-ocr routes registered successfully!');
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
