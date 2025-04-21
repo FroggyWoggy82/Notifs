@@ -2024,8 +2024,16 @@ document.addEventListener('DOMContentLoaded', function() {
             completeWorkoutBtn.textContent = '✓ Complete';
             completeWorkoutBtn.classList.add('success');
 
-            // Start confetti animation
-            if (typeof confetti !== 'undefined') {
+            // Start confetti animation using our enhanced implementation
+            if (typeof ConfettiCelebration !== 'undefined') {
+                ConfettiCelebration.start();
+
+                // Stop confetti after 3 seconds
+                setTimeout(() => {
+                    ConfettiCelebration.stop();
+                }, 3000);
+            } else if (typeof confetti !== 'undefined') {
+                // Fallback to the original confetti implementation
                 confetti.start();
 
                 // Stop confetti after 3 seconds
@@ -2033,6 +2041,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     confetti.stop();
                 }, 3000);
             }
+
+            console.log('Confetti animation triggered');
 
             // Short delay before redirecting to landing page
             setTimeout(() => {
