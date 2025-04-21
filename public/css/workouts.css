@@ -49,7 +49,7 @@ body {
 .workout-content {
     padding: 15px;
     padding-bottom: 80px; /* Space for bottom nav */
-    background-color: #1a1a1a; /* Dark background for workout area */
+    background-color: #121212; /* Black background for workout area */
     color: #f5f5f5; /* Light text */
     flex-grow: 1;
     display: flex;
@@ -668,6 +668,15 @@ h1, h2 {
     color: #bbb;
 }
 
+/* Mobile-specific set number style */
+@media screen and (max-width: 599px) {
+    .set-number {
+        font-size: 0.85rem;
+        padding-right: 2px;
+        min-width: 15px;
+    }
+}
+
 /* Removed .weight-input-group styles */
 
 .set-row input[type="number"],
@@ -749,6 +758,11 @@ h1, h2 {
     width: 100%;
 }
 
+/* Add rounded corners to cancel and complete workout buttons */
+.active-workout-actions .btn {
+    border-radius: 20px; /* Rounded corners */
+}
+
 /* Ensure buttons within the container don't take full width */
 .active-workout-actions .btn {
     width: auto;
@@ -820,6 +834,10 @@ h1, h2 {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    background: none; /* Remove any background */
+    border: none; /* Remove any border */
+    padding: 0; /* Remove padding */
+    line-height: 1; /* Adjust line height */
 }
 .close-button:hover,
 .close-button:focus {
@@ -930,28 +948,29 @@ h1, h2 {
     /* Adjust set row layout for smaller screens - ensure previous and goal columns are visible */
     #current-exercise-list .set-row,
     .column-headers {
-        grid-template-columns: auto 50px 1fr 1fr 50px 36px;
+        grid-template-columns: auto 60px 0.9fr 0.9fr 60px 36px;
         gap: 2px; /* Minimal gap on mobile to maximize space */
     }
 
-    /* Make previous log text smaller on mobile */
+    /* Make previous log text smaller but still readable on mobile */
     .previous-log {
-        font-size: 0.6rem;
-        width: 50px;
+        font-size: 0.65rem;
+        width: 60px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding-right: 1px;
+        padding-right: 2px;
+        color: #bbb; /* Slightly brighter color for better visibility */
     }
 
     /* Ensure inputs are large enough to tap on mobile but not too tall */
     .set-row input[type="number"],
     .set-row input[type="text"] {
-        padding: 4px 2px;
-        font-size: 0.9rem;
+        padding: 3px 2px;
+        font-size: 0.85rem;
         /* Smaller touch target size to save space */
-        min-height: 30px;
-        height: 30px;
+        min-height: 28px;
+        height: 28px;
         /* Remove border radius for more space */
         border-radius: 2px;
         /* Maximize width */
@@ -961,10 +980,10 @@ h1, h2 {
 
     /* Improve touch targets for buttons but keep them compact */
     .set-complete-toggle {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        min-height: 30px;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -991,13 +1010,15 @@ h1, h2 {
     /* Make the goal column more compact but ensure text is visible */
     .goal-display,
     .goal-target {
-        font-size: 0.6rem;
-        width: 50px;
+        font-size: 0.65rem;
+        width: 60px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding-right: 1px;
+        padding-right: 2px;
         text-align: left; /* Left align for better readability */
+        color: #03dac6; /* Brighter teal color for better visibility */
+        font-weight: 500; /* Slightly bolder for better visibility */
     }
 
     /* Optimize photo slider for mobile */
