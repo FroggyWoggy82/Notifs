@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Parse the *entire* previous log data ONCE, if available
         let weightsArray = [];
         let repsArray = [];
-        let prevUnit = 'kg';
+        let prevUnit = 'lbs'; // Default to lbs
         if (!isTemplate && exerciseData.lastLog) {
              console.log(`[generateSetRowsHtml] Found lastLog for ${exerciseData.name}:`, exerciseData.lastLog);
             if (exerciseData.lastLog.weight_used) {
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (exerciseData.lastLog.reps_completed) {
                 repsArray = exerciseData.lastLog.reps_completed.split(',').map(r => r.trim());
             }
-            prevUnit = exerciseData.lastLog.weight_unit || 'kg';
+            prevUnit = exerciseData.lastLog.weight_unit || 'lbs'; // Default to lbs
              console.log(`[generateSetRowsHtml] Parsed arrays: weights=[${weightsArray}], reps=[${repsArray}]`);
         }
 
@@ -229,9 +229,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // --- Per-Set Logic ---
             let weightValue = ''; // Pre-fill value for weight input
             let repsValue = '';   // Pre-fill value for reps input
-            let previousLogTextHtml = '- kg x -'; // Display text for previous log span
+            let previousLogTextHtml = '- lbs x -'; // Display text for previous log span (default to lbs)
             let goalTextHtml = ''; // Default empty goal
-            const currentUnit = exerciseData.weight_unit || 'kg'; // Use exercise's current unit setting
+            const currentUnit = exerciseData.weight_unit || 'lbs'; // Use exercise's current unit setting (default to lbs)
 
             // For template exercises, use the default reps value if available
             if (isTemplate && exerciseData.reps) {
@@ -536,6 +536,38 @@ document.addEventListener('DOMContentLoaded', function() {
     async function renderSingleExerciseItem(exerciseItemElement, exerciseData, index, isTemplate = false) {
         console.log(`[Render Single] Rendering exercise '${exerciseData.name}' at index ${index}, isTemplate: ${isTemplate}`);
 
+        // Ensure weight_unit is set if not defined
+        if (!exerciseData.weight_unit) {
+            // Check if we have a saved preference first
+            try {
+                const baseUrl = window.location.origin;
+                const response = await fetch(`${baseUrl}/api/exercise-preferences/${exerciseData.exercise_id}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const preference = await response.json();
+                    if (preference && preference.weight_unit) {
+                        // Use the saved preference
+                        exerciseData.weight_unit = preference.weight_unit;
+                        console.log(`[Render Single] Applied saved preference '${preference.weight_unit}' for exercise '${exerciseData.name}'`);
+                    } else {
+                        // No saved preference, use default
+                        exerciseData.weight_unit = 'lbs';
+                        console.log(`[Render Single] No saved preference found, using default 'lbs' for exercise '${exerciseData.name}'`);
+                    }
+                } else {
+                    // API error, use default
+                    exerciseData.weight_unit = 'lbs';
+                    console.log(`[Render Single] Error fetching preference, using default 'lbs' for exercise '${exerciseData.name}'`);
+                }
+            } catch (error) {
+                // Exception, use default
+                exerciseData.weight_unit = 'lbs';
+                console.log(`[Render Single] Exception fetching preference, using default 'lbs' for exercise '${exerciseData.name}'`);
+            }
+        }
+
         // Set data attributes for easy access later
         exerciseItemElement.dataset.workoutIndex = index; // <<< Use workoutIndex consistently
         exerciseItemElement.dataset.exerciseId = exerciseData.exercise_id;
@@ -582,27 +614,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="exercise-options-menu" id="options-menu-${index}">
                     <!-- Weight Unit Option -->
                     <div class="exercise-options-menu-item weight-unit">
-                        <span>Weight Unit:</span>
                         <select class="exercise-unit-select" data-workout-index="${index}">
                             <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
                             <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                            <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
+                            <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>BW</option>
                             <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
                         </select>
+                        <!-- Debug info: weight_unit=${exerciseData.weight_unit || 'undefined'} -->
                     </div>
-
+                    <div class="menu-divider"></div>
                     <!-- Edit Option (only for active workouts) -->
                     ${!isTemplate ? `
                     <div class="exercise-options-menu-item edit">
-                        <button class="btn-edit-exercise" data-workout-index="${index}" title="Edit Exercise Name">✎ Edit Name</button>
+                        <button class="btn-edit-exercise" data-workout-index="${index}" title="Edit Exercise Name">✎</button>
                     </div>
                     ` : ''}
 
                     <!-- Delete Option -->
                     <div class="exercise-options-menu-item delete">
-                        <button class="${isTemplate ? 'btn-delete-template-exercise' : 'btn-delete-exercise'}" data-workout-index="${index}" title="Remove Exercise">&times; Remove</button>
+                        <button class="${isTemplate ? 'btn-delete-template-exercise' : 'btn-delete-exercise'}" data-workout-index="${index}" title="Remove Exercise">&times;</button>
                     </div>
                 </div>
+            </div>
+            <div class="exercise-notes-group">
+                <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
             </div>
             <div class="column-headers">
                 <span>Set</span>
@@ -616,9 +651,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="set-actions-container">
                 <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
                 <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
-            </div>
-            <div class="exercise-notes-group">
-                <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
             </div>
         `;
 
@@ -1590,7 +1622,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     const preference = await response.json();
                     if (preference && preference.weight_unit) {
-                        // Apply the preferred unit to the exercise data
+                        // Apply the saved preference to the exercise data
                         exercise.weight_unit = preference.weight_unit;
 
                         // Also apply to any sets_completed units
@@ -1600,11 +1632,33 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         }
 
-                        console.log(`Applied unit preference for exercise ${exercise.exercise_id}: ${preference.weight_unit}`);
+                        console.log(`Applied saved unit preference for exercise ${exercise.exercise_id}: ${preference.weight_unit}`);
+                    } else {
+                        // Ensure default is lbs when no preference is found
+                        exercise.weight_unit = 'lbs';
+
+                        // Also apply default to any sets_completed units
+                        if (exercise.sets_completed && Array.isArray(exercise.sets_completed)) {
+                            exercise.sets_completed.forEach(set => {
+                                if (set) set.unit = 'lbs';
+                            });
+                        }
+
+                        console.log(`No preference found for exercise ${exercise.exercise_id}, using default: lbs`);
                     }
                 } catch (error) {
                     console.error(`Error fetching preference for exercise ${exercise.exercise_id}:`, error);
-                    // Continue without preference - will use default
+                    // Set default to lbs when there's an error
+                    exercise.weight_unit = 'lbs';
+
+                    // Also apply default to any sets_completed units
+                    if (exercise.sets_completed && Array.isArray(exercise.sets_completed)) {
+                        exercise.sets_completed.forEach(set => {
+                            if (set) set.unit = 'lbs';
+                        });
+                    }
+
+                    console.log(`Error fetching preference for exercise ${exercise.exercise_id}, using default: lbs`);
                 }
             });
 
@@ -1617,23 +1671,48 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 100); // Small delay to ensure DOM is updated
         } catch (error) {
             console.error('Error applying exercise unit preferences:', error);
-            // Continue without preferences - will use defaults
+            // Set default to lbs for all exercises when there's an error
+            if (exercises && Array.isArray(exercises)) {
+                exercises.forEach(exercise => {
+                    if (exercise) {
+                        exercise.weight_unit = 'lbs';
+
+                        // Also apply default to any sets_completed units
+                        if (exercise.sets_completed && Array.isArray(exercise.sets_completed)) {
+                            exercise.sets_completed.forEach(set => {
+                                if (set) set.unit = 'lbs';
+                            });
+                        }
+                    }
+                });
+                console.log('Applied default weight unit (lbs) to all exercises due to error');
+            }
         }
     }
 
     // Helper function to update unit dropdowns in the DOM
     function updateUnitDropdownsInDOM(exercises) {
         exercises.forEach((exercise, index) => {
-            if (!exercise.exercise_id || !exercise.weight_unit) return;
+            if (!exercise.exercise_id) return;
+
+            // Ensure weight_unit is set, default to 'lbs' if not
+            if (!exercise.weight_unit) {
+                exercise.weight_unit = 'lbs';
+                console.log(`No weight unit found for exercise ${exercise.exercise_id}, setting default: lbs`);
+            }
 
             // Find the dropdown for this exercise
             const exerciseItems = document.querySelectorAll('.exercise-item');
             if (exerciseItems.length <= index) return;
 
             const unitSelect = exerciseItems[index].querySelector('.exercise-unit-select');
-            if (unitSelect && unitSelect.value !== exercise.weight_unit) {
-                console.log(`Updating DOM dropdown for exercise ${exercise.exercise_id} to ${exercise.weight_unit}`);
-                unitSelect.value = exercise.weight_unit;
+            if (unitSelect) {
+                if (unitSelect.value !== exercise.weight_unit) {
+                    console.log(`Updating DOM dropdown for exercise ${exercise.exercise_id} to ${exercise.weight_unit}`);
+                    unitSelect.value = exercise.weight_unit;
+                } else {
+                    console.log(`DOM dropdown for exercise ${exercise.exercise_id} already set to ${exercise.weight_unit}`);
+                }
             }
         });
     }
@@ -1667,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sets: defaultSets, // Use default sets from template settings
             reps: defaultReps, // Use default reps from template settings
             weight: null,
-            weight_unit: 'lbs', // Default to lbs instead of kg
+            weight_unit: null, // Will be set after fetching preference
             order_position: (targetList === 'active' ? currentWorkout.length : currentTemplateExercises.length),
             notes: '',
             // Only add completedSets for active workouts, not templates
@@ -1684,13 +1763,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 const preference = await response.json();
                 if (preference && preference.weight_unit) {
+                    // Use the saved preference
                     newExerciseData.weight_unit = preference.weight_unit;
-                    console.log(`Applied unit preference for new exercise: ${preference.weight_unit}`);
+                    console.log(`Applied saved unit preference for new exercise: ${newExerciseData.weight_unit}`);
+                } else {
+                    // No saved preference, use default
+                    newExerciseData.weight_unit = 'lbs';
+                    console.log('No saved preference found, using default: lbs');
                 }
+            } else {
+                // API error, use default
+                newExerciseData.weight_unit = 'lbs';
+                console.log('Error fetching preference, using default: lbs');
             }
         } catch (error) {
             console.error('Error fetching exercise unit preference:', error);
-            // Continue with default unit
+            // API error, use default
+            newExerciseData.weight_unit = 'lbs';
+            console.log('Exception fetching preference, using default: lbs');
         }
 
         if (targetList === 'active') {
@@ -1938,6 +2028,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Get the unit from the header dropdown for this exercise
             const unitSelectHeader = item.querySelector('.exercise-unit-select');
             const weightUnit = unitSelectHeader ? unitSelectHeader.value : 'lbs'; // Default to lbs if not found
+            console.log(`Using weight unit for exercise ${baseExerciseData.name}: ${weightUnit}${!unitSelectHeader ? ' (default)' : ''}`);
 
             setRows.forEach((setRow, setIndex) => {
                 const repsInput = setRow.querySelector('.reps-input').value.trim() || '0'; // Default to '0' if empty
@@ -4922,7 +5013,7 @@ function calculateGoal(exerciseData) {
 
     const prevWeights = exerciseData.lastLog.weight_used.split(',').map(w => parseFloat(w.trim()));
     const prevReps = exerciseData.lastLog.reps_completed.split(',').map(r => parseInt(r.trim()));
-    const prevUnit = exerciseData.lastLog.weight_unit || 'lbs';
+    const prevUnit = exerciseData.lastLog.weight_unit || 'lbs'; // Default to lbs
 
     // Filter out any invalid entries
     const validSets = [];
@@ -4977,7 +5068,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     let weightValue = '';
     let repsValue = '';
     // Use the exercise's current weight unit, or default to lbs
-    const unit = exerciseData.weight_unit || 'lbs';
+    const unit = exerciseData.weight_unit || 'lbs'; // Always default to lbs
 
     // Check if this is the first set (index 0) and if last log data exists
     if (setIndex === 0 && exerciseData.lastLog) {

@@ -48,7 +48,7 @@
 
 .exercise-item-header h4 {
     font-size: 1rem;
-    color: #ff9800; /* Orange color like in the first image */
+    color: #03dac6; /* Teal color */
     line-height: 1.2;
     margin: 0;
     padding: 0;
@@ -159,15 +159,19 @@
 
 /* Exercise notes */
 .exercise-notes-group {
-    margin: 4px 0;
+    margin: 4px 0 8px;
 }
 
 .exercise-notes-textarea {
-    min-height: 36px;
-    padding: 4px;
+    min-height: 32px;
+    padding: 4px 6px;
     font-size: 0.8rem;
     border: none;
     border-radius: 0;
+    background-color: #222;
+    width: 100%;
+    resize: vertical;
+    color: #ddd;
 }
 
 /* Workout actions */

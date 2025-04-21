@@ -474,14 +474,14 @@ h1, h2 {
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #1a3a3a; /* Tealish blue background */
-    border: 1px solid #03dac6;
+    background-color: #2a2a2a; /* Grey background */
+    border: 1px solid #444;
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(3, 218, 198, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     z-index: 100;
     display: none;
     padding: 8px;
-    min-width: 160px;
+    min-width: 120px;
     text-align: center;
 }
 
@@ -494,8 +494,8 @@ h1, h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 10px;
-    margin-bottom: 6px;
+    padding: 6px 8px;
+    margin-bottom: 4px;
     border-radius: 3px;
     cursor: pointer;
     color: #f5f5f5;
@@ -506,39 +506,50 @@ h1, h2 {
 .exercise-options-menu-item.weight-unit {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    flex-direction: column;
+    padding: 4px 0;
+    margin-bottom: 8px;
 }
 
 .exercise-options-menu-item.weight-unit .exercise-unit-select {
     display: inline-block;
-    padding: 4px 6px;
-    background-color: #2a4a4a;
-    border: 1px solid #03dac6;
+    padding: 2px 4px;
+    background-color: #333;
+    border: 1px solid #444;
     color: #f5f5f5;
     border-radius: 3px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
-    width: 80%;
+    width: 90%;
     max-width: none;
-    margin: 3px auto 0;
+    margin: 0 auto;
     text-align: center;
+    height: 22px;
 }
 
 .exercise-options-menu-item:last-child {
     margin-bottom: 0;
 }
 
-.exercise-options-menu-item:hover {
+/* Menu divider */
+.menu-divider {
+    height: 1px;
     background-color: #444;
+    margin: 4px 0 8px;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.exercise-options-menu-item:hover {
+    background-color: #333;
 }
 
 .exercise-options-menu-item.delete:hover {
-    background-color: rgba(244, 67, 54, 0.2);
+    background-color: rgba(244, 67, 54, 0.15);
 }
 
 .exercise-options-menu-item.edit:hover {
-    background-color: rgba(3, 218, 198, 0.1);
+    background-color: rgba(3, 218, 198, 0.15);
 }
 
 /* Style for buttons inside menu items */
@@ -551,20 +562,24 @@ h1, h2 {
     background: none;
     border: none;
     color: inherit;
-    font-size: 1rem;
+    font-size: 1.2rem;
     padding: 0;
-    width: 100%;
+    width: 30px;
+    height: 30px;
     text-align: center;
     cursor: pointer;
+    margin: 0 auto;
 }
 
 .exercise-options-menu-item.delete .btn-delete-exercise,
 .exercise-options-menu-item.delete .btn-delete-template-exercise {
     color: #f44336;
+    font-size: 1.4rem;
 }
 
 .exercise-options-menu-item.edit .btn-edit-exercise {
     color: #03dac6;
+    font-size: 1.3rem;
 }
 
 /* Hide the original buttons when using the options menu */
