@@ -38,7 +38,12 @@ function saveInputValueDirectly(inputElement) {
         let savedInputValues = {};
         const savedInputValuesJson = localStorage.getItem(INPUT_VALUES_KEY);
         if (savedInputValuesJson) {
-            savedInputValues = JSON.parse(savedInputValuesJson);
+            try {
+                savedInputValues = JSON.parse(savedInputValuesJson);
+            } catch (parseError) {
+                console.error('[Direct Save] Error parsing saved input values:', parseError);
+                // Continue with empty object
+            }
         }
 
         // Initialize the exercise data if it doesn't exist
@@ -48,6 +53,15 @@ function saveInputValueDirectly(inputElement) {
                 name: exerciseData.name,
                 workoutIndex: workoutIndex
             };
+        }
+
+        // Create a backup of the current values before modifying
+        try {
+            const backupKey = `${INPUT_VALUES_KEY}_backup`;
+            localStorage.setItem(backupKey, JSON.stringify(savedInputValues));
+        } catch (backupError) {
+            console.error('[Direct Save] Error creating backup:', backupError);
+            // Continue without backup
         }
 
         // Handle different input types
@@ -137,7 +151,21 @@ function saveSetCompletionDirectly(toggleButton) {
         let savedInputValues = {};
         const savedInputValuesJson = localStorage.getItem(INPUT_VALUES_KEY);
         if (savedInputValuesJson) {
-            savedInputValues = JSON.parse(savedInputValuesJson);
+            try {
+                savedInputValues = JSON.parse(savedInputValuesJson);
+            } catch (parseError) {
+                console.error('[Direct Save] Error parsing saved input values:', parseError);
+                // Continue with empty object
+            }
+        }
+
+        // Create a backup of the current values before modifying
+        try {
+            const backupKey = `${INPUT_VALUES_KEY}_backup`;
+            localStorage.setItem(backupKey, JSON.stringify(savedInputValues));
+        } catch (backupError) {
+            console.error('[Direct Save] Error creating backup:', backupError);
+            // Continue without backup
         }
 
         // Initialize the exercise data if it doesn't exist
@@ -218,15 +246,50 @@ function saveSetCompletionDirectly(toggleButton) {
  */
 function restoreInputValuesDirectly() {
     try {
-        const savedInputValuesJson = localStorage.getItem(INPUT_VALUES_KEY);
-        if (!savedInputValuesJson) {
-            console.log('[Direct Restore] No saved input values found');
-            return false;
+        // Set a flag to prevent auto-save during restoration
+        if (window.AUTO_SAVE) {
+            window.AUTO_SAVE.isRestoring = true;
         }
 
-        console.log('[Direct Restore] Restoring input values from localStorage');
-        const inputValues = JSON.parse(savedInputValuesJson);
-        console.log('[Direct Restore] Parsed saved input values:', inputValues);
+        // Try to get saved input values
+        let savedInputValuesJson = localStorage.getItem(INPUT_VALUES_KEY);
+        let inputValues = null;
+
+        // If no saved values or parsing fails, try to recover from backup
+        if (!savedInputValuesJson) {
+            console.log('[Direct Restore] No saved input values found, checking backup');
+            const backupJson = localStorage.getItem(`${INPUT_VALUES_KEY}_backup`);
+            if (backupJson) {
+                console.log('[Direct Restore] Found backup, attempting to restore from backup');
+                savedInputValuesJson = backupJson;
+            } else {
+                console.log('[Direct Restore] No backup found either');
+                return false;
+            }
+        }
+
+        // Parse the saved values
+        try {
+            inputValues = JSON.parse(savedInputValuesJson);
+            console.log('[Direct Restore] Parsed saved input values:', inputValues);
+        } catch (parseError) {
+            console.error('[Direct Restore] Error parsing saved input values:', parseError);
+
+            // Try to recover from backup if parsing fails
+            const backupJson = localStorage.getItem(`${INPUT_VALUES_KEY}_backup`);
+            if (backupJson) {
+                try {
+                    console.log('[Direct Restore] Attempting to parse backup');
+                    inputValues = JSON.parse(backupJson);
+                    console.log('[Direct Restore] Successfully parsed backup');
+                } catch (backupParseError) {
+                    console.error('[Direct Restore] Error parsing backup:', backupParseError);
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
 
         // Get the current workout data
         const currentWorkoutJson = localStorage.getItem('workout_tracker_current_workout');
@@ -358,9 +421,43 @@ function restoreInputValuesDirectly() {
         // Save the updated currentWorkout back to localStorage
         localStorage.setItem('workout_tracker_current_workout', JSON.stringify(currentWorkout));
         console.log('[Direct Restore] Input values restored successfully and currentWorkout updated');
+
+        // Reset the restoration flag
+        if (window.AUTO_SAVE) {
+            setTimeout(() => {
+                window.AUTO_SAVE.isRestoring = false;
+                console.log('[Direct Restore] Reset restoration flag');
+            }, 1000); // Give a second for any pending operations to complete
+        }
+
         return true;
     } catch (error) {
         console.error('[Direct Restore] Error restoring input values:', error);
+
+        // Reset the restoration flag even if there's an error
+        if (window.AUTO_SAVE) {
+            window.AUTO_SAVE.isRestoring = false;
+        }
+
+        // Try to recover from backup if available
+        try {
+            const backupJson = localStorage.getItem(`${INPUT_VALUES_KEY}_backup`);
+            if (backupJson) {
+                console.log('[Direct Restore] Attempting emergency recovery from backup');
+                localStorage.setItem(INPUT_VALUES_KEY, backupJson);
+
+                // Try to restore again after a short delay
+                setTimeout(() => {
+                    console.log('[Direct Restore] Retrying restoration from backup');
+                    restoreInputValuesDirectly();
+                }, 500);
+
+                return true; // Return true to indicate we're attempting recovery
+            }
+        } catch (recoveryError) {
+            console.error('[Direct Restore] Error during emergency recovery:', recoveryError);
+        }
+
         return false;
     }
 }
