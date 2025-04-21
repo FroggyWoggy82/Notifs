@@ -428,6 +428,7 @@ h1, h2 {
     gap: 5px; /* Reduced gap for tighter spacing */
     padding-top: 3px;
     flex-wrap: nowrap; /* Prevent wrapping */
+    position: relative; /* For absolute positioning of dropdown */
 }
 
 .exercise-item-header h4 {
@@ -441,6 +442,130 @@ h1, h2 {
     text-overflow: ellipsis;
     flex-grow: 1;
     order: 1; /* Place title first */
+}
+
+/* Options button (three dots) */
+.btn-exercise-options {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+    margin-left: auto;
+    order: 2;
+}
+
+.btn-exercise-options:hover {
+    color: #03dac6;
+}
+
+/* Options dropdown menu */
+.exercise-options-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    display: none;
+    padding: 8px;
+    min-width: 150px;
+}
+
+.exercise-options-menu.show {
+    display: block;
+}
+
+/* Menu items */
+.exercise-options-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+/* Weight unit option in menu */
+.exercise-options-menu-item.weight-unit {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.exercise-options-menu-item.weight-unit .exercise-unit-select {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #444;
+    border: 1px solid #555;
+    color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: auto;
+    max-width: none;
+    margin: 0;
+}
+
+.exercise-options-menu-item:last-child {
+    margin-bottom: 0;
+}
+
+.exercise-options-menu-item:hover {
+    background-color: #444;
+}
+
+.exercise-options-menu-item.delete:hover {
+    background-color: rgba(244, 67, 54, 0.2);
+}
+
+.exercise-options-menu-item.edit:hover {
+    background-color: rgba(3, 218, 198, 0.1);
+}
+
+/* Style for buttons inside menu items */
+.exercise-options-menu-item .btn-edit-exercise,
+.exercise-options-menu-item .btn-delete-exercise,
+.exercise-options-menu-item .btn-delete-template-exercise {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 0.95rem;
+    padding: 0;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.exercise-options-menu-item.delete .btn-delete-exercise,
+.exercise-options-menu-item.delete .btn-delete-template-exercise {
+    color: #f44336;
+}
+
+.exercise-options-menu-item.edit .btn-edit-exercise {
+    color: #03dac6;
+}
+
+/* Hide the original buttons when using the options menu */
+.exercise-unit-select,
+.btn-edit-exercise,
+.btn-delete-exercise,
+.btn-delete-template-exercise {
+    display: none;
 }
 
 /* Style for the new header unit select */

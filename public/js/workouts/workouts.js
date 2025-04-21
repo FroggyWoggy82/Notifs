@@ -577,14 +577,33 @@ document.addEventListener('DOMContentLoaded', function() {
         exerciseItemElement.innerHTML = `
             <div class="exercise-item-header">
                 <h4>${escapeHtml(exerciseData.name)}</h4>
-                <select class="exercise-unit-select" data-workout-index="${index}">
-                    <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
-                    <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                    <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
-                    <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
-                </select>
-                ${!isTemplate ? `<button class="btn-edit-exercise" data-workout-index="${index}" title="Edit Exercise Name">✎</button>` : ''}
-                <button class="${isTemplate ? 'btn-delete-template-exercise' : 'btn-delete-exercise'}" title="Remove Exercise">&times;</button>
+                <button class="btn-exercise-options" data-workout-index="${index}" title="Exercise Options">...</button>
+
+                <!-- Options Menu (Hidden by default) -->
+                <div class="exercise-options-menu" id="options-menu-${index}">
+                    <!-- Weight Unit Option -->
+                    <div class="exercise-options-menu-item weight-unit">
+                        <span>Weight Unit:</span>
+                        <select class="exercise-unit-select" data-workout-index="${index}">
+                            <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
+                            <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                            <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
+                            <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
+                        </select>
+                    </div>
+
+                    <!-- Edit Option (only for active workouts) -->
+                    ${!isTemplate ? `
+                    <div class="exercise-options-menu-item edit">
+                        <button class="btn-edit-exercise" data-workout-index="${index}" title="Edit Exercise Name">✎ Edit Name</button>
+                    </div>
+                    ` : ''}
+
+                    <!-- Delete Option -->
+                    <div class="exercise-options-menu-item delete">
+                        <button class="${isTemplate ? 'btn-delete-template-exercise' : 'btn-delete-exercise'}" data-workout-index="${index}" title="Remove Exercise">&times; Remove</button>
+                    </div>
+                </div>
             </div>
             <div class="exercise-notes-group">  <!-- <<< MOVED UP -->
                  <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
@@ -617,7 +636,48 @@ document.addEventListener('DOMContentLoaded', function() {
          console.log(`[Render Single] Finished rendering '${exerciseData.name}'`);
     }
 
-    // --- Event Handlers ---\
+    // --- Event Handlers ---
+
+    // --- Exercise Options Menu Functions ---
+    function toggleOptionsMenu(event) {
+        const optionsButton = event.target;
+        const workoutIndex = optionsButton.dataset.workoutIndex || optionsButton.dataset.index;
+        const isTemplate = !optionsButton.dataset.workoutIndex;
+        const menuId = isTemplate ? `template-options-menu-${workoutIndex}` : `options-menu-${workoutIndex}`;
+        const menu = document.getElementById(menuId);
+
+        if (!menu) {
+            console.error(`Options menu not found: ${menuId}`);
+            return;
+        }
+
+        // Close all other open menus first
+        document.querySelectorAll('.exercise-options-menu.show').forEach(openMenu => {
+            if (openMenu !== menu) {
+                openMenu.classList.remove('show');
+            }
+        });
+
+        // Toggle this menu
+        menu.classList.toggle('show');
+
+        // Prevent the click from propagating to the document
+        event.stopPropagation();
+    }
+
+    // Close all menus when clicking outside
+    document.addEventListener('click', function(event) {
+        // If the click is inside an options menu or on an options button, do nothing
+        if (event.target.closest('.exercise-options-menu') ||
+            event.target.classList.contains('btn-exercise-options')) {
+            return;
+        }
+
+        // Close all open menus
+        document.querySelectorAll('.exercise-options-menu.show').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    });
 
     // --- Exercise Name Edit Functions ---
     function openExerciseEditModal(index) {
@@ -2082,14 +2142,26 @@ document.addEventListener('DOMContentLoaded', function() {
             exerciseItem.innerHTML = `
                 <div class="exercise-item-header">
                     <h4>${escapeHtml(exercise.name)}</h4>
-                    <select class="exercise-unit-select" data-workout-index="${index}">
-                        <option value="lbs" ${exercise.weight_unit === 'lbs' || !exercise.weight_unit ? 'selected' : ''}>lbs</option>
-                        <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                        <option value="bodyweight" ${exercise.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
-                        <option value="assisted" ${exercise.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
-                    </select>
-                    <!-- Corrected: Hardcode class and add data-index -->
-                    <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times;</button>
+                    <button class="btn-exercise-options" data-index="${index}" title="Exercise Options">...</button>
+
+                    <!-- Options Menu (Hidden by default) -->
+                    <div class="exercise-options-menu" id="template-options-menu-${index}">
+                        <!-- Weight Unit Option -->
+                        <div class="exercise-options-menu-item weight-unit">
+                            <span>Weight Unit:</span>
+                            <select class="exercise-unit-select" data-index="${index}">
+                                <option value="lbs" ${exercise.weight_unit === 'lbs' || !exercise.weight_unit ? 'selected' : ''}>lbs</option>
+                                <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                                <option value="bodyweight" ${exercise.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
+                                <option value="assisted" ${exercise.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
+                            </select>
+                        </div>
+
+                        <!-- Delete Option -->
+                        <div class="exercise-options-menu-item delete">
+                            <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times; Remove</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="column-headers">
                     <span>Set</span>
@@ -2683,18 +2755,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleAddSet(event);
                 } else if (target.classList.contains('btn-remove-set')) {
                     handleRemoveSet(event);
-                } else if (target.classList.contains('set-complete-toggle')) { // <<< ADD THIS CHECK
-                    handleSetToggle(event);                             // <<< CALL THE HANDLER
+                } else if (target.classList.contains('set-complete-toggle')) {
+                    handleSetToggle(event);
+                } else if (target.classList.contains('btn-exercise-options')) {
+                    toggleOptionsMenu(event);
                 } else if (target.classList.contains('btn-edit-exercise')) {
                     // Get the workout index from the data attribute
                     const index = parseInt(target.dataset.workoutIndex);
                     if (!isNaN(index)) {
                         openExerciseEditModal(index);
                     }
-                } else if (target.classList.contains('exercise-unit-select')) { // <<< NEW: Handle header unit change
+                } else if (target.classList.contains('exercise-unit-select')) {
                     handleExerciseUnitChange(event);
-                } else if (target.classList.contains('btn-delete-exercise')) { // <<< ADD THIS CHECK
-                    handleDeleteExercise(event);                          // <<< CALL THE HANDLER
+                } else if (target.classList.contains('btn-delete-exercise')) {
+                    handleDeleteExercise(event);
                 }
             }
         });
@@ -2741,18 +2815,22 @@ document.addEventListener('DOMContentLoaded', function() {
              if(exerciseModal) exerciseModal.dataset.targetList = 'editor';
              openExerciseModal();
         });
-        // --- NEW: Add listener for deleting exercises from template editor ---
+        // --- Add listener for options menu and deleting exercises from template editor ---
         templateExerciseListEl?.addEventListener('click', (event) => {
-            // ---> MODIFIED: Use closest to find the button < ---
-            const deleteButton = event.target.closest('.btn-delete-template-exercise');
-            // Check if the clicked element or its ancestor is the delete button
+            const target = event.target;
+
+            // Check for options button click
+            if (target.classList.contains('btn-exercise-options')) {
+                toggleOptionsMenu(event);
+                return;
+            }
+
+            // Check for delete button click using closest
+            const deleteButton = target.closest('.btn-delete-template-exercise');
             if (deleteButton) {
-                console.log('[Template Editor Delete Listener] Found delete button via closest().'); // <<< Add log
-                // Pass the event object, but the handler uses event.target.dataset which might be wrong now.
-                // We need the index from the *button* itself, not necessarily the original target.
+                console.log('[Template Editor Delete Listener] Found delete button via closest().');
                 handleDeleteTemplateExercise(deleteButton); // Pass the button element directly
             }
-            // --- END MODIFICATION ---
         });
 
         // New Exercise Definition Listeners in Modal
