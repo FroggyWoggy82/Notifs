@@ -1,0 +1,212 @@
+/**
+ * Compact Workout Layout
+ * This file contains styles for a more compact workout layout
+ * that resembles popular fitness apps and maximizes screen space.
+ */
+
+/* Overall container adjustments */
+.workout-content {
+    padding: 10px;
+    padding-bottom: 70px; /* Reduced space for bottom nav */
+}
+
+/* Workout header */
+.workout-header {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 0; /* Remove rounded corners */
+}
+
+#current-workout-name {
+    font-size: 1.2rem;
+}
+
+#workout-timer {
+    font-size: 1.1rem;
+}
+
+/* Exercise list */
+.exercise-list {
+    gap: 8px; /* Reduced space between exercise items */
+}
+
+/* Exercise item */
+.exercise-item {
+    background-color: #1e1e1e; /* Darker background */
+    border: none; /* Remove border */
+    border-radius: 0; /* Remove rounded corners */
+    padding: 8px 6px; /* Reduced padding */
+    margin-bottom: 5px; /* Reduced margin */
+}
+
+/* Exercise header */
+.exercise-item-header {
+    margin-bottom: 4px;
+    padding-top: 0;
+}
+
+.exercise-item-header h4 {
+    font-size: 1rem;
+    color: #ff9800; /* Orange color like in the first image */
+}
+
+/* Options button */
+.btn-exercise-options {
+    width: 24px;
+    height: 24px;
+    font-size: 1rem;
+    align-self: center;
+}
+
+/* Column headers */
+.column-headers {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 40px; /* Set#, Weight, Reps, Complete */
+    gap: 4px;
+    padding: 2px 0;
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+}
+
+/* Set rows */
+#current-exercise-list .set-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 40px; /* Set#, Weight, Reps, Complete */
+    gap: 4px;
+    padding: 2px 0;
+    border-bottom: 1px solid #333;
+}
+
+/* Set number */
+.set-number {
+    font-size: 0.9rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Previous log - hide on mobile to save space */
+.previous-log {
+    display: none;
+}
+
+/* Goal target - hide on mobile to save space */
+.goal-target {
+    display: none;
+}
+
+/* Input fields */
+.set-row input[type="number"],
+.set-row input[type="text"] {
+    height: 36px;
+    padding: 0 6px;
+    font-size: 0.9rem;
+    background-color: #333;
+    border: none;
+    border-radius: 0;
+    color: white;
+}
+
+/* Completed inputs */
+.set-row input.completed {
+    background-color: #333;
+    color: white;
+    opacity: 0.8;
+}
+
+/* Complete toggle button */
+.set-complete-toggle {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #555;
+}
+
+.set-complete-toggle.completed {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+/* Set actions container */
+.set-actions-container {
+    margin: 4px 0;
+}
+
+/* Add/Remove set buttons */
+.btn-add-set, 
+.btn-remove-set {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    height: 28px;
+}
+
+/* Exercise notes */
+.exercise-notes-group {
+    margin: 4px 0;
+}
+
+.exercise-notes-textarea {
+    min-height: 36px;
+    padding: 4px;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 0;
+}
+
+/* Workout actions */
+.active-workout-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.active-workout-actions button {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.9rem;
+    border-radius: 0;
+}
+
+/* Media queries for different screen sizes */
+@media screen and (max-width: 480px) {
+    /* Even more compact for small screens */
+    .workout-content {
+        padding: 5px;
+    }
+    
+    .exercise-item {
+        padding: 5px 4px;
+    }
+    
+    #current-exercise-list .set-row {
+        grid-template-columns: 30px 1fr 1fr 30px; /* Smaller set number and complete button */
+    }
+    
+    .set-row input[type="number"],
+    .set-row input[type="text"] {
+        height: 32px;
+        font-size: 0.85rem;
+    }
+    
+    .set-complete-toggle {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+@media screen and (min-width: 481px) {
+    /* Show previous and goal on larger screens */
+    #current-exercise-list .set-row {
+        grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Previous, Weight, Reps, Goal, Complete */
+    }
+    
+    .previous-log,
+    .goal-target {
+        display: block;
+        font-size: 0.75rem;
+    }
+    
+    .column-headers {
+        grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Match set row */
+    }
+}

@@ -47,7 +47,7 @@ const { swaggerDocs } = require('./docs/swagger');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3002; // Changed to 3002 to avoid conflicts
+const PORT = process.env.PORT || 3000; // Using default port 3000
 
 // Middleware
 app.use(cors({

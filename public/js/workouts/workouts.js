@@ -281,10 +281,8 @@ document.addEventListener('DOMContentLoaded', function() {
             setRowsHtml += `
                 <div class="set-row" data-set-index="${i}">
                     <span class="set-number">${i + 1}</span>
-                    <span class="previous-log">${previousLogTextHtml}</span>
                     <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
                     <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-                    <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
                     ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
                 </div>
             `;
@@ -572,8 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Now that lastLog is guaranteed to be fetched (or null), generate the HTML
         const setsHtml = generateSetRowsHtml(exerciseData, index, isTemplate);
 
-        // Construct the inner HTML for the exercise item
-        // (Keep the existing innerHTML structure)
+        // Construct the inner HTML for the exercise item with a more compact layout
         exerciseItemElement.innerHTML = `
             <div class="exercise-item-header">
                 <h4>${escapeHtml(exerciseData.name)}</h4>
@@ -605,21 +602,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
-            <div class="exercise-notes-group">  <!-- <<< MOVED UP -->
-                 <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
-            </div>
             <div class="column-headers">
                 <span>Set</span>
-                <span>Previous</span>
                 <span>Weight</span>
                 <span>Reps</span>
-                <span>Goal</span>
-                <span></span>
+                <span>✓</span>
             </div>
-            <div class="sets-container"> ${setsHtml} </div>  <!-- <<< MOVED DOWN -->
+            <div class="sets-container"> ${setsHtml} </div>
             <div class="set-actions-container">
                 <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
                 <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
+            </div>
+            <div class="exercise-notes-group">
+                <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
             </div>
         `;
 
@@ -1264,12 +1259,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             setNumber.className = 'set-number';
                             setNumber.textContent = i + 1;
                             newRow.appendChild(setNumber);
-
-                            // Create previous log span
-                            const prevLog = document.createElement('span');
-                            prevLog.className = 'previous-log';
-                            prevLog.textContent = '- kg x -';
-                            newRow.appendChild(prevLog);
 
                             // Get the current unit from the exercise
                             const currentUnit = exercises[workoutIndex].weight_unit || 'lbs';
@@ -5042,10 +5031,8 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     return `
         <div class="set-row" data-set-index="${setIndex}">
             <span class="set-number">${setIndex + 1}</span>
-            <span class="previous-log">${previousLogTextHtml}</span>
             <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
             <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-            <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
             ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
         </div>
     `;
