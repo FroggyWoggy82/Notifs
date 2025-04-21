@@ -1,4 +1,5 @@
 const Task = require('../models/taskModel');
+const db = require('../utils/db');
 
 /**
  * Task Controller
@@ -28,20 +29,53 @@ class TaskController {
      */
     static async createTask(req, res) {
         try {
-            const { title, description, reminderTime, assignedDate, dueDate, recurrenceType, recurrenceInterval } = req.body;
+            // Extract all possible fields from the request body
+            const {
+                title,
+                description,
+                reminderTime,
+                reminderType,
+                reminderTimes,
+                assignedDate,
+                dueDate,
+                duration,
+                recurrenceType,
+                recurrenceInterval
+            } = req.body;
 
-            console.log(`Received POST /api/tasks: title='${title}', assigned='${assignedDate}', due='${dueDate}', recurrence='${recurrenceType}', interval='${recurrenceInterval}', reminder='${reminderTime}'`);
+            console.log('Received POST /api/tasks with data:', JSON.stringify(req.body, null, 2));
+            console.log('Data types:', {
+                title: typeof title,
+                description: typeof description,
+                reminderTime: typeof reminderTime,
+                reminderType: typeof reminderType,
+                reminderTimes: typeof reminderTimes,
+                assignedDate: typeof assignedDate,
+                dueDate: typeof dueDate,
+                duration: typeof duration,
+                recurrenceType: typeof recurrenceType,
+                recurrenceInterval: typeof recurrenceInterval
+            });
+
+            // Ensure reminderTimes is a string if it exists
+            if (reminderTimes && typeof reminderTimes !== 'string') {
+                reminderTimes = JSON.stringify(reminderTimes);
+            }
 
             if (!title || title.trim() === '') {
                 return res.status(400).json({ error: 'Task title cannot be empty' });
             }
 
+            // Pass all fields to the model
             const taskData = {
                 title,
                 description,
                 reminderTime,
+                reminderType,
+                reminderTimes,
                 assignedDate,
                 dueDate,
+                duration,
                 recurrenceType,
                 recurrenceInterval
             };
@@ -51,7 +85,10 @@ class TaskController {
             res.status(201).json(newTask);
         } catch (err) {
             console.error('Error creating task:', err);
-            res.status(500).json({ error: 'Failed to create task' });
+            // Log the full error details for debugging
+            console.error('Error details:', err.stack);
+            console.error('Request body:', req.body);
+            res.status(500).json({ error: 'Failed to create task', details: err.message });
         }
     }
 

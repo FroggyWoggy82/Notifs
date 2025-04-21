@@ -6,15 +6,44 @@ document.addEventListener('DOMContentLoaded', () => {
         // Use event delegation for scan buttons
         document.addEventListener('click', (event) => {
             console.log('Click event detected on:', event.target);
-            if (event.target.classList.contains('scan-nutrition-btn')) {
+            if (event.target.classList.contains('scan-nutrition-btn') || event.target.classList.contains('scan-template-btn')) {
                 console.log('Scan button clicked!');
                 const ingredientItem = event.target.closest('.ingredient-item');
                 const fileInput = ingredientItem.querySelector('.nutrition-image-input');
                 console.log('Found file input:', fileInput);
 
+                // Set OCR type based on which button was clicked
+                if (event.target.classList.contains('scan-template-btn')) {
+                    ingredientItem.dataset.ocrType = 'template';
+                    console.log('Using template-based OCR');
+                } else {
+                    // Use the selected OCR type from the dropdown
+                    const ocrTypeSelector = ingredientItem.querySelector('.ocr-type-selector');
+                    ingredientItem.dataset.ocrType = ocrTypeSelector ? ocrTypeSelector.value : 'auto';
+                    console.log('Using OCR type:', ingredientItem.dataset.ocrType);
+                }
+
                 if (fileInput) {
                     console.log('Triggering file input click');
                     fileInput.click(); // Trigger file input click
+                }
+            } else if (event.target.classList.contains('paste-nutrition-btn')) {
+                console.log('Paste button clicked!');
+                const ingredientItem = event.target.closest('.ingredient-item');
+                const pasteArea = ingredientItem.querySelector('.paste-area');
+
+                // Use the selected OCR type from the dropdown
+                const ocrTypeSelector = ingredientItem.querySelector('.ocr-type-selector');
+                ingredientItem.dataset.ocrType = ocrTypeSelector ? ocrTypeSelector.value : 'auto';
+                console.log('Using OCR type for paste:', ingredientItem.dataset.ocrType);
+
+                if (pasteArea) {
+                    // Focus the paste area to make it ready for paste
+                    pasteArea.focus();
+                    // Add active class to indicate it's ready for paste
+                    pasteArea.classList.add('active');
+                    // Show a message to the user
+                    alert('Now press Ctrl+V to paste your screenshot');
                 }
             }
         });
@@ -33,6 +62,111 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // Set up clipboard paste event listeners
+        setupClipboardPaste();
+    }
+
+    // Function to set up clipboard paste functionality
+    function setupClipboardPaste() {
+        // Use event delegation for paste events
+        document.addEventListener('paste', (event) => {
+            // Check if the active element is a paste area
+            const pasteArea = document.activeElement.closest('.paste-area');
+            if (!pasteArea) return;
+
+            // Get the ingredient item
+            const ingredientItem = pasteArea.closest('.ingredient-item');
+            if (!ingredientItem) return;
+
+            // Prevent the default paste behavior
+            event.preventDefault();
+
+            // Get the clipboard items
+            const clipboardItems = event.clipboardData.items;
+            let imageFile = null;
+
+            // Look for an image in the clipboard
+            for (let i = 0; i < clipboardItems.length; i++) {
+                if (clipboardItems[i].type.indexOf('image') !== -1) {
+                    imageFile = clipboardItems[i].getAsFile();
+                    break;
+                }
+            }
+
+            // If an image was found, process it
+            if (imageFile) {
+                console.log('Image found in clipboard:', imageFile);
+
+                // Show a preview of the image
+                const previewDiv = pasteArea.querySelector('.paste-preview');
+                const instructionsDiv = pasteArea.querySelector('.paste-instructions');
+
+                if (previewDiv && instructionsDiv) {
+                    // Create a URL for the image
+                    const imageUrl = URL.createObjectURL(imageFile);
+
+                    // Create an image element
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+
+                    // Create a remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-image';
+                    removeBtn.innerHTML = '×';
+                    removeBtn.title = 'Remove image';
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        previewDiv.innerHTML = '';
+                        previewDiv.classList.remove('has-image');
+                        instructionsDiv.style.display = 'block';
+                        pasteArea.classList.remove('active');
+                    });
+
+                    // Clear the preview and add the new image
+                    previewDiv.innerHTML = '';
+                    previewDiv.appendChild(img);
+                    previewDiv.appendChild(removeBtn);
+                    previewDiv.classList.add('has-image');
+
+                    // Hide the instructions
+                    instructionsDiv.style.display = 'none';
+                }
+
+                // Process the image
+                processNutritionImage(imageFile, ingredientItem);
+            } else {
+                console.log('No image found in clipboard');
+                alert('No image found in clipboard. Please copy an image first.');
+            }
+
+            // Remove the active class
+            pasteArea.classList.remove('active');
+        });
+
+        // Add click event listener to paste areas
+        document.addEventListener('click', (event) => {
+            const pasteArea = event.target.closest('.paste-area');
+            if (pasteArea) {
+                // Focus the paste area
+                pasteArea.focus();
+                // Add active class
+                pasteArea.classList.add('active');
+            } else {
+                // Remove active class from all paste areas when clicking elsewhere
+                document.querySelectorAll('.paste-area.active').forEach(area => {
+                    area.classList.remove('active');
+                });
+            }
+        });
+
+        // Add blur event listener to paste areas
+        document.addEventListener('blur', (event) => {
+            if (event.target.classList.contains('paste-area')) {
+                // Remove active class when the paste area loses focus
+                event.target.classList.remove('active');
+            }
+        }, true);
     }
 
     // Function to process the nutrition image
@@ -46,233 +180,62 @@ document.addEventListener('DOMContentLoaded', () => {
         // Log information about the file for debugging
         console.log(`Processing file: ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
 
-        // Check if this is a large nutrition label image (based on file size)
-        if (file.size > 100000) {
-            console.log('Detected large nutrition label image, using optimized processing');
-            scanStatus.textContent = 'Processing nutrition label...';
-
-            // Use optimized values for large nutrition label images based on the image provided
-            const nutritionData = {
-                success: true,
-                // Basic nutrition values
-                calories: 272.8,
-                protein: 22.1,
-                fat: 18.7,
-                carbs: 2.0,
-                amount: 131.3,
-
-                // General section
-                alcohol: 0.0,
-                caffeine: 0.0,
-                water: 131.3,
-
-                // Carbohydrates section
-                fiber: 0.0,
-                starch: 0.0,
-                sugars: 0.0,
-                addedSugars: 0.0,
-                netCarbs: 2.0,
-
-                // Lipids section
-                monounsaturated: 7.2,
-                polyunsaturated: 2.5,
-                omega3: 0.1,
-                omega6: 0.0,
-                saturated: 5.7,
-                transFat: 0.0,
-                cholesterol: 654.0,
-
-                // Protein section
-                cystine: 0.5,
-                histidine: 0.5,
-                isoleucine: 1.2,
-                leucine: 1.8,
-                lysine: 1.6,
-                methionine: 0.7,
-                phenylalanine: 1.0,
-                threonine: 1.0,
-                tryptophan: 0.3,
-                tyrosine: 0.8,
-                valine: 1.3,
-
-                // Vitamins section
-                vitaminB1: 0.1,  // Thiamine
-                vitaminB2: 0.5,  // Riboflavin
-                vitaminB3: 5.7,  // Niacin
-                vitaminB5: 2.5,  // Pantothenic Acid
-                vitaminB6: 0.7,  // Pyridoxine
-                vitaminB12: 2.0, // Cobalamin
-                folate: 77.0,
-                vitaminA: 252.0,
-                vitaminC: 0.0,
-                vitaminD: 151.0,
-                vitaminE: 1.8,
-                vitaminK: 0.5,
-
-                // Minerals section
-                calcium: 86.0,
-                copper: 0.1,
-                iron: 2.1,
-                magnesium: 13.0,
-                manganese: 0.0,
-                phosphorus: 192.7,
-                potassium: 221.8,
-                selenium: 54.2,
-                sodium: 252.2,
-                zinc: 1.6,
-
-                // Percentage values
-                percentages: {
-                    'fat': 23,
-                    'saturated fat': 70,
-                    'cholesterol': 'N/T',
-                    'sodium': 15,
-                    'carbs': 0,
-                    'fiber': 0,
-                    'sugars': 'N/T',
-                    'protein': 12,
-                    'vitamin b1': 10,
-                    'vitamin b2': 65,
-                    'vitamin b3': 5,
-                    'vitamin b5': 43,
-                    'vitamin b6': 8,
-                    'vitamin b12': 87,
-                    'folate': 12,
-                    'vitamin a': 25,
-                    'vitamin c': 0,
-                    'vitamin d': 25,
-                    'vitamin e': 12,
-                    'vitamin k': 0,
-                    'calcium': 9,
-                    'copper': 1,
-                    'iron': 25,
-                    'magnesium': 4,
-                    'manganese': 2,
-                    'phosphorus': 43,
-                    'potassium': 7,
-                    'selenium': 95,
-                    'sodium': 15,
-                    'zinc': 17
-                },
-
-                rawText: "Optimized processing for large nutrition label",
-                optimizedProcessing: true
-            };
-
-            // Fill in the form fields with the extracted data
-            fillNutritionFields(ingredientItem, nutritionData);
-
-            // Show success message
-            scanStatus.textContent = 'Nutrition information extracted successfully!';
-            scanStatus.className = 'scan-status success';
-
-            // Hide the status after 3 seconds
-            setTimeout(() => {
-                scanStatus.style.display = 'none';
-            }, 3000);
-
-            // Return early - no need to call the server
-            return;
-        }
-
-        // Create form data for the file upload
+        // Create a FormData object to send the file to the server
         const formData = new FormData();
         formData.append('image', file);
 
+        // Variable to store the nutrition data
+        let nutritionData = null;
+        let response = null;
+
         try {
-            console.log('Attempting to process nutrition image...');
+            // Get the OCR type from the ingredient item's dataset
+            const ocrType = ingredientItem.dataset.ocrType || 'auto';
+            console.log('Using OCR type:', ocrType);
 
-            // Try multiple endpoints in case one fails
-            let response;
-            let nutritionData = null;
+            // Define endpoints based on OCR type
+            let endpoints = [];
 
-            try {
-                // Try the simple endpoint first for known test images
-                console.log('Trying /api/energy-ocr-fixed/simple endpoint...');
-                // Use current window location instead of hardcoded port
-                const apiUrl = `/api/energy-ocr-fixed/simple`;
-                console.log('Using API URL:', apiUrl);
-                response = await fetch(apiUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    nutritionData = await response.json();
-                    console.log('Successfully received data from simple endpoint:', nutritionData);
-                } else {
-                    console.log('simple endpoint failed with status:', response.status);
-                }
-            } catch (firstError) {
-                console.log('Error with simple endpoint:', firstError.message);
+            if (ocrType === 'template') {
+                // Use only the template-based OCR endpoint
+                endpoints = [
+                    '/api/template-ocr/nutrition'
+                ];
+            } else if (ocrType === 'regular') {
+                // Use only the regular OCR endpoints
+                endpoints = [
+                    '/api/improved-ocr/nutrition',
+                    '/api/improved-ocr/simple',
+                    '/api/ocr/nutrition'
+                ];
+            } else {
+                // Auto-detect: try template first, then fall back to regular OCR
+                endpoints = [
+                    '/api/template-ocr/nutrition',
+                    '/api/improved-ocr/nutrition',
+                    '/api/improved-ocr/simple',
+                    '/api/ocr/nutrition'
+                ];
             }
 
-            // If the first endpoint failed, try the energy-ocr-fixed endpoint
-            if (!nutritionData) {
+            // Try each endpoint in sequence
+            for (const endpoint of endpoints) {
                 try {
-                    console.log('Trying /api/energy-ocr-fixed/nutrition endpoint...');
-                    // Use current window location instead of hardcoded port
-                    const apiUrl = `/api/energy-ocr-fixed/nutrition`;
-                    console.log('Using API URL:', apiUrl);
-                    response = await fetch(apiUrl, {
+                    console.log(`Trying ${endpoint} endpoint...`);
+                    response = await fetch(endpoint, {
                         method: 'POST',
                         body: formData
                     });
 
                     if (response.ok) {
                         nutritionData = await response.json();
-                        console.log('Successfully received data from energy-ocr-fixed endpoint:', nutritionData);
+                        console.log(`Successfully received data from ${endpoint}:`, nutritionData);
+                        break; // Exit the loop if successful
                     } else {
-                        console.log('energy-ocr-fixed endpoint failed with status:', response.status);
+                        console.log(`${endpoint} failed with status:`, response.status);
                     }
-                } catch (secondError) {
-                    console.log('Error with energy-ocr-fixed endpoint:', secondError.message);
-                }
-            }
-
-            // If the first two endpoints failed, try the improved simple endpoint
-            if (!nutritionData) {
-                try {
-                    console.log('Trying /api/improved-ocr/simple endpoint...');
-                    // Use current window location instead of hardcoded port
-                    const apiUrl = `/api/improved-ocr/simple`;
-                    console.log('Using API URL:', apiUrl);
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (response.ok) {
-                        nutritionData = await response.json();
-                        console.log('Successfully received data from improved-ocr simple endpoint:', nutritionData);
-                    } else {
-                        console.log('improved-ocr simple endpoint failed with status:', response.status);
-                    }
-                } catch (secondError) {
-                    console.log('Error with improved-ocr simple endpoint:', secondError.message);
-                }
-            }
-
-            // If all previous endpoints failed, try the original OCR endpoint
-            if (!nutritionData) {
-                try {
-                    console.log('Trying /api/ocr/nutrition endpoint...');
-                    // Use current window location instead of hardcoded port
-                    const apiUrl = `/api/ocr/nutrition`;
-                    console.log('Using API URL:', apiUrl);
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (response.ok) {
-                        nutritionData = await response.json();
-                        console.log('Successfully received data from ocr endpoint:', nutritionData);
-                    } else {
-                        console.log('ocr endpoint failed with status:', response.status);
-                    }
-                } catch (thirdError) {
-                    console.log('Error with ocr endpoint:', thirdError.message);
+                } catch (endpointError) {
+                    console.log(`Error with ${endpoint}:`, endpointError.message);
                 }
             }
 
@@ -287,10 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Fill in the form fields with the extracted data
             fillNutritionFields(ingredientItem, nutritionData);
 
-            // Show appropriate message based on whether fallback data was used
+            // Show appropriate message based on whether fallback data was used or auto-corrections were made
             if (nutritionData.fallback) {
                 scanStatus.textContent = 'Using sample nutrition data (OCR could not extract values)';
                 scanStatus.className = 'scan-status warning';
+            } else if (nutritionData.caloriesCorrected || nutritionData.proteinCorrected ||
+                       nutritionData.fatCorrected || nutritionData.carbsCorrected ||
+                       nutritionData.amountCorrected) {
+                scanStatus.textContent = 'Nutrition information extracted with auto-corrections (highlighted in green)!';
+                scanStatus.className = 'scan-status success';
             } else {
                 scanStatus.textContent = 'Nutrition information extracted successfully!';
                 scanStatus.className = 'scan-status success';
@@ -325,17 +293,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const carbsInput = ingredientItem.querySelector('.ingredient-carbs');
 
         // Fill in the basic fields if data is available
-        // Only update the amount field visibly, but update all hidden fields
-        if (data.amount !== null) amountInput.value = data.amount;
+        // Only update fields with non-null values
+        if (data.amount !== null && data.amount !== undefined) {
+            amountInput.value = data.amount;
+            // Store original value if auto-corrected
+            if (data.amountCorrected && data.originalAmount !== undefined) {
+                amountInput.dataset.originalValue = data.originalAmount;
+            }
+        }
 
-        // Always update hidden fields with the latest values
-        if (data.calories !== null) caloriesInput.value = data.calories;
-        if (data.protein !== null) proteinInput.value = data.protein;
-        if (data.fat !== null) fatInput.value = data.fat;
-        if (data.carbs !== null) carbsInput.value = data.carbs;
+        // Update hidden fields with the latest values only if they're not null
+        if (data.calories !== null && data.calories !== undefined) {
+            caloriesInput.value = data.calories;
+            // Store original value if auto-corrected
+            if (data.caloriesCorrected && data.originalCalories !== undefined) {
+                caloriesInput.dataset.originalValue = data.originalCalories;
+            }
+        }
 
-        // Only highlight the amount field
-        highlightField(amountInput, data.amount !== null);
+        if (data.protein !== null && data.protein !== undefined) {
+            proteinInput.value = data.protein;
+            // Store original value if auto-corrected
+            if (data.proteinCorrected && data.originalProtein !== undefined) {
+                proteinInput.dataset.originalValue = data.originalProtein;
+            }
+        }
+
+        if (data.fat !== null && data.fat !== undefined) {
+            fatInput.value = data.fat;
+            // Store original value if auto-corrected
+            if (data.fatCorrected && data.originalFat !== undefined) {
+                fatInput.dataset.originalValue = data.originalFat;
+            }
+        }
+
+        if (data.carbs !== null && data.carbs !== undefined) {
+            carbsInput.value = data.carbs;
+            // Store original value if auto-corrected
+            if (data.carbsCorrected && data.originalCarbs !== undefined) {
+                carbsInput.dataset.originalValue = data.originalCarbs;
+            }
+        }
+
+        // Only highlight fields that were actually filled, with special highlighting for auto-corrected values
+        highlightField(amountInput, data.amount !== null && data.amount !== undefined, data.amountCorrected);
 
         // Get and fill detailed nutrition fields
         // General section
@@ -404,153 +405,399 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Fill in detailed fields with data from the scan or with the basic values
         // General section
-        if (energyInput && data.calories !== null) energyInput.value = data.calories;
-        if (alcoholInput && data.alcohol !== null) alcoholInput.value = data.alcohol;
-        if (caffeineInput && data.caffeine !== null) caffeineInput.value = data.caffeine;
-        if (waterInput && data.water !== null) waterInput.value = data.water || (data.amount !== null ? data.amount : '');
+        if (energyInput && data.calories !== null && data.calories !== undefined) {
+            energyInput.value = data.calories;
+            // Store original value if auto-corrected
+            if (data.caloriesCorrected && data.originalCalories !== undefined) {
+                energyInput.dataset.originalValue = data.originalCalories;
+            }
+        }
+        if (alcoholInput && data.alcohol !== null && data.alcohol !== undefined) alcoholInput.value = data.alcohol;
+        if (caffeineInput && data.caffeine !== null && data.caffeine !== undefined) caffeineInput.value = data.caffeine;
+        if (waterInput) {
+            if (data.water !== null && data.water !== undefined) {
+                waterInput.value = data.water;
+            } else if (data.amount !== null && data.amount !== undefined) {
+                waterInput.value = data.amount;
+            }
+        }
 
         // Carbohydrates section
-        if (carbsTotalInput && data.carbs !== null) carbsTotalInput.value = data.carbs;
-        if (fiberInput && data.fiber !== null) fiberInput.value = data.fiber;
-        if (starchInput && data.starch !== null) starchInput.value = data.starch;
-        if (sugarsInput && data.sugars !== null) sugarsInput.value = data.sugars;
-        if (addedSugarsInput && data.addedSugars !== null) addedSugarsInput.value = data.addedSugars;
-        if (netCarbsInput && data.netCarbs !== null) netCarbsInput.value = data.netCarbs;
+        if (carbsTotalInput && data.carbs !== null && data.carbs !== undefined) {
+            carbsTotalInput.value = data.carbs;
+            // Store original value if auto-corrected
+            if (data.carbsCorrected && data.originalCarbs !== undefined) {
+                carbsTotalInput.dataset.originalValue = data.originalCarbs;
+            }
+        }
+        if (fiberInput && data.fiber !== null && data.fiber !== undefined) fiberInput.value = data.fiber;
+        if (starchInput && data.starch !== null && data.starch !== undefined) starchInput.value = data.starch;
+        if (sugarsInput && data.sugars !== null && data.sugars !== undefined) sugarsInput.value = data.sugars;
+        if (addedSugarsInput && data.addedSugars !== null && data.addedSugars !== undefined) addedSugarsInput.value = data.addedSugars;
+        if (netCarbsInput && data.netCarbs !== null && data.netCarbs !== undefined) netCarbsInput.value = data.netCarbs;
 
         // Lipids section
-        if (fatTotalInput && data.fat !== null) fatTotalInput.value = data.fat;
-        if (saturatedInput && data.saturated !== null) saturatedInput.value = data.saturated;
-        if (monounsaturatedInput && data.monounsaturated !== null) monounsaturatedInput.value = data.monounsaturated;
-        if (polyunsaturatedInput && data.polyunsaturated !== null) polyunsaturatedInput.value = data.polyunsaturated;
-        if (omega3Input && data.omega3 !== null) omega3Input.value = data.omega3;
-        if (omega6Input && data.omega6 !== null) omega6Input.value = data.omega6;
-        if (transFatInput && data.transFat !== null) transFatInput.value = data.transFat;
-        if (cholesterolInput && data.cholesterol !== null) cholesterolInput.value = data.cholesterol;
+        if (fatTotalInput && data.fat !== null && data.fat !== undefined) {
+            fatTotalInput.value = data.fat;
+            // Store original value if auto-corrected
+            if (data.fatCorrected && data.originalFat !== undefined) {
+                fatTotalInput.dataset.originalValue = data.originalFat;
+            }
+        }
+        if (saturatedInput && data.saturated !== null && data.saturated !== undefined) saturatedInput.value = data.saturated;
+        if (monounsaturatedInput && data.monounsaturated !== null && data.monounsaturated !== undefined) monounsaturatedInput.value = data.monounsaturated;
+        if (polyunsaturatedInput && data.polyunsaturated !== null && data.polyunsaturated !== undefined) polyunsaturatedInput.value = data.polyunsaturated;
+        if (omega3Input && data.omega3 !== null && data.omega3 !== undefined) omega3Input.value = data.omega3;
+        if (omega6Input && data.omega6 !== null && data.omega6 !== undefined) omega6Input.value = data.omega6;
+        if (transFatInput && data.transFat !== null && data.transFat !== undefined) transFatInput.value = data.transFat;
+        if (cholesterolInput && data.cholesterol !== null && data.cholesterol !== undefined) cholesterolInput.value = data.cholesterol;
 
         // Protein section
-        if (proteinTotalInput && data.protein !== null) proteinTotalInput.value = data.protein;
-        if (cystineInput && data.cystine !== null) cystineInput.value = data.cystine;
-        if (histidineInput && data.histidine !== null) histidineInput.value = data.histidine;
-        if (isoleucineInput && data.isoleucine !== null) isoleucineInput.value = data.isoleucine;
-        if (leucineInput && data.leucine !== null) leucineInput.value = data.leucine;
-        if (lysineInput && data.lysine !== null) lysineInput.value = data.lysine;
-        if (methionineInput && data.methionine !== null) methionineInput.value = data.methionine;
-        if (phenylalanineInput && data.phenylalanine !== null) phenylalanineInput.value = data.phenylalanine;
-        if (threonineInput && data.threonine !== null) threonineInput.value = data.threonine;
-        if (tryptophanInput && data.tryptophan !== null) tryptophanInput.value = data.tryptophan;
-        if (tyrosineInput && data.tyrosine !== null) tyrosineInput.value = data.tyrosine;
-        if (valineInput && data.valine !== null) valineInput.value = data.valine;
+        if (proteinTotalInput && data.protein !== null && data.protein !== undefined) {
+            proteinTotalInput.value = data.protein;
+            // Store original value if auto-corrected
+            if (data.proteinCorrected && data.originalProtein !== undefined) {
+                proteinTotalInput.dataset.originalValue = data.originalProtein;
+            }
+        }
+        if (cystineInput && data.cystine !== null && data.cystine !== undefined) cystineInput.value = data.cystine;
+        if (histidineInput && data.histidine !== null && data.histidine !== undefined) histidineInput.value = data.histidine;
+        if (isoleucineInput && data.isoleucine !== null && data.isoleucine !== undefined) isoleucineInput.value = data.isoleucine;
+        if (leucineInput && data.leucine !== null && data.leucine !== undefined) leucineInput.value = data.leucine;
+        if (lysineInput && data.lysine !== null && data.lysine !== undefined) lysineInput.value = data.lysine;
+        if (methionineInput && data.methionine !== null && data.methionine !== undefined) methionineInput.value = data.methionine;
+        if (phenylalanineInput && data.phenylalanine !== null && data.phenylalanine !== undefined) phenylalanineInput.value = data.phenylalanine;
+        if (threonineInput && data.threonine !== null && data.threonine !== undefined) threonineInput.value = data.threonine;
+        if (tryptophanInput && data.tryptophan !== null && data.tryptophan !== undefined) tryptophanInput.value = data.tryptophan;
+        if (tyrosineInput && data.tyrosine !== null && data.tyrosine !== undefined) tyrosineInput.value = data.tyrosine;
+        if (valineInput && data.valine !== null && data.valine !== undefined) valineInput.value = data.valine;
 
         // Vitamins section
-        if (vitaminB1Input && data.vitaminB1 !== null) vitaminB1Input.value = data.vitaminB1;
-        if (vitaminB2Input && data.vitaminB2 !== null) vitaminB2Input.value = data.vitaminB2;
-        if (vitaminB3Input && data.vitaminB3 !== null) vitaminB3Input.value = data.vitaminB3;
-        if (vitaminB5Input && data.vitaminB5 !== null) vitaminB5Input.value = data.vitaminB5;
-        if (vitaminB6Input && data.vitaminB6 !== null) vitaminB6Input.value = data.vitaminB6;
-        if (vitaminB12Input && data.vitaminB12 !== null) vitaminB12Input.value = data.vitaminB12;
-        if (folateInput && data.folate !== null) folateInput.value = data.folate;
-        if (vitaminAInput && data.vitaminA !== null) vitaminAInput.value = data.vitaminA;
-        if (vitaminCInput && data.vitaminC !== null) vitaminCInput.value = data.vitaminC;
-        if (vitaminDInput && data.vitaminD !== null) vitaminDInput.value = data.vitaminD;
-        if (vitaminEInput && data.vitaminE !== null) vitaminEInput.value = data.vitaminE;
-        if (vitaminKInput && data.vitaminK !== null) vitaminKInput.value = data.vitaminK;
+        if (vitaminB1Input && data.vitaminB1 !== null && data.vitaminB1 !== undefined) vitaminB1Input.value = data.vitaminB1;
+        if (vitaminB2Input && data.vitaminB2 !== null && data.vitaminB2 !== undefined) vitaminB2Input.value = data.vitaminB2;
+        if (vitaminB3Input && data.vitaminB3 !== null && data.vitaminB3 !== undefined) vitaminB3Input.value = data.vitaminB3;
+        if (vitaminB5Input && data.vitaminB5 !== null && data.vitaminB5 !== undefined) vitaminB5Input.value = data.vitaminB5;
+        if (vitaminB6Input && data.vitaminB6 !== null && data.vitaminB6 !== undefined) vitaminB6Input.value = data.vitaminB6;
+        if (vitaminB12Input && data.vitaminB12 !== null && data.vitaminB12 !== undefined) vitaminB12Input.value = data.vitaminB12;
+        if (folateInput && data.folate !== null && data.folate !== undefined) folateInput.value = data.folate;
+        if (vitaminAInput && data.vitaminA !== null && data.vitaminA !== undefined) vitaminAInput.value = data.vitaminA;
+        if (vitaminCInput && data.vitaminC !== null && data.vitaminC !== undefined) vitaminCInput.value = data.vitaminC;
+        if (vitaminDInput && data.vitaminD !== null && data.vitaminD !== undefined) vitaminDInput.value = data.vitaminD;
+        if (vitaminEInput && data.vitaminE !== null && data.vitaminE !== undefined) vitaminEInput.value = data.vitaminE;
+        if (vitaminKInput && data.vitaminK !== null && data.vitaminK !== undefined) vitaminKInput.value = data.vitaminK;
 
         // Minerals section
-        if (calciumInput && data.calcium !== null) calciumInput.value = data.calcium;
-        if (copperInput && data.copper !== null) copperInput.value = data.copper;
-        if (ironInput && data.iron !== null) ironInput.value = data.iron;
-        if (magnesiumInput && data.magnesium !== null) magnesiumInput.value = data.magnesium;
-        if (manganeseInput && data.manganese !== null) manganeseInput.value = data.manganese;
-        if (phosphorusInput && data.phosphorus !== null) phosphorusInput.value = data.phosphorus;
-        if (potassiumInput && data.potassium !== null) potassiumInput.value = data.potassium;
-        if (seleniumInput && data.selenium !== null) seleniumInput.value = data.selenium;
-        if (sodiumInput && data.sodium !== null) sodiumInput.value = data.sodium;
-        if (zincInput && data.zinc !== null) zincInput.value = data.zinc;
+        if (calciumInput && data.calcium !== null && data.calcium !== undefined) calciumInput.value = data.calcium;
+        if (copperInput && data.copper !== null && data.copper !== undefined) copperInput.value = data.copper;
+        if (ironInput && data.iron !== null && data.iron !== undefined) ironInput.value = data.iron;
+        if (magnesiumInput && data.magnesium !== null && data.magnesium !== undefined) magnesiumInput.value = data.magnesium;
+        if (manganeseInput && data.manganese !== null && data.manganese !== undefined) manganeseInput.value = data.manganese;
+        if (phosphorusInput && data.phosphorus !== null && data.phosphorus !== undefined) phosphorusInput.value = data.phosphorus;
+        if (potassiumInput && data.potassium !== null && data.potassium !== undefined) potassiumInput.value = data.potassium;
+        if (seleniumInput && data.selenium !== null && data.selenium !== undefined) seleniumInput.value = data.selenium;
+        if (sodiumInput && data.sodium !== null && data.sodium !== undefined) sodiumInput.value = data.sodium;
+        if (zincInput && data.zinc !== null && data.zinc !== undefined) zincInput.value = data.zinc;
 
         // Highlight detailed fields that were filled
         // General section
-        if (energyInput) highlightField(energyInput, data.calories !== null);
-        if (alcoholInput) highlightField(alcoholInput, data.alcohol !== null);
-        if (caffeineInput) highlightField(caffeineInput, data.caffeine !== null);
-        if (waterInput) highlightField(waterInput, data.water !== null || data.amount !== null);
+        if (energyInput) {
+            highlightField(energyInput, data.calories !== null && data.calories !== undefined, data.caloriesCorrected);
+            addPercentageIndicator(energyInput, 'calories', data.percentages);
+        }
+        if (alcoholInput) {
+            highlightField(alcoholInput, data.alcohol !== null && data.alcohol !== undefined);
+            addPercentageIndicator(alcoholInput, 'alcohol', data.percentages);
+        }
+        if (caffeineInput) {
+            highlightField(caffeineInput, data.caffeine !== null && data.caffeine !== undefined);
+            addPercentageIndicator(caffeineInput, 'caffeine', data.percentages);
+        }
+        if (waterInput) {
+            highlightField(waterInput, (data.water !== null && data.water !== undefined) || (data.amount !== null && data.amount !== undefined), data.amountCorrected);
+            addPercentageIndicator(waterInput, 'water', data.percentages);
+        }
 
         // Carbohydrates section
-        if (carbsTotalInput) highlightField(carbsTotalInput, data.carbs !== null);
-        if (fiberInput) highlightField(fiberInput, data.fiber !== null);
-        if (starchInput) highlightField(starchInput, data.starch !== null);
-        if (sugarsInput) highlightField(sugarsInput, data.sugars !== null);
-        if (addedSugarsInput) highlightField(addedSugarsInput, data.addedSugars !== null);
-        if (netCarbsInput) highlightField(netCarbsInput, data.netCarbs !== null);
+        if (carbsTotalInput) {
+            highlightField(carbsTotalInput, data.carbs !== null && data.carbs !== undefined, data.carbsCorrected);
+            addPercentageIndicator(carbsTotalInput, 'carbs', data.percentages);
+        }
+        if (fiberInput) {
+            highlightField(fiberInput, data.fiber !== null && data.fiber !== undefined);
+            addPercentageIndicator(fiberInput, 'fiber', data.percentages);
+        }
+        if (starchInput) {
+            highlightField(starchInput, data.starch !== null && data.starch !== undefined);
+            addPercentageIndicator(starchInput, 'starch', data.percentages);
+        }
+        if (sugarsInput) {
+            highlightField(sugarsInput, data.sugars !== null && data.sugars !== undefined);
+            addPercentageIndicator(sugarsInput, 'sugars', data.percentages);
+        }
+        if (addedSugarsInput) {
+            highlightField(addedSugarsInput, data.addedSugars !== null && data.addedSugars !== undefined);
+            addPercentageIndicator(addedSugarsInput, 'addedSugars', data.percentages);
+        }
+        if (netCarbsInput) {
+            highlightField(netCarbsInput, data.netCarbs !== null && data.netCarbs !== undefined);
+            addPercentageIndicator(netCarbsInput, 'netCarbs', data.percentages);
+        }
 
         // Lipids section
-        if (fatTotalInput) highlightField(fatTotalInput, data.fat !== null);
-        if (saturatedInput) highlightField(saturatedInput, data.saturated !== null);
-        if (monounsaturatedInput) highlightField(monounsaturatedInput, data.monounsaturated !== null);
-        if (polyunsaturatedInput) highlightField(polyunsaturatedInput, data.polyunsaturated !== null);
-        if (omega3Input) highlightField(omega3Input, data.omega3 !== null);
-        if (omega6Input) highlightField(omega6Input, data.omega6 !== null);
-        if (transFatInput) highlightField(transFatInput, data.transFat !== null);
-        if (cholesterolInput) highlightField(cholesterolInput, data.cholesterol !== null);
+        if (fatTotalInput) {
+            highlightField(fatTotalInput, data.fat !== null && data.fat !== undefined, data.fatCorrected);
+            addPercentageIndicator(fatTotalInput, 'fat', data.percentages);
+        }
+        if (saturatedInput) {
+            highlightField(saturatedInput, data.saturated !== null && data.saturated !== undefined);
+            addPercentageIndicator(saturatedInput, 'saturated', data.percentages);
+        }
+        if (monounsaturatedInput) {
+            highlightField(monounsaturatedInput, data.monounsaturated !== null && data.monounsaturated !== undefined);
+            addPercentageIndicator(monounsaturatedInput, 'monounsaturated', data.percentages);
+        }
+        if (polyunsaturatedInput) {
+            highlightField(polyunsaturatedInput, data.polyunsaturated !== null && data.polyunsaturated !== undefined);
+            addPercentageIndicator(polyunsaturatedInput, 'polyunsaturated', data.percentages);
+        }
+        if (omega3Input) {
+            highlightField(omega3Input, data.omega3 !== null && data.omega3 !== undefined);
+            addPercentageIndicator(omega3Input, 'omega3', data.percentages);
+        }
+        if (omega6Input) {
+            highlightField(omega6Input, data.omega6 !== null && data.omega6 !== undefined);
+            addPercentageIndicator(omega6Input, 'omega6', data.percentages);
+        }
+        if (transFatInput) {
+            highlightField(transFatInput, data.transFat !== null && data.transFat !== undefined);
+            addPercentageIndicator(transFatInput, 'transFat', data.percentages);
+        }
+        if (cholesterolInput) {
+            highlightField(cholesterolInput, data.cholesterol !== null && data.cholesterol !== undefined);
+            addPercentageIndicator(cholesterolInput, 'cholesterol', data.percentages);
+        }
 
         // Protein section
-        if (proteinTotalInput) highlightField(proteinTotalInput, data.protein !== null);
-        if (cystineInput) highlightField(cystineInput, data.cystine !== null);
-        if (histidineInput) highlightField(histidineInput, data.histidine !== null);
-        if (isoleucineInput) highlightField(isoleucineInput, data.isoleucine !== null);
-        if (leucineInput) highlightField(leucineInput, data.leucine !== null);
-        if (lysineInput) highlightField(lysineInput, data.lysine !== null);
-        if (methionineInput) highlightField(methionineInput, data.methionine !== null);
-        if (phenylalanineInput) highlightField(phenylalanineInput, data.phenylalanine !== null);
-        if (threonineInput) highlightField(threonineInput, data.threonine !== null);
-        if (tryptophanInput) highlightField(tryptophanInput, data.tryptophan !== null);
-        if (tyrosineInput) highlightField(tyrosineInput, data.tyrosine !== null);
-        if (valineInput) highlightField(valineInput, data.valine !== null);
+        if (proteinTotalInput) {
+            highlightField(proteinTotalInput, data.protein !== null && data.protein !== undefined, data.proteinCorrected);
+            addPercentageIndicator(proteinTotalInput, 'protein', data.percentages);
+        }
+        if (cystineInput) {
+            highlightField(cystineInput, data.cystine !== null && data.cystine !== undefined);
+            addPercentageIndicator(cystineInput, 'cystine', data.percentages);
+        }
+        if (histidineInput) {
+            highlightField(histidineInput, data.histidine !== null && data.histidine !== undefined);
+            addPercentageIndicator(histidineInput, 'histidine', data.percentages);
+        }
+        if (isoleucineInput) {
+            highlightField(isoleucineInput, data.isoleucine !== null && data.isoleucine !== undefined);
+            addPercentageIndicator(isoleucineInput, 'isoleucine', data.percentages);
+        }
+        if (leucineInput) {
+            highlightField(leucineInput, data.leucine !== null && data.leucine !== undefined);
+            addPercentageIndicator(leucineInput, 'leucine', data.percentages);
+        }
+        if (lysineInput) {
+            highlightField(lysineInput, data.lysine !== null && data.lysine !== undefined);
+            addPercentageIndicator(lysineInput, 'lysine', data.percentages);
+        }
+        if (methionineInput) {
+            highlightField(methionineInput, data.methionine !== null && data.methionine !== undefined);
+            addPercentageIndicator(methionineInput, 'methionine', data.percentages);
+        }
+        if (phenylalanineInput) {
+            highlightField(phenylalanineInput, data.phenylalanine !== null && data.phenylalanine !== undefined);
+            addPercentageIndicator(phenylalanineInput, 'phenylalanine', data.percentages);
+        }
+        if (threonineInput) {
+            highlightField(threonineInput, data.threonine !== null && data.threonine !== undefined);
+            addPercentageIndicator(threonineInput, 'threonine', data.percentages);
+        }
+        if (tryptophanInput) {
+            highlightField(tryptophanInput, data.tryptophan !== null && data.tryptophan !== undefined);
+            addPercentageIndicator(tryptophanInput, 'tryptophan', data.percentages);
+        }
+        if (tyrosineInput) {
+            highlightField(tyrosineInput, data.tyrosine !== null && data.tyrosine !== undefined);
+            addPercentageIndicator(tyrosineInput, 'tyrosine', data.percentages);
+        }
+        if (valineInput) {
+            highlightField(valineInput, data.valine !== null && data.valine !== undefined);
+            addPercentageIndicator(valineInput, 'valine', data.percentages);
+        }
 
         // Vitamins section
-        if (vitaminB1Input) highlightField(vitaminB1Input, data.vitaminB1 !== null);
-        if (vitaminB2Input) highlightField(vitaminB2Input, data.vitaminB2 !== null);
-        if (vitaminB3Input) highlightField(vitaminB3Input, data.vitaminB3 !== null);
-        if (vitaminB5Input) highlightField(vitaminB5Input, data.vitaminB5 !== null);
-        if (vitaminB6Input) highlightField(vitaminB6Input, data.vitaminB6 !== null);
-        if (vitaminB12Input) highlightField(vitaminB12Input, data.vitaminB12 !== null);
-        if (folateInput) highlightField(folateInput, data.folate !== null);
-        if (vitaminAInput) highlightField(vitaminAInput, data.vitaminA !== null);
-        if (vitaminCInput) highlightField(vitaminCInput, data.vitaminC !== null);
-        if (vitaminDInput) highlightField(vitaminDInput, data.vitaminD !== null);
-        if (vitaminEInput) highlightField(vitaminEInput, data.vitaminE !== null);
-        if (vitaminKInput) highlightField(vitaminKInput, data.vitaminK !== null);
+        if (vitaminB1Input) {
+            highlightField(vitaminB1Input, data.vitaminB1 !== null && data.vitaminB1 !== undefined);
+            addPercentageIndicator(vitaminB1Input, 'vitaminB1', data.percentages);
+        }
+        if (vitaminB2Input) {
+            highlightField(vitaminB2Input, data.vitaminB2 !== null && data.vitaminB2 !== undefined);
+            addPercentageIndicator(vitaminB2Input, 'vitaminB2', data.percentages);
+        }
+        if (vitaminB3Input) {
+            highlightField(vitaminB3Input, data.vitaminB3 !== null && data.vitaminB3 !== undefined);
+            addPercentageIndicator(vitaminB3Input, 'vitaminB3', data.percentages);
+        }
+        if (vitaminB5Input) {
+            highlightField(vitaminB5Input, data.vitaminB5 !== null && data.vitaminB5 !== undefined);
+            addPercentageIndicator(vitaminB5Input, 'vitaminB5', data.percentages);
+        }
+        if (vitaminB6Input) {
+            highlightField(vitaminB6Input, data.vitaminB6 !== null && data.vitaminB6 !== undefined);
+            addPercentageIndicator(vitaminB6Input, 'vitaminB6', data.percentages);
+        }
+        if (vitaminB12Input) {
+            highlightField(vitaminB12Input, data.vitaminB12 !== null && data.vitaminB12 !== undefined);
+            addPercentageIndicator(vitaminB12Input, 'vitaminB12', data.percentages);
+        }
+        if (folateInput) {
+            highlightField(folateInput, data.folate !== null && data.folate !== undefined);
+            addPercentageIndicator(folateInput, 'folate', data.percentages);
+        }
+        if (vitaminAInput) {
+            highlightField(vitaminAInput, data.vitaminA !== null && data.vitaminA !== undefined);
+            addPercentageIndicator(vitaminAInput, 'vitaminA', data.percentages);
+        }
+        if (vitaminCInput) {
+            highlightField(vitaminCInput, data.vitaminC !== null && data.vitaminC !== undefined);
+            addPercentageIndicator(vitaminCInput, 'vitaminC', data.percentages);
+        }
+        if (vitaminDInput) {
+            highlightField(vitaminDInput, data.vitaminD !== null && data.vitaminD !== undefined);
+            addPercentageIndicator(vitaminDInput, 'vitaminD', data.percentages);
+        }
+        if (vitaminEInput) {
+            highlightField(vitaminEInput, data.vitaminE !== null && data.vitaminE !== undefined);
+            addPercentageIndicator(vitaminEInput, 'vitaminE', data.percentages);
+        }
+        if (vitaminKInput) {
+            highlightField(vitaminKInput, data.vitaminK !== null && data.vitaminK !== undefined);
+            addPercentageIndicator(vitaminKInput, 'vitaminK', data.percentages);
+        }
 
         // Minerals section
-        if (calciumInput) highlightField(calciumInput, data.calcium !== null);
-        if (copperInput) highlightField(copperInput, data.copper !== null);
-        if (ironInput) highlightField(ironInput, data.iron !== null);
-        if (magnesiumInput) highlightField(magnesiumInput, data.magnesium !== null);
-        if (manganeseInput) highlightField(manganeseInput, data.manganese !== null);
-        if (phosphorusInput) highlightField(phosphorusInput, data.phosphorus !== null);
-        if (potassiumInput) highlightField(potassiumInput, data.potassium !== null);
-        if (seleniumInput) highlightField(seleniumInput, data.selenium !== null);
-        if (sodiumInput) highlightField(sodiumInput, data.sodium !== null);
-        if (zincInput) highlightField(zincInput, data.zinc !== null);
+        if (calciumInput) {
+            highlightField(calciumInput, data.calcium !== null && data.calcium !== undefined);
+            addPercentageIndicator(calciumInput, 'calcium', data.percentages);
+        }
+        if (copperInput) {
+            highlightField(copperInput, data.copper !== null && data.copper !== undefined);
+            addPercentageIndicator(copperInput, 'copper', data.percentages);
+        }
+        if (ironInput) {
+            highlightField(ironInput, data.iron !== null && data.iron !== undefined);
+            addPercentageIndicator(ironInput, 'iron', data.percentages);
+        }
+        if (magnesiumInput) {
+            highlightField(magnesiumInput, data.magnesium !== null && data.magnesium !== undefined);
+            addPercentageIndicator(magnesiumInput, 'magnesium', data.percentages);
+        }
+        if (manganeseInput) {
+            highlightField(manganeseInput, data.manganese !== null && data.manganese !== undefined);
+            addPercentageIndicator(manganeseInput, 'manganese', data.percentages);
+        }
+        if (phosphorusInput) {
+            highlightField(phosphorusInput, data.phosphorus !== null && data.phosphorus !== undefined);
+            addPercentageIndicator(phosphorusInput, 'phosphorus', data.percentages);
+        }
+        if (potassiumInput) {
+            highlightField(potassiumInput, data.potassium !== null && data.potassium !== undefined);
+            addPercentageIndicator(potassiumInput, 'potassium', data.percentages);
+        }
+        if (seleniumInput) {
+            highlightField(seleniumInput, data.selenium !== null && data.selenium !== undefined);
+            addPercentageIndicator(seleniumInput, 'selenium', data.percentages);
+        }
+        if (sodiumInput) {
+            highlightField(sodiumInput, data.sodium !== null && data.sodium !== undefined);
+            addPercentageIndicator(sodiumInput, 'sodium', data.percentages);
+        }
+        if (zincInput) {
+            highlightField(zincInput, data.zinc !== null && data.zinc !== undefined);
+            addPercentageIndicator(zincInput, 'zinc', data.percentages);
+        }
+
+        // Add a note about N/T values if any were found
+        if (data.percentages && Object.values(data.percentages).some(val => val === 'N/T')) {
+            const scanStatus = ingredientItem.querySelector('.scan-status');
+            if (scanStatus) {
+                scanStatus.textContent += ' (N/T = No Target value available)';
+            }
+        }
+    }
+
+    // Function to add percentage indicators to nutrition fields
+    function addPercentageIndicator(inputElement, nutrientName, percentages) {
+        // Remove any existing percentage indicator
+        const parentElement = inputElement.closest('.nutrition-item');
+        if (!parentElement) return;
+
+        const existingIndicator = parentElement.querySelector('.nutrition-percentage');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+
+        // Check if we have a percentage value for this nutrient
+        if (percentages && (percentages[nutrientName] !== undefined || percentages[nutrientName.toLowerCase()] !== undefined)) {
+            const percentValue = percentages[nutrientName] !== undefined ? percentages[nutrientName] : percentages[nutrientName.toLowerCase()];
+
+            // Create the percentage indicator
+            const indicator = document.createElement('span');
+            indicator.className = 'nutrition-percentage';
+
+            // Handle N/T values differently
+            if (percentValue === 'N/T') {
+                indicator.textContent = 'N/T';
+                indicator.classList.add('nt');
+                indicator.title = 'No Target value available';
+            } else {
+                indicator.textContent = percentValue + '%';
+                indicator.title = `${percentValue}% of daily recommended value`;
+            }
+
+            // Add the indicator to the parent element
+            parentElement.appendChild(indicator);
+        }
     }
 
     // Function to highlight a field that was filled or needs to be filled
-    function highlightField(inputElement, wasUpdated) {
+    function highlightField(inputElement, wasUpdated, wasAutoCorrected = false) {
         if (wasUpdated) {
-            // Add a temporary highlight effect for filled fields
-            inputElement.style.backgroundColor = '#d4edda';
-            inputElement.style.borderColor = '#c3e6cb';
+            if (wasAutoCorrected) {
+                // Add a persistent green highlight for auto-corrected fields
+                inputElement.style.backgroundColor = '#c3e6cb'; // Darker green
+                inputElement.style.borderColor = '#28a745'; // Bootstrap success color
+                inputElement.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)'; // Green glow
+                inputElement.classList.add('auto-corrected');
 
-            // Remove the highlight after 2 seconds
-            setTimeout(() => {
-                inputElement.style.backgroundColor = '';
-                inputElement.style.borderColor = '';
-            }, 2000);
+                // Add a tooltip or data attribute to show the original value
+                if (inputElement.dataset.originalValue) {
+                    inputElement.title = `Auto-corrected from: ${inputElement.dataset.originalValue}`;
+                } else {
+                    inputElement.title = 'Auto-corrected value - please verify';
+                }
+            } else {
+                // Add a temporary highlight effect for filled fields
+                inputElement.style.backgroundColor = '#d4edda';
+                inputElement.style.borderColor = '#c3e6cb';
+
+                // Remove the highlight after 2 seconds
+                setTimeout(() => {
+                    inputElement.style.backgroundColor = '';
+                    inputElement.style.borderColor = '';
+                }, 2000);
+            }
         } else {
-            // Highlight fields that need to be filled
+            // Highlight fields that need to be filled with a more noticeable color
             inputElement.style.backgroundColor = '#fff3cd';
-            inputElement.style.borderColor = '#ffeeba';
+            inputElement.style.borderColor = '#ffc107';
+            inputElement.style.boxShadow = '0 0 0 0.2rem rgba(255, 193, 7, 0.25)';
 
             // Keep the highlight for these fields
+            // Add a subtle pulsing effect to draw attention to empty fields
+            inputElement.classList.add('empty-field-highlight');
         }
     }
 

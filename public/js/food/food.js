@@ -47,20 +47,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
             <div class="ingredient-row">
                 <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-                <div class="nutrition-scan-container">
-                    <button type="button" class="scan-nutrition-btn">Scan Nutrition Label</button>
-                    <input type="file" class="nutrition-image-input" accept="image/*" style="display:none">
+                <div class="simplified-paste-area" tabindex="0">
+                    <div class="simplified-paste-instructions">
+                        Click here and press Ctrl+V to paste a Cronometer screenshot
+                        <small>The nutrition data will be automatically extracted</small>
+                    </div>
+                    <div class="simplified-paste-preview"></div>
                 </div>
             </div>
             <div class="ingredient-row nutrition-inputs">
                 <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="any" required>
                 <input type="number" placeholder="Price" class="ingredient-price" step="any" required>
                 <button type="button" class="remove-ingredient-btn">Remove</button>
-                <!-- Hidden fields for form submission with default values -->
-                <input type="hidden" class="ingredient-calories" value="0" required>
-                <input type="hidden" class="ingredient-protein" value="0" required>
-                <input type="hidden" class="ingredient-fat" value="0" required>
-                <input type="hidden" class="ingredient-carbs" value="0" required>
+                <!-- Hidden fields for form submission -->
+                <input type="hidden" class="ingredient-calories" required>
+                <input type="hidden" class="ingredient-protein" required>
+                <input type="hidden" class="ingredient-fat" required>
+                <input type="hidden" class="ingredient-carbs" required>
             </div>
 
             <!-- Detailed Nutrition Information (Collapsible) -->
@@ -75,19 +78,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="nutrition-grid">
                         <div class="nutrition-item">
                             <label for="energy">Energy (kcal):</label>
-                            <input type="number" class="nutrition-energy" step="0.1" value="0" required>
+                            <input type="number" class="nutrition-energy" step="0.1" required>
                         </div>
                         <div class="nutrition-item">
                             <label for="alcohol">Alcohol (g):</label>
-                            <input type="number" class="nutrition-alcohol" step="0.1" value="0">
+                            <input type="number" class="nutrition-alcohol" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="caffeine">Caffeine (mg):</label>
-                            <input type="number" class="nutrition-caffeine" step="0.1" value="0">
+                            <input type="number" class="nutrition-caffeine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="water">Water (g):</label>
-                            <input type="number" class="nutrition-water" step="0.1" value="0">
+                            <input type="number" class="nutrition-water" step="0.1">
                         </div>
                     </div>
                 </div>
@@ -98,27 +101,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="nutrition-grid">
                         <div class="nutrition-item">
                             <label for="carbs-total">Carbs (g):</label>
-                            <input type="number" class="nutrition-carbs-total" step="0.1" value="0" required>
+                            <input type="number" class="nutrition-carbs-total" step="0.1" required>
                         </div>
                         <div class="nutrition-item">
                             <label for="fiber">Fiber (g):</label>
-                            <input type="number" class="nutrition-fiber" step="0.1" value="0">
+                            <input type="number" class="nutrition-fiber" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="starch">Starch (g):</label>
-                            <input type="number" class="nutrition-starch" step="0.1" value="0">
+                            <input type="number" class="nutrition-starch" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="sugars">Sugars (g):</label>
-                            <input type="number" class="nutrition-sugars" step="0.1" value="0">
+                            <input type="number" class="nutrition-sugars" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="added-sugars">Added Sugars (g):</label>
-                            <input type="number" class="nutrition-added-sugars" step="0.1" value="0">
+                            <input type="number" class="nutrition-added-sugars" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="net-carbs">Net Carbs (g):</label>
-                            <input type="number" class="nutrition-net-carbs" step="0.1" value="0">
+                            <input type="number" class="nutrition-net-carbs" step="0.1">
                         </div>
                     </div>
                 </div>
@@ -129,35 +132,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="nutrition-grid">
                         <div class="nutrition-item">
                             <label for="fat-total">Fat (g):</label>
-                            <input type="number" class="nutrition-fat-total" step="0.1" value="0" required>
+                            <input type="number" class="nutrition-fat-total" step="0.1" required>
                         </div>
                         <div class="nutrition-item">
                             <label for="monounsaturated">Monounsaturated (g):</label>
-                            <input type="number" class="nutrition-monounsaturated" step="0.1" value="0">
+                            <input type="number" class="nutrition-monounsaturated" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="polyunsaturated">Polyunsaturated (g):</label>
-                            <input type="number" class="nutrition-polyunsaturated" step="0.1" value="0">
+                            <input type="number" class="nutrition-polyunsaturated" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="omega3">Omega 3 (g):</label>
-                            <input type="number" class="nutrition-omega3" step="0.1" value="0">
+                            <input type="number" class="nutrition-omega3" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="omega6">Omega 6 (g):</label>
-                            <input type="number" class="nutrition-omega6" step="0.1" value="0">
+                            <input type="number" class="nutrition-omega6" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="saturated">Saturated (g):</label>
-                            <input type="number" class="nutrition-saturated" step="0.1" value="0">
+                            <input type="number" class="nutrition-saturated" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="trans-fat">Trans Fat (g):</label>
-                            <input type="number" class="nutrition-trans-fat" step="0.1" value="0">
+                            <input type="number" class="nutrition-trans-fat" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="cholesterol">Cholesterol (mg):</label>
-                            <input type="number" class="nutrition-cholesterol" step="0.1" value="0">
+                            <input type="number" class="nutrition-cholesterol" step="0.1">
                         </div>
                     </div>
                 </div>
@@ -168,51 +171,51 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="nutrition-grid">
                         <div class="nutrition-item">
                             <label for="protein-total">Protein (g):</label>
-                            <input type="number" class="nutrition-protein-total" step="0.1" value="0" required>
+                            <input type="number" class="nutrition-protein-total" step="0.1" required>
                         </div>
                         <div class="nutrition-item">
                             <label for="cystine">Cystine (g):</label>
-                            <input type="number" class="nutrition-cystine" step="0.1" value="0">
+                            <input type="number" class="nutrition-cystine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="histidine">Histidine (g):</label>
-                            <input type="number" class="nutrition-histidine" step="0.1" value="0">
+                            <input type="number" class="nutrition-histidine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="isoleucine">Isoleucine (g):</label>
-                            <input type="number" class="nutrition-isoleucine" step="0.1" value="0">
+                            <input type="number" class="nutrition-isoleucine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="leucine">Leucine (g):</label>
-                            <input type="number" class="nutrition-leucine" step="0.1" value="0">
+                            <input type="number" class="nutrition-leucine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="lysine">Lysine (g):</label>
-                            <input type="number" class="nutrition-lysine" step="0.1" value="0">
+                            <input type="number" class="nutrition-lysine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="methionine">Methionine (g):</label>
-                            <input type="number" class="nutrition-methionine" step="0.1" value="0">
+                            <input type="number" class="nutrition-methionine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="phenylalanine">Phenylalanine (g):</label>
-                            <input type="number" class="nutrition-phenylalanine" step="0.1" value="0">
+                            <input type="number" class="nutrition-phenylalanine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="threonine">Threonine (g):</label>
-                            <input type="number" class="nutrition-threonine" step="0.1" value="0">
+                            <input type="number" class="nutrition-threonine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="tryptophan">Tryptophan (g):</label>
-                            <input type="number" class="nutrition-tryptophan" step="0.1" value="0">
+                            <input type="number" class="nutrition-tryptophan" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="tyrosine">Tyrosine (g):</label>
-                            <input type="number" class="nutrition-tyrosine" step="0.1" value="0">
+                            <input type="number" class="nutrition-tyrosine" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="valine">Valine (g):</label>
-                            <input type="number" class="nutrition-valine" step="0.1" value="0">
+                            <input type="number" class="nutrition-valine" step="0.1">
                         </div>
                     </div>
                 </div>
@@ -223,51 +226,51 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="nutrition-grid">
                         <div class="nutrition-item">
                             <label for="vitamin-b1">B1 (Thiamine) (mg):</label>
-                            <input type="number" class="nutrition-vitamin-b1" step="0.01" value="0">
+                            <input type="number" class="nutrition-vitamin-b1" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-b2">B2 (Riboflavin) (mg):</label>
-                            <input type="number" class="nutrition-vitamin-b2" step="0.01" value="0">
+                            <input type="number" class="nutrition-vitamin-b2" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-b3">B3 (Niacin) (mg):</label>
-                            <input type="number" class="nutrition-vitamin-b3" step="0.01" value="0">
+                            <input type="number" class="nutrition-vitamin-b3" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-b5">B5 (Pantothenic Acid) (mg):</label>
-                            <input type="number" class="nutrition-vitamin-b5" step="0.01" value="0">
+                            <input type="number" class="nutrition-vitamin-b5" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-b6">B6 (Pyridoxine) (mg):</label>
-                            <input type="number" class="nutrition-vitamin-b6" step="0.01" value="0">
+                            <input type="number" class="nutrition-vitamin-b6" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-b12">B12 (Cobalamin) (μg):</label>
-                            <input type="number" class="nutrition-vitamin-b12" step="0.01" value="0">
+                            <input type="number" class="nutrition-vitamin-b12" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="folate">Folate (μg):</label>
-                            <input type="number" class="nutrition-folate" step="0.1" value="0">
+                            <input type="number" class="nutrition-folate" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-a">Vitamin A (μg):</label>
-                            <input type="number" class="nutrition-vitamin-a" step="0.1" value="0">
+                            <input type="number" class="nutrition-vitamin-a" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-c">Vitamin C (mg):</label>
-                            <input type="number" class="nutrition-vitamin-c" step="0.1" value="0">
+                            <input type="number" class="nutrition-vitamin-c" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-d">Vitamin D (IU):</label>
-                            <input type="number" class="nutrition-vitamin-d" step="0.1" value="0">
+                            <input type="number" class="nutrition-vitamin-d" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-e">Vitamin E (mg):</label>
-                            <input type="number" class="nutrition-vitamin-e" step="0.1" value="0">
+                            <input type="number" class="nutrition-vitamin-e" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="vitamin-k">Vitamin K (μg):</label>
-                            <input type="number" class="nutrition-vitamin-k" step="0.1" value="0">
+                            <input type="number" class="nutrition-vitamin-k" step="0.1">
                         </div>
                     </div>
                 </div>
@@ -278,49 +281,56 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="nutrition-grid">
                         <div class="nutrition-item">
                             <label for="calcium">Calcium (mg):</label>
-                            <input type="number" class="nutrition-calcium" step="0.1" value="0">
+                            <input type="number" class="nutrition-calcium" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="copper">Copper (mg):</label>
-                            <input type="number" class="nutrition-copper" step="0.01" value="0">
+                            <input type="number" class="nutrition-copper" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="iron">Iron (mg):</label>
-                            <input type="number" class="nutrition-iron" step="0.1" value="0">
+                            <input type="number" class="nutrition-iron" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="magnesium">Magnesium (mg):</label>
-                            <input type="number" class="nutrition-magnesium" step="0.1" value="0">
+                            <input type="number" class="nutrition-magnesium" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="manganese">Manganese (mg):</label>
-                            <input type="number" class="nutrition-manganese" step="0.01" value="0">
+                            <input type="number" class="nutrition-manganese" step="0.01">
                         </div>
                         <div class="nutrition-item">
                             <label for="phosphorus">Phosphorus (mg):</label>
-                            <input type="number" class="nutrition-phosphorus" step="0.1" value="0">
+                            <input type="number" class="nutrition-phosphorus" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="potassium">Potassium (mg):</label>
-                            <input type="number" class="nutrition-potassium" step="0.1" value="0">
+                            <input type="number" class="nutrition-potassium" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="selenium">Selenium (μg):</label>
-                            <input type="number" class="nutrition-selenium" step="0.1" value="0">
+                            <input type="number" class="nutrition-selenium" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="sodium">Sodium (mg):</label>
-                            <input type="number" class="nutrition-sodium" step="0.1" value="0">
+                            <input type="number" class="nutrition-sodium" step="0.1">
                         </div>
                         <div class="nutrition-item">
                             <label for="zinc">Zinc (mg):</label>
-                            <input type="number" class="nutrition-zinc" step="0.1" value="0">
+                            <input type="number" class="nutrition-zinc" step="0.1">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="scan-status" style="display:none"></div>
+            <div class="simplified-scan-status"></div>
+
+            <!-- Raw OCR Text Container (initially hidden) -->
+            <div class="raw-ocr-container" style="display: none;">
+                <h4>Raw OCR Text</h4>
+                <div class="raw-ocr-text"></div>
+                <button class="raw-ocr-toggle">Hide Raw OCR Text</button>
+            </div>
         `;
     }
 
@@ -330,20 +340,50 @@ document.addEventListener('DOMContentLoaded', () => {
         ingredientItem.classList.add('ingredient-item');
         ingredientItem.innerHTML = createIngredientRowHtml();
         ingredientsList.appendChild(ingredientItem);
+
+        // Initialize the paste area in the new row
+        if (typeof initializeSimplifiedPasteAreas === 'function') {
+            initializeSimplifiedPasteAreas();
+        } else {
+            console.error('initializeSimplifiedPasteAreas function not found');
+        }
+
         // Note: Remove button listener is handled by delegation
     }
 
     // Event listener for adding ingredients
     addIngredientBtn.addEventListener('click', addIngredientRow);
 
-    // Event listener for removing ingredients (delegated to the list container)
+    // Event listener for removing ingredients and toggling detailed nutrition (delegated to the list container)
     ingredientsList.addEventListener('click', (event) => {
+        // Handle remove ingredient button
         if (event.target.classList.contains('remove-ingredient-btn')) {
             // Prevent removing the last ingredient row
             if (ingredientsList.children.length > 1) {
                 event.target.closest('.ingredient-item').remove();
             } else {
                 alert("A recipe must have at least one ingredient.");
+            }
+        }
+
+        // Handle detailed nutrition toggle button
+        if (event.target.classList.contains('toggle-detailed-nutrition')) {
+            const button = event.target;
+            const panel = button.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
+
+            if (panel) {
+                // Toggle visibility
+                const isVisible = panel.style.display !== 'none';
+                panel.style.display = isVisible ? 'none' : 'block';
+
+                // Update button text and class
+                if (isVisible) {
+                    button.textContent = 'Show Detailed Nutrition';
+                    button.classList.remove('active');
+                } else {
+                    button.textContent = 'Hide Detailed Nutrition';
+                    button.classList.add('active');
+                }
             }
         }
     });
@@ -392,18 +432,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fatTotalInput && fatTotalInput.value) item.querySelector('.ingredient-fat').value = fatTotalInput.value;
             if (carbsTotalInput && carbsTotalInput.value) item.querySelector('.ingredient-carbs').value = carbsTotalInput.value;
 
-            // Ensure hidden fields have at least 0 as value
-            if (!item.querySelector('.ingredient-calories').value) item.querySelector('.ingredient-calories').value = 0;
-            if (!item.querySelector('.ingredient-protein').value) item.querySelector('.ingredient-protein').value = 0;
-            if (!item.querySelector('.ingredient-fat').value) item.querySelector('.ingredient-fat').value = 0;
-            if (!item.querySelector('.ingredient-carbs').value) item.querySelector('.ingredient-carbs').value = 0;
+            // Leave empty fields as empty (no default values)
 
-            if (!name || isNaN(calories) || isNaN(amount) || isNaN(protein) || isNaN(fat) || isNaN(carbs) || isNaN(price) || amount <= 0 || calories < 0 || protein < 0 || fat < 0 || carbs < 0 || price < 0) {
+            // Convert empty strings to null for validation
+            const caloriesVal = calories === '' ? null : calories;
+            const proteinVal = protein === '' ? null : protein;
+            const fatVal = fat === '' ? null : fat;
+            const carbsVal = carbs === '' ? null : carbs;
+            const priceVal = price === '' ? null : price;
+
+            if (!name || isNaN(caloriesVal) || isNaN(amount) || isNaN(proteinVal) || isNaN(fatVal) || isNaN(carbsVal) || isNaN(priceVal) || amount <= 0 ||
+                (caloriesVal !== null && caloriesVal < 0) ||
+                (proteinVal !== null && proteinVal < 0) ||
+                (fatVal !== null && fatVal < 0) ||
+                (carbsVal !== null && carbsVal < 0) ||
+                (priceVal !== null && priceVal < 0)) {
                 formIsValid = false;
                 item.style.border = '1px solid red'; // Highlight invalid rows
             } else {
                 item.style.border = ''; // Clear highlight on valid rows
-                ingredientsData.push({ name, calories, amount, protein, fats: fat, carbohydrates: carbs, price });
+                // Use null for empty values instead of 0
+                ingredientsData.push({
+                    name,
+                    calories: caloriesVal,
+                    amount,
+                    protein: proteinVal,
+                    fats: fatVal,
+                    carbohydrates: carbsVal,
+                    price: priceVal
+                });
             }
         });
 
@@ -432,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
             createRecipeForm.reset(); // Clear form fields
             // Reset ingredients list to one empty row
             ingredientsList.innerHTML = '';
-            addIngredientRow();
+            addIngredientRow(); // This will also initialize the paste area
             loadRecipes(); // Refresh the recipe list
 
         } catch (error) {
@@ -592,11 +649,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const WEEKS_TO_PROJECT = 12; // Project ~12 weeks into the future for longer-term goals
             const lastLogDate = new Date(weightLogs[weightLogs.length - 1].log_date + 'T00:00:00Z');
 
+            // Store weekly increment dates for tooltip reference
+            window.weeklyIncrementDates = [];
+
+            // Find the most recent actual weight (for comparison with goal weights)
+            let mostRecentWeight = null;
+            let mostRecentDate = null;
+
+            // Loop through weight logs in reverse to find the most recent non-null weight
+            for (let i = weightLogs.length - 1; i >= 0; i--) {
+                if (weightLogs[i].weight !== null) {
+                    mostRecentWeight = weightLogs[i].weight;
+                    mostRecentDate = weightLogs[i].log_date;
+                    break;
+                }
+            }
+
+            // Store the most recent weight for tooltip reference
+            window.mostRecentWeight = {
+                weight: mostRecentWeight,
+                date: mostRecentDate
+            };
+
+            console.log(`Most recent weight: ${mostRecentWeight} lbs on ${mostRecentDate}`);
+
             // Generate future dates exactly 7 days apart (weekly)
             for (let i = 1; i <= WEEKS_TO_PROJECT; i++) {
                 const futureDate = new Date(lastLogDate);
                 futureDate.setDate(lastLogDate.getDate() + (i * 7)); // Add exactly 7 days each time
                 futureLabels.push(futureDate.toLocaleDateString());
+
+                // Store this date as a weekly increment point
+                window.weeklyIncrementDates.push({
+                    date: futureDate.toLocaleDateString(),
+                    index: histLabels.length + i - 1, // Index in the combined labels array
+                    week: i
+                });
+
                 console.log(`Added future date: ${futureDate.toLocaleDateString()} (week ${i})`);
             }
 
@@ -618,10 +707,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 { targetWeight, weeklyGain, startDate, startWeight });
             // --- End Logging ---
 
+            // Create an array to store weekly goal weights
+            window.weeklyGoalWeights = [];
+
             if (targetWeight !== null && weeklyGain !== null && weeklyGain !== 0 && !isNaN(targetWeight) && !isNaN(weeklyGain)) {
                 console.log("Chart: Condition to draw target line met."); // Log condition met
                 // Iterate through the COMBINED labels array to calculate target for each date point
-                labels.forEach(labelStr => {
+                labels.forEach((labelStr, index) => {
                     // Convert label string back to Date object for calculation
                     // We need to handle different date formats
                     let currentDate;
@@ -661,14 +753,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Only calculate projection if weeksDiff is non-negative (i.e., date is after start)
                     if (weeksDiff >= 0) {
                         const projectedWeight = startWeight + (weeksDiff * weeklyGain);
+                        let goalWeight;
 
                         // Handle weight gain vs weight loss differently
                         if (weeklyGain > 0) {
                             // For weight gain, cap at target weight (which is higher than start weight)
-                            targetWeightLine.push(Math.min(projectedWeight, targetWeight));
+                            goalWeight = Math.min(projectedWeight, targetWeight);
+                            targetWeightLine.push(goalWeight);
                         } else {
                             // For weight loss, cap at target weight (which is lower than start weight)
-                            targetWeightLine.push(Math.max(projectedWeight, targetWeight));
+                            goalWeight = Math.max(projectedWeight, targetWeight);
+                            targetWeightLine.push(goalWeight);
+                        }
+
+                        // Store the goal weight for this date
+                        // Check if this is a weekly increment point
+                        const weeklyPoint = window.weeklyIncrementDates.find(w => w.index === index);
+                        if (weeklyPoint) {
+                            window.weeklyGoalWeights.push({
+                                index: index,
+                                date: labelStr,
+                                weight: goalWeight,
+                                week: weeklyPoint.week
+                            });
                         }
                     } else {
                         // If somehow a date before start date is processed, push null
@@ -709,13 +816,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const formattedActualData = [];
         const formattedTargetData = [];
 
+        // Track the most recent weight for comparison with goal weights
+        window.mostRecentWeight = { weight: null, date: null };
+
         // Format actual weight data - use actual array indices for x values
         for (let i = 0; i < labels.length; i++) {
             formattedActualData.push({
                 x: i,
                 y: actualData[i] // Keep null values to maintain line continuity
             });
+
+            // Update most recent weight if this entry has a weight value
+            if (actualData[i] !== null && actualData[i] !== undefined) {
+                if (window.mostRecentWeight.weight === null || i > window.mostRecentWeight.index) {
+                    window.mostRecentWeight = {
+                        weight: actualData[i],
+                        date: labels[i],
+                        index: i
+                    };
+                }
+            }
         }
+
+        console.log('Most recent weight:', window.mostRecentWeight);
 
         // Format target weight data - use actual array indices for x values
         for (let i = 0; i < labels.length; i++) {
@@ -785,8 +908,36 @@ document.addEventListener('DOMContentLoaded', () => {
                  borderWidth: 2,
                  tension: 0, // Set to 0 for straight lines
                  fill: false,
-                 pointRadius: 0, // Hide points on target line
-                 pointHoverRadius: 0, // No hover effect on target line
+                 // Show points only at weekly increments
+                 pointRadius: function(context) {
+                     // Check if this is a weekly increment point
+                     if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                         const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                         return isWeeklyPoint ? 6 : 0; // 6px radius for weekly points, 0 for others
+                     }
+                     return 0;
+                 },
+                 pointBackgroundColor: function(context) {
+                     // Check if this is a weekly increment point
+                     if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                         const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                         return isWeeklyPoint ? '#e74c3c' : 'transparent'; // Red for weekly points
+                     }
+                     return 'transparent';
+                 },
+                 pointBorderColor: function(context) {
+                     // Check if this is a weekly increment point
+                     if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                         const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                         return isWeeklyPoint ? '#fff' : 'transparent'; // White border for weekly points
+                     }
+                     return 'transparent';
+                 },
+                 pointBorderWidth: 2,
+                 pointHoverRadius: 8, // Larger hover radius for better UX
+                 pointHoverBackgroundColor: '#c0392b', // Darker red on hover
+                 pointHoverBorderColor: '#fff',
+                 pointHoverBorderWidth: 2,
                  spanGaps: true, // Connect points across gaps (null values)
                  segment: {
                      borderColor: ctx => {

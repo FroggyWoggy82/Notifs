@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template OCR Test</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .loading img {
+            width: 50px;
+            height: 50px;
+        }
+        .section {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .nutrient-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .nutrient-name {
+            font-weight: bold;
+        }
+        .nutrient-value {
+            color: #0066cc;
+        }
+        .nutrient-percentage {
+            color: #666;
+            width: 50px;
+            text-align: right;
+        }
+        .nt-value {
+            color: #999;
+            font-style: italic;
+        }
+        .corrected {
+            background-color: #e6ffe6;
+        }
+    </style>
+</head>
+<body>
+    <h1>Template OCR Test</h1>
+    
+    <div class="container">
+        <div class="form-group">
+            <label for="image">Upload Nutrition Label Image:</label>
+            <input type="file" id="image" accept="image/*">
+        </div>
+        
+        <button id="submit">Process Image</button>
+        
+        <div class="loading" id="loading">
+            <img src="/images/loading.gif" alt="Loading...">
+            <p>Processing image, please wait...</p>
+        </div>
+        
+        <div id="result"></div>
+        
+        <div id="nutrition-display" style="display: none;">
+            <div class="section" id="general-section">
+                <h3>General</h3>
+                <div id="general-content"></div>
+            </div>
+            
+            <div class="section" id="carbs-section">
+                <h3>Carbohydrates</h3>
+                <div id="carbs-content"></div>
+            </div>
+            
+            <div class="section" id="lipids-section">
+                <h3>Lipids</h3>
+                <div id="lipids-content"></div>
+            </div>
+            
+            <div class="section" id="protein-section">
+                <h3>Protein</h3>
+                <div id="protein-content"></div>
+            </div>
+            
+            <div class="section" id="vitamins-section">
+                <h3>Vitamins</h3>
+                <div id="vitamins-content"></div>
+            </div>
+            
+            <div class="section" id="minerals-section">
+                <h3>Minerals</h3>
+                <div id="minerals-content"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('submit').addEventListener('click', async () => {
+            const fileInput = document.getElementById('image');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const nutritionDisplay = document.getElementById('nutrition-display');
+            
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            nutritionDisplay.style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/template-ocr/nutrition', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Display raw JSON result
+                    result.textContent = JSON.stringify(data, null, 2);
+                    result.style.display = 'block';
+                    
+                    // Display formatted nutrition info
+                    displayNutritionInfo(data);
+                    nutritionDisplay.style.display = 'block';
+                } else {
+                    result.textContent = `Error: ${data.error || 'Unknown error'}`;
+                    result.style.display = 'block';
+                }
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+                result.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+        
+        function displayNutritionInfo(data) {
+            // General section
+            const generalContent = document.getElementById('general-content');
+            generalContent.innerHTML = '';
+            
+            addNutrientRow(generalContent, 'Energy', data.calories, 'kcal', data.percentages?.calories);
+            addNutrientRow(generalContent, 'Alcohol', data.alcohol, 'g', data.percentages?.alcohol);
+            addNutrientRow(generalContent, 'Caffeine', data.caffeine, 'mg', data.percentages?.caffeine);
+            addNutrientRow(generalContent, 'Water', data.water, 'g', data.percentages?.water);
+            
+            // Carbohydrates section
+            const carbsContent = document.getElementById('carbs-content');
+            carbsContent.innerHTML = '';
+            
+            addNutrientRow(carbsContent, 'Carbs', data.carbs, 'g', data.percentages?.carbs);
+            addNutrientRow(carbsContent, 'Fiber', data.fiber, 'g', data.percentages?.fiber);
+            addNutrientRow(carbsContent, 'Starch', data.starch, 'g', data.percentages?.starch);
+            addNutrientRow(carbsContent, 'Sugars', data.sugars, 'g', data.percentages?.sugars);
+            addNutrientRow(carbsContent, 'Added Sugars', data.addedSugars, 'g', data.percentages?.addedSugars);
+            addNutrientRow(carbsContent, 'Net Carbs', data.netCarbs, 'g', data.percentages?.netCarbs);
+            
+            // Lipids section
+            const lipidsContent = document.getElementById('lipids-content');
+            lipidsContent.innerHTML = '';
+            
+            addNutrientRow(lipidsContent, 'Fat', data.fat, 'g', data.percentages?.fat);
+            addNutrientRow(lipidsContent, 'Monounsaturated', data.monounsaturated, 'g', data.percentages?.monounsaturated);
+            addNutrientRow(lipidsContent, 'Polyunsaturated', data.polyunsaturated, 'g', data.percentages?.polyunsaturated);
+            addNutrientRow(lipidsContent, 'Omega-3', data.omega3, 'g', data.percentages?.omega3);
+            addNutrientRow(lipidsContent, 'Omega-6', data.omega6, 'g', data.percentages?.omega6);
+            addNutrientRow(lipidsContent, 'Saturated', data.saturated, 'g', data.percentages?.saturated);
+            addNutrientRow(lipidsContent, 'Trans Fats', data.transFat, 'g', data.percentages?.transFat);
+            addNutrientRow(lipidsContent, 'Cholesterol', data.cholesterol, 'mg', data.percentages?.cholesterol);
+            
+            // Protein section
+            const proteinContent = document.getElementById('protein-content');
+            proteinContent.innerHTML = '';
+            
+            addNutrientRow(proteinContent, 'Protein', data.protein, 'g', data.percentages?.protein);
+            addNutrientRow(proteinContent, 'Cystine', data.cystine, 'g', data.percentages?.cystine);
+            addNutrientRow(proteinContent, 'Histidine', data.histidine, 'g', data.percentages?.histidine);
+            addNutrientRow(proteinContent, 'Isoleucine', data.isoleucine, 'g', data.percentages?.isoleucine);
+            addNutrientRow(proteinContent, 'Leucine', data.leucine, 'g', data.percentages?.leucine);
+            addNutrientRow(proteinContent, 'Lysine', data.lysine, 'g', data.percentages?.lysine);
+            addNutrientRow(proteinContent, 'Methionine', data.methionine, 'g', data.percentages?.methionine);
+            addNutrientRow(proteinContent, 'Phenylalanine', data.phenylalanine, 'g', data.percentages?.phenylalanine);
+            addNutrientRow(proteinContent, 'Threonine', data.threonine, 'g', data.percentages?.threonine);
+            addNutrientRow(proteinContent, 'Tryptophan', data.tryptophan, 'g', data.percentages?.tryptophan);
+            addNutrientRow(proteinContent, 'Tyrosine', data.tyrosine, 'g', data.percentages?.tyrosine);
+            addNutrientRow(proteinContent, 'Valine', data.valine, 'g', data.percentages?.valine);
+            
+            // Vitamins section
+            const vitaminsContent = document.getElementById('vitamins-content');
+            vitaminsContent.innerHTML = '';
+            
+            addNutrientRow(vitaminsContent, 'B1 (Thiamine)', data.vitaminB1, 'mg', data.percentages?.vitaminB1);
+            addNutrientRow(vitaminsContent, 'B2 (Riboflavin)', data.vitaminB2, 'mg', data.percentages?.vitaminB2);
+            addNutrientRow(vitaminsContent, 'B3 (Niacin)', data.vitaminB3, 'mg', data.percentages?.vitaminB3);
+            addNutrientRow(vitaminsContent, 'B5 (Pantothenic Acid)', data.vitaminB5, 'mg', data.percentages?.vitaminB5);
+            addNutrientRow(vitaminsContent, 'B6 (Pyridoxine)', data.vitaminB6, 'mg', data.percentages?.vitaminB6);
+            addNutrientRow(vitaminsContent, 'B12 (Cobalamin)', data.vitaminB12, 'µg', data.percentages?.vitaminB12);
+            addNutrientRow(vitaminsContent, 'Folate', data.folate, 'µg', data.percentages?.folate);
+            addNutrientRow(vitaminsContent, 'Vitamin A', data.vitaminA, 'µg', data.percentages?.vitaminA);
+            addNutrientRow(vitaminsContent, 'Vitamin C', data.vitaminC, 'mg', data.percentages?.vitaminC);
+            addNutrientRow(vitaminsContent, 'Vitamin D', data.vitaminD, 'IU', data.percentages?.vitaminD);
+            addNutrientRow(vitaminsContent, 'Vitamin E', data.vitaminE, 'mg', data.percentages?.vitaminE);
+            addNutrientRow(vitaminsContent, 'Vitamin K', data.vitaminK, 'µg', data.percentages?.vitaminK);
+            
+            // Minerals section
+            const mineralsContent = document.getElementById('minerals-content');
+            mineralsContent.innerHTML = '';
+            
+            addNutrientRow(mineralsContent, 'Calcium', data.calcium, 'mg', data.percentages?.calcium);
+            addNutrientRow(mineralsContent, 'Copper', data.copper, 'mg', data.percentages?.copper);
+            addNutrientRow(mineralsContent, 'Iron', data.iron, 'mg', data.percentages?.iron);
+            addNutrientRow(mineralsContent, 'Magnesium', data.magnesium, 'mg', data.percentages?.magnesium);
+            addNutrientRow(mineralsContent, 'Manganese', data.manganese, 'mg', data.percentages?.manganese);
+            addNutrientRow(mineralsContent, 'Phosphorus', data.phosphorus, 'mg', data.percentages?.phosphorus);
+            addNutrientRow(mineralsContent, 'Potassium', data.potassium, 'mg', data.percentages?.potassium);
+            addNutrientRow(mineralsContent, 'Selenium', data.selenium, 'µg', data.percentages?.selenium);
+            addNutrientRow(mineralsContent, 'Sodium', data.sodium, 'mg', data.percentages?.sodium);
+            addNutrientRow(mineralsContent, 'Zinc', data.zinc, 'mg', data.percentages?.zinc);
+        }
+        
+        function addNutrientRow(container, name, value, unit, percentage) {
+            if (value === null || value === undefined) {
+                return;
+            }
+            
+            const row = document.createElement('div');
+            row.className = 'nutrient-row';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'nutrient-name';
+            nameSpan.textContent = name;
+            
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'nutrient-value';
+            valueSpan.textContent = `${value} ${unit}`;
+            
+            const percentageSpan = document.createElement('span');
+            percentageSpan.className = 'nutrient-percentage';
+            
+            if (percentage === 'N/T' || percentage === 'n/a') {
+                percentageSpan.className += ' nt-value';
+                percentageSpan.textContent = percentage;
+            } else if (percentage !== null && percentage !== undefined) {
+                percentageSpan.textContent = `${percentage}%`;
+            }
+            
+            row.appendChild(nameSpan);
+            row.appendChild(valueSpan);
+            row.appendChild(percentageSpan);
+            
+            container.appendChild(row);
+        }
+    </script>
+</body>
+</html>

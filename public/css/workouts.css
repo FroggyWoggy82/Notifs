@@ -413,8 +413,10 @@ h1, h2 {
 .exercise-item {
     background-color: #2a2a2a;
     border: 1px solid #444;
-    border-radius: 8px;
-    padding: 15px;
+    border-radius: 4px; /* Reduced border radius */
+    padding: 12px 10px; /* Reduced padding */
+    width: 100%; /* Ensure it takes full width */
+    box-sizing: border-box;
     /* position: relative; */ /* <<< इंश्योर करें कि यह हटाया गया है या टिप्पणी की गई है */
 }
 
@@ -775,26 +777,31 @@ h1, h2 {
 
 /* Mobile-specific adjustments */
 @media screen and (max-width: 599px) {
-    /* Adjust set row layout for smaller screens */
+    /* Adjust set row layout for smaller screens - use more space for inputs */
     #current-exercise-list .set-row,
     .column-headers {
-        grid-template-columns: auto 80px 1fr 1fr 80px 36px;
-        gap: 8px; /* Slightly smaller gap on mobile */
+        grid-template-columns: auto 70px 1.5fr 1.5fr 70px 36px;
+        gap: 5px; /* Smaller gap on mobile to maximize input space */
     }
 
     /* Make previous log text smaller on mobile */
     .previous-log {
-        font-size: 0.75rem;
-        width: 80px;
+        font-size: 0.7rem;
+        width: 70px;
     }
 
     /* Ensure inputs are large enough to tap on mobile */
     .set-row input[type="number"],
     .set-row input[type="text"] {
-        padding: 8px 6px;
-        font-size: 1rem;
+        padding: 10px 5px;
+        font-size: 1.1rem;
         /* Improve touch target size */
-        min-height: 44px;
+        min-height: 48px;
+        /* Remove border radius for more space */
+        border-radius: 2px;
+        /* Maximize width */
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Improve touch targets for buttons */
@@ -808,6 +815,12 @@ h1, h2 {
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    /* Make the goal column more compact */
+    .goal-display {
+        font-size: 0.7rem;
+        width: 70px;
     }
 
     /* Optimize photo slider for mobile */

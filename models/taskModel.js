@@ -27,11 +27,15 @@ class Task {
             description,
             reminderTime,
             reminderType,
+            reminderTimes, // Add support for new fields
             assignedDate,
             dueDate,
+            duration, // Add support for duration
             recurrenceType,
             recurrenceInterval
         } = taskData;
+
+        console.log('Task data received:', taskData);
 
         // Ensure both assignedDate and dueDate are set if one is provided
         let finalAssignedDate = assignedDate;
@@ -48,8 +52,8 @@ class Task {
         // Build the SQL query dynamically based on provided fields
         const fields = ['title'];
         const values = [title];
+        const valuePlaceholders = ['$1']; // Initialize with first placeholder
         let placeholderIndex = 2;
-        const valuePlaceholders = ['$1'];
 
         // Add optional fields if they exist
         if (description !== undefined) {
@@ -70,16 +74,41 @@ class Task {
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 
-        if (finalAssignedDate !== undefined) {
-            fields.push('assigned_date');
-            values.push(finalAssignedDate);
+        // Handle reminderTimes field (JSON string)
+        if (reminderTimes !== undefined) {
+            fields.push('reminder_times');
+            // Ensure reminderTimes is stored as a string
+            const reminderTimesStr = typeof reminderTimes === 'string'
+                ? reminderTimes
+                : JSON.stringify(reminderTimes);
+            values.push(reminderTimesStr);
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 
+        if (finalAssignedDate !== undefined) {
+            // Handle empty string for assigned date
+            if (finalAssignedDate === '') {
+                finalAssignedDate = null;
+            }
+
+            if (finalAssignedDate !== null) {
+                fields.push('assigned_date');
+                values.push(finalAssignedDate);
+                valuePlaceholders.push(`$${placeholderIndex++}`);
+            }
+        }
+
         if (finalDueDate !== undefined) {
-            fields.push('due_date');
-            values.push(finalDueDate);
-            valuePlaceholders.push(`$${placeholderIndex++}`);
+            // Handle empty string for due date
+            if (finalDueDate === '') {
+                finalDueDate = null;
+            }
+
+            if (finalDueDate !== null) {
+                fields.push('due_date');
+                values.push(finalDueDate);
+                valuePlaceholders.push(`$${placeholderIndex++}`);
+            }
         }
 
         if (recurrenceType !== undefined) {
@@ -94,14 +123,34 @@ class Task {
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 
-        const query = `
-            INSERT INTO tasks (${fields.join(', ')})
-            VALUES (${valuePlaceholders.join(', ')})
-            RETURNING *
-        `;
+        // Add support for duration field
+        if (duration !== undefined) {
+            fields.push('duration');
+            values.push(duration);
+            valuePlaceholders.push(`$${placeholderIndex++}`);
+        }
 
-        const result = await db.query(query, values);
-        return result.rows[0];
+        // Debug the query construction
+        console.log('Fields:', fields);
+        console.log('Values:', values);
+        console.log('Value Placeholders:', valuePlaceholders);
+
+        try {
+            const query = `
+                INSERT INTO tasks (${fields.join(', ')})
+                VALUES (${valuePlaceholders.join(', ')})
+                RETURNING *
+            `;
+
+            console.log('Final SQL query:', query);
+            console.log('Final SQL parameters:', values);
+
+            const result = await db.query(query, values);
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error in createTask:', error);
+            throw error;
+        }
     }
 
     /**

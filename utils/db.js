@@ -80,7 +80,10 @@ testDbConnection();
 
 module.exports = {
     query: (text, params) => {
-        console.log(`Executing query: ${text}`, params);
+        // Ensure params is always an array
+        const safeParams = Array.isArray(params) ? params : (params ? [params] : []);
+
+        console.log(`Executing query: ${text}`, safeParams);
 
         // Create a promise that will reject after 30 seconds
         const timeoutPromise = new Promise((_, reject) => {
@@ -88,7 +91,7 @@ module.exports = {
         });
 
         // Create the query promise
-        const queryPromise = pool.query(text, params)
+        const queryPromise = pool.query(text, safeParams)
             .then(res => {
                 console.log(`Query completed successfully with ${res.rowCount} rows`);
                 if (text.includes('INSERT') && res.rows && res.rows.length > 0) {
@@ -99,7 +102,7 @@ module.exports = {
             .catch(err => {
                 console.error('Query error:', err);
                 console.error('Query that failed:', text);
-                console.error('Parameters:', params);
+                console.error('Parameters:', safeParams);
                 throw err;
             });
 

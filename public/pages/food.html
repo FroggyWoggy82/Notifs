@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/index.css"> <!-- Global styles -->
     <link rel="stylesheet" href="../css/food.css">   <!-- Food specific styles -->
     <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/simplified-nutrition-scan.css"> <!-- Simplified nutrition scan styles -->
 </head>
 <body>
     <button class="menu-button">☰</button>
@@ -147,9 +148,12 @@
                 <div class="ingredient-item">
                     <div class="ingredient-row">
                         <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-                        <div class="nutrition-scan-container">
-                            <button type="button" class="scan-nutrition-btn">Scan Nutrition Label</button>
-                            <input type="file" class="nutrition-image-input" accept="image/*" style="display:none">
+                        <div class="simplified-paste-area" tabindex="0">
+                            <div class="simplified-paste-instructions">
+                                Click here and press Ctrl+V to paste a Cronometer screenshot
+                                <small>The nutrition data will be automatically extracted</small>
+                            </div>
+                            <div class="simplified-paste-preview"></div>
                         </div>
                     </div>
 
@@ -422,7 +426,14 @@
                         </div>
                     </div>
 
-                    <div class="scan-status" style="display:none"></div>
+                    <div class="simplified-scan-status"></div>
+
+                    <!-- Raw OCR Text Container (initially hidden) -->
+                    <div class="raw-ocr-container" style="display: none;">
+                        <h4>Raw OCR Text</h4>
+                        <div class="raw-ocr-text"></div>
+                        <button class="raw-ocr-toggle">Hide Raw OCR Text</button>
+                    </div>
                 </div>
             </div>
             <button type="button" id="add-ingredient-btn">Add Ingredient</button>
@@ -522,6 +533,6 @@
     <!-- Food functionality -->
     <script src="../js/food/custom-tooltip.js"></script> <!-- Custom tooltip implementation -->
     <script src="../js/food/food.js"></script> <!-- Food specific JS -->
-    <script src="../js/food/nutrition-scan.js"></script> <!-- Nutrition scanning functionality -->
+    <script src="../js/food/simplified-nutrition-scan.js"></script> <!-- Simplified nutrition scanning functionality -->
 </body>
 </html>

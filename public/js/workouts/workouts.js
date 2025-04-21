@@ -1453,7 +1453,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear any existing saved workout
         clearWorkoutState();
 
-        currentWorkout = []; // Reset workout
+        // Initialize currentWorkout as an array with exercises property
+        currentWorkout = {
+            name: 'New Workout',
+            exercises: []
+        };
         currentWorkoutNameEl.textContent = 'New Workout'; // Or prompt user for name
         renderCurrentWorkout();
         switchPage('active');
@@ -1637,7 +1641,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (targetList === 'active') {
-            currentWorkout.push(newExerciseData);
+            // Check if currentWorkout is properly initialized with exercises array
+            if (!currentWorkout) {
+                currentWorkout = { name: 'New Workout', exercises: [] };
+            } else if (!currentWorkout.exercises) {
+                // If currentWorkout exists but doesn't have exercises array
+                currentWorkout.exercises = [];
+            }
+
+            // Now safely push to the exercises array
+            currentWorkout.exercises.push(newExerciseData);
             renderCurrentWorkout(); // Update the active workout list UI
         } else { // targetList === 'editor'
             currentTemplateExercises.push(newExerciseData);

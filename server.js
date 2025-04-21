@@ -38,6 +38,8 @@ const journalRoutes = require('./routes/journal'); // New route for journal entr
 const ocrRoutes = require('./routes/ocrRoutes'); // Main OCR processing route
 const improvedOcrRoutes = require('./routes/improved-ocr'); // Improved OCR implementation (used as fallback)
 const energyOcrFixedRoutes = require('./routes/energy-ocr-fixed'); // Energy-specific fixed OCR implementation (primary)
+const templateOcrRoutes = require('./routes/template-ocr'); // Template-based OCR for specific nutrition label format
+const cronometerOcrRoutes = require('./routes/cronometer-ocr'); // Cronometer-specific OCR implementation
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -129,6 +131,13 @@ app.use('/api/improved-ocr', improvedOcrRoutes); // Improved OCR implementation 
 console.log('Registering energy-ocr-fixed routes...');
 app.use('/api/energy-ocr-fixed', energyOcrFixedRoutes); // Energy-specific fixed OCR implementation (primary)
 console.log('Energy-ocr-fixed routes registered successfully!');
+console.log('Registering template-ocr routes...');
+app.use('/api/template-ocr', templateOcrRoutes); // Template-based OCR for specific nutrition label format
+console.log('Template-ocr routes registered successfully!');
+
+console.log('Registering cronometer-ocr routes...');
+app.use('/api/cronometer-ocr', cronometerOcrRoutes); // Cronometer-specific OCR implementation
+console.log('Cronometer-ocr routes registered successfully!');
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {

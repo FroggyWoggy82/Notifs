@@ -1518,12 +1518,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Use the first reminder time as the primary one for backward compatibility
         const primaryReminderTime = reminderTimes.length > 0 ? reminderTimes[0].time : null;
 
+        // Prepare reminder times as a simple string
+        let reminderTimesString = null;
+        if (reminderTimes.length > 0) {
+            try {
+                reminderTimesString = JSON.stringify(reminderTimes);
+                console.log('Converted reminderTimes to string:', reminderTimesString);
+            } catch (e) {
+                console.error('Error stringifying reminderTimes:', e);
+                reminderTimesString = null;
+            }
+        }
+
         const taskData = {
             title: title,
             description: description || null, // Send null if empty
             reminderTime: primaryReminderTime, // Use the first reminder time as the primary one
             reminderType: reminderTypes.length > 0 ? reminderTypes.join(',') : 'none', // Store all reminder types as comma-separated string
-            reminderTimes: reminderTimes.length > 0 ? JSON.stringify(reminderTimes) : null, // Store all reminder times as JSON
+            reminderTimes: reminderTimesString, // Store all reminder times as JSON string
             // Add new fields to the payload
             dueDate: dueDate,
             duration: duration,
@@ -1531,7 +1543,10 @@ document.addEventListener('DOMContentLoaded', () => {
             recurrenceInterval: recurrenceType !== 'none' ? parseInt(recurrenceInterval, 10) : null // Send interval only if recurrence is set
         };
 
+        console.log('Prepared task data:', taskData);
+
         try {
+            console.log('Sending task data to server:', taskData);
             const response = await fetch('/api/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
