@@ -296,7 +296,7 @@ router.get('/templates', async (req, res) => {
             LEFT JOIN exercises e ON we.exercise_id = e.exercise_id
             WHERE w.is_template = true -- Ensure we only get templates
             GROUP BY w.workout_id, w.name, w.description, w.created_at
-            ORDER BY w.name ASC;
+            ORDER BY w.created_at DESC;
         `;
         const result = await db.query(templatesQuery);
         res.json(result.rows);

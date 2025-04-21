@@ -1493,8 +1493,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     sets_completed: Array(numSets).fill(null).map(() => ({
                         weight: '',
                         reps: '',
-                        unit: ex.weight_unit || 'kg',
-                        completed: false
+                        unit: ex.weight_unit || 'lbs', // Default to lbs
+                        completed: false // Ensure sets are not completed by default
                     }))
                 };
             })

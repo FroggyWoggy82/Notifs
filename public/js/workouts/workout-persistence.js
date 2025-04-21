@@ -83,6 +83,22 @@ function addNavigationListeners() {
             saveWorkoutData();
         });
     });
+
+    // Save data when the page visibility changes (app is swiped away)
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            console.log('Page visibility changed to hidden, saving workout data');
+            saveWorkoutData();
+        }
+    });
+
+    // Save data periodically while the page is visible
+    setInterval(() => {
+        if (document.visibilityState === 'visible' && !window.isRestoringWorkoutData) {
+            console.log('Periodic save of workout data');
+            saveWorkoutData();
+        }
+    }, 30000); // Save every 30 seconds
 }
 
 // Set up a MutationObserver to detect when exercise items are added to the DOM
@@ -244,6 +260,10 @@ function restoreWorkoutData() {
             console.log('No saved workout data found');
             return false;
         }
+
+        console.log('Restoring workout data from localStorage');
+        // Set a flag to indicate we're restoring data
+        window.isRestoringWorkoutData = true;
 
         const workoutData = JSON.parse(workoutDataJson);
 
@@ -430,9 +450,16 @@ function restoreWorkoutData() {
             }
         });
 
+        // Reset the flag after restoration is complete
+        setTimeout(() => {
+            window.isRestoringWorkoutData = false;
+            console.log('Workout data restoration complete');
+        }, 500);
+
         return true;
     } catch (error) {
         console.error('Error restoring workout data:', error);
+        window.isRestoringWorkoutData = false;
         return false;
     }
 }
