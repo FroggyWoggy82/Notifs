@@ -641,8 +641,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="column-headers">
                 <span>Set</span>
-                <span>Previous</span>
-                <span>Weight</span>
+                <span>Prev</span>
+                <span>Wt</span>
                 <span>Reps</span>
                 <span>Goal</span>
                 <span>✓</span>

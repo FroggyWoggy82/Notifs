@@ -70,7 +70,7 @@
 /* Column headers */
 .column-headers {
     display: grid;
-    grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Previous, Weight, Reps, Goal, Complete */
+    grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Prev, Wt, Reps, Goal, Complete */
     gap: 4px;
     padding: 2px 0;
     font-size: 0.7rem;
@@ -80,7 +80,7 @@
 /* Set rows */
 #current-exercise-list .set-row {
     display: grid;
-    grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Previous, Weight, Reps, Goal, Complete */
+    grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Prev, Wt, Reps, Goal, Complete */
     gap: 4px;
     padding: 2px 0;
     border-bottom: 1px solid #333;
@@ -199,17 +199,19 @@
         padding: 5px 0;
     }
 
-    /* On very small screens, hide previous and goal */
+    /* Keep previous and goal visible on small screens */
     .column-headers {
-        grid-template-columns: 30px 1fr 1fr 30px; /* Set#, Weight, Reps, Complete */
+        grid-template-columns: 25px 65px 30px 30px 65px 25px; /* Set#, Prev, Wt, Reps, Goal, Complete */
     }
 
     #current-exercise-list .set-row {
-        grid-template-columns: 30px 1fr 1fr 30px; /* Smaller set number and complete button */
+        grid-template-columns: 25px 65px 30px 30px 65px 25px; /* Set#, Prev, Wt, Reps, Goal, Complete */
     }
 
     .previous-log, .goal-target {
-        display: none;
+        display: flex;
+        font-size: 0.7rem;
+        overflow: visible;
     }
 
     .set-row input[type="number"],
@@ -227,13 +229,14 @@
 @media screen and (min-width: 481px) {
     /* Show previous and goal on larger screens */
     #current-exercise-list .set-row {
-        grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Previous, Weight, Reps, Goal, Complete */
+        grid-template-columns: 40px 80px 1fr 1fr 80px 40px; /* Set#, Prev, Wt, Reps, Goal, Complete */
     }
 
     .previous-log,
     .goal-target {
-        display: block;
+        display: flex;
         font-size: 0.75rem;
+        overflow: visible;
     }
 
     .column-headers {

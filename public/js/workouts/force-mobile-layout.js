@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.style.alignItems = 'center';
                 row.style.width = '100%';
                 row.style.gap = '0';
+                row.style.justifyContent = 'space-between';
             });
 
             // Style column headers to match the grid
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 header.style.alignItems = 'center';
                 header.style.width = '100%';
                 header.style.gap = '0';
+                header.style.justifyContent = 'space-between';
             });
 
             // Style set numbers
@@ -114,6 +116,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 span.style.fontWeight = 'bold';
                 span.style.justifySelf = 'center';
                 span.style.gridColumn = (index + 1).toString();
+
+                // Update column header text to be shorter
+                if (index === 1 && span.textContent === 'Previous') {
+                    span.textContent = 'Prev';
+                } else if (index === 2 && span.textContent === 'Weight') {
+                    span.textContent = 'Wt';
+                }
             });
 
             console.log('Forced mobile layout styles applied');
