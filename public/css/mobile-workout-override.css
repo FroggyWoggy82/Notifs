@@ -1,0 +1,174 @@
+/**
+ * Mobile Workout Override
+ * This file contains styles that completely override the workout layout on mobile devices
+ * to ensure all columns are visible.
+ */
+
+/* Apply these styles regardless of screen size to ensure consistency */
+.set-row {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Mobile-specific overrides */
+@media screen and (max-width: 599px) {
+    /* Reset the grid layout for set rows */
+    #current-exercise-list .set-row {
+        display: grid !important;
+        grid-template-columns: 20px 1fr 1fr 30px !important;
+        grid-template-rows: auto auto !important;
+        gap: 4px !important;
+        padding: 8px 0 !important;
+        width: 100% !important;
+        position: relative !important;
+    }
+
+    /* Position set number */
+    .set-row .set-number {
+        grid-column: 1 !important;
+        grid-row: 1 / span 2 !important;
+        font-size: 0.8rem !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        align-self: center !important;
+    }
+
+    /* Position previous log */
+    .set-row .previous-log {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        font-size: 0.7rem !important;
+        color: #ffffff !important;
+        background-color: rgba(50, 50, 50, 0.5) !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    /* Position goal target */
+    .set-row .goal-target {
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+        font-size: 0.7rem !important;
+        color: #03dac6 !important;
+        background-color: rgba(3, 218, 198, 0.1) !important;
+        padding: 2px 4px !important;
+        border-radius: 3px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        width: auto !important;
+        max-width: none !important;
+        font-weight: 600 !important;
+    }
+
+    /* Position weight input */
+    .set-row .weight-input {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        height: 30px !important;
+        font-size: 0.8rem !important;
+        padding: 2px 4px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Position reps input */
+    .set-row .reps-input {
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+        height: 30px !important;
+        font-size: 0.8rem !important;
+        padding: 2px 4px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Position complete toggle */
+    .set-row .set-complete-toggle {
+        grid-column: 4 !important;
+        grid-row: 1 / span 2 !important;
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+        align-self: center !important;
+    }
+
+    /* Hide column headers on mobile */
+    .column-headers {
+        display: none !important;
+    }
+
+    /* Reduce padding in exercise items */
+    .exercise-item {
+        padding: 8px 4px !important;
+    }
+
+    /* Make exercise header more compact */
+    .exercise-item-header {
+        margin-bottom: 6px !important;
+    }
+
+    /* Make exercise name smaller */
+    .exercise-item-header h4 {
+        font-size: 1rem !important;
+    }
+
+    /* Ensure exercise container doesn't add unnecessary width */
+    #current-exercise-list {
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Make the add/remove set buttons more compact */
+    .btn-add-set, .btn-remove-set {
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Ensure column headers are properly aligned with the grid */
+    .column-headers {
+        display: grid !important;
+        grid-template-columns: 20px 1fr 1fr 30px !important;
+        padding: 4px 0 !important;
+        font-size: 0.7rem !important;
+    }
+
+    .column-headers span:nth-child(1) {
+        grid-column: 2 !important;
+        text-align: left !important;
+    }
+
+    .column-headers span:nth-child(2) {
+        grid-column: 3 !important;
+        text-align: left !important;
+    }
+
+    /* Ensure the exercise item header is properly styled */
+    .exercise-item-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    /* Make the exercise options button more visible */
+    .exercise-options-btn {
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+        background-color: rgba(3, 218, 198, 0.2) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}

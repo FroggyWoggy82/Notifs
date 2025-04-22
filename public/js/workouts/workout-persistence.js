@@ -325,9 +325,6 @@ function restoreWorkoutData() {
                 if (savedSetCount > currentSetCount) {
                     // Generate HTML for the new set rows
                     for (let i = currentSetCount; i < savedSetCount; i++) {
-                        // Check if we're on mobile
-                        const isMobile = window.innerWidth < 600;
-
                         // Create a new set row
                         const newRow = document.createElement('div');
                         newRow.className = 'set-row';
@@ -342,103 +339,44 @@ function restoreWorkoutData() {
                         // Get the current unit from the exercise, default to lbs
                         const currentUnit = exercises[workoutIndex].weight_unit || 'lbs';
 
-                        if (isMobile) {
-                            // Mobile layout with stacked previous/goal and inputs in a container
+                        // Create previous log span
+                        const prevLog = document.createElement('span');
+                        prevLog.className = 'previous-log';
+                        prevLog.textContent = '- lbs x -';
+                        newRow.appendChild(prevLog);
 
-                            // Create mobile info row
-                            const mobileInfoRow = document.createElement('div');
-                            mobileInfoRow.className = 'mobile-info-row';
+                        // Create goal target span
+                        const goalTarget = document.createElement('span');
+                        goalTarget.className = 'goal-target';
+                        goalTarget.title = 'Goal for next workout';
+                        goalTarget.textContent = '';
+                        newRow.appendChild(goalTarget);
 
-                            // Create previous log span
-                            const prevLog = document.createElement('span');
-                            prevLog.className = 'previous-log';
-                            prevLog.textContent = '- lbs x -';
-                            mobileInfoRow.appendChild(prevLog);
+                        // Create weight input
+                        const weightInput = document.createElement('input');
+                        weightInput.type = (currentUnit === 'assisted') ? 'hidden' : 'number';
+                        weightInput.className = 'weight-input';
+                        weightInput.placeholder = (currentUnit === 'bodyweight') ? 'BW' : (currentUnit === 'assisted') ? '' : 'Wt';
+                        weightInput.step = 'any';
+                        weightInput.inputMode = 'decimal';
+                        newRow.appendChild(weightInput);
 
-                            // Create goal target span
-                            const goalTarget = document.createElement('span');
-                            goalTarget.className = 'goal-target';
-                            goalTarget.title = 'Goal for next workout';
-                            goalTarget.textContent = '';
-                            mobileInfoRow.appendChild(goalTarget);
+                        // Create reps input
+                        const repsInput = document.createElement('input');
+                        repsInput.type = 'text';
+                        repsInput.className = 'reps-input';
+                        repsInput.placeholder = 'Reps';
+                        repsInput.inputMode = 'numeric';
+                        repsInput.pattern = '[0-9]*';
+                        newRow.appendChild(repsInput);
 
-                            // Add mobile info row to the set row
-                            newRow.appendChild(mobileInfoRow);
-
-                            // Create input container
-                            const inputContainer = document.createElement('div');
-                            inputContainer.className = 'input-container';
-
-                            // Create weight input
-                            const weightInput = document.createElement('input');
-                            weightInput.type = (currentUnit === 'assisted') ? 'hidden' : 'number';
-                            weightInput.className = 'weight-input';
-                            weightInput.placeholder = (currentUnit === 'bodyweight') ? 'BW' : (currentUnit === 'assisted') ? '' : 'Wt';
-                            weightInput.step = 'any';
-                            weightInput.inputMode = 'decimal';
-                            inputContainer.appendChild(weightInput);
-
-                            // Create reps input
-                            const repsInput = document.createElement('input');
-                            repsInput.type = 'text';
-                            repsInput.className = 'reps-input';
-                            repsInput.placeholder = 'Reps';
-                            repsInput.inputMode = 'numeric';
-                            repsInput.pattern = '[0-9]*';
-                            inputContainer.appendChild(repsInput);
-
-                            // Create complete toggle button
-                            const completeToggle = document.createElement('button');
-                            completeToggle.className = 'set-complete-toggle';
-                            completeToggle.dataset.workoutIndex = workoutIndex;
-                            completeToggle.dataset.setIndex = i;
-                            completeToggle.title = 'Mark Set Complete';
-                            inputContainer.appendChild(completeToggle);
-
-                            // Add input container to the set row
-                            newRow.appendChild(inputContainer);
-                        } else {
-                            // Desktop layout
-
-                            // Create previous log span
-                            const prevLog = document.createElement('span');
-                            prevLog.className = 'previous-log';
-                            prevLog.textContent = '- lbs x -';
-                            newRow.appendChild(prevLog);
-
-                            // Create weight input
-                            const weightInput = document.createElement('input');
-                            weightInput.type = (currentUnit === 'assisted') ? 'hidden' : 'number';
-                            weightInput.className = 'weight-input';
-                            weightInput.placeholder = (currentUnit === 'bodyweight') ? 'BW' : (currentUnit === 'assisted') ? '' : 'Wt';
-                            weightInput.step = 'any';
-                            weightInput.inputMode = 'decimal';
-                            newRow.appendChild(weightInput);
-
-                            // Create reps input
-                            const repsInput = document.createElement('input');
-                            repsInput.type = 'text';
-                            repsInput.className = 'reps-input';
-                            repsInput.placeholder = 'Reps';
-                            repsInput.inputMode = 'numeric';
-                            repsInput.pattern = '[0-9]*';
-                            newRow.appendChild(repsInput);
-
-                            // Create goal target span
-                            const goalTarget = document.createElement('span');
-                            goalTarget.className = 'goal-target';
-                            goalTarget.title = 'Goal for next workout';
-                            goalTarget.textContent = '';
-                            newRow.appendChild(goalTarget);
-
-                            // Create complete toggle button
-                            const completeToggle = document.createElement('button');
-                            completeToggle.className = 'set-complete-toggle';
-                            completeToggle.dataset.workoutIndex = workoutIndex;
-                            completeToggle.dataset.setIndex = i;
-                            completeToggle.title = 'Mark Set Complete';
-                            newRow.appendChild(completeToggle);
-                        }
+                        // Create complete toggle button
+                        const completeToggle = document.createElement('button');
+                        completeToggle.className = 'set-complete-toggle';
+                        completeToggle.dataset.workoutIndex = workoutIndex;
+                        completeToggle.dataset.setIndex = i;
+                        completeToggle.title = 'Mark Set Complete';
+                        newRow.appendChild(completeToggle);
 
                         // Add the new row to the sets container
                         setsContainer.appendChild(newRow);
