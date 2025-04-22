@@ -27,6 +27,16 @@
         margin-bottom: 4px !important;
     }
 
+    /* Super aggressive override for set rows */
+    #current-exercise-list .set-row,
+    .set-row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        grid-template-columns: unset !important;
+        grid-template-rows: unset !important;
+    }
+
     /* Position set number */
     .set-row .set-number {
         width: 15px !important;
@@ -39,7 +49,7 @@
 
     /* Style previous log */
     .set-row .previous-log {
-        width: 65px !important;
+        width: 75px !important;
         font-size: 0.7rem !important;
         color: #ffffff !important;
         text-align: center !important;
@@ -53,7 +63,7 @@
 
     /* Style goal target */
     .set-row .goal-target {
-        width: 65px !important;
+        width: 75px !important;
         font-size: 0.7rem !important;
         color: #03dac6 !important;
         text-align: center !important;
@@ -68,23 +78,53 @@
     /* Position weight input */
     .set-row .weight-input {
         height: 30px !important;
-        font-size: 0.8rem !important;
-        padding: 2px !important;
+        font-size: 0.7rem !important;
+        padding: 0 !important;
         width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
         flex-shrink: 0 !important;
+        flex-grow: 0 !important;
         box-sizing: border-box !important;
         margin-right: 2px !important;
+        text-align: center !important;
+    }
+
+    /* Super aggressive override for mobile */
+    @media screen and (max-width: 599px) {
+        .set-row input.weight-input,
+        .set-row input[type="number"].weight-input {
+            width: 20px !important;
+            min-width: 20px !important;
+            max-width: 20px !important;
+            padding: 0 !important;
+        }
     }
 
     /* Position reps input */
     .set-row .reps-input {
         height: 30px !important;
-        font-size: 0.8rem !important;
-        padding: 2px !important;
+        font-size: 0.7rem !important;
+        padding: 0 !important;
         width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
         flex-shrink: 0 !important;
+        flex-grow: 0 !important;
         box-sizing: border-box !important;
         margin-right: 2px !important;
+        text-align: center !important;
+    }
+
+    /* Super aggressive override for mobile */
+    @media screen and (max-width: 599px) {
+        .set-row input.reps-input,
+        .set-row input[type="text"].reps-input {
+            width: 20px !important;
+            min-width: 20px !important;
+            max-width: 20px !important;
+            padding: 0 !important;
+        }
     }
 
     /* Position complete toggle */
@@ -116,26 +156,41 @@
         text-align: center !important;
     }
 
+    /* Super aggressive override for column headers */
+    @media screen and (max-width: 599px) {
+        .column-headers span:nth-child(3),
+        .column-headers span:nth-child(4) {
+            width: 20px !important;
+            min-width: 20px !important;
+            max-width: 20px !important;
+            padding: 0 !important;
+        }
+    }
+
     /* Set specific widths for each column header to match inputs */
     .column-headers span:nth-child(1) { /* Set */
         width: 15px !important;
         margin-right: 2px !important;
     }
     .column-headers span:nth-child(2) { /* Previous */
-        width: 65px !important;
+        width: 75px !important;
         margin-right: 2px !important;
         color: #ffffff !important;
     }
     .column-headers span:nth-child(3) { /* Weight */
-        width: 35px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
         margin-right: 2px !important;
     }
     .column-headers span:nth-child(4) { /* Reps */
-        width: 35px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
         margin-right: 2px !important;
     }
     .column-headers span:nth-child(5) { /* Goal */
-        width: 65px !important;
+        width: 75px !important;
         margin-right: 2px !important;
         color: #03dac6 !important;
     }
