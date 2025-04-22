@@ -22,6 +22,8 @@
         padding: 8px 0 !important;
         width: 100% !important;
         position: relative !important;
+        border-bottom: 1px solid #333 !important;
+        margin-bottom: 4px !important;
     }
 
     /* Position set number */
@@ -48,6 +50,10 @@
         text-overflow: ellipsis !important;
         width: auto !important;
         max-width: none !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin-bottom: 4px !important;
     }
 
     /* Position goal target */
@@ -65,6 +71,10 @@
         width: auto !important;
         max-width: none !important;
         font-weight: 600 !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin-bottom: 4px !important;
     }
 
     /* Position weight input */
@@ -100,9 +110,9 @@
         align-self: center !important;
     }
 
-    /* Hide column headers on mobile */
+    /* Make column headers visible on mobile */
     .column-headers {
-        display: none !important;
+        display: grid !important;
     }
 
     /* Reduce padding in exercise items */
@@ -140,16 +150,25 @@
         grid-template-columns: 20px 1fr 1fr 30px !important;
         padding: 4px 0 !important;
         font-size: 0.7rem !important;
+        margin-bottom: 8px !important;
+        background-color: rgba(50, 50, 50, 0.3) !important;
+        border-radius: 4px !important;
     }
 
     .column-headers span:nth-child(1) {
         grid-column: 2 !important;
         text-align: left !important;
+        padding: 4px !important;
+        color: #ffffff !important;
+        font-weight: bold !important;
     }
 
     .column-headers span:nth-child(2) {
         grid-column: 3 !important;
         text-align: left !important;
+        padding: 4px !important;
+        color: #03dac6 !important;
+        font-weight: bold !important;
     }
 
     /* Ensure the exercise item header is properly styled */

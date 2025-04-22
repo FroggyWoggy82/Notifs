@@ -641,10 +641,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="column-headers">
                 <span>Set</span>
-                <span>Previous</span>
+                <span><strong>Previous</strong></span>
                 <span>Weight</span>
                 <span>Reps</span>
-                <span>Goal</span>
+                <span><strong>Goal</strong></span>
                 <span>✓</span>
             </div>
             <div class="sets-container"> ${setsHtml} </div>
@@ -2269,10 +2269,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="column-headers">
                     <span>Set</span>
-                    <span>Previous</span>
+                    <span><strong>Previous</strong></span>
                     <span>Weight</span>
                     <span>Reps</span>
-                    <span>Goal</span>
+                    <span><strong>Goal</strong></span>
                     <span></span>
                 </div>
                 <div class="exercise-notes-group">
@@ -5095,7 +5095,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     const repsPlaceholder = 'Reps';
 
     // For the previous log display, use the current unit
-    let previousLogTextHtml = `- ${unit} x -`;
+    let previousLogTextHtml = `<strong>Prev:</strong> - ${unit} x -`;
 
     // Default empty goal
     let goalTextHtml = '';
@@ -5110,7 +5110,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
         if (setIndex < prevWeights.length && setIndex < prevReps.length) {
             const prevWeight = prevWeights[setIndex].trim() || '-';
             const prevRep = prevReps[setIndex].trim() || '-';
-            previousLogTextHtml = `${prevWeight} ${prevUnit} x ${prevRep}`;
+            previousLogTextHtml = `<strong>Prev:</strong> ${prevWeight} ${prevUnit} x ${prevRep}`;
         }
 
         // Calculate goal for next workout if not a template
@@ -5118,7 +5118,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
             const goal = calculateGoal(exerciseData);
             if (goal && setIndex < goal.sets.length) {
                 const goalSet = goal.sets[setIndex];
-                goalTextHtml = `${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
+                goalTextHtml = `<strong>Goal:</strong> ${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
             }
         }
     }

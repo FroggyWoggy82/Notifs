@@ -342,14 +342,14 @@ function restoreWorkoutData() {
                         // Create previous log span
                         const prevLog = document.createElement('span');
                         prevLog.className = 'previous-log';
-                        prevLog.textContent = '- lbs x -';
+                        prevLog.innerHTML = '<strong>Prev:</strong> - lbs x -';
                         newRow.appendChild(prevLog);
 
                         // Create goal target span
                         const goalTarget = document.createElement('span');
                         goalTarget.className = 'goal-target';
                         goalTarget.title = 'Goal for next workout';
-                        goalTarget.textContent = '';
+                        goalTarget.innerHTML = '<strong>Goal:</strong> ';
                         newRow.appendChild(goalTarget);
 
                         // Create weight input
