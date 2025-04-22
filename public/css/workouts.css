@@ -671,9 +671,11 @@ h1, h2 {
 /* Mobile-specific set number style */
 @media screen and (max-width: 599px) {
     .set-number {
-        font-size: 0.85rem;
-        padding-right: 2px;
-        min-width: 15px;
+        font-size: 0.7rem;
+        padding-right: 0px;
+        min-width: 10px;
+        width: 10px;
+        text-align: center;
     }
 }
 
@@ -945,32 +947,36 @@ h1, h2 {
 
 /* Mobile-specific adjustments */
 @media screen and (max-width: 599px) {
-    /* Adjust set row layout for smaller screens - ensure previous and goal columns are visible */
+    /* Complete redesign of mobile grid layout to ensure all columns are visible */
     #current-exercise-list .set-row,
     .column-headers {
-        grid-template-columns: auto 60px 0.9fr 0.9fr 60px 36px;
-        gap: 2px; /* Minimal gap on mobile to maximize space */
+        grid-template-columns: 18px 50px 0.8fr 0.8fr 50px 24px;
+        gap: 1px; /* Minimal gap on mobile to maximize space */
     }
 
-    /* Make previous log text smaller but still readable on mobile */
+    /* Make previous log text extremely compact on mobile */
     .previous-log {
         font-size: 0.65rem;
-        width: 60px;
+        width: 50px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding-right: 2px;
-        color: #bbb; /* Slightly brighter color for better visibility */
+        padding: 1px 2px;
+        color: #ffffff; /* White color for maximum visibility */
+        background-color: rgba(50, 50, 50, 0.5); /* Subtle background for better contrast */
+        border-radius: 2px;
+        display: inline-block;
+        text-align: center;
     }
 
-    /* Ensure inputs are large enough to tap on mobile but not too tall */
+    /* Make inputs extremely compact on mobile to ensure all columns are visible */
     .set-row input[type="number"],
     .set-row input[type="text"] {
-        padding: 3px 2px;
-        font-size: 0.85rem;
-        /* Smaller touch target size to save space */
-        min-height: 28px;
-        height: 28px;
+        padding: 0px;
+        font-size: 0.7rem;
+        /* Extremely small touch target size to save space */
+        min-height: 20px;
+        height: 20px;
         /* Remove border radius for more space */
         border-radius: 2px;
         /* Maximize width */
@@ -978,15 +984,16 @@ h1, h2 {
         box-sizing: border-box;
     }
 
-    /* Improve touch targets for buttons but keep them compact */
+    /* Make complete toggle button smaller on mobile */
     .set-complete-toggle {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        min-height: 28px;
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        min-height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 0.85rem;
     }
 
     .btn-edit-exercise,
@@ -1007,18 +1014,21 @@ h1, h2 {
         padding: 6px 8px; /* Slightly smaller horizontal padding on mobile */
     }
 
-    /* Make the goal column more compact but ensure text is visible */
+    /* Make the goal column extremely compact on mobile */
     .goal-display,
     .goal-target {
         font-size: 0.65rem;
-        width: 60px;
+        width: 50px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding-right: 2px;
-        text-align: left; /* Left align for better readability */
+        padding: 1px 2px;
+        text-align: center; /* Center align for consistency with previous */
         color: #03dac6; /* Brighter teal color for better visibility */
-        font-weight: 500; /* Slightly bolder for better visibility */
+        font-weight: 600; /* Bolder for better visibility */
+        background-color: rgba(3, 218, 198, 0.1); /* Very subtle teal background */
+        border-radius: 2px;
+        display: inline-block;
     }
 
     /* Optimize photo slider for mobile */
@@ -1033,6 +1043,17 @@ h1, h2 {
     .touch-device .pagination-dots {
         -webkit-user-select: none;
         user-select: none;
+    }
+
+    /* Make column headers match our compact mobile layout */
+    .column-headers {
+        font-size: 0.65rem;
+        padding: 2px 0;
+    }
+
+    /* Reduce vertical spacing between sets */
+    #current-exercise-list .set-row {
+        padding: 2px 0;
     }
 }
 
