@@ -641,10 +641,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="column-headers">
                 <span>Set</span>
-                <span><strong>Previous</strong></span>
+                <span>Previous</span>
                 <span>Weight</span>
                 <span>Reps</span>
-                <span><strong>Goal</strong></span>
+                <span>Goal</span>
                 <span>✓</span>
             </div>
             <div class="sets-container"> ${setsHtml} </div>
@@ -5095,7 +5095,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     const repsPlaceholder = 'Reps';
 
     // For the previous log display, use the current unit
-    let previousLogTextHtml = `<strong>Prev:</strong> - ${unit} x -`;
+    let previousLogTextHtml = `- ${unit} x -`;
 
     // Default empty goal
     let goalTextHtml = '';
@@ -5110,7 +5110,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
         if (setIndex < prevWeights.length && setIndex < prevReps.length) {
             const prevWeight = prevWeights[setIndex].trim() || '-';
             const prevRep = prevReps[setIndex].trim() || '-';
-            previousLogTextHtml = `<strong>Prev:</strong> ${prevWeight} ${prevUnit} x ${prevRep}`;
+            previousLogTextHtml = `${prevWeight} ${prevUnit} x ${prevRep}`;
         }
 
         // Calculate goal for next workout if not a template
@@ -5118,7 +5118,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
             const goal = calculateGoal(exerciseData);
             if (goal && setIndex < goal.sets.length) {
                 const goalSet = goal.sets[setIndex];
-                goalTextHtml = `<strong>Goal:</strong> ${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
+                goalTextHtml = `${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
             }
         }
     }
@@ -5129,9 +5129,9 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
         <div class="set-row" data-set-index="${setIndex}">
             <span class="set-number">${setIndex + 1}</span>
             <span class="previous-log">${previousLogTextHtml}</span>
-            <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
             <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
             <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+            <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
             ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
         </div>
     `;

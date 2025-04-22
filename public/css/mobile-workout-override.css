@@ -18,9 +18,9 @@
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        justify-content: space-between !important;
-        gap: 4px !important;
-        padding: 8px 4px !important;
+        justify-content: flex-start !important;
+        gap: 2px !important;
+        padding: 8px 2px !important;
         width: 100% !important;
         position: relative !important;
         border-bottom: 1px solid #333 !important;
@@ -29,48 +29,68 @@
 
     /* Position set number */
     .set-row .set-number {
-        width: 20px !important;
-        font-size: 0.8rem !important;
+        width: 15px !important;
+        font-size: 0.7rem !important;
         font-weight: bold !important;
         text-align: center !important;
         flex-shrink: 0 !important;
-        margin-right: 4px !important;
+        margin-right: 2px !important;
     }
 
-    /* Hide previous log and goal target on mobile */
-    .set-row .previous-log,
+    /* Style previous log */
+    .set-row .previous-log {
+        width: 60px !important;
+        font-size: 0.65rem !important;
+        color: #ffffff !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+        margin-right: 2px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Style goal target */
     .set-row .goal-target {
-        display: none !important;
+        width: 60px !important;
+        font-size: 0.65rem !important;
+        color: #03dac6 !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+        margin-right: 2px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 
     /* Position weight input */
     .set-row .weight-input {
         height: 30px !important;
         font-size: 0.8rem !important;
-        padding: 2px 4px !important;
-        width: 70px !important;
+        padding: 2px !important;
+        width: 45px !important;
         flex-shrink: 0 !important;
         box-sizing: border-box !important;
-        margin-right: 4px !important;
+        margin-right: 2px !important;
     }
 
     /* Position reps input */
     .set-row .reps-input {
         height: 30px !important;
         font-size: 0.8rem !important;
-        padding: 2px 4px !important;
-        width: 70px !important;
+        padding: 2px !important;
+        width: 45px !important;
         flex-shrink: 0 !important;
         box-sizing: border-box !important;
-        margin-right: 4px !important;
+        margin-right: 2px !important;
     }
 
     /* Position complete toggle */
     .set-row .set-complete-toggle {
-        width: 30px !important;
-        height: 30px !important;
-        min-width: 30px !important;
-        min-height: 30px !important;
+        width: 25px !important;
+        height: 25px !important;
+        min-width: 25px !important;
+        min-height: 25px !important;
         flex-shrink: 0 !important;
     }
 
@@ -80,49 +100,50 @@
         flex-direction: row !important;
         align-items: center !important;
         justify-content: flex-start !important;
-        padding: 4px !important;
-        font-size: 0.7rem !important;
-        margin-bottom: 8px !important;
+        padding: 4px 2px !important;
+        font-size: 0.65rem !important;
+        margin-bottom: 4px !important;
         background-color: rgba(50, 50, 50, 0.3) !important;
         border-radius: 4px !important;
     }
 
-    /* Hide Previous and Goal columns in headers */
-    .column-headers span:nth-child(2),
-    .column-headers span:nth-child(5) {
-        display: none !important;
-    }
-
-    /* Adjust remaining header columns */
+    /* Adjust all header columns */
     .column-headers span {
         color: #ffffff !important;
         font-weight: bold !important;
+        text-align: center !important;
     }
 
     /* Set specific widths for each column header to match inputs */
     .column-headers span:nth-child(1) { /* Set */
-        width: 20px !important;
-        margin-right: 4px !important;
-        text-align: center !important;
+        width: 15px !important;
+        margin-right: 2px !important;
+    }
+    .column-headers span:nth-child(2) { /* Previous */
+        width: 60px !important;
+        margin-right: 2px !important;
+        color: #ffffff !important;
     }
     .column-headers span:nth-child(3) { /* Weight */
-        width: 70px !important;
-        margin-right: 4px !important;
-        text-align: center !important;
+        width: 45px !important;
+        margin-right: 2px !important;
     }
     .column-headers span:nth-child(4) { /* Reps */
-        width: 70px !important;
-        margin-right: 4px !important;
-        text-align: center !important;
+        width: 45px !important;
+        margin-right: 2px !important;
+    }
+    .column-headers span:nth-child(5) { /* Goal */
+        width: 60px !important;
+        margin-right: 2px !important;
+        color: #03dac6 !important;
     }
     .column-headers span:nth-child(6) { /* Checkmark */
-        width: 30px !important;
-        text-align: center !important;
+        width: 25px !important;
     }
 
     /* Reduce padding in exercise items */
     .exercise-item {
-        padding: 8px 4px !important;
+        padding: 8px 2px !important;
     }
 
     /* Make exercise header more compact */
