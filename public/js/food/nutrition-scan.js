@@ -67,23 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setupClipboardPaste();
     }
 
-    // Function to set up PaddleOCR toggle
+    // Function to set up OCR toggle (removed PaddleOCR specific code)
     function setupPaddleOCRToggle() {
-        // Use event delegation for PaddleOCR toggle
-        document.addEventListener('change', (event) => {
-            if (event.target.classList.contains('paddle-ocr-toggle')) {
-                const ingredientItem = event.target.closest('.ingredient-item');
-                if (ingredientItem) {
-                    if (event.target.checked) {
-                        ingredientItem.dataset.ocrType = 'paddle';
-                        console.log('PaddleOCR enabled for this ingredient');
-                    } else {
-                        ingredientItem.dataset.ocrType = 'auto';
-                        console.log('PaddleOCR disabled for this ingredient');
-                    }
-                }
-            }
-        });
+        // This function is kept for backward compatibility but no longer does anything
+        console.log('OCR toggle setup - using Google Cloud Vision by default');
     }
 
     // Function to set up clipboard paste functionality
@@ -215,35 +202,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Define endpoints based on OCR type
             let endpoints = [];
 
-            if (ocrType === 'template') {
-                // Use only the template-based OCR endpoint
-                endpoints = [
-                    '/api/template-ocr/nutrition'
-                ];
-            } else if (ocrType === 'regular') {
-                // Use only the regular OCR endpoints
-                endpoints = [
-                    '/api/improved-ocr/nutrition',
-                    '/api/improved-ocr/simple',
-                    '/api/ocr/nutrition'
-                ];
-            } else if (ocrType === 'paddle') {
-                // Use only PaddleOCR endpoint
-                console.log('OCR engine set to: PaddleOCR');
-                scanStatus.textContent = 'Processing image with PaddleOCR...';
-                endpoints = [
-                    '/api/paddle-ocr/nutrition'
-                ];
-            } else {
-                // Auto-detect: try PaddleOCR first, then template, then fall back to regular OCR
-                endpoints = [
-                    '/api/paddle-ocr/nutrition',
-                    '/api/template-ocr/nutrition',
-                    '/api/improved-ocr/nutrition',
-                    '/api/improved-ocr/simple',
-                    '/api/ocr/nutrition'
-                ];
-            }
+            // Always use Google Cloud Vision OCR
+            console.log('OCR engine set to: Google Cloud Vision');
+            scanStatus.textContent = 'Processing image with Google Cloud Vision...';
+            endpoints = [
+                '/api/vision-ocr/nutrition'
+            ];
 
             // Try each endpoint in sequence
             for (const endpoint of endpoints) {

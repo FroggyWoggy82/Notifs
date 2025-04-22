@@ -650,6 +650,107 @@
     border: 1px solid #e8eef2;
 }
 
+/* Edit Ingredient Form Styling */
+.edit-ingredient-form {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #e8eef2;
+    border-radius: 4px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.edit-ingredient-form h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #2c3e50;
+    border-bottom: 1px solid #e8eef2;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-group-row .form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #1f2933;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #c8d0d7;
+    font-size: 0.95em;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.save-ingredient-btn {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.save-ingredient-btn:hover {
+    background-color: #219653;
+}
+
+.cancel-edit-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.cancel-edit-btn:hover {
+    background-color: #c0392b;
+}
+
+.edit-ingredient-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s;
+}
+
+.edit-ingredient-btn:hover {
+    background-color: #2980b9;
+}
+
 .recipe-display-item h4 {
     margin-top: 0;
     margin-bottom: 10px;

@@ -163,4 +163,92 @@ router.put('/:id', RecipeController.updateRecipeCalories);
  */
 router.delete('/:id', RecipeController.deleteRecipe);
 
+/**
+ * @swagger
+ * /api/recipes/{recipeId}/ingredients/{ingredientId}:
+ *   get:
+ *     summary: Get a single ingredient from a recipe
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The recipe ID
+ *       - in: path
+ *         name: ingredientId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ingredient ID
+ *     responses:
+ *       200:
+ *         description: Ingredient retrieved successfully
+ *       404:
+ *         description: Recipe or ingredient not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:recipeId/ingredients/:ingredientId', RecipeController.getIngredientById);
+
+/**
+ * @swagger
+ * /api/recipes/{recipeId}/ingredients/{ingredientId}:
+ *   patch:
+ *     summary: Update a single ingredient in a recipe
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The recipe ID
+ *       - in: path
+ *         name: ingredientId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ingredient ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The ingredient name
+ *               amount:
+ *                 type: number
+ *                 description: The ingredient amount in grams
+ *               calories:
+ *                 type: number
+ *                 description: The ingredient calories
+ *               protein:
+ *                 type: number
+ *                 description: The ingredient protein in grams
+ *               fats:
+ *                 type: number
+ *                 description: The ingredient fats in grams
+ *               carbohydrates:
+ *                 type: number
+ *                 description: The ingredient carbohydrates in grams
+ *               price:
+ *                 type: number
+ *                 description: The ingredient price
+ *     responses:
+ *       200:
+ *         description: Ingredient updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Recipe or ingredient not found
+ *       500:
+ *         description: Server error
+ */
+router.patch('/:recipeId/ingredients/:ingredientId', RecipeController.updateIngredient);
+
 module.exports = router;

@@ -47,12 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
             <div class="ingredient-row">
                 <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-                <div class="simplified-paste-area" tabindex="0">
-                    <div class="simplified-paste-instructions">
-                        Click here and press Ctrl+V to paste a Cronometer screenshot
-                        <small>The nutrition data will be automatically extracted using PaddleOCR</small>
-                    </div>
-                    <div class="simplified-paste-preview"></div>
+
+                <!-- Cronometer Text Parser -->
+                <div class="cronometer-text-paste-container">
+                    <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." rows="5"></textarea>
+                    <button type="button" class="cronometer-parse-button">Parse Nutrition Data</button>
+                    <div class="cronometer-parse-status"></div>
                 </div>
             </div>
             <div class="ingredient-row nutrition-inputs">
@@ -341,27 +341,53 @@ document.addEventListener('DOMContentLoaded', () => {
         ingredientItem.innerHTML = createIngredientRowHtml();
         ingredientsList.appendChild(ingredientItem);
 
-        // Initialize the paste area in the new row
         // Wait for the DOM to update before initializing
         setTimeout(() => {
-            if (typeof initializeSimplifiedPasteAreas === 'function') {
-                initializeSimplifiedPasteAreas();
-                console.log('Paste areas initialized in new ingredient row');
+            // Initialize the Cronometer Text Parser in the new row
+            if (typeof initializeCronometerTextParser === 'function') {
+                initializeCronometerTextParser(ingredientItem);
+                console.log('Cronometer Text Parser initialized in new ingredient row');
             } else {
-                console.error('initializeSimplifiedPasteAreas function not found');
-                // Try to load the simplified-nutrition-scan.js script if it's not loaded
+                console.error('initializeCronometerTextParser function not found');
+                // Try to load the cronometer-text-parser.js script if it's not loaded
                 const scriptElement = document.createElement('script');
-                scriptElement.src = '/js/food/simplified-nutrition-scan.js';
+                scriptElement.src = '/js/food/cronometer-text-parser.js';
                 scriptElement.onload = function() {
-                    console.log('Simplified nutrition scan script loaded');
-                    if (typeof initializeSimplifiedPasteAreas === 'function') {
-                        initializeSimplifiedPasteAreas();
-                        console.log('Paste areas initialized after script load');
+                    console.log('Cronometer Text Parser script loaded');
+                    if (typeof initializeCronometerTextParser === 'function') {
+                        initializeCronometerTextParser(ingredientItem);
+                        console.log('Cronometer Text Parser initialized after script load');
                     }
                 };
                 document.head.appendChild(scriptElement);
             }
-        }, 50); // Slightly longer timeout to ensure DOM is updated
+
+            // Manually add event listener to the parse button
+            const parseButton = ingredientItem.querySelector('.cronometer-parse-button');
+            const textPasteArea = ingredientItem.querySelector('.cronometer-text-paste-area');
+            const statusElement = ingredientItem.querySelector('.cronometer-parse-status');
+
+            if (parseButton && textPasteArea && statusElement) {
+                parseButton.addEventListener('click', () => {
+                    const text = textPasteArea.value.trim();
+                    if (text && typeof processCronometerText === 'function') {
+                        processCronometerText(text, ingredientItem, statusElement);
+                    } else if (text) {
+                        statusElement.textContent = 'Please paste Cronometer nutrition data first';
+                        statusElement.className = 'cronometer-parse-status error';
+                    }
+                });
+                console.log('Manual event listener added to parse button');
+            }
+
+            // Dispatch an event to notify that a new ingredient has been added
+            // This allows other modules to initialize their functionality for the new ingredient
+            const event = new CustomEvent('ingredientAdded', {
+                detail: { ingredientItem: ingredientItem }
+            });
+            document.dispatchEvent(event);
+            console.log('Dispatched ingredientAdded event');
+        }, 100); // Slightly longer timeout to ensure DOM is updated
 
         // Note: Remove button listener is handled by delegation
     }
@@ -1694,14 +1720,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         <th>Fat/g</th>
                         <th>Carb/g</th>
                         <th>Price/g</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
 
         ingredients.forEach(ing => {
+            // Calculate per gram values if not already provided
+            const calPerGram = ing.calories_per_gram ? ing.calories_per_gram.toFixed(2) :
+                               (ing.amount > 0 ? (ing.calories / ing.amount).toFixed(2) : '0.00');
+            const protPerGram = ing.protein_per_gram ? ing.protein_per_gram.toFixed(2) :
+                                (ing.amount > 0 ? (ing.protein / ing.amount).toFixed(2) : '0.00');
+            const fatPerGram = ing.fats_per_gram ? ing.fats_per_gram.toFixed(2) :
+                              (ing.amount > 0 ? (ing.fats / ing.amount).toFixed(2) : '0.00');
+            const carbPerGram = ing.carbohydrates_per_gram ? ing.carbohydrates_per_gram.toFixed(2) :
+                                (ing.amount > 0 ? (ing.carbohydrates / ing.amount).toFixed(2) : '0.00');
+            const pricePerGram = ing.price_per_gram ? ing.price_per_gram.toFixed(3) :
+                                (ing.amount > 0 ? (ing.price / ing.amount).toFixed(3) : '0.000');
+
             tableHtml += `
-                <tr>
+                <tr data-ingredient-id="${ing.id}" data-recipe-id="${ing.recipe_id}">
                     <td>${escapeHtml(ing.name)}</td>
                     <td>${ing.calories.toFixed(1)}</td>
                     <td>${ing.amount.toFixed(1)}</td>
@@ -1709,17 +1748,677 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${ing.fats.toFixed(1)}</td>
                     <td>${ing.carbohydrates.toFixed(1)}</td>
                     <td>${ing.price.toFixed(2)}</td>
-                    <td>${ing.calories_per_gram.toFixed(2)}</td>
-                    <td>${ing.protein_per_gram.toFixed(2)}</td>
-                    <td>${ing.fats_per_gram.toFixed(2)}</td>
-                    <td>${ing.carbohydrates_per_gram.toFixed(2)}</td>
-                    <td>${ing.price_per_gram.toFixed(3)}</td>
+                    <td>${calPerGram}</td>
+                    <td>${protPerGram}</td>
+                    <td>${fatPerGram}</td>
+                    <td>${carbPerGram}</td>
+                    <td>${pricePerGram}</td>
+                    <td>
+                        <button type="button" class="edit-ingredient-btn">Edit</button>
+                    </td>
                 </tr>
             `;
         });
 
-        tableHtml += `</tbody></table>`;
+        tableHtml += `
+                </tbody>
+            </table>
+            <div class="edit-ingredient-form" style="display: none;">
+                <h4>Edit Ingredient</h4>
+                <form id="edit-ingredient-form">
+                    <input type="hidden" id="edit-ingredient-id">
+                    <input type="hidden" id="edit-recipe-id">
+
+                    <!-- Basic Information -->
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="edit-ingredient-name">Name:</label>
+                            <input type="text" id="edit-ingredient-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-ingredient-amount">Amount (g):</label>
+                            <input type="number" id="edit-ingredient-amount" step="0.1" min="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-ingredient-price">Price:</label>
+                            <input type="number" id="edit-ingredient-price" step="0.01" min="0" required>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Nutrition Panel -->
+                    <div class="detailed-nutrition-panel" style="display:block;">
+                        <!-- General Section -->
+                        <div class="nutrition-section">
+                            <h4>General</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-calories">Energy (kcal):</label>
+                                    <input type="number" id="edit-ingredient-calories" step="0.1" min="0" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-alcohol">Alcohol (g):</label>
+                                    <input type="number" id="edit-ingredient-alcohol" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-caffeine">Caffeine (mg):</label>
+                                    <input type="number" id="edit-ingredient-caffeine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-water">Water (g):</label>
+                                    <input type="number" id="edit-ingredient-water" step="0.1" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carbohydrates Section -->
+                        <div class="nutrition-section">
+                            <h4>Carbohydrates</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-carbs">Carbs (g):</label>
+                                    <input type="number" id="edit-ingredient-carbs" step="0.1" min="0" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-fiber">Fiber (g):</label>
+                                    <input type="number" id="edit-ingredient-fiber" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-starch">Starch (g):</label>
+                                    <input type="number" id="edit-ingredient-starch" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-sugars">Sugars (g):</label>
+                                    <input type="number" id="edit-ingredient-sugars" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-added-sugars">Added Sugars (g):</label>
+                                    <input type="number" id="edit-ingredient-added-sugars" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-net-carbs">Net Carbs (g):</label>
+                                    <input type="number" id="edit-ingredient-net-carbs" step="0.1" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lipids Section -->
+                        <div class="nutrition-section">
+                            <h4>Lipids</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-fats">Fat (g):</label>
+                                    <input type="number" id="edit-ingredient-fats" step="0.1" min="0" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-monounsaturated">Monounsaturated (g):</label>
+                                    <input type="number" id="edit-ingredient-monounsaturated" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-polyunsaturated">Polyunsaturated (g):</label>
+                                    <input type="number" id="edit-ingredient-polyunsaturated" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-omega3">Omega 3 (g):</label>
+                                    <input type="number" id="edit-ingredient-omega3" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-omega6">Omega 6 (g):</label>
+                                    <input type="number" id="edit-ingredient-omega6" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-saturated">Saturated (g):</label>
+                                    <input type="number" id="edit-ingredient-saturated" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-trans-fat">Trans Fat (g):</label>
+                                    <input type="number" id="edit-ingredient-trans-fat" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-cholesterol">Cholesterol (mg):</label>
+                                    <input type="number" id="edit-ingredient-cholesterol" step="0.1" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Protein Section -->
+                        <div class="nutrition-section">
+                            <h4>Protein</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-protein">Protein (g):</label>
+                                    <input type="number" id="edit-ingredient-protein" step="0.1" min="0" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-cystine">Cystine (g):</label>
+                                    <input type="number" id="edit-ingredient-cystine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-histidine">Histidine (g):</label>
+                                    <input type="number" id="edit-ingredient-histidine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-isoleucine">Isoleucine (g):</label>
+                                    <input type="number" id="edit-ingredient-isoleucine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-leucine">Leucine (g):</label>
+                                    <input type="number" id="edit-ingredient-leucine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-lysine">Lysine (g):</label>
+                                    <input type="number" id="edit-ingredient-lysine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-methionine">Methionine (g):</label>
+                                    <input type="number" id="edit-ingredient-methionine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-phenylalanine">Phenylalanine (g):</label>
+                                    <input type="number" id="edit-ingredient-phenylalanine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-threonine">Threonine (g):</label>
+                                    <input type="number" id="edit-ingredient-threonine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-tryptophan">Tryptophan (g):</label>
+                                    <input type="number" id="edit-ingredient-tryptophan" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-tyrosine">Tyrosine (g):</label>
+                                    <input type="number" id="edit-ingredient-tyrosine" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-valine">Valine (g):</label>
+                                    <input type="number" id="edit-ingredient-valine" step="0.1" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vitamins Section -->
+                        <div class="nutrition-section">
+                            <h4>Vitamins</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-b1">B1 (Thiamine) (mg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-b1" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-b2">B2 (Riboflavin) (mg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-b2" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-b3">B3 (Niacin) (mg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-b3" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-b5">B5 (Pantothenic Acid) (mg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-b5" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-b6">B6 (Pyridoxine) (mg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-b6" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-b12">B12 (Cobalamin) (µg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-b12" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-folate">Folate (µg):</label>
+                                    <input type="number" id="edit-ingredient-folate" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-a">Vitamin A (µg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-a" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-c">Vitamin C (mg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-c" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-d">Vitamin D (IU):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-d" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-e">Vitamin E (mg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-e" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-vitamin-k">Vitamin K (µg):</label>
+                                    <input type="number" id="edit-ingredient-vitamin-k" step="0.1" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Minerals Section -->
+                        <div class="nutrition-section">
+                            <h4>Minerals</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-calcium">Calcium (mg):</label>
+                                    <input type="number" id="edit-ingredient-calcium" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-copper">Copper (mg):</label>
+                                    <input type="number" id="edit-ingredient-copper" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-iron">Iron (mg):</label>
+                                    <input type="number" id="edit-ingredient-iron" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-magnesium">Magnesium (mg):</label>
+                                    <input type="number" id="edit-ingredient-magnesium" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-manganese">Manganese (mg):</label>
+                                    <input type="number" id="edit-ingredient-manganese" step="0.01" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-phosphorus">Phosphorus (mg):</label>
+                                    <input type="number" id="edit-ingredient-phosphorus" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-potassium">Potassium (mg):</label>
+                                    <input type="number" id="edit-ingredient-potassium" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-selenium">Selenium (µg):</label>
+                                    <input type="number" id="edit-ingredient-selenium" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-sodium">Sodium (mg):</label>
+                                    <input type="number" id="edit-ingredient-sodium" step="0.1" min="0">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="edit-ingredient-zinc">Zinc (mg):</label>
+                                    <input type="number" id="edit-ingredient-zinc" step="0.01" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="save-ingredient-btn">Save Changes</button>
+                        <button type="button" class="cancel-edit-btn">Cancel</button>
+                    </div>
+                </form>
+                <div class="edit-ingredient-status status"></div>
+            </div>
+        `;
+
         container.innerHTML = tableHtml;
+
+        // Add event listeners for the edit buttons
+        const editButtons = container.querySelectorAll('.edit-ingredient-btn');
+        editButtons.forEach(button => {
+            button.addEventListener('click', handleEditIngredientClick);
+        });
+
+        // Add event listener for the edit form
+        const editForm = container.querySelector('#edit-ingredient-form');
+        if (editForm) {
+            editForm.addEventListener('submit', handleEditIngredientSubmit);
+        }
+
+        // Add event listener for the cancel button
+        const cancelButton = container.querySelector('.cancel-edit-btn');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', () => {
+                container.querySelector('.edit-ingredient-form').style.display = 'none';
+            });
+        }
+    }
+
+    // Handle edit ingredient button click
+    function handleEditIngredientClick(event) {
+        const row = event.target.closest('tr');
+        const ingredientId = row.dataset.ingredientId;
+        const recipeId = row.dataset.recipeId;
+        const container = row.closest('.ingredient-details');
+        const editForm = container.querySelector('.edit-ingredient-form');
+        const statusElement = container.querySelector('.edit-ingredient-status');
+
+        // Show the edit form
+        editForm.style.display = 'block';
+
+        // Fetch the full ingredient data from the API
+        fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(ingredient => {
+                // Populate form fields with current values
+                document.getElementById('edit-ingredient-id').value = ingredientId;
+                document.getElementById('edit-recipe-id').value = recipeId;
+
+                // Basic information
+                document.getElementById('edit-ingredient-name').value = ingredient.name || '';
+                document.getElementById('edit-ingredient-amount').value = ingredient.amount || '';
+                document.getElementById('edit-ingredient-price').value = ingredient.price || '';
+
+                // General section
+                document.getElementById('edit-ingredient-calories').value = ingredient.calories || '';
+                document.getElementById('edit-ingredient-alcohol').value = ingredient.alcohol || '';
+                document.getElementById('edit-ingredient-caffeine').value = ingredient.caffeine || '';
+                document.getElementById('edit-ingredient-water').value = ingredient.water || '';
+
+                // Carbohydrates section
+                document.getElementById('edit-ingredient-carbs').value = ingredient.carbohydrates || '';
+                document.getElementById('edit-ingredient-fiber').value = ingredient.fiber || '';
+                document.getElementById('edit-ingredient-starch').value = ingredient.starch || '';
+                document.getElementById('edit-ingredient-sugars').value = ingredient.sugars || '';
+                document.getElementById('edit-ingredient-added-sugars').value = ingredient.added_sugars || '';
+                document.getElementById('edit-ingredient-net-carbs').value = ingredient.net_carbs || '';
+
+                // Lipids section
+                document.getElementById('edit-ingredient-fats').value = ingredient.fats || '';
+                document.getElementById('edit-ingredient-monounsaturated').value = ingredient.monounsaturated || '';
+                document.getElementById('edit-ingredient-polyunsaturated').value = ingredient.polyunsaturated || '';
+                document.getElementById('edit-ingredient-omega3').value = ingredient.omega3 || '';
+                document.getElementById('edit-ingredient-omega6').value = ingredient.omega6 || '';
+                document.getElementById('edit-ingredient-saturated').value = ingredient.saturated || '';
+                document.getElementById('edit-ingredient-trans-fat').value = ingredient.trans_fat || '';
+                document.getElementById('edit-ingredient-cholesterol').value = ingredient.cholesterol || '';
+
+                // Protein section
+                document.getElementById('edit-ingredient-protein').value = ingredient.protein || '';
+                document.getElementById('edit-ingredient-cystine').value = ingredient.cystine || '';
+                document.getElementById('edit-ingredient-histidine').value = ingredient.histidine || '';
+                document.getElementById('edit-ingredient-isoleucine').value = ingredient.isoleucine || '';
+                document.getElementById('edit-ingredient-leucine').value = ingredient.leucine || '';
+                document.getElementById('edit-ingredient-lysine').value = ingredient.lysine || '';
+                document.getElementById('edit-ingredient-methionine').value = ingredient.methionine || '';
+                document.getElementById('edit-ingredient-phenylalanine').value = ingredient.phenylalanine || '';
+                document.getElementById('edit-ingredient-threonine').value = ingredient.threonine || '';
+                document.getElementById('edit-ingredient-tryptophan').value = ingredient.tryptophan || '';
+                document.getElementById('edit-ingredient-tyrosine').value = ingredient.tyrosine || '';
+                document.getElementById('edit-ingredient-valine').value = ingredient.valine || '';
+
+                // Vitamins section
+                document.getElementById('edit-ingredient-vitamin-b1').value = ingredient.vitamin_b1 || '';
+                document.getElementById('edit-ingredient-vitamin-b2').value = ingredient.vitamin_b2 || '';
+                document.getElementById('edit-ingredient-vitamin-b3').value = ingredient.vitamin_b3 || '';
+                document.getElementById('edit-ingredient-vitamin-b5').value = ingredient.vitamin_b5 || '';
+                document.getElementById('edit-ingredient-vitamin-b6').value = ingredient.vitamin_b6 || '';
+                document.getElementById('edit-ingredient-vitamin-b12').value = ingredient.vitamin_b12 || '';
+                document.getElementById('edit-ingredient-folate').value = ingredient.folate || '';
+                document.getElementById('edit-ingredient-vitamin-a').value = ingredient.vitamin_a || '';
+                document.getElementById('edit-ingredient-vitamin-c').value = ingredient.vitamin_c || '';
+                document.getElementById('edit-ingredient-vitamin-d').value = ingredient.vitamin_d || '';
+                document.getElementById('edit-ingredient-vitamin-e').value = ingredient.vitamin_e || '';
+                document.getElementById('edit-ingredient-vitamin-k').value = ingredient.vitamin_k || '';
+
+                // Minerals section
+                document.getElementById('edit-ingredient-calcium').value = ingredient.calcium || '';
+                document.getElementById('edit-ingredient-copper').value = ingredient.copper || '';
+                document.getElementById('edit-ingredient-iron').value = ingredient.iron || '';
+                document.getElementById('edit-ingredient-magnesium').value = ingredient.magnesium || '';
+                document.getElementById('edit-ingredient-manganese').value = ingredient.manganese || '';
+                document.getElementById('edit-ingredient-phosphorus').value = ingredient.phosphorus || '';
+                document.getElementById('edit-ingredient-potassium').value = ingredient.potassium || '';
+                document.getElementById('edit-ingredient-selenium').value = ingredient.selenium || '';
+                document.getElementById('edit-ingredient-sodium').value = ingredient.sodium || '';
+                document.getElementById('edit-ingredient-zinc').value = ingredient.zinc || '';
+
+                // Clear any previous status messages
+                showStatus(statusElement, '', '');
+
+                // Scroll to the edit form
+                editForm.scrollIntoView({ behavior: 'smooth' });
+            })
+            .catch(error => {
+                console.error('Error fetching ingredient details:', error);
+
+                // Fallback to basic data from the table if API fails
+                const cells = row.querySelectorAll('td');
+                document.getElementById('edit-ingredient-id').value = ingredientId;
+                document.getElementById('edit-recipe-id').value = recipeId;
+                document.getElementById('edit-ingredient-name').value = cells[0].textContent;
+                document.getElementById('edit-ingredient-calories').value = parseFloat(cells[1].textContent);
+                document.getElementById('edit-ingredient-amount').value = parseFloat(cells[2].textContent);
+                document.getElementById('edit-ingredient-protein').value = parseFloat(cells[3].textContent);
+                document.getElementById('edit-ingredient-fats').value = parseFloat(cells[4].textContent);
+                document.getElementById('edit-ingredient-carbs').value = parseFloat(cells[5].textContent);
+                document.getElementById('edit-ingredient-price').value = parseFloat(cells[6].textContent);
+
+                showStatus(statusElement, 'Could not fetch detailed ingredient data. Basic data loaded.', 'warning');
+
+                // Scroll to the edit form
+                editForm.scrollIntoView({ behavior: 'smooth' });
+            });
+    }
+
+    // Handle edit ingredient form submission
+    async function handleEditIngredientSubmit(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const container = form.closest('.ingredient-details');
+        const statusElement = container.querySelector('.edit-ingredient-status');
+
+        // Show loading status
+        showStatus(statusElement, 'Saving changes...', 'info');
+
+        // Get basic form values
+        const ingredientId = document.getElementById('edit-ingredient-id').value;
+        const recipeId = document.getElementById('edit-recipe-id').value;
+        const name = document.getElementById('edit-ingredient-name').value.trim();
+        const amount = parseFloat(document.getElementById('edit-ingredient-amount').value);
+        const price = parseFloat(document.getElementById('edit-ingredient-price').value);
+
+        // Get required nutrition values
+        const calories = parseFloat(document.getElementById('edit-ingredient-calories').value);
+        const protein = parseFloat(document.getElementById('edit-ingredient-protein').value);
+        const fats = parseFloat(document.getElementById('edit-ingredient-fats').value);
+        const carbohydrates = parseFloat(document.getElementById('edit-ingredient-carbs').value);
+
+        // Validate required form values
+        if (!name || isNaN(calories) || isNaN(amount) || isNaN(protein) || isNaN(fats) || isNaN(carbohydrates) || isNaN(price)) {
+            showStatus(statusElement, 'Please fill all required fields with valid values.', 'error');
+            return;
+        }
+
+        // Prepare data for API call - start with required fields
+        const ingredientData = {
+            name,
+            calories,
+            amount,
+            protein,
+            fats,
+            carbohydrates,
+            price
+        };
+
+        // Add optional General section fields
+        const alcohol = parseFloat(document.getElementById('edit-ingredient-alcohol').value);
+        if (!isNaN(alcohol)) ingredientData.alcohol = alcohol;
+
+        const caffeine = parseFloat(document.getElementById('edit-ingredient-caffeine').value);
+        if (!isNaN(caffeine)) ingredientData.caffeine = caffeine;
+
+        const water = parseFloat(document.getElementById('edit-ingredient-water').value);
+        if (!isNaN(water)) ingredientData.water = water;
+
+        // Add optional Carbohydrates section fields
+        const fiber = parseFloat(document.getElementById('edit-ingredient-fiber').value);
+        if (!isNaN(fiber)) ingredientData.fiber = fiber;
+
+        const starch = parseFloat(document.getElementById('edit-ingredient-starch').value);
+        if (!isNaN(starch)) ingredientData.starch = starch;
+
+        const sugars = parseFloat(document.getElementById('edit-ingredient-sugars').value);
+        if (!isNaN(sugars)) ingredientData.sugars = sugars;
+
+        const addedSugars = parseFloat(document.getElementById('edit-ingredient-added-sugars').value);
+        if (!isNaN(addedSugars)) ingredientData.added_sugars = addedSugars;
+
+        const netCarbs = parseFloat(document.getElementById('edit-ingredient-net-carbs').value);
+        if (!isNaN(netCarbs)) ingredientData.net_carbs = netCarbs;
+
+        // Add optional Lipids section fields
+        const monounsaturated = parseFloat(document.getElementById('edit-ingredient-monounsaturated').value);
+        if (!isNaN(monounsaturated)) ingredientData.monounsaturated = monounsaturated;
+
+        const polyunsaturated = parseFloat(document.getElementById('edit-ingredient-polyunsaturated').value);
+        if (!isNaN(polyunsaturated)) ingredientData.polyunsaturated = polyunsaturated;
+
+        const omega3 = parseFloat(document.getElementById('edit-ingredient-omega3').value);
+        if (!isNaN(omega3)) ingredientData.omega3 = omega3;
+
+        const omega6 = parseFloat(document.getElementById('edit-ingredient-omega6').value);
+        if (!isNaN(omega6)) ingredientData.omega6 = omega6;
+
+        const saturated = parseFloat(document.getElementById('edit-ingredient-saturated').value);
+        if (!isNaN(saturated)) ingredientData.saturated = saturated;
+
+        const transFat = parseFloat(document.getElementById('edit-ingredient-trans-fat').value);
+        if (!isNaN(transFat)) ingredientData.trans_fat = transFat;
+
+        const cholesterol = parseFloat(document.getElementById('edit-ingredient-cholesterol').value);
+        if (!isNaN(cholesterol)) ingredientData.cholesterol = cholesterol;
+
+        // Add optional Protein section fields
+        const cystine = parseFloat(document.getElementById('edit-ingredient-cystine').value);
+        if (!isNaN(cystine)) ingredientData.cystine = cystine;
+
+        const histidine = parseFloat(document.getElementById('edit-ingredient-histidine').value);
+        if (!isNaN(histidine)) ingredientData.histidine = histidine;
+
+        const isoleucine = parseFloat(document.getElementById('edit-ingredient-isoleucine').value);
+        if (!isNaN(isoleucine)) ingredientData.isoleucine = isoleucine;
+
+        const leucine = parseFloat(document.getElementById('edit-ingredient-leucine').value);
+        if (!isNaN(leucine)) ingredientData.leucine = leucine;
+
+        const lysine = parseFloat(document.getElementById('edit-ingredient-lysine').value);
+        if (!isNaN(lysine)) ingredientData.lysine = lysine;
+
+        const methionine = parseFloat(document.getElementById('edit-ingredient-methionine').value);
+        if (!isNaN(methionine)) ingredientData.methionine = methionine;
+
+        const phenylalanine = parseFloat(document.getElementById('edit-ingredient-phenylalanine').value);
+        if (!isNaN(phenylalanine)) ingredientData.phenylalanine = phenylalanine;
+
+        const threonine = parseFloat(document.getElementById('edit-ingredient-threonine').value);
+        if (!isNaN(threonine)) ingredientData.threonine = threonine;
+
+        const tryptophan = parseFloat(document.getElementById('edit-ingredient-tryptophan').value);
+        if (!isNaN(tryptophan)) ingredientData.tryptophan = tryptophan;
+
+        const tyrosine = parseFloat(document.getElementById('edit-ingredient-tyrosine').value);
+        if (!isNaN(tyrosine)) ingredientData.tyrosine = tyrosine;
+
+        const valine = parseFloat(document.getElementById('edit-ingredient-valine').value);
+        if (!isNaN(valine)) ingredientData.valine = valine;
+
+        // Add optional Vitamins section fields
+        const vitaminB1 = parseFloat(document.getElementById('edit-ingredient-vitamin-b1').value);
+        if (!isNaN(vitaminB1)) ingredientData.vitamin_b1 = vitaminB1;
+
+        const vitaminB2 = parseFloat(document.getElementById('edit-ingredient-vitamin-b2').value);
+        if (!isNaN(vitaminB2)) ingredientData.vitamin_b2 = vitaminB2;
+
+        const vitaminB3 = parseFloat(document.getElementById('edit-ingredient-vitamin-b3').value);
+        if (!isNaN(vitaminB3)) ingredientData.vitamin_b3 = vitaminB3;
+
+        const vitaminB5 = parseFloat(document.getElementById('edit-ingredient-vitamin-b5').value);
+        if (!isNaN(vitaminB5)) ingredientData.vitamin_b5 = vitaminB5;
+
+        const vitaminB6 = parseFloat(document.getElementById('edit-ingredient-vitamin-b6').value);
+        if (!isNaN(vitaminB6)) ingredientData.vitamin_b6 = vitaminB6;
+
+        const vitaminB12 = parseFloat(document.getElementById('edit-ingredient-vitamin-b12').value);
+        if (!isNaN(vitaminB12)) ingredientData.vitamin_b12 = vitaminB12;
+
+        const folate = parseFloat(document.getElementById('edit-ingredient-folate').value);
+        if (!isNaN(folate)) ingredientData.folate = folate;
+
+        const vitaminA = parseFloat(document.getElementById('edit-ingredient-vitamin-a').value);
+        if (!isNaN(vitaminA)) ingredientData.vitamin_a = vitaminA;
+
+        const vitaminC = parseFloat(document.getElementById('edit-ingredient-vitamin-c').value);
+        if (!isNaN(vitaminC)) ingredientData.vitamin_c = vitaminC;
+
+        const vitaminD = parseFloat(document.getElementById('edit-ingredient-vitamin-d').value);
+        if (!isNaN(vitaminD)) ingredientData.vitamin_d = vitaminD;
+
+        const vitaminE = parseFloat(document.getElementById('edit-ingredient-vitamin-e').value);
+        if (!isNaN(vitaminE)) ingredientData.vitamin_e = vitaminE;
+
+        const vitaminK = parseFloat(document.getElementById('edit-ingredient-vitamin-k').value);
+        if (!isNaN(vitaminK)) ingredientData.vitamin_k = vitaminK;
+
+        // Add optional Minerals section fields
+        const calcium = parseFloat(document.getElementById('edit-ingredient-calcium').value);
+        if (!isNaN(calcium)) ingredientData.calcium = calcium;
+
+        const copper = parseFloat(document.getElementById('edit-ingredient-copper').value);
+        if (!isNaN(copper)) ingredientData.copper = copper;
+
+        const iron = parseFloat(document.getElementById('edit-ingredient-iron').value);
+        if (!isNaN(iron)) ingredientData.iron = iron;
+
+        const magnesium = parseFloat(document.getElementById('edit-ingredient-magnesium').value);
+        if (!isNaN(magnesium)) ingredientData.magnesium = magnesium;
+
+        const manganese = parseFloat(document.getElementById('edit-ingredient-manganese').value);
+        if (!isNaN(manganese)) ingredientData.manganese = manganese;
+
+        const phosphorus = parseFloat(document.getElementById('edit-ingredient-phosphorus').value);
+        if (!isNaN(phosphorus)) ingredientData.phosphorus = phosphorus;
+
+        const potassium = parseFloat(document.getElementById('edit-ingredient-potassium').value);
+        if (!isNaN(potassium)) ingredientData.potassium = potassium;
+
+        const selenium = parseFloat(document.getElementById('edit-ingredient-selenium').value);
+        if (!isNaN(selenium)) ingredientData.selenium = selenium;
+
+        const sodium = parseFloat(document.getElementById('edit-ingredient-sodium').value);
+        if (!isNaN(sodium)) ingredientData.sodium = sodium;
+
+        const zinc = parseFloat(document.getElementById('edit-ingredient-zinc').value);
+        if (!isNaN(zinc)) ingredientData.zinc = zinc;
+
+        try {
+            // Call the API to update the ingredient
+            const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(ingredientData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const updatedRecipe = await response.json();
+
+            // Update the displayed ingredients
+            renderIngredientDetails(updatedRecipe.ingredients, container);
+
+            // Hide the edit form
+            container.querySelector('.edit-ingredient-form').style.display = 'none';
+
+            // Update the recipe calories display
+            const recipeItem = container.closest('.recipe-display-item');
+            const caloriesSpan = recipeItem.querySelector('.recipe-calories');
+            if (caloriesSpan) {
+                caloriesSpan.textContent = updatedRecipe.total_calories.toFixed(1);
+            }
+
+            showStatus(statusElement, 'Ingredient updated successfully!', 'success');
+
+        } catch (error) {
+            console.error('Error updating ingredient:', error);
+            showStatus(statusElement, `Error: ${error.message}`, 'error');
+        }
     }
 
     // Event delegation for recipe list actions (Delete, Adjust, View)

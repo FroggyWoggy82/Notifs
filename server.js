@@ -35,12 +35,8 @@ const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pa
 const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
 const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for calorie targets
 const journalRoutes = require('./routes/journal'); // New route for journal entries
-const ocrRoutes = require('./routes/ocrRoutes'); // Main OCR processing route
-const improvedOcrRoutes = require('./routes/improved-ocr'); // Improved OCR implementation (used as fallback)
-const energyOcrFixedRoutes = require('./routes/energy-ocr-fixed'); // Energy-specific fixed OCR implementation (primary)
-const templateOcrRoutes = require('./routes/template-ocr'); // Template-based OCR for specific nutrition label format
-const cronometerOcrRoutes = require('./routes/cronometer-ocr'); // Cronometer-specific OCR implementation
-const paddleOcrRoutes = require('./routes/paddle-ocr'); // PaddleOCR implementation (best accuracy)
+const visionOcrRoutes = require('./routes/vision-ocr'); // Google Cloud Vision OCR implementation
+const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // Cronometer nutrition data scraper
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -127,22 +123,13 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 app.use('/api/calorie-targets', calorieTargetRoutes);
 app.use('/api/journal', journalRoutes); // NEW: Journal entries route
-app.use('/api/ocr', ocrRoutes); // Main OCR processing route
-app.use('/api/improved-ocr', improvedOcrRoutes); // Improved OCR implementation (used as fallback)
-console.log('Registering energy-ocr-fixed routes...');
-app.use('/api/energy-ocr-fixed', energyOcrFixedRoutes); // Energy-specific fixed OCR implementation (primary)
-console.log('Energy-ocr-fixed routes registered successfully!');
-console.log('Registering template-ocr routes...');
-app.use('/api/template-ocr', templateOcrRoutes); // Template-based OCR for specific nutrition label format
-console.log('Template-ocr routes registered successfully!');
+console.log('Registering Google Cloud Vision OCR routes...');
+app.use('/api/vision-ocr', visionOcrRoutes); // Google Cloud Vision OCR implementation
+console.log('Google Cloud Vision OCR routes registered successfully!');
 
-console.log('Registering cronometer-ocr routes...');
-app.use('/api/cronometer-ocr', cronometerOcrRoutes); // Cronometer-specific OCR implementation
-console.log('Cronometer-ocr routes registered successfully!');
-
-console.log('Registering paddle-ocr routes...');
-app.use('/api/paddle-ocr', paddleOcrRoutes); // PaddleOCR implementation (best accuracy)
-console.log('Paddle-ocr routes registered successfully!');
+console.log('Registering Cronometer Nutrition routes...');
+app.use('/api/cronometer', cronometerNutritionRoutes); // Cronometer nutrition data scraper
+console.log('Cronometer Nutrition routes registered successfully!');
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
@@ -211,6 +198,10 @@ app.get('/exercise-history', (_req, res) => {
 
 app.get('/workouts', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'workouts.html'));
+});
+
+app.get('/cronometer-nutrition', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'cronometer-nutrition.html'));
 });
 
 // Fallback Routes

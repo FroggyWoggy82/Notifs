@@ -36,11 +36,11 @@ async function getRecipeById(req, res) {
         res.json(recipe);
     } catch (error) {
         console.error(`Error fetching recipe ${id}:`, error);
-        
+
         if (error.message === 'Recipe not found') {
             return res.status(404).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to fetch recipe details' });
     }
 }
@@ -53,20 +53,20 @@ async function getRecipeById(req, res) {
 async function createRecipe(req, res) {
     const { name, ingredients } = req.body;
     console.log(`Received POST /api/recipes: name='${name}'`, ingredients);
-    
+
     try {
         const recipe = await RecipeModel.createRecipe(name, ingredients);
         console.log(`Recipe '${name}' created successfully with ID: ${recipe.id}`);
         res.status(201).json(recipe);
     } catch (error) {
         console.error('Error creating recipe:', error);
-        
-        if (error.message.includes('required') || 
+
+        if (error.message.includes('required') ||
             error.message.includes('Invalid calorie data') ||
             error.message.includes('Invalid data for ingredient')) {
             return res.status(400).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to create recipe' });
     }
 }
@@ -80,23 +80,23 @@ async function updateRecipeCalories(req, res) {
     const { id } = req.params;
     const { name, targetCalories } = req.body;
     console.log(`Received PUT /api/recipes/${id}: name='${name}', targetCalories=${targetCalories}`);
-    
+
     try {
         const recipe = await RecipeModel.updateRecipeCalories(id, name, targetCalories);
         console.log(`Recipe ${id} calories adjusted successfully to ${targetCalories}`);
         res.json(recipe);
     } catch (error) {
         console.error(`Error updating recipe ${id}:`, error);
-        
+
         if (error.message === 'Invalid targetCalories value' ||
             error.message === 'Cannot scale recipe with zero or negative current calories') {
             return res.status(400).json({ error: error.message });
         }
-        
+
         if (error.message === 'Recipe not found') {
             return res.status(404).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to update recipe calories' });
     }
 }
@@ -109,22 +109,78 @@ async function updateRecipeCalories(req, res) {
 async function deleteRecipe(req, res) {
     const { id } = req.params;
     console.log(`Received DELETE /api/recipes/${id}`);
-    
+
     try {
         const result = await RecipeModel.deleteRecipe(id);
         console.log(`Recipe ${id} (${result.name}) deleted successfully`);
-        res.json({ 
-            message: `Recipe ${result.name} deleted successfully`, 
-            id: result.id 
+        res.json({
+            message: `Recipe ${result.name} deleted successfully`,
+            id: result.id
         });
     } catch (error) {
         console.error(`Error deleting recipe ${id}:`, error);
-        
+
         if (error.message === 'Recipe not found') {
             return res.status(404).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to delete recipe' });
+    }
+}
+
+/**
+ * Update a single ingredient in a recipe
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function updateIngredient(req, res) {
+    const { recipeId, ingredientId } = req.params;
+    const ingredientData = req.body;
+
+    console.log(`Received PATCH /api/recipes/${recipeId}/ingredients/${ingredientId}:`, ingredientData);
+
+    try {
+        const recipe = await RecipeModel.updateIngredient(recipeId, ingredientId, ingredientData);
+        console.log(`Ingredient ${ingredientId} in recipe ${recipeId} updated successfully`);
+        res.json(recipe);
+    } catch (error) {
+        console.error(`Error updating ingredient ${ingredientId} in recipe ${recipeId}:`, error);
+
+        if (error.message.includes('required') ||
+            error.message.includes('Invalid value')) {
+            return res.status(400).json({ error: error.message });
+        }
+
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to update ingredient' });
+    }
+}
+
+/**
+ * Get a single ingredient by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getIngredientById(req, res) {
+    const { recipeId, ingredientId } = req.params;
+
+    console.log(`Received GET /api/recipes/${recipeId}/ingredients/${ingredientId}`);
+
+    try {
+        const ingredient = await RecipeModel.getIngredientById(recipeId, ingredientId);
+        console.log(`Ingredient ${ingredientId} in recipe ${recipeId} retrieved successfully`);
+        res.json(ingredient);
+    } catch (error) {
+        console.error(`Error retrieving ingredient ${ingredientId} in recipe ${recipeId}:`, error);
+
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to retrieve ingredient' });
     }
 }
 
@@ -133,5 +189,7 @@ module.exports = {
     getRecipeById,
     createRecipe,
     updateRecipeCalories,
-    deleteRecipe
+    deleteRecipe,
+    updateIngredient,
+    getIngredientById
 };

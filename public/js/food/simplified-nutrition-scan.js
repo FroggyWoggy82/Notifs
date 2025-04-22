@@ -13,20 +13,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  * Initialize all simplified paste areas in the document
+ * Note: This function is kept for backward compatibility but is no longer used
+ * as we've removed the simplified-paste-area elements
  */
 function initializeSimplifiedPasteAreas() {
-    const pasteAreas = document.querySelectorAll('.simplified-paste-area');
-
-    pasteAreas.forEach(pasteArea => {
-        // Skip if already initialized
-        if (pasteArea.dataset.initialized === 'true') return;
-
-        // Mark as initialized
-        pasteArea.dataset.initialized = 'true';
-
-        // Set up paste event listeners
-        initializePasteArea(pasteArea);
-    });
+    // This function is now a no-op since we've removed the simplified-paste-area elements
+    console.log('initializeSimplifiedPasteAreas called, but simplified-paste-area elements have been removed');
+    return;
 }
 
 /**
@@ -54,8 +47,8 @@ function setupPasteEventListeners(pasteArea) {
         ingredientItem.appendChild(statusElement);
     }
 
-    // Always use PaddleOCR
-    ingredientItem.dataset.ocrType = 'paddle';
+    // Always use Google Cloud Vision
+    ingredientItem.dataset.ocrType = 'vision';
 
     // Focus on click to make it easier to paste
     pasteArea.addEventListener('click', function() {
@@ -160,24 +153,10 @@ function displayImagePreview(imageUrl, previewElement, pasteArea) {
         previewElement.innerHTML = '';
         previewElement.classList.remove('has-image');
 
-        // Reset the instructions
-        const instructionsElement = pasteArea.querySelector('.simplified-paste-instructions');
-        instructionsElement.textContent = 'Click here and press Ctrl+V to paste a Cronometer screenshot';
-
-        // Add small text with instructions
-        const smallText = document.createElement('small');
-        smallText.textContent = 'The nutrition data will be automatically extracted';
-        instructionsElement.appendChild(smallText);
+        // No need to reset instructions as they've been removed
     });
 
-    // Update instructions
-    const instructionsElement = pasteArea.querySelector('.simplified-paste-instructions');
-    instructionsElement.textContent = 'Image pasted successfully!';
-
-    // Add small text with instructions
-    const smallText = document.createElement('small');
-    smallText.textContent = 'Processing nutrition data...';
-    instructionsElement.appendChild(smallText);
+    // Instructions element is no longer present, so we skip updating it
 }
 
 /**
@@ -194,12 +173,12 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
     // Show loading status
     showStatus(statusElement, 'Processing image...', 'loading');
 
-    // Always use PaddleOCR
+    // Always use Google Cloud Vision
     // Use the current origin to ensure we're using the same port
-    const apiUrl = `${window.location.origin}/api/paddle-ocr/nutrition`;
+    const apiUrl = `${window.location.origin}/api/vision-ocr/nutrition`;
 
     // Show which OCR engine we're using
-    showStatus(statusElement, 'Processing image with PaddleOCR...', 'loading');
+    showStatus(statusElement, 'Processing image with Google Cloud Vision...', 'loading');
 
     console.log(`Sending OCR request to: ${apiUrl}`);
 
@@ -230,26 +209,12 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
             if (fieldsUpdated) {
                 showStatus(statusElement, 'Nutrition data extracted successfully!', 'success');
 
-                // Update instructions
-                const instructionsElement = pasteArea.querySelector('.simplified-paste-instructions');
-                instructionsElement.textContent = 'Nutrition data extracted!';
-
-                // Add small text with instructions
-                const smallText = document.createElement('small');
-                smallText.textContent = 'You can paste a new image to update the values';
-                instructionsElement.appendChild(smallText);
+                // Instructions element is no longer present, so we skip updating it
             } else {
                 // No values were extracted, but OCR was successful
                 showStatus(statusElement, 'No nutrition values detected. Please enter values manually.', 'warning');
 
-                // Update instructions
-                const instructionsElement = pasteArea.querySelector('.simplified-paste-instructions');
-                instructionsElement.textContent = 'No nutrition values detected';
-
-                // Add small text with instructions
-                const smallText = document.createElement('small');
-                smallText.textContent = 'Please enter values manually or try a different image';
-                instructionsElement.appendChild(smallText);
+                // Instructions element is no longer present, so we skip updating it
 
                 // Show the detailed nutrition panel to allow manual entry
                 const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
@@ -271,14 +236,7 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
         console.error('OCR Error:', error);
         showStatus(statusElement, 'Error: ' + error.message, 'error');
 
-        // Show error message
-        const instructionsElement = pasteArea.querySelector('.simplified-paste-instructions');
-        instructionsElement.textContent = 'OCR processing failed';
-
-        // Add small text with instructions
-        const smallText = document.createElement('small');
-        smallText.textContent = 'Please enter values manually or try again';
-        instructionsElement.appendChild(smallText);
+        // Instructions element is no longer present, so we skip updating it
 
         // Show the detailed nutrition panel to allow manual entry
         const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');

@@ -195,10 +195,165 @@ async function deleteRecipe(id) {
     };
 }
 
+/**
+ * Update a single ingredient in a recipe
+ * @param {number} recipeId - The recipe ID
+ * @param {number} ingredientId - The ingredient ID
+ * @param {Object} ingredientData - The updated ingredient data
+ * @returns {Promise<Object>} - Promise resolving to the updated recipe with ingredients
+ */
+async function updateIngredient(recipeId, ingredientId, ingredientData) {
+    // Validate inputs
+    if (!recipeId || !ingredientId) {
+        throw new Error('Recipe ID and ingredient ID are required');
+    }
+
+    if (!ingredientData || typeof ingredientData !== 'object') {
+        throw new Error('Ingredient data is required');
+    }
+
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // Check if recipe exists
+        const recipeResult = await client.query('SELECT * FROM recipes WHERE id = $1', [recipeId]);
+        if (recipeResult.rowCount === 0) {
+            throw new Error('Recipe not found');
+        }
+
+        // Check if ingredient exists and belongs to the recipe
+        const ingredientResult = await client.query(
+            'SELECT * FROM ingredients WHERE id = $1 AND recipe_id = $2',
+            [ingredientId, recipeId]
+        );
+        if (ingredientResult.rowCount === 0) {
+            throw new Error('Ingredient not found or does not belong to this recipe');
+        }
+
+        const oldIngredient = ingredientResult.rows[0];
+
+        // Prepare update data
+        const updates = {};
+        const validFields = [
+            // Basic fields
+            'name', 'amount', 'calories', 'protein', 'fats', 'carbohydrates', 'price',
+            // General section
+            'alcohol', 'caffeine', 'water',
+            // Carbohydrates section
+            'fiber', 'starch', 'sugars', 'added_sugars', 'net_carbs',
+            // Lipids section
+            'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'saturated', 'trans_fat', 'cholesterol',
+            // Protein section
+            'cystine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'tyrosine', 'valine',
+            // Vitamins section
+            'vitamin_b1', 'vitamin_b2', 'vitamin_b3', 'vitamin_b5', 'vitamin_b6', 'vitamin_b12', 'folate', 'vitamin_a', 'vitamin_c', 'vitamin_d', 'vitamin_e', 'vitamin_k',
+            // Minerals section
+            'calcium', 'copper', 'iron', 'magnesium', 'manganese', 'phosphorus', 'potassium', 'selenium', 'sodium', 'zinc'
+        ];
+
+        validFields.forEach(field => {
+            if (ingredientData[field] !== undefined) {
+                // Validate numeric fields
+                if (field !== 'name' && (isNaN(ingredientData[field]) || ingredientData[field] < 0)) {
+                    throw new Error(`Invalid value for ${field}`);
+                }
+                // For name field, ensure it's a string and trim it
+                if (field === 'name' && typeof ingredientData[field] === 'string') {
+                    updates[field] = ingredientData[field].trim();
+                } else if (field !== 'name') {
+                    updates[field] = ingredientData[field];
+                }
+            }
+        });
+
+        if (Object.keys(updates).length === 0) {
+            throw new Error('No valid fields to update');
+        }
+
+        // Build the update query
+        const setClauses = [];
+        const values = [];
+        let paramIndex = 1;
+
+        Object.entries(updates).forEach(([field, value]) => {
+            setClauses.push(`${field} = $${paramIndex}`);
+            values.push(value);
+            paramIndex++;
+        });
+
+        values.push(ingredientId); // Add ingredient ID as the last parameter
+
+        // Update the ingredient
+        await client.query(
+            `UPDATE ingredients SET ${setClauses.join(', ')} WHERE id = $${paramIndex}`,
+            values
+        );
+
+        // Calculate the difference in calories
+        let caloriesDifference = 0;
+        if (updates.calories !== undefined) {
+            caloriesDifference = updates.calories - oldIngredient.calories;
+        }
+
+        // Update recipe total calories if ingredient calories changed
+        if (caloriesDifference !== 0) {
+            await client.query(
+                'UPDATE recipes SET total_calories = total_calories + $1 WHERE id = $2',
+                [caloriesDifference, recipeId]
+            );
+        }
+
+        await client.query('COMMIT');
+
+        // Fetch updated recipe and ingredients to return
+        const updatedRecipe = await getRecipeById(recipeId);
+        return updatedRecipe;
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
+/**
+ * Get a single ingredient by ID
+ * @param {number} recipeId - The recipe ID
+ * @param {number} ingredientId - The ingredient ID
+ * @returns {Promise<Object>} - Promise resolving to the ingredient
+ */
+async function getIngredientById(recipeId, ingredientId) {
+    // Validate inputs
+    if (!recipeId || !ingredientId) {
+        throw new Error('Recipe ID and ingredient ID are required');
+    }
+
+    try {
+        // Check if ingredient exists and belongs to the recipe
+        const ingredientResult = await db.query(
+            'SELECT * FROM ingredients WHERE id = $1 AND recipe_id = $2',
+            [ingredientId, recipeId]
+        );
+
+        if (ingredientResult.rowCount === 0) {
+            throw new Error('Ingredient not found or does not belong to this recipe');
+        }
+
+        return ingredientResult.rows[0];
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     getAllRecipes,
     getRecipeById,
     createRecipe,
     updateRecipeCalories,
-    deleteRecipe
+    deleteRecipe,
+    updateIngredient,
+    getIngredientById
 };
