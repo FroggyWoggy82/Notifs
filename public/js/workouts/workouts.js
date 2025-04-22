@@ -5123,16 +5123,38 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
         }
     }
 
-    return `
-        <div class="set-row" data-set-index="${setIndex}">
-            <span class="set-number">${setIndex + 1}</span>
-            <span class="previous-log">${previousLogTextHtml}</span>
-            <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
-            <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-            <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
-            ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
-        </div>
-    `;
+    // Check if we're on mobile
+    const isMobile = window.innerWidth < 600;
+
+    if (isMobile) {
+        // Mobile layout with stacked previous/goal and inputs in a container
+        return `
+            <div class="set-row" data-set-index="${setIndex}">
+                <span class="set-number">${setIndex + 1}</span>
+                <div class="mobile-info-row">
+                    <span class="previous-log">${previousLogTextHtml}</span>
+                    <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
+                </div>
+                <div class="input-container">
+                    <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+                    <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+                    ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
+                </div>
+            </div>
+        `;
+    } else {
+        // Desktop layout (unchanged)
+        return `
+            <div class="set-row" data-set-index="${setIndex}">
+                <span class="set-number">${setIndex + 1}</span>
+                <span class="previous-log">${previousLogTextHtml}</span>
+                <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
+                <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
+                <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
+                ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
+            </div>
+        `;
+    }
 }
 
 // Toggle Exercise History Section

@@ -948,62 +948,96 @@ h1, h2 {
 
 /* Mobile-specific adjustments */
 @media screen and (max-width: 599px) {
-    /* Extreme redesign of mobile grid layout with fixed widths to guarantee column visibility */
-    #current-exercise-list .set-row,
-    .column-headers {
-        grid-template-columns: 15px 45px 60px 60px 45px 22px;
-        gap: 0px; /* No gap to maximize space */
+    /* Complete redesign for mobile: stack previous/goal above inputs */
+    #current-exercise-list .set-row {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
         width: 100%;
         max-width: 100%;
-        overflow-x: hidden;
+        padding: 6px 0;
+        position: relative;
     }
 
-    /* Make previous log text ultra-compact and guaranteed visible on mobile */
+    /* Hide column headers on mobile */
+    .column-headers {
+        display: none;
+    }
+
+    /* Mobile-specific previous log styling */
     .previous-log {
-        font-size: 0.6rem;
-        width: 45px;
-        max-width: 45px;
+        font-size: 0.7rem;
+        width: auto;
+        max-width: none;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding: 0px;
+        padding: 2px 4px;
         color: #ffffff; /* White color for maximum visibility */
         background-color: rgba(50, 50, 50, 0.5); /* Subtle background for better contrast */
-        border-radius: 1px;
-        display: block;
-        text-align: center;
+        border-radius: 3px;
+        display: inline-block;
+        text-align: left;
         line-height: 1.2;
+        margin-left: 20px; /* Space for set number */
     }
 
-    /* Make inputs ultra-compact on mobile to guarantee column visibility */
+    /* Create a container for inputs on mobile */
+    .set-row::after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    /* Style for the input container */
+    .set-row .input-container {
+        display: flex;
+        width: 100%;
+        gap: 10px;
+        align-items: center;
+        margin-top: 2px;
+    }
+
+    /* Automatically create the input container with JavaScript */
+    .set-row .weight-input,
+    .set-row .reps-input {
+        flex: 1;
+    }
+
+    /* Mobile input styling */
     .set-row input[type="number"],
     .set-row input[type="text"] {
-        padding: 0px;
-        font-size: 0.65rem;
-        /* Ultra-small touch target size to save space */
-        min-height: 18px;
-        height: 18px;
-        /* Remove border radius for more space */
-        border-radius: 1px;
-        /* Strict width control */
+        padding: 4px;
+        font-size: 0.8rem;
+        height: 30px;
+        border-radius: 3px;
         width: 100%;
-        max-width: 100%;
         box-sizing: border-box;
         border-width: 1px;
     }
 
-    /* Make complete toggle button ultra-small on mobile */
+    /* Position set number absolutely */
+    .set-row .set-number {
+        position: absolute;
+        left: 0;
+        top: 8px;
+        font-size: 0.8rem;
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Position complete toggle button */
     .set-complete-toggle {
-        width: 22px;
-        height: 22px;
-        min-width: 22px;
-        min-height: 22px;
-        max-width: 22px;
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.8rem;
+        font-size: 1rem;
         padding: 0;
+        margin-left: auto;
     }
 
     .btn-edit-exercise,
@@ -1024,23 +1058,24 @@ h1, h2 {
         padding: 6px 8px; /* Slightly smaller horizontal padding on mobile */
     }
 
-    /* Make the goal column ultra-compact and guaranteed visible on mobile */
+    /* Mobile-specific goal styling */
     .goal-display,
     .goal-target {
-        font-size: 0.6rem;
-        width: 45px;
-        max-width: 45px;
+        font-size: 0.7rem;
+        width: auto;
+        max-width: none;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding: 0px;
-        text-align: center; /* Center align for consistency with previous */
+        padding: 2px 4px;
+        text-align: left;
         color: #03dac6; /* Brighter teal color for better visibility */
         font-weight: 600; /* Bolder for better visibility */
         background-color: rgba(3, 218, 198, 0.1); /* Very subtle teal background */
-        border-radius: 1px;
-        display: block;
+        border-radius: 3px;
+        display: inline-block;
         line-height: 1.2;
+        margin-left: 5px; /* Space after previous */
     }
 
     /* Optimize photo slider for mobile */
@@ -1100,6 +1135,13 @@ h1, h2 {
     /* Make exercise name smaller */
     .exercise-item-header h4 {
         font-size: 1rem;
+    }
+
+    /* Style for the mobile info row */
+    .mobile-info-row {
+        display: flex;
+        width: 100%;
+        margin-bottom: 4px;
     }
 }
 
