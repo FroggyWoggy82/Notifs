@@ -14,82 +14,96 @@ document.addEventListener('DOMContentLoaded', function() {
             // Create a grid layout for better alignment
             const setRows = document.querySelectorAll('#current-exercise-list .set-row');
             setRows.forEach(row => {
+                // First, clear any existing children styles
+                Array.from(row.children).forEach(child => {
+                    child.style.position = '';
+                    child.style.left = '';
+                    child.style.top = '';
+                });
+
+                // Apply grid layout
                 row.style.display = 'grid';
-                row.style.gridTemplateColumns = '15px 75px 20px 20px 75px 25px';
+                row.style.gridTemplateColumns = '30px 70px 30px 30px 70px 30px';
                 row.style.alignItems = 'center';
                 row.style.width = '100%';
-                row.style.gap = '2px';
+                row.style.gap = '0';
             });
 
             // Style column headers to match the grid
             const columnHeaders = document.querySelectorAll('.column-headers');
             columnHeaders.forEach(header => {
                 header.style.display = 'grid';
-                header.style.gridTemplateColumns = '15px 75px 20px 20px 75px 25px';
+                header.style.gridTemplateColumns = '30px 70px 30px 30px 70px 30px';
                 header.style.alignItems = 'center';
                 header.style.width = '100%';
-                header.style.gap = '2px';
+                header.style.gap = '0';
             });
 
             // Style set numbers
             const setNumbers = document.querySelectorAll('.set-row .set-number');
             setNumbers.forEach(num => {
-                num.style.width = '15px';
+                num.style.width = '30px';
                 num.style.textAlign = 'center';
                 num.style.fontSize = '0.7rem';
+                num.style.gridColumn = '1';
             });
 
             // Style previous logs
             const previousLogs = document.querySelectorAll('.set-row .previous-log');
             previousLogs.forEach(log => {
-                log.style.width = '75px';
+                log.style.width = '70px';
                 log.style.fontSize = '0.7rem';
                 log.style.textAlign = 'center';
                 log.style.whiteSpace = 'nowrap';
                 log.style.overflow = 'hidden';
                 log.style.textOverflow = 'ellipsis';
+                log.style.gridColumn = '2';
             });
 
             // Style weight inputs
             const weightInputs = document.querySelectorAll('.set-row .weight-input');
             weightInputs.forEach(input => {
-                input.style.width = '20px';
+                input.style.width = '30px';
                 input.style.padding = '0';
                 input.style.textAlign = 'center';
                 input.style.fontSize = '0.7rem';
                 input.style.justifySelf = 'center';
+                input.style.gridColumn = '3';
             });
 
             // Style reps inputs
             const repsInputs = document.querySelectorAll('.set-row .reps-input');
             repsInputs.forEach(input => {
-                input.style.width = '20px';
+                input.style.width = '30px';
                 input.style.padding = '0';
                 input.style.textAlign = 'center';
                 input.style.fontSize = '0.7rem';
                 input.style.justifySelf = 'center';
+                input.style.gridColumn = '4';
             });
 
             // Style goal targets
             const goalTargets = document.querySelectorAll('.set-row .goal-target');
             goalTargets.forEach(target => {
-                target.style.width = '75px';
+                target.style.width = '70px';
                 target.style.fontSize = '0.7rem';
                 target.style.textAlign = 'center';
                 target.style.whiteSpace = 'nowrap';
                 target.style.overflow = 'hidden';
                 target.style.textOverflow = 'ellipsis';
+                target.style.gridColumn = '5';
             });
 
             // Style checkboxes/complete toggles
             const completeToggles = document.querySelectorAll('.set-row .set-complete-toggle');
             completeToggles.forEach(toggle => {
-                toggle.style.width = '25px';
-                toggle.style.height = '25px';
+                toggle.style.width = '30px';
+                toggle.style.height = '30px';
                 toggle.style.display = 'flex';
                 toggle.style.alignItems = 'center';
                 toggle.style.justifyContent = 'center';
                 toggle.style.justifySelf = 'center';
+                toggle.style.gridColumn = '6';
             });
 
             // Style column header text
@@ -99,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 span.style.fontSize = '0.65rem';
                 span.style.fontWeight = 'bold';
                 span.style.justifySelf = 'center';
+                span.style.gridColumn = (index + 1).toString();
             });
 
             console.log('Forced mobile layout styles applied');

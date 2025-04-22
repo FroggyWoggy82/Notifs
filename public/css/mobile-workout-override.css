@@ -16,9 +16,9 @@
     /* Use grid layout for set rows for perfect alignment */
     #current-exercise-list .set-row {
         display: grid !important;
-        grid-template-columns: 15px 75px 20px 20px 75px 25px !important;
+        grid-template-columns: 30px 70px 30px 30px 70px 30px !important;
         align-items: center !important;
-        gap: 2px !important;
+        gap: 0 !important;
         padding: 8px 2px !important;
         width: 100% !important;
         position: relative !important;
@@ -30,24 +30,24 @@
     #current-exercise-list .set-row,
     .set-row {
         display: grid !important;
-        grid-template-columns: 15px 75px 20px 20px 75px 25px !important;
+        grid-template-columns: 30px 70px 30px 30px 70px 30px !important;
         flex-direction: unset !important;
         flex-wrap: unset !important;
     }
 
     /* Position set number */
     .set-row .set-number {
-        width: 15px !important;
+        width: 30px !important;
         font-size: 0.7rem !important;
         font-weight: bold !important;
         text-align: center !important;
-        flex-shrink: 0 !important;
-        margin-right: 2px !important;
+        grid-column: 1 !important;
+        justify-self: center !important;
     }
 
     /* Style previous log */
     .set-row .previous-log {
-        width: 75px !important;
+        width: 70px !important;
         font-size: 0.7rem !important;
         color: #ffffff !important;
         text-align: center !important;
@@ -56,11 +56,12 @@
         text-overflow: ellipsis !important;
         padding: 0 2px !important;
         justify-self: center !important;
+        grid-column: 2 !important;
     }
 
     /* Style goal target */
     .set-row .goal-target {
-        width: 75px !important;
+        width: 70px !important;
         font-size: 0.7rem !important;
         color: #03dac6 !important;
         text-align: center !important;
@@ -69,6 +70,7 @@
         text-overflow: ellipsis !important;
         padding: 0 2px !important;
         justify-self: center !important;
+        grid-column: 5 !important;
     }
 
     /* Position weight input */
@@ -76,22 +78,24 @@
         height: 30px !important;
         font-size: 0.7rem !important;
         padding: 0 !important;
-        width: 20px !important;
-        min-width: 20px !important;
-        max-width: 20px !important;
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
         box-sizing: border-box !important;
         text-align: center !important;
         justify-self: center !important;
+        grid-column: 3 !important;
     }
 
     /* Super aggressive override for mobile */
     @media screen and (max-width: 599px) {
         .set-row input.weight-input,
         .set-row input[type="number"].weight-input {
-            width: 20px !important;
-            min-width: 20px !important;
-            max-width: 20px !important;
+            width: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
             padding: 0 !important;
+            grid-column: 3 !important;
         }
     }
 
@@ -100,41 +104,44 @@
         height: 30px !important;
         font-size: 0.7rem !important;
         padding: 0 !important;
-        width: 20px !important;
-        min-width: 20px !important;
-        max-width: 20px !important;
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
         box-sizing: border-box !important;
         text-align: center !important;
         justify-self: center !important;
+        grid-column: 4 !important;
     }
 
     /* Super aggressive override for mobile */
     @media screen and (max-width: 599px) {
         .set-row input.reps-input,
         .set-row input[type="text"].reps-input {
-            width: 20px !important;
-            min-width: 20px !important;
-            max-width: 20px !important;
+            width: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
             padding: 0 !important;
+            grid-column: 4 !important;
         }
     }
 
     /* Position complete toggle */
     .set-row .set-complete-toggle {
-        width: 25px !important;
-        height: 25px !important;
-        min-width: 25px !important;
-        min-height: 25px !important;
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         justify-self: center !important;
+        grid-column: 6 !important;
     }
 
     /* Make column headers match the grid layout */
     .column-headers {
         display: grid !important;
-        grid-template-columns: 15px 75px 20px 20px 75px 25px !important;
+        grid-template-columns: 30px 70px 30px 30px 70px 30px !important;
         align-items: center !important;
         padding: 4px 2px !important;
         font-size: 0.65rem !important;
@@ -142,7 +149,7 @@
         background-color: rgba(50, 50, 50, 0.3) !important;
         border-radius: 4px !important;
         width: 100% !important;
-        gap: 2px !important;
+        gap: 0 !important;
     }
 
     /* Adjust all header columns */
@@ -166,36 +173,43 @@
 
     /* Set specific widths for each column header to match inputs */
     .column-headers span:nth-child(1) { /* Set */
-        width: 15px !important;
-        margin-right: 2px !important;
+        width: 30px !important;
+        grid-column: 1 !important;
+        justify-self: center !important;
     }
     .column-headers span:nth-child(2) { /* Previous */
-        width: 75px !important;
-        margin-right: 2px !important;
+        width: 70px !important;
         color: #ffffff !important;
+        grid-column: 2 !important;
+        justify-self: center !important;
     }
     .column-headers span:nth-child(3) { /* Weight */
-        width: 20px !important;
-        min-width: 20px !important;
-        max-width: 20px !important;
-        margin-right: 2px !important;
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        grid-column: 3 !important;
+        justify-self: center !important;
     }
     .column-headers span:nth-child(4) { /* Reps */
-        width: 20px !important;
-        min-width: 20px !important;
-        max-width: 20px !important;
-        margin-right: 2px !important;
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        grid-column: 4 !important;
+        justify-self: center !important;
     }
     .column-headers span:nth-child(5) { /* Goal */
-        width: 75px !important;
-        margin-right: 2px !important;
+        width: 70px !important;
         color: #03dac6 !important;
+        grid-column: 5 !important;
+        justify-self: center !important;
     }
     .column-headers span:nth-child(6) { /* Checkmark */
-        width: 25px !important;
-        min-width: 25px !important;
-        max-width: 25px !important;
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
         text-align: center !important;
+        grid-column: 6 !important;
+        justify-self: center !important;
     }
 
     /* Reduce padding in exercise items */
