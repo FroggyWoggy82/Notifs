@@ -18,7 +18,7 @@
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        justify-content: flex-start !important;
+        justify-content: space-between !important;
         gap: 2px !important;
         padding: 8px 2px !important;
         width: 100% !important;
@@ -134,6 +134,10 @@
         min-width: 25px !important;
         min-height: 25px !important;
         flex-shrink: 0 !important;
+        margin-left: auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     /* Make column headers match the single row layout */
@@ -141,12 +145,13 @@
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        justify-content: flex-start !important;
+        justify-content: space-between !important;
         padding: 4px 2px !important;
         font-size: 0.65rem !important;
         margin-bottom: 4px !important;
         background-color: rgba(50, 50, 50, 0.3) !important;
         border-radius: 4px !important;
+        width: 100% !important;
     }
 
     /* Adjust all header columns */
@@ -196,6 +201,9 @@
     }
     .column-headers span:nth-child(6) { /* Checkmark */
         width: 25px !important;
+        min-width: 25px !important;
+        max-width: 25px !important;
+        text-align: center !important;
     }
 
     /* Reduce padding in exercise items */
