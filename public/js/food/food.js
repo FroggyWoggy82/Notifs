@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="simplified-paste-area" tabindex="0">
                     <div class="simplified-paste-instructions">
                         Click here and press Ctrl+V to paste a Cronometer screenshot
-                        <small>The nutrition data will be automatically extracted</small>
+                        <small>The nutrition data will be automatically extracted using PaddleOCR</small>
                     </div>
                     <div class="simplified-paste-preview"></div>
                 </div>

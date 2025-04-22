@@ -380,24 +380,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkedExercisesOrder = [];
 
     function renderAvailableExercises(searchTerm = '', category = 'all') {
-        // Save checked state before clearing the list
+        // Save checked state before clearing the list, but only for checked items
+        // This ensures we don't remove items that are checked but not visible due to filtering
         const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
         currentCheckboxes.forEach(checkbox => {
             const exerciseId = parseInt(checkbox.value, 10);
             if (checkbox.checked) {
+                // Add to checked set
                 checkedExercises.add(exerciseId);
                 // Add to order array if not already there
                 if (!checkedExercisesOrder.includes(exerciseId)) {
                     checkedExercisesOrder.push(exerciseId);
                 }
-            } else {
-                checkedExercises.delete(exerciseId);
-                // Remove from order array
-                const index = checkedExercisesOrder.indexOf(exerciseId);
-                if (index > -1) {
-                    checkedExercisesOrder.splice(index, 1);
-                }
             }
+            // We don't remove unchecked items here - they will only be removed when explicitly unchecked
+            // This allows items to remain checked even when filtered out by search
         });
 
         availableExerciseListEl.innerHTML = ''; // Clear previous
@@ -447,6 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!checkedExercisesOrder.includes(exerciseId)) {
                         checkedExercisesOrder.push(exerciseId);
                     }
+                    console.log(`Exercise ${exerciseId} checked. Total checked: ${checkedExercises.size}`);
                 } else {
                     // Remove from checked set
                     checkedExercises.delete(exerciseId);
@@ -455,6 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (index > -1) {
                         checkedExercisesOrder.splice(index, 1);
                     }
+                    console.log(`Exercise ${exerciseId} unchecked. Total checked: ${checkedExercises.size}`);
                 }
             });
 
@@ -536,6 +535,9 @@ document.addEventListener('DOMContentLoaded', function() {
     async function renderSingleExerciseItem(exerciseItemElement, exerciseData, index, isTemplate = false) {
         console.log(`[Render Single] Rendering exercise '${exerciseData.name}' at index ${index}, isTemplate: ${isTemplate}`);
 
+        // Store whether this is a template exercise to use later
+        exerciseItemElement.dataset.isTemplate = isTemplate ? 'true' : 'false';
+
         // Ensure weight_unit is set if not defined
         if (!exerciseData.weight_unit) {
             // Check if we have a saved preference first
@@ -604,55 +606,119 @@ document.addEventListener('DOMContentLoaded', function() {
         // Now that lastLog is guaranteed to be fetched (or null), generate the HTML
         const setsHtml = generateSetRowsHtml(exerciseData, index, isTemplate);
 
-        // Construct the inner HTML for the exercise item with a more compact layout
-        exerciseItemElement.innerHTML = `
-            <div class="exercise-item-header">
-                <h4>${escapeHtml(exerciseData.name)}</h4>
-                <button class="btn-exercise-options" data-workout-index="${index}" title="Exercise Options">...</button>
+        // Prepare target sets x reps display if this is from a template
+        let targetSetsRepsHtml = '';
+        if (!isTemplate && exerciseData.template_sets && exerciseData.template_reps) {
+            // This is a live workout created from a template with default sets/reps
+            targetSetsRepsHtml = `<div class="target-sets-reps">Target Sets×Reps: ${exerciseData.template_sets}×${exerciseData.template_reps}</div>`;
+        }
 
-                <!-- Options Menu (Hidden by default) -->
-                <div class="exercise-options-menu" id="options-menu-${index}">
-                    <!-- Weight Unit Option -->
-                    <div class="exercise-options-menu-item weight-unit">
-                        <select class="exercise-unit-select" data-workout-index="${index}">
-                            <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
-                            <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                            <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>BW</option>
-                            <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
-                        </select>
-                        <!-- Debug info: weight_unit=${exerciseData.weight_unit || 'undefined'} -->
-                    </div>
-                    <div class="menu-divider"></div>
-                    <!-- Edit Option (only for active workouts) -->
-                    ${!isTemplate ? `
-                    <div class="exercise-options-menu-item edit">
-                        <button class="btn-edit-exercise" data-workout-index="${index}" title="Edit Exercise Name">✎</button>
-                    </div>
-                    ` : ''}
+        // For template exercises, add per-exercise sets and reps inputs
+        let perExerciseSettingsHtml = '';
+        if (isTemplate) {
+            // Get the default values from the template settings
+            const defaultSetsValue = defaultSetsInput ? defaultSetsInput.value : '3';
+            const defaultRepsValue = defaultRepsInput ? defaultRepsInput.value : '';
 
-                    <!-- Delete Option -->
-                    <div class="exercise-options-menu-item delete">
-                        <button class="${isTemplate ? 'btn-delete-template-exercise' : 'btn-delete-exercise'}" data-workout-index="${index}" title="Remove Exercise">&times;</button>
+            // Use the exercise's values if they exist, otherwise use the template defaults
+            const exerciseSets = exerciseData.sets || defaultSetsValue;
+            const exerciseReps = exerciseData.reps || defaultRepsValue;
+
+            perExerciseSettingsHtml = `
+                <div class="exercise-specific-settings">
+                    <div class="exercise-setting">
+                        <label>Sets:</label>
+                        <input type="number" class="exercise-sets-input" value="${exerciseSets}" min="1" data-workout-index="${index}">
+                    </div>
+                    <div class="exercise-setting">
+                        <label>Reps:</label>
+                        <input type="text" class="exercise-reps-input" value="${exerciseReps}" placeholder="e.g., 8-12" data-workout-index="${index}">
                     </div>
                 </div>
-            </div>
-            <div class="exercise-notes-group">
-                <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise..." ${isTemplate ? '' : ''}>${escapeHtml(exerciseData.notes || '')}</textarea>
-            </div>
-            <div class="column-headers">
-                <span>Set</span>
-                <span>Prev</span>
-                <span>Wt</span>
-                <span>Reps</span>
-                <span>Goal</span>
-                <span>✓</span>
-            </div>
-            <div class="sets-container"> ${setsHtml} </div>
-            <div class="set-actions-container">
-                <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
-                <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
-            </div>
+            `;
+        }
+
+        // Construct the inner HTML for the exercise item with a more compact layout
+        // Use different HTML structure for template editor vs active workout
+        if (isTemplate) {
+            exerciseItemElement.innerHTML = `
+                <div class="exercise-item-header">
+                    <h4>${escapeHtml(exerciseData.name)}</h4>
+                    <button class="btn-exercise-options" data-workout-index="${index}" title="Exercise Options">...</button>
+                    <!-- Options Menu (Hidden by default) -->
+                    <div class="exercise-options-menu" id="options-menu-${index}">
+                        <!-- Weight Unit Option -->
+                        <div class="exercise-options-menu-item weight-unit">
+                            <select class="exercise-unit-select" data-workout-index="${index}">
+                                <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
+                                <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                                <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>BW</option>
+                                <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
+                            </select>
+                        </div>
+                        <!-- Delete Option -->
+                        <div class="exercise-options-menu-item delete">
+                            <button class="btn-delete-template-exercise" data-workout-index="${index}" title="Remove Exercise">&times;</button>
+                        </div>
+                    </div>
+                </div>
+                ${perExerciseSettingsHtml}
+                <div class="exercise-notes-group">
+                    <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise...">${escapeHtml(exerciseData.notes || '')}</textarea>
+                </div>
+                <div class="sets-container"> ${setsHtml} </div>
+                <div class="set-actions-container">
+                    <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
+                    <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
+                </div>
         `;
+        } else {
+            // Regular active workout HTML structure
+            exerciseItemElement.innerHTML = `
+                <div class="exercise-item-header">
+                    <h4>${escapeHtml(exerciseData.name)}</h4>
+                    <button class="btn-exercise-options" data-workout-index="${index}" title="Exercise Options">...</button>
+                    <!-- Options Menu (Hidden by default) -->
+                    <div class="exercise-options-menu" id="options-menu-${index}">
+                        <!-- Weight Unit Option -->
+                        <div class="exercise-options-menu-item">
+                            <label for="weight-unit-${index}">Weight Unit:</label>
+                            <select id="weight-unit-${index}" class="weight-unit-select" data-workout-index="${index}">
+                                <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
+                                <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                                <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>bodyweight</option>
+                                <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>assisted</option>
+                            </select>
+                        </div>
+                        <!-- Edit Name Option -->
+                        <div class="exercise-options-menu-item">
+                            <button class="btn-edit-exercise-name" data-workout-index="${index}" title="Edit Exercise Name">✏️ Edit Name</button>
+                        </div>
+                        <!-- Delete Option -->
+                        <div class="exercise-options-menu-item delete">
+                            <button class="btn-delete-exercise" data-workout-index="${index}" title="Remove Exercise">&times;</button>
+                        </div>
+                    </div>
+                </div>
+                ${targetSetsRepsHtml}
+                <div class="exercise-notes-group">
+                    <textarea class="exercise-notes-textarea" placeholder="Notes for this exercise...">${escapeHtml(exerciseData.notes || '')}</textarea>
+                </div>
+                <div class="column-headers">
+                    <span>Set</span>
+                    <span>Prev</span>
+                    <span>Wt</span>
+                    <span>Reps</span>
+                    <span>Goal</span>
+                    <span>✓</span>
+                </div>
+                <div class="sets-container"> ${setsHtml} </div>
+                <div class="set-actions-container">
+                    <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
+                    <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
+                </div>
+            `;
+        }
 
         // Initialize state for the remove button
         const removeButton = exerciseItemElement.querySelector('.btn-remove-set');
@@ -894,18 +960,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function closeExerciseModal() {
-        // Save checked state before closing the modal
+        // Process visible checkboxes to update the checked state
         const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
+
+        // First, collect all visible exercise IDs to know what we can safely uncheck
+        const visibleExerciseIds = new Set();
         currentCheckboxes.forEach(checkbox => {
             const exerciseId = parseInt(checkbox.value, 10);
+            visibleExerciseIds.add(exerciseId);
+        });
+
+        // Now process the checkboxes
+        currentCheckboxes.forEach(checkbox => {
+            const exerciseId = parseInt(checkbox.value, 10);
+
             if (checkbox.checked) {
+                // Add checked exercises to the set
                 checkedExercises.add(exerciseId);
                 // Add to order array if not already there
                 if (!checkedExercisesOrder.includes(exerciseId)) {
                     checkedExercisesOrder.push(exerciseId);
                 }
             } else {
+                // Only remove from checkedExercises if it's visible and unchecked
+                // This ensures that exercises that were checked but are now unchecked are removed
                 checkedExercises.delete(exerciseId);
+
                 // Remove from order array
                 const index = checkedExercisesOrder.indexOf(exerciseId);
                 if (index > -1) {
@@ -913,6 +993,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+
+        // Log the number of checked exercises for debugging
+        console.log(`Closing modal with ${checkedExercises.size} checked exercises`);
 
         exerciseModal.style.display = 'none';
     }
@@ -1574,6 +1657,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return {
                     ...ex,
                     lastLog: undefined, // Mark for fetching
+                    // Store template sets and reps for display
+                    template_sets: numSets,
+                    template_reps: ex.reps || '',
                     // Initialize sets_completed based on template 'sets' count
                     sets_completed: Array(numSets).fill(null).map(() => ({
                         weight: '',
@@ -1750,7 +1836,12 @@ document.addEventListener('DOMContentLoaded', function() {
             order_position: (targetList === 'active' ? currentWorkout.length : currentTemplateExercises.length),
             notes: '',
             // Only add completedSets for active workouts, not templates
-            ...(targetList === 'active' && { completedSets: Array(defaultSets).fill(false) }), // Default completedSets based on default sets
+            ...(targetList === 'active' && {
+                completedSets: Array(defaultSets).fill(false), // Default completedSets based on default sets
+                // Store template sets and reps for display in active workout
+                template_sets: defaultSets,
+                template_reps: defaultReps
+            }),
             lastLog: undefined // Mark lastLog as not yet fetched
         };
 
@@ -1874,27 +1965,34 @@ document.addEventListener('DOMContentLoaded', function() {
         // === END UI REFRESH ===
     }
 
-    // --- NEW: Handler for Deleting Exercise from Template Editor ---
+    // --- Handler for Deleting Exercise from Template Editor ---
     function handleDeleteTemplateExercise(deleteButton) { // Changed parameter to expect the button element
         const indexToRemove = parseInt(deleteButton.dataset.index, 10); // Use dataset.index from the button
         if (!isNaN(indexToRemove) && indexToRemove >= 0 && indexToRemove < currentTemplateExercises.length) {
              const exerciseName = currentTemplateExercises[indexToRemove]?.name || 'this exercise';
              if (confirm(`Are you sure you want to remove ${exerciseName} from this template?`)) {
-                 console.log(`[handleDeleteTemplateExercise] Attempting to remove index ${indexToRemove}.`); // <<< Added log
-                 console.log(`[handleDeleteTemplateExercise] Array length BEFORE splice: ${currentTemplateExercises.length}`); // <<< Added log
+                 console.log(`[handleDeleteTemplateExercise] Attempting to remove index ${indexToRemove}.`);
+                 console.log(`[handleDeleteTemplateExercise] Array length BEFORE splice: ${currentTemplateExercises.length}`);
+
+                 // Remove the exercise from the array
                  currentTemplateExercises.splice(indexToRemove, 1); // Modifies the array
-                 console.log(`[handleDeleteTemplateExercise] Array length AFTER splice: ${currentTemplateExercises.length}`); // <<< Added log
+                 console.log(`[handleDeleteTemplateExercise] Array length AFTER splice: ${currentTemplateExercises.length}`);
+
                  // Re-assign order_position for remaining exercises
                  currentTemplateExercises.forEach((ex, idx) => {
                      ex.order_position = idx;
                  });
-                 renderTemplateExerciseList(); // Re-render the template editor list
+
+                 // Re-render the template editor list without switching pages
+                 renderTemplateExerciseList();
+
+                 // Stay on the template editor page
+                 // No need to call switchPage() - we want to remain on the current page
              }
         } else {
-             console.error('Invalid index for template exercise deletion:', event.target.dataset.index);
+             console.error('Invalid index for template exercise deletion:', deleteButton.dataset.index);
         }
     }
-    // --- END NEW ---
 
     function handleSetToggle(event) {
         console.log("[handleSetToggle] Fired!"); // <<< Log 1: Function entry
@@ -2228,7 +2326,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const templateExerciseListEl = document.getElementById('template-exercise-list');
         templateExerciseListEl.innerHTML = '';
 
-        currentTemplateExercises.forEach((exercise, index) => {
+        if (currentTemplateExercises.length === 0) {
+            templateExerciseListEl.innerHTML = '<p>Add exercises using the button below.</p>';
+            return;
+        }
+
+        // Add column headers for the template editor
+        const columnHeaders = document.createElement('div');
+        columnHeaders.className = 'column-headers';
+        columnHeaders.innerHTML = `
+            <span>Set</span>
+            <span>Weight</span>
+            <span>Reps</span>
+        `;
+        templateExerciseListEl.appendChild(columnHeaders);
+
+        // Use Promise.all to handle async rendering of items
+        const renderPromises = currentTemplateExercises.map(async (exercise, index) => {
             const exerciseItem = document.createElement('div');
             exerciseItem.className = 'exercise-item';
             exerciseItem.draggable = true; // Make the item draggable
@@ -2240,62 +2354,30 @@ document.addEventListener('DOMContentLoaded', function() {
             exerciseItem.addEventListener('dragover', handleDragOver);
             exerciseItem.addEventListener('drop', handleDrop);
 
-            // Call helper function
-            const setRowsHtml = generateSetRowsHtml(exercise, index, true); // Pass true for isTemplate
+            // Use the same rendering function as the live workout view
+            try {
+                await renderSingleExerciseItem(exerciseItem, exercise, index, true); // true = isTemplate
+                return exerciseItem; // Return the rendered element
+            } catch (error) {
+                console.error(`Error rendering template exercise item for ${exercise.name}:`, error);
+                // Return a placeholder error element
+                const errorItem = document.createElement('div');
+                errorItem.className = 'exercise-item error';
+                errorItem.textContent = `Error loading ${exercise.name}`;
+                return errorItem;
+            }
 
-            exerciseItem.innerHTML = `
-                <div class="exercise-item-header">
-                    <h4>${escapeHtml(exercise.name)}</h4>
-                    <button class="btn-exercise-options" data-index="${index}" title="Exercise Options">...</button>
+        });
 
-                    <!-- Options Menu (Hidden by default) -->
-                    <div class="exercise-options-menu" id="template-options-menu-${index}">
-                        <!-- Weight Unit Option -->
-                        <div class="exercise-options-menu-item weight-unit">
-                            <span>Weight Unit:</span>
-                            <select class="exercise-unit-select" data-index="${index}">
-                                <option value="lbs" ${exercise.weight_unit === 'lbs' || !exercise.weight_unit ? 'selected' : ''}>lbs</option>
-                                <option value="kg" ${exercise.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                                <option value="bodyweight" ${exercise.weight_unit === 'bodyweight' ? 'selected' : ''}>Bodyweight</option>
-                                <option value="assisted" ${exercise.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
-                            </select>
-                        </div>
-
-                        <!-- Delete Option -->
-                        <div class="exercise-options-menu-item delete">
-                            <button class="btn-delete-template-exercise" data-index="${index}" title="Remove Exercise">&times; Remove</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="column-headers">
-                    <span>Set</span>
-                    <span><strong>Prev</strong></span>
-                    <span>Wt</span>
-                    <span>Reps</span>
-                    <span><strong>Goal</strong></span>
-                    <span></span>
-                </div>
-                <div class="exercise-notes-group">
-                    <label for="exercise-notes-${index}">Notes:</label>
-                    <textarea id="exercise-notes-${index}" class="exercise-notes" rows="2">${escapeHtml(exercise.notes || '')}</textarea>
-                </div>
-                <!-- Add default settings input fields -->
-                <div class="sets-input-group">
-                    <div class="input-field">
-                        <label for="exercise-sets-${index}">Number of sets:</label>
-                        <input type="number" id="exercise-sets-${index}" class="exercise-sets-input" min="1" value="${exercise.sets || 1}">
-                    </div>
-                    <div class="input-field">
-                        <label for="exercise-reps-${index}">Default reps:</label>
-                        <input type="text" id="exercise-reps-${index}" class="exercise-reps-input" placeholder="e.g., 8-12" value="${exercise.reps || ''}">
-                    </div>
-                </div>
-                <div class="sets-container">
-                    ${setRowsHtml}
-                </div>
-            `;
-
-            templateExerciseListEl.appendChild(exerciseItem);
+        // Wait for all exercise items to be rendered, then append them to the list
+        Promise.all(renderPromises).then(exerciseItems => {
+            // Append all rendered exercise items to the list
+            exerciseItems.forEach(item => {
+                templateExerciseListEl.appendChild(item);
+            });
+        }).catch(error => {
+            console.error("Error rendering one or more template exercise items:", error);
+            templateExerciseListEl.innerHTML = '<p style="color: red;">Error displaying template exercises. Please try refreshing.</p>';
         });
     }
 
@@ -2383,7 +2465,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Get the notes from the textarea
-                const notesTextarea = item.querySelector('.exercise-notes');
+                const notesTextarea = item.querySelector('.exercise-notes-textarea');
                 if (notesTextarea) {
                     currentTemplateExercises[index].notes = notesTextarea.value;
                 }
@@ -2955,6 +3037,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Add listener for per-exercise sets and reps inputs in template editor
+        templateExerciseListEl?.addEventListener('input', (event) => {
+            const target = event.target;
+
+            // Check if the input is a sets or reps input
+            if (target.classList.contains('exercise-sets-input') || target.classList.contains('exercise-reps-input')) {
+                const exerciseItem = target.closest('.exercise-item');
+                if (!exerciseItem) return;
+
+                const index = parseInt(exerciseItem.dataset.index, 10);
+                if (isNaN(index) || index < 0 || index >= currentTemplateExercises.length) return;
+
+                // Update the exercise data with the new value
+                if (target.classList.contains('exercise-sets-input')) {
+                    const sets = parseInt(target.value) || 1; // Default to 1 if invalid
+                    currentTemplateExercises[index].sets = sets;
+                    console.log(`Updated sets for exercise ${index} to ${sets}`);
+                } else if (target.classList.contains('exercise-reps-input')) {
+                    currentTemplateExercises[index].reps = target.value || '';
+                    console.log(`Updated reps for exercise ${index} to ${target.value}`);
+                }
+            }
+        });
+
         // New Exercise Definition Listeners in Modal
         toggleDefineExerciseBtn?.addEventListener('click', handleToggleDefineExercise);
         saveNewExerciseBtn?.addEventListener('click', handleSaveNewExercise);
@@ -3337,53 +3443,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- New Handler for Adding Multiple Selected Exercises ---
     async function handleAddSelectedExercises() {
         const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
-        const selectedCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]:checked');
 
-        if (selectedCheckboxes.length === 0) {
+        // Log all checked exercises for debugging
+        console.log('Current checked exercises:');
+        checkedExercises.forEach(id => {
+            console.log(`- Exercise ID: ${id}`);
+        });
+
+        // Get all selected exercises from the checkedExercises Set, not just visible ones
+        if (checkedExercises.size === 0) {
             alert('Please select at least one exercise to add.');
             return;
         }
 
-        console.log(`Adding ${selectedCheckboxes.length} selected exercises to ${targetList}`);
+        console.log(`Adding ${checkedExercises.size} checked exercises to ${targetList}`);
 
-        // Store the IDs of selected exercises
-        const selectedIds = [];
-
-        // Get all checked exercise IDs
-        selectedCheckboxes.forEach(checkbox => {
-            const exerciseId = parseInt(checkbox.value, 10);
-            if (!isNaN(exerciseId)) {
-                selectedIds.push(exerciseId);
-            }
-        });
+        // Create a copy of the checkedExercises Set to avoid modification during iteration
+        const selectedExerciseIds = Array.from(checkedExercises);
 
         // Use the order array to add exercises in the order they were checked
-        const orderedIds = checkedExercisesOrder.filter(id => selectedIds.includes(id));
+        // Filter the order array to only include exercises that are in the checkedExercises Set
+        const orderedIds = checkedExercisesOrder.filter(id => checkedExercises.has(id));
 
         // Add any selected exercises that might not be in the order array (fallback)
-        selectedIds.forEach(id => {
+        selectedExerciseIds.forEach(id => {
             if (!orderedIds.includes(id)) {
                 orderedIds.push(id);
             }
         });
 
+        console.log(`Ordered IDs for adding (${orderedIds.length}):`, orderedIds);
+
+        // Store the exercises to add before closing the modal
+        const exercisesToAdd = [...orderedIds];
+
         // Close the modal before adding exercises to prevent multiple clicks
         closeExerciseModal();
 
         // Add exercises in the correct order (sequentially to maintain order)
-        for (const exerciseId of orderedIds) {
+        for (const exerciseId of exercisesToAdd) {
+            console.log(`Adding exercise ID: ${exerciseId} to ${targetList}`);
             await addExerciseToWorkout(exerciseId, targetList); // Pass targetList and await completion
         }
 
-        // Clear the checked state for added exercises
-        selectedIds.forEach(id => {
-            checkedExercises.delete(id);
-            // Also remove from order array
-            const index = checkedExercisesOrder.indexOf(id);
-            if (index > -1) {
-                checkedExercisesOrder.splice(index, 1);
-            }
-        });
+        console.log(`Added ${exercisesToAdd.length} exercises to ${targetList}`);
+
+        // Clear the selected exercises after adding them
+        checkedExercises.clear();
+        checkedExercisesOrder.length = 0;
+        console.log('Cleared all checked exercises');
+
+        // Re-render the available exercises list to reflect the cleared selections
+        renderAvailableExercises(exerciseSearchInput.value, exerciseCategoryFilter.value);
     }
 
     // --- History Chart Functions (Updated for Search) ---

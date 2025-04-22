@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 log.style.overflow = 'visible';
                 log.style.textOverflow = 'ellipsis';
                 log.style.gridColumn = '2';
+                log.style.display = 'flex';
+                log.style.alignItems = 'center';
+                log.style.justifyContent = 'center';
             });
 
             // Style weight inputs
@@ -94,6 +97,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 target.style.overflow = 'visible';
                 target.style.textOverflow = 'ellipsis';
                 target.style.gridColumn = '5';
+                target.style.display = 'flex';
+                target.style.alignItems = 'center';
+                target.style.justifyContent = 'center';
             });
 
             // Style checkboxes/complete toggles
@@ -116,6 +122,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 span.style.fontWeight = 'bold';
                 span.style.justifySelf = 'center';
                 span.style.gridColumn = (index + 1).toString();
+                span.style.display = 'flex';
+                span.style.alignItems = 'center';
+                span.style.justifyContent = 'center';
 
                 // Update column header text to be shorter
                 if (index === 1 && span.textContent === 'Previous') {

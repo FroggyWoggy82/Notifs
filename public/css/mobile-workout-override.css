@@ -27,6 +27,12 @@
         justify-content: space-between !important;
     }
 
+    /* Ensure each cell in the set row is properly aligned */
+    #current-exercise-list .set-row > * {
+        text-align: center !important;
+        justify-self: center !important;
+    }
+
     /* Super aggressive override for set rows */
     #current-exercise-list .set-row,
     .set-row {
@@ -59,6 +65,9 @@
         padding: 0 2px !important;
         justify-self: center !important;
         grid-column: 2 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     /* Style goal target */
@@ -73,6 +82,9 @@
         padding: 0 2px !important;
         justify-self: center !important;
         grid-column: 5 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     /* Position weight input */
@@ -153,6 +165,7 @@
         width: 100% !important;
         gap: 0 !important;
         justify-content: space-between !important;
+        text-align: center !important;
     }
 
     /* Override the display:none from workouts.css */
@@ -166,6 +179,9 @@
         font-weight: bold !important;
         text-align: center !important;
         justify-self: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     /* Super aggressive override for column headers */
@@ -190,6 +206,9 @@
         color: #ffffff !important;
         grid-column: 2 !important;
         justify-self: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     .column-headers span:nth-child(3) { /* Wt */
         width: 30px !important;

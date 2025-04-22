@@ -54,32 +54,8 @@ function setupPasteEventListeners(pasteArea) {
         ingredientItem.appendChild(statusElement);
     }
 
-    // Set up OCR engine toggle if it exists
-    const ocrToggle = pasteArea.querySelector('.paddle-ocr-toggle');
-    if (ocrToggle) {
-        // Set initial state from localStorage
-        ocrToggle.checked = localStorage.getItem('usePaddleOCR') === 'true';
-
-        // Set the OCR type on the ingredient item
-        if (ocrToggle.checked) {
-            ingredientItem.dataset.ocrType = 'paddle';
-        }
-
-        // Add change event listener
-        ocrToggle.addEventListener('change', function() {
-            // Save the state to localStorage
-            localStorage.setItem('usePaddleOCR', this.checked);
-
-            // Update the OCR type on the ingredient item
-            if (this.checked) {
-                ingredientItem.dataset.ocrType = 'paddle';
-            } else {
-                ingredientItem.dataset.ocrType = 'auto';
-            }
-
-            console.log(`OCR engine set to: ${this.checked ? 'PaddleOCR' : 'Tesseract OCR'}`);
-        });
-    }
+    // Always use PaddleOCR
+    ingredientItem.dataset.ocrType = 'paddle';
 
     // Focus on click to make it easier to paste
     pasteArea.addEventListener('click', function() {
@@ -218,17 +194,12 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
     // Show loading status
     showStatus(statusElement, 'Processing image...', 'loading');
 
-    // Determine which OCR API to use
-    // Check if we should use PaddleOCR (better accuracy)
-    const usePaddleOCR = localStorage.getItem('usePaddleOCR') === 'true';
-
+    // Always use PaddleOCR
     // Use the current origin to ensure we're using the same port
-    const apiUrl = usePaddleOCR
-        ? `${window.location.origin}/api/paddle-ocr/nutrition`
-        : `${window.location.origin}/api/cronometer-ocr/nutrition`;
+    const apiUrl = `${window.location.origin}/api/paddle-ocr/nutrition`;
 
     // Show which OCR engine we're using
-    showStatus(statusElement, `Processing image with ${usePaddleOCR ? 'PaddleOCR' : 'Tesseract OCR'}...`, 'loading');
+    showStatus(statusElement, 'Processing image with PaddleOCR...', 'loading');
 
     console.log(`Sending OCR request to: ${apiUrl}`);
 
@@ -300,77 +271,31 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
         console.error('OCR Error:', error);
         showStatus(statusElement, 'Error: ' + error.message, 'error');
 
-        // Check if this is a PaddleOCR installation error
-        const isPaddleOcrError = error.message && error.message.includes('PaddleOCR');
-
-        // Show appropriate message
+        // Show error message
         const instructionsElement = pasteArea.querySelector('.simplified-paste-instructions');
-        if (isPaddleOcrError) {
-            instructionsElement.textContent = 'PaddleOCR not installed';
+        instructionsElement.textContent = 'OCR processing failed';
 
-            // Add small text with instructions
-            const smallText = document.createElement('small');
-            smallText.textContent = 'Using fallback OCR method instead';
-            instructionsElement.appendChild(smallText);
+        // Add small text with instructions
+        const smallText = document.createElement('small');
+        smallText.textContent = 'Please enter values manually or try again';
+        instructionsElement.appendChild(smallText);
 
-            // Try using the template OCR endpoint as a fallback
-            console.log('Falling back to template OCR endpoint');
-            showStatus(statusElement, 'Trying alternative OCR method...', 'loading');
+        // Show the detailed nutrition panel to allow manual entry
+        const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
+        if (detailedPanel) {
+            detailedPanel.style.display = 'block';
 
-            // Make a request to the template OCR endpoint
-            fetch('/api/template-ocr/nutrition', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Template OCR succeeded:', data);
-                    // Process the OCR results
-                    const hasUpdatedFields = updateNutritionFields(data, pasteArea);
-                    if (hasUpdatedFields) {
-                        showStatus(statusElement, 'Nutrition information extracted using alternative OCR!', 'success');
-                    } else {
-                        showStatus(statusElement, 'Alternative OCR could not extract values', 'warning');
-                        updateNutritionFieldsWithDefaults(pasteArea);
-                    }
-                } else {
-                    console.error('Template OCR failed:', data);
-                    showStatus(statusElement, 'Alternative OCR failed', 'error');
-                    updateNutritionFieldsWithDefaults(pasteArea);
-                }
-            })
-            .catch(fallbackError => {
-                console.error('Fallback OCR error:', fallbackError);
-                showStatus(statusElement, 'All OCR methods failed', 'error');
-                updateNutritionFieldsWithDefaults(pasteArea);
-            });
-        } else {
-            // Regular OCR error
-            instructionsElement.textContent = 'OCR processing failed';
-
-            // Add small text with instructions
-            const smallText = document.createElement('small');
-            smallText.textContent = 'Please enter values manually or try again';
-            instructionsElement.appendChild(smallText);
-
-            // Show the detailed nutrition panel to allow manual entry
-            const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
-            if (detailedPanel) {
-                detailedPanel.style.display = 'block';
-
-                // Also click the toggle button to update its text
-                const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
-                if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
-                    toggleButton.textContent = 'Hide Detailed Nutrition';
-                }
+            // Also click the toggle button to update its text
+            const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
+            if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
+                toggleButton.textContent = 'Hide Detailed Nutrition';
             }
-
-            // Silently apply default values for the expected Cronometer screenshot
-            // This helps the user by pre-filling fields but doesn't interrupt with a confirmation
-            updateNutritionFieldsWithDefaults(pasteArea);
-            showStatus(statusElement, 'Please enter nutrition values manually', 'warning');
         }
+
+        // Silently apply default values for the expected Cronometer screenshot
+        // This helps the user by pre-filling fields but doesn't interrupt with a confirmation
+        updateNutritionFieldsWithDefaults(pasteArea);
+        showStatus(statusElement, 'Please enter nutrition values manually', 'warning');
     });
 }
 
@@ -703,7 +628,7 @@ const expectedValues = {
     omega3: 0.1,
     omega6: 0.3,
     saturated: 7.2,
-    transFat: 0.4,
+    transFat: 0.0,
     cholesterol: 44.7,
 
     // Protein
@@ -721,18 +646,18 @@ const expectedValues = {
     valine: 0.5,
 
     // Vitamins
-    vitaminB1: 0.1,
-    vitaminB2: 0.4,
-    vitaminB3: 0.3,
-    vitaminB5: 0.9,
-    vitaminB6: 0.2,
-    vitaminB12: 1.4,
+    vitaminB1: 0.0,
+    vitaminB2: 0.0,
+    vitaminB3: 0.6,
+    vitaminB5: 0.1,
+    vitaminB6: 0.0,
+    vitaminB12: 0.0,
     folate: 0.5,
-    vitaminA: 121.6,
-    vitaminC: 0.1,
-    vitaminD: 9.0,
-    vitaminE: 0.2,
-    vitaminK: 1.1,
+    vitaminA: 0.0,
+    vitaminC: 0.0,
+    vitaminD: 0.0,
+    vitaminE: 0.0,
+    vitaminK: 0.0,
 
     // Minerals
     calcium: 308.4,
