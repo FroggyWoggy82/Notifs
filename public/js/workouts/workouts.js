@@ -2269,8 +2269,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="column-headers">
                     <span>Set</span>
-                    <span><strong>Previous</strong></span>
-                    <span>Weight</span>
+                    <span><strong>Prev</strong></span>
+                    <span>Wt</span>
                     <span>Reps</span>
                     <span><strong>Goal</strong></span>
                     <span></span>
@@ -2527,10 +2527,14 @@ document.addEventListener('DOMContentLoaded', function() {
          let prevWeightsArray = [];
          let prevUnit = 'lbs';
 
+         console.log('[DEBUG] updatePreviousLogSpans called with lastLogData:', lastLogData);
+         console.log('[DEBUG] Found', setRows.length, 'set rows in exerciseItemElement');
+
          if (lastLogData && lastLogData.reps_completed && lastLogData.weight_used) {
              prevRepsArray = lastLogData.reps_completed.split(',');
              prevWeightsArray = lastLogData.weight_used.split(',');
              prevUnit = lastLogData.weight_unit || 'lbs';
+             console.log('[DEBUG] Parsed arrays from lastLogData:', { prevRepsArray, prevWeightsArray, prevUnit });
          }
 
          setRows.forEach((row, i) => {
@@ -2542,13 +2546,22 @@ document.addEventListener('DOMContentLoaded', function() {
                          const prevRep = prevRepsArray[i]?.trim() || '-';
                          const prevWeight = prevWeightsArray[i]?.trim() || '-';
                          previousLogText = `${prevWeight} ${prevUnit} x ${prevRep}`;
+                         console.log(`[DEBUG] Set ${i+1}: Setting previous log text to: ${previousLogText}`);
                      } else if (!lastLogData) {
                          previousLogText = '- lbs x -'; // No data placeholder
-                     } // else keep 'Error' if isError and no specific data
-                 } // else keep 'Error' if isError
+                         console.log(`[DEBUG] Set ${i+1}: No lastLogData, using placeholder text`);
+                     } else {
+                         console.log(`[DEBUG] Set ${i+1}: lastLogData exists but no data for this set index`);
+                         previousLogText = '- lbs x -'; // No data for this set index
+                     }
+                 } else {
+                     console.log(`[DEBUG] Set ${i+1}: Error flag is true, using 'Error' text`);
+                 }
 
                  prevLogSpan.textContent = previousLogText;
                  prevLogSpan.title = `Last Session Set ${i + 1}`; // Update title too
+             } else {
+                 console.log(`[DEBUG] Set ${i+1}: No previous-log span found in this row`);
              }
          });
     }
@@ -5064,11 +5077,15 @@ function calculateGoal(exerciseData) {
 
 // Helper function to generate HTML for a single set row
 function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
+    console.log(`[DEBUG] generateSingleSetRowHtml called for set ${setIndex+1} of exercise ${exerciseData.name}`);
+    console.log(`[DEBUG] exerciseData.lastLog:`, exerciseData.lastLog);
+
     // Default values
     let weightValue = '';
     let repsValue = '';
     // Use the exercise's current weight unit, or default to lbs
     const unit = exerciseData.weight_unit || 'lbs'; // Always default to lbs
+    console.log(`[DEBUG] Using weight unit: ${unit}`);
 
     // Check if this is the first set (index 0) and if last log data exists
     if (setIndex === 0 && exerciseData.lastLog) {
@@ -5076,12 +5093,14 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
             const weights = exerciseData.lastLog.weight_used.split(',');
             if (weights.length > 0 && weights[0].trim() !== '') {
                 weightValue = weights[0].trim();
+                console.log(`[DEBUG] Set 1: Using weight value from lastLog: ${weightValue}`);
             }
         }
         if (exerciseData.lastLog.reps_completed) {
             const reps = exerciseData.lastLog.reps_completed.split(',');
             if (reps.length > 0 && reps[0].trim() !== '') {
                 repsValue = reps[0].trim();
+                console.log(`[DEBUG] Set 1: Using reps value from lastLog: ${repsValue}`);
             }
         }
     }
@@ -5096,31 +5115,43 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
 
     // For the previous log display, use the current unit
     let previousLogTextHtml = `- ${unit} x -`;
+    console.log(`[DEBUG] Default previousLogTextHtml: ${previousLogTextHtml}`);
 
     // Default empty goal
     let goalTextHtml = '';
 
     // Only show previous log data if this set index exists in the last log
     if (exerciseData.lastLog && exerciseData.lastLog.weight_used && exerciseData.lastLog.reps_completed) {
+        console.log(`[DEBUG] Found lastLog data for ${exerciseData.name}`);
         const prevWeights = exerciseData.lastLog.weight_used.split(',');
         const prevReps = exerciseData.lastLog.reps_completed.split(',');
         const prevUnit = exerciseData.lastLog.weight_unit || 'lbs'; // Default to lbs instead of kg
+        console.log(`[DEBUG] prevWeights: ${prevWeights}, prevReps: ${prevReps}, prevUnit: ${prevUnit}`);
 
         // Only use previous log data if this set index exists in the previous log
         if (setIndex < prevWeights.length && setIndex < prevReps.length) {
             const prevWeight = prevWeights[setIndex].trim() || '-';
             const prevRep = prevReps[setIndex].trim() || '-';
             previousLogTextHtml = `${prevWeight} ${prevUnit} x ${prevRep}`;
+            console.log(`[DEBUG] Set ${setIndex+1}: Updated previousLogTextHtml to: ${previousLogTextHtml}`);
+        } else {
+            console.log(`[DEBUG] Set ${setIndex+1}: No previous log data for this set index (prevWeights.length=${prevWeights.length}, prevReps.length=${prevReps.length})`);
         }
 
         // Calculate goal for next workout if not a template
         if (!isTemplate) {
             const goal = calculateGoal(exerciseData);
+            console.log(`[DEBUG] Goal calculation result:`, goal);
             if (goal && setIndex < goal.sets.length) {
                 const goalSet = goal.sets[setIndex];
                 goalTextHtml = `${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
+                console.log(`[DEBUG] Set ${setIndex+1}: Set goalTextHtml to: ${goalTextHtml}`);
+            } else {
+                console.log(`[DEBUG] Set ${setIndex+1}: No goal data for this set index`);
             }
         }
+    } else {
+        console.log(`[DEBUG] No lastLog data available for ${exerciseData.name}`);
     }
 
     // Use a single layout that works for both mobile and desktop

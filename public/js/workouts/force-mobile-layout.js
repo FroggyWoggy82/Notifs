@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Apply grid layout
                 row.style.display = 'grid';
-                row.style.gridTemplateColumns = '30px 70px 30px 30px 70px 30px';
+                row.style.gridTemplateColumns = '25px 65px 30px 30px 65px 25px';
                 row.style.alignItems = 'center';
                 row.style.width = '100%';
                 row.style.gap = '0';
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const columnHeaders = document.querySelectorAll('.column-headers');
             columnHeaders.forEach(header => {
                 header.style.display = 'grid';
-                header.style.gridTemplateColumns = '30px 70px 30px 30px 70px 30px';
+                header.style.gridTemplateColumns = '25px 65px 30px 30px 65px 25px';
                 header.style.alignItems = 'center';
                 header.style.width = '100%';
                 header.style.gap = '0';
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Style set numbers
             const setNumbers = document.querySelectorAll('.set-row .set-number');
             setNumbers.forEach(num => {
-                num.style.width = '30px';
+                num.style.width = '25px';
                 num.style.textAlign = 'center';
                 num.style.fontSize = '0.7rem';
                 num.style.gridColumn = '1';
@@ -51,11 +51,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Style previous logs
             const previousLogs = document.querySelectorAll('.set-row .previous-log');
             previousLogs.forEach(log => {
-                log.style.width = '70px';
+                log.style.width = '65px';
                 log.style.fontSize = '0.7rem';
                 log.style.textAlign = 'center';
                 log.style.whiteSpace = 'nowrap';
-                log.style.overflow = 'hidden';
+                log.style.overflow = 'visible';
                 log.style.textOverflow = 'ellipsis';
                 log.style.gridColumn = '2';
             });
@@ -85,11 +85,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Style goal targets
             const goalTargets = document.querySelectorAll('.set-row .goal-target');
             goalTargets.forEach(target => {
-                target.style.width = '70px';
+                target.style.width = '65px';
                 target.style.fontSize = '0.7rem';
                 target.style.textAlign = 'center';
                 target.style.whiteSpace = 'nowrap';
-                target.style.overflow = 'hidden';
+                target.style.overflow = 'visible';
                 target.style.textOverflow = 'ellipsis';
                 target.style.gridColumn = '5';
             });
@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Style checkboxes/complete toggles
             const completeToggles = document.querySelectorAll('.set-row .set-complete-toggle');
             completeToggles.forEach(toggle => {
-                toggle.style.width = '30px';
-                toggle.style.height = '30px';
+                toggle.style.width = '25px';
+                toggle.style.height = '25px';
                 toggle.style.display = 'flex';
                 toggle.style.alignItems = 'center';
                 toggle.style.justifyContent = 'center';

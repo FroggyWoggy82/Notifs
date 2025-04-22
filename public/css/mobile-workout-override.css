@@ -16,7 +16,7 @@
     /* Use grid layout for set rows for perfect alignment */
     #current-exercise-list .set-row {
         display: grid !important;
-        grid-template-columns: 30px 70px 30px 30px 70px 30px !important;
+        grid-template-columns: 25px 65px 30px 30px 65px 25px !important;
         align-items: center !important;
         gap: 0 !important;
         padding: 8px 2px !important;
@@ -30,14 +30,14 @@
     #current-exercise-list .set-row,
     .set-row {
         display: grid !important;
-        grid-template-columns: 30px 70px 30px 30px 70px 30px !important;
+        grid-template-columns: 25px 65px 30px 30px 65px 25px !important;
         flex-direction: unset !important;
         flex-wrap: unset !important;
     }
 
     /* Position set number */
     .set-row .set-number {
-        width: 30px !important;
+        width: 25px !important;
         font-size: 0.7rem !important;
         font-weight: bold !important;
         text-align: center !important;
@@ -47,12 +47,12 @@
 
     /* Style previous log */
     .set-row .previous-log {
-        width: 70px !important;
+        width: 65px !important;
         font-size: 0.7rem !important;
         color: #ffffff !important;
         text-align: center !important;
         white-space: nowrap !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         text-overflow: ellipsis !important;
         padding: 0 2px !important;
         justify-self: center !important;
@@ -61,12 +61,12 @@
 
     /* Style goal target */
     .set-row .goal-target {
-        width: 70px !important;
+        width: 65px !important;
         font-size: 0.7rem !important;
         color: #03dac6 !important;
         text-align: center !important;
         white-space: nowrap !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         text-overflow: ellipsis !important;
         padding: 0 2px !important;
         justify-self: center !important;
@@ -127,10 +127,10 @@
 
     /* Position complete toggle */
     .set-row .set-complete-toggle {
-        width: 30px !important;
-        height: 30px !important;
-        min-width: 30px !important;
-        min-height: 30px !important;
+        width: 25px !important;
+        height: 25px !important;
+        min-width: 25px !important;
+        min-height: 25px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -141,7 +141,7 @@
     /* Make column headers match the grid layout */
     .column-headers {
         display: grid !important;
-        grid-template-columns: 30px 70px 30px 30px 70px 30px !important;
+        grid-template-columns: 25px 65px 30px 30px 65px 25px !important;
         align-items: center !important;
         padding: 4px 2px !important;
         font-size: 0.65rem !important;
@@ -173,12 +173,12 @@
 
     /* Set specific widths for each column header to match inputs */
     .column-headers span:nth-child(1) { /* Set */
-        width: 30px !important;
+        width: 25px !important;
         grid-column: 1 !important;
         justify-self: center !important;
     }
     .column-headers span:nth-child(2) { /* Previous */
-        width: 70px !important;
+        width: 65px !important;
         color: #ffffff !important;
         grid-column: 2 !important;
         justify-self: center !important;
@@ -198,15 +198,15 @@
         justify-self: center !important;
     }
     .column-headers span:nth-child(5) { /* Goal */
-        width: 70px !important;
+        width: 65px !important;
         color: #03dac6 !important;
         grid-column: 5 !important;
         justify-self: center !important;
     }
     .column-headers span:nth-child(6) { /* Checkmark */
-        width: 30px !important;
-        min-width: 30px !important;
-        max-width: 30px !important;
+        width: 25px !important;
+        min-width: 25px !important;
+        max-width: 25px !important;
         text-align: center !important;
         grid-column: 6 !important;
         justify-self: center !important;
