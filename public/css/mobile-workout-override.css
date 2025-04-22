@@ -13,12 +13,11 @@
 
 /* Mobile-specific overrides */
 @media screen and (max-width: 599px) {
-    /* Reset the grid layout for set rows - use a single row layout */
+    /* Use grid layout for set rows for perfect alignment */
     #current-exercise-list .set-row {
-        display: flex !important;
-        flex-direction: row !important;
+        display: grid !important;
+        grid-template-columns: 15px 75px 20px 20px 75px 25px !important;
         align-items: center !important;
-        justify-content: space-between !important;
         gap: 2px !important;
         padding: 8px 2px !important;
         width: 100% !important;
@@ -30,11 +29,10 @@
     /* Super aggressive override for set rows */
     #current-exercise-list .set-row,
     .set-row {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        grid-template-columns: unset !important;
-        grid-template-rows: unset !important;
+        display: grid !important;
+        grid-template-columns: 15px 75px 20px 20px 75px 25px !important;
+        flex-direction: unset !important;
+        flex-wrap: unset !important;
     }
 
     /* Position set number */
@@ -53,12 +51,11 @@
         font-size: 0.7rem !important;
         color: #ffffff !important;
         text-align: center !important;
-        flex-shrink: 0 !important;
-        margin-right: 2px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         padding: 0 2px !important;
+        justify-self: center !important;
     }
 
     /* Style goal target */
@@ -67,12 +64,11 @@
         font-size: 0.7rem !important;
         color: #03dac6 !important;
         text-align: center !important;
-        flex-shrink: 0 !important;
-        margin-right: 2px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         padding: 0 2px !important;
+        justify-self: center !important;
     }
 
     /* Position weight input */
@@ -83,11 +79,9 @@
         width: 20px !important;
         min-width: 20px !important;
         max-width: 20px !important;
-        flex-shrink: 0 !important;
-        flex-grow: 0 !important;
         box-sizing: border-box !important;
-        margin-right: 2px !important;
         text-align: center !important;
+        justify-self: center !important;
     }
 
     /* Super aggressive override for mobile */
@@ -109,11 +103,9 @@
         width: 20px !important;
         min-width: 20px !important;
         max-width: 20px !important;
-        flex-shrink: 0 !important;
-        flex-grow: 0 !important;
         box-sizing: border-box !important;
-        margin-right: 2px !important;
         text-align: center !important;
+        justify-self: center !important;
     }
 
     /* Super aggressive override for mobile */
@@ -133,25 +125,24 @@
         height: 25px !important;
         min-width: 25px !important;
         min-height: 25px !important;
-        flex-shrink: 0 !important;
-        margin-left: auto !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        justify-self: center !important;
     }
 
-    /* Make column headers match the single row layout */
+    /* Make column headers match the grid layout */
     .column-headers {
-        display: flex !important;
-        flex-direction: row !important;
+        display: grid !important;
+        grid-template-columns: 15px 75px 20px 20px 75px 25px !important;
         align-items: center !important;
-        justify-content: space-between !important;
         padding: 4px 2px !important;
         font-size: 0.65rem !important;
         margin-bottom: 4px !important;
         background-color: rgba(50, 50, 50, 0.3) !important;
         border-radius: 4px !important;
         width: 100% !important;
+        gap: 2px !important;
     }
 
     /* Adjust all header columns */
@@ -159,6 +150,7 @@
         color: #ffffff !important;
         font-weight: bold !important;
         text-align: center !important;
+        justify-self: center !important;
     }
 
     /* Super aggressive override for column headers */
