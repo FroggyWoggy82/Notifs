@@ -125,10 +125,28 @@ console.log('Process ID:', process.pid);
 console.log('Working Directory:', process.cwd());
 console.log('Environment:', process.env.NODE_ENV || 'development');
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
-const progressPhotosDir = path.join(uploadsDir, 'progress_photos');
+// Define upload directories
+// Check if we're running on Railway with a mounted volume
+const isRailway = process.env.RAILWAY_ENVIRONMENT === 'production';
+const railwayDataDir = '/data';
 
+// Set up paths based on environment
+let uploadsDir;
+let progressPhotosDir;
+
+if (isRailway && fs.existsSync(railwayDataDir)) {
+  console.log('Running on Railway with mounted volume at /data');
+  uploadsDir = path.join(railwayDataDir, 'uploads');
+  progressPhotosDir = path.join(uploadsDir, 'progress_photos');
+  console.log(`Using Railway mounted volume for uploads: ${uploadsDir}`);
+} else {
+  console.log('Running locally or without mounted volume');
+  uploadsDir = path.join(__dirname, 'uploads');
+  progressPhotosDir = path.join(uploadsDir, 'progress_photos');
+  console.log(`Using local filesystem for uploads: ${uploadsDir}`);
+}
+
+// Ensure uploads directory exists
 try {
   if (!fs.existsSync(uploadsDir)) {
     console.log(`Creating uploads directory: ${uploadsDir}`);
@@ -206,8 +224,13 @@ if (!fs.existsSync(progressPhotosDir)) {
   console.log('Created progress_photos directory');
 }
 
-// Serve uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploads directory - use the correct path based on environment
+app.use('/uploads', express.static(uploadsDir));
+
+// Log the static file serving configuration
+console.log(`Serving static files from: ${path.join(__dirname, 'public')}`);
+console.log(`Serving uploads from: ${uploadsDir}`);
+console.log(`Serving progress photos from: ${progressPhotosDir}`);
 
 // Add a dedicated healthcheck endpoint
 app.get('/healthcheck', (req, res) => {

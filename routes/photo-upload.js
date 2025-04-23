@@ -49,11 +49,26 @@ try {
 }
 
 // --- Configuration ---
-// Use Railway persistent volume for storage
-const progressPhotosDir = path.join('/data', 'uploads', 'progress_photos');
+// Check if we're running on Railway with a mounted volume
+const isRailway = process.env.RAILWAY_ENVIRONMENT === 'production';
+const railwayDataDir = '/data';
+
+// Set up paths based on environment
+let progressPhotosDir;
+let publicPhotosDir;
+
+if (isRailway && fs.existsSync(railwayDataDir)) {
+    console.log('[PHOTO UPLOAD] Running on Railway with mounted volume at /data');
+    progressPhotosDir = path.join(railwayDataDir, 'uploads', 'progress_photos');
+    console.log(`[PHOTO UPLOAD] Using Railway mounted volume for uploads: ${progressPhotosDir}`);
+} else {
+    console.log('[PHOTO UPLOAD] Running locally or without mounted volume');
+    progressPhotosDir = path.join(__dirname, '..', 'uploads', 'progress_photos');
+    console.log(`[PHOTO UPLOAD] Using local filesystem for uploads: ${progressPhotosDir}`);
+}
 
 // Create a symlink from the persistent storage to the public directory
-const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
 if (!fs.existsSync(path.dirname(publicPhotosDir))) {
     fs.mkdirSync(path.dirname(publicPhotosDir), { recursive: true });
 }
