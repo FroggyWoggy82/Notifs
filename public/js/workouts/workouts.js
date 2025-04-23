@@ -187,6 +187,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const comparisonImage1 = document.getElementById('comparison-image-1');
     const comparisonImage2 = document.getElementById('comparison-image-2');
 
+    // --- Helper function to calculate goal for next workout ---
+    function calculateGoal(exerciseData, setIndex, prevWeight, prevReps, prevUnit) {
+        // If no previous data, return null
+        if (!prevWeight || !prevReps || prevWeight === '-' || prevReps === '-') {
+            return null;
+        }
+
+        // Parse previous weight and reps
+        const weight = parseFloat(prevWeight);
+        const reps = parseInt(prevReps);
+
+        // If invalid values, return null
+        if (isNaN(weight) || isNaN(reps)) {
+            return null;
+        }
+
+        // Calculate goal based on previous performance
+        // If reps >= 12, increase weight by 5-10% and reduce reps to 8
+        // If reps < 8, keep weight the same and aim for +1-2 reps
+        // If reps between 8-11, keep weight the same and aim for +1 rep
+        let goalWeight = weight;
+        let goalReps = reps;
+
+        if (reps >= 12) {
+            // Increase weight by 5-10% and reduce reps to 8
+            goalWeight = Math.round(weight * 1.05); // 5% increase
+            goalReps = 8;
+        } else if (reps < 8) {
+            // Keep weight the same and aim for +2 reps
+            goalReps = reps + 2;
+        } else {
+            // Keep weight the same and aim for +1 rep
+            goalReps = reps + 1;
+        }
+
+        return {
+            weight: goalWeight,
+            reps: goalReps,
+            unit: prevUnit
+        };
+    }
+
     // --- Helper function to generate HTML for set rows ---
     function generateSetRowsHtml(exerciseData, index, isTemplate = false) {
         let setRowsHtml = '';
@@ -274,10 +316,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Calculate goal for next workout if not a template
                 if (!isTemplate) {
-                    const goal = calculateGoal(exerciseData);
-                    if (goal && i < goal.sets.length) {
-                        const goalSet = goal.sets[i];
-                        goalTextHtml = `${goalSet.weight} ${goal.unit} x ${goalSet.reps}`;
+                    const goal = calculateGoal(exerciseData, i, prevWeight, prevReps, prevUnit);
+                    if (goal) {
+                        goalTextHtml = `${goal.weight} ${goal.unit} x ${goal.reps}`;
                     }
                 }
             } else if (!isTemplate){
@@ -299,10 +340,10 @@ document.addEventListener('DOMContentLoaded', function() {
             setRowsHtml += `
                 <div class="set-row" data-set-index="${i}">
                     <span class="set-number">${i + 1}</span>
-                    <span class="previous-log">${previousLogTextHtml}</span>
+                    <span class="previous-log"><strong>Prev:</strong> ${previousLogTextHtml}</span>
                     <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
                     <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-                    <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
+                    <span class="goal-target" title="Goal for next workout"><strong>Goal:</strong> ${goalTextHtml}</span>
                     ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
                 </div>
             `;

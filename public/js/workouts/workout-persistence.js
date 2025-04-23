@@ -24,7 +24,17 @@ function initWorkoutPersistence() {
     // Export functions to window
     window.saveWorkoutData = saveWorkoutData;
     window.restoreWorkoutData = restoreWorkoutData;
-    window.clearWorkoutData = clearWorkoutState; // Use the existing clearWorkoutState function
+    window.clearWorkoutData = function() {
+        // Use the existing clearWorkoutState function from workouts.js
+        if (typeof clearWorkoutState === 'function') {
+            clearWorkoutState();
+        } else {
+            console.error('clearWorkoutState function not found');
+            // Fallback: clear localStorage directly
+            localStorage.removeItem(WORKOUT_DATA_KEY);
+            localStorage.removeItem('workout_tracker_current_workout');
+        }
+    };
     window.updateCurrentWorkoutFromUI = updateCurrentWorkoutFromUI;
 }
 
