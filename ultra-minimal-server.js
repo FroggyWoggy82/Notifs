@@ -1,7 +1,11 @@
 // Ultra-minimal server for Railway deployment
 const express = require('express');
 const app = express();
+
+// Get the port from the environment variable or use a default
 const PORT = process.env.PORT || 3003;
+console.log('PORT environment variable:', process.env.PORT);
+console.log('Using port:', PORT);
 
 // Log startup and environment
 console.log('Starting ultra-minimal server...');
