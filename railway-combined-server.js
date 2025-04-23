@@ -574,7 +574,19 @@ try {
         console.log('First template structure:', JSON.stringify(result.rows[0]));
       }
 
-      res.json(result.rows);
+      // Map the database fields to what the frontend expects
+      const mappedTemplates = result.rows.map(template => ({
+        workout_id: template.id, // Map id to workout_id
+        name: template.name,
+        description: template.description,
+        exercises: template.exercises,
+        created_at: template.created_at,
+        updated_at: template.updated_at
+      }));
+
+      console.log('First mapped template:', JSON.stringify(mappedTemplates[0]));
+
+      res.json(mappedTemplates);
     } catch (error) {
       console.error('Error fetching workout templates:', error);
       console.error('Error details:', error.message);
