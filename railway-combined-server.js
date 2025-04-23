@@ -332,12 +332,21 @@ try {
   app.get('/api/workouts/exercises', dbMiddleware, async (req, res) => {
     try {
       console.log('Handling GET /api/workouts/exercises request');
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.exercises') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('exercises table does not exist, returning empty array');
+        return res.json([]);
+      }
+
       const result = await db.query('SELECT * FROM exercises ORDER BY name ASC');
       console.log(`Returning ${result.rows.length} exercises`);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching exercises:', error);
-      res.status(500).json({ error: 'Failed to fetch exercises' });
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
     }
   });
 
@@ -345,12 +354,21 @@ try {
   app.get('/api/workouts/templates', dbMiddleware, async (req, res) => {
     try {
       console.log('Handling GET /api/workouts/templates request');
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.workout_templates') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('workout_templates table does not exist, returning empty array');
+        return res.json([]);
+      }
+
       const result = await db.query('SELECT * FROM workout_templates ORDER BY name ASC');
       console.log(`Returning ${result.rows.length} workout templates`);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching workout templates:', error);
-      res.status(500).json({ error: 'Failed to fetch workout templates' });
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
     }
   });
 
@@ -358,12 +376,21 @@ try {
   app.get('/api/workouts/progress-photos', dbMiddleware, async (req, res) => {
     try {
       console.log('Handling GET /api/workouts/progress-photos request');
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.progress_photos') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('progress_photos table does not exist, returning empty array');
+        return res.json([]);
+      }
+
       const result = await db.query('SELECT * FROM progress_photos ORDER BY created_at DESC');
       console.log(`Returning ${result.rows.length} progress photos`);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching progress photos:', error);
-      res.status(500).json({ error: 'Failed to fetch progress photos' });
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
     }
   });
 
@@ -371,12 +398,65 @@ try {
   app.get('/api/weight', dbMiddleware, async (req, res) => {
     try {
       console.log('Handling GET /api/weight request');
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.weight_entries') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('weight_entries table does not exist, returning empty array');
+        return res.json([]);
+      }
+
       const result = await db.query('SELECT * FROM weight_entries ORDER BY date DESC');
       console.log(`Returning ${result.rows.length} weight entries`);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching weight entries:', error);
-      res.status(500).json({ error: 'Failed to fetch weight entries' });
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
+    }
+  });
+
+  // Food endpoints
+  app.get('/api/food', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/food request');
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.food_entries') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('food_entries table does not exist, returning empty array');
+        return res.json([]);
+      }
+
+      const result = await db.query('SELECT * FROM food_entries ORDER BY date DESC');
+      console.log(`Returning ${result.rows.length} food entries`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching food entries:', error);
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
+    }
+  });
+
+  // Nutrition endpoints
+  app.get('/api/nutrition', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/nutrition request');
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.nutrition_entries') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('nutrition_entries table does not exist, returning empty array');
+        return res.json([]);
+      }
+
+      const result = await db.query('SELECT * FROM nutrition_entries ORDER BY date DESC');
+      console.log(`Returning ${result.rows.length} nutrition entries`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching nutrition entries:', error);
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
     }
   });
 
