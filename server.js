@@ -88,7 +88,9 @@ const { swaggerDocs } = require('./docs/swagger');
 
 // Initialize Express app
 const app = express();
-const PORT = 3003; // Using port 3003
+const PORT = process.env.PORT || 3003; // Use PORT from environment variable or default to 3003
+console.log(`Using PORT: ${PORT} (from environment: ${process.env.PORT ? 'yes' : 'no'})`);
+
 
 // Middleware
 app.use(cors({
@@ -385,7 +387,7 @@ const startServer = async (dbConnected) => {
   // Start the server with increased timeout and handle port conflicts
   try {
     console.log(`Attempting to start server on port ${PORT}...`);
-    const server = app.listen(PORT, async () => {
+    const server = app.listen(PORT, '0.0.0.0', async () => {
       console.log(`Server successfully started and running on port ${PORT}${!dbConnected ? ' (database connection failed)' : ''}`);
       console.log(`Server is ready to accept connections`);
       console.log(`Healthcheck endpoint available at: http://localhost:${PORT}/healthcheck`);
