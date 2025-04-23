@@ -4,11 +4,11 @@ buildCommand = "npm install --no-optional --no-package-lock"
 watchPatterns = ["package.json", "package-lock.json"]
 
 [nixpacks]
-install_cmd = "npm install --no-optional --no-package-lock"
-start_cmd = "node server.js"
+install_cmd = "npm install express --no-optional --no-package-lock"
+start_cmd = "node ultra-minimal-server.js"
 
 [deploy]
-startCommand = "node server.js"
+startCommand = "node ultra-minimal-server.js"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 600
 restartPolicyType = "ON_FAILURE"
