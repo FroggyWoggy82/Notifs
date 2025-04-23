@@ -5,9 +5,9 @@
     "buildCommand": "npm install --no-optional --no-package-lock"
   },
   "deploy": {
-    "startCommand": "node server.js",
+    "startCommand": "node minimal-server.js",
     "healthcheckPath": "/healthcheck",
-    "healthcheckTimeout": 300,
+    "healthcheckTimeout": 600,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
