@@ -72,6 +72,17 @@ const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for 
 const journalRoutes = require('./routes/journal'); // New route for journal entries
 const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // Cronometer nutrition data scraper
 
+// Load our custom routes
+let exerciseRouter;
+let compatibilityRouter;
+try {
+  exerciseRouter = require('./routes/exercise-routes');
+  compatibilityRouter = require('./routes/compatibility-routes');
+  console.log('Successfully loaded custom exercise and compatibility routes');
+} catch (customRouteError) {
+  console.error('Error loading custom routes:', customRouteError);
+}
+
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
 
@@ -160,6 +171,18 @@ app.use('/api/journal', journalRoutes); // NEW: Journal entries route
 console.log('Registering Cronometer Nutrition routes...');
 app.use('/api/cronometer', cronometerNutritionRoutes); // Cronometer nutrition data scraper
 console.log('Cronometer Nutrition routes registered successfully!');
+
+// Set up our custom routes
+if (exerciseRouter) {
+  app.use('/api/exercise', exerciseRouter);
+  console.log('Registered /api/exercise routes');
+}
+
+// Set up compatibility routes (these handle the original API paths)
+if (compatibilityRouter) {
+  app.use('/api', compatibilityRouter);
+  console.log('Registered compatibility routes');
+}
 
 // Add a dedicated healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
@@ -305,6 +328,17 @@ const initializeAndStart = async () => {
       } catch (calorieError) {
         console.error('Error initializing calorie target model:', calorieError);
         console.log('Continuing despite calorie target model initialization error');
+      }
+
+      // Run exercise tables migration
+      try {
+        console.log('Running exercise tables migration...');
+        const exerciseMigration = require('./migrations/create_exercise_tables');
+        await exerciseMigration.createExerciseTables();
+        console.log('Exercise tables migration completed successfully');
+      } catch (migrationError) {
+        console.error('Error running exercise tables migration:', migrationError);
+        console.log('Continuing despite exercise tables migration error');
       }
     } catch (modelError) {
       console.error('Error initializing models:', modelError);
