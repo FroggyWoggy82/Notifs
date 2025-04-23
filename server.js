@@ -6,8 +6,23 @@ const cors = require('cors');
 const webpush = require('web-push');
 const path = require('path');
 const cron = require('node-cron');
-const sharp = require('sharp');
 const fs = require('fs');
+
+// Try to load Sharp, but continue if it fails
+let sharp;
+try {
+  sharp = require('sharp');
+  console.log('Sharp loaded successfully');
+} catch (error) {
+  console.error('Failed to load Sharp:', error.message);
+  console.log('Continuing without Sharp functionality');
+  // Create a mock Sharp object with basic functionality
+  sharp = {
+    versions: { sharp: 'not available', vips: 'not available' },
+    format: { heif: false },
+    resize: () => ({ toBuffer: async () => Buffer.from([]) })
+  };
+}
 
 // Ensure persistent volume directory exists
 const persistentDir = '/data/uploads/progress_photos';

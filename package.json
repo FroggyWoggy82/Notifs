@@ -25,7 +25,9 @@
     "npm": ">=9.0.0"
   },
   "sharp": {
-    "platforms": ["linux-x64"],
+    "platforms": [
+      "linux-x64"
+    ],
     "download": true
   },
   "dependencies": {
@@ -39,7 +41,7 @@
     "node-fetch": "^2.6.7",
     "pg": "^8.14.1",
     "pg-format": "^1.0.4",
-    "sharp": "^0.34.1",
+    "sharp": "0.32.6",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "web-push": "^3.6.7"

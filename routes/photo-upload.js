@@ -2,10 +2,26 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const sharp = require('sharp');
 const multer = require('multer');
 const db = require('../utils/db');
 const router = express.Router();
+
+// Try to load Sharp, but continue if it fails
+let sharp;
+try {
+  sharp = require('sharp');
+  console.log('[PHOTO UPLOAD] Sharp loaded successfully');
+} catch (error) {
+  console.error('[PHOTO UPLOAD] Failed to load Sharp:', error.message);
+  console.log('[PHOTO UPLOAD] Continuing without Sharp functionality');
+  // Create a mock Sharp object with basic functionality
+  sharp = {
+    resize: () => ({
+      jpeg: () => ({ toFile: async (path) => fs.copyFileSync(file.path, path) })
+    }),
+    // Add other methods as needed
+  };
+}
 
 // --- Configuration ---
 // Use Railway persistent volume for storage
