@@ -1,9 +1,9 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install express cors pg dotenv pg-format node-cron --no-optional"
+buildCommand = "npm install --no-optional"
 
 [deploy]
-startCommand = "node railway-combined-server.js"
+startCommand = "node server.js"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
