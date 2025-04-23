@@ -575,14 +575,33 @@ try {
       }
 
       // Map the database fields to what the frontend expects
-      const mappedTemplates = result.rows.map(template => ({
-        workout_id: template.id, // Map id to workout_id
-        name: template.name,
-        description: template.description,
-        exercises: template.exercises,
-        created_at: template.created_at,
-        updated_at: template.updated_at
-      }));
+      const mappedTemplates = result.rows.map(template => {
+        // Ensure exercises have the required fields for the frontend
+        const processedExercises = Array.isArray(template.exercises) ? template.exercises.map((exercise, index) => {
+          // Add exercise_id and workout_exercise_id if missing
+          return {
+            workout_exercise_id: exercise.workout_exercise_id || index + 1,
+            exercise_id: exercise.exercise_id || index + 1,
+            name: exercise.name,
+            category: exercise.category || 'other',
+            sets: exercise.sets,
+            reps: exercise.reps,
+            weight: exercise.weight,
+            weight_unit: exercise.weight_unit || 'lbs',
+            order_position: exercise.order_position || index + 1,
+            notes: exercise.notes || ''
+          };
+        }) : [];
+
+        return {
+          workout_id: template.id, // Map id to workout_id
+          name: template.name,
+          description: template.description,
+          exercises: processedExercises,
+          created_at: template.created_at,
+          updated_at: template.updated_at
+        };
+      });
 
       console.log('First mapped template:', JSON.stringify(mappedTemplates[0]));
 
