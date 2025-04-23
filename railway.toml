@@ -1,9 +1,9 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --no-optional"
+buildCommand = "npm install express --no-optional"
 
 [deploy]
-startCommand = "node server.js"
+startCommand = "node healthcheck-server.js"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
