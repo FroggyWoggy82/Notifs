@@ -195,6 +195,17 @@ app.use('/uploads/progress_photos', (req, res, next) => {
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Make sure the uploads directories exist
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory');
+}
+
+if (!fs.existsSync(progressPhotosDir)) {
+  fs.mkdirSync(progressPhotosDir, { recursive: true });
+  console.log('Created progress_photos directory');
+}
+
 // Serve uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -429,13 +440,25 @@ try {
       }
 
       // Map the database fields to what the frontend expects
-      const mappedPhotos = result.rows.map(photo => ({
-        id: photo.photo_id,
-        filename: photo.file_path.split('/').pop(),
-        filepath: photo.file_path,
-        description: '',
-        created_at: photo.uploaded_at
-      }));
+      const mappedPhotos = result.rows.map(photo => {
+        // Get the filename from the file_path
+        const filename = photo.file_path.split('/').pop();
+
+        // Construct the full URL for the photo
+        const baseUrl = process.env.BASE_URL || 'https://notifs-production.up.railway.app';
+        const fullUrl = `${baseUrl}${photo.file_path}`;
+
+        return {
+          id: photo.photo_id,
+          filename: filename,
+          filepath: photo.file_path,
+          url: fullUrl, // Add the full URL for the photo
+          description: '',
+          created_at: photo.uploaded_at
+        };
+      });
+
+      console.log('First mapped photo:', JSON.stringify(mappedPhotos[0]));
 
       res.json(mappedPhotos);
     } catch (error) {
@@ -444,6 +467,16 @@ try {
       // Return empty array instead of error
       res.json([]);
     }
+  });
+
+  // Serve progress photos with proper headers
+  app.use('/uploads/progress_photos', (req, res, next) => {
+    // Set cache control headers to prevent caching
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
   });
 
   // Weight endpoint
