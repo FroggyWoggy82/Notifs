@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 
 // Railway provides DATABASE_URL automatically
 // For local dev, create a .env file with DATABASE_URL=postgresql://user:password@host:port/database
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:NOQsdhTojgbpjdjEaMDjezkGMVHLBIsP@nozomi.proxy.rlwy.net:18056/railway';
 
 if (!connectionString) {
     console.error("WARNING: DATABASE_URL environment variable is not set. Using fallback configuration.");

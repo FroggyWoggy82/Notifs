@@ -11,25 +11,61 @@ require('dotenv').config();
 let db;
 let dbConnected = false;
 
-try {
-  // Initialize database connection
-  console.log('Initializing database connection...');
-  db = require('./utils/db');
+// Log database configuration
+console.log('Database configuration:');
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set (not showing for security)' : 'Not set');
+console.log('DB_HOST:', process.env.DB_HOST || 'Not set');
+console.log('DB_PORT:', process.env.DB_PORT || 'Not set');
+console.log('DB_NAME:', process.env.DB_NAME || 'Not set');
+console.log('DB_USER:', process.env.DB_USER || 'Not set');
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? 'Set (not showing for security)' : 'Not set');
 
-  // Test the connection
-  db.query('SELECT NOW()', (err, res) => {
-    if (err) {
-      console.error('Database connection error:', err);
-      console.log('Server will continue without database functionality');
+// Function to initialize database
+const initializeDatabase = async () => {
+  try {
+    // Initialize database connection
+    console.log('Initializing database connection...');
+
+    // Check if we're using DATABASE_URL or individual credentials
+    if (process.env.DATABASE_URL) {
+      console.log('Using DATABASE_URL for connection');
+    } else if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_PASSWORD) {
+      console.log('Using individual database credentials');
     } else {
-      console.log('Database connected successfully:', res.rows[0]);
-      dbConnected = true;
+      console.log('No database credentials provided');
     }
-  });
-} catch (error) {
-  console.error('Failed to initialize database:', error);
-  console.log('Server will continue without database functionality');
-}
+
+    // Load database module
+    db = require('./utils/db');
+
+    // Test the connection with a timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database connection test timed out after 10 seconds')), 10000);
+    });
+
+    // Create the query promise
+    const queryPromise = db.query('SELECT NOW()');
+
+    // Race the query against the timeout
+    const result = await Promise.race([queryPromise, timeoutPromise]);
+    console.log('Database connection successful:', result.rows[0]);
+    dbConnected = true;
+
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    console.error('Error details:', error.message);
+    console.log('Server will continue without database functionality');
+    dbConnected = false;
+
+    return false;
+  }
+};
+
+// Initialize database
+initializeDatabase().then(success => {
+  console.log(`Database initialization ${success ? 'succeeded' : 'failed'}`);
+});
 
 // Create Express app
 const app = express();
