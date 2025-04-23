@@ -161,6 +161,12 @@ console.log('Registering Cronometer Nutrition routes...');
 app.use('/api/cronometer', cronometerNutritionRoutes); // Cronometer nutrition data scraper
 console.log('Cronometer Nutrition routes registered successfully!');
 
+// Add a dedicated healthcheck endpoint
+app.get('/healthcheck', (req, res) => {
+    console.log('Healthcheck endpoint hit');
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
     res.status(404).json({ error: `API endpoint not found: ${req.originalUrl}` });
@@ -251,6 +257,8 @@ const JournalModel = require('./models/journalModel');
 
 // Initialize database and start the server
 const initializeAndStart = async () => {
+  console.log('Starting application initialization...');
+
   // Check if offline mode is enabled
   const offlineMode = process.env.OFFLINE_MODE === 'true';
 
@@ -260,9 +268,14 @@ const initializeAndStart = async () => {
     return;
   }
 
+  // Always start the server, even if database connection fails
+  let dbConnected = false;
+
   try {
     // Test database connection before starting the server
     console.log('Testing database connection...');
+    console.log('Database URL format:', process.env.DATABASE_URL ?
+      `${process.env.DATABASE_URL.split(':')[0]}:****` : 'Not set');
 
     // Create a timeout promise
     const timeoutPromise = new Promise((_, reject) => {
@@ -270,14 +283,17 @@ const initializeAndStart = async () => {
     });
 
     // Create the query promise
+    console.log('Executing database test query...');
     const queryPromise = db.query('SELECT NOW()');
 
     // Race the query against the timeout
     const result = await Promise.race([queryPromise, timeoutPromise]);
     console.log('Database connection successful:', result.rows[0]);
+    dbConnected = true;
 
     // Initialize models
     try {
+      console.log('Initializing models...');
       await JournalModel.initialize();
       console.log('Journal model initialized successfully');
 
@@ -288,42 +304,65 @@ const initializeAndStart = async () => {
         console.log('Calorie target model initialized successfully');
       } catch (calorieError) {
         console.error('Error initializing calorie target model:', calorieError);
+        console.log('Continuing despite calorie target model initialization error');
       }
     } catch (modelError) {
       console.error('Error initializing models:', modelError);
+      console.log('Continuing despite model initialization errors');
     }
-
-    // Start the server with database connection
-    startServer(true);
   } catch (error) {
     console.error('Failed to connect to database:', error);
+    console.log('Database connection error details:', error.message);
     console.log('Server will start anyway, but database features may not work');
-
-    // Start the server without database connection
-    startServer(false);
+  } finally {
+    // Always start the server, regardless of database connection status
+    console.log(`Starting server with database connection: ${dbConnected}`);
+    startServer(dbConnected);
   }
 };
 
 // Function to start the server
 const startServer = async (dbConnected) => {
-  // Check sharp features before starting the server
-  console.log('--- Sharp Feature Check ---');
-  console.log('Sharp Version:', sharp.versions.sharp);
-  console.log('Libvips Version:', sharp.versions.vips);
-  console.log('Formats:', sharp.format);
-  console.log('HEIF Support (via libvips):', sharp.format.heif ? 'Available' : 'NOT Available');
-  console.log('--- End Sharp Feature Check ---');
+  console.log('Starting server...');
+
+  // Log system information
+  console.log('--- System Information ---');
+  console.log('Node.js Version:', process.version);
+  console.log('Platform:', process.platform);
+  console.log('Architecture:', process.arch);
+  console.log('Process ID:', process.pid);
+  console.log('Working Directory:', process.cwd());
+  console.log('Memory Usage:', process.memoryUsage());
+  console.log('Environment:', process.env.NODE_ENV || 'development');
+  console.log('--- End System Information ---');
+
+  // Check if Sharp is available
+  console.log('--- Sharp Status ---');
+  try {
+    console.log('Sharp Version:', sharp.versions ? sharp.versions.sharp : 'not available');
+    console.log('Libvips Version:', sharp.versions ? sharp.versions.vips : 'not available');
+    console.log('Sharp Status: ' + (sharp.versions ? 'Available' : 'Not Available'));
+  } catch (error) {
+    console.error('Error checking Sharp status:', error.message);
+    console.log('Sharp Status: Not Available (Error)');
+  }
+  console.log('--- End Sharp Status ---');
 
   // Start the server with increased timeout and handle port conflicts
   try {
+    console.log(`Attempting to start server on port ${PORT}...`);
     const server = app.listen(PORT, async () => {
-      console.log(`Server running on port ${PORT}${!dbConnected ? ' (database connection failed)' : ''}`);
+      console.log(`Server successfully started and running on port ${PORT}${!dbConnected ? ' (database connection failed)' : ''}`);
+      console.log(`Server is ready to accept connections`);
+      console.log(`Healthcheck endpoint available at: http://localhost:${PORT}/healthcheck`);
 
       // Schedule all task reminders on server start (silently) if database is connected
       if (dbConnected) {
         try {
+          console.log('Scheduling task reminders...');
           // Silently schedule task reminders without logging each one
           await TaskReminderService.scheduleAllTaskReminders();
+          console.log('Task reminders scheduled successfully');
         } catch (err) {
           console.error('Failed to schedule task reminders:', err);
         }
@@ -336,6 +375,11 @@ const startServer = async (dbConnected) => {
 
     // Handle server errors
     server.on('error', (error) => {
+      console.error('--- SERVER ERROR ---');
+      console.error('Error Code:', error.code);
+      console.error('Error Message:', error.message);
+      console.error('Error Stack:', error.stack);
+
       if (error.code === 'EADDRINUSE') {
         console.error(`Port ${PORT} is already in use. Please close the application using this port or use a different port.`);
         console.error(`You can run 'node kill-server.js' to attempt to kill the process using port ${PORT}.`);
@@ -344,13 +388,36 @@ const startServer = async (dbConnected) => {
         console.error(`Server error: ${error.message}`);
       }
     });
+
+    // Add process error handlers
+    process.on('uncaughtException', (error) => {
+      console.error('Uncaught Exception:', error);
+      console.error('Stack:', error.stack);
+      // Keep the server running despite the error
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+      // Keep the server running despite the rejection
+    });
+
   } catch (error) {
-    console.error(`Failed to start server: ${error.message}`);
+    console.error('--- CRITICAL SERVER STARTUP ERROR ---');
+    console.error('Error Code:', error.code);
+    console.error('Error Message:', error.message);
+    console.error('Error Stack:', error.stack);
+
     if (error.code === 'EADDRINUSE') {
       console.error(`Port ${PORT} is already in use. Please close the application using this port or use a different port.`);
       console.error(`You can run 'node kill-server.js' to attempt to kill the process using port ${PORT}.`);
     }
-    process.exit(1);
+
+    // Don't exit the process on Railway - let it retry
+    if (process.env.RAILWAY_ENVIRONMENT) {
+      console.log('Running on Railway - not exiting process to allow for retry');
+    } else {
+      process.exit(1);
+    }
   }
 };
 
