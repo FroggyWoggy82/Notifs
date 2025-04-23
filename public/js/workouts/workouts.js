@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let repsArray = [];
         let prevUnit = 'lbs'; // Default to lbs
         if (!isTemplate && exerciseData.lastLog) {
-             console.log(`[generateSetRowsHtml] Found lastLog for ${exerciseData.name}:`, exerciseData.lastLog);
+             console.log(`%c[generateSetRowsHtml] Found lastLog for ${exerciseData.name}:`, 'color: cyan; font-weight: bold;', exerciseData.lastLog); // Enhanced log
             if (exerciseData.lastLog.weight_used) {
                 weightsArray = exerciseData.lastLog.weight_used.split(',').map(w => w.trim());
             }
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Always update the display text if data exists for this set index
                 previousLogTextHtml = `${prevWeight || '-'} ${prevUnit} x ${prevReps || '-'}`;
-                 console.log(`[generateSetRowsHtml] Set ${i}: Pre-filling weight=${weightValue}, reps=${repsValue}. Display='${previousLogTextHtml}'`);
+                 console.log(`%c[generateSetRowsHtml] Set ${i}: prevWeight='${prevWeight}', prevReps='${prevReps}', prevUnit='${prevUnit}' => Display='${previousLogTextHtml}'`, 'color: lightblue;'); // Log parsed values and result
 
                 // Calculate goal for next workout if not a template
                 if (!isTemplate) {
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else if (!isTemplate){
                 // If no specific data for this set index, keep inputs empty, show placeholder text
-                 console.log(`[generateSetRowsHtml] Set ${i}: No previous data found for this index.`);
+                 console.log(`%c[generateSetRowsHtml] Set ${i}: No previous data found for this index (weightsArray.length=${weightsArray.length}, repsArray.length=${repsArray.length}). Display='${previousLogTextHtml}'`, 'color: orange;'); // Log reason for no data
             }
             // --- End Per-Set Logic ---
 
@@ -641,21 +641,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     const response = await fetch(`/api/workouts/exercises/${exerciseData.exercise_id}/lastlog`);
                     if (response.ok) {
-                        const logData = await response.json();
-                        console.log(`[Render Single] Last log FETCHED for ${exerciseData.name}:`, logData);
+                        const responseText = await response.text(); // Get raw text first
+                        console.log(`%c[Render Single] Raw response text for ${exerciseData.name}:`, 'color: magenta;', responseText); // Log raw text
 
-                        // Ensure the log data has the expected format
-                        if (!logData.reps_completed) {
-                            logData.reps_completed = '';
-                        }
-                        if (!logData.weight_used) {
-                            logData.weight_used = '';
-                        }
-                        if (!logData.weight_unit) {
-                            logData.weight_unit = exerciseData.weight_unit || 'lbs';
-                        }
+                        let logData = null;
+                        try {
+                            logData = JSON.parse(responseText); // Try parsing the text
+                            console.log(`[Render Single] Last log PARSED for ${exerciseData.name}:`, logData);
 
-                        return logData; // Return the fetched data
+                            // Ensure the log data has the expected format
+                            if (!logData.reps_completed) {
+                                logData.reps_completed = '';
+                            }
+                            if (!logData.weight_used) {
+                                logData.weight_used = '';
+                            }
+                            if (!logData.weight_unit) {
+                                logData.weight_unit = exerciseData.weight_unit || 'lbs';
+                            }
+                            return logData; // Return the parsed data
+                        } catch (parseError) {
+                            console.error(`%c[Render Single] JSON Parse Error for ${exerciseData.name}:`, 'color: red; font-weight: bold;', parseError);
+                            console.error(`%c[Render Single] Raw text that failed parsing:`, 'color: red;', responseText);
+                            return null; // Return null if parsing fails
+                        }
                     } else if (response.status === 404) {
                          console.log(`[Render Single] No last log found for ${exerciseData.name}.`);
                          // Create a dummy log with empty data
