@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --no-optional"
+buildCommand = "npm install express cors pg dotenv pg-format node-cron web-push multer --no-optional"
 
 [deploy]
 startCommand = "node railway-combined-server.js"

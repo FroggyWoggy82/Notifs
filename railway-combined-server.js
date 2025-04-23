@@ -7,6 +7,18 @@ const fs = require('fs');
 // Load environment variables
 require('dotenv').config();
 
+// Web Push Configuration
+const webpush = require('web-push');
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BLBz5FpXXWgDjQJMDYZ-VENKh-qX1FhL-YhJ3keyGlBSGEQQYfwwucepKWzT2JbIQcUHduvWj5klFuT1UlqxvHQ';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'Qs0OSR2VsBf3t0x0fpTpiBgMGAOegt60NX0F3cYvYpU';
+
+// Configure web push
+webpush.setVapidDetails(
+  'mailto:kevinguyen022@gmail.com',
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY
+);
+
 // Database connection
 let db;
 let dbConnected = false;
@@ -85,6 +97,26 @@ console.log('Process ID:', process.pid);
 console.log('Working Directory:', process.cwd());
 console.log('Environment:', process.env.NODE_ENV || 'development');
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+const progressPhotosDir = path.join(uploadsDir, 'progress_photos');
+
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    console.log(`Creating uploads directory: ${uploadsDir}`);
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  if (!fs.existsSync(progressPhotosDir)) {
+    console.log(`Creating progress photos directory: ${progressPhotosDir}`);
+    fs.mkdirSync(progressPhotosDir, { recursive: true });
+  }
+
+  console.log('Uploads directories created successfully');
+} catch (error) {
+  console.error('Failed to create uploads directories:', error);
+}
+
 // Try to load Sharp, but continue if it fails
 let sharp;
 try {
@@ -121,8 +153,22 @@ try {
   };
 }
 
+// Serve static files with special handling for progress photos
+// Disable caching for progress photos to prevent stale images
+app.use('/uploads/progress_photos', (req, res, next) => {
+  // Disable caching for progress photos
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Add a dedicated healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
@@ -147,6 +193,17 @@ try {
   const workoutsRouter = require('./routes/workouts');
   const journalRouter = require('./routes/journal');
   const daysSinceRouter = require('./routes/daysSinceRoutes');
+  const weightRouter = require('./routes/weight');
+  const foodRouter = require('./routes/food');
+  const goalRouter = require('./routes/goalRoutes');
+  const photoUploadRouter = require('./routes/photo-upload');
+  const notificationsRouter = require('./routes/notificationRoutes');
+  const subscriptionsRouter = require('./routes/subscriptions');
+  const recipeRouter = require('./routes/recipeRoutes');
+  const calorieTargetRouter = require('./routes/calorieTarget');
+  const exercisePreferencesRouter = require('./routes/exercisePreferences');
+  const cronometerNutritionRouter = require('./routes/cronometer-nutrition');
+  const memoryRouter = require('./routes/memory');
 
   // Database connection check middleware
   const dbMiddleware = (req, res, next) => {
@@ -162,10 +219,22 @@ try {
   app.use('/api/workouts', dbMiddleware, workoutsRouter);
   app.use('/api/journal', dbMiddleware, journalRouter);
   app.use('/api/days-since', dbMiddleware, daysSinceRouter);
+  app.use('/api/weight', dbMiddleware, weightRouter);
+  app.use('/api/food', dbMiddleware, foodRouter);
+  app.use('/api/goals', dbMiddleware, goalRouter);
+  app.use('/api/photos', dbMiddleware, photoUploadRouter);
+  app.use('/api/notifications', dbMiddleware, notificationsRouter);
+  app.use('/api/subscriptions', dbMiddleware, subscriptionsRouter);
+  app.use('/api/recipes', dbMiddleware, recipeRouter);
+  app.use('/api/calorie-targets', dbMiddleware, calorieTargetRouter);
+  app.use('/api/exercise-preferences', dbMiddleware, exercisePreferencesRouter);
+  app.use('/api/cronometer', dbMiddleware, cronometerNutritionRouter);
+  app.use('/api/memory', dbMiddleware, memoryRouter);
 
-  console.log('Core routes initialized successfully');
+  console.log('All routes initialized successfully');
 } catch (error) {
   console.error('Failed to initialize routes:', error);
+  console.error('Error details:', error.message);
   console.log('Server will continue with limited functionality');
 }
 
@@ -185,11 +254,72 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Initialize notification model
+try {
+  const NotificationModel = require('./models/notificationModel');
+  const cron = require('node-cron');
+
+  // Initialize notification model
+  NotificationModel.initialize();
+
+  // Setup daily notification check
+  NotificationModel.setupDailyCheck(cron.schedule);
+
+  // Initialize task reminder service
+  const TaskReminderService = require('./models/taskReminderService');
+
+  // Schedule task reminders daily at 1:00 AM (silently)
+  cron.schedule('0 1 * * *', async () => {
+    if (dbConnected) {
+      try {
+        console.log('Scheduling task reminders...');
+        await TaskReminderService.scheduleAllTaskReminders();
+        console.log('Task reminders scheduled successfully');
+      } catch (err) {
+        console.error('Failed to schedule task reminders:', err);
+      }
+    } else {
+      console.log('Database not connected, skipping task reminder scheduling');
+    }
+  }, {
+    timezone: 'America/Chicago' // Central Time
+  });
+
+  // Setup habit reset at 11:59 PM Central Time (silently)
+  cron.schedule('59 23 * * *', () => {
+    // This cron job runs in the America/Chicago timezone by default
+    // The actual reset happens client-side when users load the page after this time
+    console.log('Habit reset cron job triggered');
+  }, {
+    timezone: 'America/Chicago' // Explicitly set timezone to Central Time
+  });
+
+  console.log('Notification and cron jobs initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize notification model or cron jobs:', error);
+  console.log('Server will continue without notification functionality');
+}
+
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Combined server running on port ${PORT}`);
   console.log('Server is ready to accept connections');
   console.log(`Healthcheck endpoint available at: http://localhost:${PORT}/healthcheck`);
+
+  // Schedule all task reminders on server start (silently) if database is connected
+  if (dbConnected) {
+    try {
+      const TaskReminderService = require('./models/taskReminderService');
+      console.log('Scheduling task reminders on server start...');
+      TaskReminderService.scheduleAllTaskReminders().then(() => {
+        console.log('Task reminders scheduled successfully on server start');
+      }).catch(err => {
+        console.error('Failed to schedule task reminders on server start:', err);
+      });
+    } catch (err) {
+      console.error('Failed to load task reminder service:', err);
+    }
+  }
 });
 
 // Handle uncaught exceptions
