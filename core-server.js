@@ -1,8 +1,8 @@
 // Core server for Railway deployment
 const express = require('express');
 const path = require('path');
-const { Pool } = require('pg');
 const cors = require('cors');
+const db = require('./utils/db');
 
 // Create Express app
 const app = express();
@@ -19,45 +19,36 @@ console.log('Starting core server...');
 console.log('Environment:', process.env.NODE_ENV || 'development');
 console.log('PORT:', PORT);
 
-// Database connection
-let db = null;
+// Database connection status
 let dbConnected = false;
 
+// Test the database connection
 try {
-  // Initialize database connection
-  console.log('Initializing database connection...');
-  
-  // Check if DATABASE_URL is provided (Railway sets this automatically)
-  if (process.env.DATABASE_URL) {
-    console.log('Using DATABASE_URL for connection');
-    db = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
-    });
-    
-    // Test the connection
-    db.query('SELECT NOW()', (err, res) => {
-      if (err) {
-        console.error('Database connection error:', err);
-        console.log('Server will continue without database functionality');
-      } else {
-        console.log('Database connected successfully:', res.rows[0]);
-        dbConnected = true;
-      }
-    });
-  } else {
-    console.log('No DATABASE_URL provided, running without database');
-  }
+  // We'll use the existing db.js utility which already handles connection
+  console.log('Testing database connection...');
+
+  // Perform a test query
+  db.query('SELECT NOW()', (err, res) => {
+    if (err) {
+      console.error('Database connection error:', err);
+      console.log('Server will continue without database functionality');
+      dbConnected = false;
+    } else {
+      console.log('Database connected successfully:', res.rows[0]);
+      dbConnected = true;
+    }
+  });
 } catch (error) {
-  console.error('Failed to initialize database:', error);
+  console.error('Failed to test database connection:', error);
   console.log('Server will continue without database functionality');
+  dbConnected = false;
 }
 
 // Healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
   console.log('Healthcheck endpoint hit at', new Date().toISOString());
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     database: dbConnected ? 'connected' : 'disconnected'
   });
@@ -70,35 +61,31 @@ app.get('/', (req, res) => {
 
 // Basic API routes
 app.get('/api/status', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     database: dbConnected ? 'connected' : 'disconnected',
     environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Tasks API route (basic version)
-app.get('/api/tasks', async (req, res) => {
+// Import routes
+const tasksRouter = require('./routes/tasks');
+
+// Use routes with database connection check middleware
+app.use('/api/tasks', (req, res, next) => {
   if (!dbConnected) {
     return res.status(503).json({ error: 'Database not connected' });
   }
-  
-  try {
-    const result = await db.query('SELECT * FROM tasks ORDER BY due_date ASC');
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching tasks:', error);
-    res.status(500).json({ error: 'Failed to fetch tasks' });
-  }
-});
+  next();
+}, tasksRouter);
 
 // Habits API route (basic version)
 app.get('/api/habits', async (req, res) => {
   if (!dbConnected) {
     return res.status(503).json({ error: 'Database not connected' });
   }
-  
+
   try {
     const result = await db.query('SELECT * FROM habits ORDER BY id ASC');
     res.json(result.rows);
