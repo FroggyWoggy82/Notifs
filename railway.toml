@@ -1,9 +1,9 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install express --no-optional"
+buildCommand = "npm install express cors --no-optional"
 
 [deploy]
-startCommand = "node healthcheck-server.js"
+startCommand = "node railway-combined-server.js"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

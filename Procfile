@@ -1,1 +1,1 @@
-web: node healthcheck-server.js
+web: node railway-combined-server.js
