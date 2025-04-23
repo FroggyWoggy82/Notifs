@@ -1645,6 +1645,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         console.log(`Starting workout from template: ${templateId}`);
+        console.log('Template data:', JSON.stringify(template));
 
         // Initialize currentWorkout as an object with name and exercises array
         currentWorkout = {
@@ -1654,19 +1655,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 const numSets = parseInt(ex.sets) || 1;
                 console.log(`Creating ${numSets} sets for exercise ${ex.name} from template`);
 
+                // Make sure we have all required fields
                 return {
-                    ...ex,
+                    exercise_id: ex.exercise_id,
+                    name: ex.name,
+                    category: ex.category || 'other',
+                    sets: numSets,
+                    reps: ex.reps || '',
+                    weight: ex.weight || null,
+                    weight_unit: ex.weight_unit || 'lbs',
+                    order_position: ex.order_position || 0,
+                    notes: ex.notes || '',
                     lastLog: undefined, // Mark for fetching
                     // Store template sets and reps for display
                     template_sets: numSets,
                     template_reps: ex.reps || '',
-                    // Initialize sets_completed based on template 'sets' count
-                    sets_completed: Array(numSets).fill(null).map(() => ({
-                        weight: '',
-                        reps: '',
-                        unit: ex.weight_unit || 'lbs', // Default to lbs
-                        completed: false // Ensure sets are not completed by default
-                    }))
+                    // Initialize completedSets array for tracking completion
+                    completedSets: Array(numSets).fill(false)
                 };
             })
         };
