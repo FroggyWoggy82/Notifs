@@ -272,6 +272,49 @@ try {
     }
   });
 
+  // Goal tree endpoint
+  app.get('/api/goal-tree', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/goal-tree request');
+
+      // First, get all goals
+      const result = await db.query('SELECT * FROM goals ORDER BY id ASC');
+      const goals = result.rows;
+
+      // Create a map of goals by ID for easy lookup
+      const goalMap = {};
+      goals.forEach(goal => {
+        goalMap[goal.id] = {
+          ...goal,
+          children: []
+        };
+      });
+
+      // Build the tree structure
+      const rootGoals = [];
+      goals.forEach(goal => {
+        if (goal.parent_id) {
+          // This is a child goal
+          if (goalMap[goal.parent_id]) {
+            goalMap[goal.parent_id].children.push(goalMap[goal.id]);
+          } else {
+            // Parent doesn't exist, treat as root
+            rootGoals.push(goalMap[goal.id]);
+          }
+        } else {
+          // This is a root goal
+          rootGoals.push(goalMap[goal.id]);
+        }
+      });
+
+      console.log(`Returning goal tree with ${rootGoals.length} root goals`);
+      res.json(rootGoals);
+    } catch (error) {
+      console.error('Error fetching goal tree:', error);
+      res.status(500).json({ error: 'Failed to fetch goal tree' });
+    }
+  });
+
   // Workouts endpoints
   app.get('/api/workouts', dbMiddleware, async (req, res) => {
     try {
