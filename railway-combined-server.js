@@ -95,9 +95,22 @@ initializeDatabase().then(success => {
   // If database connection was successful, initialize tables
   if (success) {
     try {
+      // Initialize basic database tables
       const dbInit = require('./utils/db-init');
       dbInit.initializeDatabase().then(() => {
         console.log('Database tables initialized successfully');
+
+        // Run exercise tables migration
+        try {
+          const exerciseMigration = require('./migrations/create_exercise_tables');
+          exerciseMigration.createExerciseTables().then(() => {
+            console.log('Exercise tables migration completed successfully');
+          }).catch(migrationError => {
+            console.error('Error running exercise tables migration:', migrationError);
+          });
+        } catch (migrationError) {
+          console.error('Error loading exercise tables migration script:', migrationError);
+        }
       }).catch(error => {
         console.error('Error initializing database tables:', error);
       });
@@ -961,6 +974,8 @@ try {
 
   // Add more direct API routes as needed
 
+
+
   // Try to load the full routes
   try {
     const tasksRouter = require('./routes/tasks');
@@ -980,6 +995,17 @@ try {
     const cronometerNutritionRouter = require('./routes/cronometer-nutrition');
     const memoryRouter = require('./routes/memory');
 
+    // Load our custom routes
+    let exerciseRouter;
+    let compatibilityRouter;
+    try {
+      exerciseRouter = require('./routes/exercise-routes');
+      compatibilityRouter = require('./routes/compatibility-routes');
+      console.log('Successfully loaded custom exercise and compatibility routes');
+    } catch (customRouteError) {
+      console.error('Error loading custom routes:', customRouteError);
+    }
+
     // Set up routes with database check
     app.use('/api/tasks', dbMiddleware, tasksRouter);
     app.use('/api/habits', dbMiddleware, habitsRouter);
@@ -997,6 +1023,18 @@ try {
     app.use('/api/exercise-preferences', dbMiddleware, exercisePreferencesRouter);
     app.use('/api/cronometer', dbMiddleware, cronometerNutritionRouter);
     app.use('/api/memory', dbMiddleware, memoryRouter);
+
+    // Set up our custom routes
+    if (exerciseRouter) {
+      app.use('/api/exercise', dbMiddleware, exerciseRouter);
+      console.log('Registered /api/exercise routes');
+    }
+
+    // Set up compatibility routes (these handle the original API paths)
+    if (compatibilityRouter) {
+      app.use('/api', dbMiddleware, compatibilityRouter);
+      console.log('Registered compatibility routes');
+    }
 
     console.log('All routes initialized successfully');
   } catch (routeError) {
