@@ -558,54 +558,117 @@ try {
   app.get('/api/workouts/templates', dbMiddleware, async (req, res) => {
     try {
       console.log('Handling GET /api/workouts/templates request');
-      // Check if the table exists first
-      const tableCheck = await db.query("SELECT to_regclass('public.workout_templates') as exists");
-      if (!tableCheck.rows[0].exists) {
-        console.log('workout_templates table does not exist, returning empty array');
+
+      // Check if the workouts table exists
+      const workoutsCheck = await db.query("SELECT to_regclass('public.workouts') as exists");
+      if (!workoutsCheck.rows[0].exists) {
+        console.log('workouts table does not exist, returning empty array');
         return res.json([]);
       }
 
-      // Get all templates from the database
-      const result = await db.query('SELECT * FROM workout_templates ORDER BY name ASC');
-      console.log(`Returning ${result.rows.length} workout templates`);
+      // Check if the workout_exercises table exists
+      const exercisesCheck = await db.query("SELECT to_regclass('public.workout_exercises') as exists");
+      if (!exercisesCheck.rows[0].exists) {
+        console.log('workout_exercises table does not exist, returning templates without exercises');
+        // Get templates without exercises
+        const templatesResult = await db.query('SELECT * FROM workouts WHERE is_template = true ORDER BY created_at DESC');
+        console.log(`Returning ${templatesResult.rows.length} workout templates (without exercises)`);
+
+        // Map to expected format
+        const templates = templatesResult.rows.map(template => ({
+          workout_id: template.workout_id,
+          name: template.name,
+          description: template.description,
+          exercises: [],
+          created_at: template.created_at,
+          updated_at: template.updated_at
+        }));
+
+        return res.json(templates);
+      }
+
+      // Check if the exercises table exists
+      const exerciseTableCheck = await db.query("SELECT to_regclass('public.exercises') as exists");
+      if (!exerciseTableCheck.rows[0].exists) {
+        console.log('exercises table does not exist, returning templates without exercise details');
+        // Get templates with basic exercise info
+        const templatesResult = await db.query(`
+          SELECT w.*, json_agg(we.*) as exercises
+          FROM workouts w
+          LEFT JOIN workout_exercises we ON w.workout_id = we.workout_id
+          WHERE w.is_template = true
+          GROUP BY w.workout_id
+          ORDER BY w.created_at DESC
+        `);
+
+        console.log(`Returning ${templatesResult.rows.length} workout templates (with basic exercise info)`);
+
+        // Map to expected format
+        const templates = templatesResult.rows.map(template => {
+          const exercises = template.exercises[0] ? template.exercises : [];
+          return {
+            workout_id: template.workout_id,
+            name: template.name,
+            description: template.description,
+            exercises: exercises.map((ex, index) => ({
+              workout_exercise_id: ex.workout_exercise_id,
+              exercise_id: ex.exercise_id,
+              name: `Exercise ${index + 1}`,
+              category: 'other',
+              sets: ex.sets,
+              reps: ex.reps,
+              weight: ex.weight,
+              weight_unit: ex.weight_unit || 'lbs',
+              order_position: ex.order_position || index + 1,
+              notes: ex.notes || ''
+            })),
+            created_at: template.created_at,
+            updated_at: template.updated_at
+          };
+        });
+
+        return res.json(templates);
+      }
+
+      // All tables exist, get full template data with exercises
+      console.log('All required tables exist, fetching full template data');
+
+      // Use a complex query to get templates with their exercises
+      const templatesQuery = `
+        SELECT
+          w.workout_id, w.name, w.description, w.created_at, w.updated_at,
+          COALESCE(json_agg(
+            json_build_object(
+              'workout_exercise_id', we.workout_exercise_id,
+              'exercise_id', e.exercise_id,
+              'name', e.name,
+              'category', e.category,
+              'sets', we.sets,
+              'reps', we.reps,
+              'weight', we.weight,
+              'weight_unit', we.weight_unit,
+              'order_position', we.order_position,
+              'notes', we.notes
+            )
+            ORDER BY we.order_position
+          ) FILTER (WHERE e.exercise_id IS NOT NULL), '[]') AS exercises
+        FROM workouts w
+        LEFT JOIN workout_exercises we ON w.workout_id = we.workout_id
+        LEFT JOIN exercises e ON we.exercise_id = e.exercise_id
+        WHERE w.is_template = true
+        GROUP BY w.workout_id, w.name, w.description, w.created_at, w.updated_at
+        ORDER BY w.created_at DESC
+      `;
+
+      const result = await db.query(templatesQuery);
+      console.log(`Returning ${result.rows.length} workout templates with full exercise details`);
 
       // Log the first template to see its structure
       if (result.rows.length > 0) {
         console.log('First template structure:', JSON.stringify(result.rows[0]));
       }
 
-      // Map the database fields to what the frontend expects
-      const mappedTemplates = result.rows.map(template => {
-        // Ensure exercises have the required fields for the frontend
-        const processedExercises = Array.isArray(template.exercises) ? template.exercises.map((exercise, index) => {
-          // Add exercise_id and workout_exercise_id if missing
-          return {
-            workout_exercise_id: exercise.workout_exercise_id || index + 1,
-            exercise_id: exercise.exercise_id || index + 1,
-            name: exercise.name,
-            category: exercise.category || 'other',
-            sets: exercise.sets,
-            reps: exercise.reps,
-            weight: exercise.weight,
-            weight_unit: exercise.weight_unit || 'lbs',
-            order_position: exercise.order_position || index + 1,
-            notes: exercise.notes || ''
-          };
-        }) : [];
-
-        return {
-          workout_id: template.id, // Map id to workout_id
-          name: template.name,
-          description: template.description,
-          exercises: processedExercises,
-          created_at: template.created_at,
-          updated_at: template.updated_at
-        };
-      });
-
-      console.log('First mapped template:', JSON.stringify(mappedTemplates[0]));
-
-      res.json(mappedTemplates);
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching workout templates:', error);
       console.error('Error details:', error.message);
