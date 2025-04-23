@@ -259,6 +259,84 @@ try {
     });
   });
 
+  // Goals endpoint
+  app.get('/api/goals', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/goals request');
+      const result = await db.query('SELECT * FROM goals ORDER BY id ASC');
+      console.log(`Returning ${result.rows.length} goals`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      res.status(500).json({ error: 'Failed to fetch goals' });
+    }
+  });
+
+  // Workouts endpoints
+  app.get('/api/workouts', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/workouts request');
+      const result = await db.query('SELECT * FROM workouts ORDER BY created_at DESC');
+      console.log(`Returning ${result.rows.length} workouts`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching workouts:', error);
+      res.status(500).json({ error: 'Failed to fetch workouts' });
+    }
+  });
+
+  // Workout exercises endpoint
+  app.get('/api/workouts/exercises', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/workouts/exercises request');
+      const result = await db.query('SELECT * FROM exercises ORDER BY name ASC');
+      console.log(`Returning ${result.rows.length} exercises`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching exercises:', error);
+      res.status(500).json({ error: 'Failed to fetch exercises' });
+    }
+  });
+
+  // Workout templates endpoint
+  app.get('/api/workouts/templates', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/workouts/templates request');
+      const result = await db.query('SELECT * FROM workout_templates ORDER BY name ASC');
+      console.log(`Returning ${result.rows.length} workout templates`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching workout templates:', error);
+      res.status(500).json({ error: 'Failed to fetch workout templates' });
+    }
+  });
+
+  // Progress photos endpoint
+  app.get('/api/workouts/progress-photos', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/workouts/progress-photos request');
+      const result = await db.query('SELECT * FROM progress_photos ORDER BY created_at DESC');
+      console.log(`Returning ${result.rows.length} progress photos`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching progress photos:', error);
+      res.status(500).json({ error: 'Failed to fetch progress photos' });
+    }
+  });
+
+  // Weight endpoint
+  app.get('/api/weight', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/weight request');
+      const result = await db.query('SELECT * FROM weight_entries ORDER BY date DESC');
+      console.log(`Returning ${result.rows.length} weight entries`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching weight entries:', error);
+      res.status(500).json({ error: 'Failed to fetch weight entries' });
+    }
+  });
+
   // Add more direct API routes as needed
 
   // Try to load the full routes
