@@ -189,107 +189,20 @@ function displayImagePreview(imageUrl, previewElement, pasteArea) {
  * @param {HTMLElement} statusElement - Element to show status messages
  */
 function processImageWithOCR(imageBlob, pasteArea, statusElement) {
-    // Create form data for the API request
-    const formData = new FormData();
-    formData.append('image', imageBlob, 'pasted-image.png');
+    // OCR functionality has been removed
+    showStatus(statusElement, 'OCR functionality has been removed. Please enter values manually.', 'warning');
 
-    // Show loading status
-    showStatus(statusElement, 'Processing image...', 'loading');
+    // Show the detailed nutrition panel to allow manual entry
+    const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
+    if (detailedPanel) {
+        detailedPanel.style.display = 'block';
 
-    // Always use Google Cloud Vision
-    // Use the current origin to ensure we're using the same port
-    const apiUrl = `${window.location.origin}/api/vision-ocr/nutrition`;
-
-    // Show which OCR engine we're using
-    showStatus(statusElement, 'Processing image with Google Cloud Vision...', 'loading');
-
-    console.log(`Sending OCR request to: ${apiUrl}`);
-
-    fetch(apiUrl, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('OCR processing failed');
+        // Also click the toggle button to update its text
+        const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
+        if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
+            toggleButton.textContent = 'Hide Detailed Nutrition';
         }
-        return response.json();
-    })
-    .then(data => {
-        // Log the response data for debugging
-        console.log('OCR Response Data:', data);
-
-        // Store the OCR data globally for use in highlighting
-        window.ocrData = data;
-
-        // Display raw OCR text if available
-        if (data.rawText) {
-            displayRawOcrText(data.rawText, pasteArea);
-        }
-
-        if (data.success) {
-            // Update the nutrition fields with the extracted data
-            // updateNutritionFields returns true if any fields were updated
-            const fieldsUpdated = updateNutritionFields(data, pasteArea);
-
-            if (fieldsUpdated) {
-                // Count how many values match the expected values
-                let matchCount = 0;
-                let totalValues = 0;
-                if (data.matches) {
-                    matchCount = Object.values(data.matches).filter(match => match === true).length;
-                    totalValues = Object.keys(data.matches).length;
-                }
-
-                // Calculate percentage of correct values
-                const percentage = totalValues > 0 ? Math.round((matchCount / totalValues) * 100) : 0;
-
-                showStatus(statusElement, `Nutrition data extracted successfully! ${matchCount}/${totalValues} values match expected values (${percentage}% accuracy).`, 'success');
-
-                // Instructions element is no longer present, so we skip updating it
-            } else {
-                // No values were extracted, but OCR was successful
-                showStatus(statusElement, 'No nutrition values detected. Please enter values manually.', 'warning');
-
-                // Instructions element is no longer present, so we skip updating it
-
-                // Show the detailed nutrition panel to allow manual entry
-                const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
-                if (detailedPanel) {
-                    detailedPanel.style.display = 'block';
-
-                    // Also click the toggle button to update its text
-                    const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
-                    if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
-                        toggleButton.textContent = 'Hide Detailed Nutrition';
-                    }
-                }
-            }
-        } else {
-            throw new Error(data.error || 'Failed to extract nutrition data');
-        }
-    })
-    .catch(error => {
-        console.error('OCR Error:', error);
-        showStatus(statusElement, 'Error: ' + error.message, 'error');
-
-        // Instructions element is no longer present, so we skip updating it
-
-        // Show the detailed nutrition panel to allow manual entry
-        const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
-        if (detailedPanel) {
-            detailedPanel.style.display = 'block';
-
-            // Also click the toggle button to update its text
-            const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
-            if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
-                toggleButton.textContent = 'Hide Detailed Nutrition';
-            }
-        }
-
-        // No longer applying default values
-        showStatus(statusElement, 'Please enter nutrition values manually', 'warning');
-    });
+    }
 }
 
 /**

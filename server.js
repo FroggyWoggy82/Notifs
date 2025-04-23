@@ -35,9 +35,7 @@ const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pa
 const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
 const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for calorie targets
 const journalRoutes = require('./routes/journal'); // New route for journal entries
-const visionOcrRoutes = require('./routes/vision-ocr'); // Google Cloud Vision OCR implementation
 const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // Cronometer nutrition data scraper
-const visionApiRoutes = require('./routes/vision-api-route'); // Google Cloud Vision API implementation
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -124,17 +122,9 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 app.use('/api/calorie-targets', calorieTargetRoutes);
 app.use('/api/journal', journalRoutes); // NEW: Journal entries route
-console.log('Registering Google Cloud Vision OCR routes...');
-app.use('/api/vision-ocr', visionOcrRoutes); // Google Cloud Vision OCR implementation
-console.log('Google Cloud Vision OCR routes registered successfully!');
-
 console.log('Registering Cronometer Nutrition routes...');
 app.use('/api/cronometer', cronometerNutritionRoutes); // Cronometer nutrition data scraper
 console.log('Cronometer Nutrition routes registered successfully!');
-
-console.log('Registering Vision API routes...');
-app.use('/api/vision', visionApiRoutes); // Google Cloud Vision API implementation
-console.log('Vision API routes registered successfully!');
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
@@ -205,9 +195,7 @@ app.get('/workouts', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'workouts.html'));
 });
 
-app.get('/vision-test', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'pages', 'vision-test.html'));
-});
+
 
 app.get('/cronometer-nutrition', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'cronometer-nutrition.html'));

@@ -202,12 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Define endpoints based on OCR type
             let endpoints = [];
 
-            // Always use Google Cloud Vision OCR
-            console.log('OCR engine set to: Google Cloud Vision');
-            scanStatus.textContent = 'Processing image with Google Cloud Vision...';
-            endpoints = [
-                '/api/vision-ocr/nutrition'
-            ];
+            // OCR functionality has been removed
+            console.log('OCR functionality has been removed');
+            scanStatus.textContent = 'OCR functionality has been removed. Please enter values manually.';
+            scanStatus.className = 'scan-status warning';
+            return;
 
             // Try each endpoint in sequence
             for (const endpoint of endpoints) {
