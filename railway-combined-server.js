@@ -297,6 +297,54 @@ try {
     }
   });
 
+  // Delete goal endpoint
+  app.delete('/api/goals/:id', dbMiddleware, async (req, res) => {
+    try {
+      const goalId = req.params.id;
+      console.log(`Handling DELETE /api/goals/${goalId} request`);
+
+      // Check if the goal exists
+      const checkResult = await db.query('SELECT * FROM goals WHERE id = $1', [goalId]);
+      if (checkResult.rows.length === 0) {
+        console.log(`Goal with ID ${goalId} not found`);
+        return res.status(404).json({ error: `Goal with ID ${goalId} not found` });
+      }
+
+      // Begin a transaction
+      await db.query('BEGIN');
+
+      // Get all child goals recursively
+      const findChildrenQuery = `
+        WITH RECURSIVE goal_tree AS (
+          SELECT id FROM goals WHERE id = $1
+          UNION ALL
+          SELECT g.id FROM goals g
+          JOIN goal_tree gt ON g.parent_id = gt.id
+        )
+        SELECT id FROM goal_tree
+      `;
+
+      const childrenResult = await db.query(findChildrenQuery, [goalId]);
+      const goalIds = childrenResult.rows.map(row => row.id);
+
+      console.log(`Deleting goal ${goalId} and ${goalIds.length - 1} child goals:`, goalIds);
+
+      // Delete all goals in the tree
+      const deleteResult = await db.query('DELETE FROM goals WHERE id = ANY($1::int[])', [goalIds]);
+
+      // Commit the transaction
+      await db.query('COMMIT');
+
+      console.log(`Successfully deleted goal ${goalId} and its children`);
+      res.json({ success: true, message: `Goal ${goalId} and its children deleted successfully`, deletedCount: deleteResult.rowCount });
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await db.query('ROLLBACK');
+      console.error(`Error deleting goal ${req.params.id}:`, error);
+      res.status(500).json({ error: `Failed to delete goal: ${error.message}` });
+    }
+  });
+
   // Goal tree endpoint
   app.get('/api/goal-tree', dbMiddleware, async (req, res) => {
     try {
@@ -337,6 +385,122 @@ try {
     } catch (error) {
       console.error('Error fetching goal tree:', error);
       res.status(500).json({ error: 'Failed to fetch goal tree' });
+    }
+  });
+
+  // Create goal endpoint
+  app.post('/api/goals', dbMiddleware, async (req, res) => {
+    try {
+      const { title, parent_id } = req.body;
+      console.log(`Handling POST /api/goals request: ${title}, parent_id: ${parent_id || 'none'}`);
+
+      if (!title) {
+        return res.status(400).json({ error: 'Goal title is required' });
+      }
+
+      // If parent_id is provided, check if it exists
+      if (parent_id) {
+        const parentCheck = await db.query('SELECT id FROM goals WHERE id = $1', [parent_id]);
+        if (parentCheck.rows.length === 0) {
+          return res.status(404).json({ error: `Parent goal with ID ${parent_id} not found` });
+        }
+      }
+
+      // Insert the new goal
+      const insertQuery = parent_id
+        ? 'INSERT INTO goals (title, parent_id) VALUES ($1, $2) RETURNING *'
+        : 'INSERT INTO goals (title) VALUES ($1) RETURNING *';
+
+      const queryParams = parent_id ? [title, parent_id] : [title];
+      const result = await db.query(insertQuery, queryParams);
+
+      console.log(`Created new goal with ID ${result.rows[0].id}`);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      res.status(500).json({ error: `Failed to create goal: ${error.message}` });
+    }
+  });
+
+  // Update goal endpoint
+  app.put('/api/goals/:id', dbMiddleware, async (req, res) => {
+    try {
+      const goalId = req.params.id;
+      const { title, parent_id, completed } = req.body;
+      console.log(`Handling PUT /api/goals/${goalId} request`);
+
+      // Check if the goal exists
+      const checkResult = await db.query('SELECT * FROM goals WHERE id = $1', [goalId]);
+      if (checkResult.rows.length === 0) {
+        console.log(`Goal with ID ${goalId} not found`);
+        return res.status(404).json({ error: `Goal with ID ${goalId} not found` });
+      }
+
+      // Build the update query dynamically based on provided fields
+      const updates = [];
+      const values = [];
+      let paramIndex = 1;
+
+      if (title !== undefined) {
+        updates.push(`title = $${paramIndex}`);
+        values.push(title);
+        paramIndex++;
+      }
+
+      if (parent_id !== undefined) {
+        // Check for circular references
+        if (parent_id) {
+          // Check if parent exists
+          const parentCheck = await db.query('SELECT id FROM goals WHERE id = $1', [parent_id]);
+          if (parentCheck.rows.length === 0) {
+            return res.status(404).json({ error: `Parent goal with ID ${parent_id} not found` });
+          }
+
+          // Check if this would create a circular reference
+          const circularCheck = `
+            WITH RECURSIVE goal_tree AS (
+              SELECT id FROM goals WHERE id = $1
+              UNION ALL
+              SELECT g.id FROM goals g
+              JOIN goal_tree gt ON g.parent_id = gt.id
+            )
+            SELECT id FROM goal_tree WHERE id = $2
+          `;
+
+          const circularResult = await db.query(circularCheck, [goalId, parent_id]);
+          if (circularResult.rows.length > 0) {
+            return res.status(400).json({ error: 'Cannot set parent_id as it would create a circular reference' });
+          }
+        }
+
+        updates.push(`parent_id = $${paramIndex}`);
+        values.push(parent_id);
+        paramIndex++;
+      }
+
+      if (completed !== undefined) {
+        updates.push(`completed = $${paramIndex}`);
+        values.push(completed);
+        paramIndex++;
+      }
+
+      // If no fields to update, return the existing goal
+      if (updates.length === 0) {
+        return res.json(checkResult.rows[0]);
+      }
+
+      // Add the goal ID as the last parameter
+      values.push(goalId);
+
+      // Execute the update query
+      const updateQuery = `UPDATE goals SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`;
+      const result = await db.query(updateQuery, values);
+
+      console.log(`Updated goal with ID ${goalId}`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error(`Error updating goal ${req.params.id}:`, error);
+      res.status(500).json({ error: `Failed to update goal: ${error.message}` });
     }
   });
 
