@@ -9,10 +9,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files first for better caching
-COPY package*.json ./
+COPY package*.json package-lock.json ./
 
-# Install production dependencies only
-RUN npm install --only=production
+# Use npm ci for faster, more reliable builds
+RUN npm ci --only=production
 
 # Copy the rest of the application
 COPY . .
