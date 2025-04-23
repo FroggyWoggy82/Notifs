@@ -1,0 +1,203 @@
+/* Task Indicators CSS */
+
+/* Due Date Indicator */
+.due-date-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    background-color: #f1f8e9;
+    color: #558b2f;
+    border: 1px solid #c5e1a5;
+}
+
+.due-date-indicator.due-soon {
+    background-color: #fff8e1;
+    color: #ff8f00;
+    border-color: #ffe082;
+}
+
+.due-date-indicator.overdue {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+    font-weight: bold;
+    border-width: 2px;
+    box-shadow: 0 0 3px rgba(198, 40, 40, 0.3);
+}
+
+/* Special styling for next occurrence overdue indicator */
+.next-occurrence-overdue {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+    font-weight: bold;
+    border-left: 3px solid #c62828;
+    border-width: 2px;
+    box-shadow: 0 0 3px rgba(198, 40, 40, 0.3);
+}
+
+.due-date-indicator.invalid-date {
+    background-color: #eeeeee;
+    color: #757575;
+    border-color: #bdbdbd;
+    cursor: pointer;
+}
+
+.due-date-indicator i {
+    margin-right: 4px;
+    font-size: 1em;
+}
+
+/* Recurrence Type Indicators */
+.recurrence-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+.recurrence-daily {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+.recurrence-weekly {
+    background-color: #e8f5e9;
+    color: #388e3c;
+    border: 1px solid #c8e6c9;
+}
+
+.recurrence-monthly {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+    border: 1px solid #e1bee7;
+}
+
+.recurrence-yearly {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffe0b2;
+}
+
+/* Recurrence Icon Styles */
+.recurring-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 5px;
+    color: #4db6ac;
+    font-weight: bold;
+    position: relative;
+}
+
+.recurring-icon.daily {
+    color: #1976d2;
+}
+
+.recurring-icon.weekly {
+    color: #388e3c;
+}
+
+.recurring-icon.monthly {
+    color: #7b1fa2;
+}
+
+.recurring-icon.yearly {
+    color: #e65100;
+}
+
+/* Interval Badge */
+.interval-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #4db6ac;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.interval-badge.daily {
+    background-color: #1976d2;
+}
+
+.interval-badge.weekly {
+    background-color: #388e3c;
+}
+
+.interval-badge.monthly {
+    background-color: #7b1fa2;
+}
+
+.interval-badge.yearly {
+    background-color: #e65100;
+}
+
+/* Next Occurrence Indicator */
+.next-occurrence-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    background-color: #e8f5e9;
+    color: #388e3c;
+    border: 1px solid #c8e6c9;
+    margin-left: 4px;
+}
+
+.next-occurrence-indicator.overdue {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ef9a9a;
+    font-weight: bold;
+    border-width: 2px;
+    box-shadow: 0 0 3px rgba(198, 40, 40, 0.3);
+}
+
+.next-occurrence-indicator i {
+    margin-right: 4px;
+    font-size: 1em;
+}
+
+/* Task Content Enhancements */
+.task-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.task-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .task-metadata {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .due-date-indicator,
+    .recurrence-indicator,
+    .next-occurrence-indicator {
+        font-size: 0.7em;
+        padding: 1px 5px;
+    }
+}

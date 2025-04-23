@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Cloud Vision API Test</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .upload-area.active {
+            border-color: #007bff;
+        }
+        .preview-container {
+            margin-bottom: 20px;
+        }
+        .preview-container img {
+            max-width: 100%;
+            max-height: 300px;
+        }
+        .result-container {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status.loading {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .hidden {
+            display: none;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tab {
+            display: inline-block;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google Cloud Vision API Test</h1>
+        <p>Upload an image to test the Google Cloud Vision API text detection.</p>
+
+        <div class="tab-container">
+            <div class="tab active" data-tab="upload">Upload Image</div>
+            <div class="tab" data-tab="paste">Paste Image</div>
+        </div>
+
+        <div class="tab-content active" id="upload-tab">
+            <div class="upload-area" id="upload-area">
+                <p>Click to select an image or drag and drop</p>
+                <input type="file" id="file-input" accept="image/*" style="display: none;">
+            </div>
+        </div>
+
+        <div class="tab-content" id="paste-tab">
+            <div class="paste-area" id="paste-area" tabindex="0">
+                <p>Click here and press Ctrl+V to paste an image from clipboard</p>
+            </div>
+        </div>
+
+        <div class="preview-container">
+            <h3>Image Preview</h3>
+            <div id="image-preview"></div>
+        </div>
+
+        <div class="status-container">
+            <div id="status" class="status hidden"></div>
+        </div>
+
+        <button id="process-button" class="hidden">Process Image</button>
+
+        <div class="result-container hidden" id="result-container">
+            <h3>Detected Text</h3>
+            <pre id="result-text"></pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const pasteArea = document.getElementById('paste-area');
+            const imagePreview = document.getElementById('image-preview');
+            const statusElement = document.getElementById('status');
+            const processButton = document.getElementById('process-button');
+            const resultContainer = document.getElementById('result-container');
+            const resultText = document.getElementById('result-text');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            let currentFile = null;
+
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Upload area click handler
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            // File input change handler
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    if (file.type.startsWith('image/')) {
+                        handleFile(file);
+                    } else {
+                        showStatus('Please select an image file', 'error');
+                    }
+                }
+            });
+
+            // Drag and drop handlers
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('active');
+            });
+
+            uploadArea.addEventListener('dragleave', function() {
+                this.classList.remove('active');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('active');
+
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type.startsWith('image/')) {
+                        handleFile(file);
+                    } else {
+                        showStatus('Please drop an image file', 'error');
+                    }
+                }
+            });
+
+            // Paste area handlers
+            pasteArea.addEventListener('click', function() {
+                pasteArea.focus();
+            });
+
+            pasteArea.addEventListener('paste', function(e) {
+                e.preventDefault();
+
+                const items = (e.clipboardData || window.clipboardData).items;
+                let foundImage = false;
+
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.startsWith('image/')) {
+                        foundImage = true;
+                        const file = items[i].getAsFile();
+                        handleFile(file);
+                        break;
+                    }
+                }
+
+                if (!foundImage) {
+                    showStatus('No image found in clipboard', 'error');
+                }
+            });
+
+            // Process button click handler
+            processButton.addEventListener('click', function() {
+                if (currentFile) {
+                    processImage(currentFile);
+                } else {
+                    showStatus('No image to process', 'error');
+                }
+            });
+
+            // Handle the selected/dropped/pasted file
+            function handleFile(file) {
+                currentFile = file;
+
+                // Create preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+
+                // Show process button
+                processButton.classList.remove('hidden');
+
+                // Clear previous results
+                resultContainer.classList.add('hidden');
+                resultText.textContent = '';
+
+                showStatus('Image ready to process', 'success');
+            }
+
+            // Process the image with Google Cloud Vision API
+            function processImage(file) {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                showStatus('Processing image with Google Cloud Vision API...', 'loading');
+
+                fetch('http://localhost:3003/api/vision/nutrition', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API request failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API Response:', data);
+
+                    if (data.success) {
+                        showStatus('Text detection successful!', 'success');
+                        resultContainer.classList.remove('hidden');
+
+                        // Display the raw text
+                        if (data.rawText) {
+                            resultText.textContent = data.rawText;
+                        } else {
+                            resultText.textContent = 'No text detected in the image.';
+                        }
+                    } else {
+                        throw new Error(data.error || 'Text detection failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showStatus('Error: ' + error.message, 'error');
+                });
+            }
+
+            // Show status message
+            function showStatus(message, type) {
+                statusElement.textContent = message;
+                statusElement.className = 'status ' + type;
+                statusElement.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

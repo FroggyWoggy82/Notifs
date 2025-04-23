@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workout Tracker - Task List</title>
+    <link rel="stylesheet" href="../css/index.css">   <!-- Shared styles -->
+    <link rel="stylesheet" href="../css/sidebar.css"> <!-- Sidebar styles -->
+    <link rel="stylesheet" href="../css/workouts.css"> <!-- Specific workout styles -->
+    <link rel="stylesheet" href="../css/custom-form-elements.css"> <!-- Custom form elements -->
+    <link rel="stylesheet" href="../css/compact-workout.css"> <!-- Compact workout layout -->
+    <link rel="stylesheet" href="../css/mobile-workout-override.css"> <!-- Mobile-specific overrides -->
+    <link rel="stylesheet" href="../css/template-editor-fix.css"> <!-- Template editor alignment fix -->
+    <!-- Dynamic theme color for status bar -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <!-- Link to an icon library if needed for FAB/icons, e.g., Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <button class="menu-button">☰</button> <!-- Hamburger Icon -->
+
+    <div class="sidebar-overlay"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon">✓</span> <!-- Checkmark -->
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon">⭐</span> <!-- Star -->
+                <span>Goals</span>
+            </a>
+             <a href="/pages/workouts.html" class="sidebar-nav-item active"> <!-- Mark workouts active -->
+                <span class="nav-icon">💪</span> <!-- Dumbbell -->
+                <span>Workouts</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon">📅</span> <!-- Calendar -->
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/food.html" class="sidebar-nav-item">
+                <span class="nav-icon">🍔</span>
+                <span>Food</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon">⏱️</span>
+                <span>Days Since</span>
+            </a>
+            <a href="/pages/product-tracking.html" class="sidebar-nav-item">
+                <span class="nav-icon">🧪</span>
+                <span>Product Tracking</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="content-wrapper workout-content">
+
+        <!-- Landing Page View (Initially Visible) -->
+        <div id="workout-landing-page" class="page active">
+            <h1 style="margin-bottom: 5px;">Workout Tracker</h1>
+            <a href="/exercise-history" id="history-link-btn" class="btn btn-secondary btn-small" style="margin-bottom: 15px; display: inline-block; padding: 5px 10px; font-size: 0.9em; width: auto;">Exercise History</a>
+
+            <!-- Photo Sections (Slider + Comparison) -->
+            <div class="progress-photos-section" style="margin-top: 0;">
+                <div class="progress-section-header">
+                    <h2>Progress Photos</h2>
+                    <div class="header-buttons">
+                        <button id="add-photo-btn" class="btn btn-secondary btn-small">+ Add Photo</button>
+                        <button id="compare-photos-btn" class="btn btn-primary btn-small" title="Compare Photos">Compare</button>
+                        <button id="delete-photo-btn" class="btn btn-danger btn-small" title="Delete Current Photo" disabled>Delete</button>
+                    </div>
+                </div>
+                <!-- Photo Gallery Display -->
+                <div class="gallery-section" style="margin-bottom: 5px;">
+                    <div class="photo-slider-container">
+                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" disabled>&lt;</button>
+                        <div class="photo-viewport"> <!-- Clipping container -->
+                            <div class="photo-reel"> <!-- Image strip that moves -->
+                                <!-- Images will be dynamically loaded here by JavaScript -->
+                            </div>
+                        </div>
+                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" disabled>&gt;</button>
+                    </div>
+                    <!-- ADDED Pagination Dots Container -->
+                    <div class="pagination-dots">
+                        <!-- Dots will be added here by JS -->
+                    </div>
+                    <!-- NEW Element for Date Display -->
+                    <div id="current-photo-date-display" style="text-align: center; margin-top: 8px; color: #bbb; font-size: 0.9rem;">
+                        <!-- Date will be added here by JS -->
+                    </div>
+                </div>
+            </div>
+             <!-- ===== End Progress Photos Section ===== -->
+
+             <!-- ===== NEW Photo Comparison Section ===== -->
+             <div id="photo-comparison-section" class="progress-photos-section" style="display: none;">
+                 <div class="comparison-controls" style="display: flex; justify-content: space-around; margin-bottom: 15px;">
+                     <div class="comparison-select-group">
+                         <select id="comparison-photo-select-1" class="comparison-select">
+                             <option value="">-- Select Date 1 --</option>
+                             <!-- Options populated by JS -->
+                         </select>
+                     </div>
+                     <div class="comparison-select-group">
+                         <select id="comparison-photo-select-2" class="comparison-select">
+                              <option value="">-- Select Date 2 --</option>
+                              <!-- Options populated by JS -->
+                         </select>
+                     </div>
+                 </div>
+                 <div id="comparison-images-container" style="display: flex; justify-content: space-between; gap: 10px; min-height: 200px;"> <!-- Adjust min-height as needed -->
+                     <img id="comparison-image-1" src="" alt="Comparison Photo 1" style="width: 49%; object-fit: contain; background-color: #333; border-radius: 4px;">
+                     <img id="comparison-image-2" src="" alt="Comparison Photo 2" style="width: 49%; object-fit: contain; background-color: #333; border-radius: 4px;">
+                 </div>
+             </div>
+             <!-- ===== End Photo Comparison Section ===== -->
+
+             <hr class="page-divider"> <!-- Divider between Progress and Templates -->
+
+            <div class="my-workouts-section">
+                <div class="template-actions-header">
+                    <button id="start-empty-workout-btn" class="btn btn-primary">Start Empty Workout</button>
+                    <button id="create-template-btn" class="btn btn-secondary">Create New Template</button>
+                </div>
+                <div class="search-filter-container">
+                     <input type="text" id="template-search" placeholder="Search templates...">
+                </div>
+                <div id="workout-template-list" class="card-list">
+                    <p>Loading templates...</p>
+                </div>
+            </div>
+
+            <hr class="page-divider">
+
+            <!-- New Exercise History Section -->
+            <div class="history-section" id="exercise-history-section" style="display: none;">
+                <h2>Exercise History</h2>
+                <div class="history-search-filter-container">
+                    <div class="form-group history-search-group">
+                        <label for="history-exercise-search" class="sr-only">Search Exercise:</label>
+                        <input type="text" id="history-exercise-search" class="text-input history-search-input" placeholder="Search exercises...">
+                        <div id="history-search-results" class="search-results-list"></div>
+                    </div>
+                     <div class="form-group history-category-group">
+                         <label for="history-category-filter-select" class="sr-only">Filter by Category:</label>
+                        <select id="history-category-filter-select" class="category-filter">
+                            <option value="all">All Categories</option>
+                            <option value="core">Core</option>
+                            <option value="arms">Arms</option>
+                            <option value="shoulders">Shoulders</option>
+                            <option value="chest">Chest</option>
+                            <option value="legs">Legs</option>
+                            <option value="back">Back</option>
+                            <option value="other">Other</option>
+                        </select>
+                     </div>
+                 <button id="history-edit-btn" class="btn btn-secondary btn-small" style="display: none; margin-left: 10px;">Edit History</button>
+                </div>
+                <div class="chart-container" style="position: relative; height:40vh; width:80vw; margin: 20px auto;">
+                     <canvas id="exercise-history-chart"></canvas>
+                     <p id="history-message" style="text-align: center; margin-top: 20px;"></p> <!-- Message area -->
+                </div>
+            </div>
+            <!-- End New Exercise History Section -->
+
+        </div>
+
+        <!-- Active Workout View (Initially Hidden) -->
+        <div id="active-workout-page" class="page">
+            <div class="workout-header">
+                <h2 id="current-workout-name">New Workout</h2>
+                <div id="workout-timer">00:00:00</div>
+            </div>
+            <div id="current-exercise-list" class="exercise-list">
+                <!-- Exercises added during the workout will appear here -->
+                <p>Add exercises to begin...</p>
+            </div>
+            <div class="active-workout-actions">
+                 <button id="cancel-workout-btn" class="btn btn-danger">Cancel Workout</button>
+                 <button id="complete-workout-btn" class="btn btn-success">Complete Workout</button>
+            </div>
+        </div>
+
+        <!-- Template Editor View (Initially Hidden) -->
+        <div id="template-editor-page" class="page">
+            <h2 id="template-editor-title">Create New Workout Template</h2>
+            <form id="template-editor-form">
+                <div class="form-group">
+                    <label for="template-name">Template Name:</label>
+                    <input type="text" id="template-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="template-description">Description (Optional):</label>
+                    <textarea id="template-description" rows="3"></textarea>
+                </div>
+
+                <div class="default-settings-container">
+                    <h3>Default Settings</h3>
+                    <p class="settings-description">These settings will be applied to all exercises added to this template.</p>
+                    <div class="default-settings-group">
+                        <div class="default-setting">
+                            <label for="default-sets">Default Sets:</label>
+                            <input type="number" id="default-sets" min="1" value="3">
+                        </div>
+                        <div class="default-setting">
+                            <label for="default-reps">Default Reps:</label>
+                            <input type="text" id="default-reps" placeholder="e.g., 8-12">
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Exercises</h3>
+                <div id="template-exercise-list" class="exercise-list template-editor-list">
+                    <p>Add exercises using the button below.</p>
+                    <!-- Exercises added to the template will appear here -->
+                </div>
+
+                <div class="template-editor-actions">
+                     <button type="button" id="template-add-exercise-btn" class="btn btn-secondary">Add Exercise to Template</button>
+                     <div class="save-cancel-group">
+                         <button type="button" id="template-cancel-btn" class="btn btn-danger">Cancel</button>
+                         <button type="submit" id="template-save-btn" class="btn btn-success">Save Template</button>
+                     </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Floating Action Button (FAB) for Adding Exercises - Show only on active workout page -->
+        <button id="add-exercise-fab" class="fab" title="Add Exercise">+</button>
+
+    </div>
+
+    <!-- Exercise Selection Modal (Initially Hidden) -->
+    <div id="exercise-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Add Exercise</h2>
+            <div class="modal-search-filter">
+                <input type="text" id="exercise-search-input" placeholder="Search exercises...">
+                <select id="exercise-category-filter" class="category-filter">
+                    <option value="all">All Categories</option>
+                    <option value="core">Core</option>
+                    <option value="arms">Arms</option>
+                    <option value="shoulders">Shoulders</option>
+                    <option value="chest">Chest</option>
+                    <option value="legs">Legs</option>
+                    <option value="back">Back</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="modal-list" id="available-exercise-list">
+                <!-- Exercises will be loaded here -->
+                <p>Loading exercises...</p>
+            </div>
+
+            <!-- Section to Define New Exercise -->
+            <div id="define-new-exercise-section" style="display: none; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
+                <h4>Define New Exercise</h4>
+                <div class="form-group">
+                    <label for="new-exercise-name">Name:</label>
+                    <input type="text" id="new-exercise-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-exercise-category">Category:</label>
+                    <select id="new-exercise-category" required>
+                        <option value="">Select Category...</option>
+                        <option value="core">Core</option>
+                        <option value="arms">Arms</option>
+                        <option value="shoulders">Shoulders</option>
+                        <option value="chest">Chest</option>
+                        <option value="legs">Legs</option>
+                        <option value="back">Back</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button id="save-new-exercise-btn" class="btn btn-primary">Save New Exercise</button>
+            </div>
+            <!-- End New Exercise Definition -->
+
+             <div class="modal-actions">
+                <button id="toggle-define-exercise-btn" class="btn btn-secondary">Define New Exercise</button>
+                 <button id="add-selected-exercises-btn" class="btn btn-primary">Add Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exercise Name Edit Modal -->
+    <div id="exercise-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Edit Exercise Name</h2>
+            <form id="exercise-edit-form">
+                <div class="form-group">
+                    <label for="edit-exercise-name">Exercise Name:</label>
+                    <input type="text" id="edit-exercise-name" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="save-as-new-exercise">
+                        Save as new exercise (resets workout history)
+                    </label>
+                    <p class="help-text" style="font-size: 0.8em; color: #888; margin-top: 5px;">
+                        If unchecked, only the name will be updated while preserving workout history.
+                        If an exercise with this name already exists, you'll be asked if you want to use it.
+                    </p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" id="save-edit-btn" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon">✓</div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon">⭐</div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item active" data-page="workout-page"> <!-- Mark workouts active -->
+            <div class="nav-icon">💪</div> <!-- Dumbbell -->
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon">🍔</div>
+            <span>Food</span>
+        </a>
+
+    </div>
+
+    <!-- Common utilities -->
+    <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/status-bar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/common/chart-config.js"></script>
+    <script src="../js/common/client-compression.js"></script>
+    <script src="../js/common/direct-input-save.js"></script>
+    <script src="../js/common/custom-form-elements.js"></script>
+    <script src="../js/lib/confetti.min.js"></script>
+    <script src="../js/lib/confetti.js"></script>
+
+    <!-- Workout functionality -->
+    <script src="../js/workouts/photo-loader.js"></script>
+    <script src="../js/workouts/workouts.js"></script>
+    <script src="../js/workouts/workout-persistence.js"></script>
+    <script src="../js/workouts/auto-save.js"></script>
+    <script src="../js/workouts/workout-debug.js"></script>
+    <script src="../js/workouts/mobile-layout.js"></script>
+    <script src="../js/workouts/force-mobile-layout.js"></script>
+
+    <!-- History Edit Modal (Renamed) -->
+    <div id="history-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('history-edit-modal').style.display='none'">&times;</span>
+            <h2>Edit Exercise History: <span id="history-edit-modal-title-name"></span></h2>
+
+            <!-- Form Section -->
+            <form id="history-edit-form" novalidate>
+                <input type="hidden" id="history-edit-exercise-id">
+
+                <div class="form-group">
+                    <label for="history-edit-date">Date:</label>
+                    <input type="date" id="history-edit-date" required>
+                </div>
+                <div id="history-edit-sets-container" class="sets-container">
+                    <!-- Set rows will be rendered here by JS -->
+                </div>
+                 <div class="set-actions-container" style="margin-top: 10px;">
+                     <button type="button" id="history-edit-remove-set" class="btn btn-danger btn-small">- Remove Set</button>
+                     <button type="button" id="history-edit-add-set" class="btn btn-secondary btn-small">+ Add Set</button>
+                </div>
+                <div class="form-group">
+                    <label for="history-edit-notes">Notes (optional):</label>
+                    <textarea id="history-edit-notes" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save New Entry</button>
+                 </div>
+             </form>
+
+             <hr class="page-divider">
+
+             <!-- Existing Logs Section -->
+            <h4>Existing Log Entries</h4>
+            <div id="history-edit-log-list" class="modal-list">
+                <!-- Existing logs will be listed here -->
+                <p>Loading existing logs...</p>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('history-edit-modal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== New Photo Upload Modal ===== -->
+    <div id="photo-upload-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('photo-upload-modal').style.display='none'">&times;</span>
+            <h2>Upload Progress Photos</h2>
+            <form id="progress-photo-form" onsubmit="handleClientCompression(event)">
+                <div class="form-group">
+                    <label for="modal-photo-date">Date Taken:</label>
+                    <!-- Custom styled date input -->
+                    <div class="custom-date-input">
+                        <input type="date" id="modal-photo-date" name="date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="modal-photo-upload">Select Photos:</label>
+                    <!-- Custom styled file input -->
+                    <div class="custom-file-input">
+                        <input type="file" id="modal-photo-upload" name="photos" accept="image/*" multiple required onchange="displayFileSize(this)">
+                        <div class="custom-file-button">
+                            <i class="fas fa-camera"></i> Choose Photos
+                        </div>
+                        <div class="file-name-display" id="file-name-display">No file chosen</div>
+                    </div>
+                </div>
+                <div id="file-size-info" class="form-group" style="display:none;">
+                    <label>File Size:</label>
+                    <div id="file-size-display"></div>
+                </div>
+                <div id="upload-status" class="form-group" style="display:none;"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="upload-button">Upload Photos</button>
+                </div>
+            </form>
+            <p id="upload-status" style="margin-top: 15px;"></p> <!-- Status message inside modal -->
+        </div>
+    </div>
+    <!-- ===== End Photo Upload Modal ===== -->
+
+</body>
+</html>

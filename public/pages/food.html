@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Food & Recipes - Task List</title>
+    <meta name="description" content="Create and manage recipes">
+    <link rel="stylesheet" href="../css/index.css"> <!-- Global styles -->
+    <link rel="stylesheet" href="../css/food.css">   <!-- Food specific styles -->
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/simplified-nutrition-scan.css"> <!-- Simplified nutrition scan styles -->
+    <link rel="stylesheet" href="../css/cronometer-text-parser.css"> <!-- Cronometer text parser styles -->
+</head>
+<body>
+    <button class="menu-button">☰</button>
+
+    <div class="sidebar-overlay"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon">✓</span>
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon">⭐</span>
+                <span>Goals</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon">📅</span>
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon">⏱️</span>
+                <span>Days Since</span>
+            </a>
+            <a href="/pages/food.html" class="sidebar-nav-item active"> <!-- Mark as active -->
+                <span class="nav-icon">🍔</span>
+                <span>Food</span>
+            </a>
+            <a href="/pages/product-tracking.html" class="sidebar-nav-item">
+                <span class="nav-icon">🧪</span>
+                <span>Product Tracking</span>
+            </a>
+        </nav>
+    </div>
+
+    <h1>Food & Recipes</h1>
+
+    <!-- ===== Weight Goal Section ===== -->
+    <section id="weight-goal-section">
+        <h2>Weight Goal</h2>
+        <div class="user-selector-container">
+            <label for="user-selector">Select User:</label>
+            <select id="user-selector">
+                <option value="1" selected>My Data</option>
+                <option value="2">Mom's Data</option>
+            </select>
+        </div>
+        <form id="weight-goal-form">
+            <div class="weight-goal-inputs">
+                <div class="weight-goal-row">
+                    <div class="form-group form-group-half">
+                        <label for="targetWeight">Target Weight (lbs):</label>
+                        <input type="number" id="targetWeight" step="0.1" placeholder="e.g., 175.5">
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="weeklyGainGoal">Weekly Goal (lbs):</label>
+                        <div class="weekly-goal-container">
+                            <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
+                            <button type="submit" class="save-goal-btn">Save Goal</button>
+                        </div>
+                        <small>Use positive values for gain, negative for loss</small>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id="weight-goal-status" class="status"></div>
+
+        <div class="chart-container">
+            <div class="chart-controls">
+                <button id="reset-scale-button" class="reset-scale-btn">Reset Scale</button>
+            </div>
+            <div class="axis-controls">
+                <div class="axis-control x-axis-control">
+                    <label for="x-axis-scale">X-Axis Scale:</label>
+                    <input type="range" id="x-axis-scale" min="0.5" max="3" step="0.1" value="1">
+                    <span class="scale-value" id="x-scale-value">1.0x</span>
+                </div>
+                <div class="axis-control y-axis-control">
+                    <label for="y-axis-scale">Y-Axis Scale:</label>
+                    <input type="range" id="y-axis-scale" min="0.5" max="3" step="0.1" value="1">
+                    <span class="scale-value" id="y-scale-value">1.0x</span>
+                </div>
+            </div>
+            <canvas id="weight-goal-chart"></canvas>
+            <p id="weight-chart-message" style="text-align: center;">Weight data needed to display graph.</p>
+        </div>
+
+        <!-- Visual separator -->
+        <div class="section-separator"></div>
+
+        <!-- Calorie Target Section -->
+        <div class="calorie-target-section">
+            <h3>Daily Calorie Target</h3>
+            <div class="calorie-target-row">
+                <div class="calorie-target-group">
+                    <label for="calorie-user-selector">Select User:</label>
+                    <select id="calorie-user-selector">
+                        <option value="1" selected>My Data</option>
+                        <option value="2">Mom's Data</option>
+                    </select>
+                </div>
+                <div class="calorie-target-group">
+                    <label for="calorie-target">Daily Calorie Target:</label>
+                    <div class="calorie-input-with-button">
+                        <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
+                        <button id="save-calorie-target" class="save-btn">Save Target</button>
+                    </div>
+                </div>
+            </div>
+            <div class="calorie-target-display">
+                <div class="current-target">
+                    <span class="target-label">Current Target:</span>
+                    <span id="current-calorie-target" class="target-value">Not set</span>
+                </div>
+            </div>
+            <div id="calorie-target-status" class="status"></div>
+        </div>
+    </section>
+    <!-- ===== End Weight Goal Section ===== -->
+
+    <!-- Recipe Creation Section -->
+    <section id="recipe-creation-section">
+        <h2>Create New Recipe</h2>
+        <!-- Form will go here -->
+        <form id="create-recipe-form">
+            <!-- Recipe Name Input -->
+            <div class="form-group">
+                <label for="recipeName">Recipe Name:</label>
+                <input type="text" id="recipeName" placeholder="Enter recipe name" required>
+            </div>
+
+            <h3>Ingredients</h3>
+            <div id="ingredients-list">
+                <!-- Ingredient inputs will be added dynamically here -->
+                <div class="ingredient-item">
+                    <div class="ingredient-row">
+                        <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
+
+                        <!-- Cronometer Text Parser -->
+                        <div class="cronometer-text-paste-container">
+                            <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." rows="5"></textarea>
+                            <button type="button" class="cronometer-parse-button">Parse Nutrition Data</button>
+                            <div class="cronometer-parse-status"></div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Nutrition Inputs (Simplified) -->
+                    <div class="ingredient-row nutrition-inputs">
+                        <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.1" required>
+                        <input type="number" placeholder="Price" class="ingredient-price" step="0.01" required>
+                        <button type="button" class="remove-ingredient-btn">Remove</button>
+                        <!-- Hidden fields for form submission with default values -->
+                        <input type="hidden" class="ingredient-calories" required>
+                        <input type="hidden" class="ingredient-protein" required>
+                        <input type="hidden" class="ingredient-fat" required>
+                        <input type="hidden" class="ingredient-carbs" required>
+                    </div>
+
+                    <!-- Detailed Nutrition Information (Collapsible) -->
+                    <div class="detailed-nutrition-toggle">
+                        <button type="button" class="toggle-detailed-nutrition">Show Detailed Nutrition</button>
+                    </div>
+
+                    <div class="detailed-nutrition-panel" style="display:none;">
+                        <!-- General Section -->
+                        <div class="nutrition-section">
+                            <h4>General</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="energy">Energy (kcal):</label>
+                                    <input type="number" id="energy" class="nutrition-energy" step="0.1" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="alcohol">Alcohol (g):</label>
+                                    <input type="number" id="alcohol" class="nutrition-alcohol" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="caffeine">Caffeine (mg):</label>
+                                    <input type="number" id="caffeine" class="nutrition-caffeine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="water">Water (g):</label>
+                                    <input type="number" id="water" class="nutrition-water" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carbohydrates Section -->
+                        <div class="nutrition-section">
+                            <h4>Carbohydrates</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="carbs-total">Carbs (g):</label>
+                                    <input type="number" id="carbs-total" class="nutrition-carbs-total" step="0.1" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="fiber">Fiber (g):</label>
+                                    <input type="number" id="fiber" class="nutrition-fiber" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="starch">Starch (g):</label>
+                                    <input type="number" id="starch" class="nutrition-starch" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="sugars">Sugars (g):</label>
+                                    <input type="number" id="sugars" class="nutrition-sugars" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="added-sugars">Added Sugars (g):</label>
+                                    <input type="number" id="added-sugars" class="nutrition-added-sugars" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="net-carbs">Net Carbs (g):</label>
+                                    <input type="number" id="net-carbs" class="nutrition-net-carbs" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lipids Section -->
+                        <div class="nutrition-section">
+                            <h4>Lipids</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="fat-total">Fat (g):</label>
+                                    <input type="number" id="fat-total" class="nutrition-fat-total" step="0.1" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="monounsaturated">Monounsaturated (g):</label>
+                                    <input type="number" id="monounsaturated" class="nutrition-monounsaturated" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="polyunsaturated">Polyunsaturated (g):</label>
+                                    <input type="number" id="polyunsaturated" class="nutrition-polyunsaturated" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="omega3">Omega 3 (g):</label>
+                                    <input type="number" id="omega3" class="nutrition-omega3" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="omega6">Omega 6 (g):</label>
+                                    <input type="number" id="omega6" class="nutrition-omega6" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="saturated">Saturated (g):</label>
+                                    <input type="number" id="saturated" class="nutrition-saturated" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="trans-fat">Trans Fat (g):</label>
+                                    <input type="number" id="trans-fat" class="nutrition-trans-fat" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="cholesterol">Cholesterol (mg):</label>
+                                    <input type="number" id="cholesterol" class="nutrition-cholesterol" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Protein Section -->
+                        <div class="nutrition-section">
+                            <h4>Protein</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="protein-total">Protein (g):</label>
+                                    <input type="number" id="protein-total" class="nutrition-protein-total" step="0.1" required>
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="cystine">Cystine (g):</label>
+                                    <input type="number" id="cystine" class="nutrition-cystine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="histidine">Histidine (g):</label>
+                                    <input type="number" id="histidine" class="nutrition-histidine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="isoleucine">Isoleucine (g):</label>
+                                    <input type="number" id="isoleucine" class="nutrition-isoleucine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="leucine">Leucine (g):</label>
+                                    <input type="number" id="leucine" class="nutrition-leucine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="lysine">Lysine (g):</label>
+                                    <input type="number" id="lysine" class="nutrition-lysine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="methionine">Methionine (g):</label>
+                                    <input type="number" id="methionine" class="nutrition-methionine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="phenylalanine">Phenylalanine (g):</label>
+                                    <input type="number" id="phenylalanine" class="nutrition-phenylalanine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="threonine">Threonine (g):</label>
+                                    <input type="number" id="threonine" class="nutrition-threonine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="tryptophan">Tryptophan (g):</label>
+                                    <input type="number" id="tryptophan" class="nutrition-tryptophan" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="tyrosine">Tyrosine (g):</label>
+                                    <input type="number" id="tyrosine" class="nutrition-tyrosine" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="valine">Valine (g):</label>
+                                    <input type="number" id="valine" class="nutrition-valine" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vitamins Section -->
+                        <div class="nutrition-section">
+                            <h4>Vitamins</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="vitamin-b1">B1 (Thiamine) (mg):</label>
+                                    <input type="number" id="vitamin-b1" class="nutrition-vitamin-b1" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-b2">B2 (Riboflavin) (mg):</label>
+                                    <input type="number" id="vitamin-b2" class="nutrition-vitamin-b2" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-b3">B3 (Niacin) (mg):</label>
+                                    <input type="number" id="vitamin-b3" class="nutrition-vitamin-b3" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-b5">B5 (Pantothenic Acid) (mg):</label>
+                                    <input type="number" id="vitamin-b5" class="nutrition-vitamin-b5" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-b6">B6 (Pyridoxine) (mg):</label>
+                                    <input type="number" id="vitamin-b6" class="nutrition-vitamin-b6" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-b12">B12 (Cobalamin) (μg):</label>
+                                    <input type="number" id="vitamin-b12" class="nutrition-vitamin-b12" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="folate">Folate (μg):</label>
+                                    <input type="number" id="folate" class="nutrition-folate" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-a">Vitamin A (μg):</label>
+                                    <input type="number" id="vitamin-a" class="nutrition-vitamin-a" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-c">Vitamin C (mg):</label>
+                                    <input type="number" id="vitamin-c" class="nutrition-vitamin-c" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-d">Vitamin D (IU):</label>
+                                    <input type="number" id="vitamin-d" class="nutrition-vitamin-d" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-e">Vitamin E (mg):</label>
+                                    <input type="number" id="vitamin-e" class="nutrition-vitamin-e" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="vitamin-k">Vitamin K (μg):</label>
+                                    <input type="number" id="vitamin-k" class="nutrition-vitamin-k" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Minerals Section -->
+                        <div class="nutrition-section">
+                            <h4>Minerals</h4>
+                            <div class="nutrition-grid">
+                                <div class="nutrition-item">
+                                    <label for="calcium">Calcium (mg):</label>
+                                    <input type="number" id="calcium" class="nutrition-calcium" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="copper">Copper (mg):</label>
+                                    <input type="number" id="copper" class="nutrition-copper" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="iron">Iron (mg):</label>
+                                    <input type="number" id="iron" class="nutrition-iron" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="magnesium">Magnesium (mg):</label>
+                                    <input type="number" id="magnesium" class="nutrition-magnesium" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="manganese">Manganese (mg):</label>
+                                    <input type="number" id="manganese" class="nutrition-manganese" step="0.01">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="phosphorus">Phosphorus (mg):</label>
+                                    <input type="number" id="phosphorus" class="nutrition-phosphorus" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="potassium">Potassium (mg):</label>
+                                    <input type="number" id="potassium" class="nutrition-potassium" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="selenium">Selenium (μg):</label>
+                                    <input type="number" id="selenium" class="nutrition-selenium" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="sodium">Sodium (mg):</label>
+                                    <input type="number" id="sodium" class="nutrition-sodium" step="0.1">
+                                </div>
+                                <div class="nutrition-item">
+                                    <label for="zinc">Zinc (mg):</label>
+                                    <input type="number" id="zinc" class="nutrition-zinc" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="simplified-scan-status"></div>
+
+                    <!-- Raw OCR Text Container (initially hidden) -->
+                    <div class="raw-ocr-container" style="display: none;">
+                        <h4>Raw OCR Text</h4>
+                        <div class="raw-ocr-text"></div>
+                        <button class="raw-ocr-toggle">Hide Raw OCR Text</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-ingredient-btn">Add Ingredient</button>
+
+            <button type="submit">Save Recipe</button>
+        </form>
+        <div id="create-recipe-status" class="status"></div>
+    </section>
+
+    <!-- Existing Recipes Section -->
+    <section id="recipes-display-section">
+        <h2>Your Recipes</h2>
+        <div id="recipe-list">
+            <!-- Recipes will be loaded here -->
+            <p>Loading recipes...</p>
+        </div>
+        <div id="recipes-display-status" class="status"></div>
+    </section>
+
+    <!-- Add Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon">✓</div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon">⭐</div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
+            <div class="nav-icon">💪</div>
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item active" data-page="food-page"> <!-- Mark Food as active -->
+            <div class="nav-icon">🍔</div>
+            <span>Food</span>
+        </a>
+    </div>
+
+    <!-- Chart.js with annotation plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Chart.js to load completely
+            setTimeout(function() {
+                try {
+                    // Check if Chart.js is loaded
+                    if (typeof Chart === 'undefined') {
+                        console.error('Chart.js not loaded');
+                        return;
+                    }
+
+                    // First check if it's already registered
+                    let annotationRegistered = false;
+
+                    if (Chart.registry && Chart.registry.plugins) {
+                        const plugins = Object.values(Chart.registry.plugins.items);
+                        annotationRegistered = plugins.some(p => p.id === 'annotation');
+
+                        if (annotationRegistered) {
+                            console.log('ChartAnnotation already registered in registry');
+                        }
+                    }
+
+                    // If not registered, try to register it
+                    if (!annotationRegistered) {
+                        // Try global ChartAnnotation
+                        if (typeof ChartAnnotation !== 'undefined') {
+                            Chart.register(ChartAnnotation);
+                            console.log('ChartAnnotation registered from global');
+                        }
+                        // Try Chart.Annotation
+                        else if (Chart.Annotation) {
+                            Chart.register(Chart.Annotation);
+                            console.log('ChartAnnotation registered from Chart.Annotation');
+                        }
+                        else {
+                            console.warn('ChartAnnotation plugin not found');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error registering annotation plugin:', error);
+                }
+            }, 1000); // Give more time for all scripts to load
+        });
+    </script>
+
+    <!-- Common utilities -->
+    <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/chart-config.js"></script>
+
+    <!-- Food functionality -->
+    <script src="../js/food/custom-tooltip.js"></script> <!-- Custom tooltip implementation -->
+    <script src="../js/food/food.js"></script> <!-- Food specific JS -->
+    <script src="../js/food/simplified-nutrition-scan.js"></script> <!-- Simplified nutrition scanning functionality -->
+    <script src="../js/food/cronometer-text-parser.js"></script> <!-- Cronometer text parser functionality -->
+</body>
+</html>

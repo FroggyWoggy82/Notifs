@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Label OCR Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #dropArea {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        #dropArea.highlight {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            display: none;
+        }
+        #results {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            display: none;
+        }
+        .nutrition-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .nutrition-table th, .nutrition-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .nutrition-table th {
+            background-color: #f2f2f2;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Nutrition Label OCR Test</h1>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Upload Nutrition Label Image</h2>
+            <div id="dropArea">
+                <p>Drag & drop a nutrition label image here or click to select a file</p>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+            <img id="imagePreview" alt="Image preview">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Processing image...</p>
+            </div>
+            <div class="form-group" style="margin-top: 20px;">
+                <button id="uploadBtn" disabled>Process Nutrition Label</button>
+            </div>
+        </div>
+        
+        <div class="card" id="resultsCard" style="display: none;">
+            <h2>OCR Results</h2>
+            <div id="nutritionTable"></div>
+            <h3>Raw Text</h3>
+            <pre id="results"></pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('fileInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const resultsCard = document.getElementById('resultsCard');
+            const resultsElement = document.getElementById('results');
+            const nutritionTable = document.getElementById('nutritionTable');
+            const loadingElement = document.querySelector('.loading');
+            
+            let selectedFile = null;
+            
+            // Handle drag and drop events
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.classList.add('highlight');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('highlight');
+            }
+            
+            // Handle file drop
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    handleFiles(files);
+                }
+            }
+            
+            // Handle file selection via click
+            dropArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    handleFiles(this.files);
+                }
+            });
+            
+            function handleFiles(files) {
+                selectedFile = files[0];
+                
+                if (selectedFile.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                        uploadBtn.disabled = false;
+                    };
+                    
+                    reader.readAsDataURL(selectedFile);
+                } else {
+                    alert('Please select an image file.');
+                    selectedFile = null;
+                    uploadBtn.disabled = true;
+                }
+            }
+            
+            // Handle upload button click
+            uploadBtn.addEventListener('click', uploadImage);
+            
+            async function uploadImage() {
+                if (!selectedFile) {
+                    alert('Please select an image first.');
+                    return;
+                }
+                
+                // Show loading indicator
+                loadingElement.style.display = 'block';
+                uploadBtn.disabled = true;
+                resultsCard.style.display = 'none';
+                
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+                
+                try {
+                    const response = await fetch('/api/nutrition-ocr/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        displayResults(data.results);
+                    } else {
+                        alert(`Error: ${data.error || 'Failed to process image'}`);
+                        console.error('Error:', data);
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    alert('Error uploading image. Please try again.');
+                } finally {
+                    // Hide loading indicator
+                    loadingElement.style.display = 'none';
+                    uploadBtn.disabled = false;
+                }
+            }
+            
+            function displayResults(results) {
+                // Display raw text
+                resultsElement.textContent = results.rawText;
+                
+                // Create nutrition table
+                let tableHTML = '<table class="nutrition-table">';
+                tableHTML += '<tr><th>Nutrient</th><th>Value</th></tr>';
+                
+                const parsedData = results.parsedData;
+                for (const [nutrient, value] of Object.entries(parsedData)) {
+                    // Format the nutrient name for display
+                    const formattedNutrient = nutrient
+                        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+                        .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+                    
+                    // Add units based on nutrient type
+                    let formattedValue = value;
+                    if (value !== null) {
+                        if (nutrient === 'calories') {
+                            formattedValue = `${value} kcal`;
+                        } else if (['cholesterol', 'sodium', 'potassium'].includes(nutrient)) {
+                            formattedValue = `${value} mg`;
+                        } else if (['totalFat', 'saturatedFat', 'transFat', 'totalCarbohydrate', 'dietaryFiber', 'sugars', 'protein'].includes(nutrient)) {
+                            formattedValue = `${value} g`;
+                        } else if (['vitaminD', 'calcium', 'iron'].includes(nutrient)) {
+                            formattedValue = `${value} %`;
+                        }
+                    } else {
+                        formattedValue = 'Not detected';
+                    }
+                    
+                    tableHTML += `<tr><td>${formattedNutrient}</td><td>${formattedValue}</td></tr>`;
+                }
+                
+                tableHTML += '</table>';
+                nutritionTable.innerHTML = tableHTML;
+                
+                // Show results card
+                resultsCard.style.display = 'block';
+                resultsElement.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

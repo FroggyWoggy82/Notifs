@@ -1,0 +1,140 @@
+/*
+ * Habit Alignment Fix
+ * This file contains styles to improve the horizontal alignment of habit list elements
+ */
+
+/* Improve overall habit item layout */
+.habit-item {
+    display: grid !important;
+    grid-template-columns: 40px 1fr auto auto auto !important;
+    grid-template-areas:
+        "control content progress level actions" !important;
+    align-items: center !important;
+    gap: 15px !important;
+    padding: 15px !important;
+}
+
+/* Position the control container */
+.habit-item .habit-control-container {
+    grid-area: control !important;
+    margin: 0 !important;
+    justify-self: center !important;
+}
+
+/* Position the content area */
+.habit-item .habit-top-row {
+    display: contents !important; /* Remove the flex container */
+}
+
+.habit-item .habit-content {
+    grid-area: content !important;
+    padding: 0 !important;
+    max-width: none !important;
+}
+
+/* Position the progress indicator */
+.habit-item .habit-indicators-row {
+    display: contents !important; /* Remove the flex container */
+}
+
+.habit-item .habit-progress-container {
+    grid-area: progress !important;
+    margin: 0 !important;
+    justify-self: center !important;
+    align-self: center !important;
+}
+
+.habit-item .habit-level-container {
+    grid-area: level !important;
+    margin: 0 !important;
+    justify-self: center !important;
+    align-self: center !important;
+}
+
+/* Position the action buttons */
+.habit-item .habit-actions {
+    grid-area: actions !important;
+    margin: 0 !important;
+    display: flex !important;
+    gap: 5px !important;
+    justify-self: end !important;
+    align-items: center !important;
+    align-self: center !important;
+}
+
+/* Make sure the title and frequency are stacked properly */
+.habit-item .habit-title,
+.habit-item .habit-frequency {
+    display: block !important;
+    text-align: left !important;
+}
+
+/* Ensure the progress and level indicators have consistent width */
+.habit-item .habit-progress,
+.habit-item .habit-level {
+    min-width: 70px !important;
+    text-align: center !important;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 767px) {
+    .habit-item {
+        grid-template-columns: 40px 1fr auto auto !important;
+        grid-template-areas:
+            "control content progress actions"
+            "... ... level level" !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        align-items: center !important;
+    }
+
+    .habit-item .habit-actions {
+        justify-self: end !important;
+        margin-top: 0 !important;
+        align-self: center !important;
+        margin-left: 8px !important;
+    }
+
+    /* Make habit content more compact on mobile */
+    .habit-item .habit-title {
+        font-size: 0.95em !important;
+        line-height: 1.2 !important;
+    }
+
+    .habit-item .habit-frequency {
+        font-size: 0.75em !important;
+        margin-top: 2px !important;
+    }
+
+    /* Make progress and level indicators smaller on mobile */
+    .habit-item .habit-progress,
+    .habit-item .habit-level {
+        min-width: 60px !important;
+        font-size: 0.85em !important;
+        padding: 3px 6px !important;
+    }
+}
+
+/* For very small screens */
+@media screen and (max-width: 480px) {
+    .habit-item {
+        grid-template-columns: 40px 1fr auto auto !important;
+        grid-template-areas:
+            "control content progress actions"
+            "... ... level level" !important;
+        padding: 8px !important;
+        align-items: center !important;
+    }
+
+    .habit-item .habit-actions {
+        margin-left: 5px !important;
+    }
+
+    /* Further reduce sizes for very small screens */
+    .habit-item .habit-progress,
+    .habit-item .habit-level {
+        min-width: 50px !important;
+        font-size: 0.8em !important;
+        padding: 2px 4px !important;
+    }
+}
