@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "npm install --no-optional --no-package-lock"
 
 [deploy]
-startCommand = "node minimal-server.js"
+startCommand = "node server.js"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 600
 restartPolicyType = "ON_FAILURE"
