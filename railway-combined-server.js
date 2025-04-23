@@ -581,7 +581,7 @@ try {
           description: template.description,
           exercises: [],
           created_at: template.created_at,
-          updated_at: template.updated_at
+          updated_at: template.created_at // Use created_at as updated_at since it doesn't exist
         }));
 
         return res.json(templates);
@@ -623,7 +623,7 @@ try {
               notes: ex.notes || ''
             })),
             created_at: template.created_at,
-            updated_at: template.updated_at
+            updated_at: template.created_at // Use created_at as updated_at since it doesn't exist
           };
         });
 
@@ -636,7 +636,7 @@ try {
       // Use a complex query to get templates with their exercises
       const templatesQuery = `
         SELECT
-          w.workout_id, w.name, w.description, w.created_at, w.updated_at,
+          w.workout_id, w.name, w.description, w.created_at,
           COALESCE(json_agg(
             json_build_object(
               'workout_exercise_id', we.workout_exercise_id,
@@ -656,7 +656,7 @@ try {
         LEFT JOIN workout_exercises we ON w.workout_id = we.workout_id
         LEFT JOIN exercises e ON we.exercise_id = e.exercise_id
         WHERE w.is_template = true
-        GROUP BY w.workout_id, w.name, w.description, w.created_at, w.updated_at
+        GROUP BY w.workout_id, w.name, w.description, w.created_at
         ORDER BY w.created_at DESC
       `;
 
