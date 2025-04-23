@@ -478,5 +478,485 @@
     "scheduledTime": "2026-04-22T09:12:00.000Z",
     "repeat": "none",
     "createdAt": 1745422191677
+  },
+  {
+    "id": "71ed8d7811f8cf4fcbb75a6c",
+    "title": "Reminder: Ryan's Bday",
+    "body": "Due in 5 days (4/28/2025)",
+    "scheduledTime": "2025-04-27T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266687
+  },
+  {
+    "id": "b8d5781556ec04c7c001ef76",
+    "title": "Reminder: Robert Herrerahs Bday",
+    "body": "Due in 42 days (6/4/2025)",
+    "scheduledTime": "2025-06-03T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266690
+  },
+  {
+    "id": "99ac902b5955c7d95a962093",
+    "title": "Reminder: Father's Day",
+    "body": "Due in 52 days (6/14/2025)",
+    "scheduledTime": "2025-06-13T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266692
+  },
+  {
+    "id": "62bc1dd2acff0f90417d6a45",
+    "title": "Reminder: Connor Pham's Bday",
+    "body": "Due in 64 days (6/26/2025)",
+    "scheduledTime": "2025-06-26T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266693
+  },
+  {
+    "id": "8b4c290f35497a9f0fb53107",
+    "title": "Reminder: Alvin Matthew's Bday",
+    "body": "Due in 64 days (6/26/2025)",
+    "scheduledTime": "2025-06-26T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266694
+  },
+  {
+    "id": "307a7d5b24a2bb4eff272c42",
+    "title": "Reminder: Evan's (Cousin) Bday",
+    "body": "Due in 94 days (7/26/2025)",
+    "scheduledTime": "2025-07-26T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266695
+  },
+  {
+    "id": "3af49ea2ff6df4c894ba6b09",
+    "title": "Reminder: Pacey's Bday",
+    "body": "Due in 94 days (7/26/2025)",
+    "scheduledTime": "2025-07-26T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266696
+  },
+  {
+    "id": "fe5cc8dcb62a85fbf3c0d665",
+    "title": "Reminder: Van's Bday",
+    "body": "Due in 116 days (8/17/2025)",
+    "scheduledTime": "2025-08-16T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266697
+  },
+  {
+    "id": "e513b1f2ff18f86e020c06cc",
+    "title": "Reminder: Daniela's Bday",
+    "body": "Due in 124 days (8/25/2025)",
+    "scheduledTime": "2025-08-25T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266697
+  },
+  {
+    "id": "923e416e13e78ebbb75b6402",
+    "title": "Reminder: Kevin's (me)  Bday !!!!",
+    "body": "Due in 161 days (10/1/2025)",
+    "scheduledTime": "2025-10-01T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266698
+  },
+  {
+    "id": "963398e3e8cbb892bf47a0bc",
+    "title": "Reminder: Ben Kim's Bday",
+    "body": "Due in 207 days (11/15/2025)",
+    "scheduledTime": "2025-11-15T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266698
+  },
+  {
+    "id": "29c2c1371230af3947e34224",
+    "title": "Reminder: Jennifer's Bday",
+    "body": "Due in 207 days (11/15/2025)",
+    "scheduledTime": "2025-11-15T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266698
+  },
+  {
+    "id": "6ffacc98365aed66eef12666",
+    "title": "Reminder: Nick le Bday",
+    "body": "Due in 210 days (11/18/2025)",
+    "scheduledTime": "2025-11-18T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266699
+  },
+  {
+    "id": "7cebf01e13a0c492a34f67ad",
+    "title": "Reminder: Sneha's Bday",
+    "body": "Due in 224 days (12/2/2025)",
+    "scheduledTime": "2025-12-01T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266699
+  },
+  {
+    "id": "8e3179d8ef222d72cd382d9e",
+    "title": "Reminder: Ali Niaz's Bday",
+    "body": "Due in 233 days (12/11/2025)",
+    "scheduledTime": "2025-12-11T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266700
+  },
+  {
+    "id": "d88ac6d9e71296cd699aabd9",
+    "title": "Reminder: Kaden's Bday",
+    "body": "Due in 236 days (12/14/2025)",
+    "scheduledTime": "2025-12-14T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266700
+  },
+  {
+    "id": "cb53e542afd99d6892267659",
+    "title": "Reminder: Dan Do's Bday",
+    "body": "Due in 256 days (1/3/2026)",
+    "scheduledTime": "2026-01-03T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266700
+  },
+  {
+    "id": "414f302708dbb03200a3152e",
+    "title": "Reminder: Preston's Bday",
+    "body": "Due in 257 days (1/4/2026)",
+    "scheduledTime": "2026-01-04T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266701
+  },
+  {
+    "id": "1842c024634cacc3e727702d",
+    "title": "Reminder: Jerin Binu's Bday",
+    "body": "Due in 263 days (1/10/2026)",
+    "scheduledTime": "2026-01-10T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266701
+  },
+  {
+    "id": "f47c847b7cddec3c45b886c8",
+    "title": "Reminder: Sannidhi's Bday",
+    "body": "Due in 279 days (1/26/2026)",
+    "scheduledTime": "2026-01-26T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266701
+  },
+  {
+    "id": "49afd214c62a251cfa9ecc64",
+    "title": "Reminder: Lucas Chan's Bday",
+    "body": "Due in 282 days (1/29/2026)",
+    "scheduledTime": "2026-01-29T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266701
+  },
+  {
+    "id": "8ea70da9355bf18e42349767",
+    "title": "Reminder: Jame's Bday",
+    "body": "Due in 289 days (2/5/2026)",
+    "scheduledTime": "2026-02-05T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266702
+  },
+  {
+    "id": "6d0b62b11dddd55c630b7f02",
+    "title": "Reminder: Neil's Bday",
+    "body": "Due in 297 days (2/13/2026)",
+    "scheduledTime": "2026-02-13T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266702
+  },
+  {
+    "id": "40552c257f02beaf5ba2a396",
+    "title": "Reminder: Hogan Nguyen's Bday",
+    "body": "Due in 310 days (2/26/2026)",
+    "scheduledTime": "2026-02-26T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266702
+  },
+  {
+    "id": "076385d6b6d4c6688a1ef643",
+    "title": "Reminder: Mom's Bday",
+    "body": "Due in 310 days (2/26/2026)",
+    "scheduledTime": "2026-02-26T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266703
+  },
+  {
+    "id": "d9ad68f0e8d275701ff70713",
+    "title": "Reminder: Bryan Nguyen's Bday",
+    "body": "Due in 315 days (3/3/2026)",
+    "scheduledTime": "2026-03-03T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266704
+  },
+  {
+    "id": "5e4ced4eda900d27121ae3e7",
+    "title": "Reminder: Aidan Turner's Bday",
+    "body": "Due in 6 days (4/29/2025)",
+    "scheduledTime": "2025-04-29T09:39:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266704
+  },
+  {
+    "id": "326422e293062ba3a3972a30",
+    "title": "Reminder: Oscar's Bday",
+    "body": "Due in 51 days (6/13/2025)",
+    "scheduledTime": "2025-06-12T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266704
+  },
+  {
+    "id": "316ef0e52236ea4938e8f11d",
+    "title": "Reminder: Emiry's Bday",
+    "body": "Due in 54 days (6/16/2025)",
+    "scheduledTime": "2025-06-15T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266705
+  },
+  {
+    "id": "25db02708afb886dd9d45aa4",
+    "title": "Reminder: Grace Ebbinghouse's Bday",
+    "body": "Due in 77 days (7/9/2025)",
+    "scheduledTime": "2025-07-09T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266705
+  },
+  {
+    "id": "55ec38a502e7aa114a813947",
+    "title": "Reminder: Om's Bday",
+    "body": "Due in 78 days (7/10/2025)",
+    "scheduledTime": "2025-07-10T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266705
+  },
+  {
+    "id": "a878b43f246c5905ddf4c624",
+    "title": "Reminder: Anthony Nguyen's Bday",
+    "body": "Due in 94 days (7/26/2025)",
+    "scheduledTime": "2025-07-26T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266706
+  },
+  {
+    "id": "a4c977da8dc17b105700f5b7",
+    "title": "Reminder: Dad's Bday",
+    "body": "Due in 119 days (8/20/2025)",
+    "scheduledTime": "2025-08-19T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266706
+  },
+  {
+    "id": "5eee53cbae1f9bd6500b0f37",
+    "title": "Reminder: Cancel Isaca Membership",
+    "body": "Due in 130 days (8/31/2025)",
+    "scheduledTime": "2025-08-31T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266706
+  },
+  {
+    "id": "6c3e91afd6865f0ba390b64c",
+    "title": "Reminder: Shelly's Bday",
+    "body": "Due in 196 days (11/4/2025)",
+    "scheduledTime": "2025-11-03T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266707
+  },
+  {
+    "id": "16dd4eae5d78772255460388",
+    "title": "Reminder: Jason Hammdon's Bday",
+    "body": "Due in 208 days (11/16/2025)",
+    "scheduledTime": "2025-11-15T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266707
+  },
+  {
+    "id": "a6142bd5ff80e8f67274544b",
+    "title": "Reminder: Pierson's Bday",
+    "body": "Due in 214 days (11/22/2025)",
+    "scheduledTime": "2025-11-22T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266707
+  },
+  {
+    "id": "4b2b0897d3cb2b64ab125ecc",
+    "title": "Reminder: Yuvi's Bday",
+    "body": "Due in 21 days (5/14/2025)",
+    "scheduledTime": "2025-05-14T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266708
+  },
+  {
+    "id": "b9cfb6b38ee6a2781e12f363",
+    "title": "Reminder: Karans Bday",
+    "body": "Due in 51 days (6/13/2025)",
+    "scheduledTime": "2025-06-12T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266708
+  },
+  {
+    "id": "4e4c306a4fb9cad799e09faa",
+    "title": "Reminder: Hannah Wee's Bday",
+    "body": "Due in 57 days (6/19/2025)",
+    "scheduledTime": "2025-06-19T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266708
+  },
+  {
+    "id": "83a818bc5eb8fabf96152fa1",
+    "title": "Reminder: Brandon Sanchez's Bday",
+    "body": "Due in 57 days (6/19/2025)",
+    "scheduledTime": "2025-06-19T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266708
+  },
+  {
+    "id": "1a8542e6c6d75e399429f311",
+    "title": "Reminder: Tyler Requa's Bday",
+    "body": "Due in 87 days (7/19/2025)",
+    "scheduledTime": "2025-07-19T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266709
+  },
+  {
+    "id": "d78ef123ac68ace8952dee24",
+    "title": "Reminder: National GF Day",
+    "body": "Due in 99 days (7/31/2025)",
+    "scheduledTime": "2025-07-30T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266709
+  },
+  {
+    "id": "65308452201dfcec17cd0dc3",
+    "title": "Reminder: Cancel your yearly microsoft 365 subscription",
+    "body": "Due in 118 days (8/19/2025)",
+    "scheduledTime": "2025-08-19T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266709
+  },
+  {
+    "id": "2fbaedd1b7f9140391c2fc09",
+    "title": "Reminder: Mary's Bday",
+    "body": "Due in 155 days (9/25/2025)",
+    "scheduledTime": "2025-09-24T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266710
+  },
+  {
+    "id": "75611f705976423df2358131",
+    "title": "Reminder: Calina's Bday",
+    "body": "Due in 159 days (9/29/2025)",
+    "scheduledTime": "2025-09-28T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266710
+  },
+  {
+    "id": "a1c242e1d16f18187879299f",
+    "title": "Reminder: Brandon (Nigel) Bday",
+    "body": "Due in 204 days (11/12/2025)",
+    "scheduledTime": "2025-11-11T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266710
+  },
+  {
+    "id": "e75de834e06372700be0b29a",
+    "title": "Reminder: Paxton's Bday",
+    "body": "Due in 209 days (11/17/2025)",
+    "scheduledTime": "2025-11-16T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266711
+  },
+  {
+    "id": "7a2c2f0fa388d0ab909edec8",
+    "title": "Reminder: David's Bday",
+    "body": "Due in 209 days (11/17/2025)",
+    "scheduledTime": "2025-11-16T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266711
+  },
+  {
+    "id": "4c399a1d0957fcec1a9a0690",
+    "title": "Reminder: Kyduyen's Bday",
+    "body": "Due in 218 days (11/26/2025)",
+    "scheduledTime": "2025-11-25T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266711
+  },
+  {
+    "id": "8821ed8f5cd2fd27ceb2436b",
+    "title": "Reminder: Kai Fernando's Bday",
+    "body": "Due in 224 days (12/2/2025)",
+    "scheduledTime": "2025-12-02T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266712
+  },
+  {
+    "id": "a28dbba96ab8f558c9364612",
+    "title": "Reminder: Update your christmas list and send it to people especially Kayla",
+    "body": "Due in 233 days (12/11/2025)",
+    "scheduledTime": "2025-12-11T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266712
+  },
+  {
+    "id": "1926e2ca6c36be359773d223",
+    "title": "Reminder: Cooper's Bday",
+    "body": "Due in 250 days (12/28/2025)",
+    "scheduledTime": "2025-12-28T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266712
+  },
+  {
+    "id": "8f069b17c61168588ee1c9b6",
+    "title": "Reminder: Andre Sae's Bday",
+    "body": "Due in 272 days (1/19/2026)",
+    "scheduledTime": "2026-01-19T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266712
+  },
+  {
+    "id": "d17a27bf70fe0251fe6cb3d1",
+    "title": "Reminder: Kayla's Bday",
+    "body": "Due in 284 days (1/31/2026)",
+    "scheduledTime": "2026-01-31T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266713
+  },
+  {
+    "id": "0c611e58eb474af76df9d0ae",
+    "title": "Reminder: Rafael's Bday",
+    "body": "Due in 291 days (2/7/2026)",
+    "scheduledTime": "2026-02-07T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266713
+  },
+  {
+    "id": "ed252d5400141a8498f307d9",
+    "title": "Reminder: Aadarsh's Bday",
+    "body": "Due in 309 days (2/25/2026)",
+    "scheduledTime": "2026-02-25T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266713
+  },
+  {
+    "id": "2f5bdd725d66cd7b5a49c021",
+    "title": "Reminder: Ethan Hoang's Bday",
+    "body": "Due in 313 days (3/1/2026)",
+    "scheduledTime": "2026-03-01T15:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266714
+  },
+  {
+    "id": "58d6ab5eaeadde3572c5404d",
+    "title": "Reminder: Tracie's Bday",
+    "body": "Due in 345 days (4/3/2026)",
+    "scheduledTime": "2026-04-03T14:00:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266714
+  },
+  {
+    "id": "07f694f12c12d4aa2e7cad74",
+    "title": "Reminder: Earth Day",
+    "body": "Due in 363 days (4/21/2026)",
+    "scheduledTime": "2026-04-22T09:12:00.000Z",
+    "repeat": "none",
+    "createdAt": 1745428266714
   }
 ]
