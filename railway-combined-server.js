@@ -353,9 +353,24 @@ try {
         return res.json([]);
       }
 
+      // Get all exercises from the database
       const result = await db.query('SELECT * FROM exercises ORDER BY name ASC');
       console.log(`Returning ${result.rows.length} exercises`);
-      res.json(result.rows);
+
+      // Log the first exercise to see its structure
+      if (result.rows.length > 0) {
+        console.log('First exercise structure:', JSON.stringify(result.rows[0]));
+      }
+
+      // Map the database fields to what the frontend expects
+      const mappedExercises = result.rows.map(exercise => ({
+        id: exercise.exercise_id,
+        name: exercise.name,
+        muscle_group: exercise.category,
+        description: exercise.description || ''
+      }));
+
+      res.json(mappedExercises);
     } catch (error) {
       console.error('Error fetching exercises:', error);
       console.error('Error details:', error.message);
@@ -375,8 +390,15 @@ try {
         return res.json([]);
       }
 
+      // Get all templates from the database
       const result = await db.query('SELECT * FROM workout_templates ORDER BY name ASC');
       console.log(`Returning ${result.rows.length} workout templates`);
+
+      // Log the first template to see its structure
+      if (result.rows.length > 0) {
+        console.log('First template structure:', JSON.stringify(result.rows[0]));
+      }
+
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching workout templates:', error);
@@ -397,9 +419,25 @@ try {
         return res.json([]);
       }
 
-      const result = await db.query('SELECT * FROM progress_photos ORDER BY created_at DESC');
+      // Get all progress photos from the database
+      const result = await db.query('SELECT * FROM progress_photos ORDER BY uploaded_at DESC');
       console.log(`Returning ${result.rows.length} progress photos`);
-      res.json(result.rows);
+
+      // Log the first photo to see its structure
+      if (result.rows.length > 0) {
+        console.log('First progress photo structure:', JSON.stringify(result.rows[0]));
+      }
+
+      // Map the database fields to what the frontend expects
+      const mappedPhotos = result.rows.map(photo => ({
+        id: photo.photo_id,
+        filename: photo.file_path.split('/').pop(),
+        filepath: photo.file_path,
+        description: '',
+        created_at: photo.uploaded_at
+      }));
+
+      res.json(mappedPhotos);
     } catch (error) {
       console.error('Error fetching progress photos:', error);
       console.error('Error details:', error.message);
