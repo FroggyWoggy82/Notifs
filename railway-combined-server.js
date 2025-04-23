@@ -430,6 +430,117 @@ try {
     }
   });
 
+  // Weight logs endpoint
+  app.get('/api/weight/logs', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/weight/logs request');
+      const userId = req.query.user_id || 1; // Default to user 1 if not specified
+
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.weight_logs') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('weight_logs table does not exist, returning empty array');
+        return res.json([]);
+      }
+
+      const result = await db.query('SELECT * FROM weight_logs WHERE user_id = $1 ORDER BY date DESC', [userId]);
+      console.log(`Returning ${result.rows.length} weight logs for user ${userId}`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching weight logs:', error);
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
+    }
+  });
+
+  // Weight goal endpoint
+  app.get('/api/weight/goal', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/weight/goal request');
+      const userId = req.query.user_id || 1; // Default to user 1 if not specified
+
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.weight_goals') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('weight_goals table does not exist, returning empty object');
+        return res.json({});
+      }
+
+      const result = await db.query('SELECT * FROM weight_goals WHERE user_id = $1', [userId]);
+      if (result.rows.length > 0) {
+        console.log(`Returning weight goal for user ${userId}`);
+        res.json(result.rows[0]);
+      } else {
+        console.log(`No weight goal found for user ${userId}`);
+        res.json({});
+      }
+    } catch (error) {
+      console.error('Error fetching weight goal:', error);
+      console.error('Error details:', error.message);
+      // Return empty object instead of error
+      res.json({});
+    }
+  });
+
+  // Calorie targets endpoint
+  app.get('/api/calorie-targets/:userId', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/calorie-targets/:userId request');
+      const userId = req.params.userId;
+
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.calorie_targets') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('calorie_targets table does not exist, returning empty object');
+        return res.json({});
+      }
+
+      const result = await db.query('SELECT * FROM calorie_targets WHERE user_id = $1', [userId]);
+      if (result.rows.length > 0) {
+        console.log(`Returning calorie target for user ${userId}`);
+        res.json(result.rows[0]);
+      } else {
+        console.log(`No calorie target found for user ${userId}`);
+        res.json({});
+      }
+    } catch (error) {
+      console.error('Error fetching calorie target:', error);
+      console.error('Error details:', error.message);
+      // Return empty object instead of error
+      res.json({});
+    }
+  });
+
+  // Weight calorie targets endpoint (fallback)
+  app.get('/api/weight/calorie-targets/:userId', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/weight/calorie-targets/:userId request');
+      const userId = req.params.userId;
+
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.calorie_targets') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('calorie_targets table does not exist, returning empty object');
+        return res.json({});
+      }
+
+      const result = await db.query('SELECT * FROM calorie_targets WHERE user_id = $1', [userId]);
+      if (result.rows.length > 0) {
+        console.log(`Returning calorie target for user ${userId}`);
+        res.json(result.rows[0]);
+      } else {
+        console.log(`No calorie target found for user ${userId}`);
+        res.json({});
+      }
+    } catch (error) {
+      console.error('Error fetching calorie target:', error);
+      console.error('Error details:', error.message);
+      // Return empty object instead of error
+      res.json({});
+    }
+  });
+
   // Food endpoints
   app.get('/api/food', dbMiddleware, async (req, res) => {
     try {
@@ -468,6 +579,28 @@ try {
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching nutrition entries:', error);
+      console.error('Error details:', error.message);
+      // Return empty array instead of error
+      res.json([]);
+    }
+  });
+
+  // Recipes endpoint
+  app.get('/api/recipes', dbMiddleware, async (req, res) => {
+    try {
+      console.log('Handling GET /api/recipes request');
+      // Check if the table exists first
+      const tableCheck = await db.query("SELECT to_regclass('public.recipes') as exists");
+      if (!tableCheck.rows[0].exists) {
+        console.log('recipes table does not exist, returning empty array');
+        return res.json([]);
+      }
+
+      const result = await db.query('SELECT * FROM recipes ORDER BY name ASC');
+      console.log(`Returning ${result.rows.length} recipes`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching recipes:', error);
       console.error('Error details:', error.message);
       // Return empty array instead of error
       res.json([]);
