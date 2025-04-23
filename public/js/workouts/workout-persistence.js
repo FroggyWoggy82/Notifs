@@ -24,7 +24,7 @@ function initWorkoutPersistence() {
     // Export functions to window
     window.saveWorkoutData = saveWorkoutData;
     window.restoreWorkoutData = restoreWorkoutData;
-    window.clearWorkoutData = clearWorkoutData;
+    window.clearWorkoutData = clearWorkoutState; // Use the existing clearWorkoutState function
     window.updateCurrentWorkoutFromUI = updateCurrentWorkoutFromUI;
 }
 
@@ -202,6 +202,9 @@ function saveWorkoutData() {
 
             const exerciseData = exercises[workoutIndex];
 
+            // Get all set rows
+            const setRows = item.querySelectorAll('.set-row');
+
             // Initialize exercise data
             const exerciseInfo = {
                 exercise_id: exerciseData.exercise_id,
@@ -211,9 +214,6 @@ function saveWorkoutData() {
                 weight_unit: exerciseData.weight_unit || 'lbs', // Save the weight unit
                 set_count: setRows.length // Save the current number of sets
             };
-
-            // Get all set rows
-            const setRows = item.querySelectorAll('.set-row');
             setRows.forEach((row) => {
                 const weightInput = row.querySelector('.weight-input');
                 const repsInput = row.querySelector('.reps-input');

@@ -605,7 +605,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         return logData; // Return the fetched data
                     } else if (response.status === 404) {
                          console.log(`[Render Single] No last log found for ${exerciseData.name}.`);
-                         return null; // Return null explicitly
+                         // Create a dummy log with empty data
+                         return {
+                            reps_completed: '',
+                            weight_used: '',
+                            weight_unit: exerciseData.weight_unit || 'lbs',
+                            date_performed: new Date().toISOString()
+                         };
                      } else {
                         console.error(`[Render Single] Error fetching last log for ${exerciseData.name}: ${response.statusText}`);
                          return null; // Return null on error
