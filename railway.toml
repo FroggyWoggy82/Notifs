@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "npm install express cors pg dotenv pg-format node-cron web-push multer --no-optional"
 
 [deploy]
-startCommand = "node server.js"
+startCommand = "node railway-combined-server.js"
 healthcheckPath = "/healthcheck"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

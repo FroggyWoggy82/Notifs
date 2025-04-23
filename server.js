@@ -186,10 +186,30 @@ if (compatibilityRouter) {
   console.log('Registered compatibility routes');
 }
 
-// Add a dedicated healthcheck endpoint
-app.get('/healthcheck', (req, res) => {
-    console.log('Healthcheck endpoint hit');
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+// Add a dedicated healthcheck endpoint that checks DB connection
+app.get('/healthcheck', async (req, res) => {
+    console.log('Healthcheck endpoint hit at', new Date().toISOString());
+    try {
+        // Perform a quick database query to check connectivity
+        await db.query('SELECT 1');
+        console.log('Healthcheck: Database connection successful.');
+        res.status(200).json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            database: 'connected',
+            environment: process.env.NODE_ENV || 'development'
+        });
+    } catch (error) {
+        console.error('Healthcheck failed: Database connection error:', error.message);
+        res.status(503).json({ // 503 Service Unavailable
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            database: 'disconnected',
+            error: 'Database connection failed',
+            details: error.message,
+            environment: process.env.NODE_ENV || 'development'
+        });
+    }
 });
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
