@@ -436,9 +436,16 @@ router.get('/exercises/:id/lastlog', async (req, res) => {
         // Query exercise_logs joined with workout_logs to order by date_performed
         const query = `
             SELECT
+                el.log_id,
+                el.exercise_id,
+                el.exercise_name,
+                el.sets_completed,
                 el.reps_completed,
                 el.weight_used,
                 el.weight_unit,
+                el.notes,
+                wl.log_id as workout_log_id,
+                wl.workout_name,
                 wl.date_performed
             FROM exercise_logs el
             JOIN workout_logs wl ON el.workout_log_id = wl.log_id

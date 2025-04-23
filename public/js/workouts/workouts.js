@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const comparisonImage2 = document.getElementById('comparison-image-2');
 
     // --- Helper function to calculate goal for next workout ---
-    function calculateGoal(exerciseData, setIndex, prevWeight, prevReps, prevUnit) {
+    function calculateGoal(prevWeight, prevReps, prevUnit) {
         // If no previous data, return null
         if (!prevWeight || !prevReps || prevWeight === '-' || prevReps === '-') {
             return null;
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Calculate goal for next workout if not a template
                 if (!isTemplate) {
-                    const goal = calculateGoal(exerciseData, i, prevWeight, prevReps, prevUnit);
+                    const goal = calculateGoal(prevWeight, prevReps, prevUnit);
                     if (goal) {
                         goalTextHtml = `${goal.weight} ${goal.unit} x ${goal.reps}`;
                     }
@@ -643,6 +643,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (response.ok) {
                         const logData = await response.json();
                         console.log(`[Render Single] Last log FETCHED for ${exerciseData.name}:`, logData);
+
+                        // Ensure the log data has the expected format
+                        if (!logData.reps_completed) {
+                            logData.reps_completed = '';
+                        }
+                        if (!logData.weight_used) {
+                            logData.weight_used = '';
+                        }
+                        if (!logData.weight_unit) {
+                            logData.weight_unit = exerciseData.weight_unit || 'lbs';
+                        }
+
                         return logData; // Return the fetched data
                     } else if (response.status === 404) {
                          console.log(`[Render Single] No last log found for ${exerciseData.name}.`);
