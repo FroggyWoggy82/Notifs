@@ -9,17 +9,42 @@ const router = express.Router();
 // Try to load Sharp, but continue if it fails
 let sharp;
 try {
+  console.log('[PHOTO UPLOAD] Attempting to load Sharp...');
   sharp = require('sharp');
-  console.log('[PHOTO UPLOAD] Sharp loaded successfully');
+  console.log('[PHOTO UPLOAD] Sharp loaded successfully!');
+  console.log('[PHOTO UPLOAD] Sharp version:', sharp.versions ? sharp.versions.sharp : 'unknown');
 } catch (error) {
-  console.error('[PHOTO UPLOAD] Failed to load Sharp:', error.message);
-  console.log('[PHOTO UPLOAD] Continuing without Sharp functionality');
+  console.error('[PHOTO UPLOAD] Failed to load Sharp. Error details:');
+  console.error('[PHOTO UPLOAD] Error message:', error.message);
+  console.error('[PHOTO UPLOAD] Error stack:', error.stack);
+  console.log('[PHOTO UPLOAD] System info:', process.platform, process.arch, process.version);
+  console.log('[PHOTO UPLOAD] Continuing without Sharp functionality - photo uploads will use simple file copy');
+
   // Create a mock Sharp object with basic functionality
   sharp = {
     resize: () => ({
-      jpeg: () => ({ toFile: async (path) => fs.copyFileSync(file.path, path) })
+      jpeg: () => ({
+        toFile: async (outputPath, inputPath) => {
+          console.log('[PHOTO UPLOAD] Mock Sharp: Copying file from', inputPath, 'to', outputPath);
+          // Simple file copy as fallback
+          try {
+            if (typeof inputPath === 'string' && fs.existsSync(inputPath)) {
+              fs.copyFileSync(inputPath, outputPath);
+            } else {
+              // If no input path, create an empty file
+              fs.writeFileSync(outputPath, '');
+            }
+            return { width: 100, height: 100, size: 1024 };
+          } catch (copyError) {
+            console.error('[PHOTO UPLOAD] Error in mock Sharp file copy:', copyError);
+            throw copyError;
+          }
+        }
+      }),
+      toBuffer: async () => Buffer.from([])
     }),
-    // Add other methods as needed
+    // Add other methods that might be used
+    metadata: async () => ({ width: 100, height: 100, format: 'jpeg' })
   };
 }
 
@@ -244,10 +269,10 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
                             trellisQuantisation: true,
                             optimizeCoding: true
                         })
-                        .toFile(jpegPath);
+                        .toFile(jpgPath);
 
                     // Check result
-                    const stats = fs.statSync(jpegPath);
+                    const stats = fs.statSync(jpgPath);
                     sizeKB = stats.size / 1024;
                     console.log(`[SIMPLE UPLOAD] Attempt #${attempts} result: ${sizeKB.toFixed(2)}KB`);
 

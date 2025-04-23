@@ -11,16 +11,36 @@ const fs = require('fs');
 // Try to load Sharp, but continue if it fails
 let sharp;
 try {
+  console.log('Attempting to load Sharp...');
   sharp = require('sharp');
-  console.log('Sharp loaded successfully');
+  console.log('Sharp loaded successfully!');
+  console.log('Sharp version:', sharp.versions ? sharp.versions.sharp : 'unknown');
+  console.log('Libvips version:', sharp.versions ? sharp.versions.vips : 'unknown');
 } catch (error) {
-  console.error('Failed to load Sharp:', error.message);
-  console.log('Continuing without Sharp functionality');
+  console.error('Failed to load Sharp. Error details:');
+  console.error('Error message:', error.message);
+  console.error('Error stack:', error.stack);
+  console.log('System info:', process.platform, process.arch, process.version);
+  console.log('Continuing without Sharp functionality - photo uploads may not work correctly');
+
   // Create a mock Sharp object with basic functionality
   sharp = {
     versions: { sharp: 'not available', vips: 'not available' },
     format: { heif: false },
-    resize: () => ({ toBuffer: async () => Buffer.from([]) })
+    resize: () => ({
+      jpeg: () => ({
+        toFile: async (outputPath) => {
+          console.log('Mock Sharp: Would process image to', outputPath);
+          return { width: 100, height: 100, size: 1024 };
+        }
+      }),
+      toBuffer: async () => {
+        console.log('Mock Sharp: Would return buffer');
+        return Buffer.from([]);
+      }
+    }),
+    // Add other methods that might be used
+    metadata: async () => ({ width: 100, height: 100, format: 'jpeg' })
   };
 }
 
