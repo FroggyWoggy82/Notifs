@@ -225,6 +225,16 @@ document.addEventListener('DOMContentLoaded', function() {
              console.log(`[generateSetRowsHtml] Parsed arrays: weights=[${weightsArray}], reps=[${repsArray}]`);
         }
 
+        // Initialize sets_completed array if it doesn't exist
+        if (!exerciseData.sets_completed) {
+            exerciseData.sets_completed = Array(numSets).fill(null).map(() => ({
+                weight: '',
+                reps: '',
+                unit: exerciseData.weight_unit || 'lbs',
+                completed: false
+            }));
+        }
+
         for (let i = 0; i < numSets; i++) {
             // --- Per-Set Logic ---
             let weightValue = ''; // Pre-fill value for weight input
@@ -246,9 +256,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Only populate if values are not empty strings
                 if (prevWeight !== '') {
                     weightValue = prevWeight;
+                    // Also update the sets_completed array
+                    if (exerciseData.sets_completed && exerciseData.sets_completed[i]) {
+                        exerciseData.sets_completed[i].weight = prevWeight;
+                    }
                 }
                 if (prevReps !== '') {
                     repsValue = prevReps;
+                    // Also update the sets_completed array
+                    if (exerciseData.sets_completed && exerciseData.sets_completed[i]) {
+                        exerciseData.sets_completed[i].reps = prevReps;
+                    }
                 }
                 // Always update the display text if data exists for this set index
                 previousLogTextHtml = `${prevWeight || '-'} ${prevUnit} x ${prevReps || '-'}`;
@@ -600,6 +618,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Await the result and store it back on exerciseData
             exerciseData.lastLog = await fetchLastLog();
             console.log(`[Render Single] Awaited fetch complete. exerciseData.lastLog is now:`, exerciseData.lastLog);
+
+            // Initialize sets_completed array if it doesn't exist
+            if (!exerciseData.sets_completed) {
+                const numSets = exerciseData.sets || 1;
+                exerciseData.sets_completed = Array(numSets).fill(null).map(() => ({
+                    weight: '',
+                    reps: '',
+                    unit: exerciseData.weight_unit || 'lbs',
+                    completed: false
+                }));
+            }
         }
         // --- End Fetch Last Log ---
 
@@ -1014,6 +1043,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Update set counts from UI before saving
                 updateSetCountsFromUI();
+
+                // Ensure each exercise has a sets_completed array
+                if (currentWorkout.exercises) {
+                    currentWorkout.exercises.forEach(exercise => {
+                        if (!exercise.sets_completed) {
+                            const numSets = exercise.sets || 1;
+                            exercise.sets_completed = Array(numSets).fill(null).map(() => ({
+                                weight: '',
+                                reps: '',
+                                unit: exercise.weight_unit || 'lbs',
+                                completed: false
+                            }));
+                        }
+                    });
+                }
 
                 localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(currentWorkout));
 
@@ -1670,6 +1714,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Store template sets and reps for display
                     template_sets: numSets,
                     template_reps: ex.reps || '',
+                    // Initialize sets_completed array for tracking completion
+                    sets_completed: Array(numSets).fill(null).map(() => ({
+                        weight: '',
+                        reps: '',
+                        unit: ex.weight_unit || 'lbs',
+                        completed: false
+                    })),
                     // Initialize completedSets array for tracking completion
                     completedSets: Array(numSets).fill(false)
                 };
