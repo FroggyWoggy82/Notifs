@@ -1,0 +1,39 @@
+# Exclude node modules
+node_modules
+
+# Exclude git files
+.git
+.gitignore
+
+# Exclude logs
+logs
+*.log
+npm-debug.log*
+
+# Exclude test files
+test
+tests
+__tests__
+
+# Exclude development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Exclude Docker files
+Dockerfile
+docker-config
+.dockerignore
+
+# Exclude documentation
+README.md
+CHANGELOG.md
+LICENSE
+docs
+
+# Exclude uploads directory (if it contains large files)
+uploads/progress_photos
+
+# Exclude any other large directories or files that aren't needed for the build
