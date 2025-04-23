@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOMContentLoaded event fired');
-    
+
     const mainGoalInput = document.getElementById('mainGoalInput');
     const setMainGoalBtn = document.getElementById('setMainGoalBtn');
     const goalTree = document.getElementById('goalTree');
@@ -180,8 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchAndRenderGoals() {
         console.log('fetchAndRenderGoals CALLED.');
         try {
-            console.log('fetchAndRenderGoals: Attempting GET /api/goals...');
-            const response = await fetch('/api/goals');
+            console.log('fetchAndRenderGoals: Attempting GET /api/goal-tree...');
+            const response = await fetch('/api/goal-tree');
             console.log('fetchAndRenderGoals: GET response received. Status:', response.status, 'ok:', response.ok);
             if (!response.ok) {
                 console.error('fetchAndRenderGoals: Response not OK.');
