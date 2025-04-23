@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y \
 # Copy package files first for better caching
 COPY package*.json package-lock.json ./
 
-# Use npm ci for faster, more reliable builds
-RUN npm ci --only=production
+# Install dependencies with production flag
+RUN npm install --production --no-optional --no-audit --progress=false
 
 # Copy the rest of the application
 COPY . .
