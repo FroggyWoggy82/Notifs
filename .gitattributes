@@ -1,0 +1,15 @@
+# Auto detect text files and ensure they use LF in the repo
+* text=auto eol=lf
+
+# Explicitly declare certain file types as text and force LF
+*.js    text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+# Add other text file types used in your project
+
+# Declare specific file types as binary (Git won't touch line endings)
+# *.png     binary
+# *.jpg     binary
+# *.pdf     binary

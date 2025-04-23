@@ -1,12 +1,11 @@
-FROM node:18-slim
+FROM node:22-alpine
 
 WORKDIR /app
 
 # Install dependencies for Sharp and other packages
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    build-base \
+    python3
 
 # Copy package files first for better caching
 COPY package*.json ./
