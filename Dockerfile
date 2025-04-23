@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:18-bookworm-slim@sha256:b3c8cbc9a9e5a2a0aea5a3a903b15b6f8b2a5c0c3e7af7e8f87a4a4d2b1a5a5a
 
 WORKDIR /app
 
