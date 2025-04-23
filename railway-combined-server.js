@@ -4,6 +4,33 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 
+// Load environment variables
+require('dotenv').config();
+
+// Database connection
+let db;
+let dbConnected = false;
+
+try {
+  // Initialize database connection
+  console.log('Initializing database connection...');
+  db = require('./utils/db');
+
+  // Test the connection
+  db.query('SELECT NOW()', (err, res) => {
+    if (err) {
+      console.error('Database connection error:', err);
+      console.log('Server will continue without database functionality');
+    } else {
+      console.log('Database connected successfully:', res.rows[0]);
+      dbConnected = true;
+    }
+  });
+} catch (error) {
+  console.error('Failed to initialize database:', error);
+  console.log('Server will continue without database functionality');
+}
+
 // Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,8 +91,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Add a dedicated healthcheck endpoint
 app.get('/healthcheck', (req, res) => {
   console.log('Healthcheck endpoint hit at', new Date().toISOString());
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
@@ -76,11 +103,42 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Import routes
+try {
+  // Core routes
+  const tasksRouter = require('./routes/tasks');
+  const habitsRouter = require('./routes/habitRoutesSimple');
+  const workoutsRouter = require('./routes/workouts');
+  const journalRouter = require('./routes/journal');
+  const daysSinceRouter = require('./routes/daysSinceRoutes');
+
+  // Database connection check middleware
+  const dbMiddleware = (req, res, next) => {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+    next();
+  };
+
+  // Set up routes with database check
+  app.use('/api/tasks', dbMiddleware, tasksRouter);
+  app.use('/api/habits', dbMiddleware, habitsRouter);
+  app.use('/api/workouts', dbMiddleware, workoutsRouter);
+  app.use('/api/journal', dbMiddleware, journalRouter);
+  app.use('/api/days-since', dbMiddleware, daysSinceRouter);
+
+  console.log('Core routes initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize routes:', error);
+  console.log('Server will continue with limited functionality');
+}
+
 // API status endpoint
 app.get('/api/status', (req, res) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
+    database: dbConnected ? 'connected' : 'disconnected',
     sharp: sharp.versions ? 'available' : 'not available',
     environment: process.env.NODE_ENV || 'development'
   });
