@@ -340,10 +340,10 @@ document.addEventListener('DOMContentLoaded', function() {
             setRowsHtml += `
                 <div class="set-row" data-set-index="${i}">
                     <span class="set-number">${i + 1}</span>
-                    <span class="previous-log"><strong>Prev:</strong> ${previousLogTextHtml}</span>
+                    <span class="previous-log">${previousLogTextHtml}</span>
                     <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
                     <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
-                    <span class="goal-target" title="Goal for next workout"><strong>Goal:</strong> ${goalTextHtml}</span>
+                    <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
                     ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
                 </div>
             `;

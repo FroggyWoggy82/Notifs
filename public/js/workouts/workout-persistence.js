@@ -24,7 +24,15 @@ function initWorkoutPersistence() {
     // Export functions to window
     window.saveWorkoutData = saveWorkoutData;
     window.restoreWorkoutData = restoreWorkoutData;
-    window.clearWorkoutData = clearWorkoutState; // Use the existing clearWorkoutState function
+    window.clearWorkoutData = function() {
+        // Clear workout data from localStorage
+        localStorage.removeItem(WORKOUT_DATA_KEY);
+        localStorage.removeItem('workout_tracker_current_workout');
+        localStorage.removeItem('workout_tracker_start_time');
+        localStorage.removeItem('workout_tracker_current_page');
+        localStorage.removeItem('workout_tracker_input_values');
+        console.log('Cleared workout data from localStorage');
+    };
     window.updateCurrentWorkoutFromUI = updateCurrentWorkoutFromUI;
 }
 
@@ -342,14 +350,14 @@ function restoreWorkoutData() {
                         // Create previous log span
                         const prevLog = document.createElement('span');
                         prevLog.className = 'previous-log';
-                        prevLog.innerHTML = '<strong>Prev:</strong> - lbs x -';
+                        prevLog.innerHTML = '- lbs x -';
                         newRow.appendChild(prevLog);
 
                         // Create goal target span
                         const goalTarget = document.createElement('span');
                         goalTarget.className = 'goal-target';
                         goalTarget.title = 'Goal for next workout';
-                        goalTarget.innerHTML = '<strong>Goal:</strong> ';
+                        goalTarget.innerHTML = '';
                         newRow.appendChild(goalTarget);
 
                         // Create weight input
