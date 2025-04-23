@@ -91,6 +91,20 @@ const initializeDatabase = async () => {
 // Initialize database
 initializeDatabase().then(success => {
   console.log(`Database initialization ${success ? 'succeeded' : 'failed'}`);
+
+  // If database connection was successful, initialize tables
+  if (success) {
+    try {
+      const dbInit = require('./utils/db-init');
+      dbInit.initializeDatabase().then(() => {
+        console.log('Database tables initialized successfully');
+      }).catch(error => {
+        console.error('Error initializing database tables:', error);
+      });
+    } catch (error) {
+      console.error('Error loading database initialization script:', error);
+    }
+  }
 });
 
 // Create Express app
