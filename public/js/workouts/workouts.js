@@ -166,15 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- NEW: Slider DOM References (Updated for Redesign) ---
     // const currentPhotoDisplay = document.getElementById('current-photo-display'); // Removed
     // const currentPhotoDate = document.getElementById('current-photo-date'); // Removed
-    const photoPrevBtn = document.getElementById('photo-prev-btn');
-    const photoNextBtn = document.getElementById('photo-next-btn');
     const deletePhotoBtn = document.getElementById('delete-photo-btn');
     const photoReel = document.querySelector('.photo-reel'); // Reel container
     const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
     // const photoPrevPreview = document.getElementById('photo-prev-preview'); // Removed
     // const photoNextPreview = document.getElementById('photo-next-preview'); // Removed
-    console.log('photoNextBtn element:', photoNextBtn);
+    // console.log('photoNextBtn element:', photoNextBtn);
 
     // --- NEW: Get container for delegation ---
     const photoSliderContainer = document.querySelector('.photo-slider-container');
@@ -324,12 +322,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Rendering Functions ---\
 
     function renderWorkoutTemplates(filteredTemplates = workoutTemplates) {
-        templateListContainer.innerHTML = ''; // Clear previous
-        if (filteredTemplates.length === 0) {
-            templateListContainer.innerHTML = '<p>No templates found.</p>';
+        // Add detailed logging
+        const sourceArrayName = (filteredTemplates === workoutTemplates) ? 'global workoutTemplates' : 'filteredTemplates argument';
+        console.log(`[Render Templates] Called. Using ${sourceArrayName}. Rendering ${filteredTemplates.length} templates.`);
+
+        if (!templateListContainer) {
+            console.error('[Render Templates] Error: templateListContainer not found!');
             return;
         }
 
+        console.log('[Render Templates] Clearing container...');
+        templateListContainer.innerHTML = ''; // Clear previous
+
+        if (filteredTemplates.length === 0) {
+            console.log(`[Render Templates] No templates match filter, showing empty message.`);
+            // Use a more specific message for empty search results
+            const emptyMessage = (sourceArrayName === 'filteredTemplates argument')
+                ? 'No templates found matching your search.'
+                : 'No templates created yet.';
+            templateListContainer.innerHTML = `<p>${emptyMessage}</p>`;
+            return;
+        }
+
+        console.log(`[Render Templates] Starting loop to append ${filteredTemplates.length} templates.`);
         filteredTemplates.forEach(template => {
             const card = document.createElement('div');
             card.className = 'workout-template-card';
@@ -372,6 +387,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 startWorkoutFromTemplate(template.workout_id);
             });
         });
+        console.log(`[Render Templates] Finished appending templates.`);
     }
 
     // Store the checked state of exercises and their order
@@ -3348,799 +3364,100 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!workoutTemplates.length && templateListContainer) renderWorkoutTemplates();
         if (!availableExercises.length && availableExerciseListEl) renderAvailableExercises(); // Check for availableExerciseListEl existence
 
-        // REMOVED setTimeout block
-    }
+        // --- Set up event listeners ---
 
-    async function handleDeleteTemplate(templateId) {
-        if (!templateId) return;
+        // ... other listeners ...
 
-        const template = workoutTemplates.find(t => t.workout_id === parseInt(templateId));
-        const templateName = template ? template.name : `Template ID ${templateId}`;
-
-        if (confirm(`Are you sure you want to delete the template "${templateName}"? This cannot be undone.`)) {
-            console.log(`Attempting to delete template ID: ${templateId}`);
-            try {
-                const response = await fetch(`/api/workouts/templates/${templateId}`, {
-                    method: 'DELETE'
-                });
-
-                console.log(`DELETE Template Response Status: ${response.status}`); // Log status
-
-                // Try to parse JSON only if response indicates success or known error format
-                // if (!response.ok) {
-                //     const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response'}));
-                //     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                // }
-                // const result = await response.json();
-
-                // Refined error handling:
-                if (!response.ok) {
-                    let errorMsg = `HTTP error! status: ${response.status}`;
-                    try {
-                        // Attempt to parse potential JSON error body
-                        const errorData = await response.json();
-                        errorMsg = errorData.error || JSON.stringify(errorData); // Use specific error or stringify
-                    } catch (parseError) {
-                        // If parsing fails, get text response instead
-                        try {
-                            const textResponse = await response.text();
-                            console.error("Non-JSON error response:", textResponse); // Log the HTML/text
-                            errorMsg += " (Non-JSON response received)";
-                        } catch (textError) {
-                             console.error("Could not read error response text.");
-                        }
-                    }
-                    throw new Error(errorMsg);
-                }
-
-                // If response.ok, parse the success JSON
-                const result = await response.json();
-                console.log('Template deleted successfully:', result);
-
-                // Remove from local cache and re-render
-                workoutTemplates = workoutTemplates.filter(t => t.workout_id !== parseInt(templateId));
-                renderWorkoutTemplates(); // Re-render the list
-                // No alert needed, removal is visual feedback
-
-            } catch (error) {
-                console.error('Error deleting template:', error);
-                alert(`Failed to delete template: ${error.message}`);
-            }
+        // --- REMOVE OLD PHOTO BUTTON CLICK LISTENERS ---
+        /*
+        const photoPrevBtn = document.getElementById('photo-prev-btn');
+        const photoNextBtn = document.getElementById('photo-next-btn');
+        if (photoPrevBtn) {
+             console.log('[Initialize] Setting up previous photo button listener...');
+             photoPrevBtn.addEventListener('click', debouncedShowPreviousPhoto);
         }
-    }
-
-    // --- Cancel Workout Function ---
-    function handleCancelWorkout() {
-        // Save input values before canceling the workout
-        console.log('Saving input values before canceling workout');
-
-        // Save using our persistence module if available
-        if (typeof saveWorkoutData === 'function') {
-            saveWorkoutData();
+        if (photoNextBtn) {
+             console.log('[Initialize] Setting up next photo button listener...');
+             photoNextBtn.addEventListener('click', debouncedShowNextPhoto);
         } else {
-            // Fallback to regular save
-            saveInputValues();
+             console.error('[Initialize] photoNextBtn not found!');
         }
+        */
 
-        stopTimer(); // Stop timer immediately
-        if (confirm('Are you sure you want to cancel this workout? All progress will be lost.')) {
-            console.log('Workout cancelled by user.');
-            // Reset state
-            currentWorkout = [];
-            workoutStartTime = null;
+        // --- ADD NEW PHOTO HOVER NAVIGATION ---
+        const photoSliderContainer = document.querySelector('.photo-slider-container');
+        if (photoSliderContainer) {
+            console.log('[Initialize] Setting up photo hover navigation...');
+            let hoverTimeout = null;
+            const triggerDelay = 50; // ms - Adjust for sensitivity
+            let lastAction = null; // 'prev' or 'next'
+            let lastTriggerTime = 0;
+            const actionThrottle = 300; // Only allow action every 300ms
 
-            // Clear saved workout state
-            clearWorkoutState();
+            photoSliderContainer.addEventListener('mousemove', (event) => {
+                const rect = photoSliderContainer.getBoundingClientRect();
+                const x = event.clientX - rect.left; // Mouse x relative to container
+                const containerWidth = photoSliderContainer.offsetWidth;
+                // Define trigger zones (e.g., left/right 25%)
+                const triggerZoneWidth = containerWidth * 0.25;
+                const now = Date.now();
 
-            // Switch back to landing page
-            switchPage('landing');
+                if (x < triggerZoneWidth) {
+                    // Left zone
+                    photoSliderContainer.style.cursor = 'w-resize'; // Indicate prev action
+                    // Trigger only once per entry into zone, throttled
+                    if (lastAction !== 'prev' || (now - lastTriggerTime > actionThrottle)) {
+                        clearTimeout(hoverTimeout);
+                        hoverTimeout = setTimeout(() => {
+                            if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
+                                debouncedShowPreviousPhoto();
+                                lastTriggerTime = Date.now();
+                                lastAction = 'prev'; // Set action after execution
+                            }
+                        }, triggerDelay);
+                        // Set lastAction immediately if entering zone to prevent rapid timeout resets
+                        if (lastAction !== 'prev') lastAction = 'prev';
+                    }
+                } else if (x > containerWidth - triggerZoneWidth) {
+                    // Right zone
+                    photoSliderContainer.style.cursor = 'e-resize'; // Indicate next action
+                     // Trigger only once per entry into zone, throttled
+                     if (lastAction !== 'next' || (now - lastTriggerTime > actionThrottle)) {
+                         clearTimeout(hoverTimeout);
+                         hoverTimeout = setTimeout(() => {
+                             if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
+                                 debouncedShowNextPhoto();
+                                 lastTriggerTime = Date.now();
+                                 lastAction = 'next'; // Set action after execution
+                             }
+                         }, triggerDelay);
+                          // Set lastAction immediately if entering zone
+                         if (lastAction !== 'next') lastAction = 'next';
+                    }
         } else {
-            console.log('Workout cancellation aborted.');
-            startTimer(); // Resume timer if cancelled the cancellation
-        }
-    }
-
-    // --- New Handler for Adding Multiple Selected Exercises ---
-    async function handleAddSelectedExercises() {
-        const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
-
-        // Log all checked exercises for debugging
-        console.log('Current checked exercises:');
-        checkedExercises.forEach(id => {
-            console.log(`- Exercise ID: ${id}`);
-        });
-
-        // Get all selected exercises from the checkedExercises Set, not just visible ones
-        if (checkedExercises.size === 0) {
-            alert('Please select at least one exercise to add.');
-            return;
-        }
-
-        console.log(`Adding ${checkedExercises.size} checked exercises to ${targetList}`);
-
-        // Create a copy of the checkedExercises Set to avoid modification during iteration
-        const selectedExerciseIds = Array.from(checkedExercises);
-
-        // Use the order array to add exercises in the order they were checked
-        // Filter the order array to only include exercises that are in the checkedExercises Set
-        const orderedIds = checkedExercisesOrder.filter(id => checkedExercises.has(id));
-
-        // Add any selected exercises that might not be in the order array (fallback)
-        selectedExerciseIds.forEach(id => {
-            if (!orderedIds.includes(id)) {
-                orderedIds.push(id);
-            }
-        });
-
-        console.log(`Ordered IDs for adding (${orderedIds.length}):`, orderedIds);
-
-        // Store the exercises to add before closing the modal
-        const exercisesToAdd = [...orderedIds];
-
-        // Close the modal before adding exercises to prevent multiple clicks
-        closeExerciseModal();
-
-        // Add exercises in the correct order (sequentially to maintain order)
-        for (const exerciseId of exercisesToAdd) {
-            console.log(`Adding exercise ID: ${exerciseId} to ${targetList}`);
-            await addExerciseToWorkout(exerciseId, targetList); // Pass targetList and await completion
-        }
-
-        console.log(`Added ${exercisesToAdd.length} exercises to ${targetList}`);
-
-        // Clear the selected exercises after adding them
-        checkedExercises.clear();
-        checkedExercisesOrder.length = 0;
-        console.log('Cleared all checked exercises');
-
-        // Re-render the available exercises list to reflect the cleared selections
-        renderAvailableExercises(exerciseSearchInput.value, exerciseCategoryFilter.value);
-    }
-
-    // --- History Chart Functions (Updated for Search) ---
-    function handleHistorySearchInput() {
-        const searchTerm = historyExerciseSearchInput.value.toLowerCase().trim();
-        const category = currentHistoryCategoryFilter; // Use state variable
-
-        if (searchTerm.length < 1 && category === 'all') { // Hide if input is empty and category is 'all'
-             historySearchResultsEl.style.display = 'none';
-             return;
-        }
-
-        const filteredExercises = availableExercises.filter(ex => {
-            const nameMatch = ex.name.toLowerCase().includes(searchTerm);
-            const categoryMatch = category === 'all' || ex.category === category;
-            return nameMatch && categoryMatch;
-        });
-
-        renderHistorySearchResults(filteredExercises);
-    }
-
-    function renderHistorySearchResults(results) {
-        historySearchResultsEl.innerHTML = ''; // Clear previous results
-
-        if (results.length === 0) {
-            historySearchResultsEl.style.display = 'none'; // Hide if no results
-            return;
-        }
-
-        results.forEach(ex => {
-            const div = document.createElement('div');
-            div.textContent = ex.name;
-            div.classList.add('history-search-item'); // <<< ADD THIS LINE
-            div.dataset.exerciseId = ex.exercise_id;
-            div.dataset.exerciseName = ex.name; // Store name for setting input later
-            historySearchResultsEl.appendChild(div);
-        });
-
-        historySearchResultsEl.style.display = 'block'; // Show results list
-    }
-
-    function handleHistoryResultClick(event) {
-        console.log("handleHistoryResultClick triggered. event.target:", event.target); // Log the actual element clicked
-
-        // Check if the clicked element is a direct child div of the results list
-        const clickedResultDiv = event.target.closest('#history-search-results > div');
-        console.log("Closest result div found:", clickedResultDiv); // Log the result of closest()
-
-        if (!clickedResultDiv) {
-             console.log('Click was not on a result item.');
-             return; // Click wasn't on a result div
-        }
-
-        // Use the found div (clickedResultDiv) to get data
-        const selectedId = clickedResultDiv.dataset.exerciseId;
-        const selectedName = clickedResultDiv.dataset.exerciseName;
-        console.log(`Attempting to use ID=${selectedId}, Name=${selectedName}`); // Log the data extracted
-
-        if (!selectedId || !selectedName) {
-            console.error('Could not get exercise ID or name from clicked result div:', clickedResultDiv);
-            // Clear button state if selection fails
-            currentHistoryExerciseId = null;
-            currentHistoryExerciseName = null;
-            historyEditBtn.style.display = 'none';
-            return; // Exit if data attributes are missing
-        }
-
-        console.log(`Result clicked and processed: ID=${selectedId}, Name=${selectedName}`); // Log successful processing before action
-
-        historyExerciseSearchInput.value = selectedName; // Set input value to selection
-        historySearchResultsEl.innerHTML = ''; // Clear results
-        historySearchResultsEl.style.display = 'none'; // Hide results list
-
-        fetchAndRenderHistoryChart(selectedId); // Fetch and render chart for the selected ID
-
-        // Store selected exercise and show Edit button
-        currentHistoryExerciseId = selectedId;
-        currentHistoryExerciseName = selectedName;
-        historyEditBtn.style.display = 'inline-block';
-    }
-
-    async function fetchAndRenderHistoryChart(exerciseId) {
-        // Get the history message element
-        const historyMessageEl = document.getElementById('history-message');
-
-        if (!historyMessageEl) {
-            console.error("[ERROR] History message element not found!");
-            return;
-        }
-
-        historyMessageEl.textContent = ''; // Clear previous messages
-        console.log(`[DEBUG] fetchAndRenderHistoryChart called for ID: ${exerciseId}`);
-
-        if (!exerciseId) {
-            historyMessageEl.textContent = 'Please select an exercise to view its history.';
-            console.warn("[DEBUG] fetchAndRenderHistoryChart - No exercise ID provided.");
-            return;
-        }
-
-        historyMessageEl.textContent = 'Loading history...';
-
-        try {
-            // Fetch exercise history data
-            console.log(`[DEBUG] Fetching history data for exercise ID: ${exerciseId}`);
-            const response = await fetch(`/api/workouts/exercises/${exerciseId}/history`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const historyData = await response.json();
-            console.log(`[DEBUG] Received ${historyData.length} history records`);
-
-            // Handle empty data case
-            if (!historyData || historyData.length === 0) {
-                historyMessageEl.textContent = 'No logged history found for this exercise.';
-
-                if (exerciseHistoryChart) {
-                    exerciseHistoryChart.destroy();
-                    exerciseHistoryChart = null;
-                }
-                return;
-            }
-
-            // Process data for chart
-            const labels = [];
-            const volumes = [];
-
-            // Sort data by date (oldest to newest)
-            historyData.sort((a, b) => new Date(a.date_performed) - new Date(b.date_performed));
-
-            historyData.forEach((log, index) => {
-                // Format date for label
-                const date = new Date(log.date_performed);
-                labels.push(date.toLocaleDateString());
-
-                // Calculate volume (Sum of Weight * Reps for each set)
-                if (!log.reps_completed || !log.weight_used) {
-                    console.warn(`[DEBUG] Log index ${index} missing reps/weight data`);
-                    volumes.push(0);
-                    return;
-                }
-
-                try {
-                    const repsArray = log.reps_completed.split(',').map(Number);
-                    const weightsArray = log.weight_used.split(',').map(Number);
-                    let totalVolume = 0;
-
-                    const numSets = Math.min(repsArray.length, weightsArray.length);
-
-                    if (repsArray.length !== weightsArray.length) {
-                        console.warn(`[DEBUG] Log index ${index} has mismatched reps (${repsArray.length}) and weights (${weightsArray.length})`);
-                    }
-
-                    for (let i = 0; i < numSets; i++) {
-                        const reps = repsArray[i];
-                        const weight = weightsArray[i];
-
-                        // Skip invalid values
-                        if (isNaN(reps) || isNaN(weight)) {
-                            console.warn(`[DEBUG] Log index ${index}, Set ${i + 1} has invalid reps or weight values`);
-                            continue;
-                        }
-
-                        // Only count if not bodyweight exercise
-                        if (log.weight_unit !== 'bodyweight') {
-                            totalVolume += weight * reps;
-                        }
-                    }
-
-                    console.log(`[DEBUG] Log ${index} (${date.toLocaleDateString()}) volume: ${totalVolume}`);
-                    volumes.push(totalVolume);
-
-                } catch (parseError) {
-                    console.error(`[ERROR] Failed to parse log data at index ${index}:`, parseError);
-                    volumes.push(0); // Push 0 as fallback
+                    // Middle zone
+                    photoSliderContainer.style.cursor = 'default';
+                    clearTimeout(hoverTimeout); // Clear timeout if mouse moves to middle
+                    lastAction = null; // Reset last action
                 }
             });
 
-            // Clear loading message
-            historyMessageEl.textContent = '';
-
-            // Check if we have valid data to display
-            if (volumes.every(v => v === 0)) {
-                historyMessageEl.textContent = 'No valid volume data found for this exercise.';
-                return;
-            }
-
-            console.log(`[DEBUG] Prepared ${labels.length} data points for chart`);
-            console.log(`[DEBUG] Volume range: ${Math.min(...volumes)} to ${Math.max(...volumes)}`);
-
-            // Render the chart with the processed data
-            renderHistoryChart(labels, volumes, 'Volume (Weight * Reps)');
-
-        } catch (error) {
-            console.error('[ERROR] Failed to fetch or process exercise history:', error);
-
-            // Display error message
-            historyMessageEl.textContent = `Error loading history: ${error.message}`;
-
-            // Clean up any existing chart
-            if (exerciseHistoryChart) {
-                exerciseHistoryChart.destroy();
-                exerciseHistoryChart = null;
-            }
-        }
-    }
-
-    function renderHistoryChart(labels, data, chartLabel = 'Volume') {
-        if (!historyChartCanvas) {
-            console.error("[ERROR] History chart canvas not found!");
-            return;
-        }
-
-        const ctx = historyChartCanvas.getContext('2d');
-        console.log("[DEBUG] Rendering chart with Labels:", labels, "Data:", data);
-
-        // Destroy existing chart before creating new one
-        if (exerciseHistoryChart) {
-            console.log("[DEBUG] Destroying existing chart instance.");
-            exerciseHistoryChart.destroy();
-            exerciseHistoryChart = null;
+            // Reset cursor when mouse leaves the container
+            photoSliderContainer.addEventListener('mouseleave', () => {
+                 photoSliderContainer.style.cursor = 'default';
+                 clearTimeout(hoverTimeout);
+                 lastAction = null;
+            });
         } else {
-            console.log("[DEBUG] No existing chart instance to destroy.");
+             console.error('[Initialize] photoSliderContainer not found for hover nav!');
         }
-
-        try {
-            // Check if we have the global chart creation function
-            if (typeof window.createScaledChart === 'function') {
-                console.log("[DEBUG] Using global chart creation function");
-
-                // Prepare chart data
-                const chartData = {
-                    labels: labels,
-                    datasets: [{
-                        label: chartLabel,
-                        data: data,
-                        borderColor: '#4CAF50', // Green line
-                        backgroundColor: 'rgba(76, 175, 80, 0.1)', // Light green fill
-                        tension: 0.1,
-                        fill: true
-                    }]
-                };
-
-                // Prepare chart options
-                const chartOptions = {
-                    scales: {
-                        y: {
-                            title: {
-                                display: true,
-                                text: chartLabel
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        }
-                    }
-                };
-
-                // Create the chart using our global function
-                exerciseHistoryChart = window.createScaledChart(ctx, 'line', labels, chartData, chartOptions);
-            } else {
-                console.log("[DEBUG] Global chart function not available, using fallback");
-
-                // Calculate appropriate y-axis range
-                let maxValue = 100; // Default if no data
-                if (data && data.length > 0) {
-                    // Filter out any non-numeric values
-                    const validData = data.filter(val => !isNaN(val) && val !== null && val !== undefined);
-                    if (validData.length > 0) {
-                        maxValue = Math.max(...validData);
-                        // Add padding to the max value (20% padding)
-                        maxValue = maxValue * 1.2;
-                    }
-                }
-
-                console.log("[DEBUG] Calculated max value for y-axis:", maxValue);
-
-                // Format data for display
-                const formatLargeNumber = (value) => {
-                    if (value >= 1000000) {
-                        return (value / 1000000).toFixed(1) + 'M';
-                    } else if (value >= 1000) {
-                        return (value / 1000).toFixed(1) + 'k';
-                    }
-                    return value;
-                };
-
-                // Create a new chart with explicit y-axis range
-                exerciseHistoryChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: chartLabel,
-                            data: data,
-                            borderColor: '#4CAF50', // Green line
-                            backgroundColor: 'rgba(76, 175, 80, 0.1)', // Light green fill
-                            tension: 0.1,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: {
-                            duration: 500 // Faster animation for better responsiveness
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                suggestedMin: 0,
-                                suggestedMax: maxValue,
-                                title: {
-                                    display: true,
-                                    text: chartLabel
-                                },
-                                ticks: {
-                                    // This ensures the y-axis adapts to large values
-                                    precision: 0,
-                                    callback: function(value) {
-                                        return formatLargeNumber(value);
-                                    }
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Date'
-                                }
-                            }
-                        },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.parsed.y !== null) {
-                                            // Always show full value in tooltip
-                                            label += context.parsed.y.toLocaleString();
-
-                                            // Add formatted version for readability if value is large
-                                            if (context.parsed.y >= 1000) {
-                                                label += ` (${formatLargeNumber(context.parsed.y)})`;
-                                            }
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            console.log("[DEBUG] Chart instance created successfully.");
-
-            // Force an update to ensure the chart renders correctly
-            exerciseHistoryChart.update();
-
-        } catch (chartError) {
-            console.error("[DEBUG] Error creating Chart.js instance:", chartError);
-
-            // Display error message
-            const historyMessageEl = document.getElementById('history-message');
-            if (historyMessageEl) {
-                historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
-            }
-        }
-    }
-
-    // --- History Edit Modal Functions (Renamed & Moved Before Initialize) ---
-    function showHistoryEditModal() { // Renamed function & Moved Up
-        if (!currentHistoryExerciseId || !currentHistoryExerciseName) {
-            alert('Please select an exercise from the search first.');
-            return;
-        }
-
-        // Pre-fill modal add section
-        historyEditExerciseNameEl.textContent = currentHistoryExerciseName;
-        historyEditExerciseIdInput.value = currentHistoryExerciseId;
-        historyEditAddForm.reset(); // Clear previous add form entries
-        historyEditDateInput.valueAsDate = new Date(); // Default to today
-
-        // Reset and render initial set row for adding
-        historyEditSets = [{ reps: '', weight: '', unit: 'kg' }]; // Renamed state var
-        renderHistoryEditSets(); // Renamed render function
-
-        // Fetch and display existing logs
-        fetchAndRenderExistingLogs(currentHistoryExerciseId);
-
-        historyEditModal.style.display = 'block'; // Use renamed modal ID
-    }
-
-    // Moved Up
-    function hideHistoryEditModal() {
-        if(historyEditModal) historyEditModal.style.display = 'none';
-    }
+        // --- END PHOTO HOVER NAVIGATION ---
 
 
-    // Moved Up
-    function renderHistoryEditSets() { // Renamed function
-        historyEditSetsContainer.innerHTML = ''; // Use renamed container ref
-        historyEditSets.forEach((set, index) => { // Use renamed state var
-            // Generate HTML similar to generateSetRowsHtml, but simpler
-            const setRow = document.createElement('div');
-            setRow.className = 'set-row history-edit-set-row'; // Specific class
-            setRow.dataset.setIndex = index;
-            setRow.innerHTML = `
-                <span class="set-number">${index + 1}</span>
-                <!-- Weight input group first -->
-                <div class="weight-input-group">
-                    <input type="number" class="weight-input history-edit-weight" placeholder="Wt" value="${set.weight}" step="0.5">
-                    <select class="unit-select history-edit-unit">
-                        <option value="kg" ${set.unit === 'kg' ? 'selected' : ''}>kg</option>
-                        <option value="lbs" ${set.unit === 'lbs' ? 'selected' : ''}>lbs</option>
-                        <option value="bodyweight">bw</option>
-                    </select>
-                </div>
-                <!-- Reps input second -->
-                <input type="text" class="reps-input history-edit-reps" placeholder="Reps" value="${set.reps}">
-             `; // No previous, no toggle
-            historyEditSetsContainer.appendChild(setRow);
-        });
-        // Disable remove button if only one set left
-        historyEditRemoveSetBtn.disabled = historyEditSets.length <= 1; // Use renamed button ref
-    }
+        // ... other listeners ...
 
-    // Moved Up
-    function handleAddManualSetRow() { // Renamed function
-        // --- Save current state from DOM before adding ---
-        const currentSetRows = historyEditSetsContainer.querySelectorAll('.set-row'); // Use renamed ref
-        currentSetRows.forEach((row, index) => {
-            if (historyEditSets[index]) { // Use renamed state var
-                const weightInput = row.querySelector('.history-edit-weight');
-                const repsInput = row.querySelector('.history-edit-reps');
-                const unitSelect = row.querySelector('.history-edit-unit');
-                historyEditSets[index].weight = weightInput ? weightInput.value : '';
-                historyEditSets[index].reps = repsInput ? repsInput.value : '';
-                historyEditSets[index].unit = unitSelect ? unitSelect.value : 'kg';
-            }
-        });
-        // --- End save state ---
-
-        historyEditSets.push({ reps: '', weight: '', unit: 'kg' }); // Use renamed state var
-        renderHistoryEditSets(); // Renamed render function
-    }
-
-    // Moved Up
-    function handleRemoveManualSetRow() { // Renamed function
-        if (historyEditSets.length > 1) { // Use renamed state var
-            historyEditSets.pop(); // Use renamed state var
-            renderHistoryEditSets(); // Renamed render function
-        }
-    }
-
-     // Moved Up - Renamed from handleHistoryEditAddSubmit
-    async function handleSaveManualLog(event) {
-        // ---> ADD Log at start of handler <---
-        console.log("[DEBUG] handleSaveManualLog function STARTED."); // <<< ADDED
-        event.preventDefault(); // Keep this line
-        console.log('Submitting new past log...'); // <<< Existing log (keep)
-
-        const logData = {
-            exercise_id: parseInt(historyEditExerciseIdInput.value, 10),
-            date_performed: historyEditDateInput.value,
-            notes: historyEditNotesInput.value.trim()
-        };
-
-        // Collect data from dynamic set rows
-        const setRows = historyEditSetsContainer.querySelectorAll('.set-row');
-
-        let repsCompletedArray = []; // <<< Initialize arrays
-        let weightUsedArray = []; // <<< Initialize arrays
-        let weightUnit = 'kg'; // <<< Initialize default unit
-
-        let isValid = true;
-        setRows.forEach((row, index) => {
-            const repsInput = row.querySelector('.history-edit-reps');
-            const weightInput = row.querySelector('.history-edit-weight');
-            const unitSelect = row.querySelector('.history-edit-unit');
-
-            const reps = repsInput.value.trim();
-            const weight = weightInput.value.trim();
-            const unit = unitSelect.value;
-
-            // Basic validation per row
-            if (reps === '' || weight === '') {
-                console.warn(`Set ${index + 1} is missing reps or weight.`); // <<< Log missing data
-                isValid = false;
-            }
-
-            repsCompletedArray.push(reps || '0'); // <<< Push to array
-            weightUsedArray.push(weight || '0'); // <<< Push to array
-            if (index === 0) weightUnit = unit; // <<< Capture unit from first set
-        });
-
-        // Assign collected arrays to logData AFTER the loop
-        logData.reps_completed = repsCompletedArray.join(',');
-        logData.weight_used = weightUsedArray.join(',');
-        logData.weight_unit = weightUnit;
-
-
-        if (!isValid) {
-            alert('Please fill in both weight and reps for all sets.');
-            return;
-        }
-
-        console.log('[DEBUG] New Past Log Data to Send:', JSON.stringify(logData)); // <<< MODIFIED: Log data clearly
-        const submitButton = historyEditAddForm.querySelector('button[type="submit"]'); // Target correct form
-        submitButton.disabled = true;
-        submitButton.textContent = 'Saving...';
-
-        try {
-            const response = await fetch('/api/workouts/log/manual', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(logData)
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-                console.error("[DEBUG] Save Error Response:", result); // <<< Log error response
-                throw new Error(result.error || `HTTP error! Status: ${response.status}`);
-            }
-
-            console.log('New past log saved:', result);
-
-            // Refresh the existing logs list in the modal
-             fetchAndRenderExistingLogs(logData.exercise_id);
-             // Refresh the history chart in the background
-             console.log(`[DEBUG] Triggering chart refresh for exercise ID: ${logData.exercise_id}`); // <<< Log before chart refresh
-             fetchAndRenderHistoryChart(logData.exercise_id);
-            // Clear the add form
-             historyEditAddForm.reset();
-             historyEditSets = [{ reps: '', weight: '', unit: 'kg' }];
-             renderHistoryEditSets();
-             historyEditDateInput.valueAsDate = new Date();
-
-        } catch (error) {
-            console.error('[DEBUG] Error saving new past log:', error); // <<< Log full error
-            alert(`Failed to save new past log: ${error.message}`);
-        } finally {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Save Log Entry';
-        }
-    }
-
-
-    // Moved Up
-    async function fetchAndRenderExistingLogs(exerciseId) {
-        if (!exerciseId || !historyEditLogListEl) return;
-
-        historyEditLogListEl.innerHTML = '<p>Loading existing logs...</p>';
-
-        try {
-            const response = await fetch(`/api/workouts/exercises/${exerciseId}/history`); // Reuse history route
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const logs = await response.json();
-
-            historyEditLogListEl.innerHTML = ''; // Clear loading message
-            if (logs.length === 0) {
-                historyEditLogListEl.innerHTML = '<p>No past logs found for this exercise.</p>';
-                return;
-            }
-
-            // Sort logs newest first for display
-            logs.sort((a, b) => new Date(b.date_performed) - new Date(a.date_performed));
-
-            logs.forEach(log => {
-                const logItem = document.createElement('div');
-                logItem.className = 'log-list-item';
-
-                // Combine reps and weights for display
-                 const repsArray = log.reps_completed ? log.reps_completed.split(',') : [];
-                 const weightsArray = log.weight_used ? log.weight_used.split(',') : [];
-                 const unit = log.weight_unit || 'kg';
-                 let summary = repsArray.map((rep, index) => {
-                     const weight = weightsArray[index] || '-';
-                     return `${weight}${unit} x ${rep}`;
-                 }).join(', ');
-
-                logItem.innerHTML = `
-                    <div class="log-item-details">
-                        <span class="log-item-date">${new Date(log.date_performed).toLocaleDateString()}</span>
-                        <span class="log-item-summary">${summary}</span>
-                    </div>
-                    <button class="btn-delete-log-entry btn-danger btn-tiny" data-log-id="${log.workout_log_id}" title="Delete this log entry">&times;</button>
-                `; // Renamed delete button class
-
-                historyEditLogListEl.appendChild(logItem);
-            });
-
-        } catch (error) {
-            console.error('Error fetching existing logs:', error);
-            historyEditLogListEl.innerHTML = '<p style="color: red;">Error loading logs.</p>';
-        }
-    }
-
-     // Moved Up - Renamed from handleDeleteExistingLog
-    async function handleDeleteLogEntry(logId) {
-        // const button = event.target; // No event passed
-        // const workoutLogId = button.dataset.logId; // Passed directly
-        const exerciseId = historyEditExerciseIdInput.value; // Get current exercise ID
-
-        if (!logId) {
-            console.error('handleDeleteLogEntry called without log ID');
-            return;
-        }
-
-        // Confirmation is handled before calling this function now
-
-        console.log(`Attempting to delete workout log ID: ${logId}`);
-        // Disable button? Hard to do without the event target.
-
-        try {
-            // Need a backend route to delete a specific workout_log and its associated exercise_logs
-            const response = await fetch(`/api/workouts/logs/${logId}`, { method: 'DELETE' });
-
-            if (!response.ok) {
-                 const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-                 throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log('Log deleted:', result);
-
-            // Refresh the list in the modal
-            fetchAndRenderExistingLogs(exerciseId);
-            // Refresh the chart in the background
-            fetchAndRenderHistoryChart(exerciseId);
-
-        } catch (error) {
-            console.error('Error deleting log:', error);
-            alert(`Failed to delete log entry: ${error.message}`);
-            // button.disabled = false; // Re-enable button on error
-        }
-
-    }
-    // --- End History Edit Modal Functions ---
+        console.log('Initialization complete.');
+    } // End of initialize function
 
     // --- NEW: File Size Display Function ---
     function displayFileSize(input) {
@@ -4445,7 +3762,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function populateComparisonDropdowns() {
         // This function will be called when the comparison section is shown
         // It ensures the dropdowns are populated with the latest photos
-        if (progressPhotos.length > 0 && comparisonPhotoSelect1 && comparisonPhotoSelect2) {
+        if (progressPhotosData.length > 0 && comparisonPhotoSelect1 && comparisonPhotoSelect2) {
             // First, clear existing options
             comparisonPhotoSelect1.innerHTML = '';
             comparisonPhotoSelect2.innerHTML = '';
@@ -4508,8 +3825,9 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchAndDisplayPhotos() {
         console.log('[Photo Load] fetchAndDisplayPhotos STARTED.'); // Log start
         // Use the slider container elements, not the old galleryEl
-        if (!photoReel || !paginationDotsContainer || !photoPrevBtn || !photoNextBtn || !deletePhotoBtn) {
-            console.error("[Photo Load] Missing required slider elements (reel, dots container, nav buttons, delete button).");
+        // Check only for elements that are still used
+        if (!photoReel || !paginationDotsContainer || !deletePhotoBtn /* || !photoPrevBtn || !photoNextBtn */) {
+            console.error("[Photo Load] Missing required slider elements (reel, dots container, delete button).");
             return;
         }
 
@@ -4523,8 +3841,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Photo Load] Setting loading state...'); // Log before UI update
         photoReel.innerHTML = '<p>Loading photos...</p>'; // Show loading in reel
         paginationDotsContainer.innerHTML = ''; // Clear dots
-        photoPrevBtn.disabled = true;
-        photoNextBtn.disabled = true;
+        // photoPrevBtn.disabled = true; // Commented out previously
+        // photoNextBtn.disabled = true; // Commented out previously
         deletePhotoBtn.disabled = true;
 
         try {
@@ -4576,14 +3894,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (progressPhotosData.length === 0) {
                 console.log('[Photo Load] No photos found. Displaying empty message.'); // Log empty case
-                // currentPhotoDisplay.style.display = 'none';
-                // currentPhotoDate.textContent = 'No progress photos uploaded yet.';
                 photoReel.innerHTML = '<p>No progress photos uploaded yet.</p>';
-                photoPrevBtn.disabled = true;
-                photoNextBtn.disabled = true;
+                // photoPrevBtn.disabled = true; // Comment out button reference
+                // photoNextBtn.disabled = true; // Comment out button reference
                 deletePhotoBtn.disabled = true;
                  // Ensure date display is also cleared
                  if (currentPhotoDateDisplay) currentPhotoDateDisplay.textContent = '';
+                window.isLoadingPhotos = false; // <<< Ensure flag is reset here too
                 return; // Exit early if no photos
             }
 
@@ -4660,12 +3977,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('[Photo Load] Error fetching or processing photos:', error);
-            // currentPhotoDisplay.style.display = 'none';
-            // currentPhotoDate.textContent = `Error loading photos: ${error.message}`; // Removed
-            // currentPhotoDate.style.color = 'red'; // Removed
             photoReel.innerHTML = `<p style="color: red;">Error loading photos: ${error.message}</p>`;
-            photoPrevBtn.disabled = true;
-            photoNextBtn.disabled = true;
+            // photoPrevBtn.disabled = true; // Comment out button reference
+            // photoNextBtn.disabled = true; // Comment out button reference
             deletePhotoBtn.disabled = true;
              // Ensure date display is also cleared on error
             if (currentPhotoDateDisplay) currentPhotoDateDisplay.textContent = '';
@@ -4793,10 +4107,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // --- Update Button States ---
-        // Buttons are now enabled/disabled directly in the calling functions
-        photoPrevBtn.disabled = (currentPhotoIndex === 0);
-        photoNextBtn.disabled = (currentPhotoIndex >= numPhotos - 1);
-        deletePhotoBtn.disabled = (numPhotos === 0); // Disable delete only if no photos
+        // Buttons are now hidden and navigation is handled by hover.
+        // photoPrevBtn.disabled = (currentPhotoIndex === 0); // Comment out: Button removed/hidden
+        // photoNextBtn.disabled = (currentPhotoIndex >= numPhotos - 1); // Comment out: Button removed/hidden
+        if (deletePhotoBtn) { // Keep check for delete button
+             deletePhotoBtn.disabled = (numPhotos === 0);
+        }
 
         console.log(`[Photo Display] Reel transform set to: translateX(${offset}%)`);
         const endTime = performance.now(); // End timer
@@ -5071,6 +4387,470 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
     }
+
+    function showPreviousPhoto() {
+        console.log('[Photo Nav] showPreviousPhoto called');
+        if (progressPhotosData.length <= 1) return; // Don't navigate if only one photo
+        currentPhotoIndex = (currentPhotoIndex - 1 + progressPhotosData.length) % progressPhotosData.length;
+        displayCurrentPhoto();
+    }
+
+    // Debounced version
+    const debouncedShowPreviousPhoto = debounce(showPreviousPhoto, navigationDebounceTime);
+
+    function showNextPhoto() {
+        console.log('[Photo Nav] showNextPhoto called');
+        if (progressPhotosData.length <= 1) return; // Don't navigate if only one photo
+        currentPhotoIndex = (currentPhotoIndex + 1) % progressPhotosData.length;
+        displayCurrentPhoto();
+    }
+
+    // Debounced version
+    const debouncedShowNextPhoto = debounce(showNextPhoto, navigationDebounceTime);
+
+    // --- Initialize Function ---
+    async function initialize() {
+        console.log('Initializing Workout Tracker...');
+        // Fetch initial data
+        console.log('Fetching exercises...');
+        await fetchExercises();
+        console.log('Fetching templates...');
+        await fetchTemplates();
+
+        // Fetch and display progress photos
+        await fetchAndDisplayPhotos();
+
+        // Restore any saved workout state
+        // restoreWorkoutState(); // Moved restore after page switch setup
+
+        // Restore any saved input values (needs to happen *after* workout state potentially restored)
+        // restoreInputValues(); // Moved restore after page switch setup
+
+        // --- Set up event listeners ---
+
+        // Modal close buttons
+        if (closeExerciseModalBtn) {
+            closeExerciseModalBtn.addEventListener('click', closeExerciseModal);
+        }
+        if (exerciseEditModalCloseBtn) {
+             exerciseEditModalCloseBtn.addEventListener('click', closeExerciseEditModal);
+        }
+
+        // Add Exercise modal interactions
+        if (exerciseSearchInput) {
+            exerciseSearchInput.addEventListener('input', handleFilterChange);
+        }
+        if (exerciseCategoryFilter) {
+            exerciseCategoryFilter.addEventListener('change', handleFilterChange);
+        }
+        if (addSelectedExercisesBtn) {
+            addSelectedExercisesBtn.addEventListener('click', handleAddSelectedExercises);
+        }
+
+        // Toggle define new exercise form
+        if (toggleDefineExerciseBtn) {
+            toggleDefineExerciseBtn.addEventListener('click', handleToggleDefineExercise);
+        }
+        if (saveNewExerciseBtn) {
+            saveNewExerciseBtn.addEventListener('click', handleSaveNewExercise);
+        }
+
+        // Template Editor interactions
+        if (templateSaveBtn) {
+            templateSaveBtn.addEventListener('click', handleSaveTemplate);
+        }
+        if (templateCancelBtn) {
+            templateCancelBtn.addEventListener('click', () => switchPage('landing'));
+        }
+        if (templateAddExerciseBtn) {
+            templateAddExerciseBtn.addEventListener('click', () => openExerciseModal(true)); // Pass true for template mode
+        }
+
+        // Delegate template exercise deletion
+        if (templateExerciseListEl) {
+            templateExerciseListEl.addEventListener('click', function(event) {
+                if (event.target.classList.contains('delete-template-exercise-btn')) {
+                    handleDeleteTemplateExercise(event.target);
+                }
+            });
+            // Add drag/drop listeners for template editor
+            templateExerciseListEl.addEventListener('dragstart', handleDragStart);
+            templateExerciseListEl.addEventListener('dragover', handleDragOver);
+            templateExerciseListEl.addEventListener('drop', handleDrop);
+            templateExerciseListEl.addEventListener('dragend', handleDragEnd);
+        }
+
+        // Active workout page interactions
+        if (cancelWorkoutBtn) {
+            cancelWorkoutBtn.addEventListener('click', handleCancelWorkout);
+        }
+        if (completeWorkoutBtn) {
+            completeWorkoutBtn.addEventListener('click', handleCompleteWorkout);
+        }
+        if (addExerciseFab) {
+            addExerciseFab.addEventListener('click', () => openExerciseModal(false)); // Pass false for workout mode
+        }
+
+        // --- REMOVE OLD PHOTO BUTTON LISTENERS ---
+        // if (photoPrevBtn) {
+        //     console.log('[Initialize] Setting up previous photo button listener...');
+        //     photoPrevBtn.removeEventListener('click', debouncedShowPreviousPhoto); // Ensure removal
+        // }
+        // if (photoNextBtn) {
+        //     console.log('[Initialize] Setting up next photo button listener...');
+        //     photoNextBtn.removeEventListener('click', debouncedShowNextPhoto); // Ensure removal
+        // } else {
+        //     console.error('[Initialize] photoNextBtn not found!');
+        // }
+
+        // --- ADD NEW PHOTO HOVER NAVIGATION --- 
+        if (photoSliderContainer) {
+            console.log('[Initialize] Setting up photo hover navigation...');
+            let hoverTimeout = null;
+            const triggerDelay = 50; // ms - Adjust for sensitivity
+            let lastAction = null; // 'prev' or 'next'
+            let lastTriggerTime = 0;
+            const actionThrottle = 300; // Only allow action every 300ms
+
+            photoSliderContainer.addEventListener('mousemove', (event) => {
+                const rect = photoSliderContainer.getBoundingClientRect();
+                const x = event.clientX - rect.left; // Mouse x relative to container
+                const containerWidth = photoSliderContainer.offsetWidth;
+                const triggerZoneWidth = containerWidth * 0.25; // 25% on each side
+                const now = Date.now();
+
+                if (x < triggerZoneWidth) {
+                    // Left zone
+                    photoSliderContainer.style.cursor = 'w-resize'; // Indicate prev action
+                    if (lastAction !== 'prev' || (now - lastTriggerTime > actionThrottle)) {
+                        clearTimeout(hoverTimeout);
+                        hoverTimeout = setTimeout(() => {
+                            if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
+                                debouncedShowPreviousPhoto();
+                                lastTriggerTime = Date.now();
+                                lastAction = 'prev';
+                            }
+                        }, triggerDelay);
+                        // Set lastAction immediately to prevent re-triggering timeout rapidly
+                        if (lastAction !== 'prev') lastAction = 'prev'; 
+                    }
+                } else if (x > containerWidth - triggerZoneWidth) {
+                    // Right zone
+                    photoSliderContainer.style.cursor = 'e-resize'; // Indicate next action
+                     if (lastAction !== 'next' || (now - lastTriggerTime > actionThrottle)) {
+                         clearTimeout(hoverTimeout);
+                         hoverTimeout = setTimeout(() => {
+                             if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
+                                 debouncedShowNextPhoto();
+                                 lastTriggerTime = Date.now();
+                                 lastAction = 'next';
+                            }
+                         }, triggerDelay);
+                         // Set lastAction immediately
+                        if (lastAction !== 'next') lastAction = 'next'; 
+                    }
+                } else {
+                    // Middle zone
+                    photoSliderContainer.style.cursor = 'default';
+                    clearTimeout(hoverTimeout); // Clear timeout if mouse moves to middle
+                    lastAction = null; // Reset last action
+                }
+            });
+
+            photoSliderContainer.addEventListener('mouseleave', () => {
+                 photoSliderContainer.style.cursor = 'default'; // Reset cursor on leave
+                 clearTimeout(hoverTimeout); // Clear timeout on leave
+                 lastAction = null; // Reset last action
+            });
+        } else {
+             console.error('[Initialize] photoSliderContainer not found for hover nav!');
+        }
+        // --- END PHOTO HOVER NAVIGATION ---
+
+        // Delegate event listeners for dynamic elements within the workout list
+        if (currentExerciseListEl) {
+            currentExerciseListEl.addEventListener('click', function(event) {
+                // Handle set completion toggle
+                if (event.target.classList.contains('set-toggle')) {
+                    handleSetToggle(event);
+                } else if (event.target.closest('.exercise-options-btn')) {
+                    toggleOptionsMenu(event.target.closest('.exercise-options-btn'));
+                } else if (event.target.classList.contains('delete-exercise-btn')) {
+                    handleDeleteExercise(event);
+                } else if (event.target.classList.contains('add-set-btn')) {
+                    handleAddSet(event);
+                 } else if (event.target.classList.contains('remove-set-btn')) {
+                    handleRemoveSet(event);
+                } else if (event.target.classList.contains('edit-exercise-name-btn')) {
+                    // Find the parent exercise item to get the index
+                    const exerciseItem = event.target.closest('.exercise-item');
+                    if (exerciseItem && exerciseItem.dataset.workoutIndex !== undefined) {
+                        openExerciseEditModal(parseInt(exerciseItem.dataset.workoutIndex, 10));
+                    }
+                }
+            });
+             // Add input listener for unit changes
+            currentExerciseListEl.addEventListener('change', function(event) {
+                 if (event.target.classList.contains('unit-select')) {
+                     handleExerciseUnitChange(event);
+                 }
+             });
+        }
+
+        // Exercise Edit Modal listeners
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', closeExerciseEditModal);
+        }
+        if (saveEditBtn) {
+             saveEditBtn.addEventListener('click', handleSaveExerciseName);
+        }
+        // Close modal if user clicks outside of it (optional)
+        window.addEventListener('click', (event) => {
+            if (event.target === exerciseModal) {
+                closeExerciseModal();
+            }
+             if (event.target === exerciseEditModal) {
+                closeExerciseEditModal();
+            }
+             if (event.target === historyEditModal) { // Added for history edit modal
+                hideHistoryEditModal();
+             }
+            if (event.target === photoUploadModal) {
+                 closePhotoUploadModal();
+            }
+        });
+
+        // Landing page buttons
+        if (startEmptyWorkoutBtn) {
+            startEmptyWorkoutBtn.addEventListener('click', startEmptyWorkout);
+        }
+        if (createTemplateBtn) {
+            createTemplateBtn.addEventListener('click', () => showTemplateEditor());
+        }
+        if (templateListContainer) {
+            templateListContainer.addEventListener('click', (event) => {
+                if (event.target.classList.contains('start-template-btn')) {
+                    const templateId = event.target.dataset.templateId;
+                    startWorkoutFromTemplate(templateId);
+                } else if (event.target.classList.contains('edit-template-btn')) {
+                    const templateId = event.target.dataset.templateId;
+                    const template = workoutTemplates.find(t => t.workout_id === parseInt(templateId));
+                    showTemplateEditor(template);
+                } else if (event.target.classList.contains('delete-template-btn')) {
+                    const templateId = event.target.dataset.templateId;
+                     handleDeleteTemplate(templateId);
+                }
+            });
+        }
+        if (templateSearchInput) {
+             templateSearchInput.addEventListener('input', (event) => {
+                // <<< Add log here >>>
+                console.log('[Template Search Listener] Event fired!'); 
+
+                const searchTerm = event.target.value.toLowerCase();
+                console.log(`[Template Search] Input event: searchTerm = '${searchTerm}'`);
+
+                // Filter the global workoutTemplates array
+                const filtered = workoutTemplates.filter(t => {
+                    return t.name && typeof t.name === 'string' && t.name.toLowerCase().includes(searchTerm);
+                });
+
+                console.log(`[Template Search] Filtered templates count: ${filtered.length}`);
+
+                renderWorkoutTemplates(filtered);
+            });
+        } else {
+             console.error('[Initialize Error] templateSearchInput element not found! Cannot add search listener.');
+        }
+
+        // --- History Section Listeners ---
+        if (historyExerciseSearchInput) {
+            historyExerciseSearchInput.addEventListener('input', debounce(handleHistorySearchInput, 300));
+        }
+        if (historySearchResultsEl) {
+            historySearchResultsEl.addEventListener('click', handleHistoryResultClick);
+        }
+        if (historyCategoryFilterSelect) {
+            historyCategoryFilterSelect.addEventListener('change', (event) => {
+                currentHistoryCategoryFilter = event.target.value;
+                // Optionally re-filter search results if needed, or just fetch history if an exercise is selected
+                if (currentHistoryExerciseId) {
+                    fetchAndRenderHistoryChart(currentHistoryExerciseId); // Re-fetch chart with category filter
+                }
+            });
+        }
+
+        // --- History Edit Modal Listeners ---
+        if (historyEditModal) {
+            historyEditModal.querySelector('.close-button').addEventListener('click', hideHistoryEditModal);
+        }
+        if (historyEditAddForm) {
+            historyEditAddForm.addEventListener('submit', handleSaveManualLog);
+        }
+        if (historyEditAddSetBtn) {
+            historyEditAddSetBtn.addEventListener('click', handleAddManualSetRow);
+        }
+        if (historyEditRemoveSetBtn) {
+            historyEditRemoveSetBtn.addEventListener('click', handleRemoveManualSetRow);
+        }
+        // Delegate listener for deleting existing logs within the modal
+        if (historyEditLogListEl) {
+            historyEditLogListEl.addEventListener('click', function(event) {
+                if (event.target.classList.contains('history-delete-log-btn')) {
+                    const logId = event.target.dataset.logId;
+                    if (logId) {
+                        handleDeleteLogEntry(parseInt(logId, 10));
+                    }
+                }
+            });
+        }
+
+        // --- Photo Upload Listeners ---
+        if (addPhotoBtn) {
+            addPhotoBtn.addEventListener('click', openPhotoUploadModal);
+        }
+        if (photoModalCloseBtn) {
+            photoModalCloseBtn.addEventListener('click', closePhotoUploadModal);
+        }
+        if (photoForm) {
+             photoForm.addEventListener('submit', handlePhotoUpload);
+        }
+        if (photoUploadInput) {
+             photoUploadInput.addEventListener('change', () => displayFileSize(photoUploadInput));
+        }
+        if (deletePhotoBtn) {
+            deletePhotoBtn.addEventListener('click', handleDeletePhoto);
+        }
+        if (comparePhotosBtn) {
+             comparePhotosBtn.addEventListener('click', togglePhotoComparison);
+        }
+        if (comparisonPhotoSelect1) {
+             comparisonPhotoSelect1.addEventListener('change', updateComparisonImages);
+        }
+        if (comparisonPhotoSelect2) {
+             comparisonPhotoSelect2.addEventListener('change', updateComparisonImages);
+        }
+
+        // --- Initialize Chart.js Config ---
+        setupChartConfig();
+
+        // --- Initialize Auto-Save --- 
+        initializeAutoSave();
+
+        // --- Initialize Mobile Layout Adjustments ---
+        initializeMobileLayout();
+
+        // Restore page and workout state *after* listeners are set up
+        restoreWorkoutState();
+        restoreInputValues();
+
+        console.log('Initialization complete.');
+    } // End of initialize function
+
+    // --- New Handler for Adding Multiple Selected Exercises (Reconstructed) ---
+    async function handleAddSelectedExercises() {
+        const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
+
+        // Log all checked exercises for debugging
+        console.log('Current checked exercises:');
+        checkedExercises.forEach(id => {
+            console.log(`- Exercise ID: ${id}`);
+        });
+
+        // Get all selected exercises from the checkedExercises Set
+        if (checkedExercises.size === 0) {
+            alert('Please select at least one exercise to add.');
+            return;
+        }
+
+        console.log(`Adding ${checkedExercises.size} checked exercises to ${targetList}`);
+
+        // Use the order array to add exercises in the order they were checked
+        const orderedIds = checkedExercisesOrder.filter(id => checkedExercises.has(id));
+
+        // Add any selected exercises that might not be in the order array (fallback)
+        Array.from(checkedExercises).forEach(id => {
+            if (!orderedIds.includes(id)) {
+                orderedIds.push(id);
+            }
+        });
+
+        console.log(`Ordered IDs for adding (${orderedIds.length}):`, orderedIds);
+
+        // Store the exercises to add before closing the modal
+        const exercisesToAdd = [...orderedIds];
+
+        // Close the modal before adding exercises
+        closeExerciseModal();
+
+        // Add exercises in the correct order (sequentially to maintain order)
+        for (const exerciseId of exercisesToAdd) {
+            console.log(`Adding exercise ID: ${exerciseId} to ${targetList}`);
+            await addExerciseToWorkout(exerciseId, targetList); // Pass targetList and await completion
+        }
+
+        console.log(`Added ${exercisesToAdd.length} exercises to ${targetList}`);
+
+        // Clear the selected exercises after adding them
+        checkedExercises.clear();
+        checkedExercisesOrder.length = 0;
+        console.log('Cleared all checked exercises');
+
+        // Re-render the available exercises list to reflect the cleared selections
+        renderAvailableExercises(exerciseSearchInput.value, exerciseCategoryFilter.value);
+    }
+
+    // --- Cancel Workout Function (Reconstructed) ---
+    function handleCancelWorkout() {
+        // Save input values before canceling? Maybe not necessary if clearing state.
+        // Optional: Consider saving input values first via saveInputValues() or saveWorkoutData()
+        console.log('Cancel workout requested.');
+
+        // Stop timer immediately to prevent further updates while confirming
+        stopTimer();
+
+        if (confirm('Are you sure you want to cancel this workout? All current progress for this session will be lost.')) {
+            console.log('Workout cancelled by user.');
+
+            // Reset state variables
+            currentWorkout = [];
+            workoutStartTime = null;
+
+            // Clear saved workout state from localStorage
+            clearWorkoutState(); // Assuming this function exists and is accessible
+
+            // Switch back to landing page
+            switchPage('landing');
+        } else {
+            console.log('Workout cancellation aborted.');
+            // Resume timer if user cancels the cancellation
+            startTimer();
+        }
+    }
+
+    // Defer listener attachment slightly to ensure DOM is ready
+    setTimeout(() => {
+        const searchInputEl = document.getElementById('template-search');
+        if (searchInputEl) {
+            console.log('[Initialize Defer] Found templateSearchInput, adding listener...');
+            searchInputEl.addEventListener('input', (event) => {
+                console.log('[Template Search Listener] Event fired!');
+
+                const searchTerm = event.target.value.toLowerCase();
+                console.log(`[Template Search] Input event: searchTerm = '${searchTerm}'`);
+
+                const filtered = workoutTemplates.filter(t => {
+                    return t.name && typeof t.name === 'string' && t.name.toLowerCase().includes(searchTerm);
+                });
+
+                console.log(`[Template Search] Filtered templates count: ${filtered.length}`);
+
+                renderWorkoutTemplates(filtered);
+            });
+        } else {
+            console.error('[Initialize Defer Error] templateSearchInput element not found! Cannot add search listener.');
+        }
+    }, 0); // Delay of 0ms pushes to end of event loop
 });
 
 // Helper function (if not already present globally)

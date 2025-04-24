@@ -6,15 +6,20 @@ function calculateTimeSince(startDate) {
     const now = new Date();
 
     // Calculate the time difference in milliseconds
-    const diffMs = now - start;
+    let diffMs = now - start;
+
+    // Handle cases where the start date might be slightly in the future due to clock skew
+    if (diffMs < 0) {
+        diffMs = 0;
+    }
 
     // Calculate days, hours, and minutes
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-    // Format the output as days:hours:minutes
-    return `${days}:${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    // Return an object instead of a string
+    return { days, hours, minutes };
 }
 
 function formatDate(dateString) {
@@ -62,13 +67,30 @@ function renderEvents(events) {
     }
 
     const renderedHtml = events.map(event => {
-        const timeSince = calculateTimeSince(event.start_date);
+        const timeComponents = calculateTimeSince(event.start_date);
+
+        // Format the time difference descriptively
+        let timeSinceFormatted = '';
+        if (timeComponents.days > 0) {
+            timeSinceFormatted += `${timeComponents.days} ${timeComponents.days === 1 ? 'day' : 'days'}`;
+        }
+        if (timeComponents.hours > 0) {
+            timeSinceFormatted += `${timeSinceFormatted ? ', ' : ''}${timeComponents.hours} ${timeComponents.hours === 1 ? 'hour' : 'hours'}`;
+        }
+        if (timeComponents.minutes > 0) {
+            timeSinceFormatted += `${timeSinceFormatted ? ', ' : ''}${timeComponents.minutes} ${timeComponents.minutes === 1 ? 'minute' : 'minutes'}`;
+        }
+        // Handle the case where the difference is less than a minute
+        if (timeSinceFormatted === '') {
+            timeSinceFormatted = 'Less than a minute';
+        }
+
         return `
             <div class="days-since-event" data-id="${event.id}">
                 <div class="event-info">
                     <div class="event-name">${escapeHtml(event.event_name)}</div>
                     <div class="event-date">Started: ${formatDate(event.start_date)}</div>
-                    <div class="days-count">${timeSince}</div>
+                    <div class="days-count">${timeSinceFormatted}</div>
                 </div>
                 <div class="event-actions">
                     <button class="edit-btn" onclick="editEvent(${event.id}, '${escapeHtml(event.event_name)}', '${event.start_date}')">Edit</button>
@@ -173,77 +195,71 @@ window.editEvent = function(id, currentName, currentDate) {
     const eventElement = document.querySelector(`.days-since-event[data-id="${id}"]`);
     if (!eventElement) return;
 
-    // Format the date for the datetime-local input
-    // Create a date object and format it to be compatible with datetime-local input
-    // We need to handle the date carefully to preserve the exact time that was set
-    const date = new Date(currentDate);
-
-    // Get date components in local time zone
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
+    // --- Change: Default to current time instead of event's time ---
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
 
     // Format for datetime-local input (YYYY-MM-DDTHH:MM)
-    const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+    const defaultEditDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+    // --- End Change ---
 
     // Create and show edit form
     const editForm = document.createElement('form');
+    editForm.classList.add('edit-form-inline'); // Add a class for potential styling
     editForm.innerHTML = `
+        <h4>Editing Event</h4>
         <div class="form-group">
-            <label for="editEventName">Event Name:</label>
-            <input type="text" id="editEventName" value="${currentName}" required>
+            <label for="editEventName_${id}">Event Name:</label>
+            <input type="text" id="editEventName_${id}" value="${currentName}" required>
         </div>
         <div class="form-group">
-            <label for="editEventDate">Start Date:</label>
-            <input type="datetime-local" id="editEventDate" value="${formattedDate}" required>
+            <label for="editEventDate_${id}">Start Date:</label>
+            <input type="datetime-local" id="editEventDate_${id}" value="${defaultEditDate}" required>
         </div>
-        <div class="event-actions">
-            <button type="submit" class="edit-btn">Save</button>
-            <button type="button" class="delete-btn" onclick="cancelEdit(${id})">Cancel</button>
+        <div class="edit-form-actions">
+            <button type="submit" class="save-btn">Save</button>
+            <button type="button" class="cancel-btn" onclick="cancelEdit(${id})">Cancel</button>
         </div>
+        <div id="editStatus_${id}" class="status"></div>
     `;
 
-    // Replace the event content with the edit form
-    const originalContent = eventElement.innerHTML;
-    eventElement.innerHTML = '';
+    // Replace event content with the form
+    eventElement.innerHTML = ''; // Clear existing content
     eventElement.appendChild(editForm);
 
     // Handle form submission
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const newName = document.getElementById('editEventName').value.trim();
-        const newDate = document.getElementById('editEventDate').value;
+        const updatedName = document.getElementById(`editEventName_${id}`).value.trim();
+        const updatedDate = document.getElementById(`editEventDate_${id}`).value;
+        const editStatus = document.getElementById(`editStatus_${id}`);
 
-        if (!newName || !newDate) {
-            showStatus(document.getElementById('daysSinceListStatus'), 'Please fill in all fields', 'error');
+        if (!updatedName || !updatedDate) {
+            showStatus(editStatus, 'Please fill in all fields', 'error');
             return;
         }
 
         try {
             const response = await fetch(`/api/days-since/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    eventName: newName,
-                    startDate: newDate // Send the datetime-local value directly
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventName: updatedName, startDate: updatedDate })
             });
 
             if (!response.ok) {
                 throw new Error('Failed to update event');
             }
 
-            showStatus(document.getElementById('daysSinceListStatus'), 'Event updated successfully', 'success');
-            loadEvents();
+            showStatus(editStatus, 'Event updated!', 'success');
+            // Reload events after a short delay to show the success message
+            setTimeout(loadEvents, 1000);
         } catch (error) {
             console.error('Error updating event:', error);
-            showStatus(document.getElementById('daysSinceListStatus'), 'Failed to update event', 'error');
-            // Restore original content on error
-            eventElement.innerHTML = originalContent;
+            showStatus(editStatus, 'Failed to update event', 'error');
         }
     });
 }
@@ -271,5 +287,5 @@ window.deleteEvent = async function(id) {
 }
 
 window.cancelEdit = function(id) {
-    loadEvents();
+    loadEvents(); // Simplest way is to just reload the list
 }

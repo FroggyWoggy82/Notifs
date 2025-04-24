@@ -24,7 +24,6 @@ function initWorkoutPersistence() {
     // Export functions to window
     window.saveWorkoutData = saveWorkoutData;
     window.restoreWorkoutData = restoreWorkoutData;
-    window.clearWorkoutData = clearWorkoutData;
     window.updateCurrentWorkoutFromUI = updateCurrentWorkoutFromUI;
 }
 

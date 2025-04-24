@@ -25,36 +25,28 @@ async function createEvent(eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Handle the date string from the client (format: YYYY-MM-DDTHH:MM)
-    // Create a date object that preserves the exact time as entered
-    let parsedDate;
-    if (startDate.includes('T')) {
-        // This is a datetime-local value (YYYY-MM-DDTHH:MM)
-        const [datePart, timePart] = startDate.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hours, minutes] = timePart.split(':').map(Number);
+    // Directly parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
+    // into a JS Date object. The pg driver will handle conversion to
+    // the database's timestamp with time zone type correctly (usually storing as UTC).
+    const parsedDate = new Date(startDate);
 
-        // Create a date string in ISO format but force it to be interpreted as UTC
-        // This prevents any timezone conversion
-        const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00.000Z`;
-
-        // Store the date as a string in the format 'YYYY-MM-DD HH:MM:00'
-        // This will be interpreted by PostgreSQL as a timestamp without timezone
-        parsedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-    } else {
-        // Fallback for other formats - should not normally be used
-        parsedDate = new Date(startDate);
+    // Validate the parsed date
+    if (isNaN(parsedDate.getTime())) {
+        // Attempt to re-parse if format might have seconds T H H : M M : S S
+        const alternativeDate = new Date(startDate.replace('T', ' '));
+        if (isNaN(alternativeDate.getTime())) {
+            console.error(`Invalid date format received: ${startDate}`);
+            throw new Error('Invalid date format');
+        }
+         // Use the alternatively parsed date if valid
+         parsedDate = alternativeDate;
     }
 
-    // Only validate date format if parsedDate is a Date object
-    if (parsedDate instanceof Date && isNaN(parsedDate.getTime())) {
-        throw new Error('Invalid date format');
-    }
 
-    // Store the date in the database
+    // Store the date object in the database
     const result = await db.query(
         'INSERT INTO days_since_events (event_name, start_date) VALUES ($1, $2) RETURNING *',
-        [eventName.trim(), parsedDate]
+        [eventName.trim(), parsedDate] // Pass the Date object directly
     );
 
     return result.rows[0];
@@ -72,35 +64,27 @@ async function updateEvent(id, eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Handle the date string from the client (format: YYYY-MM-DDTHH:MM)
-    // Create a date object that preserves the exact time as entered
-    let parsedDate;
-    if (startDate.includes('T')) {
-        // This is a datetime-local value (YYYY-MM-DDTHH:MM)
-        const [datePart, timePart] = startDate.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hours, minutes] = timePart.split(':').map(Number);
+    // Directly parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
+    // into a JS Date object. The pg driver will handle conversion to
+    // the database's timestamp with time zone type correctly (usually storing as UTC).
+    const parsedDate = new Date(startDate);
 
-        // Create a date string in ISO format but force it to be interpreted as UTC
-        // This prevents any timezone conversion
-        const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00.000Z`;
-
-        // Store the date as a string in the format 'YYYY-MM-DD HH:MM:00'
-        // This will be interpreted by PostgreSQL as a timestamp without timezone
-        parsedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-    } else {
-        // Fallback for other formats - should not normally be used
-        parsedDate = new Date(startDate);
+    // Validate the parsed date
+    if (isNaN(parsedDate.getTime())) {
+        // Attempt to re-parse if format might have seconds T H H : M M : S S
+        const alternativeDate = new Date(startDate.replace('T', ' '));
+        if (isNaN(alternativeDate.getTime())) {
+            console.error(`Invalid date format received for update: ${startDate}`);
+            throw new Error('Invalid date format');
+        }
+        // Use the alternatively parsed date if valid
+        parsedDate = alternativeDate;
     }
 
-    // Only validate date format if parsedDate is a Date object
-    if (parsedDate instanceof Date && isNaN(parsedDate.getTime())) {
-        throw new Error('Invalid date format');
-    }
 
     const result = await db.query(
         'UPDATE days_since_events SET event_name = $1, start_date = $2 WHERE id = $3 RETURNING *',
-        [eventName.trim(), parsedDate, id]
+        [eventName.trim(), parsedDate, id] // Pass the Date object directly
     );
 
     if (result.rowCount === 0) {
