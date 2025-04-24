@@ -345,11 +345,13 @@
 
 #selectedTaskList li {
     padding: 12px;
+    padding-right: 80px; /* Add space on the right for the action buttons */
     border-bottom: 1px dashed #e8eef2;
     font-size: 0.95em;
     margin-bottom: 8px;
     border-radius: 4px;
     background-color: #f8f9fa;
+    position: relative; /* Add positioning context for absolute positioned children */
 }
 #selectedTaskList li:last-child {
     border-bottom: none;
@@ -387,20 +389,25 @@
 
 /* Task actions in calendar view */
 #selectedTaskList .task-actions {
-    margin-top: 8px;
     display: flex;
     gap: 8px;
-    opacity: 0; /* Hide by default */
+    opacity: 1; /* Always visible by default */
     transition: opacity 0.2s ease;
+    position: absolute; /* Position absolutely */
+    right: 10px; /* Position from the right edge */
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%); /* Adjust for perfect centering */
 }
 
-/* Show task actions on hover */
-#selectedTaskList .task-item:hover .task-actions {
+/* Show task actions on hover - keeping for compatibility */
+#selectedTaskList .task-item:hover .task-actions,
+#selectedTaskList li:hover .task-actions {
     opacity: 1;
 }
 
 /* For touch devices - will be handled with JavaScript */
-#selectedTaskList .task-item.show-actions .task-actions {
+#selectedTaskList .task-item.show-actions .task-actions,
+#selectedTaskList li.show-actions .task-actions {
     opacity: 1;
 }
 

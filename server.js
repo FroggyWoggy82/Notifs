@@ -9,11 +9,27 @@ const cron = require('node-cron');
 const sharp = require('sharp');
 const fs = require('fs');
 
-// Ensure persistent volume directory exists
-const persistentDir = '/data/uploads/progress_photos';
-if (!fs.existsSync(persistentDir)) {
-    console.log(`Creating persistent directory: ${persistentDir}`);
-    fs.mkdirSync(persistentDir, { recursive: true });
+// Ensure upload directories exist
+const isProduction = process.env.NODE_ENV === 'production';
+const persistentDir = isProduction
+    ? '/data/uploads/progress_photos'
+    : path.join(__dirname, 'public/uploads/progress_photos');
+
+try {
+    if (!fs.existsSync(persistentDir)) {
+        console.log(`Creating persistent directory: ${persistentDir}`);
+        fs.mkdirSync(persistentDir, { recursive: true });
+    }
+} catch (error) {
+    console.error(`Error creating persistent directory: ${error.message}`);
+    console.log('Will attempt to use public/uploads directory instead');
+
+    // Fallback to public/uploads directory
+    const fallbackDir = path.join(__dirname, 'public/uploads/progress_photos');
+    if (!fs.existsSync(fallbackDir)) {
+        console.log(`Creating fallback directory: ${fallbackDir}`);
+        fs.mkdirSync(fallbackDir, { recursive: true });
+    }
 }
 
 // Database connection
@@ -43,7 +59,7 @@ const { swaggerDocs } = require('./docs/swagger');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000; // Using default port 3000
+const PORT = process.env.PORT || 3012; // Using port 3012 to avoid conflicts
 
 // Middleware
 app.use(cors({

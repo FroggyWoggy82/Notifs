@@ -1,7 +1,10 @@
 // public/js/calendar.js
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Calendar.js: DOM content loaded');
+
     const currentMonthYearEl = document.getElementById('currentMonthYear');
-    const calendarGridEl = document.querySelector('.calendar-grid');
+    // Use let instead of const so we can reassign it later
+    let calendarGridEl = document.getElementById('calendar-grid');
     const prevMonthBtn = document.getElementById('prevMonthBtn');
     const nextMonthBtn = document.getElementById('nextMonthBtn');
     const calendarStatusEl = document.getElementById('calendarStatus');
@@ -10,9 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedTaskListEl = document.getElementById('selectedTaskList');
     const closeSelectedDateViewBtn = document.getElementById('closeSelectedDateView');
 
-    // Edit Task Modal Elements
+    // Edit task modal elements
+    console.log('Calendar.js: Initializing edit task modal elements');
     const editTaskModal = document.getElementById('edit-task-modal');
+    console.log('Edit task modal element:', editTaskModal);
+
     const editTaskForm = document.getElementById('edit-task-form');
+    console.log('Edit task form element:', editTaskForm);
+
     const editTaskIdInput = document.getElementById('edit-task-id');
     const editTaskTitleInput = document.getElementById('edit-task-title');
     const editTaskDescriptionInput = document.getElementById('edit-task-description');
@@ -25,6 +33,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const editTaskRecurrenceIntervalUnit = document.getElementById('edit-recurrence-interval-unit');
     const editTaskStatus = document.getElementById('edit-task-status');
     const closeEditTaskModalBtn = editTaskModal ? editTaskModal.querySelector('.close-button') : null;
+
+    // Debug all modal elements
+    console.log('Edit task ID input element:', editTaskIdInput);
+    console.log('Edit task title input element:', editTaskTitleInput);
+    console.log('Edit task description input element:', editTaskDescriptionInput);
+    console.log('Edit task reminder time input element:', editTaskReminderTimeInput);
+    console.log('Edit task assigned date input element:', editTaskAssignedDateInput);
+    console.log('Edit task due date input element:', editTaskDueDateInput);
+    console.log('Edit task recurrence type select element:', editTaskRecurrenceTypeSelect);
+    console.log('Edit task recurrence interval input element:', editTaskRecurrenceIntervalInput);
+    console.log('Edit task recurrence interval container element:', editTaskRecurrenceIntervalContainer);
+    console.log('Edit task recurrence interval unit element:', editTaskRecurrenceIntervalUnit);
+    console.log('Edit task status element:', editTaskStatus);
+    console.log('Close edit task modal button element:', closeEditTaskModalBtn);
+
+    // Function to update the edit task status
+    function updateEditTaskStatus(message, isError = false) {
+        if (!editTaskStatus) return;
+
+        editTaskStatus.textContent = message;
+        editTaskStatus.className = 'status';
+
+        if (message) {
+            editTaskStatus.classList.add(isError ? 'error' : 'success');
+            editTaskStatus.style.display = 'block';
+        } else {
+            editTaskStatus.style.display = 'none';
+        }
+    }
 
     window.currentDate = new Date(); // State for the currently viewed month/year - make globally accessible
     let allTasks = []; // Store fetched tasks
@@ -39,6 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
         calendarStatusEl.textContent = message;
         calendarStatusEl.className = `status ${isError ? 'error' : 'success'}`;
         calendarStatusEl.style.display = message ? 'block' : 'none';
+    }
+
+    // Update the edit task status message
+    function updateEditTaskStatus(message, isError = false) {
+        if (!editTaskStatus) return;
+
+        console.log(`Edit Task Status: ${message} (Error: ${isError})`);
+        editTaskStatus.textContent = message;
+        editTaskStatus.className = `status ${isError ? 'error' : 'success'}`;
+        editTaskStatus.style.display = message ? 'block' : 'none';
     }
 
     // Format date as YYYY-MM-DD (used for matching tasks)
@@ -93,16 +140,26 @@ document.addEventListener('DOMContentLoaded', () => {
     window.fetchTasks = async function(forceReload = false) {
         updateStatus("Loading tasks...", false);
         try {
-            // Fetch tasks that have either an assigned_date or due_date
-            // The API might need refinement to fetch only relevant tasks for a given month view
-            const url = forceReload ?
-                `/api/tasks?relevantDates=true&_cache=${new Date().getTime()}` :
-                '/api/tasks?relevantDates=true';
+            // Always add a cache-busting parameter to ensure we get fresh data
+            // This is especially important after editing a task
+            const timestamp = new Date().getTime();
+            const url = `/api/tasks?relevantDates=true&_cache=${timestamp}`;
 
-            const response = await fetch(url);
+            console.log(`Fetching tasks with URL: ${url} (forceReload: ${forceReload})`);
+
+            // Use cache: 'no-cache' to ensure we don't get cached data
+            const response = await fetch(url, {
+                cache: 'no-cache',
+                headers: {
+                    'Pragma': 'no-cache',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
             allTasks = await response.json();
             console.log("Tasks fetched for calendar:", allTasks);
 
@@ -110,10 +167,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const recurringTasks = allTasks.filter(task => task.recurrence_type && task.recurrence_type !== 'none');
             console.log(`Found ${recurringTasks.length} recurring tasks:`, recurringTasks);
 
+            // Log tasks with assigned dates for debugging
+            const tasksWithAssignedDates = allTasks.filter(task => task.assigned_date);
+            console.log(`Found ${tasksWithAssignedDates.length} tasks with assigned dates:`,
+                tasksWithAssignedDates.map(t => ({
+                    id: t.id,
+                    title: t.title,
+                    assigned_date: t.assigned_date,
+                    due_date: t.due_date
+                }))
+            );
+
             updateStatus("", false); // Clear loading message
 
             // Re-render the calendar with the new data
-            renderCalendar();
+            renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
 
             return allTasks;
         } catch (error) {
@@ -233,10 +301,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make this function globally accessible so it can be called from calendar-refresh.js
     window.fetchHabits = async function(year, month) {
         try {
+            console.log("Fetching habits for", year, month);
+
+            // Validate inputs
+            if (isNaN(year) || isNaN(month)) {
+                console.error("Invalid year or month:", year, month);
+                return { habits: [], completions: {} };
+            }
+
             // Calculate start and end dates for the month view
             // We need to include some days from previous and next months
             const firstDayOfMonth = new Date(year, month, 1);
             const lastDayOfMonth = new Date(year, month + 1, 0);
+
+            console.log("First day of month:", firstDayOfMonth);
+            console.log("Last day of month:", lastDayOfMonth);
 
             // Add buffer days before and after to account for calendar view
             const startDate = new Date(firstDayOfMonth);
@@ -245,9 +324,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const endDate = new Date(lastDayOfMonth);
             endDate.setDate(endDate.getDate() + 7); // Go forward a week to be safe
 
-            // Format dates as YYYY-MM-DD
-            const startDateStr = startDate.toISOString().split('T')[0];
-            const endDateStr = endDate.toISOString().split('T')[0];
+            console.log("Start date:", startDate);
+            console.log("End date:", endDate);
+
+            // Format dates as YYYY-MM-DD with error handling
+            let startDateStr, endDateStr;
+            try {
+                startDateStr = startDate.toISOString().split('T')[0];
+                endDateStr = endDate.toISOString().split('T')[0];
+            } catch (e) {
+                console.error("Error formatting dates:", e);
+                // Use fallback dates
+                const today = new Date();
+                startDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+                endDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-28`;
+            }
 
             console.log(`Fetching habits for date range: ${startDateStr} to ${endDateStr}`);
 
@@ -280,7 +371,56 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make this function globally accessible so it can be called from calendar-refresh.js
     window.renderCalendar = async function(year, month) {
         updateStatus("Rendering calendar...", false);
-        calendarGridEl.querySelectorAll('.calendar-day').forEach(el => el.remove()); // Clear previous days
+        console.log("Rendering calendar for", year, month);
+
+        // Check if the calendar grid exists
+        if (!calendarGridEl) {
+            console.log("Calendar grid not found, looking for it again");
+            calendarGridEl = document.getElementById('calendar-grid');
+
+            // If it still doesn't exist, find the container and create it
+            if (!calendarGridEl) {
+                console.log("Creating new calendar grid");
+                const container = document.querySelector('.container');
+                if (!container) {
+                    console.error("Container not found, cannot render calendar");
+                    return;
+                }
+
+                // Find where to insert the calendar grid (after the filter, before the status)
+                const calendarFilter = document.querySelector('.calendar-filter');
+                const calendarStatus = document.getElementById('calendarStatus');
+
+                // Create a new calendar grid element
+                calendarGridEl = document.createElement('div');
+                calendarGridEl.id = 'calendar-grid';
+                calendarGridEl.className = 'calendar-grid';
+
+                // Insert it in the right place
+                if (calendarStatus) {
+                    container.insertBefore(calendarGridEl, calendarStatus);
+                } else if (calendarFilter) {
+                    container.insertBefore(calendarGridEl, calendarFilter.nextSibling);
+                } else {
+                    container.appendChild(calendarGridEl);
+                }
+            }
+        }
+
+        // Clear the existing grid
+        console.log("Clearing calendar grid");
+        calendarGridEl.innerHTML = '';
+
+        // Add the header elements
+        console.log("Adding day headers");
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        days.forEach(day => {
+            const headerEl = document.createElement('div');
+            headerEl.className = 'calendar-header';
+            headerEl.textContent = day;
+            calendarGridEl.appendChild(headerEl);
+        });
+
         selectedDateTasksEl.style.display = 'none'; // Hide date detail view
 
         const firstDayOfMonth = new Date(year, month, 1);
@@ -783,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 li.setAttribute('data-task-id', task.id);
                 // Apply appropriate classes based on task state
-                const classes = [];
+                const classes = ['task-item']; // Add task-item class for CSS targeting
                 if (task.is_complete) classes.push('complete');
                 if (task.isRecurring) classes.push('recurring');
                 if (task.isOverdue) classes.push('overdue');
@@ -842,8 +982,23 @@ document.addEventListener('DOMContentLoaded', () => {
                             badgeSpan.textContent = `Repeats ${task.recurrence_type}`;
                             badgeSpan.title = `This task repeats ${task.recurrence_type}`;
                         } else {
-                            // Show the interval in the badge
-                            badgeSpan.textContent = `Every ${interval} ${task.recurrence_type.slice(0, -2)}s`;
+                            // Show the interval in the badge with proper pluralization
+                            switch(task.recurrence_type) {
+                                case 'daily':
+                                    badgeSpan.textContent = `Every ${interval} days`;
+                                    break;
+                                case 'weekly':
+                                    badgeSpan.textContent = `Every ${interval} weeks`;
+                                    break;
+                                case 'monthly':
+                                    badgeSpan.textContent = `Every ${interval} months`;
+                                    break;
+                                case 'yearly':
+                                    badgeSpan.textContent = `Every ${interval} years`;
+                                    break;
+                                default:
+                                    badgeSpan.textContent = `Every ${interval} ${task.recurrence_type}`;
+                            }
 
                             // Add detailed information in the tooltip
                             switch(task.recurrence_type) {
@@ -883,21 +1038,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Add action buttons (Edit and Delete Icons)
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'task-actions';
-                actionsDiv.style.marginTop = '8px';
                 actionsDiv.style.display = 'flex';
                 actionsDiv.style.gap = '8px';
+                actionsDiv.style.opacity = '1'; // Ensure actions are always visible
 
                 // Edit button
+                console.log('Creating edit button for task:', task.id, task.title);
                 const editBtn = document.createElement('button');
                 editBtn.className = 'icon-btn edit-task-btn';
                 editBtn.innerHTML = '<i class="pencil-icon">✏️</i>'; // Pencil emoji
                 editBtn.title = 'Edit task';
-                editBtn.style.background = 'none';
-                editBtn.style.border = 'none';
+                editBtn.style.background = '#e3f2fd'; // Light blue background
+                editBtn.style.border = '1px solid #bbdefb'; // Light blue border
                 editBtn.style.padding = '5px';
                 editBtn.style.cursor = 'pointer';
                 editBtn.style.borderRadius = '50%';
-                editBtn.addEventListener('click', () => handleEditTask(task));
+                editBtn.style.width = '30px';
+                editBtn.style.height = '30px';
+                editBtn.style.display = 'flex';
+                editBtn.style.alignItems = 'center';
+                editBtn.style.justifyContent = 'center';
+                editBtn.style.boxShadow = '0 0 3px rgba(0,0,0,0.2)';
+                editBtn.style.marginRight = '5px';
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent event bubbling
+                    console.log('Edit button clicked for task:', task.id);
+                    handleEditTask(task);
+                });
                 actionsDiv.appendChild(editBtn);
 
                 // Delete button
@@ -905,21 +1072,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteBtn.className = 'icon-btn delete-btn';
                 deleteBtn.innerHTML = '<i class="x-icon">❌</i>'; // X emoji
                 deleteBtn.title = 'Delete task';
-                deleteBtn.style.background = 'none';
-                deleteBtn.style.border = 'none';
+                deleteBtn.style.background = '#ffebee'; // Light red background
+                deleteBtn.style.border = '1px solid #ffcdd2'; // Light red border
                 deleteBtn.style.padding = '5px';
                 deleteBtn.style.cursor = 'pointer';
                 deleteBtn.style.borderRadius = '50%';
+                deleteBtn.style.width = '30px';
+                deleteBtn.style.height = '30px';
+                deleteBtn.style.display = 'flex';
+                deleteBtn.style.alignItems = 'center';
+                deleteBtn.style.justifyContent = 'center';
+                deleteBtn.style.boxShadow = '0 0 3px rgba(0,0,0,0.2)';
                 deleteBtn.addEventListener('click', () => handleDeleteTask(task));
                 actionsDiv.appendChild(deleteBtn);
-
-                contentContainer.appendChild(actionsDiv);
 
                 // Add content container to item container
                 itemContainer.appendChild(contentContainer);
 
-                // Add item container to list item
+                // Add item container and action buttons to the list item
                 li.appendChild(itemContainer);
+                li.appendChild(actionsDiv);
 
                 selectedTaskListEl.appendChild(li);
             });
@@ -1079,8 +1251,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleEditTask(task) {
         console.log('Editing task:', task);
 
+        // Store the original task data for debugging
+        window.originalTaskData = JSON.parse(JSON.stringify(task));
+        console.log('Original task data stored for debugging:', window.originalTaskData);
+
+        // Debug information
+        console.log('Edit task modal element:', editTaskModal);
+        console.log('Edit task form element:', editTaskForm);
+        console.log('Edit task ID input element:', editTaskIdInput);
+
         if (!editTaskModal) {
             console.error('Edit task modal not found');
+            alert('Edit task modal not found. Please check the console for more information.');
             return;
         }
 
@@ -1095,10 +1277,41 @@ document.addEventListener('DOMContentLoaded', () => {
         editTaskTitleInput.value = task.title || '';
         editTaskDescriptionInput.value = task.description || '';
 
-        // Format dates/times for input fields
-        editTaskReminderTimeInput.value = task.reminder_time ? new Date(task.reminder_time).toISOString().slice(0, 16) : '';
-        editTaskAssignedDateInput.value = task.assigned_date ? task.assigned_date.split('T')[0] : '';
-        editTaskDueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
+        // Format dates/times for input fields with better logging
+        if (task.reminder_time) {
+            console.log(`Processing reminder_time: ${task.reminder_time}`);
+            const reminderTime = new Date(task.reminder_time);
+            if (!isNaN(reminderTime.getTime())) {
+                const formattedTime = reminderTime.toISOString().slice(0, 16);
+                editTaskReminderTimeInput.value = formattedTime;
+                console.log(`Formatted reminder_time: ${formattedTime}`);
+            } else {
+                console.warn(`Invalid reminder_time: ${task.reminder_time}`);
+                editTaskReminderTimeInput.value = '';
+            }
+        } else {
+            editTaskReminderTimeInput.value = '';
+        }
+
+        if (task.assigned_date) {
+            console.log(`Processing assigned_date: ${task.assigned_date}`);
+            const formattedDate = task.assigned_date.split('T')[0];
+            editTaskAssignedDateInput.value = formattedDate;
+            console.log(`Formatted assigned_date: ${formattedDate}`);
+        } else {
+            console.log('No assigned_date provided');
+            editTaskAssignedDateInput.value = '';
+        }
+
+        if (task.due_date) {
+            console.log(`Processing due_date: ${task.due_date}`);
+            const formattedDate = task.due_date.split('T')[0];
+            editTaskDueDateInput.value = formattedDate;
+            console.log(`Formatted due_date: ${formattedDate}`);
+        } else {
+            console.log('No due_date provided');
+            editTaskDueDateInput.value = '';
+        }
 
         // Set recurrence fields
         editTaskRecurrenceTypeSelect.value = task.recurrence_type || 'none';
@@ -1291,6 +1504,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Edit Task Modal Event Listeners
     if (editTaskModal && editTaskForm) {
+        // Close button event listener
+        if (closeEditTaskModalBtn) {
+            closeEditTaskModalBtn.addEventListener('click', () => {
+                editTaskModal.style.display = 'none';
+            });
+        }
+
+        // Close modal when clicking outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target === editTaskModal) {
+                editTaskModal.style.display = 'none';
+            }
+        });
+
         // Handle recurrence type change
         editTaskRecurrenceTypeSelect.addEventListener('change', () => {
             // Show/hide interval input based on recurrence type
@@ -1327,34 +1554,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 dueDate: editTaskDueDateInput.value || null,
                 recurrenceType: editTaskRecurrenceTypeSelect.value,
                 recurrenceInterval: editTaskRecurrenceTypeSelect.value !== 'none' ?
-                    parseInt(editTaskRecurrenceIntervalInput.value, 10) : null
+                    parseInt(editTaskRecurrenceIntervalInput.value) || 1 : null
             };
 
-            // Basic validation
-            if (!updatedData.title) {
-                updateEditTaskStatus("Task title cannot be empty.", true);
-                saveButton.disabled = false;
-                saveButton.textContent = 'Save Changes';
-                return;
-            }
+            console.log('Updating task with data:', updatedData);
 
             try {
                 const response = await fetch(`/api/tasks/${taskId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(updatedData)
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({ error: 'Server error updating task' }));
-                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
 
-                const updatedTask = await response.json();
-                console.log("Task updated successfully:", updatedTask);
+                const result = await response.json();
+                console.log('Task updated successfully:', result);
 
-                // Refresh the tasks data
-                await fetchTasks();
+                // Log the updated dates for debugging
+                console.log(`Task ${taskId} dates updated:`, {
+                    originalAssignedDate: task.assigned_date,
+                    originalDueDate: task.due_date,
+                    newAssignedDate: result.assigned_date,
+                    newDueDate: result.due_date,
+                    formAssignedDate: editTaskAssignedDateInput.value,
+                    formDueDate: editTaskDueDateInput.value
+                });
+
+                // Refresh the tasks data with force reload to ensure we get the latest data
+                await fetchTasks(true);
 
                 // Get the currently selected date
                 const selectedDay = document.querySelector('.calendar-day.selected');
@@ -1370,33 +1603,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Refresh the calendar view
                 renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
 
-                updateEditTaskStatus("Task updated successfully!", false);
+                // Show success message
+                updateEditTaskStatus("Task updated successfully", false);
+
+                // Close the modal after a short delay
                 setTimeout(() => {
                     editTaskModal.style.display = 'none';
-                }, 1000);
+                    updateEditTaskStatus("", false);
+                }, 1500);
+
+                // Dispatch a custom event to notify other components
+                document.dispatchEvent(new CustomEvent('taskUpdated', { detail: result }));
 
             } catch (error) {
                 console.error('Error updating task:', error);
                 updateEditTaskStatus(`Error updating task: ${error.message}`, true);
             } finally {
+                // Re-enable the save button
                 saveButton.disabled = false;
                 saveButton.textContent = 'Save Changes';
             }
         });
 
-        // Close modal when clicking the close button
-        if (closeEditTaskModalBtn) {
-            closeEditTaskModalBtn.addEventListener('click', () => {
-                editTaskModal.style.display = 'none';
-            });
-        }
-
-        // Close modal when clicking outside
-        editTaskModal.addEventListener('click', (event) => {
-            if (event.target === editTaskModal) {
-                editTaskModal.style.display = 'none';
-            }
-        });
+        // Note: Close button and outside click handlers are already set up above
     }
 
     // Helper function to update edit task status
@@ -1411,31 +1640,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Load ---
     async function initializeCalendar() {
-        await fetchTasks(); // Load tasks first
-        await fetchHabits(); // Load habits
-        await renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Then render calendar
+        console.log('Initializing calendar - this should only run once');
 
-        // Set up calendar filter
-        const calendarFilterEl = document.getElementById('calendarFilter');
-        if (calendarFilterEl) {
-            calendarFilterEl.addEventListener('change', () => {
-                calendarFilter = calendarFilterEl.value;
-                renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Re-render with the new filter
-            });
+        // Set a flag to prevent multiple initializations
+        if (window.calendarInitialized) {
+            console.log('Calendar already initialized, skipping');
+            return;
         }
 
-        // Add event listeners for task updates
-        document.addEventListener('taskCompleted', function(event) {
-            console.log('Task completed event detected in calendar.js, refreshing tasks...');
-            fetchTasks(true); // Force reload
-        });
+        try {
+            // Make sure currentDate is initialized
+            if (!currentDate) {
+                console.log('Initializing currentDate');
+                currentDate = new Date();
+            }
 
-        document.addEventListener('taskUpdated', function(event) {
-            console.log('Task updated event detected in calendar.js, refreshing tasks...');
-            fetchTasks(true); // Force reload
-        });
+            console.log('Loading tasks');
+            await fetchTasks(); // Load tasks first
+
+            console.log('Loading habits');
+            try {
+                await fetchHabits(currentDate.getFullYear(), currentDate.getMonth()); // Load habits
+            } catch (habitError) {
+                console.error('Error loading habits, continuing with calendar render:', habitError);
+            }
+
+            console.log('Initial calendar render');
+            try {
+                await renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Then render calendar
+            } catch (renderError) {
+                console.error('Error rendering calendar:', renderError);
+                // Try a simpler approach if the main render fails
+                if (calendarGridEl) {
+                    calendarGridEl.innerHTML = '<div class="calendar-error">Error rendering calendar. Please refresh the page.</div>';
+                }
+            }
+
+            // Set up calendar filter
+            const calendarFilterEl = document.getElementById('calendarFilter');
+            if (calendarFilterEl) {
+                calendarFilterEl.addEventListener('change', () => {
+                    calendarFilter = calendarFilterEl.value;
+                    console.log('Filter changed, re-rendering calendar');
+                    renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Re-render with the new filter
+                });
+            }
+
+            // Note: Task event listeners are now handled by calendar-refresh-fix.js
+            // and habit event listeners are handled by calendar-refresh.js
+
+            // Set the initialization flag
+            window.calendarInitialized = true;
+            console.log('Calendar initialization complete');
+        } catch (error) {
+            console.error('Error initializing calendar:', error);
+            updateStatus("Error loading calendar. Please refresh the page.", true);
+        }
     }
 
-    initializeCalendar();
+    // Initialize with error handling
+    try {
+        initializeCalendar();
+    } catch (error) {
+        console.error('Fatal error initializing calendar:', error);
+        updateStatus("Error loading calendar. Please refresh the page.", true);
+    }
 
 }); // End DOMContentLoaded
