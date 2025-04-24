@@ -1634,11 +1634,22 @@ h1, h2 {
 }
 
 /* === Main Photo Slider Styles (Redesigned Carousel) === */
+/* New container for navigation with buttons outside */
+.photo-navigation-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px; /* Increased to accommodate buttons */
+    margin: 20px auto; /* Center the container */
+    gap: 15px; /* Space between buttons and slider */
+}
+
 .photo-slider-container {
     position: relative;
     width: 100%;
     max-width: 400px; /* Or your desired max width */
-    margin: 20px auto; /* Center the slider */
+    margin: 0 auto; /* Center the slider */
 }
 
 .photo-viewport {
@@ -1680,36 +1691,54 @@ h1, h2 {
     min-height: 200px; /* Ensure minimum height even when image fails to load */
 }
 
-/* Slider Navigation Buttons (Keep existing styles) */
+/* Slider Navigation Buttons (Updated for outside positioning) */
 .slider-nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
+    background-color: #03dac6; /* Updated to match the teal color used in other UI elements */
+    color: black;
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    font-weight: bold;
     cursor: pointer;
-    z-index: 10; /* Increased from 3 */
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+    outline: none; /* Remove outline on focus */
 }
 
 .slider-nav-btn:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: #3eecd8; /* Slightly lighter on hover */
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(3, 218, 198, 0.5);
 }
 
+.slider-nav-btn:active {
+    transform: scale(0.95);
+    background-color: #02b8a7; /* Slightly darker when clicked */
+}
+
+.slider-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background-color: rgba(100, 100, 100, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* No longer need absolute positioning */
 .slider-nav-btn.prev {
-    left: 10px;
+    /* No left positioning needed */
 }
 
 .slider-nav-btn.next {
-    right: 10px;
+    /* No right positioning needed */
 }
 
 /* Pagination Dots */
@@ -1830,16 +1859,21 @@ h1, h2 {
         border: 1px solid #666; /* Add border for visibility */
     }
 
+    .photo-navigation-container {
+        max-width: 95%; /* Make container responsive on mobile */
+        gap: 5px; /* Reduce gap on mobile */
+    }
+
     .photo-slider-container {
         margin-bottom: 20px; /* Add more space below slider */
     }
 
     /* Make navigation buttons larger and more visible on mobile */
     .slider-nav-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-        background-color: rgba(0, 0, 0, 0.6);
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+        background-color: rgba(0, 0, 0, 0.7);
     }
 }
 
@@ -1954,10 +1988,12 @@ h1, h2 {
     color: #fff;
 }
 
-/* Hide original photo nav buttons */
+/* Show photo nav buttons */
 #photo-prev-btn,
 #photo-next-btn {
-    display: none;
+    display: flex; /* Use flex for centering content */
+    align-items: center;
+    justify-content: center;
 }
 
 /* Add cursor styles for the hover container (handled by JS) */

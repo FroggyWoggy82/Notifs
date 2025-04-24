@@ -87,6 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const templateSearchInput = document.getElementById('template-search');
     const createTemplateBtn = document.getElementById('create-template-btn');
 
+    // --- Photo Navigation Buttons ---
+    const photoPrevBtn = document.getElementById('photo-prev-btn');
+    const photoNextBtn = document.getElementById('photo-next-btn');
+
     // --- Exercise Edit Modal Elements ---
     const exerciseEditModal = document.getElementById('exercise-edit-modal');
     const exerciseEditForm = document.getElementById('exercise-edit-form');
@@ -172,10 +176,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
     // const photoPrevPreview = document.getElementById('photo-prev-preview'); // Removed
     // const photoNextPreview = document.getElementById('photo-next-preview'); // Removed
-    // console.log('photoNextBtn element:', photoNextBtn);
 
-    // --- NEW: Get container for delegation ---
+    // --- Photo Navigation Buttons (already declared above) ---
+    console.log('Navigation buttons:', photoPrevBtn, photoNextBtn);
+
+    // --- NEW: Get containers for delegation ---
     const photoSliderContainer = document.querySelector('.photo-slider-container');
+    const photoNavigationContainer = document.querySelector('.photo-navigation-container');
 
     // --- NEW: Comparison DOM References ---
     const comparePhotosBtn = document.getElementById('compare-photos-btn');
@@ -3263,57 +3270,116 @@ document.addEventListener('DOMContentLoaded', function() {
         if (photoFormEl) photoFormEl.addEventListener('submit', handlePhotoUpload);
 
         // --- OPTIMIZED: Event Handling for Slider with Touch Support ---
-        if (photoSliderContainer) {
+        if (photoNavigationContainer) {
             console.log('[Initialize] Setting up optimized photo slider navigation');
 
-            // Direct button click handlers with debouncing
-            if (photoPrevBtn) {
-                const debouncedPrev = debounce(showPreviousPhoto, navigationDebounceTime);
-                photoPrevBtn.addEventListener('click', debouncedPrev);
-                // Add passive touch listener for better mobile performance
-                addPassiveTouchListener(photoPrevBtn, 'touchstart', debouncedPrev);
+            // Direct button click handlers - completely rewritten for maximum reliability
+            console.log('[Initialize] Setting up photo navigation buttons with direct approach');
+
+            // Get fresh references to the buttons
+            const prevButton = document.getElementById('photo-prev-btn');
+            const nextButton = document.getElementById('photo-next-btn');
+
+            if (prevButton) {
+                // Remove the button from DOM temporarily to clear all listeners
+                const parent = prevButton.parentNode;
+                const prevButtonClone = prevButton.cloneNode(true);
+                parent.removeChild(prevButton);
+
+                // Add new event handler directly to the clone
+                prevButtonClone.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[Navigation] Previous button clicked');
+                    showPreviousPhoto();
+                });
+
+                // Set styling
+                prevButtonClone.style.cursor = 'pointer';
+
+                // Add the clone back to DOM
+                parent.insertBefore(prevButtonClone, parent.firstChild);
+
+                // Update the global reference
+                photoPrevBtn = prevButtonClone;
+
+                console.log('[Initialize] Previous button handler attached successfully');
+            } else {
+                console.error('[Initialize] Previous button not found in DOM!');
             }
 
-            if (photoNextBtn) {
-                const debouncedNext = debounce(showNextPhoto, navigationDebounceTime);
-                photoNextBtn.addEventListener('click', debouncedNext);
-                // Add passive touch listener for better mobile performance
-                addPassiveTouchListener(photoNextBtn, 'touchstart', debouncedNext);
+            if (nextButton) {
+                // Remove the button from DOM temporarily to clear all listeners
+                const parent = nextButton.parentNode;
+                const nextButtonClone = nextButton.cloneNode(true);
+                parent.removeChild(nextButton);
+
+                // Add new event handler directly to the clone
+                nextButtonClone.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[Navigation] Next button clicked');
+                    showNextPhoto();
+                });
+
+                // Set styling
+                nextButtonClone.style.cursor = 'pointer';
+
+                // Add the clone back to DOM
+                parent.appendChild(nextButtonClone);
+
+                // Update the global reference
+                photoNextBtn = nextButtonClone;
+
+                console.log('[Initialize] Next button handler attached successfully');
+            } else {
+                console.error('[Initialize] Next button not found in DOM!');
             }
 
             // Add swipe support for mobile
-            let touchStartX = 0;
-            let touchEndX = 0;
+            if (photoReel) {
+                let touchStartX = 0;
+                let touchEndX = 0;
 
-            // Handle touch start
-            addPassiveTouchListener(photoReel, 'touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            });
+                // Handle touch start
+                addPassiveTouchListener(photoReel, 'touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                });
 
-            // Handle touch end
-            addPassiveTouchListener(photoReel, 'touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
+                // Handle touch end
+                addPassiveTouchListener(photoReel, 'touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                });
 
-            // Process swipe direction
-            function handleSwipe() {
-                // Minimum distance required for swipe - adjust as needed
-                const minSwipeDistance = 50;
-                const swipeDistance = touchEndX - touchStartX;
+                // Process swipe direction
+                function handleSwipe() {
+                    // Minimum distance required for swipe - adjust as needed
+                    const minSwipeDistance = 50;
+                    const swipeDistance = touchEndX - touchStartX;
 
-                if (Math.abs(swipeDistance) < minSwipeDistance) return;
+                    if (Math.abs(swipeDistance) < minSwipeDistance) return;
 
-                if (swipeDistance > 0) {
-                    // Swiped right - show previous photo
-                    showPreviousPhoto();
-                } else {
-                    // Swiped left - show next photo
-                    showNextPhoto();
+                    if (swipeDistance > 0) {
+                        // Swiped right - show previous photo
+                        showPreviousPhoto();
+                    } else {
+                        // Swiped left - show next photo
+                        showNextPhoto();
+                    }
                 }
             }
+
+            // Prevent wheel-based navigation
+            if (photoSliderContainer) {
+                photoSliderContainer.addEventListener('wheel', (event) => {
+                    // Prevent the default scroll behavior
+                    event.preventDefault();
+                }, { passive: false });
+            }
+
         } else {
-            console.error('[Initialize] photoSliderContainer not found!');
+            console.error('[Initialize] photoNavigationContainer not found!');
         }
 
         // Delete Photo Listener (Keep this direct)
@@ -3384,73 +3450,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         */
 
-        // --- ADD NEW PHOTO HOVER NAVIGATION ---
-        const photoSliderContainer = document.querySelector('.photo-slider-container');
-        if (photoSliderContainer) {
-            console.log('[Initialize] Setting up photo hover navigation...');
-            let hoverTimeout = null;
-            const triggerDelay = 50; // ms - Adjust for sensitivity
-            let lastAction = null; // 'prev' or 'next'
-            let lastTriggerTime = 0;
-            const actionThrottle = 300; // Only allow action every 300ms
-
-            photoSliderContainer.addEventListener('mousemove', (event) => {
-                const rect = photoSliderContainer.getBoundingClientRect();
-                const x = event.clientX - rect.left; // Mouse x relative to container
-                const containerWidth = photoSliderContainer.offsetWidth;
-                // Define trigger zones (e.g., left/right 25%)
-                const triggerZoneWidth = containerWidth * 0.25;
-                const now = Date.now();
-
-                if (x < triggerZoneWidth) {
-                    // Left zone
-                    photoSliderContainer.style.cursor = 'w-resize'; // Indicate prev action
-                    // Trigger only once per entry into zone, throttled
-                    if (lastAction !== 'prev' || (now - lastTriggerTime > actionThrottle)) {
-                        clearTimeout(hoverTimeout);
-                        hoverTimeout = setTimeout(() => {
-                            if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
-                                debouncedShowPreviousPhoto();
-                                lastTriggerTime = Date.now();
-                                lastAction = 'prev'; // Set action after execution
-                            }
-                        }, triggerDelay);
-                        // Set lastAction immediately if entering zone to prevent rapid timeout resets
-                        if (lastAction !== 'prev') lastAction = 'prev';
-                    }
-                } else if (x > containerWidth - triggerZoneWidth) {
-                    // Right zone
-                    photoSliderContainer.style.cursor = 'e-resize'; // Indicate next action
-                     // Trigger only once per entry into zone, throttled
-                     if (lastAction !== 'next' || (now - lastTriggerTime > actionThrottle)) {
-                         clearTimeout(hoverTimeout);
-                         hoverTimeout = setTimeout(() => {
-                             if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
-                                 debouncedShowNextPhoto();
-                                 lastTriggerTime = Date.now();
-                                 lastAction = 'next'; // Set action after execution
-                             }
-                         }, triggerDelay);
-                          // Set lastAction immediately if entering zone
-                         if (lastAction !== 'next') lastAction = 'next';
-                    }
-        } else {
-                    // Middle zone
-                    photoSliderContainer.style.cursor = 'default';
-                    clearTimeout(hoverTimeout); // Clear timeout if mouse moves to middle
-                    lastAction = null; // Reset last action
-                }
-            });
-
-            // Reset cursor when mouse leaves the container
-            photoSliderContainer.addEventListener('mouseleave', () => {
-                 photoSliderContainer.style.cursor = 'default';
-                 clearTimeout(hoverTimeout);
-                 lastAction = null;
-            });
-        } else {
-             console.error('[Initialize] photoSliderContainer not found for hover nav!');
-        }
+        // --- REMOVED PHOTO HOVER NAVIGATION ---
+        // We've removed the hover-based navigation in favor of explicit button controls
         // --- END PHOTO HOVER NAVIGATION ---
 
 
@@ -3826,8 +3827,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('[Photo Load] fetchAndDisplayPhotos STARTED.'); // Log start
         // Use the slider container elements, not the old galleryEl
         // Check only for elements that are still used
-        if (!photoReel || !paginationDotsContainer || !deletePhotoBtn /* || !photoPrevBtn || !photoNextBtn */) {
-            console.error("[Photo Load] Missing required slider elements (reel, dots container, delete button).");
+        if (!photoReel || !paginationDotsContainer || !deletePhotoBtn || !photoPrevBtn || !photoNextBtn || !photoNavigationContainer) {
+            console.error("[Photo Load] Missing required slider elements (reel, dots container, delete button, navigation buttons, navigation container).");
             return;
         }
 
@@ -4107,9 +4108,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // --- Update Button States ---
-        // Buttons are now hidden and navigation is handled by hover.
-        // photoPrevBtn.disabled = (currentPhotoIndex === 0); // Comment out: Button removed/hidden
-        // photoNextBtn.disabled = (currentPhotoIndex >= numPhotos - 1); // Comment out: Button removed/hidden
+        // Enable/disable navigation buttons based on current position
+        if (photoPrevBtn) {
+            const shouldDisable = (currentPhotoIndex === 0);
+            photoPrevBtn.disabled = shouldDisable;
+            console.log(`[Photo Display] Previous button disabled: ${shouldDisable}`);
+        }
+        if (photoNextBtn) {
+            const shouldDisable = (currentPhotoIndex >= numPhotos - 1);
+            photoNextBtn.disabled = shouldDisable;
+            console.log(`[Photo Display] Next button disabled: ${shouldDisable}`);
+        }
         if (deletePhotoBtn) { // Keep check for delete button
              deletePhotoBtn.disabled = (numPhotos === 0);
         }
@@ -4124,67 +4133,88 @@ document.addEventListener('DOMContentLoaded', function() {
     // let isAnimating = false; // Flag to prevent clicks during animation - REMOVED
     // const animationDuration = 500; // Must match CSS transition duration - REMOVED
 
-    function showPreviousPhoto() {
-        console.log('[Photo Slider] Attempting Previous...');
-        // if (isAnimating || currentPhotoIndex <= 0) { - REMOVED animation check
+    // Completely rewritten navigation functions for maximum reliability
+    // Make these functions globally accessible for the fix script
+    window.showPreviousPhoto = function showPreviousPhoto() {
+        console.log('[Photo Slider] PREV button clicked, attempting to show previous photo...');
+
+        // Extra debug info
+        console.log(`[Photo Slider] Current state: index=${currentPhotoIndex}, total photos=${progressPhotosData ? progressPhotosData.length : 'undefined'}`);
+
+        // Safety check for data
+        if (!progressPhotosData || progressPhotosData.length === 0) {
+            console.log('[Photo Slider] No photos available');
+            return;
+        }
+
         if (currentPhotoIndex <= 0) { // Block only if at first photo
-            console.log(`[Photo Slider] Previous blocked: At index 0.`); // More specific log
+            console.log(`[Photo Slider] Previous blocked: Already at first photo (index 0)`);
             return;
         }
 
-        // isAnimating = true; - REMOVED
-        // photoPrevBtn.disabled = true; // Disable immediately - REMOVED
-        // photoNextBtn.disabled = true; - REMOVED
+        try {
+            // Update the index
+            currentPhotoIndex--;
+            console.log(`[Photo Slider] Index decremented to: ${currentPhotoIndex}`);
 
-        currentPhotoIndex--;
-        console.log(`[Photo Slider] Index decremented to: ${currentPhotoIndex}`); // Log index change
-        console.log(`[Photo Slider] Prev Button disabled state BEFORE displayCurrentPhoto: ${photoPrevBtn?.disabled}`); // Log button state
-        displayCurrentPhoto(); // Directly update display
+            // Update the display
+            displayCurrentPhoto();
 
-        // Re-enable buttons after animation duration - REMOVED setTimeout block
-        console.log('[Photo Slider] Previous action complete.');
-    }
+            console.log('[Photo Slider] Previous photo navigation successful');
+        } catch (error) {
+            console.error('[Photo Slider] Error in showPreviousPhoto:', error);
+        }
+    };
 
-    function showNextPhoto() {
-        console.log('[Photo Slider] Attempting Next...');
+    window.showNextPhoto = function showNextPhoto() {
+        console.log('[Photo Slider] NEXT button clicked, attempting to show next photo...');
+
+        // Extra debug info
+        console.log(`[Photo Slider] Current state: index=${currentPhotoIndex}, total photos=${progressPhotosData ? progressPhotosData.length : 'undefined'}`);
+
+        // Safety check for data
+        if (!progressPhotosData || progressPhotosData.length === 0) {
+            console.log('[Photo Slider] No photos available');
+            return;
+        }
+
         const numPhotos = progressPhotosData.length;
-        // if (isAnimating || currentPhotoIndex >= numPhotos - 1) { - REMOVED animation check
         if (currentPhotoIndex >= numPhotos - 1) { // Block only if at last photo
-            console.log(`[Photo Slider] Next blocked: At index ${currentPhotoIndex} (Total: ${numPhotos}).`); // More specific log
+            console.log(`[Photo Slider] Next blocked: Already at last photo (index ${currentPhotoIndex}, total ${numPhotos})`);
             return;
         }
 
-        // isAnimating = true; - REMOVED
-        // photoPrevBtn.disabled = true; // Disable immediately - REMOVED
-        // photoNextBtn.disabled = true; - REMOVED
+        try {
+            // Update the index
+            currentPhotoIndex++;
+            console.log(`[Photo Slider] Index incremented to: ${currentPhotoIndex}`);
 
-        currentPhotoIndex++;
-        console.log(`[Photo Slider] Index incremented to: ${currentPhotoIndex}`); // Log index change
-        console.log(`[Photo Slider] Next Button disabled state BEFORE displayCurrentPhoto: ${photoNextBtn?.disabled}`); // Log button state
-        displayCurrentPhoto(); // Directly update display
+            // Update the display
+            displayCurrentPhoto();
 
-        // Re-enable buttons after animation duration - REMOVED setTimeout block
-        console.log('[Photo Slider] Next action complete.');
-    }
+            console.log('[Photo Slider] Next photo navigation successful');
+        } catch (error) {
+            console.error('[Photo Slider] Error in showNextPhoto:', error);
+        }
+    };
 
     // --- NEW: Go To Specific Photo (for dots) ---
     function goToPhoto(index) {
         console.log(`[Photo Slider] Go to photo index: ${index}`);
         const numPhotos = progressPhotosData.length;
-        // Prevent jump if animating or index is same/invalid - REMOVED animation check
-        if (/*isAnimating ||*/ index === currentPhotoIndex || index < 0 || index >= numPhotos) {
+        // Prevent jump if index is same/invalid
+        if (index === currentPhotoIndex || index < 0 || index >= numPhotos) {
             console.log(`[Photo Slider] Dot click blocked: index=${index}, currentIndex=${currentPhotoIndex}`);
             return;
         }
 
-        // isAnimating = true; - REMOVED
-        // photoPrevBtn.disabled = true; // Disable nav buttons - REMOVED
-        // photoNextBtn.disabled = true; // Disable nav buttons - REMOVED
+        // Temporarily disable buttons to prevent rapid clicking
+        if (photoPrevBtn) photoPrevBtn.disabled = true;
+        if (photoNextBtn) photoNextBtn.disabled = true;
 
         currentPhotoIndex = index;
         displayCurrentPhoto(); // Directly update display
 
-        // Re-enable buttons after animation - REMOVED setTimeout block
         console.log(`[Photo Slider] Dot action complete.`);
     }
     // --- END NEW ---
@@ -4388,24 +4418,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function showPreviousPhoto() {
-        console.log('[Photo Nav] showPreviousPhoto called');
-        if (progressPhotosData.length <= 1) return; // Don't navigate if only one photo
-        currentPhotoIndex = (currentPhotoIndex - 1 + progressPhotosData.length) % progressPhotosData.length;
-        displayCurrentPhoto();
-    }
-
-    // Debounced version
+    // Debounced versions of the navigation functions
     const debouncedShowPreviousPhoto = debounce(showPreviousPhoto, navigationDebounceTime);
-
-    function showNextPhoto() {
-        console.log('[Photo Nav] showNextPhoto called');
-        if (progressPhotosData.length <= 1) return; // Don't navigate if only one photo
-        currentPhotoIndex = (currentPhotoIndex + 1) % progressPhotosData.length;
-        displayCurrentPhoto();
-    }
-
-    // Debounced version
     const debouncedShowNextPhoto = debounce(showNextPhoto, navigationDebounceTime);
 
     // --- Initialize Function ---
@@ -4503,68 +4517,8 @@ document.addEventListener('DOMContentLoaded', function() {
         //     console.error('[Initialize] photoNextBtn not found!');
         // }
 
-        // --- ADD NEW PHOTO HOVER NAVIGATION --- 
-        if (photoSliderContainer) {
-            console.log('[Initialize] Setting up photo hover navigation...');
-            let hoverTimeout = null;
-            const triggerDelay = 50; // ms - Adjust for sensitivity
-            let lastAction = null; // 'prev' or 'next'
-            let lastTriggerTime = 0;
-            const actionThrottle = 300; // Only allow action every 300ms
-
-            photoSliderContainer.addEventListener('mousemove', (event) => {
-                const rect = photoSliderContainer.getBoundingClientRect();
-                const x = event.clientX - rect.left; // Mouse x relative to container
-                const containerWidth = photoSliderContainer.offsetWidth;
-                const triggerZoneWidth = containerWidth * 0.25; // 25% on each side
-                const now = Date.now();
-
-                if (x < triggerZoneWidth) {
-                    // Left zone
-                    photoSliderContainer.style.cursor = 'w-resize'; // Indicate prev action
-                    if (lastAction !== 'prev' || (now - lastTriggerTime > actionThrottle)) {
-                        clearTimeout(hoverTimeout);
-                        hoverTimeout = setTimeout(() => {
-                            if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
-                                debouncedShowPreviousPhoto();
-                                lastTriggerTime = Date.now();
-                                lastAction = 'prev';
-                            }
-                        }, triggerDelay);
-                        // Set lastAction immediately to prevent re-triggering timeout rapidly
-                        if (lastAction !== 'prev') lastAction = 'prev'; 
-                    }
-                } else if (x > containerWidth - triggerZoneWidth) {
-                    // Right zone
-                    photoSliderContainer.style.cursor = 'e-resize'; // Indicate next action
-                     if (lastAction !== 'next' || (now - lastTriggerTime > actionThrottle)) {
-                         clearTimeout(hoverTimeout);
-                         hoverTimeout = setTimeout(() => {
-                             if (Date.now() - lastTriggerTime > actionThrottle) { // Double check throttle on execution
-                                 debouncedShowNextPhoto();
-                                 lastTriggerTime = Date.now();
-                                 lastAction = 'next';
-                            }
-                         }, triggerDelay);
-                         // Set lastAction immediately
-                        if (lastAction !== 'next') lastAction = 'next'; 
-                    }
-                } else {
-                    // Middle zone
-                    photoSliderContainer.style.cursor = 'default';
-                    clearTimeout(hoverTimeout); // Clear timeout if mouse moves to middle
-                    lastAction = null; // Reset last action
-                }
-            });
-
-            photoSliderContainer.addEventListener('mouseleave', () => {
-                 photoSliderContainer.style.cursor = 'default'; // Reset cursor on leave
-                 clearTimeout(hoverTimeout); // Clear timeout on leave
-                 lastAction = null; // Reset last action
-            });
-        } else {
-             console.error('[Initialize] photoSliderContainer not found for hover nav!');
-        }
+        // --- REMOVED PHOTO HOVER NAVIGATION ---
+        // We've removed the hover-based navigation in favor of explicit button controls
         // --- END PHOTO HOVER NAVIGATION ---
 
         // Delegate event listeners for dynamic elements within the workout list
@@ -4645,7 +4599,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (templateSearchInput) {
              templateSearchInput.addEventListener('input', (event) => {
                 // <<< Add log here >>>
-                console.log('[Template Search Listener] Event fired!'); 
+                console.log('[Template Search Listener] Event fired!');
 
                 const searchTerm = event.target.value.toLowerCase();
                 console.log(`[Template Search] Input event: searchTerm = '${searchTerm}'`);
@@ -4665,17 +4619,181 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- History Section Listeners ---
         if (historyExerciseSearchInput) {
+            // Define handleHistorySearchInput function
+            function handleHistorySearchInput() {
+                const searchTerm = historyExerciseSearchInput.value.toLowerCase().trim();
+
+                // Show/hide the results container based on search term
+                if (historySearchResultsEl) {
+                    historySearchResultsEl.style.display = searchTerm ? 'block' : 'none';
+
+                    // Filter exercises based on search term and category
+                    const filteredExercises = availableExercises.filter(ex => {
+                        const nameMatch = ex.name.toLowerCase().includes(searchTerm);
+                        const categoryMatch = currentHistoryCategoryFilter === 'all' ||
+                                            ex.category === currentHistoryCategoryFilter;
+                        return nameMatch && categoryMatch;
+                    });
+
+                    // Render the filtered results
+                    renderHistorySearchResults(filteredExercises);
+                }
+            }
+
+            // Add the event listener with the defined function
             historyExerciseSearchInput.addEventListener('input', debounce(handleHistorySearchInput, 300));
         }
+
+        // Define renderHistorySearchResults function
+        function renderHistorySearchResults(exercises) {
+            if (!historySearchResultsEl) return;
+
+            historySearchResultsEl.innerHTML = '';
+
+            if (exercises.length === 0) {
+                historySearchResultsEl.innerHTML = '<p class="no-results">No exercises found</p>';
+                return;
+            }
+
+            exercises.forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'history-search-item';
+                item.dataset.exerciseId = ex.exercise_id;
+                item.dataset.exerciseName = ex.name;
+                item.textContent = ex.name;
+                historySearchResultsEl.appendChild(item);
+            });
+        }
+
+        // Define handleHistoryResultClick function
+        function handleHistoryResultClick(event) {
+            const target = event.target;
+            if (target.classList.contains('history-search-item')) {
+                const exerciseId = parseInt(target.dataset.exerciseId, 10);
+                const exerciseName = target.dataset.exerciseName;
+
+                if (!isNaN(exerciseId)) {
+                    currentHistoryExerciseId = exerciseId;
+                    currentHistoryExerciseName = exerciseName;
+
+                    // Update the search input with the selected exercise name
+                    if (historyExerciseSearchInput) {
+                        historyExerciseSearchInput.value = exerciseName;
+                    }
+
+                    // Hide the results list
+                    if (historySearchResultsEl) {
+                        historySearchResultsEl.style.display = 'none';
+                    }
+
+                    // Fetch and display the history chart for the selected exercise
+                    fetchAndRenderHistoryChart(exerciseId);
+                }
+            }
+        }
+
         if (historySearchResultsEl) {
             historySearchResultsEl.addEventListener('click', handleHistoryResultClick);
         }
+
         if (historyCategoryFilterSelect) {
             historyCategoryFilterSelect.addEventListener('change', (event) => {
                 currentHistoryCategoryFilter = event.target.value;
                 // Optionally re-filter search results if needed, or just fetch history if an exercise is selected
                 if (currentHistoryExerciseId) {
                     fetchAndRenderHistoryChart(currentHistoryExerciseId); // Re-fetch chart with category filter
+                }
+            });
+        }
+
+        // Define fetchAndRenderHistoryChart function
+        async function fetchAndRenderHistoryChart(exerciseId) {
+            if (!historyChartCanvas) return;
+
+            try {
+                // Show loading message
+                const historyMessageEl = document.getElementById('history-message');
+                if (historyMessageEl) {
+                    historyMessageEl.textContent = 'Loading exercise history...';
+                }
+
+                // Fetch exercise history data
+                const response = await fetch(`/api/workouts/exercise-history/${exerciseId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const historyData = await response.json();
+
+                // Clear loading message
+                if (historyMessageEl) {
+                    historyMessageEl.textContent = '';
+                }
+
+                // Render the chart with the history data
+                renderHistoryChart(historyData);
+
+                // Show the edit button
+                const historyEditBtn = document.getElementById('history-edit-btn');
+                if (historyEditBtn) {
+                    historyEditBtn.style.display = 'inline-block';
+                }
+
+            } catch (error) {
+                console.error('Error fetching exercise history:', error);
+                const historyMessageEl = document.getElementById('history-message');
+                if (historyMessageEl) {
+                    historyMessageEl.textContent = 'Error loading exercise history.';
+                }
+            }
+        }
+
+        // Define renderHistoryChart function
+        function renderHistoryChart(historyData) {
+            // Destroy existing chart if it exists
+            if (exerciseHistoryChart) {
+                exerciseHistoryChart.destroy();
+            }
+
+            // If no data, show a message
+            if (!historyData || historyData.length === 0) {
+                const historyMessageEl = document.getElementById('history-message');
+                if (historyMessageEl) {
+                    historyMessageEl.textContent = 'No history data available for this exercise.';
+                }
+                return;
+            }
+
+            // Prepare data for the chart
+            const dates = historyData.map(entry => new Date(entry.workout_date).toLocaleDateString());
+            const weights = historyData.map(entry => {
+                const weightValues = entry.weight_used.split(',').map(w => parseFloat(w.trim()));
+                // Calculate average weight
+                return weightValues.reduce((sum, val) => sum + val, 0) / weightValues.length;
+            });
+
+            // Create the chart
+            exerciseHistoryChart = new Chart(historyChartCanvas, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Average Weight',
+                        data: weights,
+                        borderColor: '#00e5ff',
+                        backgroundColor: 'rgba(0, 229, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
                 }
             });
         }
@@ -4692,6 +4810,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (historyEditRemoveSetBtn) {
             historyEditRemoveSetBtn.addEventListener('click', handleRemoveManualSetRow);
+        }
+
+        // Define hideHistoryEditModal function
+        function hideHistoryEditModal() {
+            if (historyEditModal) {
+                historyEditModal.style.display = 'none';
+            }
+        }
+
+        // Define handleSaveManualLog function
+        function handleSaveManualLog(event) {
+            event.preventDefault();
+            console.log('Save manual log function called');
+            // This is a placeholder - the actual implementation would save the log data
+            hideHistoryEditModal();
+        }
+
+        // Define handleAddManualSetRow function
+        function handleAddManualSetRow() {
+            console.log('Add manual set row function called');
+            // This is a placeholder - the actual implementation would add a new set row
+        }
+
+        // Define handleRemoveManualSetRow function
+        function handleRemoveManualSetRow() {
+            console.log('Remove manual set row function called');
+            // This is a placeholder - the actual implementation would remove a set row
         }
         // Delegate listener for deleting existing logs within the modal
         if (historyEditLogListEl) {
@@ -4732,9 +4877,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // --- Initialize Chart.js Config ---
+        // Setup Chart.js configuration
+        function setupChartConfig() {
+            if (typeof Chart !== 'undefined') {
+                console.log('[Chart Config] Setting up Chart.js defaults for workouts');
+
+                // Set global defaults for all charts
+                Chart.defaults.color = '#ddd';
+                Chart.defaults.borderColor = '#444';
+                Chart.defaults.font.family = "'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
+
+                // Set defaults for line charts
+                if (Chart.defaults.elements && Chart.defaults.elements.line) {
+                    Chart.defaults.elements.line.borderWidth = 2;
+                    Chart.defaults.elements.line.tension = 0.2;
+                }
+
+                // Set defaults for points
+                if (Chart.defaults.elements && Chart.defaults.elements.point) {
+                    Chart.defaults.elements.point.radius = 4;
+                    Chart.defaults.elements.point.hoverRadius = 6;
+                }
+
+                console.log('[Chart Config] Chart.js configuration complete');
+            } else {
+                console.warn('[Chart Config] Chart.js not loaded, skipping configuration');
+            }
+        }
+
+        // Call the setup function
         setupChartConfig();
 
-        // --- Initialize Auto-Save --- 
+        // --- Initialize Auto-Save ---
         initializeAutoSave();
 
         // --- Initialize Mobile Layout Adjustments ---

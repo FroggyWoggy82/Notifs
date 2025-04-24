@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../css/simplified-nutrition-scan.css"> <!-- Simplified nutrition scan styles -->
     <link rel="stylesheet" href="../css/cronometer-text-parser.css"> <!-- Cronometer text parser styles -->
+    <link rel="stylesheet" href="../css/compact-recipes.css"> <!-- Compact recipe cards styles -->
 </head>
 <body>
     <button class="menu-button">☰</button>
@@ -148,7 +149,17 @@
                 <!-- Ingredient inputs will be added dynamically here -->
                 <div class="ingredient-item">
                     <div class="ingredient-row">
-                        <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
+                        <!-- Ingredient Name, Amount, and Price stacked vertically -->
+                        <div class="ingredient-inputs-container">
+                            <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
+                            <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.1" required>
+                            <input type="number" placeholder="Price" class="ingredient-price" step="0.01" required>
+                            <!-- Hidden fields for form submission with default values -->
+                            <input type="hidden" class="ingredient-calories" required>
+                            <input type="hidden" class="ingredient-protein" required>
+                            <input type="hidden" class="ingredient-fat" required>
+                            <input type="hidden" class="ingredient-carbs" required>
+                        </div>
 
                         <!-- Cronometer Text Parser -->
                         <div class="cronometer-text-paste-container">
@@ -158,21 +169,11 @@
                         </div>
                     </div>
 
-                    <!-- Basic Nutrition Inputs (Simplified) -->
-                    <div class="ingredient-row nutrition-inputs">
-                        <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.1" required>
-                        <input type="number" placeholder="Price" class="ingredient-price" step="0.01" required>
-                        <button type="button" class="remove-ingredient-btn">Remove</button>
-                        <!-- Hidden fields for form submission with default values -->
-                        <input type="hidden" class="ingredient-calories" required>
-                        <input type="hidden" class="ingredient-protein" required>
-                        <input type="hidden" class="ingredient-fat" required>
-                        <input type="hidden" class="ingredient-carbs" required>
-                    </div>
-
-                    <!-- Detailed Nutrition Information (Collapsible) -->
-                    <div class="detailed-nutrition-toggle">
+                    <!-- Action buttons in one row -->
+                    <div class="buttons-row">
                         <button type="button" class="toggle-detailed-nutrition">Show Detailed Nutrition</button>
+                        <button type="button" class="add-ingredient-btn-inline">Add Ingredient</button>
+                        <button type="button" class="remove-ingredient-btn">Remove</button>
                     </div>
 
                     <div class="detailed-nutrition-panel" style="display:none;">
@@ -437,8 +438,6 @@
                     </div>
                 </div>
             </div>
-            <button type="button" id="add-ingredient-btn">Add Ingredient</button>
-
             <button type="submit">Save Recipe</button>
         </form>
         <div id="create-recipe-status" class="status"></div>

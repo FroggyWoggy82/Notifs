@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const ingredientsList = document.getElementById('ingredients-list');
-    const addIngredientBtn = document.getElementById('add-ingredient-btn');
     const createRecipeForm = document.getElementById('create-recipe-form');
     const recipeNameInput = document.getElementById('recipeName');
     const createRecipeStatus = document.getElementById('create-recipe-status');
@@ -46,7 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function createIngredientRowHtml() {
         return `
             <div class="ingredient-row">
-                <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
+                <!-- Ingredient Name, Amount, and Price stacked vertically -->
+                <div class="ingredient-inputs-container">
+                    <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
+                    <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="any" required>
+                    <input type="number" placeholder="Price" class="ingredient-price" step="any" required>
+                    <!-- Hidden fields for form submission -->
+                    <input type="hidden" class="ingredient-calories" required>
+                    <input type="hidden" class="ingredient-protein" required>
+                    <input type="hidden" class="ingredient-fat" required>
+                    <input type="hidden" class="ingredient-carbs" required>
+                </div>
 
                 <!-- Cronometer Text Parser -->
                 <div class="cronometer-text-paste-container">
@@ -55,20 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="cronometer-parse-status"></div>
                 </div>
             </div>
-            <div class="ingredient-row nutrition-inputs">
-                <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="any" required>
-                <input type="number" placeholder="Price" class="ingredient-price" step="any" required>
-                <button type="button" class="remove-ingredient-btn">Remove</button>
-                <!-- Hidden fields for form submission -->
-                <input type="hidden" class="ingredient-calories" required>
-                <input type="hidden" class="ingredient-protein" required>
-                <input type="hidden" class="ingredient-fat" required>
-                <input type="hidden" class="ingredient-carbs" required>
-            </div>
 
-            <!-- Detailed Nutrition Information (Collapsible) -->
-            <div class="detailed-nutrition-toggle">
+            <!-- Action buttons in one row -->
+            <div class="buttons-row">
                 <button type="button" class="toggle-detailed-nutrition">Show Detailed Nutrition</button>
+                <button type="button" class="add-ingredient-btn-inline">Add Ingredient</button>
+                <button type="button" class="remove-ingredient-btn">Remove</button>
             </div>
 
             <div class="detailed-nutrition-panel" style="display:none;">
@@ -392,9 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Note: Remove button listener is handled by delegation
     }
 
-    // Event listener for adding ingredients
-    addIngredientBtn.addEventListener('click', addIngredientRow);
-
     // Event listener for removing ingredients and toggling detailed nutrition (delegated to the list container)
     ingredientsList.addEventListener('click', (event) => {
         // Handle remove ingredient button
@@ -426,6 +424,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.classList.add('active');
                 }
             }
+        }
+
+        // Handle inline add ingredient button
+        if (event.target.classList.contains('add-ingredient-btn-inline')) {
+            addIngredientRow();
         }
     });
 
@@ -1538,34 +1541,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
         recipes.forEach(recipe => {
             const recipeDiv = document.createElement('div');
-            recipeDiv.classList.add('recipe-display-item'); // Use class from food.css
+            recipeDiv.classList.add('recipe-card'); // Use new compact card class
             recipeDiv.dataset.id = recipe.id;
 
             recipeDiv.innerHTML = `
-                <h4>${escapeHtml(recipe.name)}</h4>
-                <p>Total Calories: <span class="recipe-calories">${recipe.total_calories.toFixed(1)}</span></p>
-
-                <!-- Calorie Adjustment Controls -->
-                <div class="calorie-adjustment">
-                    <label>Adjust Calories:</label>
-                    <input type="number" class="target-calories-input" placeholder="New Cal Total" step="1">
-                    <button type="button" class="adjust-calories-btn">Set</button>
-                    <button type="button" class="adjust-calories-percent-btn" data-percent="0.75">-25%</button>
-                    <button type="button" class="adjust-calories-percent-btn" data-percent="1.25">+25%</button>
-                    <button type="button" class="adjust-calories-amount-btn" data-amount="-200">-200</button>
-                    <button type="button" class="adjust-calories-amount-btn" data-amount="200">+200</button>
+                <div class="recipe-card-header">
+                    <h3 class="recipe-card-title">${escapeHtml(recipe.name)}</h3>
+                    <p class="recipe-card-calories">${recipe.total_calories.toFixed(1)} calories</p>
                 </div>
 
-                <div class="recipe-actions">
-                    <button type="button" class="view-ingredients-btn">View Ingredients</button>
-                    <button type="button" class="delete-recipe-btn">Delete Recipe</button>
+                <div class="recipe-card-body">
+                    <!-- Compact Action Buttons -->
+                    <div class="recipe-card-actions">
+                        <button type="button" class="recipe-card-btn primary view-ingredients-btn">View</button>
+                        <button type="button" class="recipe-card-btn adjust-calories-toggle">Adjust</button>
+                        <button type="button" class="recipe-card-btn danger delete-recipe-btn">Delete</button>
+                    </div>
+
+                    <!-- Compact Calorie Adjustment Controls (initially hidden) -->
+                    <div class="calorie-adjustment-compact" style="display: none;">
+                        <!-- Top row with input and set button -->
+                        <div class="input-row">
+                            <div class="input-container">
+                                <input type="number" class="target-calories-input" placeholder="New Cal Total" step="1">
+                            </div>
+                            <button type="button" class="set-btn adjust-calories-btn">Set</button>
+                        </div>
+
+                        <!-- New layout for adjustment buttons -->
+                        <div class="adjustment-buttons-row">
+                            <!-- Percentage adjustments (left side of input) -->
+                            <div class="percent-adjustments">
+                                <button type="button" class="recipe-card-btn adjust-calories-percent-btn" data-percent="0.75">-25%</button>
+                                <button type="button" class="recipe-card-btn adjust-calories-percent-btn" data-percent="1.25">+25%</button>
+                            </div>
+
+                            <!-- Flat adjustments (right side of input) -->
+                            <div class="flat-adjustments">
+                                <button type="button" class="recipe-card-btn adjust-calories-amount-btn" data-amount="-200">-200</button>
+                                <button type="button" class="recipe-card-btn adjust-calories-amount-btn" data-amount="200">+200</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ingredient-details" style="display: none;">
+                        <!-- Ingredient details will be loaded here -->
+                    </div>
+                    <div class="adjustment-status status"></div> <!-- Status for adjustments -->
                 </div>
-                <div class="ingredient-details" style="display: none; margin-top: 10px;">
-                    <!-- Ingredient details will be loaded here -->
-                </div>
-                <div class="adjustment-status status"></div> <!-- Status for adjustments -->
             `;
             recipeListContainer.appendChild(recipeDiv);
+
+            // Add toggle functionality for the adjust calories section
+            const adjustToggleBtn = recipeDiv.querySelector('.adjust-calories-toggle');
+            const adjustSection = recipeDiv.querySelector('.calorie-adjustment-compact');
+
+            if (adjustToggleBtn && adjustSection) {
+                adjustToggleBtn.addEventListener('click', function() {
+                    const isVisible = adjustSection.style.display !== 'none';
+                    adjustSection.style.display = isVisible ? 'none' : 'grid';
+                    adjustToggleBtn.textContent = isVisible ? 'Adjust' : 'Hide';
+                });
+            }
         });
     }
 
@@ -1647,9 +1684,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const updatedRecipe = await response.json();
 
             // Update the displayed calories
-            const caloriesSpan = recipeItemElement.querySelector('.recipe-calories');
+            const caloriesSpan = recipeItemElement.querySelector('.recipe-card-calories');
             if (caloriesSpan) {
-                caloriesSpan.textContent = updatedRecipe.total_calories.toFixed(1);
+                caloriesSpan.textContent = `${updatedRecipe.total_calories.toFixed(1)} calories`;
             }
             // Clear target input
             const targetInput = recipeItemElement.querySelector('.target-calories-input');
@@ -1675,13 +1712,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detailsDiv.style.display !== 'none') {
             detailsDiv.style.display = 'none';
             detailsDiv.innerHTML = ''; // Clear content
-            viewButton.textContent = 'View Ingredients';
+            viewButton.textContent = 'View';
+            viewButton.classList.remove('active');
             return;
         }
 
         detailsDiv.innerHTML = '<p>Loading ingredients...</p>';
         detailsDiv.style.display = 'block';
-        viewButton.textContent = 'Hide Ingredients';
+        viewButton.textContent = 'Hide';
+        viewButton.classList.add('active');
 
         try {
              // Add cache-busting query parameter
@@ -2424,12 +2463,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event delegation for recipe list actions (Delete, Adjust, View)
     recipeListContainer.addEventListener('click', async (event) => { // Make async for await
         const target = event.target;
-        const recipeItem = target.closest('.recipe-display-item');
+        const recipeItem = target.closest('.recipe-card'); // Updated selector for new layout
         if (!recipeItem) return; // Click wasn't inside a recipe item
 
         const recipeId = recipeItem.dataset.id;
-        const currentCaloriesSpan = recipeItem.querySelector('.recipe-calories');
-        const currentCalories = parseFloat(currentCaloriesSpan?.textContent || '0');
+        const currentCaloriesSpan = recipeItem.querySelector('.recipe-card-calories');
+        const currentCaloriesText = currentCaloriesSpan?.textContent || '0';
+        // Extract just the number from "1500.0 calories" format
+        const currentCalories = parseFloat(currentCaloriesText.replace(/[^0-9.]/g, ''));
 
         if (target.classList.contains('delete-recipe-btn')) {
             deleteRecipe(recipeId);

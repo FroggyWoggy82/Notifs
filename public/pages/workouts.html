@@ -77,14 +77,16 @@
                 </div>
                 <!-- Photo Gallery Display -->
                 <div class="gallery-section" style="margin-bottom: 5px;">
-                    <div class="photo-slider-container">
-                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" disabled>&lt;</button>
-                        <div class="photo-viewport"> <!-- Clipping container -->
-                            <div class="photo-reel"> <!-- Image strip that moves -->
-                                <!-- Images will be dynamically loaded here by JavaScript -->
+                    <div class="photo-navigation-container">
+                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" onclick="if(typeof showPreviousPhoto === 'function') { showPreviousPhoto(); return false; }" disabled>&lt;</button>
+                        <div class="photo-slider-container">
+                            <div class="photo-viewport"> <!-- Clipping container -->
+                                <div class="photo-reel"> <!-- Image strip that moves -->
+                                    <!-- Images will be dynamically loaded here by JavaScript -->
+                                </div>
                             </div>
                         </div>
-                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" disabled>&gt;</button>
+                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" onclick="if(typeof showNextPhoto === 'function') { showNextPhoto(); return false; }" disabled>&gt;</button>
                     </div>
                     <!-- ADDED Pagination Dots Container -->
                     <div class="pagination-dots">
@@ -362,6 +364,8 @@
     <script src="../js/workouts/workout-debug.js"></script>
     <script src="../js/workouts/mobile-layout.js"></script>
     <script src="../js/workouts/force-mobile-layout.js"></script>
+    <!-- Photo button fix script - added to fix carousel navigation -->
+    <script src="../js/workouts/photo-buttons-fix.js"></script>
 
     <!-- History Edit Modal (Renamed) -->
     <div id="history-edit-modal" class="modal">
