@@ -263,11 +263,37 @@ router.get('/exercises', async (req, res) => {
     console.log("Received GET /api/workouts/exercises request");
     try {
         // Fetch necessary fields, order alphabetically for selection lists
-        const result = await db.query('SELECT exercise_id, name, category FROM exercises ORDER BY name ASC');
+        const result = await db.query('SELECT exercise_id, name, category, youtube_url FROM exercises ORDER BY name ASC');
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching exercises:', err);
         res.status(500).json({ error: 'Failed to fetch exercises' });
+    }
+});
+
+// GET /api/workouts/exercises/:id - Fetch a specific exercise by ID
+router.get('/exercises/:id', async (req, res) => {
+    const { id: exerciseId } = req.params;
+    console.log(`Received GET /api/workouts/exercises/${exerciseId} request`);
+
+    if (!/^[1-9]\d*$/.test(exerciseId)) {
+        return res.status(400).json({ error: 'Invalid exercise ID format' });
+    }
+
+    try {
+        const result = await db.query(
+            'SELECT exercise_id, name, category, description, youtube_url FROM exercises WHERE exercise_id = $1',
+            [exerciseId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Exercise not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(`Error fetching exercise ${exerciseId}:`, err);
+        res.status(500).json({ error: 'Failed to fetch exercise' });
     }
 });
 
@@ -278,7 +304,7 @@ router.get('/templates', async (req, res) => {
         // Use JSON aggregation to get exercises nested within each template
         const templatesQuery = `
             SELECT
-                w.workout_id, w.name, w.description, w.created_at,
+                w.workout_id, w.name, w.description, w.created_at, w.completion_count,
                 COALESCE(json_agg(json_build_object(
                     'workout_exercise_id', we.workout_exercise_id,
                     'exercise_id', e.exercise_id,
@@ -295,7 +321,7 @@ router.get('/templates', async (req, res) => {
             LEFT JOIN workout_exercises we ON w.workout_id = we.workout_id
             LEFT JOIN exercises e ON we.exercise_id = e.exercise_id
             WHERE w.is_template = true -- Ensure we only get templates
-            GROUP BY w.workout_id, w.name, w.description, w.created_at
+            GROUP BY w.workout_id, w.name, w.description, w.created_at, w.completion_count
             ORDER BY w.created_at DESC;
         `;
         const result = await db.query(templatesQuery);
@@ -310,7 +336,7 @@ router.get('/templates', async (req, res) => {
 router.post('/log', async (req, res) => {
     // Expecting: workoutName, duration (ISO 8601 interval string like 'PT1H30M'), notes,
     // and exercises array: [{ exercise_id, exercise_name, sets_completed, reps_completed, weight_used, weight_unit, notes }]
-    const { workoutName, duration, notes, exercises } = req.body;
+    const { workoutName, duration, notes, exercises, templateId } = req.body;
     console.log(`Received POST /api/workouts/log request for workout: ${workoutName}`);
 
     // --- Basic Validation ---
@@ -336,6 +362,15 @@ router.post('/log', async (req, res) => {
         );
         const newLogId = logInsertResult.rows[0].log_id;
         console.log(`Log Workout: Inserted workout_log with ID: ${newLogId}`);
+
+        // If this workout was started from a template, increment the completion count
+        if (templateId) {
+            console.log(`Log Workout: Incrementing completion count for template ID: ${templateId}`);
+            await client.query(
+                'UPDATE workouts SET completion_count = completion_count + 1 WHERE workout_id = $1 AND is_template = true',
+                [templateId]
+            );
+        }
 
         // 2. Insert each exercise log linked to the new workout_log
         console.log(`Log Workout: Inserting ${exercises.length} exercise logs...`);
@@ -393,8 +428,8 @@ router.post('/log', async (req, res) => {
 
 // POST /api/workouts/exercises - Create a new exercise definition
 router.post('/exercises', async (req, res) => {
-    const { name, category, description } = req.body;
-    console.log(`Received POST /api/workouts/exercises: Name='${name}', Category='${category}'`);
+    const { name, category, description, youtube_url } = req.body;
+    console.log(`Received POST /api/workouts/exercises: Name='${name}', Category='${category}', YouTube URL='${youtube_url}'`);
 
     // Basic Validation
     if (!name || name.trim() === '') {
@@ -407,8 +442,8 @@ router.post('/exercises', async (req, res) => {
 
     try {
         const result = await db.query(
-            'INSERT INTO exercises (name, category, description) VALUES ($1, $2, $3) RETURNING *',
-            [name.trim(), category, description || null]
+            'INSERT INTO exercises (name, category, description, youtube_url) VALUES ($1, $2, $3, $4) RETURNING *',
+            [name.trim(), category, description || null, youtube_url || null]
         );
         console.log('New exercise created:', result.rows[0]);
         res.status(201).json(result.rows[0]); // Return the newly created exercise
@@ -474,6 +509,57 @@ router.get('/exercises/:id/history', async (req, res) => {
     try {
         // Fetch relevant log data, ordered by date
         const query = `
+            SELECT
+                wl.log_id AS workout_log_id,
+                el.sets_completed,
+                el.reps_completed, -- Comma-separated string e.g., "10,9,8"
+                el.weight_used,   -- Comma-separated string e.g., "50,50,55"
+                el.weight_unit,
+                wl.date_performed
+            FROM exercise_logs el
+            JOIN workout_logs wl ON el.workout_log_id = wl.log_id
+            WHERE el.exercise_id = $1
+            ORDER BY wl.date_performed ASC; -- Order oldest to newest for charting
+        `;
+        const result = await db.query(query, [exerciseId]);
+
+        // Send back all rows found
+        console.log(`Found ${result.rows.length} history logs for exercise ${exerciseId}.`);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(`Error fetching history for exercise ${exerciseId}:`, err);
+        res.status(500).json({ error: 'Failed to fetch exercise history' });
+    }
+});
+
+// PATCH /api/workouts/exercises/:id - Update an exercise's properties
+router.patch('/exercises/:id', async (req, res) => {
+    const { id: exerciseId } = req.params;
+    const { youtube_url } = req.body;
+    console.log(`Received PATCH /api/workouts/exercises/${exerciseId} request`);
+
+    if (!/^[1-9]\d*$/.test(exerciseId)) {
+        return res.status(400).json({ error: 'Invalid exercise ID format' });
+    }
+
+    try {
+        const result = await db.query(
+            'UPDATE exercises SET youtube_url = $1 WHERE exercise_id = $2 RETURNING *',
+            [youtube_url, exerciseId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Exercise not found' });
+        }
+
+        console.log('Exercise updated:', result.rows[0]);
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error updating exercise:', err);
+        res.status(500).json({ error: 'Failed to update exercise' });
+    }
+});
             SELECT
                 wl.log_id AS workout_log_id,
                 el.sets_completed,

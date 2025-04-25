@@ -125,7 +125,6 @@ function isDayChanged() {
 
 // Wrap all DOM operations in DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-    const notifyBtn = document.getElementById('notifyBtn');
     const statusDiv = document.getElementById('status');
     const permissionStatusDiv = document.getElementById('permissionStatus');
 
@@ -229,8 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Service worker update check failed:', err);
                 });
 
-                // Setup push subscription if permission is already granted
-                checkNotificationPermission(true); // Check permission silently first
                 // --- NEW: Load tasks after SW is ready ---
                 loadTasks();
                 loadHabits(); // Load habits too
@@ -287,10 +284,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
         console.warn('Push messaging is not supported');
-        notifyBtn.textContent = 'Push Not Supported';
-        notifyBtn.disabled = true;
-        permissionStatusDiv.textContent = 'Push messaging is not supported by this browser.';
-        permissionStatusDiv.className = 'notifications-status permission-denied';
+        if (permissionStatusDiv) {
+            permissionStatusDiv.textContent = 'Push messaging is not supported by this browser.';
+            permissionStatusDiv.className = 'notifications-status permission-denied';
+        }
          // --- NEW: Still load tasks even if push is not supported ---
          loadTasks();
          loadHabits(); // Load habits too
@@ -315,138 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
          setInterval(ensureOverdueStyling, 2000);
     }
 
-    notifyBtn.addEventListener('click', () => {
-        if (Notification.permission === 'granted') {
-             console.log('Permission already granted, checking subscription...');
-             setupPushSubscription(); // Re-check/setup subscription
-        } else if (Notification.permission === 'denied') {
-             updateStatus('Notification permission was previously denied. Please enable it in browser settings.', true);
-        } else {
-            requestNotificationPermission();
-        }
-    });
-
-    function checkNotificationPermission(silent = false) {
-        if (!('Notification' in window)) {
-            permissionStatusDiv.style.display = 'block';
-            permissionStatusDiv.textContent = 'Notifications not supported.';
-            permissionStatusDiv.className = 'notifications-status permission-denied';
-            notifyBtn.disabled = true;
-            return;
-        }
-
-        const permission = Notification.permission;
-        permissionStatusDiv.classList.remove('permission-granted', 'permission-denied', 'permission-default');
-
-        if (permission === 'granted') {
-            // Hide the permission status text when granted
-            permissionStatusDiv.style.display = 'none';
-            notifyBtn.textContent = 'Background Reminders Enabled';
-            notifyBtn.disabled = true; // Or change to 'Refresh Subscription'?
-             // If granted, ensure subscription is set up
-             if (!silent) setupPushSubscription();
-        } else if (permission === 'denied') {
-            permissionStatusDiv.style.display = 'block';
-            permissionStatusDiv.textContent = 'Notification Permission: DENIED';
-            permissionStatusDiv.classList.add('permission-denied');
-            notifyBtn.textContent = 'Enable Background Reminders';
-            notifyBtn.disabled = false;
-            if (!silent) updateStatus('Enable notifications in browser settings to use reminders.', true);
-        } else {
-            permissionStatusDiv.style.display = 'block';
-            permissionStatusDiv.textContent = 'Notification Permission: NOT SET';
-            permissionStatusDiv.classList.add('permission-default');
-            notifyBtn.textContent = 'Enable Background Reminders';
-            notifyBtn.disabled = false;
-        }
-    }
-
-     async function requestNotificationPermission() {
-         try {
-             const permissionResult = await Notification.requestPermission();
-             checkNotificationPermission(); // Update UI based on new permission
-             if (permissionResult === 'granted') {
-                 console.log('Notification permission granted.');
-                 // Hide permission status when granted
-                 permissionStatusDiv.style.display = 'none';
-                 updateStatus('Permission granted! Setting up background sync...', false);
-                 await setupPushSubscription();
-                 updateStatus('Background reminders enabled!', false);
-             } else {
-                 console.log('Notification permission denied.');
-                 updateStatus('Permission denied. Reminders will not work in the background.', true);
-             }
-         } catch (error) {
-             console.error('Error requesting notification permission:', error);
-             updateStatus('Error requesting permission.', true);
-         }
-     }
-
-    async function setupPushSubscription() {
-        if (!swRegistration) {
-            console.error('Service worker registration not found.');
-            updateStatus('Service Worker not ready.', true);
-            return;
-        }
-
-        try {
-            let subscription = await swRegistration.pushManager.getSubscription();
-            if (subscription) {
-                console.log('User IS already subscribed.');
-                 // Optional: Update server with latest subscription info? Might be redundant.
-                 // sendSubscriptionToServer(subscription);
-                 updateStatus('Already subscribed for background reminders.', false);
-                 notifyBtn.disabled = true;
-                 notifyBtn.textContent = 'Reminders Enabled';
-            } else {
-                console.log('User is NOT subscribed. Subscribing...');
-                const applicationServerKey = urlBase64ToUint8Array('BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0'); // Your public VAPID key
-                subscription = await swRegistration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: applicationServerKey
-                });
-                console.log('User subscribed:', subscription);
-                await sendSubscriptionToServer(subscription);
-                updateStatus('Successfully subscribed for background reminders!', false);
-                notifyBtn.disabled = true;
-                notifyBtn.textContent = 'Reminders Enabled';
-            }
-        } catch (err) {
-            console.error('Failed to subscribe the user: ', err);
-            if (Notification.permission === 'denied') {
-                updateStatus('Subscription failed: Permission denied.', true);
-            } else {
-                 updateStatus('Failed to subscribe for background reminders.', true);
-            }
-            notifyBtn.disabled = false; // Allow retry
-            notifyBtn.textContent = 'Enable Background Reminders';
-        }
-    }
-
-    function urlBase64ToUint8Array(base64String) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-        for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
-        return outputArray;
-    }
-
-    async function sendSubscriptionToServer(subscription) {
-        try {
-            const response = await fetch('/api/save-subscription', {
-                method: 'POST',
-                body: JSON.stringify(subscription),
-                headers: { 'Content-Type': 'application/json' }
-            });
-            if (!response.ok) { throw new Error(`Server error: ${response.status}`); }
-            const data = await response.json();
-            console.log('Subscription save response:', data);
-        } catch (error) {
-            console.error('Error sending subscription to server:', error);
-             updateStatus('Failed to save subscription state.', true);
-        }
-    }
+    // Notification functionality moved to settings.js
 
     // --- General Status Update Function ---
     function updateStatus(message, isError = false) {
@@ -2087,9 +1953,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Refresh functionality removed - app now always uses latest version
-
-    // Initial check for notification permission on load
-    checkNotificationPermission(true);
 
     // --- NEW: Add Task Modal Listeners ---
     addTaskFab.addEventListener('click', () => {

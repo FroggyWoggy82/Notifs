@@ -59,7 +59,21 @@ const { swaggerDocs } = require('./docs/swagger');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3012; // Using port 3012 to avoid conflicts
+
+// Parse command line arguments for port
+const args = process.argv.slice(2);
+let portArg;
+for (let i = 0; i < args.length; i++) {
+  if (args[i].startsWith('--port=')) {
+    portArg = args[i].split('=')[1];
+    break;
+  } else if (args[i] === '--port' && i + 1 < args.length) {
+    portArg = args[i + 1];
+    break;
+  }
+}
+
+const PORT = process.env.PORT || portArg || 3000; // Default to 3000 if no port specified
 
 // Middleware
 app.use(cors({

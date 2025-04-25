@@ -244,6 +244,24 @@ h1, h2 {
     text-overflow: ellipsis;
     padding-right: 40px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Completion Count Badge */
+.completion-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #03dac6;
+    color: #121212;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 8px;
+    flex-shrink: 0;
 }
 
 /* Description styling */
@@ -502,28 +520,161 @@ h1, h2 {
     transition: background-color 0.2s ease;
 }
 
-/* Weight unit option in menu */
-.exercise-options-menu-item.weight-unit {
+/* Row for aligned items */
+.exercise-options-menu-row {
     display: flex;
-    justify-content: center;
-    padding: 4px 0;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
     margin-bottom: 8px;
 }
 
-.exercise-options-menu-item.weight-unit .exercise-unit-select {
-    display: inline-block;
-    padding: 2px 4px;
+/* Labels row styling */
+.exercise-options-menu-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.exercise-options-menu-label label {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #bbb;
+    padding: 0 5px;
+}
+
+/* Inputs row styling */
+.exercise-options-menu-row.inputs-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.exercise-options-menu-row.inputs-row select,
+.exercise-options-menu-row.inputs-row input {
+    flex: 1;
+    height: 36px;
+    padding: 5px;
     background-color: #333;
     border: 1px solid #444;
     color: #f5f5f5;
     border-radius: 3px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+/* Buttons row specific styling */
+.exercise-options-menu-row.buttons-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    border-top: 1px solid #444;
+    padding-top: 12px;
+    height: 36px; /* Fixed height for alignment */
+    margin-bottom: 8px; /* Add margin at the bottom */
+}
+
+/* Right-aligned button group */
+.button-group-right {
+    display: flex;
+    gap: 5px;
+    height: 36px;
+    align-items: center; /* Vertically center the buttons */
+}
+
+/* Weight unit and increment options */
+.exercise-options-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+/* Specific styling for weight unit and increment items */
+.exercise-options-menu-item.weight-unit,
+.exercise-options-menu-item.weight-increment {
+    flex: 1; /* Equal width for both */
+    margin-bottom: 0;
+}
+
+/* Ensure the inputs are the same height and aligned */
+.exercise-options-menu-item.weight-unit select,
+.exercise-options-menu-item.weight-increment input {
+    height: 36px; /* Match height for both inputs */
+    box-sizing: border-box;
+    width: 100%; /* Full width of their container */
+}
+
+.exercise-options-menu-item label {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #bbb;
+}
+
+.exercise-options-menu-item select,
+.exercise-options-menu-item input {
+    width: 100%;
+    padding: 6px 8px;
+    background-color: #333;
+    border: 1px solid #444;
+    color: #f5f5f5;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    height: 32px;
+}
+
+/* View Exercise button styling */
+.btn-view-exercise {
+    background-color: #03dac6;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 0 10px;
     cursor: pointer;
-    width: 90%;
-    max-width: none;
-    margin: 0 auto;
-    text-align: center;
-    height: 22px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    height: 32px; /* Slightly smaller height to match icon buttons better */
+    width: 130px; /* Fixed width */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    margin: 0 10px 0 5px; /* Add margin around the button */
+    line-height: 1; /* Match line height with icon buttons */
+}
+
+.btn-view-exercise:hover {
+    background-color: #00b8a6;
+}
+
+/* Edit and Delete button styling */
+.btn-edit-exercise-name,
+.btn-delete-exercise {
+    background: none;
+    border: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+}
+
+.btn-edit-exercise-name {
+    color: #03dac6;
+    font-size: 1.1rem;
+}
+
+.btn-delete-exercise {
+    color: #f44336;
+    font-size: 1.3rem;
 }
 
 .exercise-options-menu-item:last-child {
@@ -555,6 +706,7 @@ h1, h2 {
 /* Style for buttons inside menu items */
 .exercise-options-menu-item .btn-edit-exercise,
 .exercise-options-menu-item .btn-delete-exercise,
+.exercise-options-menu-item .btn-edit-exercise-name,
 .exercise-options-menu-item .btn-delete-template-exercise {
     display: flex;
     align-items: center;
@@ -564,8 +716,8 @@ h1, h2 {
     color: inherit;
     font-size: 1.2rem;
     padding: 0;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     text-align: center;
     cursor: pointer;
     margin: 0 auto;
@@ -577,7 +729,8 @@ h1, h2 {
     font-size: 1.4rem;
 }
 
-.exercise-options-menu-item.edit .btn-edit-exercise {
+.exercise-options-menu-item.edit .btn-edit-exercise,
+.exercise-options-menu-item.edit .btn-edit-exercise-name {
     color: #03dac6;
     font-size: 1.3rem;
 }
@@ -1977,6 +2130,68 @@ h1, h2 {
 .default-setting label {
     margin-bottom: 5px;
     font-weight: bold;
+}
+
+/* YouTube URL Modal */
+#youtube-url-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#youtube-url-modal .modal-content {
+    background-color: #1e1e1e;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 500px;
+    color: #f5f5f5;
+}
+
+#youtube-url-modal h3 {
+    margin: 0 0 15px 0;
+    color: #03dac6;
+}
+
+#youtube-url-modal p {
+    margin-bottom: 15px;
+    color: #bbb;
+}
+
+#youtube-url-modal input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #333;
+    border: 1px solid #555;
+    color: #f5f5f5;
+    border-radius: 3px;
+}
+
+#youtube-url-modal .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#youtube-url-modal .close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#youtube-url-modal .close-modal:hover {
+    color: #f5f5f5;
 }
 
 .default-setting input {

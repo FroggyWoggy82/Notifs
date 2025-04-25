@@ -29,8 +29,8 @@ function formatDate(dateString) {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
-        // No timeZone specified - will use the browser's local timezone
+        minute: '2-digit',
+        timeZone: 'America/Chicago' // Explicitly use Central Time
     });
 }
 
@@ -195,17 +195,17 @@ window.editEvent = function(id, currentName, currentDate) {
     const eventElement = document.querySelector(`.days-since-event[data-id="${id}"]`);
     if (!eventElement) return;
 
-    // --- Change: Default to current time instead of event's time ---
+    // Use current time instead of the event's time
     const now = new Date();
+
+    // Format the current time for datetime-local input (YYYY-MM-DDTHH:MM)
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
     const hours = now.getHours().toString().padStart(2, '0');
     const minutes = now.getMinutes().toString().padStart(2, '0');
 
-    // Format for datetime-local input (YYYY-MM-DDTHH:MM)
-    const defaultEditDate = `${year}-${month}-${day}T${hours}:${minutes}`;
-    // --- End Change ---
+    const formattedCurrentTime = `${year}-${month}-${day}T${hours}:${minutes}`;
 
     // Create and show edit form
     const editForm = document.createElement('form');
@@ -218,7 +218,7 @@ window.editEvent = function(id, currentName, currentDate) {
         </div>
         <div class="form-group">
             <label for="editEventDate_${id}">Start Date:</label>
-            <input type="datetime-local" id="editEventDate_${id}" value="${defaultEditDate}" required>
+            <input type="datetime-local" id="editEventDate_${id}" value="${formattedCurrentTime}" required>
         </div>
         <div class="edit-form-actions">
             <button type="submit" class="save-btn">Save</button>

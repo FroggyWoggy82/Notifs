@@ -372,12 +372,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             // --- --- --- ---
 
+            // Prepare completion count badge
+            const completionCount = template.completion_count || 0;
+            const completionBadge = completionCount > 0
+                ? `<div class="completion-count-badge" title="Completed ${completionCount} time${completionCount !== 1 ? 's' : ''}">
+                     <span>${completionCount}</span>
+                   </div>`
+                : '';
+
             card.innerHTML = `
                 <div class="card-corner-actions">
                     <button class="btn-edit-template" data-template-id="${template.workout_id}" title="Edit Template">&#9998;</button>
                     <button class="btn-delete-template" data-template-id="${template.workout_id}" title="Delete Template">&times;</button>
                 </div>
-                <h3>${escapeHtml(template.name)}</h3>
+                <h3>${escapeHtml(template.name)} ${completionBadge}</h3>
                 ${template.description ? `<p class="template-description">${escapeHtml(template.description)}</p>` : ''}
                 <div class="exercise-summary-vertical">
                     ${exerciseListHtml}
@@ -557,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Reworked function to render a single exercise item (lastLogData now part of exerciseData) ---
     async function renderSingleExerciseItem(exerciseItemElement, exerciseData, index, isTemplate = false) {
         console.log(`[Render Single] Rendering exercise '${exerciseData.name}' at index ${index}, isTemplate: ${isTemplate}`);
+        console.log(`[DEBUG] renderSingleExerciseItem called with index: ${index}, isTemplate: ${isTemplate}`);
 
         // Store whether this is a template exercise to use later
         exerciseItemElement.dataset.isTemplate = isTemplate ? 'true' : 'false';
@@ -646,6 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Use the exercise's values if they exist, otherwise use the template defaults
             const exerciseSets = exerciseData.sets || defaultSetsValue;
             const exerciseReps = exerciseData.reps || defaultRepsValue;
+            const weightIncrement = exerciseData.weight_increment || 5;
 
             perExerciseSettingsHtml = `
                 <div class="exercise-specific-settings">
@@ -657,6 +667,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label>Reps:</label>
                         <input type="text" class="exercise-reps-input" value="${exerciseReps}" placeholder="e.g., 8-12" data-workout-index="${index}">
                     </div>
+                    <div class="exercise-setting">
+                        <label>Weight Increment:</label>
+                        <input type="number" class="exercise-weight-increment-input" value="${weightIncrement}" min="0.1" step="0.1" data-index="${index}">
+                    </div>
                 </div>
             `;
         }
@@ -667,22 +681,15 @@ document.addEventListener('DOMContentLoaded', function() {
             exerciseItemElement.innerHTML = `
                 <div class="exercise-item-header">
                     <h4>${escapeHtml(exerciseData.name)}</h4>
-                    <button class="btn-exercise-options" data-workout-index="${index}" title="Exercise Options">...</button>
-                    <!-- Options Menu (Hidden by default) -->
-                    <div class="exercise-options-menu" id="options-menu-${index}">
-                        <!-- Weight Unit Option -->
-                        <div class="exercise-options-menu-item weight-unit">
-                            <select class="exercise-unit-select" data-workout-index="${index}">
-                                <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
-                                <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
-                                <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>BW</option>
-                                <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
-                            </select>
-                        </div>
-                        <!-- Delete Option -->
-                        <div class="exercise-options-menu-item delete">
-                            <button class="btn-delete-template-exercise" data-workout-index="${index}" title="Remove Exercise">&times;</button>
-                        </div>
+                    <div class="exercise-header-actions">
+                        <select class="exercise-unit-select" data-index="${index}">
+                            <option value="lbs" ${exerciseData.weight_unit === 'lbs' || !exerciseData.weight_unit ? 'selected' : ''}>lbs</option>
+                            <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
+                            <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>BW</option>
+                            <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
+                        </select>
+                        <button class="btn-view-exercise" data-exercise-id="${exerciseData.exercise_id}" title="View Exercise Video">🎬</button>
+                        <button class="delete-template-exercise-btn btn-danger" data-index="${index}" title="Remove Exercise">&times;</button>
                     </div>
                 </div>
                 ${perExerciseSettingsHtml}
@@ -691,8 +698,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="sets-container"> ${setsHtml} </div>
                 <div class="set-actions-container">
-                    <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
-                    <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
+                    <button type="button" class="btn btn-danger btn-remove-set" data-index="${index}">- Remove Set</button>
+                    <button type="button" class="btn btn-secondary btn-add-set" data-index="${index}">+ Add Set</button>
                 </div>
         `;
         } else {
@@ -703,23 +710,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="btn-exercise-options" data-workout-index="${index}" title="Exercise Options">...</button>
                     <!-- Options Menu (Hidden by default) -->
                     <div class="exercise-options-menu" id="options-menu-${index}">
-                        <!-- Weight Unit Option -->
-                        <div class="exercise-options-menu-item">
-                            <label for="weight-unit-${index}">Weight Unit:</label>
+                        <!-- Weight Unit Label -->
+                        <div class="exercise-options-menu-label">
+                            <label>Weight Unit:</label>
+                            <label>Weight Increment:</label>
+                        </div>
+
+                        <!-- Weight Unit and Increment Inputs Row -->
+                        <div class="exercise-options-menu-row inputs-row">
                             <select id="weight-unit-${index}" class="weight-unit-select" data-workout-index="${index}">
                                 <option value="lbs" ${exerciseData.weight_unit === 'lbs' ? 'selected' : ''}>lbs</option>
                                 <option value="kg" ${exerciseData.weight_unit === 'kg' ? 'selected' : ''}>kg</option>
                                 <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>bodyweight</option>
                                 <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>assisted</option>
                             </select>
+                            <input type="number" id="weight-increment-${index}" class="weight-increment-input" data-workout-index="${index}"
+                                value="${exerciseData.weight_increment || 5}" min="0.1" step="0.1">
                         </div>
-                        <!-- Edit Name Option -->
-                        <div class="exercise-options-menu-item">
-                            <button class="btn-edit-exercise-name" data-workout-index="${index}" title="Edit Exercise Name">✏️ Edit Name</button>
-                        </div>
-                        <!-- Delete Option -->
-                        <div class="exercise-options-menu-item delete">
-                            <button class="btn-delete-exercise" data-workout-index="${index}" title="Remove Exercise">&times;</button>
+
+                        <!-- All Buttons in One Row -->
+                        <div class="exercise-options-menu-row buttons-row">
+                            <button class="btn-view-exercise" data-exercise-id="${exerciseData.exercise_id}" title="View Exercise Video">
+                                🎬 View Exercise
+                            </button>
+                            <div class="button-group-right">
+                                <button class="btn-edit-exercise-name" data-workout-index="${index}" title="Edit Exercise Name">✏️</button>
+                                <button class="btn-delete-exercise" data-workout-index="${index}" title="Remove Exercise">&times;</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -737,10 +754,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="sets-container"> ${setsHtml} </div>
                 <div class="set-actions-container">
-                    <button type="button" class="btn btn-danger btn-remove-set">- Remove Set</button>
-                    <button type="button" class="btn btn-secondary btn-add-set">+ Add Set</button>
+                    <button type="button" class="btn btn-danger btn-remove-set" data-workout-index="${index}">- Remove Set</button>
+                    <button type="button" class="btn btn-secondary btn-add-set" data-workout-index="${index}">+ Add Set</button>
                 </div>
             `;
+
+            console.log("[DEBUG] Generated HTML for exercise item:", exerciseItemElement.innerHTML);
         }
 
         // Initialize state for the remove button
@@ -760,10 +779,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Exercise Options Menu Functions ---
     function toggleOptionsMenu(event) {
+        console.log("[DEBUG] toggleOptionsMenu called", event.target);
         const optionsButton = event.target;
-        const workoutIndex = optionsButton.dataset.workoutIndex || optionsButton.dataset.index;
+
+        // Get the workout index from the button's data attribute
+        let workoutIndex = optionsButton.dataset.workoutIndex || optionsButton.dataset.index;
+
+        // If no index on the button, try to get it from the parent exercise item
+        if (!workoutIndex) {
+            const exerciseItem = optionsButton.closest('.exercise-item');
+            if (exerciseItem) {
+                workoutIndex = exerciseItem.dataset.workoutIndex || exerciseItem.dataset.index;
+            }
+        }
+
+        console.log("[DEBUG] workoutIndex:", workoutIndex);
         const isTemplate = !optionsButton.dataset.workoutIndex;
+        console.log("[DEBUG] isTemplate:", isTemplate);
         const menuId = isTemplate ? `template-options-menu-${workoutIndex}` : `options-menu-${workoutIndex}`;
+        console.log("[DEBUG] menuId:", menuId);
         const menu = document.getElementById(menuId);
 
         if (!menu) {
@@ -783,6 +817,121 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Prevent the click from propagating to the document
         event.stopPropagation();
+    }
+
+    // --- View Exercise Video Function ---
+    async function handleViewExercise(event) {
+        const button = event.target;
+        const exerciseId = button.dataset.exerciseId;
+
+        if (!exerciseId) {
+            console.error("No exercise ID found on view button");
+            return;
+        }
+
+        console.log(`Fetching YouTube URL for exercise ID: ${exerciseId}`);
+
+        try {
+            // Fetch the exercise details to get the YouTube URL
+            const response = await fetch(`/api/workouts/exercises/${exerciseId}`);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch exercise: ${response.status}`);
+            }
+
+            const exercise = await response.json();
+
+            if (!exercise.youtube_url) {
+                // If no YouTube URL is set, show a modal to set one
+                showYouTubeUrlModal(exerciseId, exercise.name);
+            } else {
+                // Open the YouTube URL in a new tab
+                window.open(exercise.youtube_url, '_blank');
+            }
+        } catch (error) {
+            console.error("Error fetching exercise details:", error);
+            alert("Failed to fetch exercise details. Please try again.");
+        }
+    }
+
+    // --- YouTube URL Modal Functions ---
+    function showYouTubeUrlModal(exerciseId, exerciseName) {
+        // Create modal if it doesn't exist
+        let modal = document.getElementById('youtube-url-modal');
+
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'youtube-url-modal';
+            modal.className = 'modal';
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3>Set YouTube URL for <span id="youtube-exercise-name"></span></h3>
+                    <p>Enter a YouTube URL to link to this exercise:</p>
+                    <input type="text" id="youtube-url-input" placeholder="https://www.youtube.com/watch?v=...">
+                    <div class="modal-buttons">
+                        <button id="save-youtube-url" class="btn btn-primary">Save</button>
+                        <button id="cancel-youtube-url" class="btn">Cancel</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Add event listeners
+            modal.querySelector('.close-modal').addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            modal.querySelector('#cancel-youtube-url').addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            modal.querySelector('#save-youtube-url').addEventListener('click', async () => {
+                const youtubeUrl = document.getElementById('youtube-url-input').value.trim();
+                const currentExerciseId = modal.dataset.exerciseId;
+
+                if (!youtubeUrl) {
+                    alert("Please enter a valid YouTube URL");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/workouts/exercises/${currentExerciseId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ youtube_url: youtubeUrl })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to update exercise: ${response.status}`);
+                    }
+
+                    const updatedExercise = await response.json();
+                    console.log("Exercise updated with YouTube URL:", updatedExercise);
+
+                    // Open the YouTube URL in a new tab
+                    window.open(updatedExercise.youtube_url, '_blank');
+
+                    // Close the modal
+                    modal.style.display = 'none';
+                } catch (error) {
+                    console.error("Error updating exercise:", error);
+                    alert("Failed to update exercise. Please try again.");
+                }
+            });
+        }
+
+        // Set the exercise ID and name
+        modal.dataset.exerciseId = exerciseId;
+        document.getElementById('youtube-exercise-name').textContent = exerciseName;
+        document.getElementById('youtube-url-input').value = '';
+
+        // Show the modal
+        modal.style.display = 'block';
     }
 
     // Close all menus when clicking outside
@@ -1672,6 +1821,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize currentWorkout as an object with name and exercises array
         currentWorkout = {
             name: template.name, // Store template name
+            templateId: template.workout_id, // Store the template ID to track completion
             exercises: template.exercises.map(ex => {
                 // Get the number of sets from the template, default to 1 if not specified
                 const numSets = parseInt(ex.sets) || 1;
@@ -1689,7 +1839,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         reps: '',
                         unit: ex.weight_unit || 'lbs', // Default to lbs
                         completed: false // Ensure sets are not completed by default
-                    }))
+                    })),
+                    // Set the actual number of sets to match the template_sets value
+                    sets: numSets
                 };
             })
         };
@@ -1935,14 +2087,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // REMOVED local declaration: let listElement;
 
         // Check the globally defined currentPage
+        let exercisesArray;
+        let listElement;
+
         if (currentPage === 'active') {
             exercisesArray = currentWorkout.exercises;
             listElement = currentExerciseListEl;
-        } else if (currentPage === 'template-editor') {
-            // Assuming template exercises are stored in a variable like `templateEditorExercises`
-            // This needs to be adapted based on how template editor data is stored
-            exercisesArray = templateEditorData.exercises; // Example variable name
-            listElement = templateExerciseListEl; // Example list element
+        } else if (currentPage === 'editor') {
+            // Use the currentTemplateExercises array for the template editor
+            exercisesArray = currentTemplateExercises;
+            listElement = templateExerciseListEl;
         } else {
             console.error("[handleDeleteExercise] Called from unknown page context:", currentPage);
             return;
@@ -1992,28 +2146,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleDeleteTemplateExercise(deleteButton) { // Changed parameter to expect the button element
         const indexToRemove = parseInt(deleteButton.dataset.index, 10); // Use dataset.index from the button
         if (!isNaN(indexToRemove) && indexToRemove >= 0 && indexToRemove < currentTemplateExercises.length) {
-             const exerciseName = currentTemplateExercises[indexToRemove]?.name || 'this exercise';
-             if (confirm(`Are you sure you want to remove ${exerciseName} from this template?`)) {
-                 console.log(`[handleDeleteTemplateExercise] Attempting to remove index ${indexToRemove}.`);
-                 console.log(`[handleDeleteTemplateExercise] Array length BEFORE splice: ${currentTemplateExercises.length}`);
+            // Remove the exercise from the array immediately without confirmation
+            currentTemplateExercises.splice(indexToRemove, 1); // Modifies the array
 
-                 // Remove the exercise from the array
-                 currentTemplateExercises.splice(indexToRemove, 1); // Modifies the array
-                 console.log(`[handleDeleteTemplateExercise] Array length AFTER splice: ${currentTemplateExercises.length}`);
+            // Re-assign order_position for remaining exercises
+            currentTemplateExercises.forEach((ex, idx) => {
+                ex.order_position = idx;
+            });
 
-                 // Re-assign order_position for remaining exercises
-                 currentTemplateExercises.forEach((ex, idx) => {
-                     ex.order_position = idx;
-                 });
+            // Re-render the template editor list without switching pages
+            renderTemplateExerciseList();
 
-                 // Re-render the template editor list without switching pages
-                 renderTemplateExerciseList();
-
-                 // Stay on the template editor page
-                 // No need to call switchPage() - we want to remain on the current page
-             }
+            // Stay on the template editor page
+            // No need to call switchPage() - we want to remain on the current page
         } else {
-             console.error('Invalid index for template exercise deletion:', deleteButton.dataset.index);
+            console.error('Invalid index for template exercise deletion:', deleteButton.dataset.index);
         }
     }
 
@@ -2201,7 +2348,8 @@ document.addEventListener('DOMContentLoaded', function() {
             workoutName: finalWorkoutName,
             duration: formatDuration(workoutStartTime ? (Date.now() - workoutStartTime) : 0),
             notes: '', // TODO: Add an input field for overall workout notes if desired
-            exercises: loggedExercises
+            exercises: loggedExercises,
+            templateId: currentWorkout.templateId || null // Include the template ID if this workout was started from a template
         };
 
         console.log('Sending workout log data:', workoutData);
@@ -2346,10 +2494,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderTemplateExerciseList() {
+        console.log('Rendering template exercise list. Current exercises:', currentTemplateExercises);
         const templateExerciseListEl = document.getElementById('template-exercise-list');
         templateExerciseListEl.innerHTML = '';
 
-        if (currentTemplateExercises.length === 0) {
+        if (!currentTemplateExercises || currentTemplateExercises.length === 0) {
             templateExerciseListEl.innerHTML = '<p>Add exercises using the button below.</p>';
             return;
         }
@@ -2510,6 +2659,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 reps: exercise.reps || '', // Default empty string if not set
                 weight: exercise.weight,
                 weight_unit: exercise.weight_unit || 'lbs', // Default to lbs if not set
+                weight_increment: parseFloat(exercise.weight_increment) || 5, // Default to 5 if not set
                 notes: exercise.notes || '' // Default empty string if not set
             };
             return simplifiedExercise;
@@ -2610,6 +2760,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add to local cache and re-render list
             availableExercises.push(result); // Add the new exercise object returned by API
             availableExercises.sort((a, b) => a.name.localeCompare(b.name)); // Keep sorted
+
+            // Auto-check the newly created exercise
+            const newExerciseId = result.exercise_id;
+            checkedExercises.add(newExerciseId);
+            if (!checkedExercisesOrder.includes(newExerciseId)) {
+                checkedExercisesOrder.push(newExerciseId);
+            }
+            console.log(`Auto-checked newly created exercise ID: ${newExerciseId}`);
+
+            // Re-render the list to show the checked state
             renderAvailableExercises();
 
             // Hide the definition section and reset button
@@ -2675,6 +2835,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Add Set Handler ---
     function handleAddSet(event) {
+        console.log("[DEBUG] handleAddSet called", event.target);
         const addButton = event.target; // The button that was clicked
         const exerciseItem = addButton.closest('.exercise-item'); // Find the parent exercise item
 
@@ -2684,14 +2845,39 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const exerciseIndexStr = exerciseItem.dataset.workoutIndex; // <<< CORRECT: Get index from parent item
-        const exerciseIndex = parseInt(exerciseIndexStr, 10);
+        // Check if we're in template editor mode
+        const isTemplateEditor = exerciseItem.dataset.isTemplate === 'true' ||
+                                templateEditorPage?.classList.contains('active');
 
-        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        console.log("[DEBUG] Is template editor mode:", isTemplateEditor);
 
-        // === VALIDATION: Check if index is valid and workout data exists ===
+        // Get the index from the appropriate data attribute
+        let exerciseIndex;
+        if (isTemplateEditor) {
+            exerciseIndex = parseInt(addButton.dataset.index, 10);
+            if (isNaN(exerciseIndex)) {
+                exerciseIndex = parseInt(exerciseItem.dataset.index, 10);
+            }
+        } else {
+            exerciseIndex = parseInt(addButton.dataset.workoutIndex, 10);
+            if (isNaN(exerciseIndex)) {
+                exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
+            }
+        }
+
+        console.log("[DEBUG] handleAddSet exerciseIndex:", exerciseIndex);
+
+        // Get the appropriate data array based on context
+        const exercises = isTemplateEditor ? currentTemplateExercises :
+                         (Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises);
+
+        // === VALIDATION: Check if index is valid and data exists ===
         if (isNaN(exerciseIndex) || !exercises || exerciseIndex < 0 || exerciseIndex >= exercises.length) {
-            console.error("handleAddSet: Invalid exercise index or workout data.", { indexStr: exerciseIndexStr, index: exerciseIndex, workoutExists: !!currentWorkout });
+            console.error("handleAddSet: Invalid exercise index or data.", {
+                index: exerciseIndex,
+                dataExists: !!exercises,
+                isTemplateEditor: isTemplateEditor
+            });
             return; // Stop execution if index is bad
         }
         // === END VALIDATION ===
@@ -2709,25 +2895,47 @@ document.addEventListener('DOMContentLoaded', function() {
         const newSetIndex = currentSetCount; // Index for the *new* row is the current count (0-based)
 
         // Generate HTML for just the new row (using the correct new index)
-        // generateSingleSetRowHtml will now attempt to pre-fill based on lastLog data for this newSetIndex
-        const newSetRowHtml = generateSingleSetRowHtml(newSetIndex, exerciseData, false); // false = not template
+        // Pass isTemplateEditor to generateSingleSetRowHtml
+        const newSetRowHtml = generateSingleSetRowHtml(newSetIndex, exerciseData, isTemplateEditor);
 
         // Append the new row to the DOM
         setsContainer.insertAdjacentHTML('beforeend', newSetRowHtml);
 
-        // --- Corrected: Update completedSets array for the new set ---
-        if (!exerciseData.completedSets) {
-            // Initialize if it doesn't exist (size should match new total number of sets)
-            exerciseData.completedSets = Array(currentSetCount + 1).fill(false);
-        } else if (exerciseData.completedSets.length <= newSetIndex) {
-            // Append a new entry for the added set
-            exerciseData.completedSets.push(false);
-        }
-        // --- End corrected completedSets update ---
+        // --- Update data structures based on context ---
+        if (isTemplateEditor) {
+            // For template editor, just update the sets property
+            exerciseData.sets = currentSetCount + 1;
+            console.log(`Updated template exercise ${exerciseIndex} sets property to ${exerciseData.sets}`);
 
-        // Update the sets property in the exercise data to match the new count
-        exerciseData.sets = currentSetCount + 1;
-        console.log(`Updated exercise ${exerciseIndex} sets property to ${exerciseData.sets}`);
+            // Also update the sets input field if it exists
+            const setsInput = exerciseItem.querySelector('.exercise-sets-input');
+            if (setsInput) {
+                setsInput.value = exerciseData.sets;
+            }
+        } else {
+            // For active workout, update completedSets array if it exists
+            if (!exerciseData.completedSets) {
+                // Initialize if it doesn't exist (size should match new total number of sets)
+                exerciseData.completedSets = Array(currentSetCount + 1).fill(false);
+            } else if (exerciseData.completedSets.length <= newSetIndex) {
+                // Append a new entry for the added set
+                exerciseData.completedSets.push(false);
+            }
+
+            // Update the sets property in the exercise data
+            exerciseData.sets = currentSetCount + 1;
+            console.log(`Updated active workout exercise ${exerciseIndex} sets property to ${exerciseData.sets}`);
+
+            // Save workout state to persist the updated sets count
+            saveWorkoutState();
+
+            // Save input values after adding a set
+            if (typeof saveWorkoutData === 'function') {
+                saveWorkoutData();
+            } else {
+                saveInputValues();
+            }
+        }
 
         // Ensure remove button is enabled if it was disabled
         const removeButton = exerciseItem.querySelector('.btn-remove-set');
@@ -2735,17 +2943,8 @@ document.addEventListener('DOMContentLoaded', function() {
             removeButton.disabled = false;
         }
 
-        console.log(`Added set ${newSetIndex + 1} to exercise ${exerciseIndex}`);
+        console.log(`Added set ${newSetIndex + 1} to exercise ${exerciseIndex} (${isTemplateEditor ? 'template' : 'active workout'})`);
 
-        // Save workout state to persist the updated sets count
-        saveWorkoutState();
-
-        // Save input values after adding a set
-        if (typeof saveWorkoutData === 'function') {
-            saveWorkoutData();
-        } else {
-            saveInputValues();
-        }
 
         // Vibrate to provide feedback that a set was added
         if (navigator.vibrate) {
@@ -2755,6 +2954,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Remove Set Handler ---
      function handleRemoveSet(event) {
+        console.log("[DEBUG] handleRemoveSet called", event.target);
         const removeButton = event.target;
         const exerciseItem = removeButton.closest('.exercise-item'); // <<< Find parent item
 
@@ -2763,17 +2963,43 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const workoutIndex = parseInt(exerciseItem.dataset.workoutIndex, 10); // <<< Get index from item
+        // Check if we're in template editor mode
+        const isTemplateEditor = exerciseItem.dataset.isTemplate === 'true' ||
+                                templateEditorPage?.classList.contains('active');
 
-        // ---> Corrected Validation < ---
-        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
-        if (isNaN(workoutIndex) || !exercises || !exercises[workoutIndex]) {
-            console.error("Invalid workout index for removing set:", workoutIndex);
+        console.log("[DEBUG] Is template editor mode:", isTemplateEditor);
+
+        // Get the index from the appropriate data attribute
+        let exerciseIndex;
+        if (isTemplateEditor) {
+            exerciseIndex = parseInt(removeButton.dataset.index, 10);
+            if (isNaN(exerciseIndex)) {
+                exerciseIndex = parseInt(exerciseItem.dataset.index, 10);
+            }
+        } else {
+            exerciseIndex = parseInt(removeButton.dataset.workoutIndex, 10);
+            if (isNaN(exerciseIndex)) {
+                exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
+            }
+        }
+
+        console.log("[DEBUG] handleRemoveSet exerciseIndex:", exerciseIndex);
+
+        // Get the appropriate data array based on context
+        const exercises = isTemplateEditor ? currentTemplateExercises :
+                         (Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises);
+
+        // Validation
+        if (isNaN(exerciseIndex) || !exercises || exerciseIndex < 0 || exerciseIndex >= exercises.length) {
+            console.error("Invalid exercise index for removing set:", {
+                index: exerciseIndex,
+                dataExists: !!exercises,
+                isTemplateEditor: isTemplateEditor
+            });
             return;
         }
-        // ---> End Corrected Validation < ---
 
-        const exercise = exercises[workoutIndex]; // Use validated index and correct array
+        const exercise = exercises[exerciseIndex]; // Use validated index and correct array
 
         // Find the actual set rows currently in the DOM for this exercise
         const setsContainer = exerciseItem.querySelector('.sets-container');
@@ -2794,28 +3020,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update the sets property in the exercise data to match the new count
         exercise.sets = currentSetCount - 1;
-        console.log(`Updated exercise ${workoutIndex} sets property to ${exercise.sets}`);
+        console.log(`Updated exercise ${exerciseIndex} sets property to ${exercise.sets}`);
 
-         // Also shorten the completedSets array if it exists
-         if (exercise.completedSets && Array.isArray(exercise.completedSets)) {
-             exercise.completedSets.pop(); // Remove the last entry
-         }
+        // Context-specific updates
+        if (isTemplateEditor) {
+            // For template editor, update the sets input field if it exists
+            const setsInput = exerciseItem.querySelector('.exercise-sets-input');
+            if (setsInput) {
+                setsInput.value = exercise.sets;
+            }
+        } else {
+            // For active workout, shorten the completedSets array if it exists
+            if (exercise.completedSets && Array.isArray(exercise.completedSets)) {
+                exercise.completedSets.pop(); // Remove the last entry
+            }
 
-        console.log(`Removed set from exercise ${workoutIndex} (${exercise.name}). Remaining sets: ${currentSetCount - 1}`);
+            // Save workout state to persist the updated sets count
+            saveWorkoutState();
+
+            // Save input values after removing a set
+            if (typeof saveWorkoutData === 'function') {
+                saveWorkoutData();
+            } else {
+                saveInputValues();
+            }
+        }
+
+        console.log(`Removed set from exercise ${exerciseIndex} (${exercise.name}). Remaining sets: ${currentSetCount - 1} (${isTemplateEditor ? 'template' : 'active workout'})`);
 
         // Disable the remove button again if only one set remains after removal
         if (currentSetCount - 1 <= 1) {
             removeButton.disabled = true;
-        }
-
-        // Save workout state to persist the updated sets count
-        saveWorkoutState();
-
-        // Save input values after removing a set
-        if (typeof saveWorkoutData === 'function') {
-            saveWorkoutData();
-        } else {
-            saveInputValues();
         }
 
         // No need to re-render the whole item, just removed the row
@@ -2975,26 +3210,39 @@ document.addEventListener('DOMContentLoaded', function() {
         completeWorkoutBtn?.addEventListener('click', handleCompleteWorkout);
         // Add listener for Add/Remove Set buttons using delegation
         currentExerciseListEl?.addEventListener('click', (event) => {
+            console.log("[DEBUG] currentExerciseListEl click event", event.target);
+            console.log("[DEBUG] target classList:", event.target.classList);
+
             const target = event.target;
             // Check if target is an HTMLElement and has classList before accessing it
             if (target instanceof HTMLElement) {
                 if (target.classList.contains('btn-add-set')) {
+                    console.log("[DEBUG] Detected btn-add-set click");
                     handleAddSet(event);
                 } else if (target.classList.contains('btn-remove-set')) {
+                    console.log("[DEBUG] Detected btn-remove-set click");
                     handleRemoveSet(event);
                 } else if (target.classList.contains('set-complete-toggle')) {
+                    console.log("[DEBUG] Detected set-complete-toggle click");
                     handleSetToggle(event);
                 } else if (target.classList.contains('btn-exercise-options')) {
+                    console.log("[DEBUG] Detected btn-exercise-options click");
                     toggleOptionsMenu(event);
                 } else if (target.classList.contains('btn-edit-exercise')) {
+                    console.log("[DEBUG] Detected btn-edit-exercise click");
                     // Get the workout index from the data attribute
                     const index = parseInt(target.dataset.workoutIndex);
                     if (!isNaN(index)) {
                         openExerciseEditModal(index);
                     }
+                } else if (target.classList.contains('btn-view-exercise')) {
+                    console.log("[DEBUG] Detected btn-view-exercise click");
+                    handleViewExercise(event);
                 } else if (target.classList.contains('exercise-unit-select')) {
+                    console.log("[DEBUG] Detected exercise-unit-select click");
                     handleExerciseUnitChange(event);
                 } else if (target.classList.contains('btn-delete-exercise')) {
+                    console.log("[DEBUG] Detected btn-delete-exercise click");
                     handleDeleteExercise(event);
                 }
             }
@@ -3052,6 +3300,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Check for view exercise button click
+            if (target.classList.contains('btn-view-exercise')) {
+                handleViewExercise(event);
+                return;
+            }
+
             // Check for delete button click using closest
             const deleteButton = target.closest('.btn-delete-template-exercise');
             if (deleteButton) {
@@ -3060,12 +3314,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Add listener for per-exercise sets and reps inputs in template editor
+        // Add listener for per-exercise sets, reps, and weight increment inputs in template editor
         templateExerciseListEl?.addEventListener('input', (event) => {
             const target = event.target;
 
-            // Check if the input is a sets or reps input
-            if (target.classList.contains('exercise-sets-input') || target.classList.contains('exercise-reps-input')) {
+            // Check if the input is a sets, reps, or weight increment input
+            if (target.classList.contains('exercise-sets-input') ||
+                target.classList.contains('exercise-reps-input') ||
+                target.classList.contains('exercise-weight-increment-input')) {
+
                 const exerciseItem = target.closest('.exercise-item');
                 if (!exerciseItem) return;
 
@@ -3077,9 +3334,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     const sets = parseInt(target.value) || 1; // Default to 1 if invalid
                     currentTemplateExercises[index].sets = sets;
                     console.log(`Updated sets for exercise ${index} to ${sets}`);
+
+                    // Update the set rows in the UI to match the new sets value
+                    const setsContainer = exerciseItem.querySelector('.sets-container');
+                    if (setsContainer) {
+                        // Generate new set rows HTML based on the updated sets value
+                        const setsHtml = generateSetRowsHtml(currentTemplateExercises[index], index, true);
+                        setsContainer.innerHTML = setsHtml;
+                    }
                 } else if (target.classList.contains('exercise-reps-input')) {
                     currentTemplateExercises[index].reps = target.value || '';
                     console.log(`Updated reps for exercise ${index} to ${target.value}`);
+                } else if (target.classList.contains('exercise-weight-increment-input')) {
+                    const weightIncrement = parseFloat(target.value) || 5; // Default to 5 if invalid
+                    currentTemplateExercises[index].weight_increment = weightIncrement;
+
+                    // Update any goal calculations that might be using this weight increment
+                    const goalTargets = document.querySelectorAll('.goal-target');
+                    if (goalTargets.length > 0) {
+                        console.log(`Updating goal targets with new weight increment: ${weightIncrement}`);
+                        // This will trigger a recalculation of goals in active workouts
+                        if (currentWorkout && !Array.isArray(currentWorkout)) {
+                            const exercises = currentWorkout.exercises || [];
+                            for (let i = 0; i < exercises.length; i++) {
+                                if (exercises[i].exercise_id === currentTemplateExercises[index].exercise_id) {
+                                    exercises[i].weight_increment = weightIncrement;
+                                }
+                            }
+                        }
+                    }
+                    console.log(`Updated weight increment for exercise ${index} to ${weightIncrement}`);
+
+                    // Save the preference to the server if we have an exercise_id
+                    const exerciseId = currentTemplateExercises[index].exercise_id;
+                    const weightUnit = currentTemplateExercises[index].weight_unit || 'lbs';
+                    if (exerciseId) {
+                        saveExerciseUnitPreference(exerciseId, weightUnit, weightIncrement);
+                    }
                 }
             }
         });
@@ -4374,10 +4665,14 @@ document.addEventListener('DOMContentLoaded', function() {
         exercises[exerciseIndex].weight_unit = newUnit;
         console.log(`Updated unit for exercise ${exerciseIndex} to: ${newUnit}`);
 
+        // Get the current weight increment value
+        const weightIncrementInput = exerciseItem.querySelector('.weight-increment-input');
+        const weightIncrement = weightIncrementInput ? parseFloat(weightIncrementInput.value) : 5;
+
         // Save the preference to the server if we have an exercise_id
         const exerciseId = exercises[exerciseIndex].exercise_id;
         if (exerciseId) {
-            saveExerciseUnitPreference(exerciseId, newUnit);
+            saveExerciseUnitPreference(exerciseId, newUnit, weightIncrement);
         }
 
         // Save the workout state to ensure the unit change persists
@@ -4389,10 +4684,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Save exercise unit preference to the server
-    async function saveExerciseUnitPreference(exerciseId, weightUnit) {
+    // --- Handler for Weight Increment Change ---
+    function handleWeightIncrementChange(event) {
+        const inputElement = event.target;
+        const exerciseItem = inputElement.closest('.exercise-item');
+        if (!exerciseItem) {
+            console.error("Could not find parent exercise item for weight increment input.");
+            return;
+        }
+
+        const exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
+        const newIncrement = parseFloat(inputElement.value);
+
+        if (isNaN(newIncrement) || newIncrement <= 0) {
+            console.error("Invalid weight increment value:", inputElement.value);
+            inputElement.value = 5; // Reset to default
+            return;
+        }
+
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        if (isNaN(exerciseIndex) || !exercises || !exercises[exerciseIndex]) {
+            console.error("Invalid exercise index for weight increment change:", exerciseIndex);
+            return;
+        }
+
+        // Update the weight_increment in the underlying data
+        exercises[exerciseIndex].weight_increment = newIncrement;
+        console.log(`Updated weight increment for exercise ${exerciseIndex} to: ${newIncrement}`);
+
+        // Get the current weight unit
+        const unitSelect = exerciseItem.querySelector('.weight-unit-select');
+        const weightUnit = unitSelect ? unitSelect.value : exercises[exerciseIndex].weight_unit || 'lbs';
+
+        // Save the preference to the server if we have an exercise_id
+        const exerciseId = exercises[exerciseIndex].exercise_id;
+        if (exerciseId) {
+            saveExerciseUnitPreference(exerciseId, weightUnit, newIncrement);
+        }
+
+        // Save the workout state to ensure the weight increment change persists
+        saveWorkoutState();
+
+        // Also save using the workout-persistence module if available
+        if (typeof saveWorkoutData === 'function') {
+            saveWorkoutData();
+        }
+    }
+
+    // Save exercise preferences to the server
+    async function saveExerciseUnitPreference(exerciseId, weightUnit, weightIncrement) {
         try {
-            console.log(`Saving unit preference for exercise ${exerciseId}: ${weightUnit}`);
+            // Ensure weightIncrement is a valid number
+            const parsedIncrement = parseFloat(weightIncrement) || 5;
+            console.log(`Saving preferences for exercise ${exerciseId}: unit=${weightUnit}, increment=${parsedIncrement}`);
+
             const baseUrl = window.location.origin;
             const response = await fetch(`${baseUrl}/api/exercise-preferences`, {
                 method: 'POST',
@@ -4400,7 +4745,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ exerciseId, weightUnit })
+                body: JSON.stringify({
+                    exerciseId,
+                    weightUnit,
+                    weightIncrement: parsedIncrement
+                })
             });
 
             if (!response.ok) {
@@ -4477,7 +4826,12 @@ document.addEventListener('DOMContentLoaded', function() {
             templateCancelBtn.addEventListener('click', () => switchPage('landing'));
         }
         if (templateAddExerciseBtn) {
-            templateAddExerciseBtn.addEventListener('click', () => openExerciseModal(true)); // Pass true for template mode
+            templateAddExerciseBtn.addEventListener('click', () => {
+                // Set the target list to 'editor' for template mode
+                if (exerciseModal) exerciseModal.dataset.targetList = 'editor';
+                openExerciseModal();
+                console.log('Opening exercise modal for template editor. Target list set to:', exerciseModal.dataset.targetList);
+            });
         }
 
         // Delegate template exercise deletion
@@ -4524,6 +4878,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Delegate event listeners for dynamic elements within the workout list
         if (currentExerciseListEl) {
             currentExerciseListEl.addEventListener('click', function(event) {
+                console.log("[DEBUG] Second currentExerciseListEl click event", event.target);
+                console.log("[DEBUG] Second target classList:", event.target.classList);
+
                 // Handle set completion toggle
                 if (event.target.classList.contains('set-toggle')) {
                     handleSetToggle(event);
@@ -4541,12 +4898,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (exerciseItem && exerciseItem.dataset.workoutIndex !== undefined) {
                         openExerciseEditModal(parseInt(exerciseItem.dataset.workoutIndex, 10));
                     }
+                } else if (event.target.classList.contains('btn-add-set')) {
+                    console.log("[DEBUG] Detected btn-add-set click in second listener");
+                    handleAddSet(event);
+                } else if (event.target.classList.contains('btn-remove-set')) {
+                    console.log("[DEBUG] Detected btn-remove-set click in second listener");
+                    handleRemoveSet(event);
+                } else if (event.target.classList.contains('btn-exercise-options')) {
+                    console.log("[DEBUG] Detected btn-exercise-options click in second listener");
+                    toggleOptionsMenu(event);
                 }
             });
-             // Add input listener for unit changes
+             // Add input listener for unit changes and weight increment changes
             currentExerciseListEl.addEventListener('change', function(event) {
                  if (event.target.classList.contains('unit-select')) {
                      handleExerciseUnitChange(event);
+                 } else if (event.target.classList.contains('weight-increment-input')) {
+                     handleWeightIncrementChange(event);
                  }
              });
         }
@@ -5116,11 +5484,35 @@ function calculateGoal(exerciseData) {
     // Create a copy of the previous workout's sets
     const goalSets = JSON.parse(JSON.stringify(validSets));
 
+    // Get the weight increment from exercise preferences or use a default
+    // This could be from previous sets in the same workout or from saved preferences
+    let weightIncrement = parseFloat(exerciseData.weight_increment) || 5; // Default to 5 if not specified
+
+    console.log(`[calculateGoal] Using weight increment from exercise data: ${weightIncrement} ${prevUnit}`);
+
+    // If we have multiple sets with different weights, we could calculate the increment
+    // But we'll prioritize the user-set weight increment value instead
+    if (validSets.length > 1 && !exerciseData.weight_increment) {
+        // Only calculate from sets if no explicit weight_increment is set
+        // Find the first two sets with different weights to determine the increment
+        for (let i = 1; i < validSets.length; i++) {
+            if (validSets[i].weight !== validSets[0].weight) {
+                const calculatedIncrement = Math.abs(validSets[i].weight - validSets[0].weight);
+                if (calculatedIncrement > 0) {
+                    weightIncrement = calculatedIncrement;
+                    console.log(`[calculateGoal] Detected weight increment of ${weightIncrement} ${prevUnit} between sets`);
+                    break;
+                }
+            }
+        }
+    }
+
+    console.log(`[calculateGoal] Using weight increment: ${weightIncrement} ${prevUnit}`);
+
     if (allSetsReachedTarget) {
         // If all sets reached the target reps, increase weight for the first set
         // and keep the same weight for the remaining sets
         const firstSetWeight = goalSets[0].weight;
-        const weightIncrement = 5; // This could be configurable or based on the unit
 
         goalSets[0].weight = firstSetWeight + weightIncrement;
         goalSets[0].reps = 8; // Start with fewer reps at the higher weight
@@ -5136,18 +5528,26 @@ function calculateGoal(exerciseData) {
 
     return {
         sets: goalSets,
-        unit: prevUnit
+        unit: prevUnit,
+        weight_increment: weightIncrement // Include the weight increment in the result
     };
 }
 
 // Helper function to generate HTML for a single set row
 function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
-    console.log(`[DEBUG] generateSingleSetRowHtml called for set ${setIndex+1} of exercise ${exerciseData.name}`);
+    console.log(`[DEBUG] generateSingleSetRowHtml called for set ${setIndex+1} of exercise ${exerciseData.name}, isTemplate=${isTemplate}`);
     console.log(`[DEBUG] exerciseData.lastLog:`, exerciseData.lastLog);
 
     // Default values
     let weightValue = '';
     let repsValue = '';
+
+    // For template exercises, use the default reps value if available
+    if (isTemplate && exerciseData.reps) {
+        repsValue = exerciseData.reps;
+        console.log(`[DEBUG] Template Set ${setIndex+1}: Using default reps=${repsValue}`);
+    }
+
     // Use the exercise's current weight unit, or default to lbs
     const unit = exerciseData.weight_unit || 'lbs'; // Always default to lbs
     console.log(`[DEBUG] Using weight unit: ${unit}`);

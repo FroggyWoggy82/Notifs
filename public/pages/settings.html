@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Settings</title>
+    <meta name="description" content="Application settings">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <style>
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .settings-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        
+        .settings-section h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .settings-option {
+            margin-bottom: 20px;
+        }
+        
+        .settings-option:last-child {
+            margin-bottom: 0;
+        }
+        
+        .settings-option label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .settings-option p {
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        
+        #notifyBtn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        #notifyBtn:hover {
+            background-color: #0b7dda;
+        }
+        
+        #notifyBtn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .notifications-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        
+        .permission-granted {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .permission-denied {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .permission-default {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+    </style>
+    <!-- Dynamic theme color for status bar -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+</head>
+<body>
+    <button class="menu-button">☰</button>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon">✓</span>
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon">⭐</span>
+                <span>Goals</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon">📅</span>
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon">⏱️</span>
+                <span>Days Since</span>
+            </a>
+            <a href="/pages/food.html" class="sidebar-nav-item">
+                <span class="nav-icon">🍔</span>
+                <span>Food</span>
+            </a>
+            <a href="/pages/journal.html" class="sidebar-nav-item">
+                <span class="nav-icon">📓</span>
+                <span>Journal</span>
+            </a>
+            <a href="/pages/product-tracking.html" class="sidebar-nav-item">
+                <span class="nav-icon">🧪</span>
+                <span>Product Tracking</span>
+            </a>
+            <a href="/pages/settings.html" class="sidebar-nav-item active">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+    <div class="sidebar-overlay"></div>
+
+    <h1>Settings</h1>
+
+    <div class="settings-container">
+        <section class="settings-section">
+            <h2>Notifications</h2>
+            <div class="settings-option">
+                <label>Background Reminders</label>
+                <p>Enable background notifications to receive reminders even when the app is closed.</p>
+                <div id="permissionStatus" class="notifications-status">
+                    Checking notification permission...
+                </div>
+                <button id="notifyBtn">Enable Background Reminders</button>
+                <div id="status" class="status"></div>
+            </div>
+        </section>
+        
+        <!-- Add more settings sections as needed -->
+        <section class="settings-section">
+            <h2>App Information</h2>
+            <div class="settings-option">
+                <label>Version</label>
+                <p>1.0.0</p>
+            </div>
+        </section>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon">✓</div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon">⭐</div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
+            <div class="nav-icon">💪</div>
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon">🍔</div>
+            <span>Food</span>
+        </a>
+    </div>
+
+    <!-- Common utilities -->
+    <script src="/js/common/sidebar.js"></script>
+    <script src="/js/common/status-bar.js"></script>
+    <script src="/js/common/clear-cache.js"></script>
+    
+    <!-- Settings functionality -->
+    <script src="/js/settings/settings.js"></script>
+</body>
+</html>

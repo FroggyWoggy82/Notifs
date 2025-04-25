@@ -25,10 +25,8 @@ async function createEvent(eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Directly parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
-    // into a JS Date object. The pg driver will handle conversion to
-    // the database's timestamp with time zone type correctly (usually storing as UTC).
-    const parsedDate = new Date(startDate);
+    // Parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
+    let parsedDate = new Date(startDate);
 
     // Validate the parsed date
     if (isNaN(parsedDate.getTime())) {
@@ -38,9 +36,12 @@ async function createEvent(eventName, startDate) {
             console.error(`Invalid date format received: ${startDate}`);
             throw new Error('Invalid date format');
         }
-         // Use the alternatively parsed date if valid
-         parsedDate = alternativeDate;
+        // Use the alternatively parsed date if valid
+        parsedDate = alternativeDate;
     }
+
+    // Add 5 hours to compensate for timezone difference
+    parsedDate.setHours(parsedDate.getHours() + 5);
 
 
     // Store the date object in the database
@@ -64,10 +65,8 @@ async function updateEvent(id, eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Directly parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
-    // into a JS Date object. The pg driver will handle conversion to
-    // the database's timestamp with time zone type correctly (usually storing as UTC).
-    const parsedDate = new Date(startDate);
+    // Parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
+    let parsedDate = new Date(startDate);
 
     // Validate the parsed date
     if (isNaN(parsedDate.getTime())) {
@@ -80,6 +79,9 @@ async function updateEvent(id, eventName, startDate) {
         // Use the alternatively parsed date if valid
         parsedDate = alternativeDate;
     }
+
+    // Add 5 hours to compensate for timezone difference
+    parsedDate.setHours(parsedDate.getHours() + 5);
 
 
     const result = await db.query(

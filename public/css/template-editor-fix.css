@@ -109,6 +109,9 @@
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
+    padding: 8px 12px !important;
+    background-color: #2a2a2a !important;
+    border-radius: 4px !important;
 }
 
 /* Fix exercise name styling */
@@ -116,4 +119,46 @@
     margin: 0 !important;
     color: #03dac6 !important;
     font-size: 1.1rem !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 70% !important;
+}
+
+/* Style the exercise header actions container */
+.exercise-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Style the weight unit select dropdown */
+.exercise-unit-select {
+    height: 30px !important;
+    padding: 0 8px !important;
+    border-radius: 4px !important;
+    border: 1px solid #444 !important;
+    background-color: #333 !important;
+    color: white !important;
+}
+
+/* Style the delete button */
+.delete-template-exercise-btn {
+    height: 30px !important;
+    width: 30px !important;
+    padding: 0 !important;
+    border-radius: 4px !important;
+    border: none !important;
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.delete-template-exercise-btn:hover {
+    background-color: #c82333 !important;
 }

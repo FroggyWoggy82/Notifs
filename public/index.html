@@ -71,16 +71,19 @@
                 <span class="nav-icon">🧪</span>
                 <span>Product Tracking</span>
             </a>
+            <a href="/pages/settings.html" class="sidebar-nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span>Settings</span>
+            </a>
         </nav>
     </div>
     <div class="sidebar-overlay"></div>
 
     <h1>My Tasks</h1>
-    <div id="permissionStatus" class="notifications-status">
+    <div id="permissionStatus" class="notifications-status" style="display: none;">
         Checking notification permission...
     </div>
 
-    <button id="notifyBtn">Enable Background Reminders</button>
     <div id="status" class="status"></div>
 
     <section class="task-list-section">
@@ -233,7 +236,7 @@
     <!-- ===== End Add Task Modal ===== -->
 
     <!-- ===== Add Task FAB ===== -->
-    <button id="addTaskFab" class="fab" title="Add New Task">+</button>
+    <button id="addTaskFab" class="fab" title="Add New Task" style="display: flex; pointer-events: auto;">+</button>
 
     <!-- ===== Edit Task Modal ===== -->
     <div id="editTaskModal" class="modal">
