@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="../css/compact-workout.css"> <!-- Compact workout layout -->
     <link rel="stylesheet" href="../css/mobile-workout-override.css"> <!-- Mobile-specific overrides -->
     <link rel="stylesheet" href="../css/template-editor-fix.css"> <!-- Template editor alignment fix -->
+    <link rel="stylesheet" href="../css/youtube-modal.css"> <!-- YouTube URL modal styles -->
+    <link rel="stylesheet" href="../css/template-exercise-simplified.css"> <!-- Simplified template exercise styles -->
+    <link rel="stylesheet" href="../css/template-exercise-button-fix.css"> <!-- Button color and position fix -->
+    <link rel="stylesheet" href="../css/template-card-button-fix.css"> <!-- Template card button alignment fix -->
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -196,7 +200,7 @@
         <!-- Template Editor View (Initially Hidden) -->
         <div id="template-editor-page" class="page">
             <h2 id="template-editor-title">Create New Workout Template</h2>
-            <form id="template-editor-form">
+            <form id="template-editor-form" onsubmit="event.preventDefault(); event.stopPropagation(); if(typeof window.handleSaveTemplate === 'function') { window.handleSaveTemplate(event); } return false;">
                 <div class="form-group">
                     <label for="template-name">Template Name:</label>
                     <input type="text" id="template-name" required>
@@ -228,10 +232,10 @@
                 </div>
 
                 <div class="template-editor-actions">
-                     <button type="button" id="template-add-exercise-btn" class="btn btn-secondary">Add Exercise to Template</button>
+                     <button type="button" id="template-add-exercise-btn" class="btn btn-secondary" onclick="if(typeof openExerciseModal === 'function') { event.preventDefault(); event.stopPropagation(); if(document.getElementById('exercise-modal')) { document.getElementById('exercise-modal').dataset.targetList = 'editor'; openExerciseModal(); } }">Add Exercise to Template</button>
                      <div class="save-cancel-group">
-                         <button type="button" id="template-cancel-btn" class="btn btn-danger">Cancel</button>
-                         <button type="submit" id="template-save-btn" class="btn btn-success">Save Template</button>
+                         <button type="button" id="template-cancel-btn" class="btn btn-danger" onclick="if(typeof switchPage === 'function') { event.preventDefault(); event.stopPropagation(); switchPage('landing'); }">Cancel</button>
+                         <button type="button" id="template-save-btn" class="btn btn-success" onclick="if(!this.disabled) { event.preventDefault(); event.stopPropagation(); if(typeof window.handleSaveTemplate === 'function') { window.handleSaveTemplate(event); } return false; }">Save Template</button>
                      </div>
                 </div>
             </form>

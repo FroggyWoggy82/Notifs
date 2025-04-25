@@ -98,9 +98,10 @@
 /* Fix exercise item styling */
 .template-editor-list .exercise-item {
     margin-bottom: 15px !important;
-    padding: 10px !important;
+    padding: 10px 10px 10px 40px !important; /* Add left padding for drag handle */
     border-radius: 4px !important;
     background-color: #303030 !important;
+    position: relative !important; /* Ensure position relative for absolute positioning of drag handle */
 }
 
 /* Fix exercise header styling */

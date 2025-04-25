@@ -23,7 +23,8 @@ router.get('/:exerciseId', async (req, res) => {
             return res.json({
                 exercise_id: parseInt(exerciseId),
                 weight_unit: 'lbs', // Default unit changed to lbs
-                weight_increment: 5 // Default weight increment
+                weight_increment: 5, // Default weight increment
+                default_reps: null // Default reps is null initially
             });
         }
 
@@ -36,8 +37,8 @@ router.get('/:exerciseId', async (req, res) => {
 
 // POST /api/exercise-preferences - Save preferences for an exercise
 router.post('/', async (req, res) => {
-    const { exerciseId, weightUnit, weightIncrement } = req.body;
-    console.log(`Received POST /api/exercise-preferences: exerciseId=${exerciseId}, weightUnit=${weightUnit}, weightIncrement=${weightIncrement}`);
+    const { exerciseId, weightUnit, weightIncrement, defaultReps } = req.body;
+    console.log(`Received POST /api/exercise-preferences: exerciseId=${exerciseId}, weightUnit=${weightUnit}, weightIncrement=${weightIncrement}, defaultReps=${defaultReps}`);
 
     // Validation
     if (!exerciseId || !/^\d+$/.test(exerciseId)) {
@@ -58,6 +59,9 @@ router.post('/', async (req, res) => {
         }
     }
 
+    // Validate defaultReps (can be null or a string)
+    const repsValue = defaultReps === undefined ? null : defaultReps;
+
     try {
         // Check if preference already exists
         const checkResult = await db.query(
@@ -69,14 +73,14 @@ router.post('/', async (req, res) => {
         if (checkResult.rows.length > 0) {
             // Update existing preference
             result = await db.query(
-                'UPDATE exercise_preferences SET weight_unit = $1, weight_increment = $2, updated_at = NOW() WHERE exercise_id = $3 RETURNING *',
-                [weightUnit, parsedWeightIncrement, exerciseId]
+                'UPDATE exercise_preferences SET weight_unit = $1, weight_increment = $2, default_reps = $3, updated_at = NOW() WHERE exercise_id = $4 RETURNING *',
+                [weightUnit, parsedWeightIncrement, repsValue, exerciseId]
             );
         } else {
             // Insert new preference
             result = await db.query(
-                'INSERT INTO exercise_preferences (exercise_id, weight_unit, weight_increment) VALUES ($1, $2, $3) RETURNING *',
-                [exerciseId, weightUnit, parsedWeightIncrement]
+                'INSERT INTO exercise_preferences (exercise_id, weight_unit, weight_increment, default_reps) VALUES ($1, $2, $3, $4) RETURNING *',
+                [exerciseId, weightUnit, parsedWeightIncrement, repsValue]
             );
         }
 
