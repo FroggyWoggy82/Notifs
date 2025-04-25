@@ -560,29 +560,6 @@ router.patch('/exercises/:id', async (req, res) => {
         res.status(500).json({ error: 'Failed to update exercise' });
     }
 });
-            SELECT
-                wl.log_id AS workout_log_id,
-                el.sets_completed,
-                el.reps_completed, -- Comma-separated string e.g., "10,9,8"
-                el.weight_used,   -- Comma-separated string e.g., "50,50,55"
-                el.weight_unit,
-                wl.date_performed
-            FROM exercise_logs el
-            JOIN workout_logs wl ON el.workout_log_id = wl.log_id
-            WHERE el.exercise_id = $1
-            ORDER BY wl.date_performed ASC; -- Order oldest to newest for charting
-        `;
-        const result = await db.query(query, [exerciseId]);
-
-        // Send back all rows found
-        console.log(`Found ${result.rows.length} history logs for exercise ${exerciseId}.`);
-        res.json(result.rows);
-
-    } catch (err) {
-        console.error(`Error fetching history for exercise ${exerciseId}:`, err);
-        res.status(500).json({ error: 'Failed to fetch exercise history' });
-    }
-});
 
 // POST /api/workouts/log/manual - Manually add a historical exercise log entry
 router.post('/log/manual', async (req, res) => {

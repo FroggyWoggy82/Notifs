@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             showStatus('Saving journal entry...', 'info');
 
-            const response = await fetch('http://localhost:3001/api/journal', {
+            const response = await fetch('/api/journal', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let themes = '';
             let memoryEntries = [];
             try {
-                const memoryResponse = await fetch('http://localhost:3002/api/journal/memory');
+                const memoryResponse = await fetch('/api/journal/memory');
                 if (memoryResponse.ok) {
                     memoryEntries = await memoryResponse.json();
                     // Include all entries instead of just the last 5
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Save to memory
             try {
-                await fetch('http://localhost:3002/api/journal/memory', {
+                await fetch('/api/journal/memory', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Save the entry with the analysis
             if (date) {
                 try {
-                    await fetch('http://localhost:3002/api/journal', {
+                    await fetch('/api/journal', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -293,11 +293,20 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             showStatus('Loading journal entries...', 'info');
 
-            const response = await fetch('http://localhost:3002/api/journal');
+            const response = await fetch('/api/journal');
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                if (response.status === 503) {
+                    throw new Error('Offline. Please try again when connected.');
+                }
+
+                try {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                } catch (jsonError) {
+                    // If we can't parse the error as JSON, just use the status
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
             }
 
             const entries = await response.json();
@@ -306,13 +315,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error loading journal entries:', error);
             showStatus(`Error loading journal entries: ${error.message}`, 'error');
-            entryListElement.innerHTML = '<li>Failed to load entries</li>';
+            entryListElement.innerHTML = '<li class="no-entries">Failed to load entries. Please check your internet connection and try again.</li>';
         }
     }
 
     function renderEntryList(entries) {
         if (!entries || entries.length === 0) {
-            entryListElement.innerHTML = '<li>No journal entries yet</li>';
+            entryListElement.innerHTML = '<li class="no-entries">No journal entries yet. Write your first entry and click "Save Entry".</li>';
             return;
         }
 
@@ -370,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDate = journalDateInput.value;
 
         try {
-            const response = await fetch(`http://localhost:3002/api/journal/date/${selectedDate}`);
+            const response = await fetch(`/api/journal/date/${selectedDate}`);
 
             if (response.status === 404) {
                 // No entry for this date, clear the textarea
@@ -418,9 +427,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadMemoryEntries() {
         try {
-            const response = await fetch('http://localhost:3002/api/journal/memory');
+            const response = await fetch('/api/journal/memory');
 
             if (!response.ok) {
+                if (response.status === 503) {
+                    console.error('Failed to load memory entries: Offline');
+                    return;
+                }
                 console.error('Failed to load memory entries:', response.status);
                 return;
             }
@@ -432,6 +445,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // For now, we'll just log them to the console
         } catch (error) {
             console.error('Error loading memory entries:', error);
+            // Add a more user-friendly error message in the UI if needed
+            // showStatus(`Error loading memory entries: ${error.message}`, 'error');
         }
     }
 
