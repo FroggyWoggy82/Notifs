@@ -201,6 +201,9 @@ function saveWorkoutData() {
 
             const exerciseData = exercises[workoutIndex];
 
+            // Get all set rows first
+            const setRows = item.querySelectorAll('.set-row');
+
             // Initialize exercise data
             const exerciseInfo = {
                 exercise_id: exerciseData.exercise_id,
@@ -210,9 +213,6 @@ function saveWorkoutData() {
                 weight_unit: exerciseData.weight_unit || 'lbs', // Save the weight unit
                 set_count: setRows.length // Save the current number of sets
             };
-
-            // Get all set rows
-            const setRows = item.querySelectorAll('.set-row');
             setRows.forEach((row) => {
                 const weightInput = row.querySelector('.weight-input');
                 const repsInput = row.querySelector('.reps-input');
@@ -375,6 +375,13 @@ function restoreWorkoutData() {
                         completeToggle.dataset.workoutIndex = workoutIndex;
                         completeToggle.dataset.setIndex = i;
                         completeToggle.title = 'Mark Set Complete';
+                        // Add direct click event listener
+                        completeToggle.addEventListener('click', function(event) {
+                            console.log("[DEBUG] Set complete toggle clicked directly from workout-persistence");
+                            if (typeof window.handleSetToggle === 'function') {
+                                window.handleSetToggle(event);
+                            }
+                        });
                         newRow.appendChild(completeToggle);
 
                         // Add the new row to the sets container

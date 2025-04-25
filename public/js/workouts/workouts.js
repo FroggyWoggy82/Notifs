@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
                     <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
                     <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
-                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete"></button>` : ''}
+                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete" onclick="window.handleSetToggle(event)"></button>` : ''}
                 </div>
             `;
         }
@@ -395,12 +395,25 @@ document.addEventListener('DOMContentLoaded', function() {
                    </div>`
                 : '';
 
+            // Parse the template name to extract parts
+            let displayName = template.name;
+            const nameParts = template.name.split(' - ');
+
+            // Format the display name with proper styling if it has author/edition
+            if (nameParts.length > 1) {
+                const baseName = nameParts[0];
+                let authorEdition = nameParts.slice(1).join(' - ');
+                displayName = `${escapeHtml(baseName)} <span class="template-author-edition">${escapeHtml(authorEdition)}</span>`;
+            } else {
+                displayName = escapeHtml(template.name);
+            }
+
             card.innerHTML = `
                 <div class="card-corner-actions">
                     <button class="btn-edit-template" data-template-id="${template.workout_id}" title="Edit Template">&#9998;</button>
                     <button class="btn-delete-template" data-template-id="${template.workout_id}" title="Delete Template">&times;</button>
                 </div>
-                <h3>${escapeHtml(template.name)} ${completionBadge}</h3>
+                <h3>${displayName} ${completionBadge}</h3>
                 ${template.description ? `<p class="template-description">${escapeHtml(template.description)}</p>` : ''}
                 <div class="exercise-summary-vertical">
                     ${exerciseListHtml}
@@ -2413,7 +2426,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function handleSetToggle(event) {
+    // Make handleSetToggle available globally
+    window.handleSetToggle = function(event) {
         console.log("[handleSetToggle] Fired!"); // <<< Log 1: Function entry
         const toggleButton = event.target;
         const setRow = toggleButton.closest('.set-row');
@@ -2428,8 +2442,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
-        const setIndex = parseInt(setRow.dataset.setIndex, 10);
+        // Get exercise index from the button's data attribute first, then from the exercise item
+        let exerciseIndex = parseInt(toggleButton.dataset.workoutIndex, 10);
+        if (isNaN(exerciseIndex)) {
+            exerciseIndex = parseInt(exerciseItem.dataset.workoutIndex, 10);
+        }
+
+        // Get set index from the button's data attribute first, then from the set row
+        let setIndex = parseInt(toggleButton.dataset.setIndex, 10);
+        if (isNaN(setIndex)) {
+            setIndex = parseInt(setRow.dataset.setIndex, 10);
+        }
 
         console.log(`[handleSetToggle] exerciseIndex: ${exerciseIndex}, setIndex: ${setIndex}`); // <<< Log 5: Log indices
 
@@ -2506,7 +2529,12 @@ document.addEventListener('DOMContentLoaded', function() {
         saveInputValues();
     }
 
-    async function handleCompleteWorkout() {
+    // Expose handleCompleteWorkout to the global scope for the inline handler
+    window.handleCompleteWorkout = async function(event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         console.log('Completing workout...');
 
         // Save input values before completing the workout
@@ -2604,10 +2632,16 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Sending workout log data:', workoutData);
 
         // Disable button to prevent double submission
-        completeWorkoutBtn.disabled = true;
-        completeWorkoutBtn.textContent = 'Saving...';
+        const completeWorkoutBtn = document.getElementById('complete-workout-btn');
+        if (completeWorkoutBtn) {
+            completeWorkoutBtn.disabled = true;
+            completeWorkoutBtn.textContent = 'Saving...';
+        } else {
+            console.error('Complete workout button not found in the DOM');
+        }
 
         try {
+            console.log('Sending workout data to server:', JSON.stringify(workoutData));
             const response = await fetch('/api/workouts/log', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2623,8 +2657,11 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Workout logged successfully:', result);
 
             // Show a brief visual success indicator on the button before redirecting
-            completeWorkoutBtn.textContent = '✓ Complete';
-            completeWorkoutBtn.classList.add('success');
+            const completeBtn = document.getElementById('complete-workout-btn');
+            if (completeBtn) {
+                completeBtn.textContent = '✓ Complete';
+                completeBtn.classList.add('success');
+            }
 
             // Start confetti animation using our enhanced implementation
             if (typeof ConfettiCelebration !== 'undefined') {
@@ -2666,8 +2703,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Don't restart timer automatically on failure, user might want to retry saving
         } finally {
              // Re-enable button
-             completeWorkoutBtn.disabled = false;
-             completeWorkoutBtn.textContent = 'Complete Workout';
+             const completeBtn = document.getElementById('complete-workout-btn');
+             if (completeBtn) {
+                 completeBtn.disabled = false;
+                 completeBtn.textContent = 'Complete Workout';
+             }
         }
     }
 
@@ -2733,11 +2773,40 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Get the author and edition input elements
+        const templateAuthorInput = document.getElementById('template-author');
+        const templateEditionInput = document.getElementById('template-edition');
+
         if (templateToEdit) {
             // Editing an existing template
             editingTemplateId = templateToEdit.workout_id;
             templateEditorTitle.textContent = 'Edit Workout Template';
-            templateNameInput.value = templateToEdit.name;
+
+            // Parse the template name to extract author and edition if they exist
+            let baseName = templateToEdit.name;
+            let author = '';
+            let edition = '';
+
+            // Try to extract author and edition from the template name
+            const nameParts = templateToEdit.name.split(' - ');
+            if (nameParts.length > 1) {
+                baseName = nameParts[0];
+
+                // If we have at least 2 parts, the second part is likely the author
+                if (nameParts.length >= 2) {
+                    author = nameParts[1];
+                }
+
+                // If we have 3 parts, the third part is likely the edition
+                if (nameParts.length >= 3) {
+                    edition = nameParts[2];
+                }
+            }
+
+            // Set the input values
+            templateNameInput.value = baseName;
+            if (templateAuthorInput) templateAuthorInput.value = author;
+            if (templateEditionInput) templateEditionInput.value = edition;
             templateDescriptionInput.value = templateToEdit.description || '';
 
             // Deep copy exercises for editing
@@ -3052,6 +3121,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Get the template author input element
+        const templateAuthorInputEl = document.getElementById('template-author');
+        if (!templateAuthorInputEl) {
+            alert('Error: Could not find template author input. Please refresh the page and try again.');
+            return;
+        }
+
+        // Get the template edition input element
+        const templateEditionInputEl = document.getElementById('template-edition');
+        if (!templateEditionInputEl) {
+            alert('Error: Could not find template edition input. Please refresh the page and try again.');
+            return;
+        }
+
         // Get the template description input element
         const templateDescriptionInputEl = document.getElementById('template-description');
         if (!templateDescriptionInputEl) {
@@ -3062,11 +3145,29 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the template save button
         const templateSaveBtnEl = document.getElementById('template-save-btn');
 
-        const templateName = templateNameInputEl.value.trim();
+        const baseName = templateNameInputEl.value.trim();
+        const author = templateAuthorInputEl.value.trim();
+        const edition = templateEditionInputEl.value.trim();
         const templateDescription = templateDescriptionInputEl.value.trim();
 
-        if (!templateName) {
+        // Construct the full template name with author and edition if provided
+        let templateName = baseName;
+        if (author) {
+            templateName += ` - ${author}`;
+        }
+        if (edition) {
+            templateName += ` - ${edition}`;
+        }
+
+        if (!baseName) {
             alert('Template name cannot be empty.');
+            templateNameInputEl.focus();
+            return;
+        }
+
+        // Check if the combined template name is too long (database might have limits)
+        if (templateName.length > 100) {
+            alert('The combined template name (with author and edition) is too long. Please use shorter values.');
             templateNameInputEl.focus();
             return;
         }
@@ -3713,10 +3814,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Active workout listeners
         cancelWorkoutBtn?.addEventListener('click', handleCancelWorkout);
         completeWorkoutBtn?.addEventListener('click', handleCompleteWorkout);
+        console.log('Added event listener to completeWorkoutBtn:', completeWorkoutBtn);
         // Add listener for Add/Remove Set buttons using delegation
         currentExerciseListEl?.addEventListener('click', (event) => {
-            console.log("[DEBUG] currentExerciseListEl click event", event.target);
-            console.log("[DEBUG] target classList:", event.target.classList);
+            console.log("[DEBUG] Second currentExerciseListEl click event", event.target);
+            console.log("[DEBUG] Second target classList:", event.target.classList);
+
+            // Check if the clicked element is a set-complete-toggle button
+            if (event.target.classList.contains('set-complete-toggle')) {
+                console.log("[DEBUG] Set complete toggle button clicked directly from delegation");
+                handleSetToggle(event);
+            }
 
             const target = event.target;
             // Check if target is an HTMLElement and has classList before accessing it
@@ -5328,6 +5436,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Initialize Function ---
     async function initialize() {
         console.log('Initializing Workout Tracker...');
+
+        // Add a direct event listener to the Complete Workout button
+        const completeWorkoutBtn = document.getElementById('complete-workout-btn');
+        if (completeWorkoutBtn) {
+            console.log('Adding direct event listener to Complete Workout button');
+            completeWorkoutBtn.addEventListener('click', function(event) {
+                console.log('Complete Workout button clicked directly from initialize');
+                window.handleCompleteWorkout(event);
+            });
+        } else {
+            console.log('Complete Workout button not found in initialize');
+        }
+
         // Fetch initial data
         console.log('Fetching exercises...');
         await fetchExercises();
@@ -5433,9 +5554,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cancelWorkoutBtn) {
             cancelWorkoutBtn.addEventListener('click', handleCancelWorkout);
         }
-        if (completeWorkoutBtn) {
-            completeWorkoutBtn.addEventListener('click', handleCompleteWorkout);
-        }
+        // Removed duplicate event listener for completeWorkoutBtn
         if (addExerciseFab) {
             addExerciseFab.addEventListener('click', () => openExerciseModal(false)); // Pass false for workout mode
         }
@@ -6192,7 +6311,7 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
             <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
             <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
             <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
-            ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete"></button>` : ''}
+            ${!isTemplate ? `<button class="set-complete-toggle" data-set-index="${setIndex}" title="Mark Set Complete" onclick="window.handleSetToggle(event)"></button>` : ''}
         </div>
     `;
 }

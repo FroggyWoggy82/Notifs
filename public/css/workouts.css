@@ -276,6 +276,14 @@ h1, h2 {
     flex-shrink: 0;
 }
 
+/* Author and Edition styling */
+.template-author-edition {
+    font-size: 0.85rem;
+    color: #00e6e6; /* Teal color to match the theme */
+    font-style: italic;
+    font-weight: normal;
+}
+
 /* Vertical Exercise Summary Container */
 .exercise-summary-vertical {
     font-size: 0.85rem;
@@ -1364,6 +1372,14 @@ h1, h2 {
     box-sizing: border-box;
 }
 
+/* Style for author and edition fields */
+#template-author,
+#template-edition {
+    background-color: #222;
+    color: #00e6e6; /* Teal color to match the theme */
+    border: 1px solid #444;
+}
+
 #template-editor-form h3 {
     margin-top: 30px;
     margin-bottom: 10px;
@@ -1867,7 +1883,7 @@ h1, h2 {
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 500px; /* Increased to accommodate buttons */
+    max-width: 700px; /* Increased from 500px to make photos larger */
     margin: 20px auto; /* Center the container */
     gap: 15px; /* Space between buttons and slider */
 }
@@ -1875,7 +1891,7 @@ h1, h2 {
 .photo-slider-container {
     position: relative;
     width: 100%;
-    max-width: 400px; /* Or your desired max width */
+    max-width: 600px; /* Increased from 400px to make photos larger */
     margin: 0 auto; /* Center the slider */
 }
 
@@ -1902,7 +1918,7 @@ h1, h2 {
     flex-shrink: 0; /* Prevent images from shrinking */
     display: block;
     height: auto;
-    aspect-ratio: 4 / 3; /* Match viewport aspect ratio */
+    aspect-ratio: 3 / 4; /* Changed from 4/3 to make photos taller than wide */
     object-fit: contain; /* Scale image within bounds */
     background-color: #333; /* Placeholder background */
     transition: opacity 0.3s ease-in-out; /* Smooth transition for opacity changes */
@@ -1915,7 +1931,7 @@ h1, h2 {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    min-height: 200px; /* Ensure minimum height even when image fails to load */
+    min-height: 400px; /* Increased from 200px to make photos taller */
 }
 
 /* Slider Navigation Buttons (Updated for outside positioning) */
@@ -1924,9 +1940,9 @@ h1, h2 {
     color: black;
     border: none;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
+    width: 60px; /* Increased from 50px to match larger photo area */
+    height: 60px; /* Increased from 50px to match larger photo area */
+    font-size: 28px; /* Increased from 24px for better visibility */
     font-weight: bold;
     cursor: pointer;
     z-index: 10;
@@ -2081,7 +2097,7 @@ h1, h2 {
 
     /* Photo Carousel Mobile Adjustments */
     .photo-reel img {
-        min-height: 250px; /* Ensure taller minimum height on mobile */
+        min-height: 350px; /* Increased from 250px for taller photos on mobile */
         background-color: #444; /* Darker background for better visibility */
         border: 1px solid #666; /* Add border for visibility */
     }
@@ -2093,14 +2109,15 @@ h1, h2 {
 
     .photo-slider-container {
         margin-bottom: 20px; /* Add more space below slider */
+        max-width: 100%; /* Allow full width on mobile */
     }
 
     /* Make navigation buttons larger and more visible on mobile */
     .slider-nav-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 22px;
-        background-color: rgba(0, 0, 0, 0.7);
+        width: 50px; /* Increased but still smaller than desktop */
+        height: 50px; /* Increased but still smaller than desktop */
+        font-size: 24px; /* Increased for better visibility */
+        background-color: rgba(3, 218, 198, 0.8); /* More visible teal color with transparency */
     }
 }
 
