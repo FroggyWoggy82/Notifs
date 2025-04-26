@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentHistoryExerciseName = null; // Store the name
     let currentPage = 'landing'; // <<< ADDED: Declare currentPage in top-level scope
     let lastInputSaveTime = 0; // Track when inputs were last saved
+    let lastUsedRepsValues = {}; // Store last used reps values by exercise ID
 
     // Variables to track the exercise being edited
     let currentEditingExerciseIndex = -1;
@@ -87,7 +88,10 @@ document.addEventListener('DOMContentLoaded', function() {
         CURRENT_WORKOUT: 'workout_tracker_current_workout',
         WORKOUT_START_TIME: 'workout_tracker_start_time',
         CURRENT_PAGE: 'workout_tracker_current_page',
-        INPUT_VALUES: 'workout_tracker_input_values' // New key for storing input values
+        INPUT_VALUES: 'workout_tracker_input_values', // Key for storing input values
+        LAST_USED_REPS: 'workout_tracker_last_used_reps', // Key for storing last used reps values
+        LAST_USED_AUTHOR: 'workout_tracker_last_used_author', // Key for storing last used author
+        LAST_USED_EDITION: 'workout_tracker_last_used_edition' // Key for storing last used edition
     };
 
     // --- NEW: Progress Photo Slider State ---
@@ -334,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             workoutTemplates = await response.json();
             console.log('Templates fetched:', workoutTemplates.length);
+            console.log('Template IDs:', workoutTemplates.map(t => t.workout_id));
             renderWorkoutTemplates(); // Render initially on landing page
         } catch (error) {
             console.error('Error fetching templates:', error);
@@ -343,21 +348,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Rendering Functions ---\
 
-    function renderWorkoutTemplates(filteredTemplates = workoutTemplates) {
-        // Add detailed logging
+    // Make renderWorkoutTemplates globally accessible for the template name size adjuster
+    window.renderWorkoutTemplates = function renderWorkoutTemplates(filteredTemplates = workoutTemplates) {
+        // Determine source of templates for appropriate empty message
         const sourceArrayName = (filteredTemplates === workoutTemplates) ? 'global workoutTemplates' : 'filteredTemplates argument';
-        console.log(`[Render Templates] Called. Using ${sourceArrayName}. Rendering ${filteredTemplates.length} templates.`);
 
         if (!templateListContainer) {
-            console.error('[Render Templates] Error: templateListContainer not found!');
             return;
         }
 
-        console.log('[Render Templates] Clearing container...');
         templateListContainer.innerHTML = ''; // Clear previous
 
         if (filteredTemplates.length === 0) {
-            console.log(`[Render Templates] No templates match filter, showing empty message.`);
             // Use a more specific message for empty search results
             const emptyMessage = (sourceArrayName === 'filteredTemplates argument')
                 ? 'No templates found matching your search.'
@@ -365,25 +367,18 @@ document.addEventListener('DOMContentLoaded', function() {
             templateListContainer.innerHTML = `<p>${emptyMessage}</p>`;
             return;
         }
-
-        console.log(`[Render Templates] Starting loop to append ${filteredTemplates.length} templates.`);
         filteredTemplates.forEach(template => {
             const card = document.createElement('div');
             card.className = 'workout-template-card';
             card.dataset.templateId = template.workout_id;
 
-            // --- Generate vertical exercise list HTML (Show up to 6) ---
+            // --- Generate vertical exercise list HTML (Show all exercises) ---
             let exerciseListHtml = '<p class="no-exercises">No exercises defined</p>'; // Default message
             if (template.exercises && template.exercises.length > 0) {
-                // Take the first 6 exercises
+                // Show all exercises in the template
                 exerciseListHtml = template.exercises
-                    .slice(0, 6) // <<<< Changed from slice(0, 3)
                     .map(ex => `<div class="exercise-list-item">${escapeHtml(ex.name)}</div>`)
                     .join('');
-
-                if (template.exercises.length > 6) { // <<<< Changed from > 3
-                    exerciseListHtml += '<div class="exercise-list-item">...</div>'; // Add ellipsis if more exist
-                }
             }
             // --- --- --- ---
 
@@ -402,7 +397,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Format the display name with proper styling if it has author/edition
             if (nameParts.length > 1) {
                 const baseName = nameParts[0];
+                // Add extra spacing between parts for better readability
                 let authorEdition = nameParts.slice(1).join(' - ');
+                // Add CSS class to control spacing in the displayed name
                 displayName = `${escapeHtml(baseName)} <span class="template-author-edition">${escapeHtml(authorEdition)}</span>`;
             } else {
                 displayName = escapeHtml(template.name);
@@ -411,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.innerHTML = `
                 <div class="card-corner-actions">
                     <button class="btn-edit-template" data-template-id="${template.workout_id}" title="Edit Template">&#9998;</button>
-                    <button class="btn-delete-template" data-template-id="${template.workout_id}" title="Delete Template">&times;</button>
+                    <button class="btn-delete-template" data-template-id="${template.workout_id}" title="Delete Template" onclick="window.handleDeleteTemplate(${template.workout_id})">&times;</button>
                 </div>
                 <h3>${displayName} ${completionBadge}</h3>
                 ${template.description ? `<p class="template-description">${escapeHtml(template.description)}</p>` : ''}
@@ -429,39 +426,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if (startButton) {
                 startButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    console.log('[Start Template] Button clicked for template ID:', template.workout_id);
                     startWorkoutFromTemplate(template.workout_id);
                 });
-            } else {
-                console.error('[Template Card] Start button not found for template:', template.name);
             }
 
-            // Add direct event listeners for edit and delete buttons
+            // Add direct event listener for edit button as a backup
             const editButton = card.querySelector('.btn-edit-template');
             if (editButton) {
                 editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    console.log('[Edit Template] Button clicked directly for template ID:', template.workout_id);
-                    const templateToEdit = workoutTemplates.find(t => t.workout_id === template.workout_id);
-                    if (templateToEdit) {
-                        showTemplateEditor(templateToEdit);
-                    } else {
-                        console.error('Could not find template to edit with ID:', template.workout_id);
-                        alert('Error: Could not find template data to edit.');
-                    }
+                    e.preventDefault();
+                    console.log('[Direct Edit Button] Edit button clicked for template:', template.workout_id);
+                    showTemplateEditor(template);
                 });
             }
 
-            const deleteButton = card.querySelector('.btn-delete-template');
-            if (deleteButton) {
-                deleteButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    console.log('[Delete Template] Button clicked directly for template ID:', template.workout_id);
-                    handleDeleteTemplate(template.workout_id);
-                });
-            }
+            // We're still using event delegation for delete buttons
+            // But added direct listener for edit button as a backup
         });
-        console.log(`[Render Templates] Finished appending templates.`);
     }
 
     // Store the checked state of exercises and their order
@@ -625,6 +607,9 @@ document.addEventListener('DOMContentLoaded', function() {
     async function renderSingleExerciseItem(exerciseItemElement, exerciseData, index, isTemplate = false) {
         console.log(`[Render Single] Rendering exercise '${exerciseData.name}' at index ${index}, isTemplate: ${isTemplate}`);
         console.log(`[DEBUG] renderSingleExerciseItem called with index: ${index}, isTemplate: ${isTemplate}`);
+
+        // Log the exercise data for debugging
+        console.log(`[Render Single] Exercise data:`, exerciseData);
 
         // Store whether this is a template exercise to use later
         exerciseItemElement.dataset.isTemplate = isTemplate ? 'true' : 'false';
@@ -957,8 +942,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 showYouTubeUrlModal(exerciseId, exercise.name);
             } else {
                 console.log('[View Exercise] Opening existing YouTube URL:', exercise.youtube_url);
-                // Open the YouTube URL in a new tab
-                window.open(exercise.youtube_url, '_blank');
+
+                // Check if we're in an active workout or template editor
+                const isActiveWorkout = document.getElementById('active-workout-page').classList.contains('active');
+                const isTemplateEditor = document.getElementById('template-editor-page').classList.contains('active');
+
+                console.log(`[View Exercise] Page context: Active Workout = ${isActiveWorkout}, Template Editor = ${isTemplateEditor}`);
+
+                if (isActiveWorkout || isTemplateEditor) {
+                    // Show the video in an embedded player for both active workout and template editor
+                    console.log('[View Exercise] Showing video in embedded player');
+                    showVideoPlayerModal(exercise.youtube_url, exercise.name);
+                } else {
+                    // Open the YouTube URL in a new tab for other contexts
+                    console.log('[View Exercise] Opening video in new tab');
+                    window.open(exercise.youtube_url, '_blank');
+                }
             }
         } catch (error) {
             console.error("[View Exercise] Error fetching exercise details:", error);
@@ -1055,8 +1054,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     const updatedExercise = await response.json();
                     console.log("[YouTube Modal] Exercise updated with YouTube URL:", updatedExercise);
 
-                    // Open the YouTube URL in a new tab
-                    window.open(updatedExercise.youtube_url, '_blank');
+                    // Check if we're in an active workout
+                    const isActiveWorkout = document.getElementById('active-workout-page').classList.contains('active');
+
+                    if (isActiveWorkout) {
+                        // Show the video in an embedded player
+                        showVideoPlayerModal(updatedExercise.youtube_url, updatedExercise.name);
+                    } else {
+                        // Open the YouTube URL in a new tab
+                        window.open(updatedExercise.youtube_url, '_blank');
+                    }
 
                     // Close the modal
                     modal.style.display = 'none';
@@ -1098,6 +1105,258 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('[YouTube Modal] Input field focused');
             }
         }, 100);
+    }
+
+    // --- Video Player Modal Function ---
+    function showVideoPlayerModal(youtubeUrl, exerciseName) {
+        console.log(`[Video Player] Opening for exercise: ${exerciseName}, URL: ${youtubeUrl}`);
+
+        // Create modal if it doesn't exist
+        let modal = document.getElementById('video-player-modal');
+
+        if (!modal) {
+            console.log('[Video Player] Creating new modal element');
+            modal = document.createElement('div');
+            modal.id = 'video-player-modal';
+            modal.className = 'modal video-modal';
+
+            modal.innerHTML = `
+                <div class="modal-content video-modal-content">
+                    <div class="modal-header">
+                        <h3 id="video-exercise-name"></h3>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    <div class="video-container">
+                        <iframe id="youtube-iframe" width="100%" height="315" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                        <div id="video-fallback" style="display:none; text-align:center; padding:20px;">
+                            <p>Unable to embed this video. YouTube's security settings may be preventing it from displaying.</p>
+                            <button id="open-in-new-tab" class="btn btn-primary">Open in New Tab</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            console.log('[Video Player] Modal element added to document body');
+
+            // Add event listeners
+            modal.querySelector('.close-modal').addEventListener('click', (e) => {
+                console.log('[Video Player] Close button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Stop the video by clearing the iframe src
+                const iframe = document.getElementById('youtube-iframe');
+                if (iframe) {
+                    iframe.src = '';
+                }
+
+                modal.style.display = 'none';
+            });
+
+            // Add event listener for the fallback button
+            const openInNewTabBtn = modal.querySelector('#open-in-new-tab');
+            if (openInNewTabBtn) {
+                openInNewTabBtn.addEventListener('click', (e) => {
+                    console.log('[Video Player] Open in new tab button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Get the current URL from the data attribute
+                    const originalUrl = modal.dataset.originalUrl;
+                    if (originalUrl) {
+                        window.open(originalUrl, '_blank');
+                    }
+
+                    // Close the modal
+                    modal.style.display = 'none';
+                });
+            }
+
+            // Prevent clicks inside the modal from bubbling up
+            modal.querySelector('.modal-content').addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // Prevent modal clicks from bubbling to document
+            modal.addEventListener('click', (e) => {
+                // Only stop propagation if clicking the modal background (not the content)
+                if (e.target === modal) {
+                    console.log('[Video Player] Modal background clicked, closing');
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Stop the video by clearing the iframe src
+                    const iframe = document.getElementById('youtube-iframe');
+                    if (iframe) {
+                        iframe.src = '';
+                    }
+
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Add keyboard event listener to close modal on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.style.display === 'block') {
+                    console.log('[Video Player] Escape key pressed, closing modal');
+
+                    // Stop the video by clearing the iframe src
+                    const iframe = document.getElementById('youtube-iframe');
+                    if (iframe) {
+                        iframe.src = '';
+                    }
+
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Set the exercise name
+        document.getElementById('video-exercise-name').textContent = exerciseName;
+
+        // Store the original URL for the fallback button
+        modal.dataset.originalUrl = youtubeUrl;
+
+        // Convert YouTube URL to embed URL
+        const embedUrl = convertToEmbedUrl(youtubeUrl);
+
+        // If we couldn't convert to embed URL, open in a new tab instead
+        if (embedUrl === null) {
+            console.log('[Video Player] Could not create embed URL, opening in new tab instead');
+            window.open(youtubeUrl, '_blank');
+            return; // Exit early, don't show the modal
+        }
+
+        // Get references to elements
+        const iframe = document.getElementById('youtube-iframe');
+        const fallbackDiv = document.getElementById('video-fallback');
+
+        if (iframe) {
+            // Reset display state
+            iframe.style.display = 'block';
+            if (fallbackDiv) fallbackDiv.style.display = 'none';
+
+            console.log('[Video Player] Setting iframe src to:', embedUrl);
+
+            // Add load event listener to detect successful loading
+            iframe.onload = function() {
+                console.log('[Video Player] Iframe loaded successfully');
+            };
+
+            // Add error handler to the iframe
+            iframe.onerror = function() {
+                console.error('[Video Player] Error loading iframe');
+                showVideoFallback(youtubeUrl);
+            };
+
+            // Set iframe src after setting up event handlers
+            iframe.src = embedUrl;
+
+            // Set a timeout to check if the video loaded properly
+            setTimeout(function() {
+                // If the iframe is empty or has an error, show fallback
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    if (!iframeDoc || iframeDoc.body.innerHTML === '') {
+                        console.log('[Video Player] Iframe appears to be empty, showing fallback');
+                        showVideoFallback(youtubeUrl);
+                    }
+                } catch (e) {
+                    // If we can't access the iframe content due to same-origin policy,
+                    // it likely means YouTube is blocking embedding
+                    console.log('[Video Player] Cannot access iframe content, showing fallback');
+                    showVideoFallback(youtubeUrl);
+                }
+            }, 2000); // Check after 2 seconds
+        }
+
+        // Helper function to show fallback UI
+        function showVideoFallback(originalUrl) {
+            if (iframe) iframe.style.display = 'none';
+            if (fallbackDiv) fallbackDiv.style.display = 'block';
+        }
+
+        // Ensure the modal is on top of everything
+        modal.style.zIndex = '10000';
+
+        // Show the modal
+        modal.style.display = 'block';
+        console.log('[Video Player] Modal displayed');
+    }
+
+    // Helper function to convert YouTube URL to embed URL
+    function convertToEmbedUrl(url) {
+        console.log('[Video Player] Converting URL to embed format:', url);
+
+        // Handle different YouTube URL formats
+        let videoId = '';
+
+        try {
+            // First, try to extract using URL object for cleaner parsing
+            const urlObj = new URL(url);
+
+            // Case 1: youtube.com/watch?v=VIDEO_ID
+            if (urlObj.hostname.includes('youtube.com') && urlObj.pathname === '/watch') {
+                videoId = urlObj.searchParams.get('v');
+                console.log('[Video Player] Extracted video ID from youtube.com/watch:', videoId);
+            }
+            // Case 2: youtu.be/VIDEO_ID
+            else if (urlObj.hostname === 'youtu.be') {
+                videoId = urlObj.pathname.substring(1); // Remove leading slash
+                console.log('[Video Player] Extracted video ID from youtu.be:', videoId);
+            }
+            // Case 3: youtube.com/shorts/VIDEO_ID
+            else if (urlObj.hostname.includes('youtube.com') && urlObj.pathname.startsWith('/shorts/')) {
+                videoId = urlObj.pathname.split('/shorts/')[1];
+                console.log('[Video Player] Extracted video ID from youtube shorts:', videoId);
+            }
+            // Case 4: youtube.com/embed/VIDEO_ID
+            else if (urlObj.hostname.includes('youtube.com') && urlObj.pathname.startsWith('/embed/')) {
+                videoId = urlObj.pathname.split('/embed/')[1];
+                console.log('[Video Player] Extracted video ID from youtube embed:', videoId);
+            }
+
+            // If URL parsing didn't work, fall back to regex
+            if (!videoId) {
+                // Standard YouTube URL regex (fallback)
+                const standardMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/|youtube\.com\/user\/[^\/]+\/[^\/]+\/|youtube\.com\/[^\/]+\/[^\/]+\/|youtube\.com\/verify_age\?next_url=\/watch%3Fv%3D)([^&\?\/]+)/);
+
+                if (standardMatch && standardMatch[1]) {
+                    videoId = standardMatch[1];
+                    console.log('[Video Player] Extracted video ID using regex fallback:', videoId);
+                }
+            }
+        } catch (error) {
+            console.error('[Video Player] Error parsing URL:', error);
+
+            // Last resort regex if URL parsing failed
+            try {
+                const lastResortMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/|youtube\.com\/user\/[^\/]+\/[^\/]+\/|youtube\.com\/[^\/]+\/[^\/]+\/|youtube\.com\/verify_age\?next_url=\/watch%3Fv%3D)([^&\?\/]+)/);
+
+                if (lastResortMatch && lastResortMatch[1]) {
+                    videoId = lastResortMatch[1];
+                    console.log('[Video Player] Extracted video ID using last resort regex:', videoId);
+                }
+            } catch (regexError) {
+                console.error('[Video Player] Regex extraction also failed:', regexError);
+            }
+        }
+
+        // If no match found, log error and open in new tab
+        if (!videoId) {
+            console.log('[Video Player] Could not extract video ID, will open in new tab');
+            // Return null to indicate we couldn't convert it
+            return null;
+        }
+
+        // Return the embed URL with additional parameters for better user experience
+        // - autoplay=1: Start playing automatically
+        // - rel=0: Don't show related videos
+        // - modestbranding=1: Hide YouTube logo
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
     }
 
     // Close all menus when clicking outside
@@ -2247,10 +2506,18 @@ document.addEventListener('DOMContentLoaded', function() {
         let defaultSets = 1;
         let defaultReps = '';
 
-        if (targetList === 'editor' && defaultSetsInput && defaultRepsInput) {
-            defaultSets = parseInt(defaultSetsInput.value) || 1;
-            defaultReps = defaultRepsInput.value || '';
-            console.log(`Using default settings: ${defaultSets} sets, reps: ${defaultReps}`);
+        if (targetList === 'editor') {
+            // First check if we have a last used reps value for this exercise
+            if (lastUsedRepsValues[exerciseId]) {
+                defaultReps = lastUsedRepsValues[exerciseId];
+                console.log(`Using last used reps value for exercise ${exerciseId}: ${defaultReps}`);
+            }
+            // Then check template default settings
+            else if (defaultSetsInput && defaultRepsInput) {
+                defaultSets = parseInt(defaultSetsInput.value) || 1;
+                defaultReps = defaultRepsInput.value || '';
+                console.log(`Using template default settings: ${defaultSets} sets, reps: ${defaultReps}`);
+            }
         }
 
         const newExerciseData = {
@@ -2763,9 +3030,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Template Editor Specific Functions ---
 
+    // Store last used author and edition values
+    let lastUsedAuthor = '';
+    let lastUsedEdition = '';
+
+    /**
+     * Load saved author and edition values from localStorage
+     * This function can be called multiple times to refresh the values
+     */
+    function loadSavedAuthorEditionValues() {
+        try {
+            const savedAuthor = localStorage.getItem(STORAGE_KEYS.LAST_USED_AUTHOR);
+            if (savedAuthor) {
+                lastUsedAuthor = savedAuthor;
+                console.log('[Template Editor] Loaded saved author from localStorage:', lastUsedAuthor);
+            }
+
+            const savedEdition = localStorage.getItem(STORAGE_KEYS.LAST_USED_EDITION);
+            if (savedEdition) {
+                lastUsedEdition = savedEdition;
+                console.log('[Template Editor] Loaded saved edition from localStorage:', lastUsedEdition);
+            }
+
+            return { lastUsedAuthor, lastUsedEdition };
+        } catch (error) {
+            console.error('[Template Editor] Error loading saved author/edition values:', error);
+            return { lastUsedAuthor: '', lastUsedEdition: '' };
+        }
+    }
+
+    // Initial load of saved values
+    loadSavedAuthorEditionValues();
+
     function showTemplateEditor(templateToEdit = null) {
+        console.log('[Template Editor] Opening template editor', templateToEdit ? 'for editing' : 'for new template');
+
         // Always reset the template exercises array first to prevent any carryover
         currentTemplateExercises = [];
+
+        // Reload saved author and edition values to ensure we have the latest
+        loadSavedAuthorEditionValues();
+        console.log('[Template Editor] Current author/edition values:', { lastUsedAuthor, lastUsedEdition });
 
         // Verify that all required elements exist
         if (!templateEditorTitle || !templateNameInput || !templateDescriptionInput || !templateEditorForm) {
@@ -2776,6 +3081,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the author and edition input elements
         const templateAuthorInput = document.getElementById('template-author');
         const templateEditionInput = document.getElementById('template-edition');
+        const reuseToggle = document.getElementById('reuse-author-edition-toggle');
 
         if (templateToEdit) {
             // Editing an existing template
@@ -2794,12 +3100,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // If we have at least 2 parts, the second part is likely the author
                 if (nameParts.length >= 2) {
-                    author = nameParts[1];
+                    author = nameParts[1].trim(); // Trim to handle extra spaces
                 }
 
                 // If we have 3 parts, the third part is likely the edition
                 if (nameParts.length >= 3) {
-                    edition = nameParts[2];
+                    edition = nameParts[2].trim(); // Trim to handle extra spaces
                 }
             }
 
@@ -2808,6 +3114,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (templateAuthorInput) templateAuthorInput.value = author;
             if (templateEditionInput) templateEditionInput.value = edition;
             templateDescriptionInput.value = templateToEdit.description || '';
+
+            // Store these values for future use
+            if (author) lastUsedAuthor = author;
+            if (edition) lastUsedEdition = edition;
 
             // Deep copy exercises for editing
             currentTemplateExercises = templateToEdit.exercises.map(ex => ({ ...ex }));
@@ -2821,6 +3131,60 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set default values for new template
             if (defaultSetsInput) defaultSetsInput.value = '3'; // Default to 3 sets
             if (defaultRepsInput) defaultRepsInput.value = '8-12'; // Default to 8-12 reps
+
+            // Ensure toggle is checked by default
+            if (reuseToggle) {
+                console.log('[Template Editor] Setting reuse toggle to checked by default');
+                reuseToggle.checked = true;
+            }
+
+            // Apply last author and edition values since toggle is checked by default
+            if (templateAuthorInput && templateEditionInput) {
+                console.log('[Template Editor] Applying last used author and edition values:', { lastUsedAuthor, lastUsedEdition });
+                templateAuthorInput.value = lastUsedAuthor || '';
+                templateEditionInput.value = lastUsedEdition || '';
+            }
+        }
+
+        // Add event listener to the toggle switch
+        if (reuseToggle) {
+            console.log('[Template Editor] Setting up reuse toggle event listener');
+
+            // Define the handler function
+            const handleReuseToggleChange = function(event) {
+                console.log('[Template Editor] Reuse toggle changed:', event.target.checked);
+                const templateAuthorInput = document.getElementById('template-author');
+                const templateEditionInput = document.getElementById('template-edition');
+
+                if (event.target.checked) {
+                    // Toggle is ON - use the stored values
+                    console.log('[Template Editor] Toggle ON - applying stored values:', { lastUsedAuthor, lastUsedEdition });
+                    if (templateAuthorInput) templateAuthorInput.value = lastUsedAuthor || '';
+                    if (templateEditionInput) templateEditionInput.value = lastUsedEdition || '';
+                } else {
+                    // Toggle is OFF - clear the fields
+                    console.log('[Template Editor] Toggle OFF - clearing fields');
+                    if (templateAuthorInput) templateAuthorInput.value = '';
+                    if (templateEditionInput) templateEditionInput.value = '';
+                }
+            };
+
+            // Store the handler on the window object so it can be accessed globally if needed
+            window.handleReuseToggleChange = handleReuseToggleChange;
+
+            // Remove any existing listeners to prevent duplicates
+            reuseToggle.removeEventListener('change', handleReuseToggleChange);
+
+            // Add the listener
+            reuseToggle.addEventListener('change', handleReuseToggleChange);
+
+            // Trigger the change event to ensure fields are properly initialized
+            // This is important for both new templates and editing existing ones
+            console.log('[Template Editor] Triggering initial change event on reuse toggle');
+
+            // Create and dispatch a change event
+            const changeEvent = new Event('change');
+            reuseToggle.dispatchEvent(changeEvent);
         }
 
         // Render exercises in editor
@@ -2829,19 +3193,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Switch to editor page
         switchPage('editor');
 
-        // Verify that the template editor buttons are working
-        console.log('[showTemplateEditor] Verifying template editor buttons:');
-        console.log('- templateSaveBtn:', templateSaveBtn);
-        console.log('- templateCancelBtn:', templateCancelBtn);
-        console.log('- templateAddExerciseBtn:', templateAddExerciseBtn);
-
         // Ensure the buttons have click listeners
         if (templateAddExerciseBtn && !templateAddExerciseBtn._hasClickListener) {
-            console.log('[showTemplateEditor] Re-adding click listener to Add Exercise button');
             templateAddExerciseBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                console.log('[Template Editor] Add Exercise button clicked (added in showTemplateEditor)');
                 if (exerciseModal) {
                     exerciseModal.dataset.targetList = 'editor';
                     openExerciseModal();
@@ -2850,26 +3206,19 @@ document.addEventListener('DOMContentLoaded', function() {
             templateAddExerciseBtn._hasClickListener = true;
         }
 
-        // We no longer need to add a direct event listener to the Save Template button
-        // The inline onclick handler will call handleSaveTemplate directly
-        console.log('[showTemplateEditor] Using inline onclick handler for Save Template button');
-
         // Add a direct event listener to the Cancel button
         if (templateCancelBtn && !templateCancelBtn._hasClickListener) {
-            console.log('[showTemplateEditor] Re-adding click listener to Cancel button');
             templateCancelBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                console.log('[Template Editor] Cancel button clicked (added in showTemplateEditor)');
                 switchPage('landing');
             });
             templateCancelBtn._hasClickListener = true;
         }
-
-        console.log('[showTemplateEditor] Template editor initialized successfully');
     }
 
     function renderTemplateExerciseList() {
+        console.log('[Template Editor] Rendering template exercise list');
         const templateExerciseListEl = document.getElementById('template-exercise-list');
         templateExerciseListEl.innerHTML = '';
 
@@ -2877,6 +3226,29 @@ document.addEventListener('DOMContentLoaded', function() {
             templateExerciseListEl.innerHTML = '<p>Add exercises using the button below.</p>';
             return;
         }
+
+        // Log the current template exercises for debugging
+        console.log('[Template Editor] Current template exercises:', currentTemplateExercises);
+
+        // Create a function to attach event listeners to View Exercise buttons
+        const attachViewExerciseListeners = () => {
+            console.log('[Template Editor] Attaching event listeners to View Exercise buttons');
+            const viewButtons = templateExerciseListEl.querySelectorAll('.btn-view-exercise');
+            viewButtons.forEach(button => {
+                console.log('[Template Editor] Found View Exercise button:', button);
+                // Remove any existing listeners to prevent duplicates
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+
+                // Add new click listener
+                newButton.addEventListener('click', (event) => {
+                    console.log('[Template Editor] View Exercise button clicked directly');
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleViewExercise(event);
+                });
+            });
+        };
 
         // Function to handle reps input changes and save preferences
         function handleRepsInputChange(event) {
@@ -2896,7 +3268,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update the value in the current template
             exercise.reps = newRepsValue;
 
-            // If the reps value has changed, save it as the default for this exercise
+            // Always save the reps value to lastUsedRepsValues for future use
+            lastUsedRepsValues[exercise.exercise_id] = newRepsValue;
+            console.log(`Saved reps value for exercise ${exercise.exercise_id}: ${newRepsValue} (for future templates)`);
+
+            // Save to localStorage for persistence
+            try {
+                localStorage.setItem(STORAGE_KEYS.LAST_USED_REPS, JSON.stringify(lastUsedRepsValues));
+                console.log('Saved rep values to localStorage');
+            } catch (error) {
+                console.error('Error saving rep values to localStorage:', error);
+            }
+
+            // If the reps value has changed, also save it to the server as the default for this exercise
             if (newRepsValue !== oldRepsValue) {
                 // Get the current weight unit and increment
                 const unitSelect = exerciseItem.querySelector('.exercise-unit-select');
@@ -2910,7 +3294,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     weightIncrement,
                     newRepsValue
                 );
-                console.log(`Saved default reps preference for exercise ${exercise.exercise_id}: ${newRepsValue}`);
             }
         }
 
@@ -2964,10 +3347,108 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleRepsInputChange(event);
                 }
             });
+
+            // Add event listeners to all View Exercise buttons in the template editor
+            console.log('[Template Editor] Adding event listeners to View Exercise buttons');
+            const viewButtons = templateExerciseListEl.querySelectorAll('.btn-view-exercise');
+            viewButtons.forEach(button => {
+                console.log('[Template Editor] Found View Exercise button:', button);
+                // Remove any existing listeners to prevent duplicates
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+
+                // Add new click listener
+                newButton.addEventListener('click', (event) => {
+                    console.log('[Template Editor] View Exercise button clicked directly');
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleViewExercise(event);
+                });
+            });
+
+            // Also add a delegated event listener for View Exercise buttons
+            templateExerciseListEl.addEventListener('click', (event) => {
+                if (event.target.classList.contains('btn-view-exercise')) {
+                    console.log('[Template Editor] View Exercise button clicked via delegation');
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleViewExercise(event);
+                }
+            });
         }).catch(error => {
             console.error("Error rendering one or more template exercise items:", error);
             templateExerciseListEl.innerHTML = '<p style="color: red;">Error displaying template exercises. Please try refreshing.</p>';
         });
+    }
+
+    // --- Make Template Exercise List Sortable ---
+    function makeTemplateExerciseListSortable() {
+        console.log('[Template Editor] Setting up drag and drop functionality');
+        const templateExerciseListEl = document.getElementById('template-exercise-list');
+
+        if (!templateExerciseListEl) {
+            console.error('[Template Editor] Cannot set up drag and drop: template-exercise-list element not found');
+            return;
+        }
+
+        // Add the template-editor-list class to enable specific CSS styling
+        templateExerciseListEl.classList.add('template-editor-list');
+
+        // Remove any existing event listeners by cloning and replacing the element
+        const newList = templateExerciseListEl.cloneNode(false);
+        while (templateExerciseListEl.firstChild) {
+            newList.appendChild(templateExerciseListEl.firstChild);
+        }
+        templateExerciseListEl.parentNode.replaceChild(newList, templateExerciseListEl);
+
+        // Add drag/drop event listeners using event delegation
+        newList.addEventListener('dragstart', function(event) {
+            console.log('[Template Editor] Drag start event detected');
+            // Only handle drag events from exercise items or drag handles
+            if (event.target.classList.contains('drag-handle') || event.target.closest('.exercise-item')) {
+                handleDragStart(event);
+            }
+        });
+
+        newList.addEventListener('dragover', function(event) {
+            // Prevent default to allow drop
+            event.preventDefault();
+
+            // Only handle dragover events for exercise items
+            const targetItem = event.target.closest('.exercise-item');
+            if (targetItem) {
+                handleDragOver(event);
+            }
+        });
+
+        newList.addEventListener('drop', function(event) {
+            console.log('[Template Editor] Drop event detected');
+            // Only handle drop events for exercise items
+            if (event.target.closest('.exercise-item')) {
+                handleDrop(event);
+            }
+        });
+
+        newList.addEventListener('dragend', function(event) {
+            console.log('[Template Editor] Drag end event detected');
+            // Handle dragend events regardless of target to ensure cleanup
+            handleDragEnd(event);
+        });
+
+        // Add visual indicators for drag operations
+        newList.addEventListener('dragenter', function(event) {
+            // Add a class to the container to indicate dragging is in progress
+            newList.classList.add('dragging-in-progress');
+        });
+
+        newList.addEventListener('dragleave', function(event) {
+            // Only remove if we're leaving the container itself
+            if (event.target === newList) {
+                newList.classList.remove('dragging-in-progress');
+            }
+        });
+
+        console.log('[Template Editor] Drag and drop functionality set up successfully');
     }
 
     // --- Improved Drag and Drop Handlers ---
@@ -2976,15 +3457,27 @@ document.addEventListener('DOMContentLoaded', function() {
     let dropIndicator = null;
 
     function handleDragStart(e) {
-        // Only allow dragging from the drag handle
-        if (!e.target.classList.contains('drag-handle')) {
+        console.log('[Drag Start] Event target:', e.target);
+
+        // Check if the drag started from the drag handle or from the exercise item
+        if (e.target.classList.contains('drag-handle')) {
+            // Drag started from the drag handle - this is the preferred way
+            console.log('[Drag Start] Drag started from drag handle');
+            draggedItem = e.target.closest('.exercise-item');
+        } else if (e.target.closest('.exercise-item')) {
+            // Drag started from somewhere in the exercise item
+            console.log('[Drag Start] Drag started from exercise item');
+            draggedItem = e.target.closest('.exercise-item');
+        } else {
+            // Not dragging from a valid element
+            console.log('[Drag Start] Invalid drag source, canceling');
             e.preventDefault();
             return false;
         }
 
-        // Get the exercise item (parent of the drag handle)
-        draggedItem = e.target.closest('.exercise-item');
+        // Ensure we have a valid exercise item
         if (!draggedItem) {
+            console.error('[Drag Start] Could not find parent exercise item');
             e.preventDefault();
             return false;
         }
@@ -3153,10 +3646,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Construct the full template name with author and edition if provided
         let templateName = baseName;
         if (author) {
-            templateName += ` - ${author}`;
+            templateName += ` -     ${author}`;  // Added even more space after the dash
         }
         if (edition) {
-            templateName += ` - ${edition}`;
+            templateName += ` -     ${edition}`;  // Added even more space after the dash
         }
 
         if (!baseName) {
@@ -3193,21 +3686,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Update the value in the current template
                     currentTemplateExercises[index].reps = newRepsValue;
 
-                    // If the reps value has changed, save it as the default for this exercise
-                    if (newRepsValue !== oldRepsValue && currentTemplateExercises[index].exercise_id) {
-                        // Get the current weight unit and increment
-                        const unitSelect = item.querySelector('.exercise-unit-select');
-                        const weightUnit = unitSelect ? unitSelect.value : 'lbs';
-                        const weightIncrement = 5; // Default value
+                    // Always save the reps value to lastUsedRepsValues for future use
+                    if (currentTemplateExercises[index].exercise_id) {
+                        // Save to our lastUsedRepsValues object for reuse in future templates
+                        lastUsedRepsValues[currentTemplateExercises[index].exercise_id] = newRepsValue;
+                        console.log(`Saved reps value for exercise ${currentTemplateExercises[index].exercise_id}: ${newRepsValue} (for future templates)`);
 
-                        // Save the new default reps preference
-                        saveExerciseUnitPreference(
-                            currentTemplateExercises[index].exercise_id,
-                            weightUnit,
-                            weightIncrement,
-                            newRepsValue
-                        );
-                        console.log(`Saved default reps preference for exercise ${currentTemplateExercises[index].exercise_id}: ${newRepsValue}`);
+                        // Save to localStorage for persistence
+                        try {
+                            localStorage.setItem(STORAGE_KEYS.LAST_USED_REPS, JSON.stringify(lastUsedRepsValues));
+                            console.log('Saved rep values to localStorage');
+                        } catch (error) {
+                            console.error('Error saving rep values to localStorage:', error);
+                        }
+
+                        // If the reps value has changed, also save it to the server as the default
+                        if (newRepsValue !== oldRepsValue) {
+                            // Get the current weight unit and increment
+                            const unitSelect = item.querySelector('.exercise-unit-select');
+                            const weightUnit = unitSelect ? unitSelect.value : 'lbs';
+                            const weightIncrement = 5; // Default value
+
+                            // Save the new default reps preference
+                            saveExerciseUnitPreference(
+                                currentTemplateExercises[index].exercise_id,
+                                weightUnit,
+                                weightIncrement,
+                                newRepsValue
+                            );
+                        }
                     }
                 }
 
@@ -3272,8 +3779,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
 
-            // Show success message
-            alert('Template saved successfully!');
+            // Store the author and edition values for future use
+            if (author) {
+                lastUsedAuthor = author;
+                localStorage.setItem(STORAGE_KEYS.LAST_USED_AUTHOR, author);
+                console.log('Saved author to localStorage:', author);
+            }
+            if (edition) {
+                lastUsedEdition = edition;
+                localStorage.setItem(STORAGE_KEYS.LAST_USED_EDITION, edition);
+                console.log('Saved edition to localStorage:', edition);
+            }
 
             // Reset state and go back to landing page
             editingTemplateId = null;
@@ -3319,7 +3835,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        console.log(`Attempting to save new exercise: ${name}, Category: ${category}`);
         saveNewExerciseBtn.disabled = true;
         saveNewExerciseBtn.textContent = 'Saving...';
 
@@ -3336,11 +3851,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(result.error || `HTTP error! status: ${response.status}`);
             }
 
-            console.log('New exercise saved:', result);
-
             // Add to local cache and re-render list
-            availableExercises.push(result); // Add the new exercise object returned by API
-            availableExercises.sort((a, b) => a.name.localeCompare(b.name)); // Keep sorted
+            availableExercises.unshift(result); // Add the new exercise object at the beginning of the array
 
             // Auto-check the newly created exercise
             const newExerciseId = result.exercise_id;
@@ -3348,7 +3860,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!checkedExercisesOrder.includes(newExerciseId)) {
                 checkedExercisesOrder.push(newExerciseId);
             }
-            console.log(`Auto-checked newly created exercise ID: ${newExerciseId}`);
 
             // Re-render the list to show the checked state
             renderAvailableExercises();
@@ -3357,7 +3868,6 @@ document.addEventListener('DOMContentLoaded', function() {
             handleToggleDefineExercise(); // Toggle back to hide
 
         } catch (error) {
-            console.error('Error saving new exercise:', error);
             alert(`Failed to save exercise: ${error.message}`);
         } finally {
             saveNewExerciseBtn.disabled = false;
@@ -3642,6 +4152,30 @@ document.addEventListener('DOMContentLoaded', function() {
     function initialize() {
         console.log('Initializing Workout Tracker...');
         // REMOVED: let currentPage = 'landing'; // Remove local declaration if it existed
+
+        // Load saved rep values from localStorage if available
+        try {
+            const savedRepsValues = localStorage.getItem(STORAGE_KEYS.LAST_USED_REPS);
+            if (savedRepsValues) {
+                lastUsedRepsValues = JSON.parse(savedRepsValues);
+                console.log('Loaded saved rep values from localStorage:', Object.keys(lastUsedRepsValues).length, 'exercises');
+            }
+
+            // Load saved author and edition values
+            const savedAuthor = localStorage.getItem(STORAGE_KEYS.LAST_USED_AUTHOR);
+            if (savedAuthor) {
+                lastUsedAuthor = savedAuthor;
+                console.log('Loaded saved author from localStorage:', lastUsedAuthor);
+            }
+
+            const savedEdition = localStorage.getItem(STORAGE_KEYS.LAST_USED_EDITION);
+            if (savedEdition) {
+                lastUsedEdition = savedEdition;
+                console.log('Loaded saved edition from localStorage:', lastUsedEdition);
+            }
+        } catch (error) {
+            console.error('Error loading saved values from localStorage:', error);
+        }
 
         // Check for saved workout state
         if (loadWorkoutState()) {
@@ -4049,13 +4583,48 @@ document.addEventListener('DOMContentLoaded', function() {
                     const templateId = parseInt(templateIdStr);
                     if (!isNaN(templateId)) {
                         console.log('[Template List Click] Looking for template with ID:', templateId);
-                        const templateToEdit = workoutTemplates.find(t => t.workout_id === templateId);
-                        if (templateToEdit) {
-                            console.log('[Template List Click] Found template to edit:', templateToEdit.name);
-                            showTemplateEditor(templateToEdit);
+                        // Convert templateId to a number to ensure proper comparison
+                        const numericTemplateId = Number(templateId);
+
+                        // Check if workoutTemplates is populated
+                        if (!workoutTemplates || workoutTemplates.length === 0) {
+                            console.log('[Template List Click] workoutTemplates is empty, fetching templates first');
+                            // Fetch templates first, then try to find the template
+                            fetchTemplates().then(() => {
+                                const templateToEdit = workoutTemplates.find(t => Number(t.workout_id) === numericTemplateId);
+                                if (templateToEdit) {
+                                    console.log('[Template List Click] Found template to edit after fetching:', templateToEdit.name);
+                                    showTemplateEditor(templateToEdit);
+                                } else {
+                                    console.error('Could not find template to edit with ID after fetching:', templateId);
+                                    console.log('Available template IDs after fetching:', workoutTemplates.map(t => t.workout_id));
+                                    alert('Error: Could not find template data to edit.');
+                                }
+                            });
                         } else {
-                            console.error('Could not find template to edit with ID:', templateId);
-                            alert('Error: Could not find template data to edit.');
+                            // Try to find the template in the existing workoutTemplates array
+                            const templateToEdit = workoutTemplates.find(t => Number(t.workout_id) === numericTemplateId);
+                            if (templateToEdit) {
+                                console.log('[Template List Click] Found template to edit:', templateToEdit.name);
+                                showTemplateEditor(templateToEdit);
+                            } else {
+                                console.error('Could not find template to edit with ID:', templateId);
+                                console.log('Available template IDs:', workoutTemplates.map(t => t.workout_id));
+
+                                // Try fetching templates again to ensure we have the latest data
+                                console.log('[Template List Click] Trying to fetch templates again');
+                                fetchTemplates().then(() => {
+                                    const templateToEdit = workoutTemplates.find(t => Number(t.workout_id) === numericTemplateId);
+                                    if (templateToEdit) {
+                                        console.log('[Template List Click] Found template to edit after re-fetching:', templateToEdit.name);
+                                        showTemplateEditor(templateToEdit);
+                                    } else {
+                                        console.error('Could not find template to edit with ID after re-fetching:', templateId);
+                                        console.log('Available template IDs after re-fetching:', workoutTemplates.map(t => t.workout_id));
+                                        alert('Error: Could not find template data to edit.');
+                                    }
+                                });
+                            }
                         }
                     }
                 }
@@ -5397,7 +5966,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Ensure weightIncrement is a valid number
             const parsedIncrement = parseFloat(weightIncrement) || 5;
-            console.log(`Saving preferences for exercise ${exerciseId}: unit=${weightUnit}, increment=${parsedIncrement}, defaultReps=${defaultReps}`);
 
             const baseUrl = window.location.origin;
             const response = await fetch(`${baseUrl}/api/exercise-preferences`, {
@@ -5420,10 +5988,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const result = await response.json();
-            console.log(`Successfully saved exercise preferences:`, result);
             return true;
         } catch (error) {
-            console.error('Error saving exercise preferences:', error);
             // Continue without showing error to user - this is a background operation
             return false;
         }
@@ -5493,8 +6059,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveNewExerciseBtn.addEventListener('click', handleSaveNewExercise);
         }
 
-        // Template Editor interactions are now handled above with proper event prevention
-        // Removed redundant event listeners for template editor buttons
+        // Template Editor interactions are now handled with inline onclick handlers
 
         // Delegate template exercise deletion and drag/drop
         if (templateExerciseListEl) {
@@ -6050,6 +6615,51 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Workout cancellation aborted.');
             // Resume timer if user cancels the cancellation
             startTimer();
+        }
+    }
+
+    // --- Delete Template Function ---
+    // Make this function globally accessible
+    window.handleDeleteTemplate = async function handleDeleteTemplate(templateId) {
+        console.log(`[handleDeleteTemplate] Called with templateId: ${templateId}`);
+
+        // Find the template to get its name for the confirmation message
+        const templateToDelete = workoutTemplates.find(t => t.workout_id === templateId);
+        if (!templateToDelete) {
+            console.error(`[handleDeleteTemplate] Template with ID ${templateId} not found`);
+            return;
+        }
+
+        // Confirm deletion with the user
+        if (!confirm(`Are you sure you want to delete the template "${templateToDelete.name}"? This cannot be undone.`)) {
+            console.log(`[handleDeleteTemplate] User cancelled deletion of template: ${templateToDelete.name}`);
+            return;
+        }
+
+        try {
+            // Send delete request to the server
+            const response = await fetch(`/api/workouts/templates/${templateId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete template: ${response.status} ${response.statusText}`);
+            }
+
+            console.log(`[handleDeleteTemplate] Successfully deleted template: ${templateToDelete.name}`);
+
+            // Remove the template from the local array
+            const index = workoutTemplates.findIndex(t => t.workout_id === templateId);
+            if (index !== -1) {
+                workoutTemplates.splice(index, 1);
+            }
+
+            // Re-render the template list
+            renderWorkoutTemplates();
+
+        } catch (error) {
+            console.error(`[handleDeleteTemplate] Error deleting template:`, error);
+            alert(`Error deleting template: ${error.message}`);
         }
     }
 

@@ -18,7 +18,7 @@
 
 /* Make the template card header area have a consistent height */
 .workout-template-card h3 {
-    padding-right: 60px !important; /* Increase padding to make room for buttons */
+    padding-right: 70px !important; /* Increased padding to make room for buttons and completion badge */
     margin-top: 0 !important;
     margin-bottom: 8px !important;
     position: relative !important; /* Establish positioning context */

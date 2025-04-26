@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="../css/template-exercise-simplified.css"> <!-- Simplified template exercise styles -->
     <link rel="stylesheet" href="../css/template-exercise-button-fix.css"> <!-- Button color and position fix -->
     <link rel="stylesheet" href="../css/template-card-button-fix.css"> <!-- Template card button alignment fix -->
+    <link rel="stylesheet" href="../css/ghost-of-the-goon-fix.css"> <!-- Special fix for Ghost of the Goon template -->
+    <link rel="stylesheet" href="../css/ghost-template-fix.css"> <!-- Direct fix for Ghost template -->
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -214,6 +216,15 @@
                     <input type="text" id="template-edition" placeholder="Enter edition (e.g., v1.0)">
                 </div>
                 <div class="form-group">
+                    <div class="toggle-switch-container">
+                        <label class="toggle-switch-label">
+                            <input type="checkbox" id="reuse-author-edition-toggle" checked>
+                            <span class="toggle-switch"></span>
+                            Reuse last Author & Edition
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="template-description">Description (Optional):</label>
                     <textarea id="template-description" rows="3"></textarea>
                 </div>
@@ -382,6 +393,8 @@
     <script src="../js/workouts/force-mobile-layout.js"></script>
     <!-- Photo button fix script - added to fix carousel navigation -->
     <script src="../js/workouts/photo-buttons-fix.js"></script>
+    <!-- Template name size adjuster - dynamically adjusts text size to prevent overlap with edit buttons -->
+    <script src="../js/workouts/template-name-size-adjuster.js"></script>
 
     <!-- History Edit Modal (Renamed) -->
     <div id="history-edit-modal" class="modal">

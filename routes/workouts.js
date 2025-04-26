@@ -262,8 +262,8 @@ async function compressImageToTargetSize(inputPath, outputPath, targetSizeKB) {
 router.get('/exercises', async (req, res) => {
     console.log("Received GET /api/workouts/exercises request");
     try {
-        // Fetch necessary fields, order alphabetically for selection lists
-        const result = await db.query('SELECT exercise_id, name, category, youtube_url FROM exercises ORDER BY name ASC');
+        // Fetch necessary fields, order by creation date (newest first) for selection lists
+        const result = await db.query('SELECT exercise_id, name, category, youtube_url FROM exercises ORDER BY exercise_id DESC');
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching exercises:', err);
