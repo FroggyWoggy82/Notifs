@@ -1912,17 +1912,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
+    // Helper function to check if a task is recurring
+    function isTaskRecurring(taskItem) {
+        // Check for recurring icon in the task item
+        return !!taskItem.querySelector('.recurring-icon');
+    }
+
     // Handle clicking the delete button
     async function handleDeleteTask(event) {
-        const deleteBtn = event.target;
+        // Get the delete button that was clicked
+        const deleteBtn = event.currentTarget || event.target;
         const taskItem = deleteBtn.closest('.task-item');
         const taskId = taskItem.getAttribute('data-task-id');
         const taskTitle = taskItem.querySelector('.task-title').textContent;
 
         if (!taskId) { console.error("Could not find task ID to delete"); return; }
 
-        if (confirm(`Are you sure you want to delete task "${taskTitle}"?`)) {
-            console.log(`Deleting task ${taskId}`);
+        // Check if this is a recurring task
+        const isRecurring = isTaskRecurring(taskItem);
+
+        // Show appropriate confirmation message based on whether the task is recurring
+        let confirmMessage = `Are you sure you want to delete task "${taskTitle}"?`;
+        if (isRecurring) {
+            confirmMessage = `Are you sure you want to delete task "${taskTitle}" with all of its recurrences?`;
+        }
+
+        if (confirm(confirmMessage)) {
+            console.log(`Deleting task ${taskId} (recurring: ${isRecurring})`);
             taskItem.style.opacity = '0.5'; // Optimistic UI feedback
             deleteBtn.disabled = true;
 
@@ -1936,18 +1952,36 @@ document.addEventListener('DOMContentLoaded', () => {
                      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
 
-                console.log(`Task ${taskId} deleted successfully on server.`);
-                taskItem.remove(); // Remove from UI
-                updateTaskListStatus("Task deleted.", false);
-                 if (taskListDiv.childElementCount === 0) {
-                     taskListDiv.innerHTML = '<p>No tasks yet. Add one above!</p>';
-                 }
+                // Parse the response to get information about deleted tasks
+                const result = await response.json();
+                console.log(`Task deletion result:`, result);
+
+                // Remove the task from the UI
+                taskItem.remove();
+
+                // Show appropriate status message based on how many tasks were deleted
+                if (result.deletedCount > 1) {
+                    updateTaskListStatus(`Task and ${result.deletedCount - 1} recurrences deleted.`, false);
+                } else {
+                    updateTaskListStatus("Task deleted.", false);
+                }
+
+                // If we deleted all tasks, show the "No tasks yet" message
+                if (taskListDiv.childElementCount === 0) {
+                    taskListDiv.innerHTML = '<p>No tasks yet. Add one above!</p>';
+                }
+
+                // If we're on the calendar page, refresh it to show the updated state
+                if (typeof window.refreshCalendar === 'function') {
+                    console.log('Refreshing calendar after task deletion');
+                    window.refreshCalendar();
+                }
 
             } catch (error) {
                 console.error('Error deleting task:', error);
                 updateTaskListStatus(`Error deleting task: ${error.message}`, true);
                 taskItem.style.opacity = '1'; // Restore UI on error
-                 deleteBtn.disabled = false;
+                deleteBtn.disabled = false;
             }
         }
     }

@@ -122,39 +122,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Function to check for specific information in memory
             function getSpecificMemoryContext(entries, text) {
-                let additionalContext = '';
-
-                // Check for questions about the color of number 2
-                if (text.toLowerCase().includes('what color is') &&
-                    (text.includes('2') || text.includes('two') || text.toLowerCase().includes('number 2'))) {
-
-                    // Search for entries that mention the color of number 2
-                    const colorEntries = entries.filter(e =>
-                        e.text && (
-                            (e.text.toLowerCase().includes('number 2') && e.text.toLowerCase().includes('green')) ||
-                            (e.text.toLowerCase().includes('2 is green')) ||
-                            (e.text.toLowerCase().includes('2 its green'))
-                        )
-                    );
-
-                    if (colorEntries.length > 0) {
-                        additionalContext = '\n\nIMPORTANT CONTEXT: Based on previous entries, the user has stated that "the number 2 is green". When they ask about the color of number 2, tell them it\'s green.';
-                    }
-                }
-
-                // Check for questions about water bottles
-                if (text.toLowerCase().includes('water bottle') && text.toLowerCase().includes('how many')) {
-                    const bottleEntries = entries.filter(e =>
-                        e.text && e.text.toLowerCase().includes('water bottle') &&
-                        (e.text.includes('2') || e.text.includes('two'))
-                    );
-
-                    if (bottleEntries.length > 0) {
-                        additionalContext += '\n\nIMPORTANT CONTEXT: Based on previous entries, the user has mentioned having 2 water bottles. When they ask about water bottles, reference this information.';
-                    }
-                }
-
-                return additionalContext;
+                // This function now returns an empty string as we've simplified the prompt
+                // and removed special handling for specific questions
+                return '';
             }
 
             // Get specific context based on the current entry
@@ -170,26 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Today's journal entry:
             "${content}"
 
-            CRITICAL INSTRUCTIONS:
-            1. SEARCH THROUGH ALL PREVIOUS ENTRIES FOR SPECIFIC INFORMATION. If they ask "what color is 2" or "what color is the number 2", LOOK FOR ANY ENTRY that contains phrases like "the number 2 is green" or "number 2 its green" and USE THAT INFORMATION in your response.
-
-            2. NEVER contradict information they've provided in previous entries. If they previously stated "the number 2 is green", NEVER say "numbers don't have a specific color".
-
-            3. If the person asks a specific question that might be answered by information in their previous entries, DIRECTLY reference that information in your response.
-
-            4. DO NOT mention the current date and time in your response unless specifically asked.
-
-            5. Keep your responses concise and focused on the user's question or concern.
-
-            Respond in a warm, empathetic, conversational tone as if you're speaking directly to them. Be supportive and understanding.
-
-            In your response:
-            - Acknowledge their feelings and experiences
-            - Offer a thoughtful insight that might help them
-            - Ask a gentle question that encourages reflection
-            - If they ask a specific question that relates to previous entries, directly answer it using that information
-
-            Don't use numbered lists or formal headings. Make it feel like a natural conversation.
+            Respond in a warm, empathetic, conversational tone. Reference information from previous entries when relevant. Never contradict information they've provided in previous entries.
 
             At the very end, include a one-sentence summary of this entry prefixed with [SUMMARY:] that I can use to track themes (this will be hidden from the user).
             `;
@@ -219,6 +170,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)\]/i);
             const summary = summaryMatch ? summaryMatch[1].trim() : 'No summary generated';
 
+            // Extract questions from the response
+            const questions = [];
+            const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
+            let questionMatch;
+            while ((questionMatch = questionRegex.exec(aiResponse)) !== null) {
+                questions.push({
+                    number: parseInt(questionMatch[1]),
+                    text: questionMatch[2].trim()
+                });
+            }
+
+            // Extract insights from the response
+            const insights = [];
+            const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
+            let insightMatch;
+            while ((insightMatch = insightRegex.exec(aiResponse)) !== null) {
+                insights.push({
+                    text: insightMatch[1].trim()
+                });
+            }
+
             // Save to memory
             try {
                 await fetch('/api/journal/memory', {
@@ -238,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Format the analysis for better readability
-            const formattedAnalysis = formatAIAnalysis(aiResponse);
+            const formattedAnalysis = formatAIAnalysis(aiResponse, questions);
             analysisContentElement.innerHTML = formattedAnalysis;
 
             showStatus('AI analysis complete!', 'success');
@@ -269,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function formatAIAnalysis(analysisText) {
+    function formatAIAnalysis(analysisText, questions = []) {
         // Extract and remove the summary for internal use
         const summaryMatch = analysisText.match(/\[SUMMARY:\s*(.+?)\]/i);
         let formatted = analysisText;
@@ -279,14 +251,38 @@ document.addEventListener('DOMContentLoaded', function() {
             formatted = formatted.replace(/\[SUMMARY:\s*.+?\]/i, '');
         }
 
+        // Remove question tags from the displayed text
+        formatted = formatted.replace(/\[QUESTION\s+\d+:\s*.+?(?:\]|\n|$)/gi, '');
+
+        // Remove insight tags from the displayed text
+        formatted = formatted.replace(/\[INSIGHT:\s*.+?(?:\]|\n|$)/gi, '');
+
         // Replace line breaks with HTML breaks
         formatted = formatted.replace(/\n/g, '<br>');
 
         // Remove any remaining headings format
         formatted = formatted.replace(/^([A-Za-z\s]+:)/gm, '$1');
 
+        // Create HTML for questions if there are any
+        let questionsHTML = '';
+        if (questions && questions.length > 0) {
+            questionsHTML = `
+                <div class="ai-questions">
+                    <h3>Questions to Consider:</h3>
+                    <ul>
+                        ${questions.map(q => `<li>${q.text}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
         // Wrap in a container with a more conversational style
-        return `<div class="ai-analysis-conversation">${formatted}</div>`;
+        return `
+            <div class="ai-analysis-conversation">
+                ${formatted}
+                ${questionsHTML}
+            </div>
+        `;
     }
 
     async function loadEntries() {

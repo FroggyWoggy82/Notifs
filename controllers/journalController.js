@@ -127,14 +127,37 @@ class JournalController {
                     const entry = await JournalModel.getEntryByDate(date);
                     if (entry) {
                         await JournalModel.updateAnalysis(entry.id, result.analysis);
+
+                        // Save questions as insights
+                        if (result.questions && result.questions.length > 0) {
+                            const questionInsights = result.questions.map(q => ({
+                                text: q.text,
+                                type: 'question'
+                            }));
+                            await JournalModel.saveInsights(entry.id, questionInsights);
+                        }
+
+                        // Save insights
+                        if (result.insights && result.insights.length > 0) {
+                            const generalInsights = result.insights.map(i => ({
+                                text: i.text,
+                                type: 'general'
+                            }));
+                            await JournalModel.saveInsights(entry.id, generalInsights);
+                        }
                     }
                 } catch (saveError) {
-                    console.error('Error saving analysis to journal entry:', saveError);
+                    console.error('Error saving analysis or insights to journal entry:', saveError);
                     // Continue even if saving fails
                 }
             }
 
-            res.json({ analysis: result.analysis, summary: result.summary });
+            res.json({
+                analysis: result.analysis,
+                summary: result.summary,
+                questions: result.questions,
+                insights: result.insights
+            });
         } catch (err) {
             console.error('Error analyzing journal entry:', err);
             res.status(500).json({ error: `Failed to analyze journal entry: ${err.message}` });
@@ -153,6 +176,21 @@ class JournalController {
         } catch (err) {
             console.error('Error fetching memory entries:', err);
             res.status(500).json({ error: `Failed to fetch memory entries: ${err.message}` });
+        }
+    }
+
+    /**
+     * Get memory usage statistics
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getMemoryStats(req, res) {
+        try {
+            const stats = aiService.getMemoryStats();
+            res.json(stats);
+        } catch (err) {
+            console.error('Error fetching memory statistics:', err);
+            res.status(500).json({ error: `Failed to fetch memory statistics: ${err.message}` });
         }
     }
 
@@ -208,6 +246,69 @@ class JournalController {
         } catch (err) {
             console.error('Error deleting journal entry:', err);
             res.status(500).json({ error: `Failed to delete journal entry: ${err.message}` });
+        }
+    }
+
+    /**
+     * Save insights for a journal entry
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async saveInsights(req, res) {
+        try {
+            const { journalEntryId, insights } = req.body;
+
+            if (!journalEntryId || !insights || !Array.isArray(insights)) {
+                return res.status(400).json({ error: 'Journal entry ID and insights array are required.' });
+            }
+
+            const savedInsights = await JournalModel.saveInsights(journalEntryId, insights);
+            res.status(201).json(savedInsights);
+        } catch (err) {
+            console.error('Error saving journal insights:', err);
+            res.status(500).json({ error: `Failed to save journal insights: ${err.message}` });
+        }
+    }
+
+    /**
+     * Get insights for a journal entry
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getInsightsByEntryId(req, res) {
+        try {
+            const id = parseInt(req.params.id, 10);
+
+            if (isNaN(id)) {
+                return res.status(400).json({ error: 'Invalid entry ID. Must be a number.' });
+            }
+
+            const insights = await JournalModel.getInsightsByEntryId(id);
+            res.json(insights);
+        } catch (err) {
+            console.error('Error fetching journal insights:', err);
+            res.status(500).json({ error: `Failed to fetch journal insights: ${err.message}` });
+        }
+    }
+
+    /**
+     * Get all insights of a specific type
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getInsightsByType(req, res) {
+        try {
+            const { type } = req.params;
+
+            if (!type) {
+                return res.status(400).json({ error: 'Insight type is required.' });
+            }
+
+            const insights = await JournalModel.getInsightsByType(type);
+            res.json(insights);
+        } catch (err) {
+            console.error('Error fetching insights by type:', err);
+            res.status(500).json({ error: `Failed to fetch insights by type: ${err.message}` });
         }
     }
 }

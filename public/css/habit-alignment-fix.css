@@ -1,0 +1,142 @@
+/* 
+ * Habit Alignment Fix
+ * Aligns habit name, badges, and buttons in a straight line
+ */
+
+/* Improve the overall habit item layout */
+.habit-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 15px !important;
+    position: relative !important;
+    padding-right: 80px !important; /* Make room for the action buttons */
+}
+
+/* Adjust the habit content to take appropriate space */
+.habit-content {
+    flex: 1 !important;
+    max-width: none !important;
+    padding-right: 10px !important;
+}
+
+/* Ensure the habit top row is properly aligned */
+.habit-top-row {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 0 !important;
+    width: auto !important;
+}
+
+/* Fix the habit indicators row alignment */
+.habit-indicators-row {
+    display: flex !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    margin-bottom: 0 !important;
+    flex-shrink: 0 !important;
+    width: auto !important;
+}
+
+/* Ensure the progress container is properly sized */
+.habit-progress-container {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 10px !important;
+    width: auto !important;
+}
+
+/* Ensure the level container is properly sized */
+.habit-level-container {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 10px !important;
+    width: auto !important;
+}
+
+/* Fix the habit actions positioning */
+.habit-actions {
+    position: absolute !important;
+    right: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+    width: auto !important;
+}
+
+/* Ensure the habit frequency doesn't break the layout */
+.habit-frequency {
+    font-size: 0.75em !important;
+    color: #666 !important;
+    display: block !important;
+    margin-top: 2px !important;
+}
+
+/* Adjust the habit title to ensure it doesn't wrap unnecessarily */
+.habit-title {
+    font-weight: 500 !important;
+    color: #2c3e50 !important;
+    font-size: 1em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 200px !important;
+}
+
+/* Ensure the habit progress indicator is properly sized */
+.habit-progress {
+    font-size: 0.9em !important;
+    font-weight: 500 !important;
+    color: #2c3e50 !important;
+    background-color: #e8f5e9 !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+}
+
+/* Ensure the habit level indicator is properly sized */
+.habit-level {
+    font-size: 0.9em !important;
+    font-weight: 500 !important;
+    color: white !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    text-align: center !important;
+}
+
+/* Media query for mobile devices */
+@media screen and (max-width: 768px) {
+    .habit-item {
+        flex-direction: column !important;
+        padding-right: 15px !important;
+    }
+    
+    .habit-top-row {
+        width: 100% !important;
+    }
+    
+    .habit-indicators-row {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 10px !important;
+        justify-content: space-between !important;
+    }
+    
+    .habit-actions {
+        position: static !important;
+        transform: none !important;
+        margin-top: 10px !important;
+        width: 100% !important;
+        justify-content: flex-end !important;
+    }
+    
+    .habit-title {
+        max-width: none !important;
+    }
+}

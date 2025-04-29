@@ -1,0 +1,36 @@
+/* 
+ * Bottom Right X Fix
+ * This file specifically positions the X button in the bottom right corner of the Weight Increment section
+ */
+
+/* Target the specific X button in the Weight Increment section */
+.weight-increment-container button.btn-delete-exercise,
+.weight-increment-container button[class*="delete"],
+.weight-increment-container button[class*="remove"] {
+    position: absolute !important;
+    bottom: 10px !important; /* Position at the bottom */
+    right: 10px !important; /* Position at the right */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #f44336 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 1.5rem !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    z-index: 1000 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure the container has relative positioning */
+.weight-increment-container {
+    position: relative !important;
+    min-height: 80px !important; /* Ensure there's enough space for the button */
+    padding-bottom: 40px !important; /* Add padding at the bottom for the button */
+}

@@ -73,12 +73,23 @@ button[title*="Remove Exercise"] {
 }
 
 /* Additional style for delete buttons that might not have the overlay class */
-.exercise-item button[class*="delete"],
-.exercise-item button[title*="Remove"],
-.exercise-item button[title*="Delete"] {
+.exercise-item button.btn-delete-exercise,
+.exercise-item button.delete-template-exercise-btn,
+.exercise-item button[title="Remove Exercise"],
+.exercise-item button[title="Delete Exercise"] {
     position: absolute !important;
     top: 10px !important;
     right: 10px !important;
+}
+
+/* Ensure labels never get the X button styling */
+.exercise-options-menu-label label,
+.weight-increment-label,
+.weight-unit-label {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    content: attr(data-label) !important;
 }
 
 /* Add the X symbol to the delete button */
@@ -93,9 +104,10 @@ button[title*="Remove Exercise"]::before {
 }
 
 /* Ensure the X is properly centered and sized */
-.exercise-item button[class*="delete"],
-.exercise-item button[title*="Remove"],
-.exercise-item button[title*="Delete"] {
+.exercise-item button.btn-delete-exercise,
+.exercise-item button.delete-template-exercise-btn,
+.exercise-item button[title="Remove Exercise"],
+.exercise-item button[title="Delete Exercise"] {
     font-size: 24px !important;
     line-height: 1 !important;
     font-weight: bold !important;

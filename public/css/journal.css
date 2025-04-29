@@ -125,6 +125,33 @@
     font-size: 0.9em;
 }
 
+.ai-questions {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: #f0f7fb;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.ai-questions h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #2980b9;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.ai-questions ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.ai-questions li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    color: #333;
+}
+
 /* Keep the old styles for backward compatibility */
 .ai-analysis {
     line-height: 1.6;

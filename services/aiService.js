@@ -62,14 +62,15 @@ function saveMemory(data) {
 }
 
 /**
- * Get themes from recent entries
+ * Get themes from memory entries
  * @param {Object} memory - Memory object with entries
- * @returns {string} Formatted string of recent themes
+ * @returns {string} Formatted string of themes from memory
  */
 function getThemes(memory) {
-    // Include all entries instead of just the last 10
+    // Include all entries to maximize context
     return memory.entries.map(e => {
-        return `- Entry: "${e.text || ''}"\n  Summary: ${e.summary || 'No summary yet.'}`;
+        // Prioritize summaries over full text to save space
+        return `- Entry: ${e.date ? new Date(e.date).toLocaleDateString() : 'Unknown date'}: ${e.summary || 'No summary yet.'}`;
     }).join('\n');
 }
 
@@ -110,39 +111,9 @@ async function queryOllama(prompt, model = DEFAULT_MODEL) {
  * @returns {string} Additional context based on memory
  */
 function getSpecificMemoryContext(memory, text) {
-    let additionalContext = '';
-
-    // Check for questions about the color of number 2
-    if (text.toLowerCase().includes('what color is') &&
-        (text.includes('2') || text.includes('two') || text.toLowerCase().includes('number 2'))) {
-
-        // Search for entries that mention the color of number 2
-        const colorEntries = memory.entries.filter(e =>
-            e.text && (
-                (e.text.toLowerCase().includes('number 2') && e.text.toLowerCase().includes('green')) ||
-                (e.text.toLowerCase().includes('2 is green')) ||
-                (e.text.toLowerCase().includes('2 its green'))
-            )
-        );
-
-        if (colorEntries.length > 0) {
-            additionalContext = '\n\nIMPORTANT CONTEXT: Based on previous entries, the user has stated that "the number 2 is green". When they ask about the color of number 2, tell them it\'s green.';
-        }
-    }
-
-    // Check for questions about water bottles
-    if (text.toLowerCase().includes('water bottle') && text.toLowerCase().includes('how many')) {
-        const bottleEntries = memory.entries.filter(e =>
-            e.text && e.text.toLowerCase().includes('water bottle') &&
-            (e.text.includes('2') || e.text.includes('two'))
-        );
-
-        if (bottleEntries.length > 0) {
-            additionalContext += '\n\nIMPORTANT CONTEXT: Based on previous entries, the user has mentioned having 2 water bottles. When they ask about water bottles, reference this information.';
-        }
-    }
-
-    return additionalContext;
+    // This function now returns an empty string as we've simplified the prompt
+    // and removed special handling for specific questions
+    return '';
 }
 
 /**
@@ -168,29 +139,52 @@ ${themes}${specificContext}
 Today's journal entry:
 "${text}"
 
-IMPORTANT INSTRUCTIONS:
-1. CRITICAL: SEARCH THROUGH ALL PREVIOUS ENTRIES FOR SPECIFIC INFORMATION. If they ask "what color is 2" or "what color is the number 2", LOOK FOR ANY ENTRY that contains phrases like "the number 2 is green" or "number 2 its green" and USE THAT INFORMATION in your response.
+Respond in a warm, empathetic, conversational tone. Reference information from previous entries when relevant. Never contradict information they've provided in previous entries.
 
-2. If the person asks a specific question that might be answered by information in their previous entries, DIRECTLY reference that information in your response. NEVER say "numbers don't have a specific color" if they previously stated one does.
+At the end of your response, include up to 3 thoughtful questions that would help you better understand the person. Format these questions as:
+[QUESTION 1: Your first question here]
+[QUESTION 2: Your second question here]
+[QUESTION 3: Your third question here]
 
-3. IMPORTANT: Look for patterns in their entries. For example, if they mention "the number 2 is green" in one entry and later ask "what color is the number 2?", tell them it's green. Or if they mention "I have 2 water bottles" and later ask how many they have, tell them they have 2.
+Also include any insights you've gained about the person in this format:
+[INSIGHT: Your insight about the person]
 
-4. Reflect on how this entry fits the patterns in their previous entries.
-
-5. Provide one meaningful insight.
-
-6. DO NOT mention the current date and time in your response unless specifically asked.
-
-Also, summarize this entry in 1 sentence to help track themes later.
-
-Format your response in a conversational style, and include a "[SUMMARY:]" at the end (which will be hidden from the user).
+Finally, include a "[SUMMARY:]" at the end (which will be hidden from the user).
 `;
 
     const aiResponse = await queryOllama(prompt);
 
     // Extract summary from the response
-    const summaryMatch = aiResponse.match(/summary.*?:\s*(.+?)(?:\n|$)/i);
+    const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)(?:\]|\n|$)/i);
     const summary = summaryMatch ? summaryMatch[1].trim() : 'No summary generated';
+
+    // Extract questions from the response
+    const questions = [];
+    const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
+    let questionMatch;
+    while ((questionMatch = questionRegex.exec(aiResponse)) !== null) {
+        questions.push({
+            number: parseInt(questionMatch[1]),
+            text: questionMatch[2].trim()
+        });
+    }
+
+    // Extract insights from the response
+    const insights = [];
+    const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
+    let insightMatch;
+    while ((insightMatch = insightRegex.exec(aiResponse)) !== null) {
+        insights.push({
+            text: insightMatch[1].trim()
+        });
+    }
+
+    // Create a clean version of the response without the special tags
+    let cleanResponse = aiResponse
+        .replace(/\[QUESTION\s+\d+:\s*.+?(?:\]|\n|$)/gi, '')
+        .replace(/\[INSIGHT:\s*.+?(?:\]|\n|$)/gi, '')
+        .replace(/\[SUMMARY:\s*.+?(?:\]|\n|$)/gi, '')
+        .trim();
 
     // Add entry to memory
     memory.entries.push({
@@ -199,16 +193,121 @@ Format your response in a conversational style, and include a "[SUMMARY:]" at th
         summary
     });
 
+    // Check if we need to consolidate memory entries
+    const MAX_CONTEXT_CHARS = 100000; // Approximately 25K tokens
+
+    // Calculate current context size
+    const currentContextSize = memory.entries.reduce((total, entry) => {
+        return total + (entry.summary ? entry.summary.length : 0) + 30; // Add 30 chars for date formatting
+    }, 0);
+
+    console.log(`Current memory context size: ${currentContextSize} characters (approx. ${Math.round(currentContextSize/4)} tokens)`);
+
+    // If we're approaching the context limit, consolidate older entries
+    if (currentContextSize > MAX_CONTEXT_CHARS * 0.8) { // 80% of max as a buffer
+        console.log(`Memory context approaching limit (${currentContextSize}/${MAX_CONTEXT_CHARS}), consolidating older entries`);
+
+        // Sort by date (oldest first)
+        const sortedEntries = [...memory.entries].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // Take the oldest 30% of entries for consolidation
+        const consolidationCount = Math.max(5, Math.floor(sortedEntries.length * 0.3));
+        const entriesToConsolidate = sortedEntries.slice(0, consolidationCount);
+        const remainingEntries = sortedEntries.slice(consolidationCount);
+
+        // Create a consolidated summary
+        const consolidatedText = entriesToConsolidate.map(e => e.summary || '').join(' ');
+
+        // Generate a meta-summary using the existing summaries
+        const metaSummary = `Consolidated summary of ${consolidationCount} entries from ${
+            new Date(entriesToConsolidate[0].date).toLocaleDateString()} to ${
+            new Date(entriesToConsolidate[consolidationCount-1].date).toLocaleDateString()
+        }: ${consolidatedText.substring(0, 500)}${consolidatedText.length > 500 ? '...' : ''}`;
+
+        // Create a new consolidated entry
+        const consolidatedEntry = {
+            date: new Date(entriesToConsolidate[0].date).toISOString(),
+            text: 'Consolidated entries',
+            summary: metaSummary,
+            isConsolidated: true,
+            entryCount: consolidationCount
+        };
+
+        // Replace the original entries with the consolidated one
+        memory.entries = [consolidatedEntry, ...remainingEntries];
+
+        console.log(`Consolidated ${consolidationCount} entries into one meta-summary`);
+    }
+
     saveMemory(memory);
 
     return {
-        analysis: aiResponse,
-        summary
+        analysis: cleanResponse,
+        summary,
+        questions,
+        insights
+    };
+}
+
+/**
+ * Get memory usage statistics
+ * @returns {Object} Memory usage statistics
+ */
+function getMemoryStats() {
+    const memory = loadMemory();
+
+    // Calculate total size of memory file in KB
+    const memoryFileSize = fs.existsSync(MEMORY_FILE)
+        ? Math.round(fs.statSync(MEMORY_FILE).size / 1024)
+        : 0;
+
+    // Calculate average entry size
+    const avgEntrySize = memory.entries.length > 0
+        ? Math.round(memoryFileSize / memory.entries.length)
+        : 0;
+
+    // Calculate context size in characters
+    const contextSize = memory.entries.reduce((total, entry) => {
+        return total + (entry.summary ? entry.summary.length : 0) + 30; // Add 30 chars for date formatting
+    }, 0);
+
+    // Calculate estimated tokens (rough approximation: 4 chars = 1 token)
+    const estimatedTokens = Math.round(contextSize / 4);
+
+    // Count consolidated entries
+    const consolidatedEntries = memory.entries.filter(e => e.isConsolidated);
+    const totalConsolidatedEntries = consolidatedEntries.reduce((total, entry) => {
+        return total + (entry.entryCount || 1);
+    }, 0);
+
+    // Calculate context efficiency (how many original entries are represented in the current context)
+    const contextEfficiency = memory.entries.length > 0
+        ? Math.round(((memory.entries.length - consolidatedEntries.length) + totalConsolidatedEntries) / memory.entries.length * 100)
+        : 100;
+
+    return {
+        entryCount: memory.entries.length,
+        totalSizeKB: memoryFileSize,
+        avgEntrySizeKB: avgEntrySize,
+        contextSizeChars: contextSize,
+        estimatedTokens: estimatedTokens,
+        consolidatedEntryCount: consolidatedEntries.length,
+        originalEntryCount: (memory.entries.length - consolidatedEntries.length) + totalConsolidatedEntries,
+        contextEfficiency: `${contextEfficiency}%`,
+        maxContextChars: 100000, // Same as MAX_CONTEXT_CHARS in analyzeJournalEntry
+        contextUtilization: `${Math.round(contextSize / 1000)}/${Math.round(100000 / 1000)}K chars (${Math.round(contextSize / 100000 * 100)}%)`,
+        oldestEntry: memory.entries.length > 0
+            ? new Date(memory.entries.sort((a, b) => new Date(a.date) - new Date(b.date))[0].date)
+            : null,
+        newestEntry: memory.entries.length > 0
+            ? new Date(memory.entries.sort((a, b) => new Date(b.date) - new Date(a.date))[0].date)
+            : null
     };
 }
 
 module.exports = {
     analyzeJournalEntry,
     loadMemory,
-    saveMemory
+    saveMemory,
+    getMemoryStats
 };

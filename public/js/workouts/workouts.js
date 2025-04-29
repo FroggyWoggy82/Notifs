@@ -605,12 +605,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Reworked function to render a single exercise item (lastLogData now part of exerciseData) ---
     async function renderSingleExerciseItem(exerciseItemElement, exerciseData, index, isTemplate = false) {
-        console.log(`[Render Single] Rendering exercise '${exerciseData.name}' at index ${index}, isTemplate: ${isTemplate}`);
-        console.log(`[DEBUG] renderSingleExerciseItem called with index: ${index}, isTemplate: ${isTemplate}`);
-
-        // Log the exercise data for debugging
-        console.log(`[Render Single] Exercise data:`, exerciseData);
-
         // Store whether this is a template exercise to use later
         exerciseItemElement.dataset.isTemplate = isTemplate ? 'true' : 'false';
 
@@ -628,21 +622,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (preference && preference.weight_unit) {
                         // Use the saved preference
                         exerciseData.weight_unit = preference.weight_unit;
-                        console.log(`[Render Single] Applied saved preference '${preference.weight_unit}' for exercise '${exerciseData.name}'`);
                     } else {
                         // No saved preference, use default
                         exerciseData.weight_unit = 'lbs';
-                        console.log(`[Render Single] No saved preference found, using default 'lbs' for exercise '${exerciseData.name}'`);
                     }
                 } else {
                     // API error, use default
                     exerciseData.weight_unit = 'lbs';
-                    console.log(`[Render Single] Error fetching preference, using default 'lbs' for exercise '${exerciseData.name}'`);
                 }
             } catch (error) {
                 // Exception, use default
                 exerciseData.weight_unit = 'lbs';
-                console.log(`[Render Single] Exception fetching preference, using default 'lbs' for exercise '${exerciseData.name}'`);
             }
         }
 
@@ -652,30 +642,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- Fetch Last Log --- Await this before generating HTML
         if (!isTemplate && exerciseData.lastLog === undefined) { // Check if fetch needed
-            console.log(`[Render Single] Fetching last log for ${exerciseData.name}...`);
             exerciseData.lastLog = null; // Set temporarily to prevent re-fetch while awaiting
             const fetchLastLog = async () => {
                 try {
                     const response = await fetch(`/api/workouts/exercises/${exerciseData.exercise_id}/lastlog`);
                     if (response.ok) {
                         const logData = await response.json();
-                        console.log(`[Render Single] Last log FETCHED for ${exerciseData.name}:`, logData);
                         return logData; // Return the fetched data
                     } else if (response.status === 404) {
-                         console.log(`[Render Single] No last log found for ${exerciseData.name}.`);
-                         return null; // Return null explicitly
-                     } else {
-                        console.error(`[Render Single] Error fetching last log for ${exerciseData.name}: ${response.statusText}`);
-                         return null; // Return null on error
-                     }
+                        return null; // Return null explicitly
+                    } else {
+                        console.error(`Error fetching last log for ${exerciseData.name}: ${response.statusText}`);
+                        return null; // Return null on error
+                    }
                 } catch (error) {
-                    console.error(`[Render Single] Network error fetching last log for ${exerciseData.name}:`, error);
-                     return null; // Return null on network error
+                    console.error(`Network error fetching last log for ${exerciseData.name}:`, error);
+                    return null; // Return null on network error
                 }
             };
             // Await the result and store it back on exerciseData
             exerciseData.lastLog = await fetchLastLog();
-            console.log(`[Render Single] Awaited fetch complete. exerciseData.lastLog is now:`, exerciseData.lastLog);
         }
         // --- End Fetch Last Log ---
 
@@ -763,8 +749,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="exercise-options-menu" id="options-menu-${index}">
                         <!-- Weight Unit Label -->
                         <div class="exercise-options-menu-label">
-                            <label>Weight Unit:</label>
-                            <label>Weight Increment:</label>
+                            <label class="weight-unit-label" data-label="Weight Unit:">Weight Unit:</label>
+                            <div class="weight-increment-container">
+                                <span class="weight-increment-text">Weight Increment:</span>
+                            </div>
                         </div>
 
                         <!-- Weight Unit and Increment Inputs Row -->
@@ -781,8 +769,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         <!-- All Buttons in One Row -->
                         <div class="exercise-options-menu-row buttons-row">
-                            <button type="button" class="btn-view-exercise" data-exercise-id="${exerciseData.exercise_id}" title="View Exercise Video">
-                                🎬 View Exercise
+                            <button type="button" class="btn-view-exercise ${exerciseData.youtube_url ? 'has-video' : ''}"
+                                data-exercise-id="${exerciseData.exercise_id}"
+                                data-has-video="${exerciseData.youtube_url ? 'true' : 'false'}"
+                                title="${exerciseData.youtube_url ? 'View Exercise Video' : 'No video available - click to add one'}">
+                                🎬 ${exerciseData.youtube_url ? 'View Exercise' : 'Add Video'}
                             </button>
                             <div class="button-group-right">
                                 <button type="button" class="btn-edit-exercise-name" data-workout-index="${index}" title="Edit Exercise Name">✏️</button>
@@ -810,7 +801,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            console.log("[DEBUG] Generated HTML for exercise item:", exerciseItemElement.innerHTML);
         }
 
         // Initialize state for the remove button
@@ -822,15 +812,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Re-attach input listeners if needed, or rely on delegation
         // Example if needed: setupSetInputListeners(exerciseItemElement);
-
-         console.log(`[Render Single] Finished rendering '${exerciseData.name}'`);
     }
 
     // --- Event Handlers ---
 
     // --- Exercise Options Menu Functions ---
     function toggleOptionsMenu(event) {
-        console.log("[DEBUG] toggleOptionsMenu called", event.target);
         const optionsButton = event.target;
 
         // Get the workout index from the button's data attribute
@@ -844,11 +831,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        console.log("[DEBUG] workoutIndex:", workoutIndex);
         const isTemplate = !optionsButton.dataset.workoutIndex;
-        console.log("[DEBUG] isTemplate:", isTemplate);
         const menuId = isTemplate ? `template-options-menu-${workoutIndex}` : `options-menu-${workoutIndex}`;
-        console.log("[DEBUG] menuId:", menuId);
         const menu = document.getElementById(menuId);
 
         if (!menu) {
@@ -923,23 +907,60 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Check if the button already indicates whether a video is available
+        const hasVideo = button.dataset.hasVideo === 'true';
+        console.log(`[View Exercise] Button indicates video available: ${hasVideo}`);
+
         console.log(`[View Exercise] Fetching YouTube URL for exercise ID: ${exerciseId}`);
 
         try {
-            // Fetch the exercise details to get the YouTube URL
-            const response = await fetch(`/api/workouts/exercises/${exerciseId}`);
+            // Check if we're in an active workout
+            const isActiveWorkout = document.getElementById('active-workout-page').classList.contains('active');
+            console.log(`[View Exercise] Is active workout: ${isActiveWorkout}`);
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch exercise: ${response.status}`);
+            let exercise;
+
+            if (isActiveWorkout && currentWorkout && currentWorkout.exercises) {
+                // Try to find the exercise in the current workout first
+                const workoutExercise = currentWorkout.exercises.find(ex => ex.exercise_id == exerciseId);
+
+                if (workoutExercise && workoutExercise.youtube_url) {
+                    console.log('[View Exercise] Found YouTube URL in active workout:', workoutExercise.youtube_url);
+                    exercise = {
+                        exercise_id: workoutExercise.exercise_id,
+                        name: workoutExercise.name,
+                        youtube_url: workoutExercise.youtube_url
+                    };
+                } else {
+                    console.log('[View Exercise] No YouTube URL found in active workout, fetching from API');
+                    // Fetch from API as fallback
+                    const response = await fetch(`/api/workouts/exercises/${exerciseId}`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch exercise: ${response.status}`);
+                    }
+                    exercise = await response.json();
+                }
+            } else {
+                // Fetch the exercise details to get the YouTube URL
+                const response = await fetch(`/api/workouts/exercises/${exerciseId}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch exercise: ${response.status}`);
+                }
+                exercise = await response.json();
             }
 
-            const exercise = await response.json();
             console.log('[View Exercise] Exercise data:', exercise);
 
             if (!exercise.youtube_url) {
                 console.log('[View Exercise] No YouTube URL found, showing modal to set one');
                 // If no YouTube URL is set, show a modal to set one
                 showYouTubeUrlModal(exerciseId, exercise.name);
+
+                // Update the button to reflect no video is available
+                button.classList.remove('has-video');
+                button.dataset.hasVideo = 'false';
+                button.textContent = '🎬 Add Video';
+                button.title = 'No video available - click to add one';
             } else {
                 console.log('[View Exercise] Opening existing YouTube URL:', exercise.youtube_url);
 
@@ -948,6 +969,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isTemplateEditor = document.getElementById('template-editor-page').classList.contains('active');
 
                 console.log(`[View Exercise] Page context: Active Workout = ${isActiveWorkout}, Template Editor = ${isTemplateEditor}`);
+
+                // Update the button to reflect that a video is available
+                button.classList.add('has-video');
+                button.dataset.hasVideo = 'true';
+                button.textContent = '🎬 View Exercise';
+                button.title = 'View Exercise Video';
 
                 if (isActiveWorkout || isTemplateEditor) {
                     // Show the video in an embedded player for both active workout and template editor
@@ -1056,6 +1083,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Check if we're in an active workout
                     const isActiveWorkout = document.getElementById('active-workout-page').classList.contains('active');
+
+                    // Update the button that triggered this modal if we can find it
+                    const exerciseButtons = document.querySelectorAll(`.btn-view-exercise[data-exercise-id="${currentExerciseId}"]`);
+                    exerciseButtons.forEach(button => {
+                        console.log("[YouTube Modal] Updating button appearance for exercise:", currentExerciseId);
+                        button.classList.add('has-video');
+                        button.dataset.hasVideo = 'true';
+                        button.textContent = '🎬 View Exercise';
+                        button.title = 'View Exercise Video';
+                    });
+
+                    // If we're in an active workout, also update the exercise data in memory
+                    if (isActiveWorkout && currentWorkout && currentWorkout.exercises) {
+                        const workoutExercise = currentWorkout.exercises.find(ex => ex.exercise_id == currentExerciseId);
+                        if (workoutExercise) {
+                            console.log("[YouTube Modal] Updating exercise data in current workout");
+                            workoutExercise.youtube_url = youtubeUrl;
+                            // Save the updated workout state
+                            saveWorkoutState();
+                        }
+                    }
 
                     if (isActiveWorkout) {
                         // Show the video in an embedded player
@@ -1374,7 +1422,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Exercise Name Edit Functions ---
-    function openExerciseEditModal(index) {
+    // Make openExerciseEditModal available globally
+    window.openExerciseEditModal = function(index) {
         if (!exerciseEditModal) return;
 
         currentEditingExerciseIndex = index;
@@ -1529,10 +1578,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 exercise.exercise_id = originalExerciseId;
             }
         } else {
-            // If not saving as new, keep the original exercise ID
-            // This ensures we don't reset the workout history
+            // If not saving as new, keep the original exercise ID but update the name in the database
             exercise.exercise_id = originalExerciseId;
             console.log(`Updated exercise name to "${newName}" while preserving history for ID ${originalExerciseId}`);
+
+            // Update the exercise name in the database
+            try {
+                const response = await fetch(`/api/workouts/exercises/${originalExerciseId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: newName })
+                });
+
+                if (response.ok) {
+                    const updatedExercise = await response.json();
+                    console.log('Exercise name updated in database:', updatedExercise);
+
+                    // Update the exercise in the availableExercises array
+                    const exerciseIndex = availableExercises.findIndex(ex => ex.exercise_id === originalExerciseId);
+                    if (exerciseIndex !== -1) {
+                        availableExercises[exerciseIndex].name = newName;
+                    }
+
+                    // Show a success message
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'alert alert-success';
+                    successMessage.style.position = 'fixed';
+                    successMessage.style.top = '20px';
+                    successMessage.style.left = '50%';
+                    successMessage.style.transform = 'translateX(-50%)';
+                    successMessage.style.padding = '10px 20px';
+                    successMessage.style.backgroundColor = '#4CAF50';
+                    successMessage.style.color = 'white';
+                    successMessage.style.borderRadius = '5px';
+                    successMessage.style.zIndex = '9999';
+                    successMessage.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+                    successMessage.textContent = `Exercise name updated to "${newName}"`;
+
+                    document.body.appendChild(successMessage);
+
+                    // Remove the message after 3 seconds
+                    setTimeout(() => {
+                        successMessage.style.opacity = '0';
+                        successMessage.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => {
+                            document.body.removeChild(successMessage);
+                        }, 500);
+                    }, 3000);
+                } else if (response.status === 409) {
+                    // Handle name conflict (duplicate name)
+                    const errorData = await response.json();
+                    console.error('Name conflict when updating exercise:', errorData);
+                    alert(`Could not update exercise name in database: ${errorData.error}`);
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error updating exercise name in database:', errorData);
+                    alert(`Error updating exercise name: ${errorData.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Network error updating exercise name:', error);
+            }
         }
 
         // Re-render the current workout to show the updated name
@@ -2332,6 +2439,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         console.log(`Starting workout from template: ${templateId}`);
 
+        // Fetch the latest exercise data for all exercises in the template
+        const exerciseIds = template.exercises.map(ex => ex.exercise_id);
+        let latestExerciseData = {};
+
+        try {
+            // Fetch all exercises to get the latest names
+            const response = await fetch('/api/workouts/exercises');
+            if (response.ok) {
+                const allExercises = await response.json();
+                // Create a map of exercise_id to exercise data
+                latestExerciseData = allExercises.reduce((map, ex) => {
+                    map[ex.exercise_id] = ex;
+                    return map;
+                }, {});
+            }
+        } catch (error) {
+            console.error('Error fetching latest exercise data:', error);
+        }
+
         // Initialize currentWorkout as an object with name and exercises array
         currentWorkout = {
             name: template.name, // Store template name
@@ -2339,10 +2465,19 @@ document.addEventListener('DOMContentLoaded', function() {
             exercises: template.exercises.map(ex => {
                 // Get the number of sets from the template, default to 1 if not specified
                 const numSets = parseInt(ex.sets) || 1;
-                console.log(`Creating ${numSets} sets for exercise ${ex.name} from template`);
+
+                // Use the latest exercise name and YouTube URL from the database if available
+                const latestExercise = latestExerciseData[ex.exercise_id];
+                const exerciseName = latestExercise ? latestExercise.name : ex.name;
+                const youtubeUrl = latestExercise ? latestExercise.youtube_url : null;
+
+                console.log(`Creating ${numSets} sets for exercise ${exerciseName} from template`);
+                console.log(`Exercise ${exerciseName} (ID: ${ex.exercise_id}) YouTube URL: ${youtubeUrl}`);
 
                 return {
                     ...ex,
+                    name: exerciseName, // Use the latest name from the database
+                    youtube_url: youtubeUrl, // Include the YouTube URL
                     lastLog: undefined, // Mark for fetching
                     // Store template sets and reps for display
                     template_sets: numSets,
@@ -2495,7 +2630,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function addExerciseToWorkout(exerciseId, targetList) { // Added targetList parameter
         // Removed reading targetList from modal dataset here
-        const exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
+
+        // First try to get the latest exercise data from the server
+        let exercise;
+        try {
+            const response = await fetch(`/api/workouts/exercises/${exerciseId}`);
+            if (response.ok) {
+                exercise = await response.json();
+
+                // Update the exercise in the availableExercises array
+                const exerciseIndex = availableExercises.findIndex(ex => ex.exercise_id === exerciseId);
+                if (exerciseIndex !== -1) {
+                    availableExercises[exerciseIndex] = {
+                        ...availableExercises[exerciseIndex],
+                        ...exercise
+                    };
+                }
+            } else {
+                // If server fetch fails, fall back to local data
+                exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
+            }
+        } catch (error) {
+            console.error('Error fetching latest exercise data:', error);
+            // Fall back to local data
+            exercise = availableExercises.find(ex => ex.exercise_id === exerciseId);
+        }
+
         if (!exercise) {
             console.error('Exercise not found in available list', exerciseId);
             alert('Error finding selected exercise.');
@@ -2596,52 +2756,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function handleDeleteExercise(event) {
+    // Make handleDeleteExercise available globally
+    window.handleDeleteExercise = function(event) {
+        console.log('[handleDeleteExercise] Function called');
+
         const button = event.target; // Get the button that was clicked
-        console.log("[handleDeleteExercise] Clicked button:", button); // <<< ADD LOG
         const exerciseItem = button.closest('.exercise-item'); // Find the parent exercise item
-        console.log("[handleDeleteExercise] Found parent exerciseItem:", exerciseItem); // <<< ADD LOG
 
         if (!exerciseItem) {
             console.error('Could not find parent exercise item for delete button.');
             return;
         }
 
-        console.log("[handleDeleteExercise] exerciseItem.dataset:", exerciseItem.dataset); // <<< ADD LOG
+        console.log('[handleDeleteExercise] Exercise item found:', exerciseItem);
+
         const indexToRemove = parseInt(exerciseItem.dataset.workoutIndex, 10); // Get index from parent item
-        console.log(`[handleDeleteExercise] Parsed indexToRemove: ${indexToRemove} (Type: ${typeof indexToRemove})`); // <<< ADD LOG HERE
+        console.log('[handleDeleteExercise] Index to remove:', indexToRemove);
 
-        // Determine which list we are modifying based on context (active workout vs. template editor)
-        // REMOVED local declaration: let exercisesArray;
-        // REMOVED local declaration: let listElement;
-
-        // Check the globally defined currentPage
+        // Determine which list we are modifying based on active page
         let exercisesArray;
         let listElement;
+        let isTemplateEditor = false;
 
-        if (currentPage === 'active') {
-            exercisesArray = currentWorkout.exercises;
-            listElement = currentExerciseListEl;
-        } else if (currentPage === 'editor') {
-            // Use the currentTemplateExercises array for the template editor
+        // Check if we're in the template editor
+        if (document.getElementById('template-editor-page').classList.contains('active')) {
+            console.log('[handleDeleteExercise] Context: Template Editor');
             exercisesArray = currentTemplateExercises;
             listElement = templateExerciseListEl;
+            isTemplateEditor = true;
+        } else if (document.getElementById('active-workout-page').classList.contains('active')) {
+            console.log('[handleDeleteExercise] Context: Active Workout');
+            exercisesArray = currentWorkout.exercises;
+            listElement = currentExerciseListEl;
         } else {
-            console.error("[handleDeleteExercise] Called from unknown page context:", currentPage);
+            console.error("[handleDeleteExercise] Could not determine context - no active page found");
             return;
         }
 
-        // Logging using the correct global currentPage
-        console.log(`[handleDeleteExercise] Checking index against array. Page: ${currentPage}`);
-        console.log(`[handleDeleteExercise] exercisesArray is defined: ${!!exercisesArray}`);
-        if (exercisesArray) {
-            console.log(`[handleDeleteExercise] exercisesArray length: ${exercisesArray.length}`);
-            // Optional: Log the first few elements to see if it looks correct
-            // console.log('[handleDeleteExercise] exercisesArray sample:', exercisesArray.slice(0, 2));
-        } else {
-            console.error("[handleDeleteExercise] exercisesArray is UNDEFINED or NULL!");
-        }
-
+        console.log('[handleDeleteExercise] Exercises array:', exercisesArray);
 
         // Validate the index *after* determining the correct array
         if (isNaN(indexToRemove) || indexToRemove < 0 || !exercisesArray || indexToRemove >= exercisesArray.length) {
@@ -2652,31 +2804,63 @@ document.addEventListener('DOMContentLoaded', function() {
         // === ADD CONFIRMATION ===
         const exerciseNameToConfirm = exercisesArray[indexToRemove]?.name || 'this exercise';
         if (!confirm(`Are you sure you want to remove ${exerciseNameToConfirm} from the workout?`)) {
-            console.log('[handleDeleteExercise] Deletion cancelled by user.');
             return; // Stop if user cancels
         }
         // === END CONFIRMATION ===
 
         // Proceed with deletion (original logic)
         const removedExercise = exercisesArray.splice(indexToRemove, 1)[0];
-        console.log(`[handleDeleteExercise] Removed exercise at index ${indexToRemove}:`, removedExercise);
+        console.log('[handleDeleteExercise] Exercise removed:', removedExercise);
 
         // === ADD UI REFRESH ===
         // Re-render the appropriate list after deletion
-        if (currentPage === 'active') {
-            renderCurrentWorkout();
-        } else if (currentPage === 'template-editor') {
+        if (isTemplateEditor) {
+            console.log('[handleDeleteExercise] Re-rendering template exercise list');
             renderTemplateExerciseList();
+        } else {
+            console.log('[handleDeleteExercise] Re-rendering current workout');
+            renderCurrentWorkout();
         }
         // === END UI REFRESH ===
-    }
+    };
 
     // --- Handler for Deleting Exercise from Template Editor ---
     function handleDeleteTemplateExercise(deleteButton) { // Changed parameter to expect the button element
-        const indexToRemove = parseInt(deleteButton.dataset.index, 10); // Use dataset.index from the button
+        console.log('[handleDeleteTemplateExercise] Function called with button:', deleteButton);
+
+        // Try to get the index from the button's dataset
+        let indexToRemove = parseInt(deleteButton.dataset.index, 10);
+
+        // If that fails, try to get it from the parent exercise item
+        if (isNaN(indexToRemove)) {
+            const exerciseItem = deleteButton.closest('.exercise-item');
+            if (exerciseItem) {
+                indexToRemove = parseInt(exerciseItem.dataset.index, 10);
+                console.log('[handleDeleteTemplateExercise] Got index from parent exercise item:', indexToRemove);
+            }
+        }
+
+        // If we still don't have a valid index, try the workoutIndex attribute
+        if (isNaN(indexToRemove)) {
+            indexToRemove = parseInt(deleteButton.dataset.workoutIndex, 10);
+            console.log('[handleDeleteTemplateExercise] Got index from workoutIndex attribute:', indexToRemove);
+        }
+
+        console.log('[handleDeleteTemplateExercise] Index to remove:', indexToRemove);
+        console.log('[handleDeleteTemplateExercise] Current template exercises:', currentTemplateExercises);
+
         if (!isNaN(indexToRemove) && indexToRemove >= 0 && indexToRemove < currentTemplateExercises.length) {
-            // Remove the exercise from the array immediately without confirmation
-            currentTemplateExercises.splice(indexToRemove, 1); // Modifies the array
+            // Get the exercise name for confirmation
+            const exerciseNameToConfirm = currentTemplateExercises[indexToRemove]?.name || 'this exercise';
+
+            // Confirm deletion with the user
+            if (!confirm(`Are you sure you want to remove ${exerciseNameToConfirm} from the template?`)) {
+                return; // Stop if user cancels
+            }
+
+            // Remove the exercise from the array
+            const removedExercise = currentTemplateExercises.splice(indexToRemove, 1)[0]; // Modifies the array
+            console.log('[handleDeleteTemplateExercise] Exercise removed:', removedExercise);
 
             // Re-assign order_position for remaining exercises
             currentTemplateExercises.forEach((ex, idx) => {
@@ -2684,12 +2868,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Re-render the template editor list without switching pages
+            console.log('[handleDeleteTemplateExercise] Re-rendering template exercise list');
             renderTemplateExerciseList();
 
             // Stay on the template editor page
             // No need to call switchPage() - we want to remain on the current page
         } else {
-            console.error('Invalid index for template exercise deletion:', deleteButton.dataset.index);
+            console.error(`Invalid index for template exercise deletion: ${indexToRemove}`);
         }
     }
 
@@ -6155,7 +6340,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleDeleteExercise(event);
                 } else if (event.target.classList.contains('add-set-btn')) {
                     handleAddSet(event);
-                 } else if (event.target.classList.contains('remove-set-btn')) {
+                } else if (event.target.classList.contains('remove-set-btn')) {
                     handleRemoveSet(event);
                 } else if (event.target.classList.contains('edit-exercise-name-btn')) {
                     // Find the parent exercise item to get the index
@@ -6172,6 +6357,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (event.target.classList.contains('btn-exercise-options')) {
                     console.log("[DEBUG] Detected btn-exercise-options click in second listener");
                     toggleOptionsMenu(event);
+                } else if (event.target.classList.contains('btn-view-exercise') || event.target.closest('.btn-view-exercise')) {
+                    console.log("[DEBUG] Detected btn-view-exercise click in second listener");
+                    handleViewExercise(event);
                 }
             });
              // Add input listener for unit changes and weight increment changes

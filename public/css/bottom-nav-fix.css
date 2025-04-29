@@ -1,0 +1,78 @@
+/* 
+ * Bottom Navigation Bar Fix
+ * Makes the bottom navigation bar height and styling consistent across all pages
+ */
+
+/* Reset any page-specific styles */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #ffffff; /* White background */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 0; /* Consistent padding */
+    box-shadow: 0 -1px 3px rgba(44, 62, 80, 0.1); /* Softer shadow */
+    z-index: 1000;
+    border-top: 1px solid #dde5eb; /* Subtle top border */
+    height: 60px; /* Fixed height for all pages */
+    box-sizing: border-box;
+}
+
+/* Consistent nav item styling */
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #566573; /* Grey inactive color */
+    text-decoration: none;
+    font-size: 11px; /* Smaller font */
+    padding: 5px 10px; /* Padding for tap target */
+    transition: color 0.2s ease;
+    height: 100%; /* Take full height */
+    box-sizing: border-box;
+}
+
+.nav-item.active {
+    color: #4db6ac; /* Teal active color */
+}
+
+.nav-item:hover {
+    color: #2c3e50; /* Darker hover */
+}
+
+/* Consistent icon styling */
+.nav-icon {
+    font-size: 22px; /* Slightly smaller icons */
+    margin-bottom: 3px;
+    line-height: 1;
+}
+
+/* Adjust FAB position to be consistent with the bottom nav height */
+.fab {
+    bottom: 70px; /* Adjusted for bottom nav height */
+}
+
+/* Adjust body padding to account for the fixed bottom nav height */
+body {
+    padding-bottom: 70px !important; /* Override any page-specific padding */
+}
+
+/* Media query for mobile devices */
+@media screen and (max-width: 480px) {
+    .bottom-nav {
+        height: 60px; /* Keep consistent height on mobile */
+    }
+    
+    .nav-item {
+        padding: 5px 5px; /* Slightly reduced padding on small screens */
+        font-size: 10px; /* Smaller font on mobile */
+    }
+    
+    .nav-icon {
+        font-size: 20px; /* Slightly smaller icons on mobile */
+    }
+}

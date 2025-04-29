@@ -1,5 +1,11 @@
 const express = require('express');
 const habitController = require('../controllers/habitController');
+const habitControllerFix = require('../controllers/habitControllerFix');
+const habitControllerFixed = require('../controllers/habitControllerFixed');
+const habitControllerSimpleFix = require('../controllers/habitControllerSimpleFix');
+const habitControllerSimple = require('../controllers/habitControllerSimple');
+const highCompletionHabitController = require('../controllers/highCompletionHabitController');
+const specialHabitController = require('../controllers/specialHabitController');
 const HabitModel = require('../models/habitModel');
 const db = require('../utils/db');
 
@@ -17,7 +23,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', habitController.getAllHabits);
+router.get('/', habitControllerSimple.getAllHabits);
 
 /**
  * @swagger
@@ -265,7 +271,7 @@ router.delete('/:id', async (req, res) => {
  *       500:
  *         description: Server error
  */
-router.post('/:id/complete', habitController.recordCompletion);
+router.post('/:id/complete', habitControllerSimple.recordCompletion);
 
 /**
  * @swagger
@@ -292,7 +298,93 @@ router.post('/:id/complete', habitController.recordCompletion);
  *       500:
  *         description: Server error
  */
-router.post('/:id/uncomplete', habitController.removeCompletion);
+router.post('/:id/uncomplete', habitControllerSimple.removeCompletion);
+
+/**
+ * @swagger
+ * /api/habits/{id}/high-completion-increment:
+ *   post:
+ *     summary: Increment a high-completion habit
+ *     description: Increments the completion count for a habit with a very high completion target
+ *     tags: [Habits]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Habit ID
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Habit incremented successfully
+ *       400:
+ *         description: Invalid habit ID format
+ *       404:
+ *         description: Habit not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/:id/high-completion-increment', highCompletionHabitController.incrementHighCompletionHabit);
+
+/**
+ * @swagger
+ * /api/habits/{id}/high-completion-count:
+ *   get:
+ *     summary: Get the current count for a high-completion habit
+ *     description: Gets the current completion count for a habit with a very high completion target
+ *     tags: [Habits]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Habit ID
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Habit count retrieved successfully
+ *       400:
+ *         description: Invalid habit ID format
+ *       404:
+ *         description: Habit not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/high-completion-count', highCompletionHabitController.getHighCompletionHabitCount);
+
+/**
+ * @swagger
+ * /api/habits/special/2/increment:
+ *   post:
+ *     summary: Increment habit ID 2 (Thinking about food)
+ *     description: Special endpoint to increment habit ID 2 (Thinking about food)
+ *     tags: [Habits]
+ *     responses:
+ *       200:
+ *         description: Habit incremented successfully
+ *       404:
+ *         description: Habit not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/special/2/increment', specialHabitController.incrementHabit2);
+
+/**
+ * @swagger
+ * /api/habits/special/2:
+ *   get:
+ *     summary: Get habit ID 2 (Thinking about food)
+ *     description: Special endpoint to get habit ID 2 (Thinking about food)
+ *     tags: [Habits]
+ *     responses:
+ *       200:
+ *         description: Habit retrieved successfully
+ *       404:
+ *         description: Habit not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/special/2', specialHabitController.getHabit2);
 
 /**
  * @swagger

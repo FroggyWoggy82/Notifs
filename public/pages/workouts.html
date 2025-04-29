@@ -17,12 +17,16 @@
     <link rel="stylesheet" href="../css/template-card-button-fix.css"> <!-- Template card button alignment fix -->
     <link rel="stylesheet" href="../css/ghost-of-the-goon-fix.css"> <!-- Special fix for Ghost of the Goon template -->
     <link rel="stylesheet" href="../css/ghost-template-fix.css"> <!-- Direct fix for Ghost template -->
+    <link rel="stylesheet" href="../css/delete-button-fix.css"> <!-- Fix for delete button visibility -->
+    <link rel="stylesheet" href="../css/x-button-position-fix.css"> <!-- Position X button at bottom right next to pencil icon -->
+    <link rel="stylesheet" href="../css/hide-top-x-button.css"> <!-- Hide the X button in the top right corner -->
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <!-- Link to an icon library if needed for FAB/icons, e.g., Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/bottom-nav-fix.css">
 </head>
 <body>
     <button class="menu-button">☰</button> <!-- Hamburger Icon -->
@@ -195,7 +199,7 @@
             </div>
             <div class="active-workout-actions">
                  <button id="cancel-workout-btn" class="btn btn-danger">Cancel Workout</button>
-                 <button id="complete-workout-btn" class="btn btn-success" onclick="if(typeof handleCompleteWorkout === 'function') { handleCompleteWorkout(); }">Complete Workout</button>
+                 <button id="complete-workout-btn" class="btn btn-success">Complete Workout</button>
             </div>
         </div>
 
@@ -395,6 +399,18 @@
     <script src="../js/workouts/photo-buttons-fix.js"></script>
     <!-- Template name size adjuster - dynamically adjusts text size to prevent overlap with edit buttons -->
     <script src="../js/workouts/template-name-size-adjuster.js"></script>
+    <!-- Edit Button Fix - ensures edit button works correctly -->
+    <script src="../js/workouts/edit-button-fix.js"></script>
+    <!-- Direct Bottom Right Fix - directly positions the X button at the bottom right corner -->
+    <script src="../js/workouts/direct-bottom-right-fix.js"></script>
+    <!-- Remove Top X Button - specifically removes the X button in the top right corner -->
+    <script src="../js/workouts/remove-top-x-button.js"></script>
+    <!-- Fix Delete Button - fixes the delete button functionality -->
+    <script src="../js/workouts/fix-delete-button.js"></script>
+    <!-- Exercise Name Update Fix - ensures exercise name changes are reflected in all templates -->
+    <script src="../js/workouts/exercise-name-update-fix.js"></script>
+
+
 
     <!-- History Edit Modal (Renamed) -->
     <div id="history-edit-modal" class="modal">

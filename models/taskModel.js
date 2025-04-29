@@ -197,13 +197,74 @@ class Task {
     }
 
     /**
-     * Delete a task
+     * Delete a task and all its future recurrences if it's a recurring task
      * @param {number} id - The task ID
-     * @returns {Promise<Object>} The deleted task ID
+     * @returns {Promise<Object>} The deleted task ID and count of deleted recurrences
      */
     static async deleteTask(id) {
-        const result = await db.query('DELETE FROM tasks WHERE id = $1 RETURNING id', [id]);
-        return result.rows[0];
+        // First, check if this is a recurring task
+        const taskResult = await db.query(
+            `SELECT id, title, recurrence_type FROM tasks WHERE id = $1`,
+            [id]
+        );
+
+        if (taskResult.rowCount === 0) {
+            // Task not found
+            return null;
+        }
+
+        const task = taskResult.rows[0];
+        const isRecurring = task.recurrence_type && task.recurrence_type !== 'none';
+
+        if (isRecurring) {
+            // For recurring tasks, delete this task and all future recurrences
+            // We identify recurrences by matching title and recurrence type
+            console.log(`Deleting recurring task ${id} (${task.title}) and all its recurrences`);
+
+            // Get the current task's due date to use as a reference point
+            const dateResult = await db.query(
+                `SELECT due_date FROM tasks WHERE id = $1`,
+                [id]
+            );
+
+            if (dateResult.rowCount === 0 || !dateResult.rows[0].due_date) {
+                // If we can't get the due date, just delete this specific task
+                console.log(`Could not get due date for task ${id}, deleting only this task`);
+                const result = await db.query('DELETE FROM tasks WHERE id = $1 RETURNING id', [id]);
+                return {
+                    id: parseInt(id),
+                    deletedCount: 1
+                };
+            }
+
+            const dueDate = dateResult.rows[0].due_date;
+            console.log(`Task ${id} due date: ${dueDate}`);
+
+            // Delete this task and all recurrences with the same title and recurrence type
+            // that have a due date on or after this task's due date
+            const result = await db.query(
+                `DELETE FROM tasks
+                 WHERE title = $1
+                 AND recurrence_type = $2
+                 AND (due_date >= $3 OR id = $4)
+                 RETURNING id`,
+                [task.title, task.recurrence_type, dueDate, id]
+            );
+
+            console.log(`Deleted ${result.rowCount} tasks (including recurrences)`);
+
+            return {
+                id: parseInt(id),
+                deletedCount: result.rowCount
+            };
+        } else {
+            // For non-recurring tasks, just delete the single task
+            const result = await db.query('DELETE FROM tasks WHERE id = $1 RETURNING id', [id]);
+            return {
+                id: parseInt(id),
+                deletedCount: 1
+            };
+        }
     }
 
     /**
@@ -223,9 +284,10 @@ class Task {
     /**
      * Create the next occurrence of a recurring task
      * @param {number} id - The task ID
+     * @param {string} baseDate - Optional base date to calculate from (YYYY-MM-DD)
      * @returns {Promise<Object>} The newly created task
      */
-    static async createNextOccurrence(id) {
+    static async createNextOccurrence(id, baseDate = null) {
         // 1. Get the task details
         const taskResult = await db.query(
             `SELECT id, title, description, due_date, reminder_time, reminder_type,
@@ -246,14 +308,21 @@ class Task {
         }
 
         // 3. Calculate the next occurrence date
-        if (!task.due_date) {
+        if (!task.due_date && !baseDate) {
             throw new Error('Task has no due date');
         }
 
-        const dueDate = new Date(task.due_date);
-        const interval = task.recurrence_interval || 1;
+        // Use the provided base date if available, otherwise use the task's due date
+        let startDate;
+        if (baseDate) {
+            console.log(`Using provided base date: ${baseDate} instead of task due date: ${task.due_date}`);
+            startDate = new Date(baseDate);
+        } else {
+            startDate = new Date(task.due_date);
+        }
 
-        let nextDueDate = new Date(dueDate);
+        const interval = task.recurrence_interval || 1;
+        let nextDueDate = new Date(startDate);
 
         // Calculate the next occurrence based on recurrence type
         switch (task.recurrence_type) {
@@ -328,6 +397,7 @@ class Task {
         console.log(`Created next occurrence of task ${id} with due date ${nextDueDate.toISOString().split('T')[0]}`);
         return result.rows[0];
     }
+
 }
 
 module.exports = Task;

@@ -214,15 +214,29 @@ class TaskController {
                 return res.status(400).json({ error: 'Invalid task ID format' });
             }
 
-            const deletedTask = await Task.deleteTask(id);
+            const result = await Task.deleteTask(id);
 
-            if (!deletedTask) {
+            if (!result) {
                 console.log(`Delete Task: Task ${id} not found.`);
                 return res.status(404).json({ error: 'Task not found' });
             }
 
-            console.log(`Task ${id} deleted successfully.`);
-            res.status(200).json({ message: `Task ${id} deleted successfully`, id: parseInt(id) });
+            // Check if multiple tasks were deleted (recurring task with recurrences)
+            if (result.deletedCount > 1) {
+                console.log(`Task ${id} and ${result.deletedCount - 1} recurrences deleted successfully.`);
+                res.status(200).json({
+                    message: `Task ${id} and ${result.deletedCount - 1} recurrences deleted successfully`,
+                    id: parseInt(id),
+                    deletedCount: result.deletedCount
+                });
+            } else {
+                console.log(`Task ${id} deleted successfully.`);
+                res.status(200).json({
+                    message: `Task ${id} deleted successfully`,
+                    id: parseInt(id),
+                    deletedCount: 1
+                });
+            }
         } catch (err) {
             console.error('Error deleting task:', err);
             res.status(500).json({ error: 'Failed to delete task' });
@@ -274,8 +288,12 @@ class TaskController {
     static async createNextOccurrence(req, res) {
         try {
             const { id } = req.params;
+            const { base_date } = req.body || {};
 
             console.log(`Received POST /api/tasks/${id}/next-occurrence`);
+            if (base_date) {
+                console.log(`Using base_date: ${base_date} for calculating next occurrence`);
+            }
 
             // Validate ID format
             if (!/^[1-9]\d*$/.test(id)) {
@@ -283,7 +301,8 @@ class TaskController {
             }
 
             // Call the model method to create the next occurrence
-            const nextOccurrence = await Task.createNextOccurrence(id);
+            // Pass the base_date if provided (for adjusted recurrences)
+            const nextOccurrence = await Task.createNextOccurrence(id, base_date);
 
             console.log(`Created next occurrence: Task ${nextOccurrence.id} with due date ${nextOccurrence.due_date}`);
 
@@ -316,6 +335,84 @@ class TaskController {
             return res.status(500).json({ error: 'Server error' });
         }
     }
+
+    /**
+     * Adjust future recurrences based on today's date
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async adjustRecurrences(req, res) {
+        const { id } = req.params;
+
+        try {
+            console.log(`Received POST /api/tasks/${id}/adjust-recurrences`);
+
+            // Validate ID format
+            if (!/^[1-9]\d*$/.test(id)) {
+                return res.status(400).json({ error: 'Invalid task ID format' });
+            }
+
+            // Get the task details
+            const taskResult = await db.query(
+                `SELECT id, title, description, due_date, reminder_time, reminder_type,
+                        recurrence_type, recurrence_interval
+                 FROM tasks WHERE id = $1`,
+                [id]
+            );
+
+            if (taskResult.rowCount === 0) {
+                return res.status(404).json({ error: 'Task not found' });
+            }
+
+            const task = taskResult.rows[0];
+
+            // Check if this is a recurring task
+            if (!task.recurrence_type || task.recurrence_type === 'none') {
+                return res.status(400).json({ error: 'Task is not recurring' });
+            }
+
+            // Use today's date as the base for the next occurrence
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+            // Format today as YYYY-MM-DD
+            const formattedToday = today.toISOString().split('T')[0];
+
+            // Create the next occurrence using today as the base date
+            const nextOccurrence = await Task.createNextOccurrence(id, formattedToday);
+
+            console.log(`Created adjusted next occurrence: Task ${nextOccurrence.id} with due date ${nextOccurrence.due_date}`);
+
+            // Update the original task with the next occurrence date
+            try {
+                const result = await db.query(
+                    'UPDATE tasks SET next_occurrence_date = $1 WHERE id = $2 RETURNING *',
+                    [nextOccurrence.due_date, id]
+                );
+
+                console.log(`Updated original task ${id} with adjusted next occurrence date ${nextOccurrence.due_date}`);
+            } catch (updateError) {
+                console.error(`Error updating original task with adjusted next occurrence date:`, updateError);
+                // Don't fail the main request if the update fails
+            }
+
+            return res.status(201).json({
+                message: 'Future recurrences adjusted successfully',
+                nextOccurrence
+            });
+
+        } catch (error) {
+            console.error('Error adjusting recurrences:', error);
+
+            if (error.message === 'Task not found') {
+                return res.status(404).json({ error: 'Task not found' });
+            }
+
+            return res.status(500).json({ error: 'Server error' });
+        }
+    }
+
+
 }
 
 module.exports = TaskController;

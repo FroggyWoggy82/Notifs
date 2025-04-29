@@ -31,6 +31,19 @@ router.get('/memory', JournalController.getMemoryEntries);
 
 /**
  * @swagger
+ * /api/journal/memory/stats:
+ *   get:
+ *     summary: Get memory usage statistics
+ *     responses:
+ *       200:
+ *         description: Memory usage statistics
+ *       500:
+ *         description: Server error
+ */
+router.get('/memory/stats', JournalController.getMemoryStats);
+
+/**
+ * @swagger
  * /api/journal/memory:
  *   post:
  *     summary: Save a memory entry
@@ -177,6 +190,83 @@ router.post('/analyze', JournalController.analyzeEntry);
  *         description: Server error
  */
 router.delete('/:id', JournalController.deleteEntry);
+
+/**
+ * @swagger
+ * /api/journal/insights:
+ *   post:
+ *     summary: Save insights for a journal entry
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               journalEntryId:
+ *                 type: integer
+ *               insights:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     text:
+ *                       type: string
+ *                     type:
+ *                       type: string
+ *     responses:
+ *       201:
+ *         description: Insights saved
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.post('/insights', JournalController.saveInsights);
+
+/**
+ * @swagger
+ * /api/journal/{id}/insights:
+ *   get:
+ *     summary: Get insights for a journal entry
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Journal entry ID
+ *     responses:
+ *       200:
+ *         description: List of insights
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/insights', JournalController.getInsightsByEntryId);
+
+/**
+ * @swagger
+ * /api/journal/insights/type/{type}:
+ *   get:
+ *     summary: Get all insights of a specific type
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Insight type (e.g., 'question', 'pattern', 'general')
+ *     responses:
+ *       200:
+ *         description: List of insights
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.get('/insights/type/:type', JournalController.getInsightsByType);
 
 // Log all routes for debugging
 console.log('Journal Routes:');

@@ -536,7 +536,7 @@ router.get('/exercises/:id/history', async (req, res) => {
 // PATCH /api/workouts/exercises/:id - Update an exercise's properties
 router.patch('/exercises/:id', async (req, res) => {
     const { id: exerciseId } = req.params;
-    const { youtube_url } = req.body;
+    const { youtube_url, name } = req.body;
     console.log(`Received PATCH /api/workouts/exercises/${exerciseId} request`);
 
     if (!/^[1-9]\d*$/.test(exerciseId)) {
@@ -544,10 +544,25 @@ router.patch('/exercises/:id', async (req, res) => {
     }
 
     try {
-        const result = await db.query(
-            'UPDATE exercises SET youtube_url = $1 WHERE exercise_id = $2 RETURNING *',
-            [youtube_url, exerciseId]
-        );
+        let query, params;
+
+        // If both name and youtube_url are provided
+        if (name && youtube_url) {
+            query = 'UPDATE exercises SET name = $1, youtube_url = $2 WHERE exercise_id = $3 RETURNING *';
+            params = [name.trim(), youtube_url, exerciseId];
+        }
+        // If only name is provided
+        else if (name) {
+            query = 'UPDATE exercises SET name = $1 WHERE exercise_id = $2 RETURNING *';
+            params = [name.trim(), exerciseId];
+        }
+        // If only youtube_url is provided
+        else {
+            query = 'UPDATE exercises SET youtube_url = $1 WHERE exercise_id = $2 RETURNING *';
+            params = [youtube_url, exerciseId];
+        }
+
+        const result = await db.query(query, params);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Exercise not found' });
@@ -557,6 +572,10 @@ router.patch('/exercises/:id', async (req, res) => {
         res.json(result.rows[0]);
     } catch (err) {
         console.error('Error updating exercise:', err);
+        // Handle potential unique constraint violation (duplicate name)
+        if (err.code === '23505') { // PostgreSQL unique violation code
+            return res.status(409).json({ error: `Exercise with name '${name ? name.trim() : ''}' already exists.` });
+        }
         res.status(500).json({ error: 'Failed to update exercise' });
     }
 });

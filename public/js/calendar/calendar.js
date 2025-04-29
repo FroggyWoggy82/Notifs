@@ -2,6 +2,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Calendar.js: DOM content loaded');
 
+    // Initialize tracking variables for calendar rendering
+    window.lastRenderedMonth = null;
+    window.lastRenderedYear = null;
+    window.isCurrentlyRendering = false;
+    window.forceRender = false;
+
     const currentMonthYearEl = document.getElementById('currentMonthYear');
     // Use let instead of const so we can reassign it later
     let calendarGridEl = document.getElementById('calendar-grid');
@@ -367,181 +373,240 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Track the last rendered month/year to prevent duplicate renders
+    window.lastRenderedMonth = null;
+    window.lastRenderedYear = null;
+    window.isCurrentlyRendering = false;
+
     // Render the calendar grid for the given month and year
     // Make this function globally accessible so it can be called from calendar-refresh.js
     window.renderCalendar = async function(year, month) {
+        // Prevent duplicate renders of the same month
+        const monthYearKey = `${year}-${month}`;
+        if (window.lastRenderedMonth === monthYearKey && !window.forceRender) {
+            console.log(`Calendar for ${monthYearKey} already rendered, skipping duplicate render`);
+            return;
+        }
+
+        // Prevent concurrent renders
+        if (window.isCurrentlyRendering) {
+            console.log("Calendar is already being rendered, skipping this render request");
+            return;
+        }
+
+        window.isCurrentlyRendering = true;
+        window.forceRender = false; // Reset force render flag
+        window.lastRenderedMonth = monthYearKey;
+        window.lastRenderedYear = year;
+
         updateStatus("Rendering calendar...", false);
         console.log("Rendering calendar for", year, month);
 
-        // Check if the calendar grid exists
-        if (!calendarGridEl) {
-            console.log("Calendar grid not found, looking for it again");
-            calendarGridEl = document.getElementById('calendar-grid');
-
-            // If it still doesn't exist, find the container and create it
+        try {
+            // Check if the calendar grid exists
             if (!calendarGridEl) {
-                console.log("Creating new calendar grid");
-                const container = document.querySelector('.container');
-                if (!container) {
-                    console.error("Container not found, cannot render calendar");
-                    return;
-                }
+                console.log("Calendar grid not found, looking for it again");
+                calendarGridEl = document.getElementById('calendar-grid');
 
-                // Find where to insert the calendar grid (after the filter, before the status)
-                const calendarFilter = document.querySelector('.calendar-filter');
-                const calendarStatus = document.getElementById('calendarStatus');
+                // If it still doesn't exist, find the container and create it
+                if (!calendarGridEl) {
+                    console.log("Creating new calendar grid");
+                    const container = document.querySelector('.container');
+                    if (!container) {
+                        console.error("Container not found, cannot render calendar");
+                        window.isCurrentlyRendering = false;
+                        return;
+                    }
 
-                // Create a new calendar grid element
-                calendarGridEl = document.createElement('div');
-                calendarGridEl.id = 'calendar-grid';
-                calendarGridEl.className = 'calendar-grid';
+                    // Find where to insert the calendar grid (after the filter, before the status)
+                    const calendarFilter = document.querySelector('.calendar-filter');
+                    const calendarStatus = document.getElementById('calendarStatus');
 
-                // Insert it in the right place
-                if (calendarStatus) {
-                    container.insertBefore(calendarGridEl, calendarStatus);
-                } else if (calendarFilter) {
-                    container.insertBefore(calendarGridEl, calendarFilter.nextSibling);
-                } else {
-                    container.appendChild(calendarGridEl);
+                    // Create a new calendar grid element
+                    calendarGridEl = document.createElement('div');
+                    calendarGridEl.id = 'calendar-grid';
+                    calendarGridEl.className = 'calendar-grid';
+
+                    // Insert it in the right place
+                    if (calendarStatus) {
+                        container.insertBefore(calendarGridEl, calendarStatus);
+                    } else if (calendarFilter) {
+                        container.insertBefore(calendarGridEl, calendarFilter.nextSibling);
+                    } else {
+                        container.appendChild(calendarGridEl);
+                    }
                 }
             }
-        }
 
-        // Clear the existing grid
-        console.log("Clearing calendar grid");
-        calendarGridEl.innerHTML = '';
+            // Clear the existing grid
+            console.log("Clearing calendar grid");
+            calendarGridEl.innerHTML = '';
 
-        // Add the header elements
-        console.log("Adding day headers");
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        days.forEach(day => {
-            const headerEl = document.createElement('div');
-            headerEl.className = 'calendar-header';
-            headerEl.textContent = day;
-            calendarGridEl.appendChild(headerEl);
-        });
+            // Add the header elements
+            console.log("Adding day headers");
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            days.forEach(day => {
+                const headerEl = document.createElement('div');
+                headerEl.className = 'calendar-header';
+                headerEl.textContent = day;
+                calendarGridEl.appendChild(headerEl);
+            });
 
-        selectedDateTasksEl.style.display = 'none'; // Hide date detail view
+            selectedDateTasksEl.style.display = 'none'; // Hide date detail view
 
-        const firstDayOfMonth = new Date(year, month, 1);
-        const lastDayOfMonth = new Date(year, month + 1, 0);
-        const daysInMonth = lastDayOfMonth.getDate();
-        const startDayOfWeek = firstDayOfMonth.getDay(); // 0=Sun, 1=Mon, ...
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+            const daysInMonth = lastDayOfMonth.getDate();
+            const startDayOfWeek = firstDayOfMonth.getDay(); // 0=Sun, 1=Mon, ...
 
-        currentMonthYearEl.textContent = firstDayOfMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+            currentMonthYearEl.textContent = firstDayOfMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-        const today = new Date();
-        const todayKey = formatDateKey(today);
+            const today = new Date();
+            const todayKey = formatDateKey(today);
 
-        // Fetch habits for this month
-        await fetchHabits(year, month);
+            // Fetch habits for this month
+            await fetchHabits(year, month);
 
-        // --- Group tasks by date for faster lookup --- //
-        const tasksByDate = {};
-        allTasks.forEach(task => {
-            const dates = [];
+            // --- Group tasks by date for faster lookup --- //
+            const tasksByDate = {};
+            allTasks.forEach(task => {
+                const dates = [];
 
-            // For recurring tasks, calculate and show the next occurrence
-            // Note: We process both complete and incomplete recurring tasks
-            if (task.recurrence_type && task.recurrence_type !== 'none') {
-                // For completed tasks, calculate the next occurrence
-                // For incomplete tasks, we still want to show them on their assigned date
-                if (task.is_complete) {
-                    const nextOccurrence = calculateNextOccurrence(task);
-                    if (nextOccurrence) {
-                        // Create a copy of the task for the next occurrence
-                        const nextTask = { ...task };
-                        nextTask.assigned_date = formatDateKey(nextOccurrence);
-                        nextTask.due_date = formatDateKey(nextOccurrence); // Also update the due date
-                        nextTask.is_complete = false; // Next occurrence is not complete
-                        nextTask.isRecurring = true;  // Mark as a recurring instance
+                // For recurring tasks, calculate and show the next occurrence
+                // Note: We process both complete and incomplete recurring tasks
+                if (task.recurrence_type && task.recurrence_type !== 'none') {
+                    // For completed tasks, calculate the next occurrence
+                    // For incomplete tasks, we still want to show them on their assigned date
+                    if (task.is_complete) {
+                        // Check if a next occurrence already exists in the database
+                        // We can identify this by looking for a task with the same title and recurrence settings
+                        console.log(`Checking if next occurrence exists for task ${task.id} (${task.title})`);
 
-                        // Add the next occurrence date
-                        const nextDateKey = formatDateKey(nextOccurrence);
-                        dates.push(nextDateKey);
+                        const nextOccurrenceExists = allTasks.some(otherTask => {
+                            // Skip the current task
+                            if (otherTask.id === task.id) return false;
 
-                        // Check if the next occurrence is within the current month view
-                        const isInCurrentMonth = (
-                            nextOccurrence.getFullYear() === year &&
-                            nextOccurrence.getMonth() === month
-                        );
+                            // Check if this is a potential next occurrence
+                            const isNextOccurrence = (
+                                otherTask.title === task.title &&
+                                otherTask.recurrence_type === task.recurrence_type &&
+                                otherTask.recurrence_interval === task.recurrence_interval &&
+                                !otherTask.is_complete
+                            );
 
-                        // Also check if the next occurrence is overdue (for highlighting)
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0); // Reset time to start of day
-                        const isOverdue = nextOccurrence < today;
-                        if (isOverdue) {
-                            nextTask.isOverdue = true; // Mark as overdue for styling
+                            if (isNextOccurrence) {
+                                console.log(`Found existing next occurrence: Task ${otherTask.id} (${otherTask.title})`);
+                            }
+
+                            return isNextOccurrence;
+                        });
+
+                        console.log(`Next occurrence exists for task ${task.id}? ${nextOccurrenceExists}`);
+
+                        // Only create a virtual next occurrence if a real one doesn't exist
+                        if (!nextOccurrenceExists) {
+                            const nextOccurrence = calculateNextOccurrence(task);
+                            if (nextOccurrence) {
+                                // Create a copy of the task for the next occurrence
+                                const nextTask = { ...task };
+                                nextTask.assigned_date = formatDateKey(nextOccurrence);
+                                nextTask.due_date = formatDateKey(nextOccurrence); // Also update the due date
+                                nextTask.is_complete = false; // Next occurrence is not complete
+                                nextTask.isRecurring = true;  // Mark as a recurring instance
+
+                                // Add the next occurrence date
+                                const nextDateKey = formatDateKey(nextOccurrence);
+                                dates.push(nextDateKey);
+
+                                // Check if the next occurrence is within the current month view
+                                const isInCurrentMonth = (
+                                    nextOccurrence.getFullYear() === year &&
+                                    nextOccurrence.getMonth() === month
+                                );
+
+                                // Also check if the next occurrence is overdue (for highlighting)
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0); // Reset time to start of day
+                                const isOverdue = nextOccurrence < today;
+                                if (isOverdue) {
+                                    nextTask.isOverdue = true; // Mark as overdue for styling
+                                }
+
+                                console.log(`Adding next occurrence of task ${task.id} on ${nextDateKey} (overdue: ${isOverdue})`);
+
+                                // Store the next occurrence task
+                                if (!tasksByDate[nextDateKey]) {
+                                    tasksByDate[nextDateKey] = [];
+                                }
+                                tasksByDate[nextDateKey].push(nextTask);
+                            }
+                        }
+                    } else {
+                        // For incomplete recurring tasks, make sure they show up on their assigned date
+                        // This ensures that recurring tasks that haven't been completed yet are visible
+                        console.log(`Processing incomplete recurring task ${task.id} (${task.title}) with assigned_date ${task.assigned_date}`);
+                    }
+                }
+
+                // Use assigned_date as the primary date for calendar view
+                if (task.assigned_date) {
+                    try {
+                        // Extract YYYY-MM-DD part
+                        const assignedDateKey = task.assigned_date.split('T')[0];
+                        dates.push(assignedDateKey);
+
+                        // Add all tasks to their assigned date, even recurring ones
+                        // This ensures that recurring tasks always show up on their assigned date
+                        if (!tasksByDate[assignedDateKey]) {
+                            tasksByDate[assignedDateKey] = [];
                         }
 
-                        console.log(`Adding next occurrence of task ${task.id} on ${nextDateKey} (overdue: ${isOverdue})`);
-
-                        // Store the next occurrence task
-                        if (!tasksByDate[nextDateKey]) {
-                            tasksByDate[nextDateKey] = [];
+                        // Only add the task if it's not already in the array for this date
+                        const taskAlreadyAdded = tasksByDate[assignedDateKey].some(t => t.id === task.id);
+                        if (!taskAlreadyAdded) {
+                            console.log(`Adding task ${task.id} (${task.title}) to date ${assignedDateKey}`);
+                            tasksByDate[assignedDateKey].push(task);
                         }
-                        tasksByDate[nextDateKey].push(nextTask);
+                    } catch (e) {
+                        console.warn(`Invalid assigned_date format for task ${task.id}: ${task.assigned_date}`);
                     }
-                } else {
-                    // For incomplete recurring tasks, make sure they show up on their assigned date
-                    // This ensures that recurring tasks that haven't been completed yet are visible
-                    console.log(`Processing incomplete recurring task ${task.id} (${task.title}) with assigned_date ${task.assigned_date}`);
                 }
+            });
+
+            // --- Fill in days from previous month --- //
+            const prevMonthLastDay = new Date(year, month, 0);
+            const daysInPrevMonth = prevMonthLastDay.getDate();
+            for (let i = startDayOfWeek - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const date = new Date(year, month - 1, day);
+                const dayEl = createDayElement(day, date, true); // Mark as other-month
+                calendarGridEl.appendChild(dayEl);
             }
 
-            // Use assigned_date as the primary date for calendar view
-            if (task.assigned_date) {
-                try {
-                    // Extract YYYY-MM-DD part
-                    const assignedDateKey = task.assigned_date.split('T')[0];
-                    dates.push(assignedDateKey);
-
-                    // Add all tasks to their assigned date, even recurring ones
-                    // This ensures that recurring tasks always show up on their assigned date
-                    if (!tasksByDate[assignedDateKey]) {
-                        tasksByDate[assignedDateKey] = [];
-                    }
-
-                    // Only add the task if it's not already in the array for this date
-                    const taskAlreadyAdded = tasksByDate[assignedDateKey].some(t => t.id === task.id);
-                    if (!taskAlreadyAdded) {
-                        console.log(`Adding task ${task.id} (${task.title}) to date ${assignedDateKey}`);
-                        tasksByDate[assignedDateKey].push(task);
-                    }
-                } catch (e) {
-                    console.warn(`Invalid assigned_date format for task ${task.id}: ${task.assigned_date}`);
-                }
+            // --- Fill in days of the current month --- //
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateKey = formatDateKey(date);
+                const isToday = dateKey === todayKey;
+                const dayEl = createDayElement(day, date, false, isToday, tasksByDate[dateKey] || []);
+                calendarGridEl.appendChild(dayEl);
             }
-        });
 
-        // --- Fill in days from previous month --- //
-        const prevMonthLastDay = new Date(year, month, 0);
-        const daysInPrevMonth = prevMonthLastDay.getDate();
-        for (let i = startDayOfWeek - 1; i >= 0; i--) {
-            const day = daysInPrevMonth - i;
-            const date = new Date(year, month - 1, day);
-            const dayEl = createDayElement(day, date, true); // Mark as other-month
-            calendarGridEl.appendChild(dayEl);
+            // --- Fill in days from next month --- //
+            const totalDaysRendered = startDayOfWeek + daysInMonth;
+            const nextMonthDaysNeeded = (7 - (totalDaysRendered % 7)) % 7;
+            for (let day = 1; day <= nextMonthDaysNeeded; day++) {
+                const date = new Date(year, month + 1, day);
+                const dayEl = createDayElement(day, date, true); // Mark as other-month
+                calendarGridEl.appendChild(dayEl);
+            }
+            updateStatus("", false); // Clear rendering message
+        } catch (error) {
+            console.error("Error rendering calendar:", error);
+            updateStatus("Error rendering calendar", true);
+        } finally {
+            window.isCurrentlyRendering = false;
         }
-
-        // --- Fill in days of the current month --- //
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month, day);
-            const dateKey = formatDateKey(date);
-            const isToday = dateKey === todayKey;
-            const dayEl = createDayElement(day, date, false, isToday, tasksByDate[dateKey] || []);
-            calendarGridEl.appendChild(dayEl);
-        }
-
-        // --- Fill in days from next month --- //
-        const totalDaysRendered = startDayOfWeek + daysInMonth;
-        const nextMonthDaysNeeded = (7 - (totalDaysRendered % 7)) % 7;
-        for (let day = 1; day <= nextMonthDaysNeeded; day++) {
-            const date = new Date(year, month + 1, day);
-            const dayEl = createDayElement(day, date, true); // Mark as other-month
-            calendarGridEl.appendChild(dayEl);
-        }
-        updateStatus("", false); // Clear rendering message
     }
 
     // Create a single day element for the grid
@@ -884,10 +949,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // For completed recurring tasks, check if the next occurrence falls on this date
             if (task.is_complete && task.assigned_date) {
-                const nextOccurrence = calculateNextOccurrence(task);
-                if (nextOccurrence) {
-                    const nextDateKey = formatDateKey(nextOccurrence);
-                    return nextDateKey === dateKey;
+                // Check if a next occurrence already exists in the database
+                console.log(`[Selected Date View] Checking if next occurrence exists for task ${task.id} (${task.title})`);
+
+                const nextOccurrenceExists = tasks.some(otherTask => {
+                    // Skip the current task
+                    if (otherTask.id === task.id) return false;
+
+                    // Check if this is a potential next occurrence
+                    const isNextOccurrence = (
+                        otherTask.title === task.title &&
+                        otherTask.recurrence_type === task.recurrence_type &&
+                        otherTask.recurrence_interval === task.recurrence_interval &&
+                        !otherTask.is_complete
+                    );
+
+                    if (isNextOccurrence) {
+                        console.log(`[Selected Date View] Found existing next occurrence: Task ${otherTask.id} (${otherTask.title})`);
+                    }
+
+                    return isNextOccurrence;
+                });
+
+                console.log(`[Selected Date View] Next occurrence exists for task ${task.id}? ${nextOccurrenceExists}`);
+
+                // Only create a virtual next occurrence if a real one doesn't exist
+                if (!nextOccurrenceExists) {
+                    const nextOccurrence = calculateNextOccurrence(task);
+                    if (nextOccurrence) {
+                        const nextDateKey = formatDateKey(nextOccurrence);
+                        return nextDateKey === dateKey;
+                    }
                 }
             }
 
@@ -1351,11 +1443,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Helper function to check if a task is recurring
+    function isTaskRecurring(task) {
+        return task.recurrence_type && task.recurrence_type !== 'none';
+    }
+
     // Handle deleting a task
     async function handleDeleteTask(task) {
         console.log('Deleting task:', task);
 
-        if (!confirm(`Are you sure you want to delete task "${task.title}"?`)) {
+        // Check if this is a recurring task
+        const isRecurring = isTaskRecurring(task);
+
+        // Show appropriate confirmation message based on whether the task is recurring
+        let confirmMessage = `Are you sure you want to delete task "${task.title}"?`;
+        if (isRecurring) {
+            confirmMessage = `Are you sure you want to delete task "${task.title}" with all of its recurrences?`;
+        }
+
+        if (!confirm(confirmMessage)) {
             return;
         }
 
@@ -1369,7 +1475,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
-            console.log(`Task ${task.id} deleted successfully`);
+            // Parse the response to get information about deleted tasks
+            const result = await response.json();
+            console.log(`Task deletion result:`, result);
 
             // Refresh the tasks data
             await fetchTasks();
@@ -1388,8 +1496,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Refresh the calendar view
             renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
 
-            // Show a success message
-            updateStatus("Task deleted successfully", false);
+            // Show a success message based on how many tasks were deleted
+            if (result.deletedCount > 1) {
+                updateStatus(`Task and ${result.deletedCount - 1} recurrences deleted successfully`, false);
+            } else {
+                updateStatus("Task deleted successfully", false);
+            }
             setTimeout(() => updateStatus("", false), 3000);
 
         } catch (error) {
@@ -1427,14 +1539,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedCheckboxes = document.querySelectorAll('.task-select-checkbox:checked');
         if (selectedCheckboxes.length === 0) return;
 
-        const taskIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.getAttribute('data-task-id'));
+        // Get the task IDs and check if any are recurring
+        const taskIds = [];
+        let hasRecurringTasks = false;
 
-        if (!confirm(`Are you sure you want to delete ${taskIds.length} selected task(s)?`)) {
+        // Check each selected task
+        for (const checkbox of selectedCheckboxes) {
+            const taskId = checkbox.getAttribute('data-task-id');
+            taskIds.push(taskId);
+
+            // Find the task in allTasks
+            const task = allTasks.find(t => t.id.toString() === taskId);
+            if (task && isTaskRecurring(task)) {
+                hasRecurringTasks = true;
+            }
+        }
+
+        // Create appropriate confirmation message
+        let confirmMessage = `Are you sure you want to delete ${taskIds.length} selected task(s)?`;
+        if (hasRecurringTasks) {
+            confirmMessage = `Are you sure you want to delete ${taskIds.length} selected task(s)? This will delete all recurrences of any recurring tasks.`;
+        }
+
+        if (!confirm(confirmMessage)) {
             return;
         }
 
         let successCount = 0;
         let errorCount = 0;
+        let totalRecurrencesDeleted = 0;
 
         // Show loading status
         updateStatus(`Deleting ${taskIds.length} tasks...`, false);
@@ -1447,7 +1580,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    successCount++;
+                    // Parse the response to get information about deleted tasks
+                    try {
+                        const result = await response.json();
+                        console.log(`Task ${taskId} deletion result:`, result);
+
+                        // Count the number of recurrences deleted
+                        if (result.deletedCount) {
+                            totalRecurrencesDeleted += (result.deletedCount - 1);
+                        }
+
+                        successCount++;
+                    } catch (parseError) {
+                        console.error(`Error parsing response for task ${taskId}:`, parseError);
+                        successCount++;
+                    }
                 } else {
                     errorCount++;
                     console.error(`Failed to delete task ${taskId}:`, await response.text());
@@ -1477,7 +1624,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show a success/error message
         if (errorCount === 0) {
-            updateStatus(`Successfully deleted ${successCount} task(s)`, false);
+            if (totalRecurrencesDeleted > 0) {
+                updateStatus(`Successfully deleted ${successCount} task(s) and ${totalRecurrencesDeleted} recurrence(s)`, false);
+            } else {
+                updateStatus(`Successfully deleted ${successCount} task(s)`, false);
+            }
         } else {
             updateStatus(`Deleted ${successCount} task(s), but failed to delete ${errorCount} task(s)`, true);
         }
@@ -1489,11 +1640,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     prevMonthBtn.addEventListener('click', async () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
+        // Force render when explicitly navigating to a new month
+        window.forceRender = true;
         await renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
     });
 
     nextMonthBtn.addEventListener('click', async () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
+        // Force render when explicitly navigating to a new month
+        window.forceRender = true;
         await renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
     });
 
@@ -1682,6 +1837,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 calendarFilterEl.addEventListener('change', () => {
                     calendarFilter = calendarFilterEl.value;
                     console.log('Filter changed, re-rendering calendar');
+                    // Force render when filter changes
+                    window.forceRender = true;
                     renderCalendar(currentDate.getFullYear(), currentDate.getMonth()); // Re-render with the new filter
                 });
             }

@@ -100,7 +100,7 @@ class JournalModel {
         try {
             // Check if an entry already exists for this date
             const existingEntry = await this.getEntryByDate(date);
-            
+
             if (existingEntry) {
                 // Update existing entry
                 const result = await db.query(
@@ -134,11 +134,11 @@ class JournalModel {
                 'UPDATE journal_entries SET analysis = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, date, content, analysis, created_at, updated_at',
                 [analysis, id]
             );
-            
+
             if (result.rows.length === 0) {
                 throw new Error(`Journal entry with ID ${id} not found`);
             }
-            
+
             return result.rows[0];
         } catch (error) {
             console.error('Error updating journal entry analysis:', error);
@@ -160,6 +160,67 @@ class JournalModel {
             return result.rows.length > 0;
         } catch (error) {
             console.error('Error deleting journal entry:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Save insights for a journal entry
+     * @param {number} journalEntryId - The journal entry ID
+     * @param {Array} insights - Array of insight objects with text and type
+     * @returns {Promise<Array>} The saved insights
+     */
+    static async saveInsights(journalEntryId, insights) {
+        try {
+            const savedInsights = [];
+
+            for (const insight of insights) {
+                const result = await db.query(
+                    'INSERT INTO journal_insights (journal_entry_id, insight_text, insight_type) VALUES ($1, $2, $3) RETURNING *',
+                    [journalEntryId, insight.text, insight.type]
+                );
+                savedInsights.push(result.rows[0]);
+            }
+
+            return savedInsights;
+        } catch (error) {
+            console.error('Error saving journal insights:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get insights for a journal entry
+     * @param {number} journalEntryId - The journal entry ID
+     * @returns {Promise<Array>} Array of insight objects
+     */
+    static async getInsightsByEntryId(journalEntryId) {
+        try {
+            const result = await db.query(
+                'SELECT * FROM journal_insights WHERE journal_entry_id = $1 ORDER BY created_at',
+                [journalEntryId]
+            );
+            return result.rows;
+        } catch (error) {
+            console.error('Error getting journal insights:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get all insights of a specific type
+     * @param {string} insightType - The type of insights to retrieve
+     * @returns {Promise<Array>} Array of insight objects
+     */
+    static async getInsightsByType(insightType) {
+        try {
+            const result = await db.query(
+                'SELECT i.*, j.date FROM journal_insights i JOIN journal_entries j ON i.journal_entry_id = j.id WHERE i.insight_type = $1 ORDER BY j.date DESC',
+                [insightType]
+            );
+            return result.rows;
+        } catch (error) {
+            console.error('Error getting insights by type:', error);
             throw error;
         }
     }
