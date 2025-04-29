@@ -53,6 +53,7 @@ const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for 
 const journalRoutes = require('./routes/journal'); // New route for journal entries
 const visionOcrRoutes = require('./routes/vision-ocr'); // Google Cloud Vision OCR implementation
 const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // Cronometer nutrition data scraper
+const habitResetRoutes = require('./routes/habitResetRoutes'); // New route for habit reset
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -153,6 +154,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 app.use('/api/calorie-targets', calorieTargetRoutes);
 app.use('/api/journal', journalRoutes); // NEW: Journal entries route
+app.use('/api/habit-reset', habitResetRoutes); // NEW: Habit reset route
 console.log('Registering Google Cloud Vision OCR routes...');
 app.use('/api/vision-ocr', visionOcrRoutes); // Google Cloud Vision OCR implementation
 console.log('Google Cloud Vision OCR routes registered successfully!');
@@ -197,13 +199,56 @@ cron.schedule('0 1 * * *', async () => {
   timezone: 'America/Chicago' // Central Time
 });
 
-// Setup habit reset at 11:59 PM Central Time (silently)
-cron.schedule('59 23 * * *', () => {
-  // This cron job runs in the America/Chicago timezone by default
-  // The actual reset happens client-side when users load the page after this time
+// Setup habit reset at 11:59 PM Central Time
+const resetHabitCompletions = require('./utils/reset-habit-completions');
+
+// Define the cron job for habit reset
+const habitResetJob = cron.schedule('59 23 * * *', async () => {
+  console.log('=== SCHEDULED HABIT RESET ===');
+  console.log('Running scheduled habit reset at 11:59 PM Central Time');
+  console.log('Current server time:', new Date().toISOString());
+  console.log('Current Central Time:', new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+
+  try {
+    // Run the reset function
+    const result = await resetHabitCompletions();
+    console.log('Scheduled habit reset completed successfully');
+    console.log('Reset result:', JSON.stringify(result, null, 2));
+  } catch (error) {
+    console.error('Error in scheduled habit reset:', error);
+  }
 }, {
-  timezone: 'America/Chicago' // Explicitly set timezone to Central Time
+  timezone: 'America/Chicago', // Explicitly set timezone to Central Time
+  scheduled: true, // Ensure the job is scheduled
+  runOnInit: false // Don't run immediately when the server starts
 });
+
+// Log that the job is scheduled
+console.log('Habit reset cron job scheduled for 11:59 PM Central Time');
+
+// Also schedule a job for midnight as a backup
+const midnightHabitResetJob = cron.schedule('0 0 * * *', async () => {
+  console.log('=== BACKUP HABIT RESET ===');
+  console.log('Running backup habit reset at midnight Central Time');
+  console.log('Current server time:', new Date().toISOString());
+  console.log('Current Central Time:', new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+
+  try {
+    // Run the reset function
+    const result = await resetHabitCompletions();
+    console.log('Backup habit reset completed successfully');
+    console.log('Reset result:', JSON.stringify(result, null, 2));
+  } catch (error) {
+    console.error('Error in backup habit reset:', error);
+  }
+}, {
+  timezone: 'America/Chicago', // Explicitly set timezone to Central Time
+  scheduled: true, // Ensure the job is scheduled
+  runOnInit: false // Don't run immediately when the server starts
+});
+
+// Log that the backup job is scheduled
+console.log('Backup habit reset cron job scheduled for midnight Central Time');
 
 // Error handling middleware
 app.use((err, req, res, next) => {
