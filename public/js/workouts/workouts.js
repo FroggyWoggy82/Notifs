@@ -775,6 +775,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 title="${exerciseData.youtube_url ? 'View Exercise Video' : 'No video available - click to add one'}">
                                 🎬 ${exerciseData.youtube_url ? 'View Exercise' : 'Add Video'}
                             </button>
+                            <button type="button" class="view-history-btn"
+                                data-exercise-id="${exerciseData.exercise_id}"
+                                data-exercise-name="${escapeHtml(exerciseData.name)}"
+                                title="View Exercise History">
+                                <span class="icon">📊</span> History
+                            </button>
                             <div class="button-group-right">
                                 <button type="button" class="btn-edit-exercise-name" data-workout-index="${index}" title="Edit Exercise Name">✏️</button>
                                 <button type="button" class="btn-delete-exercise" data-workout-index="${index}" title="Remove Exercise">&times;</button>
@@ -6342,6 +6348,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleAddSet(event);
                 } else if (event.target.classList.contains('remove-set-btn')) {
                     handleRemoveSet(event);
+                } else if (event.target.classList.contains('view-history-btn') ||
+                         event.target.closest('.view-history-btn')) {
+                    const button = event.target.classList.contains('view-history-btn') ?
+                                  event.target : event.target.closest('.view-history-btn');
+                    const exerciseId = button.dataset.exerciseId;
+                    const exerciseName = button.dataset.exerciseName;
+
+                    // Call the function to show the history popup
+                    if (typeof window.showExerciseHistoryPopup === 'function') {
+                        window.showExerciseHistoryPopup(exerciseId, exerciseName);
+                    } else {
+                        console.error('showExerciseHistoryPopup function not found');
+                    }
                 } else if (event.target.classList.contains('edit-exercise-name-btn')) {
                     // Find the parent exercise item to get the index
                     const exerciseItem = event.target.closest('.exercise-item');

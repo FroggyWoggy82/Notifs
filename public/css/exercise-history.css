@@ -300,10 +300,21 @@ h1 {
     font-weight: bold;
 }
 
+/* Style for the Best Achieved column */
+.prediction-table th:nth-child(3) {
+    color: #64B5F6; /* Blue color to differentiate from predicted */
+}
+
 .prediction-table td {
     padding: 10px 8px;
     text-align: center;
     border-bottom: 1px solid #444;
+}
+
+/* Style for the Best Achieved column values */
+.prediction-table td:nth-child(3) {
+    color: #64B5F6; /* Blue color to match the header */
+    font-weight: bold;
 }
 
 .prediction-table tr:nth-child(even) {

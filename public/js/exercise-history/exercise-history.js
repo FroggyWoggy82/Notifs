@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentHistoryExerciseId = null; // Store the currently selected exercise ID
     let currentHistoryExerciseName = null; // Store the name
     let historyEditSets = [{ reps: '', weight: '', unit: 'lbs' }]; // For the edit modal
+    let currentHistoryData = []; // Store the raw history data for tooltip access
 
     // --- DOM Elements ---
     // History section elements
@@ -187,63 +188,114 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- API Functions ---
     async function loadAvailableExercises() {
         try {
+            // Show loading indicator in the search results if visible
+            if (historySearchResultsEl && historySearchResultsEl.style.display === 'block') {
+                historySearchResultsEl.innerHTML = '<div class="search-result-item">Loading exercises...</div>';
+            }
+
             const response = await fetch('/api/workouts/exercises');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            availableExercises = await response.json();
+
+            const data = await response.json();
+
+            // Validate the data
+            if (!data || !Array.isArray(data)) {
+                throw new Error('Invalid exercise data received from server');
+            }
+
+            availableExercises = data;
             console.log(`Loaded ${availableExercises.length} exercises`);
 
             // Debug: Log the first few exercises to check their structure
             if (availableExercises.length > 0) {
                 console.log('Sample exercise data structure:', availableExercises.slice(0, 3));
             }
+
+            return availableExercises;
         } catch (error) {
             console.error('Error loading exercises:', error);
+
+            // Show error in search results if visible
+            if (historySearchResultsEl && historySearchResultsEl.style.display === 'block') {
+                historySearchResultsEl.innerHTML = '<div class="search-result-item">Error loading exercises. Please refresh the page.</div>';
+            }
+
+            // Return empty array to prevent further errors
+            return [];
         }
     }
 
     // --- Event Handlers ---
     function handleHistorySearchInput(event) {
-        const searchTerm = event.target.value.trim().toLowerCase();
+        try {
+            if (!event || !event.target) {
+                console.error('Invalid event object in handleHistorySearchInput');
+                return;
+            }
 
-        if (searchTerm.length < 1) {
-            historySearchResultsEl.innerHTML = '';
-            historySearchResultsEl.style.display = 'none';
-            return;
-        }
+            const searchTerm = event.target.value.trim().toLowerCase();
 
-        // Filter exercises based on search term and category filter
-        const filteredExercises = availableExercises.filter(exercise => {
-            const matchesSearch = exercise.name.toLowerCase().includes(searchTerm);
-            const matchesCategory = currentHistoryCategoryFilter === 'all' || exercise.category === currentHistoryCategoryFilter;
-            return matchesSearch && matchesCategory;
-        });
+            if (searchTerm.length < 1) {
+                historySearchResultsEl.innerHTML = '';
+                historySearchResultsEl.style.display = 'none';
+                return;
+            }
 
-        // Render search results
-        historySearchResultsEl.innerHTML = '';
+            // Check if exercises are loaded
+            if (!availableExercises || !Array.isArray(availableExercises) || availableExercises.length === 0) {
+                console.warn('No exercises available for search. Attempting to reload...');
+                // Try to reload exercises
+                loadAvailableExercises().then(() => {
+                    // Retry the search after loading
+                    if (availableExercises && availableExercises.length > 0) {
+                        handleHistorySearchInput(event);
+                    } else {
+                        historySearchResultsEl.innerHTML = '<div class="search-result-item">Error loading exercises. Please refresh the page.</div>';
+                        historySearchResultsEl.style.display = 'block';
+                    }
+                });
+                return;
+            }
 
-        if (filteredExercises.length === 0) {
-            historySearchResultsEl.innerHTML = '<div class="search-result-item">No matching exercises found</div>';
-        } else {
-            filteredExercises.forEach(exercise => {
-                const resultItem = document.createElement('div');
-                resultItem.className = 'search-result-item';
-                resultItem.textContent = exercise.name;
-
-                // Use the correct property name based on API response
-                const exerciseId = exercise.exercise_id || exercise.id;
-
-                resultItem.dataset.exerciseId = exerciseId;
-                resultItem.dataset.exerciseName = exercise.name;
-
-                // Log the exercise data for debugging
-                console.log(`Creating search result for: ${exercise.name}, ID: ${exerciseId}`);
-
-                resultItem.addEventListener('click', () => handleHistorySearchResultClick(exerciseId, exercise.name));
-                historySearchResultsEl.appendChild(resultItem);
+            // Filter exercises based on search term and category filter
+            const filteredExercises = availableExercises.filter(exercise => {
+                if (!exercise || !exercise.name) return false;
+                const matchesSearch = exercise.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = currentHistoryCategoryFilter === 'all' || exercise.category === currentHistoryCategoryFilter;
+                return matchesSearch && matchesCategory;
             });
-        }
 
-        historySearchResultsEl.style.display = 'block';
+            // Render search results
+            historySearchResultsEl.innerHTML = '';
+
+            if (filteredExercises.length === 0) {
+                historySearchResultsEl.innerHTML = '<div class="search-result-item">No matching exercises found</div>';
+            } else {
+                filteredExercises.forEach(exercise => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.textContent = exercise.name;
+
+                    // Use the correct property name based on API response
+                    const exerciseId = exercise.exercise_id || exercise.id;
+
+                    resultItem.dataset.exerciseId = exerciseId;
+                    resultItem.dataset.exerciseName = exercise.name;
+
+                    // Log the exercise data for debugging
+                    console.log(`Creating search result for: ${exercise.name}, ID: ${exerciseId}`);
+
+                    resultItem.addEventListener('click', () => handleHistorySearchResultClick(exerciseId, exercise.name));
+                    historySearchResultsEl.appendChild(resultItem);
+                });
+            }
+
+            historySearchResultsEl.style.display = 'block';
+        } catch (error) {
+            console.error('Error in handleHistorySearchInput:', error);
+            historySearchResultsEl.innerHTML = '<div class="search-result-item">An error occurred. Please try again.</div>';
+            historySearchResultsEl.style.display = 'block';
+        }
     }
 
     function handleHistoryCategoryFilterChange(event) {
@@ -558,23 +610,17 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let reps = 1; reps <= 30; reps++) {
             const percentage = percentages[reps];
 
-            // Use actual weight if available, otherwise use prediction
-            let weight;
+            // Always calculate the predicted weight
+            let predictedWeight = oneRepMax * (percentage / 100);
+            let roundedPredictedWeight = Math.floor(predictedWeight / 5) * 5; // Round down to nearest 5
+
+            // Check if we have an actual weight for this rep count
             let isActual = false;
             let actualSet = null;
 
             if (actualWeightsByReps[reps]) {
-                // Use the actual weight from history
-                weight = actualWeightsByReps[reps];
                 isActual = true;
                 actualSet = actualSetsByReps[reps];
-            } else {
-                // Calculate the predicted weight for this rep count
-                // Formula: 1RM * (percentage / 100)
-                weight = oneRepMax * (percentage / 100);
-
-                // Round down to nearest 5
-                weight = Math.floor(weight / 5) * 5;
             }
 
             // Create a new table row
@@ -586,7 +632,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Special handling for the row that matches the best set
-            const isBestSet = (reps === bestSet.reps && Math.abs(weight - bestSet.weight) < 0.1);
+            const isBestSet = (reps === bestSet.reps &&
+                               ((actualWeightsByReps[reps] && Math.abs(actualWeightsByReps[reps] - bestSet.weight) < 0.1) ||
+                                Math.abs(roundedPredictedWeight - bestSet.weight) < 0.1));
 
             // Add checkmark only if this is an actual weight from history
             // AND it's not the same as the best set (to avoid duplicate checkmarks)
@@ -595,9 +643,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // For the best set row, add a special indicator
             const bestSetIndicator = isBestSet ? ' ✓' : '';
 
+            // Get the best achieved weight for this rep count
+            const bestAchievedWeight = actualWeightsByReps[reps] || null;
+
             row.innerHTML = `
                 <td>${reps}${showCheckmark ? ' ✓' : ''}${bestSetIndicator}</td>
-                <td>${Math.round(weight)} ${unit}</td>
+                <td>${Math.round(roundedPredictedWeight)} ${unit}</td>
+                <td>${bestAchievedWeight ? `${Math.round(bestAchievedWeight)} ${unit}` : '-'}</td>
                 <td>${percentage}%</td>
             `;
 
@@ -634,6 +686,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const historyData = await response.json();
             console.log("Raw History Data Received:", JSON.stringify(historyData));
+
+            // Store the raw history data for tooltip access
+            currentHistoryData = historyData;
 
             if (historyData.length === 0) {
                 historyMessageEl.textContent = 'No logged history found for this exercise.';
@@ -763,6 +818,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // currentHistoryData is already defined at the top of the file
+
     function renderHistoryChart(labels, volumeData, oneRepMaxData, processedData, volumeLabel = 'Volume', oneRepMaxLabel = '1RM') {
         console.log("renderHistoryChart called with:", { labels, volumeData, oneRepMaxData, processedData, volumeLabel, oneRepMaxLabel });
 
@@ -849,32 +906,117 @@ document.addEventListener('DOMContentLoaded', function() {
                             backgroundColor: 'rgba(0, 0, 0, 0.7)',
                             titleColor: '#fff',
                             bodyColor: '#fff',
+                            footerColor: '#fff',
                             borderColor: '#555',
                             borderWidth: 1,
                             padding: 10,
-                            displayColors: true,
+                            displayColors: false, // Hide color boxes
+                            bodySpacing: 6, // Add more space between lines
+                            footerSpacing: 0, // No extra space before footer
+                            footerMarginTop: 6, // Small margin above footer
+                            bodyFont: {
+                                family: 'monospace' // Use monospace font for better alignment
+                            },
+                            footerFont: {
+                                family: 'monospace', // Use monospace font for better alignment
+                                weight: 'normal' // Don't make footer bold
+                            },
                             callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-
-                                    // Display for volume dataset
-                                    if (context.parsed.y !== null) {
-                                        // Show best set as weight×reps
-                                        const dataPoint = processedData[context.dataIndex];
-                                        if (dataPoint && dataPoint.bestSet) {
-                                            const weight = dataPoint.bestSet.weight;
-                                            const reps = dataPoint.bestSet.reps;
-                                            const unit = dataPoint.unit;
-                                            label = `Best set: ${weight}${unit} × ${reps}`;
-                                        } else {
-                                            const unit = dataPoint ? dataPoint.unit : '';
-                                            label += `${context.parsed.y} ${unit}`;
+                                title: function(tooltipItems) {
+                                    // Show the date as the title
+                                    if (tooltipItems.length > 0) {
+                                        const dataIndex = tooltipItems[0].dataIndex;
+                                        const dataPoint = processedData[dataIndex];
+                                        if (dataPoint && dataPoint.date) {
+                                            return new Date(dataPoint.date).toLocaleDateString();
                                         }
                                     }
-                                    return label;
+                                    return '';
+                                },
+                                label: function(context) {
+                                    try {
+                                        // We'll return an empty string here and handle all formatting in the footer
+                                        return '';
+                                    } catch (error) {
+                                        console.error('Error in tooltip callback:', error);
+                                        return '';
+                                    }
+                                },
+                                footer: function(tooltipItems) {
+                                    try {
+                                        if (tooltipItems.length === 0) return '';
+
+                                        const dataIndex = tooltipItems[0].dataIndex;
+                                        const dataPoint = processedData[dataIndex];
+
+                                        if (!dataPoint) return '';
+
+                                        // Get the date for this data point
+                                        const logDate = new Date(dataPoint.date).toLocaleDateString();
+
+                                        // Find the original log data
+                                        let matchingLog = null;
+                                        if (currentHistoryData && Array.isArray(currentHistoryData)) {
+                                            matchingLog = currentHistoryData.find(log => {
+                                                if (!log.date_performed) return false;
+                                                return new Date(log.date_performed).toLocaleDateString() === logDate;
+                                            });
+                                        }
+
+                                        if (!matchingLog) return 'No set data available';
+
+                                        // Parse the comma-separated strings into arrays
+                                        const reps = matchingLog.reps_completed ? matchingLog.reps_completed.split(',').map(Number) : [];
+                                        const weights = matchingLog.weight_used ? matchingLog.weight_used.split(',').map(Number) : [];
+                                        const unit = matchingLog.weight_unit || 'kg';
+
+                                        if (reps.length === 0 || weights.length === 0) return 'No set data available';
+
+                                        // Find the best set of all time
+                                        let allTimeBestSet = { weight: 0, reps: 0, volume: 0 };
+
+                                        // Loop through all history data to find the best set of all time
+                                        if (currentHistoryData && Array.isArray(currentHistoryData)) {
+                                            currentHistoryData.forEach(log => {
+                                            const logReps = log.reps_completed ? log.reps_completed.split(',').map(Number) : [];
+                                            const logWeights = log.weight_used ? log.weight_used.split(',').map(Number) : [];
+
+                                            for (let i = 0; i < Math.min(logReps.length, logWeights.length); i++) {
+                                                if (isNaN(logReps[i]) || isNaN(logWeights[i])) continue;
+
+                                                const setVolume = logReps[i] * logWeights[i];
+                                                if (setVolume > allTimeBestSet.volume) {
+                                                    allTimeBestSet = {
+                                                        weight: logWeights[i],
+                                                        reps: logReps[i],
+                                                        volume: setVolume
+                                                    };
+                                                }
+                                            }
+                                        });
+                                        }
+
+                                        // Create an array of formatted set strings
+                                        const setStrings = [];
+
+                                        for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
+                                            if (isNaN(reps[i]) || isNaN(weights[i])) continue;
+
+                                            // Check if this is the all-time best set and highlight it
+                                            const isAllTimeBestSet = (weights[i] === allTimeBestSet.weight && reps[i] === allTimeBestSet.reps);
+                                            if (isAllTimeBestSet && allTimeBestSet.volume > 0) {
+                                                setStrings.push(`${weights[i]}${unit}×${reps[i]} ⭐`);
+                                            } else {
+                                                setStrings.push(`${weights[i]}${unit}×${reps[i]}`);
+                                            }
+                                        }
+
+                                        // Join the set strings with line breaks
+                                        return setStrings.join('\n');
+                                    } catch (error) {
+                                        console.error('Error in tooltip footer callback:', error);
+                                        return 'Error displaying sets';
+                                    }
                                 }
                             }
                         }
