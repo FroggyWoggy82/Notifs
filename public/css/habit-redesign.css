@@ -1,0 +1,308 @@
+/*
+ * Habit List Redesign
+ * Redesigns the habit list to match the futuristic dark theme with a new layout
+ */
+
+/* Main habit list container */
+#habitList {
+    margin-top: 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Individual habit item */
+.habit-item {
+    background-color: rgba(18, 18, 18, 0.8);
+    margin-bottom: 0;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    overflow: hidden;
+    /* Add subtle gradient background for futuristic look */
+    background-image: linear-gradient(to bottom, rgba(30, 30, 30, 0.5), rgba(18, 18, 18, 0.8));
+    /* Center content better */
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.habit-item:hover {
+    background-color: rgba(24, 24, 24, 0.9);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Left side circle for checkbox or +1 button */
+.habit-control-container {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    position: relative;
+    border: 1px solid rgba(0, 230, 118, 0.3);
+    /* Add subtle glow for futuristic look */
+    box-shadow: 0 0 5px rgba(0, 230, 118, 0.1);
+    margin-left: 0;
+}
+
+/* Habit checkbox styling */
+.habit-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 230, 118, 0.4);
+    background-color: rgba(30, 30, 30, 0.8);
+    cursor: pointer;
+    position: relative;
+    outline: none;
+    transition: all 0.2s ease;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Checkbox checked state */
+.habit-checkbox:checked {
+    background-color: rgba(0, 230, 118, 0.2);
+    border-color: rgba(0, 230, 118, 0.8);
+}
+
+/* Create checkmark using ::after pseudo-element */
+.habit-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00E676;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Increment button styling */
+.habit-increment-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(33, 150, 243, 0.2);
+    border: 2px solid rgba(33, 150, 243, 0.6);
+    color: #2196F3;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.habit-increment-btn:hover {
+    background-color: rgba(33, 150, 243, 0.3);
+    border-color: rgba(33, 150, 243, 0.8);
+    box-shadow: 0 0 8px rgba(33, 150, 243, 0.4);
+}
+
+.habit-increment-btn.completed {
+    background-color: rgba(0, 230, 118, 0.2);
+    border-color: rgba(0, 230, 118, 0.8);
+    color: #00E676;
+    cursor: default;
+}
+
+/* Middle content section */
+.habit-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-right: 16px;
+    max-width: 50%; /* Prevent content from taking too much space */
+    text-align: left;
+}
+
+.habit-title {
+    font-weight: 500;
+    color: #E0E0E0;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.habit-frequency {
+    color: #999;
+    font-size: 0.8rem;
+}
+
+/* Right side indicators */
+.habit-indicators-row {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Reduced gap */
+    margin-left: auto;
+    margin-right: 8px; /* Add right margin */
+}
+
+/* Progress indicator */
+.habit-progress-container {
+    background-color: rgba(240, 240, 240, 0.1);
+    border-radius: 20px;
+    padding: 4px 10px;
+    min-width: 45px;
+    text-align: center;
+    color: #ccc;
+    font-size: 0.85rem;
+}
+
+/* Level indicator */
+.habit-level {
+    background-color: #00796B;
+    color: white;
+    border-radius: 20px;
+    padding: 4px 10px;
+    min-width: 45px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Level colors based on progress */
+.habit-level.level-beginner {
+    background-color: #00796B;
+}
+
+.habit-level.level-intermediate {
+    background-color: #0277BD;
+}
+
+.habit-level.level-advanced {
+    background-color: #7B1FA2;
+}
+
+.habit-level.level-expert {
+    background-color: #C62828;
+}
+
+.habit-level.level-master {
+    background-color: #F57F17;
+    box-shadow: 0 0 10px rgba(245, 127, 23, 0.5);
+}
+
+/* Action buttons container */
+.habit-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.habit-item:hover .habit-actions {
+    opacity: 1;
+}
+
+/* Edit and delete buttons */
+.habit-item .edit-habit-icon-btn,
+.habit-item .delete-habit-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.habit-item .edit-habit-icon-btn:hover {
+    background-color: rgba(33, 150, 243, 0.2);
+}
+
+.habit-item .delete-habit-icon-btn:hover {
+    background-color: rgba(244, 67, 54, 0.2);
+}
+
+/* Completed habit styling */
+.habit-item.complete,
+.habit-item.counter-complete,
+.habit-item[data-completed="true"] {
+    background-color: rgba(0, 230, 118, 0.05);
+    border-left: 4px solid rgba(0, 230, 118, 0.8);
+    box-shadow: 0 2px 10px rgba(0, 230, 118, 0.1);
+    /* Maintain the gradient but with a green tint */
+    background-image: linear-gradient(to bottom, rgba(0, 230, 118, 0.05), rgba(18, 18, 18, 0.8));
+}
+
+/* Add New Habit button styling */
+#addHabitBtn {
+    background-color: #00E676;
+    color: #121212;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#addHabitBtn:hover {
+    background-color: #00C853;
+    box-shadow: 0 2px 8px rgba(0, 230, 118, 0.3);
+}
+
+/* Bottom Add New Habit button */
+.add-new-habit-btn {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #00E676;
+    border: 1px solid rgba(0, 230, 118, 0.3);
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.add-new-habit-btn:hover {
+    background-color: rgba(0, 230, 118, 0.1);
+    border-color: rgba(0, 230, 118, 0.6);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .habit-indicators-row {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .habit-progress-container,
+    .habit-level {
+        min-width: 50px;
+        padding: 2px 8px;
+        font-size: 0.8rem;
+    }
+}

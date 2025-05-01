@@ -1,0 +1,48 @@
+/**
+ * Calendar Button Fix
+ * Makes the close, next, and prev buttons white
+ */
+
+/* Next and Prev buttons in calendar controls */
+.calendar-controls button {
+    background-color: transparent !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 8px 15px !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    width: auto !important;
+    margin: 0 !important;
+    transition: all 0.2s ease !important;
+}
+
+.calendar-controls button:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Close button in selected date tasks view - with higher specificity to override other styles */
+html body .container #selectedDateTasks #closeSelectedDateView,
+#closeSelectedDateView {
+    background-color: transparent !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 8px 15px !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: block !important;
+    margin: 15px auto 0 auto !important;
+    width: auto !important;
+    /* Override any other styles that might be applied */
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+html body .container #selectedDateTasks #closeSelectedDateView:hover,
+#closeSelectedDateView:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3) !important;
+}

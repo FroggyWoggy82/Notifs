@@ -1238,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ctx = chart.canvas.getContext('2d');
                     ctx.save();
                     ctx.globalCompositeOperation = 'destination-over';
-                    ctx.fillStyle = 'white';
+                    ctx.fillStyle = 'rgba(20, 20, 20, 0.8)'; // Dark background color
                     ctx.fillRect(0, 0, chart.width, chart.height);
                     ctx.restore();
                 }
@@ -1270,6 +1270,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         title: {
                             display: true,
                             text: 'Weight (lbs)',
+                            color: '#e0e0e0', // Light text color for dark theme
                             font: {
                                 weight: 'bold',
                                 size: 14
@@ -1277,9 +1278,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             padding: { top: 0, bottom: 10 } // Add padding to title
                         },
                         grid: {
-                            color: 'rgba(200, 200, 200, 0.2)'
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            borderColor: 'rgba(255, 255, 255, 0.2)'
                         },
                         ticks: {
+                            color: '#e0e0e0', // Light text color for dark theme
                             font: {
                                 size: 12
                             },
@@ -1312,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         title: {
                             display: true,
                             text: 'Date',
+                            color: '#e0e0e0', // Light text color for dark theme
                             font: {
                                 weight: 'bold',
                                 size: 14
@@ -1319,10 +1323,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             padding: { top: 10, bottom: 0 } // Add padding to title
                         },
                         grid: {
-                            color: 'rgba(200, 200, 200, 0.2)'
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            borderColor: 'rgba(255, 255, 255, 0.2)'
                         },
                         // Apply the x-axis scale factor by controlling how many ticks/labels are shown
                         ticks: {
+                            color: '#e0e0e0', // Light text color for dark theme
                             maxRotation: 45,
                             minRotation: 45,
                             font: {
@@ -1351,6 +1357,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: {
                         labels: {
+                            color: '#e0e0e0', // Light text color for dark theme
                             font: {
                                 size: 14
                             },

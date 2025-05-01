@@ -12,9 +12,25 @@
     <meta name="theme-color" content="#4db6ac">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
     <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/calendar-dropdown-arrow-fix.css"> <!-- Calendar dropdown arrow fix -->
+    <link rel="stylesheet" href="../css/calendar-modal-fix.css"> <!-- Calendar modal dark theme fix -->
+    <link rel="stylesheet" href="../css/calendar-dark-theme.css"> <!-- Calendar dark theme styling -->
+    <link rel="stylesheet" href="../css/calendar-button-fix.css"> <!-- Calendar button fix -->
+    <link rel="stylesheet" href="../css/calendar-day-highlight-fix.css"> <!-- Calendar day highlight and scrollbar fix -->
+    <link rel="stylesheet" href="../css/calendar-button-outline-fix.css"> <!-- Calendar button outline fix -->
+    <link rel="stylesheet" href="../css/calendar-heading-fix.css"> <!-- Calendar heading fix -->
+    <link rel="stylesheet" href="../css/calendar-count-indicator-fix.css"> <!-- Calendar count indicator fix -->
+    <link rel="stylesheet" href="../css/calendar-task-glow-fix.css"> <!-- Calendar task glow fix -->
+    <link rel="stylesheet" href="../css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
 </head>
 <body>
-    <button class="menu-button">☰</button>
+    <button class="menu-button">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <div class="sidebar-overlay"></div>
     <div class="sidebar">
@@ -23,31 +39,31 @@
         </div>
         <nav class="sidebar-nav">
             <a href="/index.html" class="sidebar-nav-item">
-                <span class="nav-icon">✓</span>
+                <span class="nav-icon"><i class="fas fa-check"></i></span>
                 <span>Tasks</span>
             </a>
             <a href="/pages/goals.html" class="sidebar-nav-item">
-                <span class="nav-icon">⭐</span>
+                <span class="nav-icon"><i class="fas fa-star"></i></span>
                 <span>Goals</span>
             </a>
             <a href="/pages/calendar.html" class="sidebar-nav-item active">
-                <span class="nav-icon">📅</span>
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
                 <span>Calendar</span>
             </a>
             <a href="/pages/food.html" class="sidebar-nav-item">
-                <span class="nav-icon">🍔</span>
+                <span class="nav-icon"><i class="fas fa-utensils"></i></span>
                 <span>Food</span>
             </a>
             <a href="/pages/days-since.html" class="sidebar-nav-item">
-                <span class="nav-icon">⏱️</span>
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
                 <span>Days Since</span>
             </a>
             <a href="/pages/product-tracking.html" class="sidebar-nav-item">
-                <span class="nav-icon">🧪</span>
+                <span class="nav-icon"><i class="fas fa-flask"></i></span>
                 <span>Product Tracking</span>
             </a>
             <a href="/pages/settings.html" class="sidebar-nav-item">
-                <span class="nav-icon">⚙️</span>
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
                 <span>Settings</span>
             </a>
         </nav>
@@ -95,23 +111,23 @@
     <!-- Bottom Navigation Bar -->
     <div class="bottom-nav">
         <a href="/index.html" class="nav-item" data-page="home-page">
-            <div class="nav-icon">✓</div>
+            <div class="nav-icon"><i class="fas fa-check"></i></div>
             <span>Tasks</span>
         </a>
         <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
-            <div class="nav-icon">⭐</div>
+            <div class="nav-icon"><i class="fas fa-star"></i></div>
             <span>Goals</span>
         </a>
         <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
-            <div class="nav-icon">💪</div>
+            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
             <span>Workouts</span>
         </a>
         <a href="/pages/calendar.html" class="nav-item active" data-page="calendar-page">
-            <div class="nav-icon">📅</div>
+            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
             <span>Calendar</span>
         </a>
         <a href="/pages/food.html" class="nav-item" data-page="food-page">
-            <div class="nav-icon">🍔</div>
+            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
             <span>Food</span>
         </a>
     </div>
@@ -175,5 +191,14 @@
     <!-- Calendar functionality -->
     <script src="/js/calendar/calendar.js"></script>
     <script src="/js/calendar/calendar-refresh-fix.js"></script>
+    <script src="/js/calendar/calendar-dropdown-arrow-fix.js"></script> <!-- Dropdown arrow fix -->
+    <script src="/js/calendar/calendar-overflow-fix.js"></script> <!-- Calendar overflow detection fix -->
+    <script src="/js/calendar/calendar-button-style-fix.js"></script> <!-- Calendar button style fix -->
+    <script src="/js/calendar/calendar-heading-fix.js"></script> <!-- Calendar heading fix -->
+    <script src="/js/calendar/calendar-badge-style-fix.js"></script> <!-- Calendar badge style fix -->
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
 </body>
 </html>

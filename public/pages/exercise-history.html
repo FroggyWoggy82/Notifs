@@ -4,18 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Workout Analytics - Task List</title>
-    <link rel="stylesheet" href="../css/index.css">   <!-- Shared styles -->
-    <link rel="stylesheet" href="../css/sidebar.css"> <!-- Sidebar styles -->
+    <!-- Import the main CSS file which includes all base styles and components -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/workout-dark-theme.css">
+    <!-- Specific workout styles -->
     <link rel="stylesheet" href="../css/workouts.css"> <!-- Shared workout styles -->
     <link rel="stylesheet" href="../css/exercise-history.css"> <!-- Specific exercise history styles -->
     <!-- Dynamic theme color for status bar -->
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/bottom-nav-hover-animation.css">
+    <link rel="stylesheet" href="../css/white-accent-redesign.css"> <!-- Change blue/teal accents to white -->
+    <link rel="stylesheet" href="../css/bottom-nav-white-highlight.css">
 </head>
 <body>
-    <button class="menu-button">☰</button> <!-- Hamburger Icon -->
+    <button class="menu-button">
+        <i class="fas fa-bars"></i>
+    </button> <!-- Hamburger Icon -->
 
     <div class="sidebar-overlay"></div>
     <div class="sidebar">
@@ -24,45 +34,45 @@
         </div>
         <nav class="sidebar-nav">
             <a href="/index.html" class="sidebar-nav-item">
-                <span class="nav-icon">✓</span> <!-- Checkmark -->
+                <span class="nav-icon"><i class="fas fa-check"></i></span> <!-- Checkmark -->
                 <span>Tasks</span>
             </a>
             <a href="/pages/goals.html" class="sidebar-nav-item">
-                <span class="nav-icon">⭐</span> <!-- Star -->
+                <span class="nav-icon"><i class="fas fa-star"></i></span> <!-- Star -->
                 <span>Goals</span>
             </a>
              <a href="/pages/workouts.html" class="sidebar-nav-item">
-                <span class="nav-icon">💪</span> <!-- Dumbbell -->
+                <span class="nav-icon"><i class="fas fa-dumbbell"></i></span> <!-- Dumbbell -->
                 <span>Workouts</span>
             </a>
             <a href="/pages/exercise-history.html" class="sidebar-nav-item active"> <!-- Mark exercise history active -->
-                <span class="nav-icon">📊</span> <!-- Chart icon -->
+                <span class="nav-icon"><i class="fas fa-chart-bar"></i></span> <!-- Chart icon -->
                 <span>Workout Analytics</span>
             </a>
             <a href="/pages/calendar.html" class="sidebar-nav-item">
-                <span class="nav-icon">📅</span> <!-- Calendar -->
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span> <!-- Calendar -->
                 <span>Calendar</span>
             </a>
             <a href="/pages/food.html" class="sidebar-nav-item">
-                <span class="nav-icon">🍔</span>
+                <span class="nav-icon"><i class="fas fa-utensils"></i></span>
                 <span>Food</span>
             </a>
             <a href="/pages/days-since.html" class="sidebar-nav-item">
-                <span class="nav-icon">⏱️</span>
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
                 <span>Days Since</span>
             </a>
             <a href="/pages/product-tracking.html" class="sidebar-nav-item">
-                <span class="nav-icon">🧪</span>
+                <span class="nav-icon"><i class="fas fa-flask"></i></span>
                 <span>Product Tracking</span>
             </a>
             <a href="/pages/settings.html" class="sidebar-nav-item">
-                <span class="nav-icon">⚙️</span>
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
                 <span>Settings</span>
             </a>
         </nav>
     </div>
 
-    <div class="content-wrapper">
+    <div class="content-wrapper workout-content">
         <div class="page active">
             <h1>Workout Analytics</h1>
 
@@ -174,23 +184,23 @@
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <a href="/index.html" class="nav-item" data-page="home-page">
-            <div class="nav-icon">✓</div>
+            <div class="nav-icon"><i class="fas fa-check"></i></div>
             <span>Tasks</span>
         </a>
         <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
-            <div class="nav-icon">⭐</div>
+            <div class="nav-icon"><i class="fas fa-star"></i></div>
             <span>Goals</span>
         </a>
         <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
-            <div class="nav-icon">💪</div> <!-- Dumbbell -->
+            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
             <span>Workouts</span>
         </a>
         <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
-            <div class="nav-icon">📅</div>
+            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
             <span>Calendar</span>
         </a>
         <a href="/pages/food.html" class="nav-item" data-page="food-page">
-            <div class="nav-icon">🍔</div>
+            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
             <span>Food</span>
         </a>
     </div>
@@ -202,5 +212,9 @@
 
     <!-- Exercise history functionality -->
     <script src="../js/exercise-history/exercise-history.js"></script>
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
 </body>
 </html>

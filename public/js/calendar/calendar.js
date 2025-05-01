@@ -1417,7 +1417,19 @@ document.addEventListener('DOMContentLoaded', () => {
             (task.recurrence_type && task.recurrence_type !== 'none') ? 'block' : 'none';
 
         // Show the modal
-        editTaskModal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Remove any display: none !important from the style
+        editTaskModal.style.removeProperty('display');
+
+        // Set display to flex
+        editTaskModal.style.display = 'flex';
+
+        // Also add a class to ensure it's visible
+        editTaskModal.classList.add('modal-visible');
+
+        // Force a reflow to ensure the modal is displayed properly
+        void editTaskModal.offsetWidth;
     }
 
     // Update the interval unit text based on recurrence type
@@ -1662,16 +1674,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Close button event listener
         if (closeEditTaskModalBtn) {
             closeEditTaskModalBtn.addEventListener('click', () => {
-                editTaskModal.style.display = 'none';
+                closeEditTaskModal();
             });
         }
 
         // Close modal when clicking outside of it
         window.addEventListener('click', (event) => {
             if (event.target === editTaskModal) {
-                editTaskModal.style.display = 'none';
+                closeEditTaskModal();
             }
         });
+
+        // Function to properly close the edit task modal
+        function closeEditTaskModal() {
+            // Hide the modal
+            editTaskModal.style.display = 'none';
+            editTaskModal.classList.remove('modal-visible');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
 
         // Handle recurrence type change
         editTaskRecurrenceTypeSelect.addEventListener('change', () => {
@@ -1764,6 +1784,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Close the modal after a short delay
                 setTimeout(() => {
                     editTaskModal.style.display = 'none';
+                    editTaskModal.classList.remove('modal-visible');
+                    document.body.style.overflow = ''; // Restore scrolling
                     updateEditTaskStatus("", false);
                 }, 1500);
 

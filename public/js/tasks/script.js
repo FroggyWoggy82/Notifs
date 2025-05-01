@@ -208,6 +208,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const editRecurrenceIntervalUnit = document.getElementById('editRecurrenceIntervalUnit');
     const closeEditTaskModalBtn = editTaskModal.querySelector('.close-button'); // Assuming close button exists
 
+    // Ensure the edit task modal is hidden by default
+    if (editTaskModal) {
+        editTaskModal.style.display = 'none';
+        console.log("Ensuring edit task modal is hidden on page load");
+    }
+
     let swRegistration = null;
     // We'll use this for service worker registration
 
@@ -381,6 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     task.style.borderLeft = '4px solid #f44336';
                     task.style.borderColor = '#ef9a9a';
                 });
+
+                // Dispatch a custom event to notify that tasks have been loaded
+                document.dispatchEvent(new CustomEvent('tasksLoaded'));
             }, 100);
         } catch (error) {
             console.error('Error loading tasks:', error);
@@ -811,6 +820,28 @@ document.addEventListener('DOMContentLoaded', () => {
         checkbox.checked = task.is_complete;
         checkbox.addEventListener('change', handleToggleComplete);
 
+        // Apply custom styling for larger, more visible checkboxes
+        checkbox.style.width = '24px';
+        checkbox.style.height = '24px';
+        checkbox.style.borderRadius = '50%';
+        checkbox.style.border = '2px solid rgba(255, 255, 255, 0.4)';
+        checkbox.style.backgroundColor = 'rgba(18, 18, 18, 0.9)';
+        checkbox.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.1)';
+        checkbox.style.appearance = 'none';
+        checkbox.style.webkitAppearance = 'none';
+        checkbox.style.cursor = 'pointer';
+        checkbox.style.transition = 'all 0.2s ease';
+        checkbox.style.margin = '0';
+        checkbox.style.padding = '0';
+        checkbox.style.position = 'relative';
+
+        // Apply checked styling if needed
+        if (task.is_complete) {
+            checkbox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            checkbox.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+            checkbox.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.3)';
+        }
+
         // Task Content
         const contentDiv = document.createElement('div');
         contentDiv.className = 'task-content';
@@ -891,14 +922,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const nextOccurrenceIndicator = document.createElement('div');
             nextOccurrenceIndicator.className = 'next-occurrence-indicator';
 
-            // Add calendar icon
-            const calendarIcon = document.createElement('i');
-            calendarIcon.innerHTML = '&#8635;'; // Recycling symbol
-            nextOccurrenceIndicator.appendChild(calendarIcon);
-
-            // Add next occurrence text
+            // Add next occurrence text (without the calendar icon)
             const nextOccurrenceText = document.createElement('span');
-            nextOccurrenceText.textContent = `Next: ${nextOccurrenceDate.toLocaleDateString()}`;
+            nextOccurrenceText.textContent = nextOccurrenceDate.toLocaleDateString();
             nextOccurrenceIndicator.appendChild(nextOccurrenceText);
 
             // Check if next occurrence is overdue
@@ -1020,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Add calendar icon
                     const calendarIcon = document.createElement('i');
-                    calendarIcon.innerHTML = '&#128197;'; // Calendar emoji
+                    calendarIcon.className = 'fas fa-calendar-alt'; // Font Awesome icon
                     dueDateIndicator.appendChild(calendarIcon);
 
                     // Add due date text
@@ -1032,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Show that the next occurrence is overdue
 
                         // Show both the original due date and the next occurrence date
-                        dueDateText.textContent = `Overdue: ${formattedDate}`;
+                        dueDateText.textContent = 'Overdue';
                         dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
                         dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
 
@@ -1042,11 +1068,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Add the next occurrence date as a separate element
                         const nextOccurrenceIndicator = document.createElement('div');
                         nextOccurrenceIndicator.className = 'next-occurrence-indicator';
-
-                        // Add calendar icon with recurrence symbol
-                        const nextIcon = document.createElement('i');
-                        nextIcon.innerHTML = '&#8635;'; // Recycling symbol (↻)
-                        nextOccurrenceIndicator.appendChild(nextIcon);
 
                         // For the next occurrence text, use the task's next_occurrence_date if available,
                         // otherwise calculate it based on the recurrence type
@@ -1075,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         // Create and add the next occurrence text
                         const nextText = document.createElement('span');
-                        nextText.textContent = `Next: ${nextDateText}`;
+                        nextText.textContent = nextDateText;
                         nextOccurrenceIndicator.appendChild(nextText);
 
                         // Store this to add after the due date indicator
@@ -1104,7 +1125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (dueDateMidnight.getTime() === todayMidnight.getTime()) {
                             dueDateText.textContent = 'Due Today';
                         } else if (dueDateMidnight < todayMidnight) {
-                            dueDateText.textContent = `Overdue: ${formattedDate}`;
+                            dueDateText.textContent = 'Overdue';
                         } else if (dueDateMidnight.getTime() === tomorrowMidnight.getTime()) {
                             dueDateText.textContent = 'Due Tomorrow';
                         } else {
@@ -1183,20 +1204,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const editBtn = document.createElement('button');
         editBtn.className = 'icon-btn edit-task-btn'; // Class to be styled
-        editBtn.innerHTML = '<i class="pencil-icon">✏️</i>'; // Pencil emoji
+        editBtn.innerHTML = '<i class="pencil-icon"><i class="fas fa-pencil-alt"></i></i>'; // Font Awesome icon
         editBtn.title = 'Edit task';
-        editBtn.addEventListener('click', () => openEditTaskModal(task)); // Pass the task data
+        editBtn.addEventListener('click', (event) => {
+            console.log("Edit button clicked for task:", task);
+            event.stopPropagation(); // Prevent event bubbling
+            openEditTaskModal(task); // Pass the task data
+        });
         actionsDiv.appendChild(editBtn);
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'icon-btn delete-btn';
-        deleteBtn.innerHTML = '<i class="x-icon">❌</i>'; // X emoji
+        deleteBtn.innerHTML = '<i class="x-icon"><i class="fas fa-times"></i></i>'; // Font Awesome icon
         deleteBtn.title = 'Delete task';
         deleteBtn.addEventListener('click', handleDeleteTask);
         actionsDiv.appendChild(deleteBtn);
 
+        // Create a container for the checkbox to ensure proper positioning
+        const checkboxContainer = document.createElement('div');
+        checkboxContainer.className = 'task-checkbox-container';
+        checkboxContainer.appendChild(checkbox);
+
         // Assemble the task item
-        div.appendChild(checkbox);
+        div.appendChild(checkboxContainer);
         div.appendChild(contentDiv);
         div.appendChild(actionsDiv);
 
@@ -1990,7 +2020,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- NEW: Add Task Modal Listeners ---
     addTaskFab.addEventListener('click', () => {
-        addTaskModal.style.display = 'block';
+        addTaskModal.style.display = 'flex';
 
         // Check if we should use last inputs
         if (useLastInputsToggle.checked && lastTaskInputs.title) {
@@ -2455,8 +2485,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="habit-actions">
-                    <button class="edit-habit-btn small-btn">Edit</button>
-                    <button class="delete-habit-btn small-btn delete-btn">Delete</button>
+                    <button class="icon-btn edit-habit-btn" title="Edit habit"><i class="pencil-icon">✏️</i></button>
+                    <button class="icon-btn delete-habit-btn" title="Delete habit"><i class="x-icon">❌</i></button>
                 </div>
             `;
 
@@ -3702,7 +3732,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- NEW: Add Habit Modal Listeners ---
     addHabitBtn.addEventListener('click', () => {
-        addHabitModal.style.display = 'block';
+        addHabitModal.style.display = 'flex';
         addHabitForm.reset(); // Clear form on open
         handleHabitRecurrenceChange(); // Set initial state for completions input
     });
@@ -3738,7 +3768,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleEditHabitRecurrenceChange(); // Show/hide completions input correctly
         editHabitStatusDiv.textContent = ''; // Clear status
         editHabitStatusDiv.className = 'status';
-        editHabitModal.style.display = 'block';
+        editHabitModal.style.display = 'flex';
     }
 
     // Handle edit habit form submission
@@ -3818,6 +3848,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!editTaskModal || !editTaskForm) {
             console.error("Edit task modal or form elements not found");
             return;
+        }
+
+        // Ensure the modal is hidden by default
+        if (editTaskModal.style.display !== 'none') {
+            console.log("Edit task modal was already visible, hiding it first");
+            editTaskModal.style.display = 'none';
         }
 
         // Safely update elements with null checks
@@ -3911,7 +3947,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Display the modal
-        editTaskModal.style.display = 'block';
+        console.log("Displaying edit task modal");
+
+        // Add debug logs
+        console.log("Modal element:", editTaskModal);
+        console.log("Current display style:", editTaskModal.style.display);
+
+        // Show the modal - use setAttribute to ensure it's applied
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Remove any display: none !important from the style
+        editTaskModal.style.removeProperty('display');
+
+        // Set display to flex
+        editTaskModal.style.display = 'flex';
+
+        // Also add a class to ensure it's visible
+        editTaskModal.classList.add('modal-visible');
+
+        // Force a reflow to ensure the modal is displayed properly
+        void editTaskModal.offsetWidth;
+
+        // Add another debug log after setting display
+        console.log("Display style after setting:", editTaskModal.style.display);
     }
 
     // --- NEW: Show/hide recurrence interval in EDIT modal ---
@@ -4051,6 +4109,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateEditTaskStatus("Task updated successfully!", false);
             setTimeout(() => {
                  editTaskModal.style.display = 'none'; // Close modal
+                 editTaskModal.classList.remove('modal-visible');
+                 document.body.style.overflow = ''; // Restore scrolling
             }, 1000); // Short delay to show success message
 
         } catch (error) {
@@ -4062,15 +4122,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Add click event listener for the save button
+    const saveTaskBtn = document.getElementById('saveTaskBtn');
+    if (saveTaskBtn) {
+        saveTaskBtn.addEventListener('click', () => {
+            console.log("Save button clicked, submitting form");
+            // Trigger the form submission
+            const submitEvent = new Event('submit', { cancelable: true });
+            editTaskForm.dispatchEvent(submitEvent);
+        });
+    }
+
     // Close Edit Task modal via button
     closeEditTaskModalBtn.addEventListener('click', () => {
         editTaskModal.style.display = 'none';
+        editTaskModal.classList.remove('modal-visible');
+        document.body.style.overflow = ''; // Restore scrolling
     });
 
     // Close Edit Task modal by clicking outside
     editTaskModal.addEventListener('click', (event) => {
         if (event.target === editTaskModal) {
             editTaskModal.style.display = 'none';
+            editTaskModal.classList.remove('modal-visible');
+            document.body.style.overflow = ''; // Restore scrolling
         }
     });
 
@@ -4186,7 +4261,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const task = await response.json();
                 console.log('Opening edit modal for task from URL parameter:', task);
-                openEditTaskModal(task);
+
+                // Only open the edit modal if explicitly requested via URL parameter
+                if (editTaskId) {
+                    openEditTaskModal(task);
+                }
 
                 // Clear the URL parameter
                 window.history.replaceState({}, document.title, '/index.html');
@@ -4204,6 +4283,45 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ask for confirmation before resetting
             if (confirm('Are you sure you want to reset all counter habits to 0? This cannot be undone.')) {
                 resetCounterHabits();
+            }
+        });
+    }
+
+    // Debug button for testing modal
+    const debugShowModalBtn = document.getElementById('debugShowModal');
+    if (debugShowModalBtn) {
+        debugShowModalBtn.addEventListener('click', () => {
+            console.log("Debug button clicked, showing modal directly");
+            console.log("Modal element:", editTaskModal);
+
+            // Create a dummy task for testing
+            const dummyTask = {
+                id: 999,
+                title: "Debug Test Task",
+                description: "This is a test task for debugging",
+                due_date: new Date().toISOString().split('T')[0],
+                recurrence_type: "none"
+            };
+
+            // Try to show the modal directly
+            try {
+                // Show the modal directly
+                document.body.style.overflow = 'hidden';
+                editTaskModal.style.removeProperty('display');
+                editTaskModal.style.display = 'flex';
+                editTaskModal.classList.add('modal-visible');
+
+                // Populate form fields
+                if (editTaskIdInput) editTaskIdInput.value = dummyTask.id;
+                if (editTaskTitleInput) editTaskTitleInput.value = dummyTask.title;
+                if (editTaskDescriptionInput) editTaskDescriptionInput.value = dummyTask.description;
+                if (editTaskDueDateInput) editTaskDueDateInput.value = dummyTask.due_date;
+
+                console.log("Modal should now be visible");
+                console.log("Current display style:", editTaskModal.style.display);
+                console.log("Current classList:", editTaskModal.classList);
+            } catch (error) {
+                console.error("Error showing modal:", error);
             }
         });
     }

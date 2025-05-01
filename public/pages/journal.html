@@ -12,6 +12,12 @@
     <link rel="manifest" href="../manifest.json">
     <link rel="icon" type="image/png" href="../icon-192x192.png">
     <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/bottom-nav-hover-animation.css">
+    <link rel="stylesheet" href="../css/bottom-nav-white-highlight.css">
 </head>
 <body>
     <div class="sidebar">
@@ -105,23 +111,23 @@
 
     <div class="bottom-nav">
         <a href="/index.html" class="nav-item" data-page="home-page">
-            <div class="nav-icon">✓</div>
+            <div class="nav-icon"><i class="fas fa-check"></i></div>
             <span>Tasks</span>
         </a>
         <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
-            <div class="nav-icon">⭐</div>
+            <div class="nav-icon"><i class="fas fa-star"></i></div>
             <span>Goals</span>
         </a>
         <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
-            <div class="nav-icon">💪</div>
+            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
             <span>Workouts</span>
         </a>
         <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
-            <div class="nav-icon">📅</div>
+            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
             <span>Calendar</span>
         </a>
         <a href="/pages/food.html" class="nav-item" data-page="food-page">
-            <div class="nav-icon">🍔</div>
+            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
             <span>Food</span>
         </a>
     </div>
@@ -132,5 +138,9 @@
 
     <!-- Journal functionality -->
     <script src="../js/journal/journal.js"></script>
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
 </body>
 </html>

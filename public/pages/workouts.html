@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Workout Tracker - Task List</title>
-    <link rel="stylesheet" href="../css/index.css">   <!-- Shared styles -->
-    <link rel="stylesheet" href="../css/sidebar.css"> <!-- Sidebar styles -->
-    <link rel="stylesheet" href="../css/workouts.css"> <!-- Specific workout styles -->
+    <!-- Import the main CSS file which includes all base styles and components -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/workout-dark-theme.css">
+    <!-- Specific workout styles -->
+    <link rel="stylesheet" href="../css/workouts.css">
     <link rel="stylesheet" href="../css/custom-form-elements.css"> <!-- Custom form elements -->
     <link rel="stylesheet" href="../css/compact-workout.css"> <!-- Compact workout layout -->
     <link rel="stylesheet" href="../css/mobile-workout-override.css"> <!-- Mobile-specific overrides -->
@@ -21,16 +23,26 @@
     <link rel="stylesheet" href="../css/x-button-position-fix.css"> <!-- Position X button at bottom right next to pencil icon -->
     <link rel="stylesheet" href="../css/hide-top-x-button.css"> <!-- Hide the X button in the top right corner -->
     <link rel="stylesheet" href="../css/workout-history-popup.css"> <!-- History popup styles -->
+    <link rel="stylesheet" href="../css/workout-button-color-fix.css"> <!-- Fix for button colors and corner effect -->
+    <link rel="stylesheet" href="../css/photo-buttons-uniform.css"> <!-- Make photo action buttons uniform -->
+    <link rel="stylesheet" href="../css/white-accent-redesign.css"> <!-- Change blue/teal accents to white -->
     <!-- Dynamic theme color for status bar -->
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <!-- Link to an icon library if needed for FAB/icons, e.g., Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/photo-upload-modal-fix.css"> <!-- Fix photo upload modal styling -->
+    <link rel="stylesheet" href="../css/edit-pencil-white-hover.css"> <!-- Change edit pencil hover color to white -->
+    <link rel="stylesheet" href="../css/unified-bottom-nav-final.css"> <!-- Use the same bottom nav CSS as the tasks page -->
+    <link rel="stylesheet" href="../css/force-gray-workouts-icon.css"> <!-- Force the workouts icon to be gray -->
 </head>
 <body>
-    <button class="menu-button">☰</button> <!-- Hamburger Icon -->
+    <button class="menu-button">
+        <i class="fas fa-bars"></i>
+    </button> <!-- Hamburger Icon -->
 
     <div class="sidebar-overlay"></div>
     <div class="sidebar">
@@ -39,35 +51,35 @@
         </div>
         <nav class="sidebar-nav">
             <a href="/index.html" class="sidebar-nav-item">
-                <span class="nav-icon">✓</span> <!-- Checkmark -->
+                <span class="nav-icon"><i class="fas fa-check"></i></span> <!-- Checkmark -->
                 <span>Tasks</span>
             </a>
             <a href="/pages/goals.html" class="sidebar-nav-item">
-                <span class="nav-icon">⭐</span> <!-- Star -->
+                <span class="nav-icon"><i class="fas fa-star"></i></span> <!-- Star -->
                 <span>Goals</span>
             </a>
              <a href="/pages/workouts.html" class="sidebar-nav-item active"> <!-- Mark workouts active -->
-                <span class="nav-icon">💪</span> <!-- Dumbbell -->
+                <span class="nav-icon"><i class="fas fa-dumbbell"></i></span> <!-- Dumbbell -->
                 <span>Workouts</span>
             </a>
             <a href="/pages/calendar.html" class="sidebar-nav-item">
-                <span class="nav-icon">📅</span> <!-- Calendar -->
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span> <!-- Calendar -->
                 <span>Calendar</span>
             </a>
             <a href="/pages/food.html" class="sidebar-nav-item">
-                <span class="nav-icon">🍔</span>
+                <span class="nav-icon"><i class="fas fa-utensils"></i></span>
                 <span>Food</span>
             </a>
             <a href="/pages/days-since.html" class="sidebar-nav-item">
-                <span class="nav-icon">⏱️</span>
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
                 <span>Days Since</span>
             </a>
             <a href="/pages/product-tracking.html" class="sidebar-nav-item">
-                <span class="nav-icon">🧪</span>
+                <span class="nav-icon"><i class="fas fa-flask"></i></span>
                 <span>Product Tracking</span>
             </a>
             <a href="/pages/settings.html" class="sidebar-nav-item">
-                <span class="nav-icon">⚙️</span>
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
                 <span>Settings</span>
             </a>
         </nav>
@@ -83,11 +95,10 @@
             <!-- Photo Sections (Slider + Comparison) -->
             <div class="progress-photos-section" style="margin-top: 0;">
                 <div class="progress-section-header">
-                    <h2>Progress Photos</h2>
                     <div class="header-buttons">
-                        <button id="add-photo-btn" class="btn btn-secondary btn-small">+ Add Photo</button>
-                        <button id="compare-photos-btn" class="btn btn-primary btn-small" title="Compare Photos">Compare</button>
-                        <button id="delete-photo-btn" class="btn btn-danger btn-small" title="Delete Current Photo" disabled>Delete</button>
+                        <button id="add-photo-btn" class="btn btn-secondary btn-small">Add Photo</button>
+                        <button id="compare-photos-btn" class="btn btn-secondary btn-small" title="Compare Photos">Compare</button>
+                        <button id="delete-photo-btn" class="btn btn-secondary btn-small" title="Delete Current Photo" disabled>Delete</button>
                     </div>
                 </div>
                 <!-- Photo Gallery Display -->
@@ -352,30 +363,7 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <a href="/index.html" class="nav-item" data-page="home-page">
-            <div class="nav-icon">✓</div>
-            <span>Tasks</span>
-        </a>
-        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
-            <div class="nav-icon">⭐</div>
-            <span>Goals</span>
-        </a>
-        <a href="/pages/workouts.html" class="nav-item active" data-page="workout-page"> <!-- Mark workouts active -->
-            <div class="nav-icon">💪</div> <!-- Dumbbell -->
-            <span>Workouts</span>
-        </a>
-        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
-            <div class="nav-icon">📅</div>
-            <span>Calendar</span>
-        </a>
-        <a href="/pages/food.html" class="nav-item" data-page="food-page">
-            <div class="nav-icon">🍔</div>
-            <span>Food</span>
-        </a>
-
-    </div>
+    <!-- Bottom Navigation will be added by bottom-nav-fix.js -->
 
     <!-- Common utilities -->
     <script src="../js/common/sidebar.js"></script>
@@ -498,5 +486,12 @@
     </div>
     <!-- ===== End Photo Upload Modal ===== -->
 
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+    <script src="../js/workouts/photo-date-input-fix.js"></script> <!-- Fix for photo date input calendar icon -->
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Standard bottom navigation fix -->
+    <script src="../js/workouts/force-gray-icon.js"></script> <!-- Force the workouts icon to be gray -->
+    <script src="../js/workouts/nav-diagnostic.js"></script> <!-- Diagnostic script for navigation -->
 </body>
 </html>

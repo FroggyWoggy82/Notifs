@@ -1,0 +1,30 @@
+/**
+ * Main CSS
+ * This is the main entry point for all CSS styles.
+ * It imports all modular CSS files in the correct order.
+ */
+
+/* Base styles */
+@import 'base/variables.css';
+@import 'base/reset.css';
+@import 'base/typography.css';
+@import 'base/base.css';
+
+/* Components */
+@import 'components/buttons.css';
+@import 'components/forms.css?v=1.1';
+@import 'components/cards.css';
+@import 'components/navigation.css';
+
+/* Layouts */
+/* These will be added as needed */
+
+/* Utilities */
+/* These will be added as needed */
+
+/* Fixes */
+@import 'checkbox-alignment-fix.css?v=1.5'; /* Updated checkbox alignment fix with cache-busting */
+@import 'dramatic-checkbox.css?v=1.7'; /* Updated modern checkbox styling with cache-busting */
+
+/* Page-specific styles */
+/* These will be imported in their respective HTML files */

@@ -22,10 +22,20 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set global defaults for all charts
             Chart.defaults.font.family = "'Roboto', 'Helvetica', 'Arial', sans-serif";
             Chart.defaults.font.size = 12;
-            Chart.defaults.color = '#666';
+            Chart.defaults.color = '#e0e0e0'; // Light text for dark theme
 
             // Configure scale defaults
             Chart.defaults.scales.linear.beginAtZero = true;
+
+            // Set dark theme colors for grid lines and ticks
+            Chart.defaults.scales.linear.grid = {
+                color: 'rgba(255, 255, 255, 0.1)',
+                borderColor: 'rgba(255, 255, 255, 0.2)'
+            };
+
+            // Set dark theme colors for the chart
+            Chart.defaults.backgroundColor = 'rgba(0, 230, 118, 0.2)';
+            Chart.defaults.borderColor = '#00E676';
 
             // Configure tick callbacks for y-axis
             Chart.defaults.scales.linear.ticks = {
@@ -104,7 +114,37 @@ window.createScaledChart = function(ctx, type, data, options = {}) {
             y: {
                 beginAtZero: true,
                 suggestedMin: 0,
-                suggestedMax: maxValue
+                suggestedMax: maxValue,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)',
+                    borderColor: 'rgba(255, 255, 255, 0.2)'
+                },
+                ticks: {
+                    color: '#e0e0e0'
+                }
+            },
+            x: {
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)',
+                    borderColor: 'rgba(255, 255, 255, 0.2)'
+                },
+                ticks: {
+                    color: '#e0e0e0'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#e0e0e0'
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(30, 30, 30, 0.9)',
+                titleColor: '#00E676',
+                bodyColor: '#e0e0e0',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1
             }
         },
         ...options

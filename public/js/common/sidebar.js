@@ -6,7 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
 
     // Function to open sidebar
-    function openSidebar() {
+    function openSidebar(e) {
+        if (e) {
+            e.stopPropagation(); // Prevent event bubbling
+        }
         sidebar.classList.add('active');
         overlay.classList.add('active');
         body.classList.add('sidebar-active');
@@ -19,19 +22,20 @@ document.addEventListener('DOMContentLoaded', () => {
         body.classList.remove('sidebar-active');
     }
 
-    // Event listeners
-    menuButton.addEventListener('click', openSidebar);
-    overlay.addEventListener('click', closeSidebar);
-
-    // Close sidebar when clicking anywhere on the document (outside the sidebar)
-    document.addEventListener('click', (event) => {
-        // Only close if sidebar is active and the click is outside the sidebar and not on the menu button
-        if (sidebar.classList.contains('active') &&
-            !sidebar.contains(event.target) &&
-            event.target !== menuButton) {
-            closeSidebar();
-        }
+    // Event listeners with proper event handling
+    menuButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        openSidebar();
     });
+
+    // Make sure overlay click works properly
+    overlay.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+        closeSidebar();
+    });
+
+    // Remove the document click handler that was causing issues
+    // Instead, rely on the overlay to handle clicks outside the sidebar
 
     // Close sidebar when clicking a nav item (on mobile)
     const navItems = document.querySelectorAll('.sidebar-nav-item');
@@ -55,6 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
     navItems.forEach(item => {
         if (item.getAttribute('href') === currentPath) {
             item.classList.add('active');
+        }
+    });
+
+    // Prevent clicks inside the sidebar from closing it
+    sidebar.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent event bubbling
+    });
+
+    // Add escape key to close sidebar
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            closeSidebar();
         }
     });
 });

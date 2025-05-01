@@ -1,0 +1,102 @@
+/*
+ * Sidebar Fix
+ * Fixes issues with the sidebar and overlay
+ */
+
+/* Fix z-index issues */
+.sidebar {
+    z-index: 1060 !important; /* Higher than modal backdrop */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 280px !important;
+    background-color: var(--color-dark-surface) !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+    overflow-y: auto !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+.sidebar.active {
+    transform: translateX(0) !important;
+}
+
+/* Fix overlay */
+.sidebar-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    z-index: 1050 !important; /* Lower than sidebar but higher than other content */
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
+    pointer-events: none !important;
+}
+
+.sidebar-overlay.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* Fix for sidebar overlay activation */
+body.sidebar-active .sidebar-overlay {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* Fix menu button */
+.menu-button {
+    z-index: 1070 !important; /* Higher than sidebar */
+    position: fixed !important;
+    top: 15px !important;
+    left: 15px !important;
+}
+
+/* Fix body when sidebar is active */
+body.sidebar-active {
+    overflow: hidden !important;
+}
+
+/* Ensure sidebar content is visible */
+.sidebar-nav-item {
+    color: var(--color-white) !important;
+    opacity: 0.9 !important;
+    transition: all 0.2s ease !important;
+}
+
+.sidebar-nav-item:hover {
+    opacity: 1 !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Ensure sidebar header is visible */
+.sidebar-header h2 {
+    color: var(--color-white) !important;
+    opacity: 1 !important;
+}
+
+/* Ensure Font Awesome icons are properly styled */
+.sidebar-nav-item .nav-icon i {
+    display: inline-block !important;
+    font-size: 1.2em !important;
+    width: 1.25em !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.sidebar-nav-item.active .nav-icon i {
+    color: var(--color-primary, #00E676) !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 250px !important;
+    }
+}

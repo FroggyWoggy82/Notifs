@@ -1,0 +1,39 @@
+/**
+ * Force Gray Workouts Icon
+ * This CSS file forces the workouts icon to be gray regardless of other styles
+ */
+
+/* Override the active item styling from workout-dark-theme.css */
+.bottom-nav .nav-item.active {
+    color: rgba(158, 158, 158, 0.9) !important; /* Gray color */
+}
+
+/* Force the workouts icon to be gray */
+.bottom-nav .nav-item[href*="workouts.html"] .nav-icon i,
+.bottom-nav .nav-item[href*="workouts.html"].active .nav-icon i {
+    color: rgba(158, 158, 158, 0.9) !important;
+}
+
+/* Force the workouts text to be gray */
+.bottom-nav .nav-item[href*="workouts.html"] span,
+.bottom-nav .nav-item[href*="workouts.html"].active span {
+    color: rgba(158, 158, 158, 0.9) !important;
+}
+
+/* Force the workouts item to be gray */
+.bottom-nav .nav-item[href*="workouts.html"],
+.bottom-nav .nav-item[href*="workouts.html"].active {
+    color: rgba(158, 158, 158, 0.9) !important;
+}
+
+/* Ensure the dumbbell icon is displayed correctly */
+.bottom-nav .nav-item[href*="workouts.html"] .nav-icon i {
+    font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    display: inline-block !important;
+}
+
+.bottom-nav .nav-item[href*="workouts.html"] .nav-icon i::before {
+    content: "\f44b" !important; /* fa-dumbbell */
+}
