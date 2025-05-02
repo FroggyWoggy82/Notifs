@@ -26,6 +26,9 @@
     <link rel="stylesheet" href="../css/workout-button-color-fix.css"> <!-- Fix for button colors and corner effect -->
     <link rel="stylesheet" href="../css/photo-buttons-uniform.css"> <!-- Make photo action buttons uniform -->
     <link rel="stylesheet" href="../css/white-accent-redesign.css"> <!-- Change blue/teal accents to white -->
+    <link rel="stylesheet" href="../css/workout-timer-color-fix.css"> <!-- Change timer color to white -->
+    <link rel="stylesheet" href="../css/sticky-workout-header.css"> <!-- Make workout header sticky when scrolling -->
+    <link rel="stylesheet" href="../css/goal-checkmark-alignment-fix.css"> <!-- Align the checkmark in the GOAL column with the checkboxes -->
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,42 +40,57 @@
     <link rel="stylesheet" href="../css/photo-upload-modal-fix.css"> <!-- Fix photo upload modal styling -->
     <link rel="stylesheet" href="../css/edit-pencil-white-hover.css"> <!-- Change edit pencil hover color to white -->
     <link rel="stylesheet" href="../css/unified-bottom-nav-final.css"> <!-- Use the same bottom nav CSS as the tasks page -->
-    <link rel="stylesheet" href="../css/force-gray-workouts-icon.css"> <!-- Force the workouts icon to be gray -->
+    <link rel="stylesheet" href="../css/force-gray-workouts-icon.css"> <!-- Style the workouts icon to match other pages -->
+    <link rel="stylesheet" href="../css/font-awesome-dumbbell.css"> <!-- Force the dumbbell icon to use Font Awesome -->
+    <link rel="stylesheet" href="../css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
+    <link rel="stylesheet" href="../css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
+    <link rel="stylesheet" href="../css/workout-fab-fix.css"> <!-- Fix for FAB styling to match tasks.html -->
+    <link rel="stylesheet" href="../css/workout-options-menu-fix.css"> <!-- Fix for options menu styling with white buttons and Font Awesome icons -->
+    <link rel="stylesheet" href="../css/edit-button-font-awesome-fix.css"> <!-- Fix for edit button to use black Font Awesome icon -->
+    <link rel="stylesheet" href="../css/youtube-modal-fix.css"> <!-- Fix for YouTube URL modal styling -->
+    <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
 </head>
 <body>
     <button class="menu-button">
         <i class="fas fa-bars"></i>
     </button> <!-- Hamburger Icon -->
 
+    <!-- Sidebar Overlay -->
     <div class="sidebar-overlay"></div>
+
+    <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2>Menu</h2>
+            <h2>Dashboard</h2>
         </div>
         <nav class="sidebar-nav">
             <a href="/index.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-check"></i></span> <!-- Checkmark -->
+                <span class="nav-icon"><i class="fas fa-check"></i></span>
                 <span>Tasks</span>
             </a>
             <a href="/pages/goals.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-star"></i></span> <!-- Star -->
+                <span class="nav-icon"><i class="fas fa-star"></i></span>
                 <span>Goals</span>
             </a>
-             <a href="/pages/workouts.html" class="sidebar-nav-item active"> <!-- Mark workouts active -->
-                <span class="nav-icon"><i class="fas fa-dumbbell"></i></span> <!-- Dumbbell -->
+            <a href="/pages/workouts.html" class="sidebar-nav-item active">
+                <span class="nav-icon"><i class="fas fa-dumbbell"></i></span>
                 <span>Workouts</span>
             </a>
             <a href="/pages/calendar.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span> <!-- Calendar -->
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
                 <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
+                <span>Days Since</span>
             </a>
             <a href="/pages/food.html" class="sidebar-nav-item">
                 <span class="nav-icon"><i class="fas fa-utensils"></i></span>
                 <span>Food</span>
             </a>
-            <a href="/pages/days-since.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
-                <span>Days Since</span>
+            <a href="/pages/journal.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-book"></i></span>
+                <span>Journal</span>
             </a>
             <a href="/pages/product-tracking.html" class="sidebar-nav-item">
                 <span class="nav-icon"><i class="fas fa-flask"></i></span>
@@ -277,7 +295,7 @@
         </div>
 
         <!-- Floating Action Button (FAB) for Adding Exercises - Show only on active workout page -->
-        <button id="add-exercise-fab" class="fab" title="Add Exercise">+</button>
+        <button id="add-exercise-fab" class="fab" title="Add Exercise"><i class="fas fa-plus"></i></button>
 
     </div>
 
@@ -366,8 +384,11 @@
     <!-- Bottom Navigation will be added by bottom-nav-fix.js -->
 
     <!-- Common utilities -->
+    <script src="../js/workouts/disable-svg-dumbbell.js"></script> <!-- Disable SVG dumbbell icon -->
     <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/sidebar-updater.js"></script> <!-- Sidebar updater to use the same sidebar as index.html -->
     <script src="../js/common/status-bar.js"></script>
+    <script src="../js/common/bottom-nav-center-fix.js"></script> <!-- Bottom navigation centering fix -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/common/chart-config.js"></script>
     <script src="../js/common/client-compression.js"></script>
@@ -400,7 +421,20 @@
     <script src="../js/workouts/exercise-name-update-fix.js"></script>
     <!-- Workout History Popup - adds ability to view exercise history during a workout -->
     <script src="../js/workouts/workout-history-popup.js"></script>
-
+    <!-- Sticky Workout Header - makes the workout header stay fixed at the top when scrolling -->
+    <script src="../js/workouts/sticky-workout-header.js"></script>
+    <!-- Goal Checkmark Alignment Fix - aligns the checkmark in the GOAL column with the checkboxes -->
+    <script src="../js/workouts/goal-checkmark-alignment-fix.js"></script>
+    <!-- Workout Goal Persistence Fix - ensures goal checkboxes are properly saved and restored when navigating between pages -->
+    <script src="../js/workouts/workout-goal-persistence-fix.js"></script>
+    <!-- Workout Goal Text Fix - ensures goal text is properly saved and restored when navigating between pages -->
+    <script src="../js/workouts/workout-goal-text-fix.js"></script>
+    <script src="../js/workouts/fix-options-menu-buttons.js"></script> <!-- Fixes issues with the options menu buttons -->
+    <script src="../js/workouts/black-pencil-fix.js"></script> <!-- Ensures the edit button pencil icon is black -->
+    <script src="../js/workouts/remove-film-icon.js"></script> <!-- Removes the film icon from the Add Video button -->
+    <script src="../js/workouts/youtube-modal-fix.js"></script> <!-- Fixes the YouTube URL modal styling -->
+    <script src="../js/workouts/label-size-fix.js"></script> <!-- Ensures Weight Unit and Weight Increment labels have the same size -->
+    <script src="../js/workouts/options-menu-structure-fix.js"></script> <!-- Ensures options menu has the correct structure for proper label alignment -->
 
 
     <!-- History Edit Modal (Renamed) -->
@@ -491,7 +525,12 @@
     <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
     <script src="../js/workouts/photo-date-input-fix.js"></script> <!-- Fix for photo date input calendar icon -->
     <script src="../js/common/bottom-nav-fix.js"></script> <!-- Standard bottom navigation fix -->
-    <script src="../js/workouts/force-gray-icon.js"></script> <!-- Force the workouts icon to be gray -->
+    <script src="../js/workouts/replace-bottom-nav.js"></script> <!-- Replace the bottom navigation completely -->
+    <script src="../js/workouts/force-gray-icon.js"></script> <!-- Style the workouts icon to match other pages -->
+    <script src="../js/workouts/use-font-awesome-dumbbell.js"></script> <!-- Use Font Awesome dumbbell icon instead of SVG -->
+    <script src="../js/workouts/fix-dumbbell-icon.js"></script> <!-- Directly fix the dumbbell icon -->
+    <script src="../js/workouts/workout-return-fix.js"></script> <!-- Return to active workout when coming back to workouts page -->
     <script src="../js/workouts/nav-diagnostic.js"></script> <!-- Diagnostic script for navigation -->
+    <script src="../js/workouts/workout-fab-fix.js"></script> <!-- Fix for FAB styling and visibility -->
 </body>
 </html>

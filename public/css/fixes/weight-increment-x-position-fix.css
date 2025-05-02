@@ -1,0 +1,25 @@
+/* Weight Increment X Position Fix CSS */
+
+/* Hide the original X button in the Weight Increment section */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+}
+
+/* Ensure the weight increment label and input are visible */
+.weight-increment-label,
+.weight-increment-text,
+.weight-increment-input {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

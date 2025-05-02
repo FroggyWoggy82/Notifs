@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task Calendar</title>
+    <meta name="description" content="Calendar view for PWA Task List">
+    <link rel="manifest" href="/manifest.json"> <!-- Root manifest -->
+    <link rel="stylesheet" href="/css/index.css"> <!-- Base styles -->
+    <link rel="stylesheet" href="/css/calendar.css"> <!-- Calendar specific styles -->
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <meta name="theme-color" content="#4db6ac">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+    <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/calendar-dropdown-arrow-fix.css"> <!-- Calendar dropdown arrow fix -->
+    <link rel="stylesheet" href="../css/calendar-modal-fix.css"> <!-- Calendar modal dark theme fix -->
+    <link rel="stylesheet" href="../css/calendar-dark-theme.css"> <!-- Calendar dark theme styling -->
+    <link rel="stylesheet" href="../css/calendar-button-fix.css"> <!-- Calendar button fix -->
+    <link rel="stylesheet" href="../css/calendar-day-highlight-fix.css"> <!-- Calendar day highlight and scrollbar fix -->
+    <link rel="stylesheet" href="../css/calendar-button-outline-fix.css"> <!-- Calendar button outline fix -->
+    <link rel="stylesheet" href="../css/calendar-heading-fix.css"> <!-- Calendar heading fix -->
+    <link rel="stylesheet" href="../css/calendar-count-indicator-fix.css"> <!-- Calendar count indicator fix -->
+    <link rel="stylesheet" href="../css/calendar-task-glow-fix.css"> <!-- Calendar task glow fix -->
+    <link rel="stylesheet" href="../css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
+    <link rel="stylesheet" href="../css/remove-recurrence-indicators.css"> <!-- Remove recurrence indicators -->
+</head>
+<body>
+    <button class="menu-button">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="sidebar-overlay"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-check"></i></span>
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-star"></i></span>
+                <span>Goals</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item active">
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/food.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-utensils"></i></span>
+                <span>Food</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
+                <span>Days Since</span>
+            </a>
+            <a href="/pages/product-tracking.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-flask"></i></span>
+                <span>Product Tracking</span>
+            </a>
+            <a href="/pages/settings.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Task Calendar</h1>
+
+        <div class="calendar-controls">
+            <button id="prevMonthBtn">&lt; Prev</button>
+            <h2 id="currentMonthYear">Loading...</h2>
+            <button id="nextMonthBtn">Next &gt;</button>
+        </div>
+
+        <div class="calendar-filter">
+            <label>Show: </label>
+            <select id="calendarFilter">
+                <option value="both" selected>Tasks & Habits</option>
+                <option value="tasks">Tasks Only</option>
+                <option value="habits">Habits Only</option>
+            </select>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid">
+            <div class="calendar-header">Sun</div>
+            <div class="calendar-header">Mon</div>
+            <div class="calendar-header">Tue</div>
+            <div class="calendar-header">Wed</div>
+            <div class="calendar-header">Thu</div>
+            <div class="calendar-header">Fri</div>
+            <div class="calendar-header">Sat</div>
+            <!-- Calendar days will be populated here by JS -->
+        </div>
+        <div id="calendarStatus" class="status"></div>
+
+        <!-- Optional: Add a section to display tasks for a selected date -->
+        <div id="selectedDateTasks" style="display: none;">
+             <h3>Tasks for <span id="selectedDateDisplay"></span></h3>
+             <ul id="selectedTaskList"></ul>
+             <button id="closeSelectedDateView">Close</button>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon"><i class="fas fa-check"></i></div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon"><i class="fas fa-star"></i></div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
+            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item active" data-page="calendar-page">
+            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
+            <span>Food</span>
+        </a>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="edit-task-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Edit Task</h2>
+            <form id="edit-task-form">
+                <input type="hidden" id="edit-task-id"> <!-- Hidden field for ID -->
+                <div class="form-group">
+                    <label for="edit-task-title">Title:</label>
+                    <input type="text" id="edit-task-title" placeholder="What needs to be done?" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-task-description">Description (Optional):</label>
+                    <textarea id="edit-task-description" placeholder="Add more details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-task-reminder-time">Reminder Time (Optional):</label>
+                    <input type="datetime-local" id="edit-task-reminder-time">
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="edit-task-assigned-date">Assigned Date:</label>
+                        <input type="date" id="edit-task-assigned-date">
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="edit-task-due-date">Due Date (Optional):</label>
+                        <input type="date" id="edit-task-due-date">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="edit-task-recurrence-type">Recurrence:</label>
+                        <select id="edit-task-recurrence-type">
+                            <option value="none">None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="edit-recurrence-interval-container" style="display: none;">
+                        <label for="edit-task-recurrence-interval">Every:</label>
+                        <input type="number" id="edit-task-recurrence-interval" value="1" min="1" step="1" style="width: 60px;">
+                        <span id="edit-recurrence-interval-unit">days</span>
+                    </div>
+                </div>
+                <button type="submit" id="save-task-btn">Save Changes</button>
+            </form>
+            <div id="edit-task-status" class="status"></div>
+        </div>
+    </div>
+
+    <!-- JS Dependencies - Consider a library like date-fns later if needed -->
+    <!-- Common utilities -->
+    <script src="/js/common/sidebar.js"></script>
+
+    <!-- Calendar functionality -->
+    <script src="/js/calendar/calendar.js"></script>
+    <script src="/js/calendar/calendar-refresh-fix.js"></script>
+    <script src="/js/calendar/calendar-dropdown-arrow-fix.js"></script> <!-- Dropdown arrow fix -->
+    <script src="/js/calendar/calendar-overflow-fix.js"></script> <!-- Calendar overflow detection fix -->
+    <script src="/js/calendar/calendar-button-style-fix.js"></script> <!-- Calendar button style fix -->
+    <script src="/js/calendar/calendar-heading-fix.js"></script> <!-- Calendar heading fix -->
+    <script src="/js/calendar/calendar-badge-style-fix.js"></script> <!-- Calendar badge style fix -->
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+</body>
+</html>

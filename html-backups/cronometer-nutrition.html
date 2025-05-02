@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronometer Nutrition Data</title>
+    <link rel="stylesheet" href="../css/index.css"> <!-- Global styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .search-button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .search-button:hover {
+            background-color: #45a049;
+        }
+        .results-container {
+            margin-top: 20px;
+        }
+        .result-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .result-item:hover {
+            background-color: #f5f5f5;
+        }
+        .food-name {
+            font-weight: bold;
+        }
+        .food-brand {
+            color: #666;
+            font-size: 14px;
+        }
+        .nutrition-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        .nutrition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .nutrition-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .nutrition-serving {
+            color: #666;
+        }
+        .nutrition-section {
+            margin-bottom: 15px;
+        }
+        .nutrition-section-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .nutrition-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .nutrition-name {
+            flex: 2;
+        }
+        .nutrition-value {
+            flex: 1;
+            text-align: right;
+            font-weight: bold;
+        }
+        .nutrition-unit {
+            flex: 1;
+            text-align: left;
+            padding-left: 5px;
+            color: #666;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+        .loading img {
+            width: 50px;
+            height: 50px;
+        }
+        .error {
+            color: #f44336;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+            display: none;
+        }
+        .screenshot-container {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .screenshot-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .screenshot-input {
+            margin-bottom: 10px;
+        }
+        .screenshot-button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .screenshot-button:hover {
+            background-color: #0b7dda;
+        }
+        .paste-area {
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #2196F3;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .paste-area.active {
+            border-color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        .paste-instructions {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/cronometer-dark-theme.css"> <!-- Dark theme for Cronometer page -->
+    <link rel="stylesheet" href="../css/bottom-nav-hover-animation.css">
+    <link rel="stylesheet" href="../css/bottom-nav-white-highlight.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Cronometer Nutrition Data</h1>
+
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="Search for a food...">
+            <button id="search-button" class="search-button">Search</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <img src="/images/loading.gif" alt="Loading...">
+            <p>Loading, please wait...</p>
+        </div>
+
+        <div id="error" class="error"></div>
+
+        <div id="results-container" class="results-container"></div>
+
+        <div id="nutrition-container" class="nutrition-container">
+            <div class="nutrition-header">
+                <div class="nutrition-title" id="nutrition-title"></div>
+                <div class="nutrition-serving" id="nutrition-serving"></div>
+            </div>
+
+            <div class="nutrition-section">
+                <div class="nutrition-section-title">Basic Information</div>
+                <div class="nutrition-row">
+                    <div class="nutrition-name">Calories</div>
+                    <div class="nutrition-value" id="nutrition-calories">0</div>
+                    <div class="nutrition-unit">kcal</div>
+                </div>
+            </div>
+
+            <div class="nutrition-section">
+                <div class="nutrition-section-title">Macronutrients</div>
+                <div class="nutrition-row">
+                    <div class="nutrition-name">Protein</div>
+                    <div class="nutrition-value" id="nutrition-protein">0</div>
+                    <div class="nutrition-unit">g</div>
+                </div>
+                <div class="nutrition-row">
+                    <div class="nutrition-name">Carbohydrates</div>
+                    <div class="nutrition-value" id="nutrition-carbs">0</div>
+                    <div class="nutrition-unit">g</div>
+                </div>
+                <div class="nutrition-row">
+                    <div class="nutrition-name">Fat</div>
+                    <div class="nutrition-value" id="nutrition-fat">0</div>
+                    <div class="nutrition-unit">g</div>
+                </div>
+                <div class="nutrition-row">
+                    <div class="nutrition-name">Fiber</div>
+                    <div class="nutrition-value" id="nutrition-fiber">0</div>
+                    <div class="nutrition-unit">g</div>
+                </div>
+                <div class="nutrition-row">
+                    <div class="nutrition-name">Sugar</div>
+                    <div class="nutrition-value" id="nutrition-sugar">0</div>
+                    <div class="nutrition-unit">g</div>
+                </div>
+            </div>
+
+            <div class="nutrition-section">
+                <div class="nutrition-section-title">Micronutrients</div>
+                <div id="micronutrients-container"></div>
+            </div>
+        </div>
+
+        <div class="screenshot-container">
+            <div class="screenshot-title">Process Cronometer Screenshot</div>
+            <p>Upload or paste a screenshot of Cronometer to extract nutrition data.</p>
+
+            <div class="screenshot-input">
+                <input type="file" id="screenshot-file" accept="image/*">
+                <button id="screenshot-upload-button" class="screenshot-button">Upload Screenshot</button>
+            </div>
+
+            <p>Or paste a screenshot:</p>
+            <div id="paste-area" class="paste-area">
+                <div class="paste-instructions">Click here and press Ctrl+V to paste a screenshot</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const resultsContainer = document.getElementById('results-container');
+            const nutritionContainer = document.getElementById('nutrition-container');
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const screenshotFile = document.getElementById('screenshot-file');
+            const screenshotUploadButton = document.getElementById('screenshot-upload-button');
+            const pasteArea = document.getElementById('paste-area');
+
+            // Search for foods
+            searchButton.addEventListener('click', function() {
+                const query = searchInput.value.trim();
+                if (query) {
+                    searchFoods(query);
+                }
+            });
+
+            // Allow pressing Enter to search
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const query = searchInput.value.trim();
+                    if (query) {
+                        searchFoods(query);
+                    }
+                }
+            });
+
+            // Upload screenshot
+            screenshotUploadButton.addEventListener('click', function() {
+                if (screenshotFile.files.length > 0) {
+                    processScreenshot(screenshotFile.files[0]);
+                } else {
+                    showError('Please select a file to upload');
+                }
+            });
+
+            // Handle paste events
+            pasteArea.addEventListener('click', function() {
+                pasteArea.focus();
+                pasteArea.classList.add('active');
+            });
+
+            pasteArea.addEventListener('blur', function() {
+                pasteArea.classList.remove('active');
+            });
+
+            pasteArea.addEventListener('paste', function(e) {
+                e.preventDefault();
+
+                const items = (e.clipboardData || window.clipboardData).items;
+                let imageFile = null;
+
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        imageFile = items[i].getAsFile();
+                        break;
+                    }
+                }
+
+                if (imageFile) {
+                    processScreenshot(imageFile);
+                } else {
+                    showError('No image found in clipboard. Please copy an image first.');
+                }
+
+                pasteArea.classList.remove('active');
+            });
+
+            // Function to search for foods
+            function searchFoods(query) {
+                showLoading();
+                hideError();
+
+                fetch(`/api/cronometer/search?query=${encodeURIComponent(query)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Search failed');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        hideLoading();
+
+                        if (data.success) {
+                            displaySearchResults(data.results);
+                        } else {
+                            showError(data.error || 'Failed to search for foods');
+                        }
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showError(`Error: ${error.message}`);
+                    });
+            }
+
+            // Function to display search results
+            function displaySearchResults(results) {
+                resultsContainer.innerHTML = '';
+
+                if (results.length === 0) {
+                    resultsContainer.innerHTML = '<p>No results found</p>';
+                    return;
+                }
+
+                results.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    resultItem.dataset.id = result.id;
+
+                    const foodName = document.createElement('div');
+                    foodName.className = 'food-name';
+                    foodName.textContent = result.name;
+
+                    const foodBrand = document.createElement('div');
+                    foodBrand.className = 'food-brand';
+                    foodBrand.textContent = result.brand || '';
+
+                    resultItem.appendChild(foodName);
+                    resultItem.appendChild(foodBrand);
+
+                    resultItem.addEventListener('click', function() {
+                        getFoodNutrition(result.id);
+                    });
+
+                    resultsContainer.appendChild(resultItem);
+                });
+            }
+
+            // Function to get nutrition data for a food
+            function getFoodNutrition(foodId) {
+                showLoading();
+                hideError();
+
+                fetch(`/api/cronometer/food/${foodId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to get food nutrition');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        hideLoading();
+
+                        if (data.success) {
+                            displayNutritionData(data.food);
+                        } else {
+                            showError(data.error || 'Failed to get food nutrition');
+                        }
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showError(`Error: ${error.message}`);
+                    });
+            }
+
+            // Function to display nutrition data
+            function displayNutritionData(food) {
+                // Set basic information
+                document.getElementById('nutrition-title').textContent = food.name;
+                document.getElementById('nutrition-serving').textContent = food.servingSize || '';
+                document.getElementById('nutrition-calories').textContent = food.calories || '0';
+                document.getElementById('nutrition-protein').textContent = food.macronutrients?.protein || '0';
+                document.getElementById('nutrition-carbs').textContent = food.macronutrients?.carbs || '0';
+                document.getElementById('nutrition-fat').textContent = food.macronutrients?.fat || '0';
+                document.getElementById('nutrition-fiber').textContent = food.macronutrients?.fiber || '0';
+                document.getElementById('nutrition-sugar').textContent = food.macronutrients?.sugar || '0';
+
+                // Set micronutrients
+                const micronutrientsContainer = document.getElementById('micronutrients-container');
+                micronutrientsContainer.innerHTML = '';
+
+                if (food.micronutrients) {
+                    Object.entries(food.micronutrients).forEach(([name, data]) => {
+                        const row = document.createElement('div');
+                        row.className = 'nutrition-row';
+
+                        const nameElement = document.createElement('div');
+                        nameElement.className = 'nutrition-name';
+                        nameElement.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+
+                        const valueElement = document.createElement('div');
+                        valueElement.className = 'nutrition-value';
+                        valueElement.textContent = data.value || '0';
+
+                        const unitElement = document.createElement('div');
+                        unitElement.className = 'nutrition-unit';
+                        unitElement.textContent = data.unit || '';
+
+                        row.appendChild(nameElement);
+                        row.appendChild(valueElement);
+                        row.appendChild(unitElement);
+
+                        micronutrientsContainer.appendChild(row);
+                    });
+                }
+
+                // Show the nutrition container
+                nutritionContainer.style.display = 'block';
+            }
+
+            // Function to process a screenshot
+            function processScreenshot(file) {
+                showLoading();
+                hideError();
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                fetch('/api/cronometer/process-screenshot', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to process screenshot');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        hideLoading();
+
+                        if (data.success) {
+                            // For now, just show a message since screenshot processing is not fully implemented
+                            showError('Screenshot processing is not yet fully implemented. This feature will be available soon.');
+                        } else {
+                            showError(data.error || 'Failed to process screenshot');
+                        }
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showError(`Error: ${error.message}`);
+                    });
+            }
+
+            // Helper functions
+            function showLoading() {
+                loadingElement.style.display = 'block';
+            }
+
+            function hideLoading() {
+                loadingElement.style.display = 'none';
+            }
+
+            function showError(message) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+
+            function hideError() {
+                errorElement.style.display = 'none';
+            }
+        });
+    </script>
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <!-- Will be populated by bottom-nav-fix.js -->
+    </div>
+
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+</body>
+</html>

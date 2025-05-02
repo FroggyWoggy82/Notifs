@@ -12,6 +12,7 @@
     <meta name="theme-color" content="#4db6ac">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
     <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/task-icons-fix.css">
@@ -26,6 +27,10 @@
     <link rel="stylesheet" href="../css/calendar-count-indicator-fix.css"> <!-- Calendar count indicator fix -->
     <link rel="stylesheet" href="../css/calendar-task-glow-fix.css"> <!-- Calendar task glow fix -->
     <link rel="stylesheet" href="../css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
+    <link rel="stylesheet" href="../css/remove-recurrence-indicators.css"> <!-- Remove recurrence indicators -->
+    <link rel="stylesheet" href="../css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
+    <link rel="stylesheet" href="../css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
+    <link rel="stylesheet" href="../css/calendar-bottom-nav-fix.css"> <!-- Fix for calendar bottom nav alignment -->
 </head>
 <body>
     <button class="menu-button">
@@ -187,6 +192,7 @@
     <!-- JS Dependencies - Consider a library like date-fns later if needed -->
     <!-- Common utilities -->
     <script src="/js/common/sidebar.js"></script>
+    <script src="/js/common/sidebar-updater.js"></script> <!-- Sidebar updater to use the same sidebar as index.html -->
 
     <!-- Calendar functionality -->
     <script src="/js/calendar/calendar.js"></script>
@@ -200,5 +206,6 @@
     <script src="../js/tasks/task-icons-fix.js"></script>
     <script src="../js/tasks/checkbox-redesign.js"></script>
     <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+    <script src="../js/calendar/calendar-bottom-nav-fix.js"></script> <!-- Calendar bottom navigation fix -->
 </body>
 </html>

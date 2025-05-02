@@ -1,0 +1,10 @@
+/**
+ * Workout Timer Color Fix
+ * Changes the timer color from teal/green to white
+ */
+
+/* Change the timer color to white */
+#workout-timer {
+    color: #FFFFFF !important; /* White color with !important to override other styles */
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3); /* Add a subtle glow effect */
+}

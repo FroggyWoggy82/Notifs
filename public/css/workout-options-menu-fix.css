@@ -1,0 +1,298 @@
+/**
+ * Workout Options Menu Fix
+ * Redesigns the "..." menu in the live workout to use white buttons with Font Awesome icons
+ */
+
+/* Style the options button (three dots) */
+.btn-exercise-options {
+    background: none !important;
+    border: none !important;
+    color: #ffffff !important; /* White color */
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    width: 28px !important;
+    height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    margin-left: auto !important;
+    order: 2 !important;
+    align-self: center !important;
+}
+
+.btn-exercise-options:hover {
+    transform: scale(1.1) !important;
+}
+
+/* Keep the original "..." text */
+.btn-exercise-options {
+    font-size: 1.2rem !important;
+    content: "..." !important;
+}
+
+/* Options menu styling */
+.exercise-options-menu {
+    background-color: #1a1a1a !important; /* Darker background */
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    padding: 8px !important; /* Reduced padding for more compact look */
+}
+
+/* Style the buttons in the options menu */
+.exercise-options-menu-row.buttons-row button {
+    background-color: #ffffff !important; /* White background */
+    color: #121212 !important; /* Dark text */
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 0 12px !important;
+    height: 32px !important;
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+.exercise-options-menu-row.buttons-row button:hover {
+    background-color: #ffffff !important; /* Keep white background on hover */
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+.exercise-options-menu-row.buttons-row button:active {
+    background-color: #ffffff !important; /* Keep white background on active */
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Add Video button styling */
+.btn-view-exercise {
+    width: auto !important;
+    min-width: 110px !important;
+    font-size: 0.9rem !important;
+}
+
+/* Remove ALL icons from the Add Video button */
+.btn-view-exercise span.icon,
+.btn-view-exercise img,
+.btn-view-exercise svg,
+.btn-view-exercise i,
+.btn-view-exercise::before,
+.btn-view-exercise::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Hide any emoji or film icon */
+.btn-view-exercise span,
+.btn-view-exercise *[class*="film"],
+.btn-view-exercise *[class*="video"] {
+    display: none !important;
+}
+
+/* Remove any text content and replace it */
+.btn-view-exercise {
+    position: relative !important;
+}
+
+/* Clear the content and set it properly */
+.btn-view-exercise::before {
+    content: "" !important;
+}
+
+/* Make sure there's no duplicate text */
+.btn-view-exercise::after {
+    content: "" !important;
+}
+
+/* History button with Font Awesome icon */
+.view-history-btn {
+    width: auto !important;
+    min-width: 90px !important;
+    font-size: 0.9rem !important;
+}
+
+/* Remove the emoji from the History button */
+.view-history-btn .icon {
+    display: none !important;
+}
+
+/* Edit button with white background and black icon */
+.btn-edit-exercise-name {
+    width: 32px !important;
+    height: 32px !important;
+    background-color: #ffffff !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 6px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+.btn-edit-exercise-name:hover {
+    background-color: #ffffff !important; /* Keep white background on hover */
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Style the edit button with Font Awesome icon */
+.btn-edit-exercise-name {
+    background-color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    width: 32px !important;
+    height: 32px !important;
+}
+
+/* Style the Font Awesome icon */
+.btn-edit-exercise-name i.fas.fa-pen {
+    color: #121212 !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
+}
+
+/* Remove any previous styling */
+.btn-edit-exercise-name::before,
+.btn-edit-exercise-name::after {
+    content: none !important;
+}
+
+/* Delete button with Font Awesome icon */
+.btn-delete-exercise {
+    width: 32px !important;
+    height: 32px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+.btn-delete-exercise:hover {
+    background-color: #ffffff !important; /* Keep white background on hover */
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-delete-exercise::before {
+    content: "\f2ed" !important; /* fa-trash-alt */
+    font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 0.9rem !important;
+}
+
+/* Weight unit and increment styling */
+.exercise-options-menu-label,
+.weight-unit-label,
+.weight-increment-text,
+.exercise-options-menu-label label,
+.exercise-options-menu-label span {
+    margin-bottom: 10px !important;
+    color: #ffffff !important;
+    font-weight: normal !important;
+    font-size: 16px !important; /* Larger font size */
+}
+
+/* Ensure both labels have the same size and styling */
+.weight-unit-label,
+.weight-increment-text {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    display: inline-block !important;
+}
+
+/* Align labels with their respective boxes */
+.exercise-options-menu-label {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important; /* Align to top */
+    width: 100% !important;
+    margin-bottom: 5px !important; /* Reduce vertical space */
+}
+
+/* Position the weight unit label */
+.weight-unit-label {
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    margin-bottom: 3px !important; /* Reduce space between label and box */
+}
+
+/* Position the weight increment text */
+.weight-increment-text {
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    margin-bottom: 3px !important; /* Reduce space between label and box */
+}
+
+/* Container for weight increment */
+.weight-increment-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important; /* Align to left */
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* Adjust the row layout */
+.exercise-options-menu-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 8px !important; /* Reduce vertical spacing */
+}
+
+/* Adjust the unit row specifically */
+.exercise-options-menu-row.unit-row {
+    margin-bottom: 8px !important; /* Reduce vertical spacing */
+}
+
+.exercise-unit-select,
+.weight-increment-input {
+    background-color: #333 !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+    border-radius: 4px !important;
+    height: 32px !important;
+}
+
+/* Make sure the button group is properly aligned */
+.button-group-right {
+    display: flex !important;
+    align-items: center !important;
+    margin-left: auto !important;
+}
+
+/* Adjust spacing for the button group with the edit button */
+.exercise-options-menu-row.buttons-row {
+    justify-content: space-between !important;
+}
+
+/* Make sure the buttons in the button group are properly aligned with tighter spacing */
+.button-group-right {
+    gap: 3px !important; /* Reduced gap between edit and delete buttons */
+}
+
+/* Ensure the buttons row has tighter spacing */
+.exercise-options-menu-row.buttons-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important; /* Reduced gap between buttons */
+}

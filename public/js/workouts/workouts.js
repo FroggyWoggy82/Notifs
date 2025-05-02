@@ -66,8 +66,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- State Variables ---
     let availableExercises = []; // Populated from API
     let workoutTemplates = [];   // Populated from API
-    let currentWorkout = [];     // Can be an array (empty workout) or object { name, exercises: [...] } (template workout)
-    let workoutStartTime = null;
+
+    // Make currentWorkout globally accessible for the workout return fix
+    window.currentWorkout = []; // Can be an array (empty workout) or object { name, exercises: [...] } (template workout)
+
+    // Make workoutStartTime globally accessible for the workout return fix
+    window.workoutStartTime = null;
+
     let workoutTimerInterval = null;
     let editingTemplateId = null; // To track which template is being edited
     let currentTemplateExercises = []; // Array for exercises in the template editor
@@ -309,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
                     <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
                     <span class="goal-target" title="Goal for next workout">${goalTextHtml}</span>
-                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''}" data-workout-index="${index}" data-set-index="${i}" title="Mark Set Complete" onclick="window.handleSetToggle(event)"></button>` : ''}
+                    ${!isTemplate ? `<button class="set-complete-toggle ${isCompleted ? 'completed' : ''} goal-checkbox" data-workout-index="${index}" data-set-index="${i}" data-exercise-id="${exerciseData.exercise_id}" title="Mark Set Complete" onclick="window.handleSetToggle(event)"></button>` : ''}
                 </div>
             `;
         }
@@ -545,9 +550,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderCurrentWorkout() {
+    // Make renderCurrentWorkout globally accessible for the workout return fix
+    window.renderCurrentWorkout = function renderCurrentWorkout() {
         currentExerciseListEl.innerHTML = ''; // Clear previous
-        const exercisesToRender = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        const exercisesToRender = Array.isArray(window.currentWorkout) ? window.currentWorkout : window.currentWorkout.exercises;
 
         if (!exercisesToRender || exercisesToRender.length === 0) {
             currentExerciseListEl.innerHTML = '<p>Add exercises using the + button.</p>';
@@ -722,7 +728,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <option value="bodyweight" ${exerciseData.weight_unit === 'bodyweight' ? 'selected' : ''}>BW</option>
                             <option value="assisted" ${exerciseData.weight_unit === 'assisted' ? 'selected' : ''}>Assisted</option>
                         </select>
-                        <button type="button" class="btn-view-exercise" data-exercise-id="${exerciseData.exercise_id}" title="View Exercise Video">🎬</button>
+                        <button type="button" class="btn-view-exercise" data-exercise-id="${exerciseData.exercise_id}" title="View Exercise Video">View Exercise</button>
                         <button type="button" class="delete-template-exercise-btn btn-danger" data-index="${index}" title="Remove Exercise">&times;</button>
                     </div>
                 </div>
@@ -773,7 +779,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 data-exercise-id="${exerciseData.exercise_id}"
                                 data-has-video="${exerciseData.youtube_url ? 'true' : 'false'}"
                                 title="${exerciseData.youtube_url ? 'View Exercise Video' : 'No video available - click to add one'}">
-                                🎬 ${exerciseData.youtube_url ? 'View Exercise' : 'Add Video'}
+                                ${exerciseData.youtube_url ? 'View Exercise' : 'Add Video'}
                             </button>
                             <button type="button" class="view-history-btn"
                                 data-exercise-id="${exerciseData.exercise_id}"
@@ -965,7 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the button to reflect no video is available
                 button.classList.remove('has-video');
                 button.dataset.hasVideo = 'false';
-                button.textContent = '🎬 Add Video';
+                button.textContent = 'Add Video';
                 button.title = 'No video available - click to add one';
             } else {
                 console.log('[View Exercise] Opening existing YouTube URL:', exercise.youtube_url);
@@ -979,7 +985,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the button to reflect that a video is available
                 button.classList.add('has-video');
                 button.dataset.hasVideo = 'true';
-                button.textContent = '🎬 View Exercise';
+                button.textContent = 'View Exercise';
                 button.title = 'View Exercise Video';
 
                 if (isActiveWorkout || isTemplateEditor) {
@@ -1096,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log("[YouTube Modal] Updating button appearance for exercise:", currentExerciseId);
                         button.classList.add('has-video');
                         button.dataset.hasVideo = 'true';
-                        button.textContent = '🎬 View Exercise';
+                        button.textContent = 'View Exercise';
                         button.title = 'View Exercise Video';
                     });
 
@@ -1749,7 +1755,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveWorkoutState() {
         try {
             // Only save if we have an active workout
-            if (currentWorkout && (Array.isArray(currentWorkout) ? currentWorkout.length > 0 : currentWorkout.exercises?.length > 0)) {
+            if (window.currentWorkout && (Array.isArray(window.currentWorkout) ? window.currentWorkout.length > 0 : window.currentWorkout.exercises?.length > 0)) {
                 console.log('Saving workout state to localStorage');
 
                 // Update weight units from UI before saving
@@ -1758,11 +1764,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update set counts from UI before saving
                 updateSetCountsFromUI();
 
-                localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(currentWorkout));
+                localStorage.setItem(STORAGE_KEYS.CURRENT_WORKOUT, JSON.stringify(window.currentWorkout));
 
                 // Save workout start time if it exists
-                if (workoutStartTime) {
-                    localStorage.setItem(STORAGE_KEYS.WORKOUT_START_TIME, workoutStartTime.toString());
+                if (window.workoutStartTime) {
+                    localStorage.setItem(STORAGE_KEYS.WORKOUT_START_TIME, window.workoutStartTime.toString());
                 }
 
                 // Save current page if we're in active workout mode
@@ -1998,12 +2004,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const savedWorkout = localStorage.getItem(STORAGE_KEYS.CURRENT_WORKOUT);
             if (savedWorkout) {
                 console.log('Found saved workout in localStorage');
-                currentWorkout = JSON.parse(savedWorkout);
+                window.currentWorkout = JSON.parse(savedWorkout);
 
                 // Load workout start time if it exists
                 const savedStartTime = localStorage.getItem(STORAGE_KEYS.WORKOUT_START_TIME);
                 if (savedStartTime) {
-                    workoutStartTime = parseInt(savedStartTime);
+                    window.workoutStartTime = parseInt(savedStartTime);
                 }
 
                 // Load current page if it exists
@@ -2301,7 +2307,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function switchPage(pageToShow) {
+    // Make switchPage function globally accessible
+    window.switchPage = function switchPage(pageToShow) {
         console.log('switchPage called with:', pageToShow); // Log function call and argument
 
         // If we're navigating away from the active page, save the workout data
@@ -2421,13 +2428,13 @@ document.addEventListener('DOMContentLoaded', function() {
         clearWorkoutState();
 
         // Initialize currentWorkout as an array with exercises property
-        currentWorkout = {
+        window.currentWorkout = {
             name: 'New Workout',
             exercises: []
         };
         currentWorkoutNameEl.textContent = 'New Workout'; // Or prompt user for name
-        renderCurrentWorkout();
-        switchPage('active');
+        window.renderCurrentWorkout();
+        window.switchPage('active');
         startTimer();
 
         // Save the new empty workout state
@@ -2465,7 +2472,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Initialize currentWorkout as an object with name and exercises array
-        currentWorkout = {
+        window.currentWorkout = {
             name: template.name, // Store template name
             templateId: template.workout_id, // Store the template ID to track completion
             exercises: template.exercises.map(ex => {
@@ -2511,8 +2518,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentWorkoutNameEl.textContent = workoutName;
 
         // Render the workout and switch page
-        renderCurrentWorkout(); // This function expects currentWorkout.exercises
-        switchPage('active');
+        window.renderCurrentWorkout(); // This function expects currentWorkout.exercises
+        window.switchPage('active');
         startTimer();
         // Show FAB
         addExerciseFab.style.display = 'flex';
@@ -2985,6 +2992,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Also call the regular save function as a backup
         saveInputValues();
+
+        // Save goal checkboxes state if the function exists
+        if (typeof window.saveGoalCheckboxesState === 'function') {
+            window.saveGoalCheckboxesState();
+        }
+
+        // Save goal text state if the function exists
+        if (typeof window.saveGoalTextState === 'function') {
+            window.saveGoalTextState();
+        }
     }
 
     // Expose handleCompleteWorkout to the global scope for the inline handler
@@ -3173,9 +3190,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Timer Functions ---\
     function startTimer() {
         if (workoutTimerInterval) clearInterval(workoutTimerInterval); // Clear existing timer safely
-        workoutStartTime = Date.now();
+        window.workoutStartTime = Date.now();
         workoutTimerEl.textContent = '00:00:00';
-        workoutTimerInterval = setInterval(updateTimer, 1000); // Update every second
+        workoutTimerInterval = setInterval(window.updateTimer, 1000); // Update every second
         console.log('Timer started');
     }
 
@@ -3185,9 +3202,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Timer stopped');
     }
 
-    function updateTimer() {
-        if (!workoutStartTime) return; // Don't run if timer shouldn't be active
-        const elapsedMs = Date.now() - workoutStartTime;
+    // Make updateTimer globally accessible for the workout return fix
+    window.updateTimer = function updateTimer() {
+        if (!window.workoutStartTime) return; // Don't run if timer shouldn't be active
+        const elapsedMs = Date.now() - window.workoutStartTime;
         workoutTimerEl.textContent = formatTime(elapsedMs);
     }
 

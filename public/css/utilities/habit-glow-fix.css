@@ -1,0 +1,58 @@
+/**
+ * Habit Glow Fix
+ * Removes green glow from habit items and fixes frequency text display
+ */
+
+/* Remove green glow from habit items */
+.habit-item {
+    box-shadow: none !important;
+}
+
+.habit-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Remove green glow from completed habits */
+.habit-item.complete,
+.habit-item.counter-complete,
+.habit-item[data-completed="true"] {
+    box-shadow: none !important;
+    background-color: rgba(18, 18, 18, 0.8) !important;
+    border-left: 4px solid rgba(255, 255, 255, 0.3) !important;
+    background-image: none !important;
+}
+
+/* Remove green glow from checkbox */
+.habit-item[data-completed="true"] .habit-control-container::before {
+    box-shadow: none !important;
+    background-color: rgba(33, 33, 33, 0.3) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Remove green text shadow from checkmark */
+.habit-item[data-completed="true"] .habit-control-container::after {
+    text-shadow: none !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Remove green text from completed indicator */
+.habit-item[data-completed="true"]:not([data-counter="true"]) .habit-title::after {
+    color: rgba(255, 255, 255, 0.7) !important;
+    text-shadow: none !important;
+}
+
+/* Fix frequency text to prevent line breaks */
+.habit-frequency {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+/* Ensure habit content has enough width */
+.habit-content {
+    min-width: 150px !important;
+    max-width: none !important;
+    flex: 1 !important;
+}

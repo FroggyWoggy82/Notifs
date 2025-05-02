@@ -4,20 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Product Tracking - Task List</title>
-    <link rel="stylesheet" href="../css/index.css">
-    <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="../css/product-tracking.css">
+    <link rel="stylesheet" href="../css/base/index.css">
+    <link rel="stylesheet" href="../css/layout/sidebar.css">
+    <link rel="stylesheet" href="../css/pages/product-tracking.css">
     <!-- Dynamic theme color for status bar -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <link rel="stylesheet" href="../css/layout/bottom-nav-fix.css">
+    <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/task-icons-fix.css">
-    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
-    <link rel="stylesheet" href="../css/bottom-nav-hover-animation.css">
-    <link rel="stylesheet" href="../css/bottom-nav-white-highlight.css">
+    <link rel="stylesheet" href="../css/utilities/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/utilities/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/layout/bottom-nav-hover-animation.css">
+    <link rel="stylesheet" href="../css/layout/bottom-nav-white-highlight.css">
+    <link rel="stylesheet" href="../css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
 </head>
 <body>
     <button class="menu-button">
@@ -209,6 +211,7 @@
 
     <!-- Common utilities -->
     <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/sidebar-updater.js"></script> <!-- Sidebar updater to use the same sidebar as index.html -->
     <script src="../js/common/status-bar.js"></script>
 
     <!-- Product tracking functionality -->

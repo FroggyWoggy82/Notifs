@@ -138,8 +138,38 @@ async function updateIngredient(req, res) {
     const ingredientData = req.body;
 
     console.log(`Received PATCH /api/recipes/${recipeId}/ingredients/${ingredientId}:`, ingredientData);
+    console.log('package_amount in request:', ingredientData.package_amount, typeof ingredientData.package_amount);
+
+    // Process package_amount specifically
+    if (ingredientData.package_amount !== undefined) {
+        if (ingredientData.package_amount === null ||
+            ingredientData.package_amount === '' ||
+            ingredientData.package_amount === '0') {
+            ingredientData.package_amount = null;
+        } else {
+            // Force to number
+            ingredientData.package_amount = Number(ingredientData.package_amount);
+            // If conversion failed, set to null
+            if (isNaN(ingredientData.package_amount)) {
+                ingredientData.package_amount = null;
+            }
+        }
+    }
+
+    console.log('Processed package_amount:', ingredientData.package_amount, typeof ingredientData.package_amount);
 
     try {
+        // First, directly update the package_amount in the database
+        if (ingredientData.package_amount !== undefined) {
+            console.log('Directly updating package_amount in database...');
+            try {
+                await RecipeModel.updateIngredientPackageAmount(recipeId, ingredientId, ingredientData.package_amount);
+                console.log('Package amount updated successfully');
+            } catch (err) {
+                console.error('Error directly updating package_amount:', err);
+            }
+        }
+
         const recipe = await RecipeModel.updateIngredient(recipeId, ingredientId, ingredientData);
         console.log(`Ingredient ${ingredientId} in recipe ${recipeId} updated successfully`);
         res.json(recipe);
@@ -184,6 +214,49 @@ async function getIngredientById(req, res) {
     }
 }
 
+/**
+ * Update only the package amount of an ingredient
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function updateIngredientPackageAmount(req, res) {
+    const { recipeId, ingredientId } = req.params;
+    const { package_amount } = req.body;
+
+    console.log(`Received PATCH /api/recipes/${recipeId}/ingredients/${ingredientId}/package-amount:`, package_amount);
+
+    // Process package_amount
+    let packageAmount = null;
+    if (package_amount !== undefined && package_amount !== null && package_amount !== '') {
+        // Convert to number
+        packageAmount = Number(package_amount);
+
+        // If conversion failed, return error
+        if (isNaN(packageAmount)) {
+            return res.status(400).json({ error: 'Invalid package_amount value' });
+        }
+    }
+
+    console.log('Processed package_amount:', packageAmount, typeof packageAmount);
+
+    try {
+        const updatedIngredient = await RecipeModel.updateIngredientPackageAmount(recipeId, ingredientId, packageAmount);
+        console.log(`Package amount for ingredient ${ingredientId} in recipe ${recipeId} updated successfully to ${packageAmount}`);
+
+        // Get the full recipe to return
+        const recipe = await RecipeModel.getRecipeById(recipeId);
+        res.json(recipe);
+    } catch (error) {
+        console.error(`Error updating package amount for ingredient ${ingredientId} in recipe ${recipeId}:`, error);
+
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to update package amount' });
+    }
+}
+
 module.exports = {
     getAllRecipes,
     getRecipeById,
@@ -191,5 +264,6 @@ module.exports = {
     updateRecipeCalories,
     deleteRecipe,
     updateIngredient,
-    getIngredientById
+    getIngredientById,
+    updateIngredientPackageAmount
 };

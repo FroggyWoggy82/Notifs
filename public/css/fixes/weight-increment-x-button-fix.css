@@ -1,0 +1,116 @@
+/**
+ * Direct fix for the duplicate X button in the Weight Increment section
+ * This file contains a very targeted fix that only affects the X button in the Weight Increment label
+ */
+
+/* Target the no-x-button class specifically */
+.no-x-button button,
+.no-x-button::after,
+.no-x-button::before,
+.no-x-button > button,
+.no-x-button > span,
+.no-x-button > div {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    z-index: -1 !important;
+}
+
+/* Direct fix for the X button in the Weight Increment label */
+.exercise-options-menu .weight-increment-label button,
+.exercise-options-menu .weight-increment-label > button,
+.exercise-options-menu .weight-increment-label > span > button,
+.exercise-options-menu .weight-increment-label > div > button,
+.exercise-options-menu .weight-increment-label button.btn-delete-exercise,
+.exercise-options-menu .weight-increment-label button.delete-template-exercise-btn,
+.exercise-options-menu .weight-increment-label button[title*="Remove"],
+.exercise-options-menu .weight-increment-label button[title*="Delete"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    z-index: -1 !important;
+}
+
+/* Ensure the Weight Increment label has the correct text */
+.exercise-options-menu .weight-increment-label.x-button-fixed {
+    background: none !important;
+    border: none !important;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    color: #bbb !important;
+    font-size: 0.9rem !important;
+    padding: 0 5px !important;
+    margin: 0 !important;
+    display: inline-block !important;
+    cursor: default !important;
+    text-align: left !important;
+    font-weight: normal !important;
+    line-height: normal !important;
+}
+
+/* Target only the X button in the Weight Increment label */
+.exercise-options-menu-label .weight-increment-label button,
+.exercise-options-menu-label .weight-increment-label .btn-delete-exercise,
+.exercise-options-menu-label .weight-increment-label .delete-template-exercise-btn,
+.exercise-options-menu-label .weight-increment-label [class*="delete"],
+.exercise-options-menu-label .weight-increment-label [class*="remove"],
+.exercise-options-menu-label .weight-increment-label [title*="Remove"],
+.exercise-options-menu-label .weight-increment-label [title*="Delete"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    z-index: -1 !important;
+}
+
+/* Ensure the Weight Increment label doesn't have any button styling */
+.exercise-options-menu-label .weight-increment-label {
+    background: none !important;
+    border: none !important;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    color: #bbb !important;
+    font-size: 0.9rem !important;
+    padding: 0 5px !important;
+    margin: 0 !important;
+    display: inline-block !important;
+    cursor: default !important;
+    text-align: left !important;
+    font-weight: normal !important;
+    line-height: normal !important;
+}
+
+/* Force the content of the Weight Increment label to be exactly "Weight Increment:" */
+.weight-increment-label.no-x-button::before {
+    content: "Weight Increment:" !important;
+    position: static !important;
+    display: inline !important;
+}
+
+/* Hide any content inside the label */
+.weight-increment-label.no-x-button * {
+    display: none !important;
+}
+
+/* Ensure the X button is only on the actual delete button */
+.exercise-options-menu .btn-delete-exercise {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+}

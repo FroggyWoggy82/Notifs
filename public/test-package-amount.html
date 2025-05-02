@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Package Amount</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1, h2 {
+            color: #ffffff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button, select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #e0e0e0;
+        }
+        button {
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+        }
+        button:hover {
+            background-color: #444;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #222;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4caf50;
+        }
+        .error {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Package Amount</h1>
+    
+    <div class="form-group">
+        <label for="ingredient-select">Select Ingredient:</label>
+        <select id="ingredient-select">
+            <option value="7">Eggs Pasture Raised Vital Farms (ID: 7)</option>
+            <option value="8">Parmigiano Rggiano Galli (ID: 8)</option>
+            <option value="9">Shrimp Cooked from Frozen Great Catch (ID: 9)</option>
+            <option value="10">Avocado, California (ID: 10)</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="package-amount">Package Amount:</label>
+        <input type="number" id="package-amount" value="500">
+    </div>
+    
+    <div class="form-group">
+        <button id="update-button">Update Package Amount</button>
+        <button id="get-button">Get Current Value</button>
+    </div>
+    
+    <h2>Result</h2>
+    <div id="result">Results will appear here...</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ingredientSelect = document.getElementById('ingredient-select');
+            const packageAmountInput = document.getElementById('package-amount');
+            const updateButton = document.getElementById('update-button');
+            const getButton = document.getElementById('get-button');
+            const resultDiv = document.getElementById('result');
+            
+            // Update button
+            updateButton.addEventListener('click', async function() {
+                const ingredientId = ingredientSelect.value;
+                const packageAmount = packageAmountInput.value;
+                
+                resultDiv.innerHTML = 'Updating package amount...';
+                
+                try {
+                    // Use the direct SQL endpoint for simplicity
+                    const response = await fetch('/api/debug/direct-sql', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            recipeId: 1, // Doesn't matter for direct SQL
+                            ingredientId,
+                            packageAmount
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        resultDiv.innerHTML = `<span class="success">Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>\n${JSON.stringify(data, null, 2)}`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Get button
+            getButton.addEventListener('click', async function() {
+                const ingredientId = ingredientSelect.value;
+                
+                resultDiv.innerHTML = 'Getting current value...';
+                
+                try {
+                    const response = await fetch(`/api/recipes/1/ingredients/${ingredientId}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        resultDiv.innerHTML = `<span class="success">Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                    } else {
+                        const errorData = await response.json();
+                        resultDiv.innerHTML = `<span class="error">Error: ${errorData.error}</span>`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

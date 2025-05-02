@@ -1,0 +1,25 @@
+/**
+ * Bottom Navigation White Highlight
+ * Changes the active highlight color from green to white
+ */
+
+/* Change active item color to white */
+.nav-item.active {
+    color: #FFFFFF !important;
+}
+
+/* Change active icon color to white */
+.nav-item.active .nav-icon {
+    color: #FFFFFF !important;
+}
+
+/* Change the loading line animation color to white */
+.bottom-nav .nav-item::before {
+    background-color: #FFFFFF !important;
+}
+
+/* Add a subtle glow effect to the loading line */
+.bottom-nav .nav-item:hover::before,
+.bottom-nav .nav-item.active::before {
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
+}

@@ -289,23 +289,23 @@ h1 {
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-.plus-button { 
-    background-color: var(--color-primary-dark); 
-    color: var(--color-dark-bg); 
-    border-color: var(--color-primary); 
+.plus-button {
+    background-color: var(--color-primary-dark);
+    color: var(--color-dark-bg);
+    border-color: var(--color-primary);
 }
-.plus-button:hover { 
-    background-color: var(--color-primary); 
+.plus-button:hover {
+    background-color: var(--color-primary);
     box-shadow: var(--glow-primary);
 }
 
-.delete-button { 
-    background-color: var(--color-error-dark); 
-    color: var(--color-white); 
-    border-color: var(--color-error); 
+.delete-button {
+    background-color: var(--color-error-dark);
+    color: var(--color-white);
+    border-color: var(--color-error);
 }
-.delete-button:hover { 
-    background-color: var(--color-error); 
+.delete-button:hover {
+    background-color: var(--color-error);
     box-shadow: var(--glow-accent);
 }
 
@@ -315,8 +315,8 @@ h1 {
     color: var(--color-white);
     border-color: var(--color-info);
 }
-.edit-button:hover { 
-    background-color: var(--color-info); 
+.edit-button:hover {
+    background-color: var(--color-info);
     box-shadow: 0 0 5px rgba(0, 176, 255, 0.5);
 }
 
@@ -325,8 +325,8 @@ h1 {
     color: var(--color-white);
     border-color: var(--color-primary);
 }
-.save-button:hover { 
-    background-color: var(--color-primary); 
+.save-button:hover {
+    background-color: var(--color-primary);
     box-shadow: var(--glow-primary);
 }
 
@@ -335,8 +335,8 @@ h1 {
     color: var(--color-white);
     border-color: var(--color-error);
 }
-.cancel-button:hover { 
-    background-color: var(--color-error); 
+.cancel-button:hover {
+    background-color: var(--color-error);
     box-shadow: var(--glow-accent);
 }
 
@@ -360,37 +360,7 @@ h1 {
     box-shadow: 0 0 5px rgba(255, 171, 0, 0.5);
 }
 
-/* Bottom Navigation */
-.bottom-nav {
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    background-color: var(--color-dark-surface);
-    display: flex; 
-    justify-content: space-around; 
-    padding: 10px 0;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3); 
-    z-index: 1000;
-}
-
-.nav-item {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    color: var(--color-dark-text-secondary);
-    text-decoration: none; 
-    font-size: 12px;
-}
-
-.nav-item.active { 
-    color: var(--color-primary); 
-}
-
-.nav-icon { 
-    font-size: 24px; 
-    margin-bottom: 2px; 
-}
+/* Bottom Navigation styling is handled by unified-bottom-nav-final.css */
 
 /* Media Queries for Responsiveness */
 @media screen and (max-width: 768px) {

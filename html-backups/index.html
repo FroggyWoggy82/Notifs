@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task Dashboard</title>
+    <meta name="description" content="A simple PWA To-Do list with background notifications">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Unified CSS structure -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components/modal-fix.css">
+    <link rel="stylesheet" href="css/pages/habit-redesign.css">
+    <link rel="stylesheet" href="css/fixes/habit-card-fix.css">
+    <link rel="stylesheet" href="css/fixes/habit-alignment-fix.css">
+    <link rel="stylesheet" href="css/components/habit-action-buttons-fix.css">
+    <link rel="stylesheet" href="css/fixes/habit-text-fix.css">
+    <link rel="stylesheet" href="css/layout/header-text-fix.css">
+    <link rel="stylesheet" href="css/layout/status-bar-fix.css">
+    <link rel="stylesheet" href="css/layout/header-area-fix.css">
+    <link rel="stylesheet" href="css/layout/sidebar-fix.css">
+    <link rel="stylesheet" href="css/fixes/task-action-hover-fix.css">
+    <link rel="stylesheet" href="css/utilities/task-icons-fix.css">
+    <link rel="stylesheet" href="css/components/checkbox-redesign.css">
+    <link rel="stylesheet" href="css/utilities/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="css/components/progress-photo-fix.css">
+    <link rel="stylesheet" href="css/utilities/date-badge-redesign.css">
+    <link rel="stylesheet" href="css/fixes/habit-button-fix.css">
+    <link rel="stylesheet" href="css/fixes/habit-ui-fix.css">
+    <link rel="stylesheet" href="css/utilities/habit-glow-fix.css">
+    <link rel="stylesheet" href="css/utilities/habit-indicators-redesign.css">
+    <link rel="stylesheet" href="css/components/progress-badge-fix.css">
+    <link rel="stylesheet" href="css/components/habit-checkbox-fix.css">
+    <link rel="stylesheet" href="css/components/header-dropdown-fix.css">
+    <link rel="stylesheet" href="css/components/action-buttons-uniform.css">
+    <link rel="stylesheet" href="css/components/habit-checkbox-alignment.css">
+    <link rel="stylesheet" href="css/components/dropdown-arrow-fix.css">
+    <link rel="stylesheet" href="css/components/modal-highlight-fix.css">
+    <link rel="stylesheet" href="css/fixes/notification-status-fix.css">
+    <link rel="stylesheet" href="css/utilities/remove-recurrence-indicators.css"> <!-- Remove recurrence indicators -->
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Dynamic theme color for status bar - updated for dark theme -->
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+    <link rel="stylesheet" href="css/layout/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
+</head>
+<body>
+    <button class="menu-button">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Dashboard</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item active">
+                <span class="nav-icon"><i class="fas fa-check"></i></span>
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-star"></i></span>
+                <span>Goals</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
+                <span>Days Since</span>
+            </a>
+            <a href="/pages/food.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-utensils"></i></span>
+                <span>Food</span>
+            </a>
+            <a href="/pages/journal.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-book"></i></span>
+                <span>Journal</span>
+            </a>
+            <a href="/pages/product-tracking.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-flask"></i></span>
+                <span>Product Tracking</span>
+            </a>
+            <a href="/pages/settings.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <div class="container">
+        <h1 class="gradient-text">My Tasks</h1>
+        <div id="permissionStatus" class="notifications-status glass" style="display: none;">
+            <i class="fas fa-bell"></i> Checking notification permission...
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <!-- Dashboard section removed for a more compact UI -->
+
+    <section class="task-list-section">
+        <div class="card">
+            <div class="card__header">
+                <h2 class="card__title">Task List</h2>
+                <div class="task-filter-container">
+                    <select id="taskFilter" class="form-control form-control--glass">
+                        <option value="unassigned_today" selected>Unassigned, Today & Overdue</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="all">All Tasks</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card__body" style="padding-top: 0;">
+                <div id="taskList">
+                    <p>Loading tasks...</p>
+                </div>
+                <div id="taskListStatus" class="status"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Completed Tasks Section ===== -->
+    <section class="completed-tasks-section">
+        <div class="card">
+            <div class="card__header">
+                <h3 class="card__title collapsible-header" id="completedTasksHeader" style="margin-bottom: 0;">
+                    Completed Tasks <i class="fas fa-chevron-down"></i>
+                </h3>
+            </div>
+            <div class="card__body collapsible-content" id="completedTaskList" style="display: none; padding-top: 0;">
+                <!-- Completed tasks will be dynamically added here -->
+                <p>No completed tasks yet.</p>
+            </div>
+        </div>
+    </section>
+    <!-- ===== End Completed Tasks Section ===== -->
+
+    <!-- ===== Habit List Section ===== -->
+    <section class="habit-list-section">
+        <div class="card card--habits">
+            <div class="card__header">
+                <h2 class="card__title" style="margin-bottom: 0;">Habit List</h2>
+                <div class="card__actions">
+                    <button id="addHabitBtn" class="btn btn--primary btn--sm btn--auto">
+                        <i class="fas fa-plus"></i> New Habit
+                    </button>
+                </div>
+            </div>
+            <div class="card__body" style="padding: 0;">
+                <div id="habitList" style="width: 100%; margin: 0; padding: 0;">
+                    <p>Loading habits...</p> <!-- Placeholder -->
+                </div>
+                <div id="habitListStatus" class="status"></div>
+            </div>
+        </div>
+    </section>
+    <!-- ===== End Habit List Section ===== -->
+
+    </div> <!-- End of container -->
+
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item active" data-page="home-page">
+            <div class="nav-icon"><i class="fas fa-check"></i></div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon"><i class="fas fa-star"></i></div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
+            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
+            <span>Food</span>
+        </a>
+    </div>
+
+    <!-- ===== Add Task Modal ===== -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" style="position: absolute; top: 10px; right: 15px;"><i class="fas fa-times"></i></span>
+            <div class="modal-header">
+                <h2>Add New Task</h2>
+                <div class="modal-controls">
+                    <div class="toggle-container">
+                        <label class="toggle-switch" title="Use last task inputs">
+                            <input type="checkbox" id="useLastInputs">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Reuse last inputs</span>
+                    </div>
+                </div>
+            </div>
+            <form id="addTaskForm">
+                <div class="form-group">
+                    <label for="taskTitle" class="form-label">Title:</label>
+                    <input type="text" id="taskTitle" class="form-control" placeholder="What needs to be done?" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription" class="form-label">Description (Optional):</label>
+                    <textarea id="taskDescription" class="form-control" placeholder="Add more details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reminders (Optional):</label>
+                    <div class="reminder-checkboxes">
+                        <div class="form-check">
+                            <input type="checkbox" id="reminderSameDay" class="form-check-input" value="same-day">
+                            <label for="reminderSameDay" class="form-check-label">On the due date</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="reminderDayBefore" class="form-check-input" value="day-before">
+                            <label for="reminderDayBefore" class="form-check-label">1 day before</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="reminderWeekBefore" class="form-check-input" value="week-before">
+                            <label for="reminderWeekBefore" class="form-check-label">1 week before</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="reminderCustom" class="form-check-input" value="custom">
+                            <label for="reminderCustom" class="form-check-label">Custom time</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="customReminderGroup" style="display: none;">
+                    <label for="taskReminderTime" class="form-label">Custom Reminder Time:</label>
+                    <input type="datetime-local" id="taskReminderTime" class="form-control">
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="taskDueDate" class="form-label">Due Date:</label>
+                        <input type="date" id="taskDueDate" class="form-control">
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="taskDuration" class="form-label">Duration (days):</label>
+                        <input type="number" id="taskDuration" class="form-control" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="taskRecurrenceType" class="form-label">Recurrence:</label>
+                        <select id="taskRecurrenceType" class="form-control">
+                            <option value="none" selected>None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="recurrenceIntervalGroup" style="display: none;">
+                        <label for="taskRecurrenceInterval" class="form-label">Every:</label>
+                        <div class="input-group">
+                            <input type="number" id="taskRecurrenceInterval" class="form-control" value="1" min="1" step="1" style="width: 60px;">
+                            <span id="recurrenceIntervalUnit" class="input-group-text">days</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" id="addTaskBtn" class="btn btn--primary">
+                    <i class="fas fa-plus-circle"></i> Add Task
+                </button>
+            </form>
+            <div id="addTaskStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Add Task Modal ===== -->
+
+    <!-- ===== Add Task FAB ===== -->
+    <button id="addTaskFab" class="fab" title="Add New Task" style="display: flex; pointer-events: auto;">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- ===== Edit Task Modal ===== -->
+    <div id="editTaskModal" class="modal" style="z-index: 10000;">
+        <div class="modal-content" style="background-color: #121212; color: #e0e0e0;">
+            <span class="close-button"><i class="fas fa-times"></i></span>
+            <div class="modal-header">
+                <h2>Edit Task</h2>
+            </div>
+            <form id="editTaskForm">
+                <input type="hidden" id="editTaskId"> <!-- Hidden field for ID -->
+                <div class="form-group">
+                    <label for="editTaskTitle" class="form-label">Title:</label>
+                    <input type="text" id="editTaskTitle" class="form-control" placeholder="What needs to be done?" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTaskDescription" class="form-label">Description (Optional):</label>
+                    <textarea id="editTaskDescription" class="form-control" placeholder="Add more details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reminders (Optional):</label>
+                    <div class="reminder-checkboxes">
+                        <div class="form-check">
+                            <input type="checkbox" id="editReminderSameDay" class="form-check-input" value="same-day">
+                            <label for="editReminderSameDay" class="form-check-label">On the due date</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="editReminderDayBefore" class="form-check-input" value="day-before">
+                            <label for="editReminderDayBefore" class="form-check-label">1 day before</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="editReminderWeekBefore" class="form-check-input" value="week-before">
+                            <label for="editReminderWeekBefore" class="form-check-label">1 week before</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="editReminderCustom" class="form-check-input" value="custom">
+                            <label for="editReminderCustom" class="form-check-label">Custom time</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="editCustomReminderGroup" style="display: none;">
+                    <label for="editTaskReminderTime" class="form-label">Custom Reminder Time:</label>
+                    <input type="datetime-local" id="editTaskReminderTime" class="form-control">
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="editTaskDueDate" class="form-label">Due Date:</label>
+                        <input type="date" id="editTaskDueDate" class="form-control">
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="editTaskDuration" class="form-label">Duration (days):</label>
+                        <input type="number" id="editTaskDuration" class="form-control" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="editTaskRecurrenceType" class="form-label">Recurrence:</label>
+                        <select id="editTaskRecurrenceType" class="form-control">
+                            <option value="none">None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="editRecurrenceIntervalGroup" style="display: none;">
+                        <label for="editTaskRecurrenceInterval" class="form-label">Every:</label>
+                        <div class="input-group">
+                            <input type="number" id="editTaskRecurrenceInterval" class="form-control" value="1" min="1" step="1" style="width: 60px;">
+                            <span id="editRecurrenceIntervalUnit" class="input-group-text">days</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" id="saveTaskBtn" style="background-color: #00e676; color: #121212; padding: 12px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px;">Save Changes</button>
+            </form>
+            <div id="editTaskStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Edit Task Modal ===== -->
+
+    <!-- ===== Add Habit Modal ===== -->
+    <div id="addHabitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Habit</h2>
+                <div class="modal-controls">
+                    <span class="close-button"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+            <form id="addHabitForm">
+                <div class="form-group">
+                    <label for="habitTitle" class="form-label">Title:</label>
+                    <input type="text" id="habitTitle" class="form-control" placeholder="What habit to build?" required>
+                </div>
+                <!-- Add description later if needed -->
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="habitRecurrenceType" class="form-label">Frequency:</label>
+                        <select id="habitRecurrenceType" class="form-control">
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <!-- Add specific days of week/month later -->
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="habitCompletionsGroup">
+                        <label for="habitCompletionsPerDay" class="form-label">Completions per Day:</label>
+                        <input type="number" id="habitCompletionsPerDay" class="form-control" value="1" min="1" step="1">
+                    </div>
+                </div>
+                <!-- Add goal/streak info later if needed -->
+                <button type="submit" id="submitHabitBtn" class="btn btn--primary">
+                    <i class="fas fa-plus-circle"></i> Add Habit
+                </button>
+            </form>
+            <div id="addHabitStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Add Habit Modal ===== -->
+
+    <!-- ===== Edit Habit Modal ===== -->
+    <div id="editHabitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Habit</h2>
+                <div class="modal-controls">
+                    <span class="close-button"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+            <form id="editHabitForm">
+                <input type="hidden" id="editHabitId"> <!-- Hidden field for ID -->
+                <div class="form-group">
+                    <label for="editHabitTitle" class="form-label">Title:</label>
+                    <input type="text" id="editHabitTitle" class="form-control" placeholder="What habit to build?" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="editHabitRecurrenceType" class="form-label">Frequency:</label>
+                        <select id="editHabitRecurrenceType" class="form-control">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group-half" id="editHabitCompletionsGroup">
+                        <label for="editHabitCompletionsPerDay" class="form-label">Completions per Day:</label>
+                        <input type="number" id="editHabitCompletionsPerDay" class="form-control" value="1" min="1" step="1">
+                    </div>
+                </div>
+                <button type="submit" id="submitEditHabitBtn" class="btn btn--primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+            <div id="editHabitStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Edit Habit Modal ===== -->
+
+    <!-- Common utilities -->
+    <script src="js/common/sidebar.js"></script>
+    <script src="js/common/status-bar.js"></script>
+    <script src="js/common/clear-cache.js"></script>
+    <script src="js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="js/notification-permission-check.js"></script> <!-- Notification permission check -->
+
+    <!-- Dashboard functionality -->
+    <script src="js/dashboard-stats.js"></script>
+
+    <!-- Task functionality -->
+    <script src="js/tasks/recurring-task-helper.js"></script>
+    <script src="js/tasks/script.js"></script>
+    <script src="js/tasks/edit-modal-fix.js"></script>
+    <script src="js/tasks/add-task-modal-fix.js"></script>
+    <script src="js/tasks/task-action-hover-fix.js"></script>
+    <script src="js/tasks/task-icons-fix.js"></script>
+    <script src="js/tasks/checkbox-redesign.js"></script>
+    <script src="js/tasks/recurrence-indicator-redesign.js"></script>
+    <script src="js/tasks/progress-photo-fix.js"></script>
+    <script src="js/tasks/date-badge-redesign.js"></script>
+    <script src="js/dropdown-arrow-toggle.js"></script>
+
+    <!-- Habit functionality -->
+    <script src="js/habits/habit-level-fix.js"></script>
+    <script src="js/habits/habit-completion-fix.js"></script>
+    <script src="js/habits/habit-icons-fix.js"></script>
+    <script src="js/habits/high-completion-habit-fix.js"></script>
+    <script src="js/habits/habit-reset.js"></script>
+    <script src="js/habits/habit-modal-fix.js"></script>
+    <script src="js/habits/habit-redesign.js"></script>
+
+    <!-- Calendar integration -->
+    <script src="js/calendar/calendar-refresh-fix.js"></script>
+
+    <!-- Overdue recurrence adjuster - must be loaded last -->
+    <script src="js/tasks/overdue-recurrence-adjuster.js"></script>
+</body>
+</html>

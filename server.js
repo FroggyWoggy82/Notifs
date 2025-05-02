@@ -45,6 +45,10 @@ const mobileUploadRoutes = require('./routes/mobile-upload'); // NEW: Mobile-spe
 const basicUploadRoutes = require('./routes/basic-upload'); // NEW: Ultra-basic photo upload route
 const habitRoutes = require('./routes/habitRoutesSimple'); // Using extremely simplified route handler
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
+const uniqueIngredientsRoutes = require('./routes/uniqueIngredients'); // NEW: Unique ingredients route
+const debugRoutes = require('./routes/debugRoutes'); // DEBUG: Routes for debugging
+const directUpdateRoutes = require('./routes/directUpdateRoutes'); // DIRECT: Routes for direct updates
+const packageAmountRoutes = require('./routes/packageAmountRoutes'); // PACKAGE: Routes for package amount
 const weightRoutes = require('./routes/weight'); // Main weight routes file
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
@@ -148,6 +152,9 @@ app.use('/api/mobile', mobileUploadRoutes); // NEW: Mobile-specific upload route
 app.use('/api/basic', basicUploadRoutes); // NEW: Ultra-basic upload route
 app.use('/api/habits', habitRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/unique-ingredients', uniqueIngredientsRoutes); // NEW: Unique ingredients route
+app.use('/api/debug', debugRoutes); // DEBUG: Routes for debugging
+app.use('/api/direct-update', directUpdateRoutes); // DIRECT: Routes for direct updates
 app.use('/api/weight', weightRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);

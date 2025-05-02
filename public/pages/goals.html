@@ -7,47 +7,64 @@
     <!-- Import the main CSS file which includes all base styles and components -->
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/goals-dark-theme.css">
+    <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/task-icons-fix.css">
     <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
     <link rel="stylesheet" href="../css/edit-pencil-white-hover.css"> <!-- Change edit pencil hover color to white -->
     <link rel="stylesheet" href="../css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
+    <link rel="stylesheet" href="../css/bottom-nav-scrollbar-fix.css"> <!-- Fix for scrollbar covering bottom nav -->
+    <link rel="stylesheet" href="../css/bottom-nav-highlight-position-fix.css"> <!-- Fix for highlight position -->
+    <link rel="stylesheet" href="../css/bottom-nav-white-highlight.css"> <!-- White highlight for bottom nav -->
+    <link rel="stylesheet" href="../css/goals-bottom-nav-override.css"> <!-- Override for bottom nav -->
+    <link rel="stylesheet" href="../css/goals.css"> <!-- Goals specific styling -->
+    <link rel="stylesheet" href="../css/goal-box-dark-fix.css"> <!-- Fix for goal box background color -->
+    <link rel="stylesheet" href="../css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
+    <link rel="stylesheet" href="../css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
+    <link rel="stylesheet" href="../css/goals-bottom-nav-fix.css"> <!-- Fix for goals bottom nav alignment -->
 </head>
 <body>
     <button class="menu-button">
         <i class="fas fa-bars"></i>
     </button> <!-- Hamburger Icon -->
 
+    <!-- Sidebar Overlay -->
     <div class="sidebar-overlay"></div>
+
+    <!-- Sidebar Navigation -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2>Menu</h2>
+            <h2>Dashboard</h2>
         </div>
         <nav class="sidebar-nav">
             <a href="/index.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-check"></i></span> <!-- Checkmark -->
+                <span class="nav-icon"><i class="fas fa-check"></i></span>
                 <span>Tasks</span>
             </a>
             <a href="/pages/goals.html" class="sidebar-nav-item active">
-                <span class="nav-icon"><i class="fas fa-star"></i></span> <!-- Star -->
+                <span class="nav-icon"><i class="fas fa-star"></i></span>
                 <span>Goals</span>
             </a>
             <a href="/pages/workouts.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-dumbbell"></i></span> <!-- Dumbbell -->
+                <span class="nav-icon"><i class="fas fa-dumbbell"></i></span>
                 <span>Workouts</span>
             </a>
             <a href="/pages/calendar.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span> <!-- Calendar -->
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
                 <span>Calendar</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
+                <span>Days Since</span>
             </a>
             <a href="/pages/food.html" class="sidebar-nav-item">
                 <span class="nav-icon"><i class="fas fa-utensils"></i></span>
                 <span>Food</span>
             </a>
-            <a href="/pages/days-since.html" class="sidebar-nav-item">
-                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
-                <span>Days Since</span>
+            <a href="/pages/journal.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-book"></i></span>
+                <span>Journal</span>
             </a>
             <a href="/pages/product-tracking.html" class="sidebar-nav-item">
                 <span class="nav-icon"><i class="fas fa-flask"></i></span>
@@ -78,6 +95,7 @@
 
     <!-- Common utilities -->
     <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/sidebar-updater.js"></script> <!-- Sidebar updater to use the same sidebar as index.html -->
 
     <!-- Goals functionality -->
     <script src="../js/goals/goals.js"></script>
@@ -85,5 +103,6 @@
     <script src="../js/tasks/task-icons-fix.js"></script>
     <script src="../js/tasks/checkbox-redesign.js"></script>
     <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+    <script src="../js/goals/goals-bottom-nav-fix.js"></script> <!-- Goals bottom navigation fix -->
 </body>
 </html>

@@ -1,0 +1,125 @@
+/* Checkbox alignment fix */
+
+/* Force task items to use row layout - with high specificity */
+html body .task-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important; /* Remove gap to have more control over spacing */
+}
+
+/* Style the checkbox container - with high specificity */
+html body .task-checkbox-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 10px !important;
+    flex-shrink: 0 !important;
+    order: -1 !important; /* Ensure checkbox container is always first */
+    min-width: 20px !important; /* Fixed width */
+    max-width: 20px !important; /* Fixed width */
+    height: 20px !important; /* Fixed height to match width */
+}
+
+/* Ensure checkboxes are perfectly circular - with high specificity */
+html body .task-item input[type="checkbox"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    align-self: center !important;
+    position: relative !important;
+    width: 16px !important;
+    height: 16px !important;
+    /* Futuristic styling without glow */
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    border: 1.5px solid #00E676 !important;
+    border-radius: 50% !important; /* Circular shape for futuristic look */
+    box-shadow: none !important; /* No glow */
+    transition: all 0.2s ease !important;
+    overflow: hidden !important;
+    transform: none !important; /* No rotation */
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+
+/* Add a subtle glow effect inside the checkbox */
+html body .task-item input[type="checkbox"]::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: radial-gradient(circle at center, rgba(0, 230, 118, 0.1) 0%, transparent 70%) !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+/* Hover effect for checkboxes */
+html body .task-item input[type="checkbox"]:hover {
+    border-color: rgba(0, 230, 118, 0.9) !important;
+    box-shadow: none !important; /* No glow */
+    transform: scale(1.05) !important; /* Slight grow effect on hover */
+}
+
+html body .task-item input[type="checkbox"]:hover::after {
+    opacity: 0.7 !important;
+}
+
+/* Checked state for checkboxes */
+html body .task-item input[type="checkbox"]:checked {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+    border-color: #00ff77 !important;
+    border-width: 1.5px !important;
+    box-shadow: none !important; /* No glow */
+    animation: none !important; /* No animation */
+}
+
+/* Animations removed */
+
+html body .task-item input[type="checkbox"]:checked::after {
+    opacity: 1 !important;
+}
+
+/* Style the fill effect instead of checkmark */
+html body .task-item input[type="checkbox"]::before {
+    content: "" !important; /* No character, just a fill */
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 50% !important;
+    background-color: #00E676 !important; /* Bright green fill */
+    transform: translate(-50%, -50%) scale(0) !important; /* Center the fill */
+    transition: all 0.2s ease-out !important;
+    box-shadow: none !important; /* No glow */
+    opacity: 0 !important;
+}
+
+html body .task-item input[type="checkbox"]:checked::before {
+    transform: translate(-50%, -50%) scale(1) !important; /* Center the fill */
+    animation: none !important; /* No animation */
+    opacity: 1 !important;
+}
+
+/* Ensure task content is properly aligned - with high specificity */
+html body .task-content {
+    flex-grow: 1 !important;
+    flex-shrink: 1 !important;
+    padding-top: 1px !important;
+    order: 0 !important; /* Content comes after checkbox */
+    min-width: 0 !important; /* Allow content to shrink if needed */
+    margin-left: 4px !important; /* Add margin to separate from checkbox */
+}
+
+/* Ensure task actions are properly aligned - with high specificity */
+html body .task-actions {
+    margin-left: auto !important;
+    align-items: flex-start !important;
+    margin-top: 2px !important;
+    order: 1 !important; /* Actions come last */
+    flex-shrink: 0 !important; /* Don't allow actions to shrink */
+    display: flex !important;
+    gap: 4px !important;
+}

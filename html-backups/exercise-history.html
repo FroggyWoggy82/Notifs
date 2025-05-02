@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workout Analytics - Task List</title>
+    <!-- Import the main CSS file which includes all base styles and components -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/workout-dark-theme.css">
+    <!-- Specific workout styles -->
+    <link rel="stylesheet" href="../css/workouts.css"> <!-- Shared workout styles -->
+    <link rel="stylesheet" href="../css/exercise-history.css"> <!-- Specific exercise history styles -->
+    <!-- Dynamic theme color for status bar -->
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/bottom-nav-hover-animation.css">
+    <link rel="stylesheet" href="../css/white-accent-redesign.css"> <!-- Change blue/teal accents to white -->
+    <link rel="stylesheet" href="../css/bottom-nav-white-highlight.css">
+</head>
+<body>
+    <button class="menu-button">
+        <i class="fas fa-bars"></i>
+    </button> <!-- Hamburger Icon -->
+
+    <div class="sidebar-overlay"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/index.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-check"></i></span> <!-- Checkmark -->
+                <span>Tasks</span>
+            </a>
+            <a href="/pages/goals.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-star"></i></span> <!-- Star -->
+                <span>Goals</span>
+            </a>
+             <a href="/pages/workouts.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-dumbbell"></i></span> <!-- Dumbbell -->
+                <span>Workouts</span>
+            </a>
+            <a href="/pages/exercise-history.html" class="sidebar-nav-item active"> <!-- Mark exercise history active -->
+                <span class="nav-icon"><i class="fas fa-chart-bar"></i></span> <!-- Chart icon -->
+                <span>Workout Analytics</span>
+            </a>
+            <a href="/pages/calendar.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span> <!-- Calendar -->
+                <span>Calendar</span>
+            </a>
+            <a href="/pages/food.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-utensils"></i></span>
+                <span>Food</span>
+            </a>
+            <a href="/pages/days-since.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-stopwatch"></i></span>
+                <span>Days Since</span>
+            </a>
+            <a href="/pages/product-tracking.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-flask"></i></span>
+                <span>Product Tracking</span>
+            </a>
+            <a href="/pages/settings.html" class="sidebar-nav-item">
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="content-wrapper workout-content">
+        <div class="page active">
+            <h1>Workout Analytics</h1>
+
+            <!-- Exercise History Section -->
+            <div class="history-section">
+                <div class="history-search-filter-container" style="display: flex; align-items: center; height: 40px; margin-bottom: 15px;">
+                    <div class="form-group history-search-group" style="margin: 0; padding: 0; height: 40px; display: flex; align-items: center;">
+                        <label for="history-exercise-search" class="sr-only">Search Exercise:</label>
+                        <input type="text" id="history-exercise-search" class="text-input history-search-input" placeholder="Search exercises..." style="height: 40px; margin: 0; padding: 10px;">
+                        <div id="history-search-results" class="search-results-list"></div>
+                    </div>
+                    <div class="form-group history-category-group" style="margin: 0; padding: 0; height: 40px; display: flex; align-items: center;">
+                        <label for="history-category-filter-select" class="sr-only">Filter by Category:</label>
+                        <select id="history-category-filter-select" class="category-filter" style="height: 40px; margin: 0; padding: 10px;">
+                            <option value="all">All Categories</option>
+                            <option value="core">Core</option>
+                            <option value="arms">Arms</option>
+                            <option value="shoulders">Shoulders</option>
+                            <option value="chest">Chest</option>
+                            <option value="legs">Legs</option>
+                            <option value="back">Back</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button id="history-edit-btn" class="btn btn-secondary btn-small" style="display: none; height: 40px; margin: 0; padding: 0 15px;">Edit History</button>
+                </div>
+                <div class="chart-container" style="position: relative; height:40vh; width:80vw; margin: 20px auto;">
+                    <canvas id="exercise-history-chart"></canvas>
+                    <p id="history-message" style="text-align: center; margin-top: 20px;"></p> <!-- Message area -->
+                </div>
+
+                <!-- 1RM Prediction Table -->
+                <div id="prediction-table-container" style="display: none;">
+                    <h3>Predicted Weights by Rep Count</h3>
+                    <p id="prediction-info">Based on your best set: <span id="best-set-info">-</span></p>
+                    <p class="prediction-legend">
+                        <span class="legend-item" style="background-color: rgba(76, 175, 80, 0.2);">Highlighted rows</span> = weights you've already achieved (actual weights shown)
+                    </p>
+                    <div style="overflow-x: auto;">
+                        <table class="prediction-table">
+                            <thead>
+                                <tr>
+                                    <th>Reps</th>
+                                    <th>Predicted</th>
+                                    <th>Best Achieved</th>
+                                    <th>% of 1RM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prediction-table-body">
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- End Exercise History Section -->
+
+            <div class="back-to-workouts" style="text-align: right; margin: 20px 0;">
+                <a href="/pages/workouts.html" class="btn btn-secondary">Back to Workouts</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Edit Modal -->
+    <div id="history-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('history-edit-modal').style.display='none'">&times;</span>
+            <h2>Edit Exercise History: <span id="history-edit-modal-title-name"></span></h2>
+
+            <!-- Form Section -->
+            <form id="history-edit-form" novalidate>
+                <input type="hidden" id="history-edit-exercise-id">
+
+                <div class="form-group">
+                    <label for="history-edit-date">Date:</label>
+                    <input type="date" id="history-edit-date" required>
+                </div>
+                <div id="history-edit-sets-container" class="sets-container">
+                    <!-- Set rows will be rendered here by JS -->
+                </div>
+                <div class="set-actions-container" style="margin-top: 10px;">
+                    <button type="button" id="history-edit-remove-set" class="btn btn-danger btn-small">- Remove Set</button>
+                    <button type="button" id="history-edit-add-set" class="btn btn-secondary btn-small">+ Add Set</button>
+                </div>
+                <div class="form-group">
+                    <label for="history-edit-notes">Notes (optional):</label>
+                    <textarea id="history-edit-notes" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save New Entry</button>
+                </div>
+            </form>
+
+            <hr class="page-divider">
+
+            <!-- Existing Logs Section -->
+            <h4>Existing Log Entries</h4>
+            <div id="history-edit-log-list" class="modal-list">
+                <!-- Existing logs will be listed here -->
+                <p>Loading existing logs...</p>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('history-edit-modal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon"><i class="fas fa-check"></i></div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon"><i class="fas fa-star"></i></div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
+            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
+            <span>Food</span>
+        </a>
+    </div>
+
+    <!-- Common utilities -->
+    <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/status-bar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Exercise history functionality -->
+    <script src="../js/exercise-history/exercise-history.js"></script>
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package Amount Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1, h2 {
+            color: #ffffff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button, select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #e0e0e0;
+        }
+        button {
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+        }
+        button:hover {
+            background-color: #444;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #222;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4caf50;
+        }
+        .error {
+            color: #f44336;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        th {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Package Amount Test</h1>
+    
+    <div class="form-group">
+        <button id="load-ingredients">Load Ingredients</button>
+    </div>
+    
+    <div id="ingredients-container" style="display: none;">
+        <h2>Update Package Amount</h2>
+        
+        <div class="form-group">
+            <label for="ingredient-select">Select Ingredient:</label>
+            <select id="ingredient-select"></select>
+        </div>
+        
+        <div class="form-group">
+            <label for="package-amount">Package Amount (g):</label>
+            <input type="number" id="package-amount" value="500">
+        </div>
+        
+        <div class="form-group">
+            <button id="update-button">Update Package Amount</button>
+        </div>
+        
+        <h2>Ingredients</h2>
+        <div id="ingredients-table"></div>
+    </div>
+    
+    <h2>Result</h2>
+    <div id="result">Click "Load Ingredients" to start...</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadIngredientsButton = document.getElementById('load-ingredients');
+            const ingredientsContainer = document.getElementById('ingredients-container');
+            const ingredientSelect = document.getElementById('ingredient-select');
+            const packageAmountInput = document.getElementById('package-amount');
+            const updateButton = document.getElementById('update-button');
+            const ingredientsTable = document.getElementById('ingredients-table');
+            const resultDiv = document.getElementById('result');
+            
+            let ingredients = [];
+            
+            // Load Ingredients button
+            loadIngredientsButton.addEventListener('click', async function() {
+                resultDiv.innerHTML = 'Loading ingredients...';
+                
+                try {
+                    // Get all recipes
+                    const recipesResponse = await fetch('/api/recipes');
+                    
+                    if (!recipesResponse.ok) {
+                        throw new Error(`HTTP error! status: ${recipesResponse.status}`);
+                    }
+                    
+                    const recipes = await recipesResponse.json();
+                    
+                    // Get all ingredients from all recipes
+                    ingredients = [];
+                    
+                    for (const recipe of recipes) {
+                        const recipeResponse = await fetch(`/api/recipes/${recipe.id}`);
+                        
+                        if (!recipeResponse.ok) {
+                            console.error(`Error fetching recipe ${recipe.id}: ${recipeResponse.status}`);
+                            continue;
+                        }
+                        
+                        const recipeData = await recipeResponse.json();
+                        
+                        if (recipeData.ingredients && recipeData.ingredients.length > 0) {
+                            ingredients.push(...recipeData.ingredients.map(ing => ({
+                                ...ing,
+                                recipe_name: recipe.name
+                            })));
+                        }
+                    }
+                    
+                    resultDiv.innerHTML = `<span class="success">Loaded ${ingredients.length} ingredients from ${recipes.length} recipes</span>`;
+                    
+                    // Populate ingredient select
+                    ingredientSelect.innerHTML = '';
+                    ingredients.forEach(ing => {
+                        const option = document.createElement('option');
+                        option.value = ing.id;
+                        option.textContent = `${ing.name} (Recipe: ${ing.recipe_name}, ID: ${ing.id})`;
+                        option.dataset.recipeId = ing.recipe_id;
+                        ingredientSelect.appendChild(option);
+                    });
+                    
+                    // Show ingredients container
+                    ingredientsContainer.style.display = 'block';
+                    
+                    // Display ingredients table
+                    displayIngredientsTable(ingredients);
+                    
+                    // Set initial package amount
+                    updatePackageAmountInput();
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Update package amount input when ingredient selection changes
+            ingredientSelect.addEventListener('change', updatePackageAmountInput);
+            
+            function updatePackageAmountInput() {
+                const selectedIngredientId = ingredientSelect.value;
+                const selectedIngredient = ingredients.find(ing => ing.id == selectedIngredientId);
+                
+                if (selectedIngredient) {
+                    packageAmountInput.value = selectedIngredient.package_amount || '';
+                }
+            }
+            
+            // Update button
+            updateButton.addEventListener('click', async function() {
+                const selectedOption = ingredientSelect.options[ingredientSelect.selectedIndex];
+                const ingredientId = selectedOption.value;
+                const recipeId = selectedOption.dataset.recipeId;
+                const packageAmount = packageAmountInput.value.trim() !== '' ? Number(packageAmountInput.value) : null;
+                
+                resultDiv.innerHTML = `Updating package amount for ingredient ${ingredientId} to ${packageAmount}...`;
+                
+                try {
+                    // Use the dedicated endpoint for updating package amount
+                    const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}/package-amount`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            package_amount: packageAmount
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const updatedRecipe = await response.json();
+                    
+                    // Find the updated ingredient
+                    const updatedIngredient = updatedRecipe.ingredients.find(ing => ing.id == ingredientId);
+                    
+                    if (updatedIngredient) {
+                        resultDiv.innerHTML = `
+                            <span class="success">Package amount updated successfully!</span>
+                            <br><br>
+                            <strong>Updated Ingredient:</strong>
+                            <br>
+                            ID: ${updatedIngredient.id}
+                            <br>
+                            Name: ${updatedIngredient.name}
+                            <br>
+                            Package Amount: ${updatedIngredient.package_amount !== null ? updatedIngredient.package_amount : 'null'}
+                            <br>
+                            Type: ${typeof updatedIngredient.package_amount}
+                        `;
+                        
+                        // Update the ingredient in the local array
+                        const index = ingredients.findIndex(ing => ing.id == ingredientId);
+                        if (index !== -1) {
+                            ingredients[index] = {
+                                ...updatedIngredient,
+                                recipe_name: ingredients[index].recipe_name
+                            };
+                        }
+                        
+                        // Update the table
+                        displayIngredientsTable(ingredients);
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">Error: Updated ingredient not found in response</span>`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Function to display ingredients table
+            function displayIngredientsTable(ingredients) {
+                let tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Recipe</th>
+                                <th>Name</th>
+                                <th>Package Amount (g)</th>
+                                <th>Amount (g)</th>
+                                <th>Calories</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                ingredients.forEach(ing => {
+                    // Format the package amount for display
+                    let packageAmountDisplay = '-';
+                    if (ing.package_amount !== null && ing.package_amount !== undefined) {
+                        const packageAmountNum = Number(ing.package_amount);
+                        if (!isNaN(packageAmountNum)) {
+                            packageAmountDisplay = packageAmountNum.toFixed(1);
+                        }
+                    }
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${ing.id}</td>
+                            <td>${ing.recipe_name}</td>
+                            <td>${ing.name}</td>
+                            <td>${packageAmountDisplay}</td>
+                            <td>${ing.amount.toFixed(1)}</td>
+                            <td>${ing.calories.toFixed(1)}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += `
+                        </tbody>
+                    </table>
+                `;
+                
+                ingredientsTable.innerHTML = tableHtml;
+            }
+        });
+    </script>
+</body>
+</html>

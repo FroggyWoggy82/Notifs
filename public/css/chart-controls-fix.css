@@ -1,0 +1,93 @@
+/**
+ * Chart Controls Fix
+ * Moves the Reset Scale button alongside the X and Y axis scale controls
+ */
+
+/* Remove the separate chart controls container */
+.chart-controls {
+    display: none !important;
+}
+
+/* Add the reset button to the axis controls */
+.axis-controls {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    margin-bottom: 15px !important;
+    background-color: rgba(30, 30, 30, 0.7) !important; /* Dark background to match theme */
+    padding: 10px !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
+    align-items: center !important;
+    justify-content: center !important; /* Center all items */
+    position: relative !important; /* For absolute positioning of reset button */
+}
+
+/* Style the axis controls */
+.axis-control {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex: 0 1 auto !important; /* Don't grow, can shrink, use auto basis */
+    min-width: 200px !important;
+    margin: 0 20px !important; /* Add horizontal margin */
+}
+
+/* Style the labels */
+.axis-control label {
+    font-size: 0.9em !important;
+    font-weight: 500 !important;
+    color: #ffffff !important; /* White text for dark background */
+    width: 90px !important;
+}
+
+/* Style the range inputs */
+.axis-control input[type="range"] {
+    flex: 1 !important;
+    cursor: pointer !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+}
+
+/* Style the scale value */
+.scale-value {
+    font-size: 0.9em !important;
+    color: #ffffff !important; /* White text for dark background */
+    font-weight: bold !important;
+    width: 40px !important;
+    text-align: right !important;
+}
+
+/* Style the reset button container */
+.reset-button-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important; /* Push to the right */
+    padding-right: 10px !important;
+    flex: 0 0 auto !important; /* Don't grow or shrink */
+}
+
+/* Style the reset button */
+#reset-scale-button {
+    background-color: #ffffff !important; /* White background */
+    color: #121212 !important; /* Dark text */
+    border: none !important;
+    padding: 8px 16px !important; /* Slightly wider padding */
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 0.85em !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+    margin: 0 !important; /* Remove margin */
+}
+
+#reset-scale-button:hover {
+    transform: translateY(-2px) !important; /* Simple hover effect */
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}

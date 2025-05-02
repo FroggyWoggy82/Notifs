@@ -1,0 +1,80 @@
+/*
+ * Habit Action Buttons Fix
+ * Fixes the issue where edit/delete buttons overlap with the level indicator
+ */
+
+/* Fix the habit item layout to accommodate action buttons */
+.habit-item {
+    position: relative !important;
+    overflow: visible !important;
+}
+
+/* Fix the habit indicators row to prevent overlap */
+.habit-indicators-row {
+    margin-right: 80px !important;
+    position: relative !important;
+    z-index: 1 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Position the action buttons correctly */
+.habit-actions {
+    position: absolute !important;
+    right: 16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    opacity: 0 !important;
+    transition: opacity 0.2s ease !important;
+    z-index: 2 !important;
+    background-color: rgba(18, 18, 18, 0.7) !important;
+    border-radius: 16px !important;
+    padding: 4px !important;
+}
+
+/* Show action buttons on hover */
+.habit-item:hover .habit-actions {
+    opacity: 1 !important;
+}
+
+/* Style the action buttons */
+.edit-habit-icon-btn,
+.delete-habit-icon-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: none !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.edit-habit-icon-btn:hover {
+    background-color: rgba(33, 150, 243, 0.3) !important;
+    color: #2196F3 !important;
+}
+
+.delete-habit-icon-btn:hover {
+    background-color: rgba(244, 67, 54, 0.3) !important;
+    color: #F44336 !important;
+}
+
+/* Media query for mobile devices */
+@media screen and (max-width: 768px) {
+    .habit-indicators-row {
+        margin-right: 0 !important;
+    }
+
+    .habit-actions {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        margin-left: auto !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+    }
+}

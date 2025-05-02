@@ -1,0 +1,128 @@
+/**
+ * Food Edit Button Fix
+ * Changes the edit button styling in the food tracking interface to match the dark theme
+ */
+
+/* Edit button styling - change from blue to dark with white text */
+.edit-ingredient-btn {
+    background-color: rgba(30, 30, 30, 0.7) !important; /* Dark background to match theme */
+    color: white !important; /* White text */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
+    padding: 5px 10px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 0.85em !important;
+    transition: background-color 0.2s, border-color 0.2s !important;
+}
+
+.edit-ingredient-btn:hover {
+    background-color: rgba(50, 50, 50, 0.9) !important; /* Slightly lighter on hover */
+    border-color: rgba(255, 255, 255, 0.2) !important; /* More visible border on hover */
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important; /* Subtle glow effect */
+}
+
+/* Make sure the recipe header has white text */
+.recipe-card-header h3 {
+    color: white !important;
+}
+
+/* Ensure the main header text is white */
+#recipe-list h2,
+#recipe-creation-section h2,
+#recipes-display-section h2,
+h1 {
+    color: white !important;
+}
+
+/* Style the table headers to match dark theme */
+.ingredient-details table th,
+table th {
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    color: white !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 8px !important;
+}
+
+/* Style the table rows to match dark theme */
+.ingredient-details table tr,
+table tr {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: white !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Style alternating rows */
+.ingredient-details table tr:nth-child(even),
+table tr:nth-child(even) {
+    background-color: rgba(40, 40, 40, 0.7) !important;
+}
+
+/* Style table cells */
+.ingredient-details table td,
+table td {
+    color: white !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 8px !important;
+}
+
+/* Style the main food tracking table header */
+.column-headers {
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    color: white !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Style the main food tracking table header text */
+.column-headers span {
+    color: white !important;
+    font-weight: bold !important;
+}
+
+/* Style the main food tracking table */
+#shreggsTest,
+.recipe-display-item {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Style the calorie display in the header */
+.calorie-target-display,
+.calorie-target-display span {
+    color: white !important;
+}
+
+/* Target the specific edit button in the screenshot */
+.edit {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 5px 10px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s, border-color 0.2s !important;
+}
+
+.edit:hover {
+    background-color: rgba(50, 50, 50, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Style the header buttons */
+.hide, .adjust, .delete {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 5px 15px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s, border-color 0.2s !important;
+    margin: 0 5px !important;
+}
+
+.hide:hover, .adjust:hover, .delete:hover {
+    background-color: rgba(50, 50, 50, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
+}

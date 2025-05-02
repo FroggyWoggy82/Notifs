@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Package Amount</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1, h2 {
+            color: #ffffff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #e0e0e0;
+        }
+        button {
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+        }
+        button:hover {
+            background-color: #444;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #222;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4caf50;
+        }
+        .error {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Package Amount</h1>
+    
+    <div class="form-group">
+        <label for="recipe-id">Recipe ID:</label>
+        <input type="number" id="recipe-id" value="1">
+    </div>
+    
+    <div class="form-group">
+        <label for="ingredient-id">Ingredient ID:</label>
+        <input type="number" id="ingredient-id" value="9">
+    </div>
+    
+    <div class="form-group">
+        <label for="package-amount">Package Amount:</label>
+        <input type="number" id="package-amount" value="777">
+    </div>
+    
+    <h2>Test Methods</h2>
+    
+    <div class="form-group">
+        <button id="test-direct-sql">Test Direct SQL</button>
+        <button id="test-dedicated-endpoint">Test Dedicated Endpoint</button>
+        <button id="test-regular-update">Test Regular Update</button>
+        <button id="test-get-ingredient">Get Ingredient</button>
+    </div>
+    
+    <h2>Result</h2>
+    <div id="result">Results will appear here...</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const recipeIdInput = document.getElementById('recipe-id');
+            const ingredientIdInput = document.getElementById('ingredient-id');
+            const packageAmountInput = document.getElementById('package-amount');
+            const resultDiv = document.getElementById('result');
+            
+            // Test Direct SQL
+            document.getElementById('test-direct-sql').addEventListener('click', async function() {
+                const recipeId = recipeIdInput.value;
+                const ingredientId = ingredientIdInput.value;
+                const packageAmount = packageAmountInput.value;
+                
+                resultDiv.innerHTML = 'Testing direct SQL update...';
+                
+                try {
+                    const response = await fetch('/api/debug/direct-sql', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            recipeId,
+                            ingredientId,
+                            packageAmount
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        resultDiv.innerHTML = `<span class="success">Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>\n${JSON.stringify(data, null, 2)}`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Test Dedicated Endpoint
+            document.getElementById('test-dedicated-endpoint').addEventListener('click', async function() {
+                const recipeId = recipeIdInput.value;
+                const ingredientId = ingredientIdInput.value;
+                const packageAmount = packageAmountInput.value;
+                
+                resultDiv.innerHTML = 'Testing dedicated endpoint...';
+                
+                try {
+                    const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}/package-amount`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            package_amount: Number(packageAmount)
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        resultDiv.innerHTML = `<span class="success">Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>\n${JSON.stringify(data, null, 2)}`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Test Regular Update
+            document.getElementById('test-regular-update').addEventListener('click', async function() {
+                const recipeId = recipeIdInput.value;
+                const ingredientId = ingredientIdInput.value;
+                const packageAmount = packageAmountInput.value;
+                
+                resultDiv.innerHTML = 'Testing regular update...';
+                
+                try {
+                    const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            package_amount: Number(packageAmount),
+                            name: 'Shrimp Cooked from Frozen Great Catch',
+                            calories: 134.9,
+                            amount: 112.4,
+                            protein: 25.8,
+                            fats: 1.9,
+                            carbohydrates: 1.7,
+                            price: 8.47
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        resultDiv.innerHTML = `<span class="success">Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>\n${JSON.stringify(data, null, 2)}`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Get Ingredient
+            document.getElementById('test-get-ingredient').addEventListener('click', async function() {
+                const recipeId = recipeIdInput.value;
+                const ingredientId = ingredientIdInput.value;
+                
+                resultDiv.innerHTML = 'Getting ingredient...';
+                
+                try {
+                    const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`);
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        resultDiv.innerHTML = `<span class="success">Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>\n${JSON.stringify(data, null, 2)}`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

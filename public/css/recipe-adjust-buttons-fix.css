@@ -1,0 +1,82 @@
+/**
+ * Recipe Adjust Buttons Fix
+ * Changes the Set button to white after hitting Adjust in recipes
+ */
+
+/* Set button */
+.set-btn,
+button[id*="set-btn"],
+button[class*="set-btn"],
+button:contains("Set"),
+input[type="button"][value="Set"],
+input[type="submit"][value="Set"] {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    font-weight: normal !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Set button hover */
+.set-btn:hover,
+button[id*="set-btn"]:hover,
+button[class*="set-btn"]:hover,
+button:contains("Set"):hover,
+input[type="button"][value="Set"]:hover,
+input[type="submit"][value="Set"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Adjustment buttons (-25%, +25%, etc.) */
+.adjust-btn,
+button[id*="adjust-btn"],
+button[class*="adjust-btn"],
+button:contains("-25%"),
+button:contains("+25%"),
+button:contains("-200"),
+button:contains("+200") {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    font-weight: normal !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Adjustment buttons hover */
+.adjust-btn:hover,
+button[id*="adjust-btn"]:hover,
+button[class*="adjust-btn"]:hover,
+button:contains("-25%"):hover,
+button:contains("+25%"):hover,
+button:contains("-200"):hover,
+button:contains("+200"):hover {
+    background-color: rgba(50, 50, 50, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Input field for calorie adjustment */
+input[type="text"][id*="cal-total"],
+input[type="number"][id*="cal-total"],
+input[id*="cal-total"] {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+}
+
+/* Input field focus */
+input[type="text"][id*="cal-total"]:focus,
+input[type="number"][id*="cal-total"]:focus,
+input[id*="cal-total"]:focus {
+    background-color: rgba(40, 40, 40, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.1) !important;
+    outline: none !important;
+}

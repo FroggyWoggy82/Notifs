@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db">
+    <title>Journal</title>
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/journal.css">
+
+    <link rel="manifest" href="../manifest.json">
+    <link rel="icon" type="image/png" href="../icon-192x192.png">
+    <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/task-icons-fix.css">
+    <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="../css/bottom-nav-hover-animation.css">
+    <link rel="stylesheet" href="../css/bottom-nav-white-highlight.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+        </div>
+        <a href="/" class="sidebar-nav-item">
+            <div class="nav-icon">📋</div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/habits.html" class="sidebar-nav-item">
+            <div class="nav-icon">🔄</div>
+            <span>Habits</span>
+        </a>
+        <a href="/pages/goals.html" class="sidebar-nav-item">
+            <div class="nav-icon">🎯</div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/days-since.html" class="sidebar-nav-item">
+            <div class="nav-icon">📅</div>
+            <span>Days Since</span>
+        </a>
+        <a href="/pages/workouts.html" class="sidebar-nav-item">
+            <div class="nav-icon">💪</div>
+            <span>Workouts</span>
+        </a>
+        <a href="/exercise-history" class="sidebar-nav-item">
+            <div class="nav-icon">📊</div>
+            <span>Exercise History</span>
+        </a>
+        <a href="/pages/calendar.html" class="sidebar-nav-item">
+            <div class="nav-icon">📅</div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="sidebar-nav-item">
+            <div class="nav-icon">🍔</div>
+            <span>Food</span>
+        </a>
+        <a href="/pages/journal.html" class="sidebar-nav-item active">
+            <div class="nav-icon">📓</div>
+            <span>Journal</span>
+        </a>
+        <a href="/pages/settings.html" class="sidebar-nav-item">
+            <div class="nav-icon">⚙️</div>
+            <span>Settings</span>
+        </a>
+    </div>
+    <div class="sidebar-overlay"></div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <button id="open-sidebar" class="menu-button">☰</button>
+            <h1>Journal</h1>
+        </div>
+
+        <div class="journal-container">
+            <div class="journal-controls">
+                <div class="date-selector">
+                    <label for="journal-date">Date:</label>
+                    <input type="date" id="journal-date">
+                </div>
+                <div class="journal-actions">
+                    <button id="save-entry" class="primary-button">Save Entry</button>
+                    <button id="analyze-entry" class="secondary-button">Talk to AI Therapist</button>
+                    <button id="test-ollama" class="secondary-button">Test Ollama</button>
+                </div>
+            </div>
+
+            <div class="journal-editor">
+                <textarea id="journal-content" placeholder="Write your journal entry here..." spellcheck="false"></textarea>
+                <div id="word-count" class="word-count">0 words</div>
+            </div>
+
+            <div class="journal-analysis" id="analysis-container">
+                <h3>AI Therapist Response</h3>
+                <div id="analysis-content" class="analysis-content">
+                    <p class="placeholder">Your AI therapist's response will appear here after you analyze your entry.</p>
+                </div>
+            </div>
+
+            <div class="journal-history">
+                <h3>Recent Entries</h3>
+                <ul id="entry-list" class="entry-list">
+                    <!-- Entries will be populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <div id="status-message" class="status"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/index.html" class="nav-item" data-page="home-page">
+            <div class="nav-icon"><i class="fas fa-check"></i></div>
+            <span>Tasks</span>
+        </a>
+        <a href="/pages/goals.html" class="nav-item" data-page="goal-page">
+            <div class="nav-icon"><i class="fas fa-star"></i></div>
+            <span>Goals</span>
+        </a>
+        <a href="/pages/workouts.html" class="nav-item" data-page="workout-page">
+            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
+            <span>Workouts</span>
+        </a>
+        <a href="/pages/calendar.html" class="nav-item" data-page="calendar-page">
+            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+            <span>Calendar</span>
+        </a>
+        <a href="/pages/food.html" class="nav-item" data-page="food-page">
+            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
+            <span>Food</span>
+        </a>
+    </div>
+
+    <!-- Common utilities -->
+    <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/status-bar.js"></script>
+
+    <!-- Journal functionality -->
+    <script src="../js/journal/journal.js"></script>
+    <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
+    <script src="../js/tasks/task-icons-fix.js"></script>
+    <script src="../js/tasks/checkbox-redesign.js"></script>
+    <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+</body>
+</html>

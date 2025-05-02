@@ -1,0 +1,53 @@
+/**
+ * Calendar Task Glow Fix
+ * Removes green glow from tasks in the selected date view
+ */
+
+/* Remove green glow from tasks in the selected date view */
+#selectedTaskList li {
+    box-shadow: none !important;
+    border-left: 4px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Remove green background from completed tasks */
+#selectedTaskList li.complete {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border-left: 4px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: none !important;
+}
+
+/* Keep overdue styling */
+#selectedTaskList li.overdue {
+    border-left: 4px solid #FF3D00 !important;
+    box-shadow: none !important;
+}
+
+/* Remove green background from recurring tasks */
+#selectedTaskList li.recurring {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border-left: 4px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: none !important;
+}
+
+/* Ensure overdue styling takes precedence */
+#selectedTaskList li.recurring.overdue,
+#selectedTaskList li.complete.overdue {
+    border-left: 4px solid #FF3D00 !important;
+    box-shadow: none !important;
+}
+
+/* Remove green glow from task badges */
+#selectedTaskList .badge,
+#selectedTaskList span[class*="badge"] {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Remove green glow from "Repeats weekly" badges */
+#selectedTaskList span[style*="background-color"] {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}

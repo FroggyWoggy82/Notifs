@@ -18,11 +18,27 @@
     <link rel="stylesheet" href="../css/ingredient-buttons-dark.css"> <!-- Dark theme for ingredient buttons -->
     <link rel="stylesheet" href="../css/detailed-nutrition-dark.css"> <!-- Dark theme for detailed nutrition panel -->
 
+    <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/task-icons-fix.css">
     <link rel="stylesheet" href="../css/recurrence-indicator-redesign.css">
     <link rel="stylesheet" href="../css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
+    <link rel="stylesheet" href="../css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
+    <link rel="stylesheet" href="../css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
+    <link rel="stylesheet" href="../css/food-bottom-nav-fix.css"> <!-- Fix for food bottom nav alignment -->
+    <link rel="stylesheet" href="../css/chart-controls-fix.css"> <!-- Fix for chart controls layout -->
+    <link rel="stylesheet" href="../css/recipe-table-dark-fix.css"> <!-- Fix for recipe table and edit button -->
+    <link rel="stylesheet" href="../css/ingredient-edit-dark-fix.css"> <!-- Fix for ingredient edit modal -->
+    <link rel="stylesheet" href="../css/recipe-view-dark-fix.css"> <!-- Fix for recipe view -->
+    <link rel="stylesheet" href="../css/recipe-edit-dark-fix.css"> <!-- Fix for recipe edit actions -->
+    <link rel="stylesheet" href="../css/recipe-form-dark-fix.css"> <!-- Fix for recipe form elements -->
+    <link rel="stylesheet" href="../css/recipe-buttons-dark-fix.css"> <!-- Fix for recipe buttons -->
+    <link rel="stylesheet" href="../css/recipe-tables-dark-fix.css"> <!-- Fix for recipe tables -->
+    <link rel="stylesheet" href="../css/recipe-adjust-buttons-fix.css"> <!-- Fix for recipe adjust buttons -->
+    <link rel="stylesheet" href="../css/package-amount-field.css"> <!-- Styling for package amount field -->
+    <link rel="stylesheet" href="../css/grocery-list-inline.css"> <!-- Styling for grocery list section -->
+    <link rel="stylesheet" href="../css/ingredient-autocomplete.css"> <!-- Styling for ingredient autocomplete -->
 </head>
 <body>
     <button class="menu-button">
@@ -68,45 +84,81 @@
 
     <h1>Food & Recipes</h1>
 
-    <!-- ===== Weight Goal Section ===== -->
+    <!-- ===== Weight Goal & Daily Calorie Target Section ===== -->
     <section id="weight-goal-section">
-        <h2>Weight Goal</h2>
-        <div class="user-selector-container">
-            <label for="user-selector">Select User:</label>
-            <select id="user-selector">
-                <option value="1" selected>My Data</option>
-                <option value="2">Mom's Data</option>
-            </select>
+        <div class="section-header-compact">
+            <h2>Weight Goal & Daily Calorie Target</h2>
+
+            <!-- Unified user selector for both sections -->
+            <div class="user-selector-container">
+                <label for="user-selector">Select User:</label>
+                <select id="user-selector">
+                    <option value="1" selected>My Data</option>
+                    <option value="2">Mom's Data</option>
+                </select>
+            </div>
         </div>
-        <form id="weight-goal-form">
-            <div class="weight-goal-inputs">
-                <div class="weight-goal-row">
-                    <div class="form-group form-group-half">
-                        <label for="targetWeight">Target Weight (lbs):</label>
-                        <div class="input-container">
-                            <input type="number" id="targetWeight" step="0.1" placeholder="e.g., 175.5">
+
+        <!-- Compact goals container with grid layout -->
+        <div class="goals-grid-container">
+            <!-- Weight Goal Section -->
+            <div class="goal-card weight-goal-card">
+                <h3 class="goal-card-title">Weight Goal</h3>
+                <form id="weight-goal-form">
+                    <div class="compact-form-layout">
+                        <div class="input-row">
+                            <div class="form-group">
+                                <label for="targetWeight">Target Weight (lbs)</label>
+                                <input type="number" id="targetWeight" step="0.1" placeholder="e.g., 175.5">
+                            </div>
+                            <div class="form-group">
+                                <label for="weeklyGainGoal">Weekly Goal (lbs)</label>
+                                <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
+                            </div>
+                        </div>
+                        <div class="button-row">
+                            <small class="help-text">Use positive values for gain, negative for loss</small>
+                            <div class="spacer"></div>
+                            <button type="submit" class="save-goal-btn">Save Goal</button>
                         </div>
                     </div>
-                    <div class="form-group form-group-half">
-                        <label for="weeklyGainGoal">Weekly Goal (lbs):</label>
-                        <div class="input-container">
-                            <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
+                </form>
+                <div id="weight-goal-status" class="status"></div>
+            </div>
+
+            <!-- Calorie Target Section -->
+            <div class="goal-card calorie-goal-card">
+                <h3 class="goal-card-title">Daily Calorie Target</h3>
+                <div class="compact-form-layout">
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="calorie-target">Target Calories</label>
+                            <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
+                        </div>
+                        <div class="form-group">
+                            <label class="current-label">Current Target</label>
+                            <div class="current-display">
+                                <span id="current-calorie-target">2200 calories</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group form-group-button">
-                        <label class="invisible-label">Save:</label>
-                        <div class="input-container">
-                            <button type="submit" class="save-goal-btn" style="height: 38px; line-height: 38px; text-align: center; margin-top: 0;">Save Goal</button>
-                        </div>
+                    <div class="button-row">
+                        <div class="spacer"></div>
+                        <button id="save-calorie-target" class="save-btn">Save Target</button>
                     </div>
                 </div>
-                <small class="help-text">Use positive values for gain, negative for loss</small>
+                <div id="calorie-target-status" class="status"></div>
+
+                <!-- Hidden user selector that will be synced with the main one -->
+                <select id="calorie-user-selector" style="display: none;">
+                    <option value="1" selected>My Data</option>
+                    <option value="2">Mom's Data</option>
+                </select>
             </div>
-        </form>
-        <div id="weight-goal-status" class="status"></div>
+        </div>
 
         <div class="chart-container">
-            <div class="chart-controls">
+            <div class="chart-controls" style="display: none;">
                 <button id="reset-scale-button" class="reset-scale-btn">Reset Scale</button>
             </div>
             <div class="axis-controls">
@@ -120,50 +172,15 @@
                     <input type="range" id="y-axis-scale" min="0.5" max="3" step="0.1" value="1">
                     <span class="scale-value" id="y-scale-value">1.0x</span>
                 </div>
+                <div class="reset-button-container">
+                    <!-- Reset Scale button will be moved here by JavaScript -->
+                </div>
             </div>
             <canvas id="weight-goal-chart"></canvas>
             <p id="weight-chart-message" style="text-align: center;">Weight data needed to display graph.</p>
         </div>
-
-        <!-- Visual separator -->
-        <div class="section-separator"></div>
-
-        <!-- Calorie Target Section -->
-        <div class="calorie-target-section">
-            <h3 class="daily-calorie-heading">Daily Calorie Target</h3>
-            <div class="calorie-target-row">
-                <div class="calorie-target-group">
-                    <label for="calorie-user-selector">Select User:</label>
-                    <div class="input-container">
-                        <select id="calorie-user-selector">
-                            <option value="1" selected>My Data</option>
-                            <option value="2">Mom's Data</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="calorie-target-group">
-                    <label for="calorie-target">Target Value:</label>
-                    <div class="input-container">
-                        <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
-                    </div>
-                </div>
-                <div class="calorie-target-group calorie-button-group">
-                    <label class="invisible-label">Save:</label>
-                    <div class="input-container">
-                        <button id="save-calorie-target" class="save-btn" style="height: 38px; line-height: 38px; text-align: center; margin-top: 0;">Save Target</button>
-                    </div>
-                </div>
-                <div class="current-target-inline">
-                    <span class="target-label">Current:</span>
-                    <span id="current-calorie-target" class="target-value" style="color: #ffffff !important; text-shadow: none !important;">
-                        <span style="color: #ffffff !important; text-shadow: none !important;">2000 calories</span>
-                    </span>
-                </div>
-            </div>
-            <div id="calorie-target-status" class="status"></div>
-        </div>
     </section>
-    <!-- ===== End Weight Goal Section ===== -->
+    <!-- ===== End Weight Goal & Daily Calorie Target Section ===== -->
 
     <!-- Recipe Creation Section -->
     <section id="recipe-creation-section">
@@ -185,7 +202,8 @@
                         <div class="ingredient-inputs-container">
                             <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
                             <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.1" required>
-                            <input type="number" placeholder="Price" class="ingredient-price" step="0.01" required>
+                            <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="0.1">
+                            <input type="number" placeholder="Package Price" class="ingredient-price" step="0.01" required>
                             <!-- Hidden fields for form submission with default values -->
                             <input type="hidden" class="ingredient-calories" required>
                             <input type="hidden" class="ingredient-protein" required>
@@ -478,12 +496,48 @@
 
     <!-- Existing Recipes Section -->
     <section id="recipes-display-section">
-        <h2>Your Recipes</h2>
+        <h2 class="compact-section-heading">Your Recipes</h2>
         <div id="recipe-list">
             <!-- Recipes will be loaded here -->
             <p>Loading recipes...</p>
         </div>
         <div id="recipes-display-status" class="status"></div>
+    </section>
+
+    <!-- Grocery List Section -->
+    <section id="grocery-list-section">
+        <h2>Grocery List Generator</h2>
+
+        <div class="grocery-list-container">
+            <div class="recipe-selection-area">
+                <h3>Select Recipes</h3>
+                <div id="grocery-recipe-selection" class="recipe-checkbox-list">
+                    <!-- Recipe checkboxes will be loaded here -->
+                    <p class="loading-message">Loading recipes...</p>
+                </div>
+            </div>
+
+            <div class="calorie-adjustment-area">
+                <h3>Adjust Calories</h3>
+                <div id="calorie-adjustment-container">
+                    <!-- Calorie adjustment controls will be added here -->
+                    <p class="empty-message">Select recipes to adjust calories</p>
+                </div>
+            </div>
+
+            <div class="grocery-list-controls">
+                <button id="generate-list-btn" class="primary-btn" disabled>Generate Grocery List</button>
+                <button id="print-list-btn" class="secondary-btn" disabled>Print List</button>
+                <button id="save-list-btn" class="secondary-btn" disabled>Save List</button>
+            </div>
+
+            <div id="grocery-list-results">
+                <!-- Grocery list will be generated here -->
+                <p class="empty-message">Generate a list to see ingredients</p>
+            </div>
+
+            <div id="grocery-status-message" class="status"></div>
+        </div>
     </section>
 
     <!-- Bottom Navigation Bar -->
@@ -540,6 +594,7 @@
 
     <!-- Common utilities -->
     <script src="../js/common/sidebar.js"></script>
+    <script src="../js/common/sidebar-updater.js"></script> <!-- Sidebar updater to use the same sidebar as index.html -->
     <script src="../js/common/chart-config.js"></script>
     <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
 
@@ -552,5 +607,13 @@
     <script src="../js/tasks/task-icons-fix.js"></script>
     <script src="../js/tasks/checkbox-redesign.js"></script>
     <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+    <script src="../js/food/food-bottom-nav-fix.js"></script> <!-- Food bottom navigation fix -->
+    <script src="../js/food/chart-controls-fix.js"></script> <!-- Chart controls fix -->
+    <script src="../js/food/recipe-table-dark-fix.js"></script> <!-- Recipe table dark fix -->
+    <script src="../js/food/ingredient-edit-dark-fix.js"></script> <!-- Ingredient edit modal dark fix -->
+    <script src="../js/food/recipe-view-edit-dark-fix.js"></script> <!-- Recipe view and edit dark fix -->
+    <script src="../js/food/recipe-adjust-buttons-fix.js"></script> <!-- Recipe adjust buttons fix -->
+    <script src="../js/food/grocery-list-inline.js"></script> <!-- Grocery list functionality -->
+    <script src="../js/food/ingredient-autocomplete.js"></script> <!-- Ingredient autocomplete functionality -->
 </body>
 </html>

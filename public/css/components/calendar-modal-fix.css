@@ -1,0 +1,159 @@
+/**
+ * Calendar Modal Fix
+ * Applies dark theme styling to the edit task modal in the calendar page
+ */
+
+/* Modal background */
+.modal {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Modal content */
+.modal-content {
+    background-color: #1e1e1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Modal close button */
+.close-button {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: white !important;
+}
+
+/* Form labels */
+.form-group label {
+    color: white !important;
+}
+
+/* Form inputs */
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="datetime-local"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important; /* White glow instead of green */
+}
+
+/* Submit button */
+button[type="submit"] {
+    background-color: #4db6ac !important;
+    border: none !important;
+}
+
+button[type="submit"]:hover {
+    background-color: #3a9d91 !important;
+}
+
+/* Status messages */
+.status.success {
+    background-color: rgba(21, 87, 36, 0.2) !important;
+    color: #4caf50 !important;
+    border: 1px solid rgba(76, 175, 80, 0.3) !important;
+}
+
+.status.error {
+    background-color: rgba(114, 28, 36, 0.2) !important;
+    color: #f44336 !important;
+    border: 1px solid rgba(244, 67, 54, 0.3) !important;
+}
+
+/* Selected date tasks view */
+#selectedDateTasks {
+    background-color: #1e1e1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+#selectedDateTasks h3 {
+    color: white !important;
+}
+
+#selectedTaskList li {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+/* Close button styling moved to calendar-button-fix.css */
+
+/* Custom dropdown arrow for select elements in the modal */
+.form-group select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-image: none !important;
+    padding-right: 30px !important; /* Make space for our custom arrow */
+    position: relative !important;
+}
+
+.form-group select::-ms-expand {
+    display: none !important;
+}
+
+/* Position the container for the arrow */
+.form-group,
+.form-group-half {
+    position: relative !important;
+}
+
+/* Style the dropdown arrow - default is left-facing when closed */
+/* First, a fallback for all browsers */
+.form-group-select::after,
+.form-group-half-select::after {
+    content: '' !important;
+    position: absolute !important;
+    right: 12px !important;
+    top: 38px !important; /* Position below the label */
+    transform: translateY(-50%) rotate(90deg) !important; /* Rotate to point left */
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 6px solid transparent !important;
+    border-right: 6px solid transparent !important;
+    border-top: 6px solid rgba(255, 255, 255, 0.9) !important;
+    pointer-events: none !important;
+    z-index: 100 !important;
+}
+
+/* For browsers that support :has() */
+.form-group:has(select)::after,
+.form-group-half:has(select)::after {
+    content: '' !important;
+    position: absolute !important;
+    right: 12px !important;
+    top: 38px !important; /* Position below the label */
+    transform: translateY(-50%) rotate(90deg) !important; /* Rotate to point left */
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 6px solid transparent !important;
+    border-right: 6px solid transparent !important;
+    border-top: 6px solid rgba(255, 255, 255, 0.9) !important;
+    pointer-events: none !important;
+    z-index: 100 !important;
+}
+
+/* When dropdown is open, change to down-facing arrow */
+.form-group-select.dropdown-open::after,
+.form-group-half-select.dropdown-open::after,
+.form-group:has(select:focus)::after,
+.form-group-half:has(select:focus)::after,
+.form-group.dropdown-open::after,
+.form-group-half.dropdown-open::after {
+    transform: translateY(-50%) rotate(0deg) !important; /* Rotate back to point down */
+}

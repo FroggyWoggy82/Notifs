@@ -1,0 +1,58 @@
+/**
+ * Recipe Edit Dark Fix
+ * Fixes the styling of the recipe edit actions to match the dark theme
+ */
+
+/* Edit button in recipe table */
+.recipe-table .edit-btn,
+.recipe-table button[class*="edit"],
+.recipe-table [id*="edit-btn"] {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    transition: all 0.2s ease !important;
+}
+
+.recipe-table .edit-btn:hover,
+.recipe-table button[class*="edit"]:hover,
+.recipe-table [id*="edit-btn"]:hover {
+    background-color: rgba(50, 50, 50, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Recipe edit modal */
+.recipe-edit-modal,
+.modal[id*="edit-recipe"],
+.modal[class*="edit-recipe"],
+.modal-content {
+    background-color: rgba(18, 18, 18, 0.95) !important;
+    color: #e0e0e0 !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Modal header */
+.modal-header {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Modal title */
+.modal-title,
+.modal-header h3,
+.modal-header h4,
+.modal-header h5 {
+    color: #ffffff !important;
+}
+
+/* Modal body */
+.modal-body {
+    background-color: rgba(18, 18, 18, 0.95) !important;
+    color: #e0e0e0 !important;
+}
+
+/* Modal footer */
+.modal-footer {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

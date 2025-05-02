@@ -251,4 +251,45 @@ router.get('/:recipeId/ingredients/:ingredientId', RecipeController.getIngredien
  */
 router.patch('/:recipeId/ingredients/:ingredientId', RecipeController.updateIngredient);
 
+/**
+ * @swagger
+ * /api/recipes/{recipeId}/ingredients/{ingredientId}/package-amount:
+ *   patch:
+ *     summary: Update only the package amount of an ingredient
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The recipe ID
+ *       - in: path
+ *         name: ingredientId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ingredient ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               package_amount:
+ *                 type: number
+ *                 description: The package amount in grams
+ *     responses:
+ *       200:
+ *         description: Package amount updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Recipe or ingredient not found
+ *       500:
+ *         description: Server error
+ */
+router.patch('/:recipeId/ingredients/:ingredientId/package-amount', RecipeController.updateIngredientPackageAmount);
+
 module.exports = router;

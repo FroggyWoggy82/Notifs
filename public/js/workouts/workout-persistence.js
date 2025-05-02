@@ -179,6 +179,16 @@ function saveWorkoutData() {
         // Save the updated currentWorkout back to localStorage
         localStorage.setItem('workout_tracker_current_workout', JSON.stringify(currentWorkout));
 
+        // Also save goal checkboxes state if the function exists
+        if (typeof window.saveGoalCheckboxesState === 'function') {
+            window.saveGoalCheckboxesState();
+        }
+
+        // Also save goal text state if the function exists
+        if (typeof window.saveGoalTextState === 'function') {
+            window.saveGoalTextState();
+        }
+
         // Initialize workout data object
         const workoutData = {
             exercises: [],
@@ -263,6 +273,20 @@ function restoreWorkoutData() {
         console.log('Restoring workout data from localStorage');
         // Set a flag to indicate we're restoring data
         window.isRestoringWorkoutData = true;
+
+        // Also restore goal checkboxes state if the function exists
+        if (typeof window.restoreGoalCheckboxesState === 'function') {
+            setTimeout(() => {
+                window.restoreGoalCheckboxesState();
+            }, 300);
+        }
+
+        // Also restore goal text state if the function exists
+        if (typeof window.restoreGoalTextState === 'function') {
+            setTimeout(() => {
+                window.restoreGoalTextState();
+            }, 300);
+        }
 
         const workoutData = JSON.parse(workoutDataJson);
 

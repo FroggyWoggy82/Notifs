@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="ingredient-inputs-container">
                     <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
                     <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="any" required>
-                    <input type="number" placeholder="Price" class="ingredient-price" step="any" required>
+                    <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="any">
+                    <input type="number" placeholder="Package Price" class="ingredient-price" step="any" required>
                     <!-- Hidden fields for form submission -->
                     <input type="hidden" class="ingredient-calories" required>
                     <input type="hidden" class="ingredient-protein" required>
@@ -465,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get values from detailed fields if available, otherwise use hidden fields
             const calories = parseFloat(energyInput ? energyInput.value : item.querySelector('.ingredient-calories').value);
             const amount = parseFloat(item.querySelector('.ingredient-amount').value);
+            const packageAmount = parseFloat(item.querySelector('.ingredient-package-amount').value || 0); // Default to 0 if empty
             const protein = parseFloat(proteinTotalInput ? proteinTotalInput.value : item.querySelector('.ingredient-protein').value);
             const fat = parseFloat(fatTotalInput ? fatTotalInput.value : item.querySelector('.ingredient-fat').value);
             const carbs = parseFloat(carbsTotalInput ? carbsTotalInput.value : item.querySelector('.ingredient-carbs').value);
@@ -500,6 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     name,
                     calories: caloriesVal,
                     amount,
+                    package_amount: packageAmount || null, // Include package amount, null if 0
                     protein: proteinVal,
                     fats: fatVal,
                     carbohydrates: carbsVal,
@@ -1730,46 +1733,68 @@ document.addEventListener('DOMContentLoaded', () => {
         viewButton.classList.add('active');
 
         try {
-             // Add cache-busting query parameter
+            // Add cache-busting query parameter
             const response = await fetch(`/api/recipes/${recipeId}?` + new Date().getTime());
-             if (!response.ok) {
-                 const errorData = await response.json();
-                 throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-             }
-             const recipeData = await response.json();
-             renderIngredientDetails(recipeData.ingredients, detailsDiv);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+            const recipeData = await response.json();
+
+            // Log the recipe data to help debug
+            console.log('Fetched recipe data:', recipeData);
+            console.log('Fetched ingredients data:', recipeData.ingredients);
+
+            // Check if any ingredients have package_amount
+            recipeData.ingredients.forEach(ing => {
+                console.log(`Ingredient ${ing.name} has package_amount:`, ing.package_amount);
+            });
+
+            // Render ingredients with a responsive approach
+            renderIngredientDetails(recipeData.ingredients, detailsDiv);
+
+            // Ensure the details div is fully visible
+            setTimeout(() => {
+                detailsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
         } catch (error) {
-             console.error('Error fetching ingredients:', error);
-             detailsDiv.innerHTML = `<p style="color:red;">Error loading ingredients: ${error.message}</p>`;
+            console.error('Error fetching ingredients:', error);
+            detailsDiv.innerHTML = `<p style="color:red;">Error loading ingredients: ${error.message}</p>`;
         }
     }
 
     function renderIngredientDetails(ingredients, container) {
+        console.log('=== renderIngredientDetails called ===');
+        console.log('Ingredients to render:', ingredients);
+
         if (!ingredients || ingredients.length === 0) {
             container.innerHTML = '<p>No ingredients found for this recipe.</p>';
             return;
         }
 
+        // Log package_amount values for all ingredients
+        ingredients.forEach(ing => {
+            console.log(`Rendering ingredient ${ing.id} (${ing.name}) package_amount:`, ing.package_amount, typeof ing.package_amount);
+        });
+
         let tableHtml = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Calories</th>
-                        <th>Amount (g)</th>
-                        <th>Protein (g)</th>
-                        <th>Fat (g)</th>
-                        <th>Carbs (g)</th>
-                        <th>Price</th>
-                        <th>Cal/g</th>
-                        <th>Prot/g</th>
-                        <th>Fat/g</th>
-                        <th>Carb/g</th>
-                        <th>Price/g</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div class="responsive-table-container">
+                <table class="ingredient-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Calories</th>
+                            <th>Amount (g)</th>
+                            <th>Package (g)</th>
+                            <th>Protein (g)</th>
+                            <th>Fat (g)</th>
+                            <th>Carbs (g)</th>
+                            <th>Package Price</th>
+                            <th>Price/g</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
         `;
 
         ingredients.forEach(ing => {
@@ -1785,20 +1810,36 @@ document.addEventListener('DOMContentLoaded', () => {
             const pricePerGram = ing.price_per_gram ? ing.price_per_gram.toFixed(3) :
                                 (ing.amount > 0 ? (ing.price / ing.amount).toFixed(3) : '0.000');
 
+            // Debug log for package amount
+            console.log(`Ingredient ${ing.name} package_amount:`, ing.package_amount, typeof ing.package_amount);
+
+            // Format the package amount for display - handle null, undefined, and 0 cases
+            let packageAmountDisplay = '-';
+            if (ing.package_amount !== null && ing.package_amount !== undefined) {
+                // Always convert to number to ensure proper formatting
+                const packageAmountNum = Number(ing.package_amount);
+
+                if (!isNaN(packageAmountNum)) {
+                    packageAmountDisplay = packageAmountNum.toFixed(1);
+                    console.log(`Formatted package amount for ${ing.name}:`, packageAmountDisplay);
+                }
+            }
+
+            // CRITICAL FIX: Ensure package amount is properly displayed
+            // Double-check the package amount value
+            console.log(`Final package amount for ${ing.name} before rendering:`, ing.package_amount, typeof ing.package_amount);
+
             tableHtml += `
                 <tr data-ingredient-id="${ing.id}" data-recipe-id="${ing.recipe_id}">
-                    <td>${escapeHtml(ing.name)}</td>
-                    <td>${ing.calories.toFixed(1)}</td>
-                    <td>${ing.amount.toFixed(1)}</td>
-                    <td>${ing.protein.toFixed(1)}</td>
-                    <td>${ing.fats.toFixed(1)}</td>
-                    <td>${ing.carbohydrates.toFixed(1)}</td>
-                    <td>${ing.price.toFixed(2)}</td>
-                    <td>${calPerGram}</td>
-                    <td>${protPerGram}</td>
-                    <td>${fatPerGram}</td>
-                    <td>${carbPerGram}</td>
-                    <td>${pricePerGram}</td>
+                    <td title="${escapeHtml(ing.name)}">${escapeHtml(ing.name)}</td>
+                    <td title="Calories: ${ing.calories.toFixed(1)}">${ing.calories.toFixed(1)}</td>
+                    <td title="Amount: ${ing.amount.toFixed(1)}g">${ing.amount.toFixed(1)}</td>
+                    <td title="Package: ${packageAmountDisplay}g" class="package-amount-cell">${packageAmountDisplay}</td>
+                    <td title="Protein: ${ing.protein.toFixed(1)}g">${ing.protein.toFixed(1)}</td>
+                    <td title="Fat: ${ing.fats.toFixed(1)}g">${ing.fats.toFixed(1)}</td>
+                    <td title="Carbs: ${ing.carbohydrates.toFixed(1)}g">${ing.carbohydrates.toFixed(1)}</td>
+                    <td title="Package Price: $${ing.price.toFixed(2)}">${ing.price.toFixed(2)}</td>
+                    <td title="Price per gram: ${pricePerGram}">${pricePerGram}</td>
                     <td>
                         <button type="button" class="edit-ingredient-btn">Edit</button>
                     </td>
@@ -1816,7 +1857,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="hidden" id="edit-recipe-id">
 
                     <!-- Basic Information -->
-                    <div class="form-group-row">
+                    <div class="form-group-column">
                         <div class="form-group">
                             <label for="edit-ingredient-name">Name:</label>
                             <input type="text" id="edit-ingredient-name" required>
@@ -1826,7 +1867,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <input type="number" id="edit-ingredient-amount" step="0.1" min="0.1" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit-ingredient-price">Price:</label>
+                            <label for="edit-ingredient-package-amount">Package Amount (g):</label>
+                            <input type="number" id="edit-ingredient-package-amount" step="0.1" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-ingredient-price">Package Price:</label>
                             <input type="number" id="edit-ingredient-price" step="0.01" min="0" required>
                         </div>
                     </div>
@@ -2137,6 +2182,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return response.json();
             })
             .then(ingredient => {
+                // Log the ingredient data to see what's being returned
+                console.log('Ingredient data from API:', ingredient);
+
                 // Populate form fields with current values
                 document.getElementById('edit-ingredient-id').value = ingredientId;
                 document.getElementById('edit-recipe-id').value = recipeId;
@@ -2144,6 +2192,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Basic information
                 document.getElementById('edit-ingredient-name').value = ingredient.name || '';
                 document.getElementById('edit-ingredient-amount').value = ingredient.amount || '';
+                // Handle package_amount specially
+                console.log('Package amount from API:', ingredient.package_amount, typeof ingredient.package_amount);
+
+                // Set the package amount in the form
+                let packageAmountForForm = '';
+                if (ingredient.package_amount !== null && ingredient.package_amount !== undefined) {
+                    // Always convert to number
+                    packageAmountForForm = Number(ingredient.package_amount);
+
+                    // If conversion failed, set to empty string
+                    if (isNaN(packageAmountForForm)) {
+                        packageAmountForForm = '';
+                    }
+                }
+
+                document.getElementById('edit-ingredient-package-amount').value = packageAmountForForm;
+                console.log('Package amount set in form:', packageAmountForForm);
                 document.getElementById('edit-ingredient-price').value = ingredient.price || '';
 
                 // General section
@@ -2164,10 +2229,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('edit-ingredient-fats').value = ingredient.fats || '';
                 document.getElementById('edit-ingredient-monounsaturated').value = ingredient.monounsaturated || '';
                 document.getElementById('edit-ingredient-polyunsaturated').value = ingredient.polyunsaturated || '';
-                document.getElementById('edit-ingredient-omega3').value = ingredient.omega3 || '';
-                document.getElementById('edit-ingredient-omega6').value = ingredient.omega6 || '';
+                document.getElementById('edit-ingredient-omega3').value = ingredient.omega_3 || '';
+                document.getElementById('edit-ingredient-omega6').value = ingredient.omega_6 || '';
                 document.getElementById('edit-ingredient-saturated').value = ingredient.saturated || '';
-                document.getElementById('edit-ingredient-trans-fat').value = ingredient.trans_fat || '';
+                document.getElementById('edit-ingredient-trans-fat').value = ingredient.trans || '';
                 document.getElementById('edit-ingredient-cholesterol').value = ingredient.cholesterol || '';
 
                 // Protein section
@@ -2185,10 +2250,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('edit-ingredient-valine').value = ingredient.valine || '';
 
                 // Vitamins section
-                document.getElementById('edit-ingredient-vitamin-b1').value = ingredient.vitamin_b1 || '';
-                document.getElementById('edit-ingredient-vitamin-b2').value = ingredient.vitamin_b2 || '';
-                document.getElementById('edit-ingredient-vitamin-b3').value = ingredient.vitamin_b3 || '';
-                document.getElementById('edit-ingredient-vitamin-b5').value = ingredient.vitamin_b5 || '';
+                document.getElementById('edit-ingredient-vitamin-b1').value = ingredient.thiamine || '';
+                document.getElementById('edit-ingredient-vitamin-b2').value = ingredient.riboflavin || '';
+                document.getElementById('edit-ingredient-vitamin-b3').value = ingredient.niacin || '';
+                document.getElementById('edit-ingredient-vitamin-b5').value = ingredient.pantothenic_acid || '';
                 document.getElementById('edit-ingredient-vitamin-b6').value = ingredient.vitamin_b6 || '';
                 document.getElementById('edit-ingredient-vitamin-b12').value = ingredient.vitamin_b12 || '';
                 document.getElementById('edit-ingredient-folate').value = ingredient.folate || '';
@@ -2242,6 +2307,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleEditIngredientSubmit(event) {
         event.preventDefault();
 
+        console.log('=== handleEditIngredientSubmit called ===');
+
         const form = event.target;
         const container = form.closest('.ingredient-details');
         const statusElement = container.querySelector('.edit-ingredient-status');
@@ -2254,6 +2321,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const recipeId = document.getElementById('edit-recipe-id').value;
         const name = document.getElementById('edit-ingredient-name').value.trim();
         const amount = parseFloat(document.getElementById('edit-ingredient-amount').value);
+        // Get package amount from the input field
+        const packageAmountInput = document.getElementById('edit-ingredient-package-amount').value;
+        console.log('Raw package amount input:', packageAmountInput);
+
+        // Store the package amount for later use
+        const packageAmount = packageAmountInput.trim() !== '' ? Number(packageAmountInput) : null;
+        console.log('Package amount to send:', packageAmount, typeof packageAmount);
+
+        console.log('Package amount input:', packageAmountInput, 'Parsed value:', packageAmount, 'Type:', typeof packageAmount);
         const price = parseFloat(document.getElementById('edit-ingredient-price').value);
 
         // Get required nutrition values
@@ -2268,16 +2344,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Prepare data for API call - start with required fields
+        // SIMPLIFIED: Create the data object with all fields
         const ingredientData = {
             name,
             calories,
             amount,
+            package_amount: packageAmount, // Pass the raw value
             protein,
             fats,
             carbohydrates,
             price
         };
+
+        // Log the data for debugging
+        console.log('Data being sent to API:', ingredientData);
+
+        // Log the data being sent to the API
+        console.log('Sending ingredient data to API:', JSON.stringify(ingredientData, null, 2));
+        console.log('Package amount value:', packageAmount, typeof packageAmount);
 
         // Add optional General section fields
         const alcohol = parseFloat(document.getElementById('edit-ingredient-alcohol').value);
@@ -2313,16 +2397,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isNaN(polyunsaturated)) ingredientData.polyunsaturated = polyunsaturated;
 
         const omega3 = parseFloat(document.getElementById('edit-ingredient-omega3').value);
-        if (!isNaN(omega3)) ingredientData.omega3 = omega3;
+        if (!isNaN(omega3)) ingredientData.omega_3 = omega3;
 
         const omega6 = parseFloat(document.getElementById('edit-ingredient-omega6').value);
-        if (!isNaN(omega6)) ingredientData.omega6 = omega6;
+        if (!isNaN(omega6)) ingredientData.omega_6 = omega6;
 
         const saturated = parseFloat(document.getElementById('edit-ingredient-saturated').value);
         if (!isNaN(saturated)) ingredientData.saturated = saturated;
 
         const transFat = parseFloat(document.getElementById('edit-ingredient-trans-fat').value);
-        if (!isNaN(transFat)) ingredientData.trans_fat = transFat;
+        if (!isNaN(transFat)) ingredientData.trans = transFat;
 
         const cholesterol = parseFloat(document.getElementById('edit-ingredient-cholesterol').value);
         if (!isNaN(cholesterol)) ingredientData.cholesterol = cholesterol;
@@ -2363,16 +2447,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add optional Vitamins section fields
         const vitaminB1 = parseFloat(document.getElementById('edit-ingredient-vitamin-b1').value);
-        if (!isNaN(vitaminB1)) ingredientData.vitamin_b1 = vitaminB1;
+        if (!isNaN(vitaminB1)) ingredientData.thiamine = vitaminB1;
 
         const vitaminB2 = parseFloat(document.getElementById('edit-ingredient-vitamin-b2').value);
-        if (!isNaN(vitaminB2)) ingredientData.vitamin_b2 = vitaminB2;
+        if (!isNaN(vitaminB2)) ingredientData.riboflavin = vitaminB2;
 
         const vitaminB3 = parseFloat(document.getElementById('edit-ingredient-vitamin-b3').value);
-        if (!isNaN(vitaminB3)) ingredientData.vitamin_b3 = vitaminB3;
+        if (!isNaN(vitaminB3)) ingredientData.niacin = vitaminB3;
 
         const vitaminB5 = parseFloat(document.getElementById('edit-ingredient-vitamin-b5').value);
-        if (!isNaN(vitaminB5)) ingredientData.vitamin_b5 = vitaminB5;
+        if (!isNaN(vitaminB5)) ingredientData.pantothenic_acid = vitaminB5;
 
         const vitaminB6 = parseFloat(document.getElementById('edit-ingredient-vitamin-b6').value);
         if (!isNaN(vitaminB6)) ingredientData.vitamin_b6 = vitaminB6;
@@ -2430,6 +2514,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isNaN(zinc)) ingredientData.zinc = zinc;
 
         try {
+            // First, update the package amount separately
+            if (packageAmount !== null) {
+                console.log('Updating package amount separately:', packageAmount);
+                try {
+                    const packageResponse = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}/package-amount`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ package_amount: packageAmount })
+                    });
+
+                    if (!packageResponse.ok) {
+                        console.error('Failed to update package amount:', await packageResponse.text());
+                    } else {
+                        console.log('Package amount updated successfully');
+                    }
+                } catch (packageError) {
+                    console.error('Error updating package amount:', packageError);
+                }
+            }
+
+            // Log the data being sent to the server
+            console.log('Sending ingredient data to server:', ingredientData);
+
             // Call the API to update the ingredient
             const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
                 method: 'PATCH',
@@ -2445,6 +2554,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const updatedRecipe = await response.json();
+
+            console.log('=== Response from server ===');
+            console.log('Updated recipe:', updatedRecipe);
+
+            // Find the updated ingredient
+            const updatedIngredient = updatedRecipe.ingredients.find(ing => ing.id == ingredientId);
+            if (updatedIngredient) {
+                console.log('Updated ingredient:', updatedIngredient);
+                console.log('Updated package_amount:', updatedIngredient.package_amount);
+            }
 
             // Update the displayed ingredients
             renderIngredientDetails(updatedRecipe.ingredients, container);
@@ -3371,6 +3490,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Save the preference to localStorage
             localStorage.setItem('weightUserPreference', currentUserId);
+
+            // Sync the calorie user selector with the main user selector
+            if (calorieUserSelector) {
+                calorieUserSelector.value = this.value;
+                // Also load the calorie target for the new user
+                loadCalorieTarget(this.value);
+            }
 
             // Destroy the current chart to prevent tooltip issues
             if (weightGoalChart) {

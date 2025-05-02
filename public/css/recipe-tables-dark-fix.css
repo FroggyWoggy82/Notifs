@@ -1,0 +1,100 @@
+/**
+ * Recipe Tables Dark Fix
+ * Fixes the styling of the tables in the recipe view and edit modal
+ */
+
+/* Tables */
+table {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+
+/* Table headers */
+th {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    padding: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    text-align: left !important;
+}
+
+/* Table cells */
+td {
+    background-color: rgba(18, 18, 18, 0.95) !important;
+    color: #e0e0e0 !important;
+    padding: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Table rows hover */
+tr:hover td {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+}
+
+/* Table caption */
+caption {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    padding: 10px !important;
+    caption-side: top !important;
+}
+
+/* Table footer */
+tfoot {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+/* Table footer cells */
+tfoot td {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+/* Table striped rows */
+.table-striped tbody tr:nth-of-type(odd) td {
+    background-color: rgba(25, 25, 25, 0.95) !important;
+}
+
+/* Table bordered */
+.table-bordered {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Table bordered cells */
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Table responsive */
+.table-responsive {
+    overflow-x: auto !important;
+}
+
+/* Ingredient table */
+.ingredient-table {
+    margin-bottom: 20px !important;
+}
+
+/* Ingredient table headers */
+.ingredient-table th {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #ffffff !important;
+}
+
+/* Ingredient table cells */
+.ingredient-table td {
+    background-color: rgba(18, 18, 18, 0.95) !important;
+    color: #e0e0e0 !important;
+}
+
+/* Ingredient table rows hover */
+.ingredient-table tr:hover td {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+}

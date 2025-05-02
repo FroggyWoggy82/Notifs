@@ -20,20 +20,38 @@ async function getAllRecipes() {
  * @returns {Promise<Object>} - Promise resolving to the recipe with ingredients
  */
 async function getRecipeById(id) {
+    console.log('=== getRecipeById called ===');
+    console.log('id:', id);
+
     // Fetch recipe details
     const recipeResult = await db.query('SELECT * FROM recipes WHERE id = $1', [id]);
     if (recipeResult.rowCount === 0) {
         throw new Error('Recipe not found');
     }
     const recipe = recipeResult.rows[0];
+    console.log('Recipe from database:', recipe);
 
-    // Fetch ingredients for the recipe
+    // CRITICAL FIX: Use a simpler query to fetch ingredients
     const ingredientsResult = await db.query(
         'SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC',
         [id]
     );
-    recipe.ingredients = ingredientsResult.rows;
 
+    // Log the ingredients data
+    console.log(`Found ${ingredientsResult.rowCount} ingredients for recipe ${id}`);
+
+    // Process each ingredient to ensure package_amount is properly formatted
+    const ingredients = ingredientsResult.rows.map(ing => {
+        console.log(`Ingredient ${ing.id} (${ing.name}) package_amount:`, ing.package_amount, typeof ing.package_amount);
+
+        // CRITICAL FIX: Ensure package_amount is properly formatted
+        // No need to convert - PostgreSQL driver handles this correctly
+
+        console.log(`Processed ingredient ${ing.id} (${ing.name}) package_amount:`, ing.package_amount, typeof ing.package_amount);
+        return ing;
+    });
+
+    recipe.ingredients = ingredients;
     return recipe;
 }
 
@@ -77,9 +95,13 @@ async function createRecipe(name, ingredients) {
                 typeof ing.carbohydrates !== 'number' || typeof ing.price !== 'number' || ing.amount <= 0) {
                  throw new Error('Invalid data for ingredient: ' + (ing.name || '[Missing Name]'));
             }
+
+            // Log the ingredient data being inserted
+            console.log('Inserting ingredient with package_amount:', ing.package_amount);
+
             return client.query(
-                'INSERT INTO ingredients (recipe_id, name, calories, amount, protein, fats, carbohydrates, price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [newRecipeId, ing.name.trim(), ing.calories, ing.amount, ing.protein, ing.fats, ing.carbohydrates, ing.price]
+                'INSERT INTO ingredients (recipe_id, name, calories, amount, package_amount, protein, fats, carbohydrates, price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+                [newRecipeId, ing.name.trim(), ing.calories, ing.amount, ing.package_amount || null, ing.protein, ing.fats, ing.carbohydrates, ing.price]
             );
         });
         await Promise.all(ingredientInsertPromises);
@@ -152,6 +174,7 @@ async function updateRecipeCalories(id, name, targetCalories) {
             const newCarbohydrates = ing.carbohydrates * scalingFactor;
             const newPrice = ing.price * scalingFactor;
 
+            // Note: We don't scale package_amount as it's a fixed property of the ingredient package
             return client.query(
                 'UPDATE ingredients SET amount = $1, calories = $2, protein = $3, fats = $4, carbohydrates = $5, price = $6 WHERE id = $7',
                 [newAmount, newCalories, newProtein, newFats, newCarbohydrates, newPrice, ing.id]
@@ -203,6 +226,11 @@ async function deleteRecipe(id) {
  * @returns {Promise<Object>} - Promise resolving to the updated recipe with ingredients
  */
 async function updateIngredient(recipeId, ingredientId, ingredientData) {
+    console.log('=== DIRECT updateIngredient called ===');
+    console.log('recipeId:', recipeId);
+    console.log('ingredientId:', ingredientId);
+    console.log('ingredientData:', JSON.stringify(ingredientData, null, 2));
+
     // Validate inputs
     if (!recipeId || !ingredientId) {
         throw new Error('Recipe ID and ingredient ID are required');
@@ -212,16 +240,27 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
         throw new Error('Ingredient data is required');
     }
 
+    // Process package_amount
+    let packageAmount = null;
+    if (ingredientData.package_amount !== undefined &&
+        ingredientData.package_amount !== null &&
+        ingredientData.package_amount !== '') {
+
+        // Convert to number
+        packageAmount = Number(ingredientData.package_amount);
+
+        // If conversion failed, set to null
+        if (isNaN(packageAmount)) {
+            packageAmount = null;
+        }
+    }
+
+    console.log('Final package_amount:', packageAmount, typeof packageAmount);
+
     const client = await db.getClient();
 
     try {
         await client.query('BEGIN');
-
-        // Check if recipe exists
-        const recipeResult = await client.query('SELECT * FROM recipes WHERE id = $1', [recipeId]);
-        if (recipeResult.rowCount === 0) {
-            throw new Error('Recipe not found');
-        }
 
         // Check if ingredient exists and belongs to the recipe
         const ingredientResult = await client.query(
@@ -234,68 +273,58 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
 
         const oldIngredient = ingredientResult.rows[0];
 
-        // Prepare update data
-        const updates = {};
-        const validFields = [
-            // Basic fields
-            'name', 'amount', 'calories', 'protein', 'fats', 'carbohydrates', 'price',
-            // General section
-            'alcohol', 'caffeine', 'water',
-            // Carbohydrates section
-            'fiber', 'starch', 'sugars', 'added_sugars', 'net_carbs',
-            // Lipids section
-            'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'saturated', 'trans_fat', 'cholesterol',
-            // Protein section
-            'cystine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'tyrosine', 'valine',
-            // Vitamins section
-            'vitamin_b1', 'vitamin_b2', 'vitamin_b3', 'vitamin_b5', 'vitamin_b6', 'vitamin_b12', 'folate', 'vitamin_a', 'vitamin_c', 'vitamin_d', 'vitamin_e', 'vitamin_k',
-            // Minerals section
-            'calcium', 'copper', 'iron', 'magnesium', 'manganese', 'phosphorus', 'potassium', 'selenium', 'sodium', 'zinc'
-        ];
+        // Update basic fields
+        await client.query(`
+            UPDATE ingredients SET
+                name = $1,
+                calories = $2,
+                amount = $3,
+                protein = $4,
+                fats = $5,
+                carbohydrates = $6,
+                price = $7
+            WHERE id = $8
+        `, [
+            ingredientData.name || oldIngredient.name,
+            ingredientData.calories || oldIngredient.calories,
+            ingredientData.amount || oldIngredient.amount,
+            ingredientData.protein || oldIngredient.protein,
+            ingredientData.fats || oldIngredient.fats,
+            ingredientData.carbohydrates || oldIngredient.carbohydrates,
+            ingredientData.price || oldIngredient.price,
+            ingredientId
+        ]);
 
-        validFields.forEach(field => {
-            if (ingredientData[field] !== undefined) {
-                // Validate numeric fields
-                if (field !== 'name' && (isNaN(ingredientData[field]) || ingredientData[field] < 0)) {
-                    throw new Error(`Invalid value for ${field}`);
-                }
-                // For name field, ensure it's a string and trim it
-                if (field === 'name' && typeof ingredientData[field] === 'string') {
-                    updates[field] = ingredientData[field].trim();
-                } else if (field !== 'name') {
-                    updates[field] = ingredientData[field];
-                }
+        // Update package_amount separately
+        console.log('Updating package_amount to:', packageAmount, typeof packageAmount);
+
+        // CRITICAL FIX: Ensure package_amount is properly formatted
+        // If it's a string, convert it to a number
+        let finalPackageAmount = packageAmount;
+        if (typeof finalPackageAmount === 'string' && finalPackageAmount.trim() !== '') {
+            finalPackageAmount = Number(finalPackageAmount);
+            if (isNaN(finalPackageAmount)) {
+                finalPackageAmount = null;
             }
-        });
-
-        if (Object.keys(updates).length === 0) {
-            throw new Error('No valid fields to update');
         }
 
-        // Build the update query
-        const setClauses = [];
-        const values = [];
-        let paramIndex = 1;
+        console.log('Final package_amount to save:', finalPackageAmount, typeof finalPackageAmount);
 
-        Object.entries(updates).forEach(([field, value]) => {
-            setClauses.push(`${field} = $${paramIndex}`);
-            values.push(value);
-            paramIndex++;
-        });
+        await client.query(`
+            UPDATE ingredients SET package_amount = $1 WHERE id = $2
+        `, [finalPackageAmount, ingredientId]);
 
-        values.push(ingredientId); // Add ingredient ID as the last parameter
-
-        // Update the ingredient
-        await client.query(
-            `UPDATE ingredients SET ${setClauses.join(', ')} WHERE id = $${paramIndex}`,
-            values
+        // Verify the update
+        const verifyResult = await client.query(
+            'SELECT * FROM ingredients WHERE id = $1',
+            [ingredientId]
         );
 
+        console.log('Verified updated ingredient:', verifyResult.rows[0]);
+        console.log('Verified package_amount:', verifyResult.rows[0].package_amount);
+
         // Calculate the difference in calories
-        let caloriesDifference = 0;
-        if (updates.calories !== undefined) {
-            caloriesDifference = updates.calories - oldIngredient.calories;
-        }
+        const caloriesDifference = ingredientData.calories - oldIngredient.calories;
 
         // Update recipe total calories if ingredient calories changed
         if (caloriesDifference !== 0) {
@@ -342,9 +371,98 @@ async function getIngredientById(recipeId, ingredientId) {
             throw new Error('Ingredient not found or does not belong to this recipe');
         }
 
-        return ingredientResult.rows[0];
+        const ingredient = ingredientResult.rows[0];
+        console.log('Ingredient data from database:', ingredient);
+        return ingredient;
     } catch (error) {
         throw error;
+    }
+}
+
+/**
+ * Update only the package_amount of an ingredient
+ * @param {number} recipeId - The recipe ID
+ * @param {number} ingredientId - The ingredient ID
+ * @param {number|null} packageAmount - The package amount value
+ * @returns {Promise<Object>} - Promise resolving to the updated ingredient
+ */
+async function updateIngredientPackageAmount(recipeId, ingredientId, packageAmount) {
+    console.log('=== updateIngredientPackageAmount called ===');
+    console.log('recipeId:', recipeId);
+    console.log('ingredientId:', ingredientId);
+    console.log('packageAmount:', packageAmount, typeof packageAmount);
+
+    // Validate inputs
+    if (!recipeId || !ingredientId) {
+        throw new Error('Recipe ID and ingredient ID are required');
+    }
+
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // Check if ingredient exists and belongs to the recipe
+        const ingredientResult = await client.query(
+            'SELECT * FROM ingredients WHERE id = $1 AND recipe_id = $2',
+            [ingredientId, recipeId]
+        );
+
+        if (ingredientResult.rowCount === 0) {
+            throw new Error('Ingredient not found or does not belong to this recipe');
+        }
+
+        // Log the current package_amount
+        console.log('Current package_amount:', ingredientResult.rows[0].package_amount, typeof ingredientResult.rows[0].package_amount);
+
+        // CRITICAL FIX: Ensure package_amount is properly formatted
+        // Convert to number if it's not null
+        let finalPackageAmount = null;
+        if (packageAmount !== null && packageAmount !== undefined && packageAmount !== '') {
+            // Force to number
+            finalPackageAmount = Number(packageAmount);
+
+            // If conversion failed, set to null
+            if (isNaN(finalPackageAmount)) {
+                finalPackageAmount = null;
+            }
+        }
+
+        console.log('Final package_amount to save:', finalPackageAmount, typeof finalPackageAmount);
+
+        // Update only the package_amount using a direct SQL query
+        console.log('Executing direct package_amount update...');
+        const updateResult = await client.query(
+            'UPDATE ingredients SET package_amount = $1 WHERE id = $2 RETURNING *',
+            [finalPackageAmount, ingredientId]
+        );
+
+        if (updateResult.rowCount === 0) {
+            throw new Error('Failed to update package_amount');
+        }
+
+        console.log('Update result:', updateResult.rows[0]);
+        console.log('Updated package_amount:', updateResult.rows[0].package_amount, typeof updateResult.rows[0].package_amount);
+
+        // Verify the update with a separate query
+        const verifyResult = await client.query(
+            'SELECT id, name, package_amount FROM ingredients WHERE id = $1',
+            [ingredientId]
+        );
+
+        console.log('Verified result:', verifyResult.rows[0]);
+        console.log('Verified package_amount:', verifyResult.rows[0].package_amount, typeof verifyResult.rows[0].package_amount);
+
+        await client.query('COMMIT');
+
+        // Get the full recipe to return
+        const recipe = await getRecipeById(recipeId);
+        return recipe;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
     }
 }
 
@@ -355,5 +473,6 @@ module.exports = {
     updateRecipeCalories,
     deleteRecipe,
     updateIngredient,
-    getIngredientById
+    getIngredientById,
+    updateIngredientPackageAmount
 };

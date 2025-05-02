@@ -1,0 +1,61 @@
+/**
+ * Sticky Workout Header
+ * This CSS makes the workout header (with title and timer) stay fixed at the top of the screen when scrolling
+ */
+
+/* Make the workout header sticky */
+.workout-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #121212; /* Match the background color */
+    background: linear-gradient(to bottom, #1a1a1a, #121212); /* Subtle gradient for depth */
+    border-bottom: 1px solid #333; /* Add a subtle border */
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); /* Add shadow for depth */
+    transition: box-shadow 0.3s ease; /* Smooth transition for shadow */
+    border-radius: 0; /* Remove border radius for full-width appearance */
+}
+
+/* Add a slight shadow when scrolled */
+.workout-header.scrolled {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Ensure the active workout page has proper padding */
+#active-workout-page {
+    padding-top: 5px;
+}
+
+/* Style the workout name and timer */
+#current-workout-name {
+    color: white;
+    font-size: 1.3rem;
+    margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#workout-timer {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure the exercise list has proper spacing */
+#current-exercise-list {
+    padding-top: 5px;
+}
+
+/* Make sure the workout header is full width on mobile */
+@media (max-width: 768px) {
+    .workout-header {
+        width: 100%;
+        left: 0;
+        padding: 10px;
+        border-radius: 0;
+    }
+}
