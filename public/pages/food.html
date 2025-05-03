@@ -39,6 +39,37 @@
     <link rel="stylesheet" href="../css/package-amount-field.css"> <!-- Styling for package amount field -->
     <link rel="stylesheet" href="../css/grocery-list-inline.css"> <!-- Styling for grocery list section -->
     <link rel="stylesheet" href="../css/ingredient-autocomplete.css"> <!-- Styling for ingredient autocomplete -->
+    <link rel="stylesheet" href="../css/recipe-header-buttons.css"> <!-- Styling for recipe header buttons -->
+    <link rel="stylesheet" href="../css/smaller-nutrition-inputs.css"> <!-- Smaller input boxes for nutrition fields -->
+    <link rel="stylesheet" href="../css/horizontal-ingredient-edit.css"> <!-- Horizontal layout for ingredient edit form -->
+    <link rel="stylesheet" href="../css/horizontal-edit-fields.css"> <!-- Horizontal layout for edit fields -->
+    <link rel="stylesheet" href="../css/top-fields-dark-fix.css"> <!-- Fix for top fields background color -->
+    <link rel="stylesheet" href="../css/remove-duplicate-fields.css"> <!-- Remove duplicate fields and dark area -->
+    <link rel="stylesheet" href="../css/show-nutrition-panel.css"> <!-- Ensure nutrition panel is displayed -->
+    <link rel="stylesheet" href="../css/nutrition-display-redesign.css"> <!-- Redesigned nutrition display -->
+    <link rel="stylesheet" href="../css/ultra-compact-nutrition.css"> <!-- Ultra compact nutrition display -->
+    <link rel="stylesheet" href="../css/super-compact-nutrition.css"> <!-- Super compact nutrition display -->
+    <link rel="stylesheet" href="../css/nutrition-grid-fix.css"> <!-- Fix for nutrition grid layout -->
+    <link rel="stylesheet" href="../css/move-buttons-above-header.css"> <!-- Move buttons above header -->
+    <link rel="stylesheet" href="../css/button-text-styling.css"> <!-- Button text styling -->
+    <link rel="stylesheet" href="../css/basic-info-alignment-fix.css"> <!-- Fix for Basic Information alignment -->
+    <link rel="stylesheet" href="../css/nutrition-edit-buttons.css"> <!-- Add Save and Cancel buttons to nutrition panel -->
+    <link rel="stylesheet" href="../css/direct-toggle-fix.css"> <!-- Direct fix for toggle button -->
+    <link rel="stylesheet" href="../css/match-button-sizes.css"> <!-- Match button sizes -->
+    <link rel="stylesheet" href="../css/button-row-flex.css"> <!-- Button row flex layout -->
+    <link rel="stylesheet" href="../css/button-alignment-fix.css"> <!-- Button alignment fix -->
+    <link rel="stylesheet" href="../css/text-display-fix.css"> <!-- Text display fix -->
+    <link rel="stylesheet" href="../css/vertical-alignment-fix.css"> <!-- Vertical alignment fix -->
+    <link rel="stylesheet" href="../css/button-position-fix.css"> <!-- Button position fix -->
+    <link rel="stylesheet" href="../css/hide-edit-form.css"> <!-- Hide edit form by default -->
+    <link rel="stylesheet" href="../css/fix-duplicate-buttons.css"> <!-- Fix duplicate buttons -->
+    <link rel="stylesheet" href="../css/basic-info-styling-fix.css"> <!-- Fix Basic Information section styling -->
+    <link rel="stylesheet" href="../css/direct-basic-info-fix.css"> <!-- Direct fix for Basic Information section -->
+    <link rel="stylesheet" href="../css/force-basic-info-styling.css"> <!-- Force Basic Information section styling -->
+    <link rel="stylesheet" href="../css/complete-basic-info-fix.css"> <!-- Complete fix for Basic Information section -->
+    <link rel="stylesheet" href="../css/remove-duplicate-form-buttons.css"> <!-- Remove duplicate form buttons -->
+    <link rel="stylesheet" href="../css/force-single-button-set.css"> <!-- Force a single set of buttons in edit forms -->
+    <link rel="stylesheet" href="../css/final-button-fix.css"> <!-- Final fix for duplicate buttons -->
 </head>
 <body>
     <button class="menu-button">
@@ -592,6 +623,16 @@
         });
     </script>
 
+    <!-- Console log suppressor - must be loaded first -->
+    <script src="../js/food/console-log-suppressor.js"></script> <!-- Suppresses console logs from fix scripts -->
+
+    <!-- Server availability check - must be loaded before other scripts -->
+    <script src="../js/food/server-check.js"></script> <!-- Checks if the server is available -->
+
+    <!-- Local storage manager for package amounts -->
+    <script src="../js/food/local-storage-manager.js"></script> <!-- Manages package amounts in local storage -->
+    <script src="../js/food/omega-storage.js"></script> <!-- Manages omega values in local storage -->
+
     <!-- Common utilities -->
     <script src="../js/common/sidebar.js"></script>
     <script src="../js/common/sidebar-updater.js"></script> <!-- Sidebar updater to use the same sidebar as index.html -->
@@ -615,5 +656,40 @@
     <script src="../js/food/recipe-adjust-buttons-fix.js"></script> <!-- Recipe adjust buttons fix -->
     <script src="../js/food/grocery-list-inline.js"></script> <!-- Grocery list functionality -->
     <script src="../js/food/ingredient-autocomplete.js"></script> <!-- Ingredient autocomplete functionality -->
+    <script src="../js/field-updater.js"></script> <!-- Field updater for direct field updates -->
+    <script src="../js/food/horizontal-ingredient-edit.js"></script> <!-- Horizontal ingredient edit layout -->
+    <script src="../js/food/horizontal-edit-fields.js"></script> <!-- Horizontal edit fields layout -->
+    <script src="../js/food/fix-missing-fields.js"></script> <!-- Fix for missing fields in edit form -->
+    <script src="../js/food/top-fields-dark-fix.js"></script> <!-- Fix for top fields background color -->
+    <script src="../js/food/remove-duplicate-fields.js"></script> <!-- Remove duplicate fields and dark area -->
+    <script src="../js/food/show-nutrition-panel.js"></script> <!-- Ensure nutrition panel is displayed -->
+    <script src="../js/food/nutrition-display-redesign.js"></script> <!-- Redesigned nutrition display -->
+    <script src="../js/food/basic-info-alignment-fix.js"></script> <!-- Fix for Basic Information alignment -->
+    <script src="../js/food/remove-duplicate-buttons.js"></script> <!-- Remove duplicate buttons -->
+    <script src="../js/food/direct-toggle-fix.js"></script> <!-- Direct fix for toggle button -->
+    <script src="../js/food/ensure-toggle-works.js"></script> <!-- Ensure toggle button works -->
+    <script src="../js/food/global-toggle-handler.js"></script> <!-- Global toggle button handler -->
+    <script src="../js/food/force-toggle-button.js"></script> <!-- Force toggle button -->
+    <script src="../js/food/button-row-layout.js"></script> <!-- Button row layout -->
+    <script src="../js/food/exact-button-match.js"></script> <!-- Exact button match -->
+    <script src="../js/food/fix-button-text-display.js"></script> <!-- Fix button text display -->
+    <script src="../js/food/shorter-button-text.js"></script> <!-- Shorter button text -->
+    <script src="../js/food/fix-vertical-alignment.js"></script> <!-- Fix vertical alignment -->
+    <script src="../js/food/exact-position-match.js"></script> <!-- Exact position match -->
+    <script src="../js/food/nutrition-edit-buttons.js"></script> <!-- Add Save and Cancel buttons to nutrition panel -->
+    <script src="../js/food/move-buttons-above-header.js"></script> <!-- Move buttons above header -->
+    <script src="../js/food/fix-edit-form-display.js"></script> <!-- Fix edit form display issue -->
+    <script src="../js/food/fix-form-buttons.js"></script> <!-- Fix duplicate form buttons -->
+    <script src="../js/food/basic-info-structure-fix.js"></script> <!-- Fix Basic Information section structure -->
+    <script src="../js/food/direct-basic-info-fix.js"></script> <!-- Direct fix for Basic Information section -->
+    <script src="../js/food/force-basic-info-structure.js"></script> <!-- Force Basic Information section structure -->
+    <script src="../js/food/replace-basic-info.js"></script> <!-- Replace Basic Information section -->
+    <script src="../js/food/direct-basic-info-replacement.js"></script> <!-- Direct replacement of Basic Information section -->
+    <script src="../js/food/remove-duplicate-form-buttons.js"></script> <!-- Remove duplicate form buttons -->
+    <script src="../js/food/fix-basic-info-on-load.js"></script> <!-- Fix Basic Information section on load -->
+    <script src="../js/food/fix-edit-form-submission.js"></script> <!-- Fix edit form submission -->
+    <script src="../js/food/force-single-button-set.js"></script> <!-- Force a single set of buttons in edit forms -->
+    <!-- <script src="../js/food/final-button-fix.js"></script> --> <!-- Final fix for duplicate buttons -->
+    <!-- <script src="../js/food/absolute-button-fix.js"></script> --> <!-- Absolute last-resort fix for duplicate buttons -->
 </body>
 </html>

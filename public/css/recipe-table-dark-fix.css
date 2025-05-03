@@ -14,14 +14,14 @@
 /* Table row styling */
 .recipe-table tr,
 .recipe-table td {
-    background-color: rgba(18, 18, 18, 0.95) !important;
+    background-color: transparent !important;
     color: #e0e0e0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Alternate row styling */
 .recipe-table tr:nth-child(even) td {
-    background-color: rgba(25, 25, 25, 0.95) !important;
+    background-color: rgba(40, 40, 40, 0.3) !important;
 }
 
 /* Hover effect for rows */

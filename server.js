@@ -49,6 +49,7 @@ const uniqueIngredientsRoutes = require('./routes/uniqueIngredients'); // NEW: U
 const debugRoutes = require('./routes/debugRoutes'); // DEBUG: Routes for debugging
 const directUpdateRoutes = require('./routes/directUpdateRoutes'); // DIRECT: Routes for direct updates
 const packageAmountRoutes = require('./routes/packageAmountRoutes'); // PACKAGE: Routes for package amount
+const directTransFatUpdate = require('./routes/directTransFatUpdate'); // DIRECT: Routes for trans fat updates
 const weightRoutes = require('./routes/weight'); // Main weight routes file
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
@@ -155,6 +156,8 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/unique-ingredients', uniqueIngredientsRoutes); // NEW: Unique ingredients route
 app.use('/api/debug', debugRoutes); // DEBUG: Routes for debugging
 app.use('/api/direct-update', directUpdateRoutes); // DIRECT: Routes for direct updates
+app.use('/api/package-amount', packageAmountRoutes); // PACKAGE: Routes for package amount
+app.use('/api/direct', directTransFatUpdate); // DIRECT: Routes for trans fat updates
 app.use('/api/weight', weightRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);

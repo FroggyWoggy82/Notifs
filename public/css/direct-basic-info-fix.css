@@ -1,0 +1,62 @@
+/**
+ * Direct Basic Information Fix
+ * Directly targets the Basic Information section to match other sections
+ */
+
+/* Target the first div in the edit form that contains the Basic Information */
+.edit-ingredient-form > div:first-of-type:not(.edit-ingredient-form-header) {
+    background-color: #1e1e1e !important;
+    border-radius: 5px !important;
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+    color: white !important;
+}
+
+/* Style the Basic Information header */
+.edit-ingredient-form > div:first-of-type:not(.edit-ingredient-form-header) > h4 {
+    color: white !important;
+    margin-top: 0 !important;
+    margin-bottom: 10px !important;
+    font-size: 1.1em !important;
+    font-weight: bold !important;
+}
+
+/* Style the form groups in the Basic Information section */
+.edit-ingredient-form > div:first-of-type:not(.edit-ingredient-form-header) .form-group {
+    margin-bottom: 8px !important;
+    display: inline-block !important;
+    margin-right: 15px !important;
+}
+
+/* Style the labels in the Basic Information section */
+.edit-ingredient-form > div:first-of-type:not(.edit-ingredient-form-header) label {
+    color: white !important;
+    font-size: 0.9em !important;
+    display: block !important;
+    margin-bottom: 3px !important;
+}
+
+/* Style the inputs in the Basic Information section */
+.edit-ingredient-form > div:first-of-type:not(.edit-ingredient-form-header) input {
+    background-color: #333 !important;
+    color: white !important;
+    border: 1px solid #444 !important;
+    border-radius: 3px !important;
+    padding: 5px !important;
+}
+
+/* Add a specific fix for the Basic Information section when it has the 'Basic Information' text */
+.edit-ingredient-form > div:first-of-type:not(.edit-ingredient-form-header):has(> :contains("Basic Information")) {
+    background-color: #1e1e1e !important;
+    border-radius: 5px !important;
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Direct targeting of the Basic Information section */
+.edit-ingredient-form .basic-information {
+    background-color: #1e1e1e !important;
+    border-radius: 5px !important;
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+}

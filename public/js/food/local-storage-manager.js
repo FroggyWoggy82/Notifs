@@ -1,0 +1,92 @@
+/**
+ * Local Storage Manager
+ * 
+ * This script provides functions for storing and retrieving package amounts
+ * in local storage as a fallback when the server is unavailable.
+ */
+
+(function() {
+    // Key for storing package amounts in local storage
+    const PACKAGE_AMOUNTS_KEY = 'recipe_ingredient_package_amounts';
+    
+    /**
+     * Save a package amount to local storage
+     * @param {number} ingredientId - The ID of the ingredient
+     * @param {number} packageAmount - The package amount to save
+     */
+    function savePackageAmount(ingredientId, packageAmount) {
+        try {
+            // Get existing package amounts from local storage
+            const packageAmounts = getPackageAmounts();
+            
+            // Update the package amount for this ingredient
+            packageAmounts[ingredientId] = packageAmount;
+            
+            // Save back to local storage
+            localStorage.setItem(PACKAGE_AMOUNTS_KEY, JSON.stringify(packageAmounts));
+            
+            console.log(`Saved package amount ${packageAmount} for ingredient ${ingredientId} to local storage`);
+            return true;
+        } catch (error) {
+            console.error('Error saving package amount to local storage:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Get a package amount from local storage
+     * @param {number} ingredientId - The ID of the ingredient
+     * @returns {number|null} The package amount, or null if not found
+     */
+    function getPackageAmount(ingredientId) {
+        try {
+            // Get existing package amounts from local storage
+            const packageAmounts = getPackageAmounts();
+            
+            // Return the package amount for this ingredient, or null if not found
+            return packageAmounts[ingredientId] || null;
+        } catch (error) {
+            console.error('Error getting package amount from local storage:', error);
+            return null;
+        }
+    }
+    
+    /**
+     * Get all package amounts from local storage
+     * @returns {Object} An object mapping ingredient IDs to package amounts
+     */
+    function getPackageAmounts() {
+        try {
+            // Get existing package amounts from local storage
+            const packageAmountsJson = localStorage.getItem(PACKAGE_AMOUNTS_KEY);
+            
+            // Parse the JSON, or return an empty object if not found
+            return packageAmountsJson ? JSON.parse(packageAmountsJson) : {};
+        } catch (error) {
+            console.error('Error getting package amounts from local storage:', error);
+            return {};
+        }
+    }
+    
+    /**
+     * Clear all package amounts from local storage
+     */
+    function clearPackageAmounts() {
+        try {
+            localStorage.removeItem(PACKAGE_AMOUNTS_KEY);
+            console.log('Cleared all package amounts from local storage');
+            return true;
+        } catch (error) {
+            console.error('Error clearing package amounts from local storage:', error);
+            return false;
+        }
+    }
+    
+    // Expose functions globally
+    window.localStorageManager = {
+        savePackageAmount,
+        getPackageAmount,
+        getPackageAmounts,
+        clearPackageAmounts
+    };
+})();

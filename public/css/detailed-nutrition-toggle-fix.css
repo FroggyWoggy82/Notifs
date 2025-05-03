@@ -1,0 +1,96 @@
+/**
+ * Fix for the Show Detailed Nutrition button
+ * Ensures proper styling when toggling sections
+ */
+
+/* Style for the toggle button */
+button.toggle-detailed-nutrition,
+#show-detailed-nutrition-btn,
+button.show-detailed-nutrition {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    padding: 5px 10px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    font-size: 0.8em !important;
+    transition: all 0.2s ease !important;
+    display: inline-block !important;
+    margin: 5px !important;
+    text-align: center !important;
+    width: auto !important;
+    min-width: 150px !important;
+    height: 28px !important;
+}
+
+/* Hover state for the toggle button */
+button.toggle-detailed-nutrition:hover,
+#show-detailed-nutrition-btn:hover,
+button.show-detailed-nutrition:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Ensure the button is properly positioned */
+.nutrition-summary button,
+.nutrition-controls button {
+    margin: 10px auto !important;
+    display: block !important;
+}
+
+/* Initially hide all sections except General */
+.carbohydrates,
+.lipids,
+.protein,
+.vitamins,
+.minerals,
+section.carbohydrates,
+section.lipids,
+section.protein,
+section.vitamins,
+section.minerals {
+    display: none !important;
+}
+
+/* Always show the General section */
+.general,
+section.general {
+    display: block !important;
+}
+
+/* Override the display property when sections are toggled */
+.carbohydrates.show,
+.lipids.show,
+.protein.show,
+.vitamins.show,
+.minerals.show,
+section.carbohydrates.show,
+section.lipids.show,
+section.protein.show,
+section.vitamins.show,
+section.minerals.show {
+    display: block !important;
+}
+
+/* Ensure the nutrition sections are properly spaced */
+.nutrition-section,
+section.general,
+section.carbohydrates,
+section.lipids,
+section.protein,
+section.vitamins,
+section.minerals {
+    margin-bottom: 15px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Style for section headers */
+.nutrition-section h4,
+section h4 {
+    font-size: 0.85em !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 3px !important;
+    color: #e0e0e0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

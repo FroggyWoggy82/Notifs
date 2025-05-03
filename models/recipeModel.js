@@ -273,27 +273,129 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
 
         const oldIngredient = ingredientResult.rows[0];
 
-        // Update basic fields
-        await client.query(`
-            UPDATE ingredients SET
-                name = $1,
-                calories = $2,
-                amount = $3,
-                protein = $4,
-                fats = $5,
-                carbohydrates = $6,
-                price = $7
-            WHERE id = $8
-        `, [
-            ingredientData.name || oldIngredient.name,
-            ingredientData.calories || oldIngredient.calories,
-            ingredientData.amount || oldIngredient.amount,
-            ingredientData.protein || oldIngredient.protein,
-            ingredientData.fats || oldIngredient.fats,
-            ingredientData.carbohydrates || oldIngredient.carbohydrates,
-            ingredientData.price || oldIngredient.price,
-            ingredientId
-        ]);
+        // Build a dynamic query to update all fields that are present in ingredientData
+        // Start with the basic fields
+        const updateFields = [];
+        const updateValues = [];
+        let paramIndex = 1;
+
+        // Helper function to add a field to the update query if it exists in ingredientData
+        const addFieldIfExists = (fieldName, dbFieldName = fieldName) => {
+            if (ingredientData[fieldName] !== undefined) {
+                updateFields.push(`${dbFieldName} = $${paramIndex}`);
+                updateValues.push(ingredientData[fieldName]);
+                paramIndex++;
+                return true;
+            }
+            return false;
+        };
+
+        // Add basic fields
+        addFieldIfExists('name');
+        addFieldIfExists('calories');
+        addFieldIfExists('amount');
+        addFieldIfExists('protein');
+        addFieldIfExists('fats');
+        addFieldIfExists('carbohydrates');
+        addFieldIfExists('price');
+
+        // Add General section fields
+        addFieldIfExists('alcohol');
+        addFieldIfExists('caffeine');
+        addFieldIfExists('water');
+
+        // Add Carbohydrates section fields
+        addFieldIfExists('fiber');
+        addFieldIfExists('starch');
+        addFieldIfExists('sugars');
+        addFieldIfExists('added_sugars');
+        addFieldIfExists('net_carbs');
+
+        // Add Lipids section fields
+        addFieldIfExists('saturated');
+        addFieldIfExists('monounsaturated');
+        addFieldIfExists('polyunsaturated');
+
+        // Special handling for omega_3 and omega_6 will be done separately
+        // Don't include them in the general update
+
+        // Special handling for trans_fat
+        if (ingredientData.trans_fat !== undefined) {
+            console.log('Processing trans_fat value:', ingredientData.trans_fat, typeof ingredientData.trans_fat);
+
+            // Ensure it's a number
+            let transFatValue = ingredientData.trans_fat;
+            if (typeof transFatValue === 'string') {
+                transFatValue = parseFloat(transFatValue);
+                if (isNaN(transFatValue)) {
+                    transFatValue = 0;
+                }
+            }
+
+            updateFields.push(`trans_fat = $${paramIndex}`);
+            updateValues.push(transFatValue);
+            paramIndex++;
+            console.log('Added trans_fat to update query with value:', transFatValue);
+        }
+
+        addFieldIfExists('cholesterol');
+
+        // Add Protein section fields
+        addFieldIfExists('histidine');
+        addFieldIfExists('isoleucine');
+        addFieldIfExists('leucine');
+        addFieldIfExists('lysine');
+        addFieldIfExists('methionine');
+        addFieldIfExists('phenylalanine');
+        addFieldIfExists('threonine');
+        addFieldIfExists('tryptophan');
+        addFieldIfExists('valine');
+        addFieldIfExists('tyrosine');
+        addFieldIfExists('cystine');
+
+        // Add Vitamins section fields
+        addFieldIfExists('thiamine');
+        addFieldIfExists('riboflavin');
+        addFieldIfExists('niacin');
+        addFieldIfExists('vitamin_b6');
+        addFieldIfExists('folate');
+        addFieldIfExists('vitamin_b12');
+        addFieldIfExists('pantothenic_acid');
+        addFieldIfExists('biotin');
+        addFieldIfExists('vitamin_a');
+        addFieldIfExists('vitamin_c');
+        addFieldIfExists('vitamin_d');
+        addFieldIfExists('vitamin_e');
+        addFieldIfExists('vitamin_k');
+
+        // Add Minerals section fields
+        addFieldIfExists('calcium');
+        addFieldIfExists('copper');
+        addFieldIfExists('iron');
+        addFieldIfExists('magnesium');
+        addFieldIfExists('manganese');
+        addFieldIfExists('phosphorus');
+        addFieldIfExists('potassium');
+        addFieldIfExists('selenium');
+        addFieldIfExists('sodium');
+        addFieldIfExists('zinc');
+
+        // Add the WHERE clause
+        updateValues.push(ingredientId);
+
+        // Build and execute the query if there are fields to update
+        if (updateFields.length > 0) {
+            const updateQuery = `
+                UPDATE ingredients SET
+                    ${updateFields.join(',\n                    ')}
+                WHERE id = $${paramIndex}
+            `;
+
+            console.log('Executing dynamic update query with fields:', updateFields);
+            await client.query(updateQuery, updateValues);
+        } else {
+            console.log('No fields to update');
+        }
 
         // Update package_amount separately
         console.log('Updating package_amount to:', packageAmount, typeof packageAmount);
@@ -314,6 +416,92 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
             UPDATE ingredients SET package_amount = $1 WHERE id = $2
         `, [finalPackageAmount, ingredientId]);
 
+        // Update trans_fat separately to ensure it's saved
+        if (ingredientData.trans_fat !== undefined) {
+            console.log('Directly updating trans_fat value to:', ingredientData.trans_fat, typeof ingredientData.trans_fat);
+
+            // Ensure trans_fat is properly formatted
+            let transFatValue = ingredientData.trans_fat;
+            if (typeof transFatValue === 'string' && transFatValue.trim() !== '') {
+                transFatValue = Number(transFatValue);
+                if (isNaN(transFatValue)) {
+                    transFatValue = 0;
+                }
+            }
+
+            console.log('Final trans_fat value to save:', transFatValue, typeof transFatValue);
+
+            try {
+                const transFatResult = await client.query(`
+                    UPDATE ingredients SET trans_fat = $1 WHERE id = $2 RETURNING id, name, trans_fat
+                `, [transFatValue, ingredientId]);
+
+                console.log('Trans_fat update result:', transFatResult.rows[0]);
+            } catch (error) {
+                console.error('Error updating trans_fat:', error);
+            }
+        }
+
+        // CRITICAL FIX: Update omega3 (without underscore) separately to ensure it's saved
+        // Check for both omega3 and omega_3 in the input data
+        if (ingredientData.omega3 !== undefined || ingredientData.omega_3 !== undefined) {
+            // Prioritize omega3 (without underscore) if both are provided
+            const omegaValue = ingredientData.omega3 !== undefined ? ingredientData.omega3 : ingredientData.omega_3;
+            console.log('Directly updating omega3 value to:', omegaValue, typeof omegaValue);
+
+            // Ensure omega3 is properly formatted
+            let omega3Value = omegaValue;
+            if (typeof omega3Value === 'string' && omega3Value.trim() !== '') {
+                omega3Value = Number(omega3Value);
+                if (isNaN(omega3Value)) {
+                    omega3Value = 0;
+                }
+            }
+
+            console.log('Final omega3 value to save:', omega3Value, typeof omega3Value);
+
+            try {
+                // CRITICAL FIX: Use omega3 (without underscore) to match database column name
+                const omega3Result = await client.query(`
+                    UPDATE ingredients SET omega3 = $1 WHERE id = $2 RETURNING id, name, omega3
+                `, [omega3Value, ingredientId]);
+
+                console.log('Omega3 update result:', omega3Result.rows[0]);
+            } catch (error) {
+                console.error('Error updating omega3:', error);
+            }
+        }
+
+        // CRITICAL FIX: Update omega6 (without underscore) separately to ensure it's saved
+        // Check for both omega6 and omega_6 in the input data
+        if (ingredientData.omega6 !== undefined || ingredientData.omega_6 !== undefined) {
+            // Prioritize omega6 (without underscore) if both are provided
+            const omegaValue = ingredientData.omega6 !== undefined ? ingredientData.omega6 : ingredientData.omega_6;
+            console.log('Directly updating omega6 value to:', omegaValue, typeof omegaValue);
+
+            // Ensure omega6 is properly formatted
+            let omega6Value = omegaValue;
+            if (typeof omega6Value === 'string' && omega6Value.trim() !== '') {
+                omega6Value = Number(omega6Value);
+                if (isNaN(omega6Value)) {
+                    omega6Value = 0;
+                }
+            }
+
+            console.log('Final omega6 value to save:', omega6Value, typeof omega6Value);
+
+            try {
+                // CRITICAL FIX: Use omega6 (without underscore) to match database column name
+                const omega6Result = await client.query(`
+                    UPDATE ingredients SET omega6 = $1 WHERE id = $2 RETURNING id, name, omega6
+                `, [omega6Value, ingredientId]);
+
+                console.log('Omega6 update result:', omega6Result.rows[0]);
+            } catch (error) {
+                console.error('Error updating omega6:', error);
+            }
+        }
+
         // Verify the update
         const verifyResult = await client.query(
             'SELECT * FROM ingredients WHERE id = $1',
@@ -322,6 +510,10 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
 
         console.log('Verified updated ingredient:', verifyResult.rows[0]);
         console.log('Verified package_amount:', verifyResult.rows[0].package_amount);
+        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+        console.log('Verified omega3:', verifyResult.rows[0].omega3);
+        console.log('Verified omega6:', verifyResult.rows[0].omega6);
+        console.log('Verified trans_fat:', verifyResult.rows[0].trans_fat);
 
         // Calculate the difference in calories
         const caloriesDifference = ingredientData.calories - oldIngredient.calories;
@@ -466,6 +658,123 @@ async function updateIngredientPackageAmount(recipeId, ingredientId, packageAmou
     }
 }
 
+/**
+ * Update only the omega3 and omega6 values of an ingredient
+ * @param {number} recipeId - The recipe ID
+ * @param {number} ingredientId - The ingredient ID
+ * @param {Object} omegaData - Object containing omega3/omega_3 and/or omega6/omega_6 values
+ * @returns {Promise<Object>} - Promise resolving to the updated recipe
+ */
+async function updateIngredientOmegaValues(recipeId, ingredientId, omegaData) {
+    console.log('=== updateIngredientOmegaValues called ===');
+    console.log('recipeId:', recipeId);
+    console.log('ingredientId:', ingredientId);
+    console.log('omegaData:', omegaData);
+
+    // Validate inputs
+    if (!recipeId || !ingredientId) {
+        throw new Error('Recipe ID and ingredient ID are required');
+    }
+
+    // CRITICAL FIX: Check for both naming conventions
+    if (!omegaData || (
+        omegaData.omega3 === undefined &&
+        omegaData.omega_3 === undefined &&
+        omegaData.omega6 === undefined &&
+        omegaData.omega_6 === undefined
+    )) {
+        throw new Error('At least one omega value is required');
+    }
+
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // Check if ingredient exists and belongs to the recipe
+        const ingredientResult = await client.query(
+            'SELECT * FROM ingredients WHERE id = $1 AND recipe_id = $2',
+            [ingredientId, recipeId]
+        );
+
+        if (ingredientResult.rowCount === 0) {
+            throw new Error('Ingredient not found or does not belong to this recipe');
+        }
+
+        // Log the current omega values
+        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+        console.log('Current omega3:', ingredientResult.rows[0].omega3);
+        console.log('Current omega6:', ingredientResult.rows[0].omega6);
+
+        // Build the update query
+        const updateFields = [];
+        const updateValues = [];
+        let paramIndex = 1;
+
+        // CRITICAL FIX: Handle both naming conventions, prioritizing without underscore
+        if (omegaData.omega3 !== undefined || omegaData.omega_3 !== undefined) {
+            const omega3Value = omegaData.omega3 !== undefined ? omegaData.omega3 : omegaData.omega_3;
+            updateFields.push(`omega3 = $${paramIndex}`);
+            updateValues.push(omega3Value);
+            paramIndex++;
+        }
+
+        if (omegaData.omega6 !== undefined || omegaData.omega_6 !== undefined) {
+            const omega6Value = omegaData.omega6 !== undefined ? omegaData.omega6 : omegaData.omega_6;
+            updateFields.push(`omega6 = $${paramIndex}`);
+            updateValues.push(omega6Value);
+            paramIndex++;
+        }
+
+        // Add the WHERE clause
+        updateValues.push(ingredientId);
+
+        // Execute the update query
+        const updateQuery = `
+            UPDATE ingredients SET
+                ${updateFields.join(', ')}
+            WHERE id = $${paramIndex}
+            RETURNING *
+        `;
+
+        console.log('Executing omega values update query:', updateQuery);
+        console.log('Update values:', updateValues);
+
+        const updateResult = await client.query(updateQuery, updateValues);
+
+        if (updateResult.rowCount === 0) {
+            throw new Error('Failed to update omega values');
+        }
+
+        console.log('Update result:', updateResult.rows[0]);
+        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+        console.log('Updated omega3:', updateResult.rows[0].omega3);
+        console.log('Updated omega6:', updateResult.rows[0].omega6);
+
+        // Verify the update with a separate query
+        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+        const verifyResult = await client.query(
+            'SELECT id, name, omega3, omega6 FROM ingredients WHERE id = $1',
+            [ingredientId]
+        );
+
+        console.log('Verified result:', verifyResult.rows[0]);
+        console.log('Verified omega3:', verifyResult.rows[0].omega3);
+        console.log('Verified omega6:', verifyResult.rows[0].omega6);
+
+        await client.query('COMMIT');
+
+        // Get the full recipe to return
+        const recipe = await getRecipeById(recipeId);
+        return recipe;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
     getAllRecipes,
     getRecipeById,
@@ -474,5 +783,6 @@ module.exports = {
     deleteRecipe,
     updateIngredient,
     getIngredientById,
-    updateIngredientPackageAmount
+    updateIngredientPackageAmount,
+    updateIngredientOmegaValues
 };

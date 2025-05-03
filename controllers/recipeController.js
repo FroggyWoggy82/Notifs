@@ -139,6 +139,12 @@ async function updateIngredient(req, res) {
 
     console.log(`Received PATCH /api/recipes/${recipeId}/ingredients/${ingredientId}:`, ingredientData);
     console.log('package_amount in request:', ingredientData.package_amount, typeof ingredientData.package_amount);
+    console.log('trans fat in request:', ingredientData.trans_fat, typeof ingredientData.trans_fat);
+    // CRITICAL FIX: Log both naming conventions
+    console.log('omega3 in request:', ingredientData.omega3, typeof ingredientData.omega3);
+    console.log('omega_3 in request:', ingredientData.omega_3, typeof ingredientData.omega_3);
+    console.log('omega6 in request:', ingredientData.omega6, typeof ingredientData.omega6);
+    console.log('omega_6 in request:', ingredientData.omega_6, typeof ingredientData.omega_6);
 
     // Process package_amount specifically
     if (ingredientData.package_amount !== undefined) {
@@ -168,6 +174,51 @@ async function updateIngredient(req, res) {
             } catch (err) {
                 console.error('Error directly updating package_amount:', err);
             }
+        }
+
+        // Process the trans_fat value
+        if (ingredientData.trans_fat !== undefined) {
+            console.log('Processing trans_fat value:', ingredientData.trans_fat, typeof ingredientData.trans_fat);
+
+            // Ensure it's a number
+            if (typeof ingredientData.trans_fat === 'string') {
+                ingredientData.trans_fat = parseFloat(ingredientData.trans_fat);
+                if (isNaN(ingredientData.trans_fat)) {
+                    ingredientData.trans_fat = 0;
+                }
+            }
+
+            console.log('Processed trans_fat value:', ingredientData.trans_fat, typeof ingredientData.trans_fat);
+        }
+
+        // Process the omega_3 value
+        if (ingredientData.omega_3 !== undefined) {
+            console.log('Processing omega_3 value:', ingredientData.omega_3, typeof ingredientData.omega_3);
+
+            // Ensure it's a number
+            if (typeof ingredientData.omega_3 === 'string') {
+                ingredientData.omega_3 = parseFloat(ingredientData.omega_3);
+                if (isNaN(ingredientData.omega_3)) {
+                    ingredientData.omega_3 = 0;
+                }
+            }
+
+            console.log('Processed omega_3 value:', ingredientData.omega_3, typeof ingredientData.omega_3);
+        }
+
+        // Process the omega_6 value
+        if (ingredientData.omega_6 !== undefined) {
+            console.log('Processing omega_6 value:', ingredientData.omega_6, typeof ingredientData.omega_6);
+
+            // Ensure it's a number
+            if (typeof ingredientData.omega_6 === 'string') {
+                ingredientData.omega_6 = parseFloat(ingredientData.omega_6);
+                if (isNaN(ingredientData.omega_6)) {
+                    ingredientData.omega_6 = 0;
+                }
+            }
+
+            console.log('Processed omega_6 value:', ingredientData.omega_6, typeof ingredientData.omega_6);
         }
 
         const recipe = await RecipeModel.updateIngredient(recipeId, ingredientId, ingredientData);
@@ -257,6 +308,95 @@ async function updateIngredientPackageAmount(req, res) {
     }
 }
 
+/**
+ * Update only the omega3 and omega6 values of an ingredient
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function updateIngredientOmegaValues(req, res) {
+    const { recipeId, ingredientId } = req.params;
+    // CRITICAL FIX: Check for both naming conventions
+    const { omega3, omega_3, omega6, omega_6 } = req.body;
+
+    console.log(`Received PATCH /api/recipes/${recipeId}/ingredients/${ingredientId}/omega-values:`, req.body);
+    console.log('omega3 in request:', omega3, typeof omega3);
+    console.log('omega_3 in request:', omega_3, typeof omega_3);
+    console.log('omega6 in request:', omega6, typeof omega6);
+    console.log('omega_6 in request:', omega_6, typeof omega_6);
+
+    // Process omega3 (prioritize omega3 over omega_3)
+    let omega3Value = null;
+    if (omega3 !== undefined || omega_3 !== undefined) {
+        const omegaValue = omega3 !== undefined ? omega3 : omega_3;
+        if (omegaValue === null || omegaValue === '') {
+            omega3Value = 0;
+        } else {
+            // Convert to number
+            omega3Value = Number(omegaValue);
+            // If conversion failed, set to 0
+            if (isNaN(omega3Value)) {
+                omega3Value = 0;
+            }
+        }
+    }
+
+    // Process omega6 (prioritize omega6 over omega_6)
+    let omega6Value = null;
+    if (omega6 !== undefined || omega_6 !== undefined) {
+        const omegaValue = omega6 !== undefined ? omega6 : omega_6;
+        if (omegaValue === null || omegaValue === '') {
+            omega6Value = 0;
+        } else {
+            // Convert to number
+            omega6Value = Number(omegaValue);
+            // If conversion failed, set to 0
+            if (isNaN(omega6Value)) {
+                omega6Value = 0;
+            }
+        }
+    }
+
+    // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+    console.log('Processed omega3:', omega3Value, typeof omega3Value);
+    console.log('Processed omega6:', omega6Value, typeof omega6Value);
+
+    try {
+        // Create an update object with the omega values
+        const updateData = {};
+
+        // Only include defined values
+        if (omega3Value !== null) {
+            // CRITICAL FIX: Use omega3 (without underscore) to match database column name
+            updateData.omega3 = omega3Value;
+        }
+
+        if (omega6Value !== null) {
+            // CRITICAL FIX: Use omega6 (without underscore) to match database column name
+            updateData.omega6 = omega6Value;
+        }
+
+        // Skip if no values to update
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ error: 'No omega values provided' });
+        }
+
+        console.log('Update data for omega values:', updateData);
+
+        // Use the RecipeModel to update the ingredient
+        const recipe = await RecipeModel.updateIngredientOmegaValues(recipeId, ingredientId, updateData);
+        console.log(`Omega values for ingredient ${ingredientId} in recipe ${recipeId} updated successfully`);
+        res.json(recipe);
+    } catch (error) {
+        console.error(`Error updating omega values for ingredient ${ingredientId} in recipe ${recipeId}:`, error);
+
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to update omega values' });
+    }
+}
+
 module.exports = {
     getAllRecipes,
     getRecipeById,
@@ -265,5 +405,6 @@ module.exports = {
     deleteRecipe,
     updateIngredient,
     getIngredientById,
-    updateIngredientPackageAmount
+    updateIngredientPackageAmount,
+    updateIngredientOmegaValues
 };

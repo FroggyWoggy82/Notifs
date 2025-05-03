@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package Amount Updater</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1, h2 {
+            color: #ffffff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button, select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #e0e0e0;
+        }
+        button {
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+        }
+        button:hover {
+            background-color: #444;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #222;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4caf50;
+        }
+        .error {
+            color: #f44336;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        th {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Package Amount Updater</h1>
+    
+    <div class="form-group">
+        <button id="load-recipes">Load Recipes</button>
+    </div>
+    
+    <div id="recipes-container" style="display: none;">
+        <h2>Select Recipe</h2>
+        <div class="form-group">
+            <select id="recipe-select"></select>
+            <button id="load-ingredients">Load Ingredients</button>
+        </div>
+    </div>
+    
+    <div id="ingredients-container" style="display: none;">
+        <h2>Ingredients</h2>
+        <div id="ingredients-table"></div>
+        
+        <h2>Update Package Amount</h2>
+        
+        <div class="form-group">
+            <label for="ingredient-select">Select Ingredient:</label>
+            <select id="ingredient-select"></select>
+        </div>
+        
+        <div class="form-group">
+            <label for="package-amount">Package Amount (g):</label>
+            <input type="number" id="package-amount" value="500">
+        </div>
+        
+        <div class="form-group">
+            <button id="update-button">Update Package Amount</button>
+        </div>
+    </div>
+    
+    <h2>Result</h2>
+    <div id="result">Click "Load Recipes" to start...</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadRecipesButton = document.getElementById('load-recipes');
+            const recipesContainer = document.getElementById('recipes-container');
+            const recipeSelect = document.getElementById('recipe-select');
+            const loadIngredientsButton = document.getElementById('load-ingredients');
+            const ingredientsContainer = document.getElementById('ingredients-container');
+            const ingredientSelect = document.getElementById('ingredient-select');
+            const packageAmountInput = document.getElementById('package-amount');
+            const updateButton = document.getElementById('update-button');
+            const ingredientsTable = document.getElementById('ingredients-table');
+            const resultDiv = document.getElementById('result');
+            
+            let currentRecipe = null;
+            let currentIngredients = [];
+            
+            // Load Recipes button
+            loadRecipesButton.addEventListener('click', async function() {
+                resultDiv.innerHTML = 'Loading recipes...';
+                
+                try {
+                    const response = await fetch('/api/recipes');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const recipes = await response.json();
+                    
+                    resultDiv.innerHTML = `<span class="success">Loaded ${recipes.length} recipes</span>`;
+                    
+                    // Populate recipe select
+                    recipeSelect.innerHTML = '';
+                    recipes.forEach(recipe => {
+                        const option = document.createElement('option');
+                        option.value = recipe.id;
+                        option.textContent = `${recipe.name} (ID: ${recipe.id})`;
+                        recipeSelect.appendChild(option);
+                    });
+                    
+                    // Show recipes container
+                    recipesContainer.style.display = 'block';
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Load Ingredients button
+            loadIngredientsButton.addEventListener('click', async function() {
+                const recipeId = recipeSelect.value;
+                
+                if (!recipeId) {
+                    resultDiv.innerHTML = `<span class="error">Error: No recipe selected</span>`;
+                    return;
+                }
+                
+                resultDiv.innerHTML = `Loading ingredients for recipe ${recipeId}...`;
+                
+                try {
+                    const response = await fetch(`/api/recipes/${recipeId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    currentRecipe = await response.json();
+                    currentIngredients = currentRecipe.ingredients || [];
+                    
+                    resultDiv.innerHTML = `<span class="success">Loaded ${currentIngredients.length} ingredients for recipe "${currentRecipe.name}"</span>`;
+                    
+                    // Populate ingredient select
+                    ingredientSelect.innerHTML = '';
+                    currentIngredients.forEach(ing => {
+                        const option = document.createElement('option');
+                        option.value = ing.id;
+                        option.textContent = `${ing.name} (ID: ${ing.id})`;
+                        ingredientSelect.appendChild(option);
+                    });
+                    
+                    // Show ingredients container
+                    ingredientsContainer.style.display = 'block';
+                    
+                    // Display ingredients table
+                    displayIngredientsTable(currentIngredients);
+                    
+                    // Set initial package amount
+                    updatePackageAmountInput();
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Update package amount input when ingredient selection changes
+            ingredientSelect.addEventListener('change', updatePackageAmountInput);
+            
+            function updatePackageAmountInput() {
+                const selectedIngredientId = ingredientSelect.value;
+                const selectedIngredient = currentIngredients.find(ing => ing.id == selectedIngredientId);
+                
+                if (selectedIngredient) {
+                    packageAmountInput.value = selectedIngredient.package_amount || '';
+                }
+            }
+            
+            // Update button
+            updateButton.addEventListener('click', async function() {
+                const ingredientId = ingredientSelect.value;
+                const packageAmount = packageAmountInput.value.trim() !== '' ? Number(packageAmountInput.value) : null;
+                
+                if (!ingredientId) {
+                    resultDiv.innerHTML = `<span class="error">Error: No ingredient selected</span>`;
+                    return;
+                }
+                
+                resultDiv.innerHTML = `Updating package amount for ingredient ${ingredientId} to ${packageAmount}...`;
+                
+                try {
+                    // Use the dedicated endpoint for updating package amount
+                    const response = await fetch('/api/package-amount/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ingredientId,
+                            packageAmount
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const updatedRecipe = await response.json();
+                    
+                    // Update current recipe and ingredients
+                    currentRecipe = updatedRecipe;
+                    currentIngredients = currentRecipe.ingredients || [];
+                    
+                    // Find the updated ingredient
+                    const updatedIngredient = currentIngredients.find(ing => ing.id == ingredientId);
+                    
+                    if (updatedIngredient) {
+                        resultDiv.innerHTML = `
+                            <span class="success">Package amount updated successfully!</span>
+                            <br><br>
+                            <strong>Updated Ingredient:</strong>
+                            <br>
+                            ID: ${updatedIngredient.id}
+                            <br>
+                            Name: ${updatedIngredient.name}
+                            <br>
+                            Package Amount: ${updatedIngredient.package_amount !== null ? updatedIngredient.package_amount : 'null'}
+                            <br>
+                            Type: ${typeof updatedIngredient.package_amount}
+                        `;
+                        
+                        // Update the table
+                        displayIngredientsTable(currentIngredients);
+                    } else {
+                        resultDiv.innerHTML = `<span class="error">Error: Updated ingredient not found in response</span>`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                }
+            });
+            
+            // Function to display ingredients table
+            function displayIngredientsTable(ingredients) {
+                let tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Package Amount (g)</th>
+                                <th>Amount (g)</th>
+                                <th>Calories</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                ingredients.forEach(ing => {
+                    // Format the package amount for display
+                    let packageAmountDisplay = '-';
+                    if (ing.package_amount !== null && ing.package_amount !== undefined) {
+                        const packageAmountNum = Number(ing.package_amount);
+                        if (!isNaN(packageAmountNum)) {
+                            packageAmountDisplay = packageAmountNum.toFixed(1);
+                        }
+                    }
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${ing.id}</td>
+                            <td>${ing.name}</td>
+                            <td>${packageAmountDisplay}</td>
+                            <td>${ing.amount.toFixed(1)}</td>
+                            <td>${ing.calories.toFixed(1)}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += `
+                        </tbody>
+                    </table>
+                `;
+                
+                ingredientsTable.innerHTML = tableHtml;
+            }
+        });
+    </script>
+</body>
+</html>

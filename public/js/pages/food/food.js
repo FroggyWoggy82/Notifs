@@ -2322,7 +2322,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isNaN(saturated)) ingredientData.saturated = saturated;
 
         const transFat = parseFloat(document.getElementById('edit-ingredient-trans-fat').value);
-        if (!isNaN(transFat)) ingredientData.trans_fat = transFat;
+        if (!isNaN(transFat)) {
+            console.log('Trans fat value:', transFat);
+            ingredientData.trans_fat = transFat;
+            console.log('Added trans fat to ingredientData:', ingredientData.trans_fat);
+
+            // Store the trans fat value for the main update
+            window._lastTransFatValue = transFat;
+            window._transFatChanged = true;
+            console.log('Stored trans fat value for main update:', transFat);
+
+            // Immediately send a direct update request for the trans fat value
+            try {
+                console.log('Sending direct trans fat update request...');
+                const directUpdateResponse = await fetch('/api/direct/update-trans-fat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ingredientId: ingredientId,
+                        transFatValue: transFat
+                    })
+                });
+
+                if (directUpdateResponse.ok) {
+                    const result = await directUpdateResponse.json();
+                    console.log('Direct trans fat update successful:', result);
+                } else {
+                    console.error('Direct trans fat update failed:', await directUpdateResponse.text());
+                }
+            } catch (error) {
+                console.error('Error sending direct trans fat update:', error);
+            }
+        }
 
         const cholesterol = parseFloat(document.getElementById('edit-ingredient-cholesterol').value);
         if (!isNaN(cholesterol)) ingredientData.cholesterol = cholesterol;

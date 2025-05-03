@@ -713,10 +713,10 @@
 
 .detailed-nutrition-panel {
     margin-top: 15px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     padding: 15px;
-    background-color: #f9f9f9;
+    background-color: rgba(30, 30, 30, 0.4);
 }
 
 .nutrition-section {
@@ -854,10 +854,11 @@
 
 /* Compact Recipe Card Design */
 .recipe-card {
-    background-color: rgba(30, 30, 30, 0.2);
+    background-color: transparent;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
+    margin-bottom: 8px;
 }
 
 .recipe-card-header {
@@ -879,13 +880,13 @@
     font-size: 0.9rem;
     font-weight: 500;
     color: #ffffff;
-    background-color: rgba(20, 20, 20, 0.6);
-    padding: 4px 8px;
-    border-radius: 4px;
 }
 
 .recipe-card-body {
-    padding: 0 12px 8px;
+    padding: 15px;
+    background-color: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: block !important; /* Ensure it's always displayed */
 }
 
 .recipe-card-actions {
@@ -1011,7 +1012,7 @@
     width: 100%;
     overflow-x: visible;
     margin-bottom: 10px;
-    background-color: rgba(20, 20, 20, 0.2);
+    background-color: transparent;
     border-radius: 4px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -1042,7 +1043,7 @@
 }
 
 .ingredient-details td {
-    background-color: rgba(20, 20, 20, 0.2);
+    background-color: transparent;
     color: #e0e0e0;
 }
 
@@ -1076,9 +1077,9 @@
 .edit-ingredient-form {
     margin-top: 20px;
     padding: 15px;
-    border: 1px solid #e8eef2;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
-    background-color: #ffffff;
+    background-color: rgba(30, 30, 30, 0.4);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -1086,8 +1087,8 @@
     margin-top: 0;
     margin-bottom: 15px;
     font-weight: 500;
-    color: #2c3e50;
-    border-bottom: 1px solid #e8eef2;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 10px;
 }
 
@@ -1177,17 +1178,7 @@
     background-color: rgba(255, 255, 255, 0.25);
 }
 
-/* Package amount cell styling */
-.package-amount-cell {
-    background-color: rgba(25, 25, 25, 0.95) !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-
-/* Highlight package amount column on hover */
-tr:hover .package-amount-cell {
-    background-color: rgba(35, 35, 35, 0.9) !important;
-}
+/* Package amount cell styling - removed special styling */
 
 .recipe-display-item h4 {
     margin-top: 0;

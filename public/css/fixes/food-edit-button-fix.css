@@ -46,7 +46,7 @@ table th {
 /* Style the table rows to match dark theme */
 .ingredient-details table tr,
 table tr {
-    background-color: rgba(30, 30, 30, 0.7) !important;
+    background-color: transparent !important;
     color: white !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
@@ -54,7 +54,7 @@ table tr {
 /* Style alternating rows */
 .ingredient-details table tr:nth-child(even),
 table tr:nth-child(even) {
-    background-color: rgba(40, 40, 40, 0.7) !important;
+    background-color: rgba(40, 40, 40, 0.3) !important;
 }
 
 /* Style table cells */

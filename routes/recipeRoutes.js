@@ -292,4 +292,48 @@ router.patch('/:recipeId/ingredients/:ingredientId', RecipeController.updateIngr
  */
 router.patch('/:recipeId/ingredients/:ingredientId/package-amount', RecipeController.updateIngredientPackageAmount);
 
+/**
+ * @swagger
+ * /api/recipes/{recipeId}/ingredients/{ingredientId}/omega-values:
+ *   patch:
+ *     summary: Update only the omega_3 and omega_6 values of an ingredient
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The recipe ID
+ *       - in: path
+ *         name: ingredientId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ingredient ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               omega_3:
+ *                 type: number
+ *                 description: The omega_3 value
+ *               omega_6:
+ *                 type: number
+ *                 description: The omega_6 value
+ *     responses:
+ *       200:
+ *         description: Omega values updated successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Recipe or ingredient not found
+ *       500:
+ *         description: Server error
+ */
+router.patch('/:recipeId/ingredients/:ingredientId/omega-values', RecipeController.updateIngredientOmegaValues);
+
 module.exports = router;
