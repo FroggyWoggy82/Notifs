@@ -29,6 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 detailedNutritionPanel.className = 'detailed-nutrition-panel';
                 detailedNutritionPanel.style.display = 'block';
 
+                // Add the Basic Information section first
+                const basicInfoSection = createNutritionSection('Basic Information', [
+                    { id: 'edit-ingredient-name', label: 'Name:', required: true, type: 'text' },
+                    { id: 'edit-ingredient-amount', label: 'Amount (g):', required: true },
+                    { id: 'edit-ingredient-package-amount', label: 'Package Amount (g):' },
+                    { id: 'edit-ingredient-price', label: 'Package Price:', required: true }
+                ]);
+                detailedNutritionPanel.appendChild(basicInfoSection);
+
                 // Add the General section
                 const generalSection = createNutritionSection('General', [
                     { id: 'edit-ingredient-calories', label: 'Energy (kcal):', required: true },
@@ -163,11 +172,15 @@ document.addEventListener('DOMContentLoaded', function() {
             label.style.textOverflow = 'ellipsis';
 
             const input = document.createElement('input');
-            input.type = 'number';
+            input.type = field.type || 'number';
             input.id = field.id;
-            input.step = '0.1';
-            input.min = '0';
-            input.style.width = '50px';
+
+            if (input.type === 'number') {
+                input.step = '0.1';
+                input.min = '0';
+            }
+
+            input.style.width = field.id === 'edit-ingredient-name' ? '80px' : '50px';
             input.style.padding = '1px 3px';
             input.style.height = '20px';
             input.style.fontSize = '0.75em';
@@ -211,6 +224,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Try again after a bit longer to ensure it's applied
             setTimeout(showNutritionPanel, 500);
             setTimeout(showNutritionPanel, 1000);
+
+            // Log that we're handling the edit button click
+            console.log('Edit button clicked, applying nutrition panel with Basic Information section');
         }
     });
 

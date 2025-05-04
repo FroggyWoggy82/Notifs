@@ -1,5 +1,5 @@
 /**
- * Direct Basic Info Fix
+ * Extreme Basic Info Fix
  * Directly targets and styles the Basic Information section in the edit form
  */
 
@@ -15,19 +15,6 @@
     padding: 8px !important;
     margin-bottom: 8px !important;
     color: #e0e0e0 !important;
-}
-
-/* Add a header if it doesn't exist */
-.edit-ingredient-form form > div:first-of-type:not(:has(> h4)):before {
-    content: "Basic Information";
-    display: block;
-    margin-top: 0;
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    border-bottom: none;
-    color: #e0e0e0;
-    font-weight: 500;
-    font-size: 0.85em;
 }
 
 /* Style the header */

@@ -196,8 +196,18 @@
                 // Get the edit form
                 const editForm = event.target.closest('.edit-ingredient-form');
                 if (editForm) {
-                    // Hide the form
+                    // Use a more aggressive approach to hide the form
                     editForm.style.display = 'none';
+                    editForm.classList.remove('show-edit-form');
+                    editForm.classList.add('hide-edit-form');
+
+                    // Add a data attribute to force it to stay hidden
+                    editForm.setAttribute('data-force-hidden', 'true');
+
+                    // Also use a timeout to ensure it stays hidden
+                    setTimeout(function() {
+                        editForm.style.display = 'none';
+                    }, 10);
                 }
             }
         }, true); // Use capture phase to ensure this runs before other handlers
@@ -233,6 +243,12 @@
 
             .edit-ingredient-form.show-edit-form h4 {
                 display: block;
+            }
+
+            /* Force hidden forms to stay hidden */
+            .edit-ingredient-form[data-force-hidden="true"],
+            .edit-ingredient-form.hide-edit-form {
+                display: none !important;
             }
         `;
         document.head.appendChild(style);

@@ -1,0 +1,21 @@
+/**
+ * Hide Duplicate Top Buttons
+ * Hides any duplicate Save Changes and Cancel buttons at the top of the edit form
+ */
+
+/* Hide the edit-ingredient-form-top-buttons container */
+.edit-ingredient-form-top-buttons {
+    display: none !important;
+}
+
+/* Hide any buttons that are direct children of the edit form (not in form-actions) */
+.edit-ingredient-form > button:not(.toggle-detailed-nutrition):not(#show-detailed-nutrition-btn) {
+    display: none !important;
+}
+
+/* Only show buttons in the form-actions at the bottom */
+.edit-ingredient-form .form-actions {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 15px !important;
+}

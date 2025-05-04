@@ -2205,19 +2205,13 @@ document.addEventListener('DOMContentLoaded', () => {
             editForm.addEventListener('submit', handleEditIngredientSubmit);
         }
 
-        // Add event listener for all cancel buttons
-        const cancelButtons = container.querySelectorAll('.cancel-edit-btn');
-        cancelButtons.forEach(cancelButton => {
+        // Add event listener for the cancel button
+        const cancelButton = container.querySelector('.cancel-edit-btn');
+        if (cancelButton) {
             cancelButton.addEventListener('click', () => {
-                const editForm = container.querySelector('.edit-ingredient-form');
-                if (editForm) {
-                    // Hide the form using both approaches for maximum compatibility
-                    editForm.style.display = 'none';
-                    editForm.classList.remove('show-edit-form');
-                    console.log('Edit form hidden by cancel button');
-                }
+                container.querySelector('.edit-ingredient-form').style.display = 'none';
             });
-        });
+        }
     }
 
     // Handle edit ingredient button click

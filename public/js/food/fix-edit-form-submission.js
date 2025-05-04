@@ -143,8 +143,37 @@
                         }
                     });
 
-                    // We'll let force-single-button-set.js handle the cancel button
-                    // so we don't need to modify it here
+                    // Add our own cancel button handler
+                    const cancelButton = editForm.querySelector('.cancel-edit-btn');
+                    if (cancelButton) {
+                        // Remove any existing event listeners by cloning the button
+                        const newCancelButton = cancelButton.cloneNode(true);
+                        if (cancelButton.parentNode) {
+                            cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
+                        }
+
+                        // Add a new event listener with event prevention
+                        newCancelButton.addEventListener('click', function(event) {
+                            // Prevent default behavior and stop propagation
+                            event.preventDefault();
+                            event.stopPropagation();
+
+                            console.log('[Fix Edit Form Submission] Cancel button clicked');
+
+                            // Use a more aggressive approach to hide the form
+                            editForm.style.display = 'none';
+                            editForm.classList.remove('show-edit-form');
+                            editForm.classList.add('hide-edit-form');
+
+                            // Add a data attribute to force it to stay hidden
+                            editForm.setAttribute('data-force-hidden', 'true');
+
+                            // Also use a timeout to ensure it stays hidden
+                            setTimeout(function() {
+                                editForm.style.display = 'none';
+                            }, 10);
+                        });
+                    }
 
                     console.log('[Fix Edit Form Submission] Form submission handler set up');
                 }, 300);
