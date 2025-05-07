@@ -3,7 +3,7 @@
  * Completely fixes the Basic Information section styling
  */
 
-/* Make Basic Information section match other sections */
+
 .edit-ingredient-form form > div:first-of-type,
 .edit-ingredient-form .form-group-row,
 .edit-ingredient-form div:has(> label[for="edit-ingredient-name"]),
@@ -16,7 +16,7 @@
     display: block !important;
 }
 
-/* Add a header to the Basic Information section if it doesn't have one */
+
 .edit-ingredient-form form > div:first-of-type:not(:has(> h4)):before,
 .edit-ingredient-form .form-group-row:not(:has(> h4)):before {
     content: "Basic Information";
@@ -28,7 +28,7 @@
     font-weight: bold !important;
 }
 
-/* Style the Basic Information section header */
+
 .edit-ingredient-form form > div:first-of-type > h4,
 .edit-ingredient-form .form-group-row > h4,
 .edit-ingredient-form .basic-information > h4 {
@@ -39,7 +39,7 @@
     font-weight: bold !important;
 }
 
-/* Style the form groups in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type .form-group,
 .edit-ingredient-form .form-group-row .form-group {
     margin-bottom: 8px !important;
@@ -47,7 +47,7 @@
     margin-right: 15px !important;
 }
 
-/* Style the labels in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type label,
 .edit-ingredient-form .form-group-row label {
     color: white !important;
@@ -56,7 +56,7 @@
     margin-bottom: 3px !important;
 }
 
-/* Style the inputs in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type input,
 .edit-ingredient-form .form-group-row input {
     background-color: #333 !important;
@@ -66,13 +66,13 @@
     padding: 5px !important;
 }
 
-/* Remove duplicate Save Changes and Cancel buttons */
+
 .edit-ingredient-form form > .form-actions:not(:last-of-type),
 .edit-ingredient-form > .form-actions:not(:last-of-type) {
     display: none !important;
 }
 
-/* Only show the last set of form action buttons */
+
 .edit-ingredient-form form > .form-actions:last-of-type,
 .edit-ingredient-form > .form-actions:last-of-type {
     display: flex !important;

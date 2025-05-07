@@ -3,20 +3,20 @@
  * Styles the photo upload modal with white text and buttons
  */
 
-/* Make the modal labels white */
+
 #photo-upload-modal label,
 #photo-upload-modal .form-group label {
     color: #ffffff !important;
     font-weight: 500 !important;
 }
 
-/* Style the date input container */
+
 #photo-upload-modal .custom-date-input {
     position: relative !important;
     width: 100% !important;
 }
 
-/* Style the custom date wrapper */
+
 #photo-upload-modal .custom-date-wrapper {
     position: relative !important;
     width: 100% !important;
@@ -26,7 +26,7 @@
     overflow: visible !important;
 }
 
-/* Style the custom date text input */
+
 #photo-upload-modal .custom-date-text-input {
     background-color: #333333 !important;
     color: #ffffff !important;
@@ -45,7 +45,7 @@
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Style the calendar icon */
+
 #photo-upload-modal .calendar-icon {
     position: absolute !important;
     right: 10px !important;
@@ -55,17 +55,17 @@
     z-index: 2 !important;
 }
 
-/* Original date input styles (kept for backward compatibility) */
+
 #photo-upload-modal #modal-photo-date {
     background-color: #333333 !important;
     color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 4px !important;
     padding: 10px !important;
-    padding-right: 30px !important; /* Space for the calendar icon */
+    padding-right: 30px !important; 
     width: 100% !important;
     box-sizing: border-box !important;
-    /* Hide the default calendar icon - more aggressive approach */
+    
     appearance: none !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
@@ -73,7 +73,7 @@
     z-index: 1 !important;
 }
 
-/* Hide calendar icon in Chrome */
+
 #photo-upload-modal #modal-photo-date::-webkit-calendar-picker-indicator {
     display: none !important;
     opacity: 0 !important;
@@ -85,19 +85,19 @@
     pointer-events: none !important;
 }
 
-/* Hide calendar icon in Firefox */
+
 #photo-upload-modal #modal-photo-date::-moz-calendar-picker-indicator {
     display: none !important;
 }
 
-/* Hide clear button in Edge/IE */
+
 #photo-upload-modal #modal-photo-date::-ms-clear {
     display: none !important;
 }
 
-/* Add the calendar icon from Font Awesome (same as sidebar) */
+
 #photo-upload-modal .custom-date-input::after {
-    content: '\f133' !important; /* Font Awesome calendar-alt icon (fa-calendar-alt) */
+    content: '\f133' !important; 
     font-family: 'Font Awesome 5 Free' !important;
     font-weight: 900 !important;
     position: absolute !important;
@@ -108,7 +108,7 @@
     pointer-events: none !important;
 }
 
-/* Style the Choose Photos button */
+
 #photo-upload-modal .custom-file-button {
     background-color: #ffffff !important;
     color: #121212 !important;
@@ -127,7 +127,7 @@
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Style the Upload Photos button */
+
 #photo-upload-modal .upload-button {
     background-color: #ffffff !important;
     color: #121212 !important;
@@ -146,20 +146,20 @@
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Style the file name display */
+
 #photo-upload-modal .file-name-display {
     color: #ffffff !important;
     margin-top: 8px !important;
     font-size: 0.9rem !important;
 }
 
-/* Style the upload status */
+
 #photo-upload-modal #upload-status {
     color: #ffffff !important;
     margin-top: 10px !important;
 }
 
-/* Style the file size info */
+
 #photo-upload-modal #file-size-info label,
 #photo-upload-modal #file-size-display {
     color: #ffffff !important;

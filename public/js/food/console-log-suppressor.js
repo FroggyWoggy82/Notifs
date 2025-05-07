@@ -1,9 +1,8 @@
 /**
- * Console Log Suppressor
+ * Reduced Console Log Suppressor
  *
- * This script suppresses console logs from various fix scripts to reduce console clutter.
- * It replaces the console.log method with a filtered version that ignores logs from fix scripts.
- * It also suppresses network errors for specific endpoints.
+ * This script reduces console logs from various scripts to improve readability.
+ * It only filters out the most repetitive logs while keeping important ones for debugging.
  */
 
 (function() {
@@ -12,42 +11,114 @@
     const originalConsoleDebug = console.debug;
     const originalConsoleError = console.error;
 
+    // Counters for suppressed logs
+    const suppressedCounts = {};
+
     // List of patterns to filter out from console logs
+    // Only include the most repetitive and least useful logs
     const filterPatterns = [
-        '[Food Bottom Nav Fix]',
-        '[Chart Controls Fix]',
-        '[Recipe Table Dark Fix]',
-        '[Ingredient Edit Dark Fix]',
-        '[Recipe View/Edit Dark Fix]',
-        '[Recipe Adjust Buttons Fix]',
-        '[Chart Config]'
+        'Found 0 goal weight points to add week numbers to',
+        'Forcing first weekly point date to May 6, 2024 in goal line tooltip',
+        'initializeSimplifiedPasteAreas called',
+        'Added week',
+        'Date:',
+        'Projected:',
+        'Added weekly goal weight:',
+        '[Recipe Adjust Buttons Fix] Found Set button:',
+        '[Recipe Adjust Buttons Fix] Found adjustment button:',
+        '[Recipe Adjust Buttons Fix] Found calorie input field:',
+        '[Recipe Adjust Buttons Fix] Updated field',
+        '[Recipe Adjust Buttons Fix] Created/updated hidden field',
+        '[Recipe API Endpoints Fix] Intercepted fetch to:',
+        '[Add Ingredient Fix] Sending request to:',
+        '[Add Ingredient Fix] Request method:',
+        '[Add Ingredient Fix] Request headers:',
+        '[Direct API Call Fix] Making direct API call to:',
+        '[Direct API Call Fix] Method:'
     ];
 
-    // List of network error patterns to suppress
-    const networkErrorPatterns = [
-        'PATCH http://127.0.0.1:3000/api/recipes/',
-        'GET http://127.0.0.1:3000/api/unique-ingredients'
+    // List of patterns to limit frequency (show first occurrence, then suppress duplicates)
+    const limitFrequencyPatterns = [
+        'Canvas clicked',
+        'Clicked element:',
+        'Found week number',
+        'Updating selected weeks UI',
+        'Selected weeks container:',
+        'Weight input container:'
     ];
+
+    // Track which limited frequency messages we've seen
+    const seenLimitedMessages = new Set();
 
     // Replace console.log with a filtered version
     console.log = function() {
-        // Check if the first argument is a string and matches any of the filter patterns
-        if (arguments.length > 0 &&
-            typeof arguments[0] === 'string' &&
-            filterPatterns.some(pattern => arguments[0].includes(pattern))) {
-            // Skip logging for filtered messages
-            return;
+        // Skip if no arguments
+        if (arguments.length === 0) {
+            return originalConsoleLog.apply(console, arguments);
+        }
+
+        // Get the message
+        const message = arguments[0];
+
+        // Only process string messages
+        if (typeof message !== 'string') {
+            return originalConsoleLog.apply(console, arguments);
+        }
+
+        // Check if message matches any filter patterns
+        for (const pattern of filterPatterns) {
+            if (message.includes(pattern)) {
+                // Count suppressed messages by pattern
+                suppressedCounts[pattern] = (suppressedCounts[pattern] || 0) + 1;
+
+                // Every 50 occurrences, show a summary
+                if (suppressedCounts[pattern] % 50 === 0) {
+                    originalConsoleLog.call(console, `[Log Reducer] Suppressed ${suppressedCounts[pattern]} logs containing: "${pattern}"`);
+                }
+
+                return; // Skip this log
+            }
+        }
+
+        // Check if message matches any limited frequency patterns
+        for (const pattern of limitFrequencyPatterns) {
+            if (message.includes(pattern)) {
+                // If we've seen this pattern before, suppress it
+                if (seenLimitedMessages.has(pattern)) {
+                    suppressedCounts[pattern] = (suppressedCounts[pattern] || 0) + 1;
+
+                    // Every 20 occurrences, show a summary
+                    if (suppressedCounts[pattern] % 20 === 0) {
+                        originalConsoleLog.call(console, `[Log Reducer] Suppressed ${suppressedCounts[pattern]} logs containing: "${pattern}"`);
+                    }
+
+                    return; // Skip this log
+                } else {
+                    // First time seeing this pattern, mark it as seen
+                    seenLimitedMessages.add(pattern);
+                }
+            }
         }
 
         // Call the original console.log for non-filtered messages
         originalConsoleLog.apply(console, arguments);
     };
 
-    // Replace console.debug with a no-op function to suppress all debug messages
+    // Keep debug messages but at reduced frequency
     console.debug = function() {
-        // Debug messages are completely suppressed
-        return;
+        // Only show every 5th debug message
+        if (Math.random() < 0.2) {
+            originalConsoleDebug.apply(console, arguments);
+        }
     };
+
+    // Network error patterns to suppress
+    const networkErrorPatterns = [
+        'PATCH http://127.0.0.1:3000/api/recipes/',
+        'GET http://127.0.0.1:3000/api/unique-ingredients',
+        'POST http://127.0.0.1:3000/api/recipes/',
+        'PUT http://127.0.0.1:3000/api/recipes/'
+    ];
 
     // Replace console.error with a filtered version
     console.error = function() {
@@ -85,5 +156,13 @@
         return promise;
     };
 
-    console.log('Console log suppressor initialized - fix script logs will be hidden');
+    // Print summary every 30 seconds
+    setInterval(() => {
+        const totalSuppressed = Object.values(suppressedCounts).reduce((sum, count) => sum + count, 0);
+        if (totalSuppressed > 0) {
+            originalConsoleLog.call(console, `[Log Reducer] Summary: Suppressed ${totalSuppressed} logs total`);
+        }
+    }, 30000);
+
+    originalConsoleLog.call(console, '[Log Reducer] Initialized - reducing repetitive logs while keeping important ones');
 })();

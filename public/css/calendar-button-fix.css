@@ -3,7 +3,7 @@
  * Makes the close, next, and prev buttons white
  */
 
-/* Next and Prev buttons in calendar controls */
+
 .calendar-controls button {
     background-color: transparent !important;
     color: white !important;
@@ -22,7 +22,7 @@
     border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Close button in selected date tasks view - with higher specificity to override other styles */
+
 html body .container #selectedDateTasks #closeSelectedDateView,
 #closeSelectedDateView {
     background-color: transparent !important;
@@ -36,7 +36,7 @@ html body .container #selectedDateTasks #closeSelectedDateView,
     display: block !important;
     margin: 15px auto 0 auto !important;
     width: auto !important;
-    /* Override any other styles that might be applied */
+    
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
 }
 

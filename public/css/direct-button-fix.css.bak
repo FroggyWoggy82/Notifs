@@ -1,0 +1,46 @@
+/**
+ * Direct Button Fix
+ * Directly styles the Show Detailed Nutrition button
+ */
+
+/* Target the Show Detailed Nutrition button specifically */
+button.toggle-detailed-nutrition,
+button#show-detailed-nutrition-btn,
+button:first-of-type {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 3px !important;
+    padding: 5px 10px !important;
+    font-size: 0.8em !important;
+    cursor: pointer !important;
+    margin: 5px !important;
+    width: auto !important;
+    min-width: 150px !important;
+    height: 28px !important;
+    display: inline-block !important;
+    text-align: center !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Hover state */
+button.toggle-detailed-nutrition:hover,
+button#show-detailed-nutrition-btn:hover,
+button:first-of-type:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Hide all sections except General by default */
+.carbohydrates,
+.lipids,
+.protein,
+.vitamins,
+.minerals {
+    display: none !important;
+}
+
+/* Always show the General section */
+.general {
+    display: block !important;
+}

@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Exercise History JS loaded');
 
-    // --- Debounce Helper ---
     function debounce(func, wait) {
         let timeout = null;
         const debounceId = Math.random().toString(36).substring(2, 7);
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // --- State Variables ---
     let availableExercises = []; // Populated from API
     let exerciseHistoryChart = null; // To hold the Chart.js instance
     let currentHistoryCategoryFilter = 'all'; // State for history category filter
@@ -36,15 +34,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let historyEditSets = [{ reps: '', weight: '', unit: 'lbs' }]; // For the edit modal
     let currentHistoryData = []; // Store the raw history data for tooltip access
 
-    // --- DOM Elements ---
-    // History section elements
+
     const historyExerciseSearchInput = document.getElementById('history-exercise-search');
     const historySearchResultsEl = document.getElementById('history-search-results');
     const historyCategoryFilterSelect = document.getElementById('history-category-filter-select');
     const historyEditBtn = document.getElementById('history-edit-btn');
     const historyChartCanvas = document.getElementById('exercise-history-chart');
 
-    // Debug DOM elements
     console.log('DOM Elements Check:');
     console.log('- historyExerciseSearchInput:', historyExerciseSearchInput);
     console.log('- historySearchResultsEl:', historySearchResultsEl);
@@ -52,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('- historyEditBtn:', historyEditBtn);
     console.log('- historyChartCanvas:', historyChartCanvas);
 
-    // History Edit Modal Elements
     const historyEditModal = document.getElementById('history-edit-modal');
     const historyEditForm = document.getElementById('history-edit-form');
     const historyEditExerciseNameEl = document.getElementById('history-edit-modal-title-name');
@@ -64,18 +59,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const historyEditNotesInput = document.getElementById('history-edit-notes');
     const historyEditLogListEl = document.getElementById('history-edit-log-list');
 
-    // --- Initialize ---
     function initialize() {
-        // Load available exercises for search
+
         loadAvailableExercises();
 
-        // Set up event listeners
         setupEventListeners();
     }
 
-    // --- Event Listeners ---
     function setupEventListeners() {
-        // History search input
+
         if (historyExerciseSearchInput) {
             historyExerciseSearchInput.addEventListener('input', debounce(handleHistorySearchInput, 300));
             historyExerciseSearchInput.addEventListener('focus', () => {
@@ -83,23 +75,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     handleHistorySearchInput({ target: historyExerciseSearchInput });
                 }
             });
-            // Close search results when clicking outside
+
             document.addEventListener('click', (e) => {
                 if (!historyExerciseSearchInput.contains(e.target) && !historySearchResultsEl.contains(e.target)) {
                     historySearchResultsEl.style.display = 'none';
                 }
             });
 
-            // Direct search input submission on Enter key
             historyExerciseSearchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && historyExerciseSearchInput.value.trim().length > 0) {
-                    // Find the first matching exercise
+
                     const searchTerm = historyExerciseSearchInput.value.trim().toLowerCase();
                     const matchingExercise = availableExercises.find(exercise =>
                         exercise.name.toLowerCase().includes(searchTerm));
 
                     if (matchingExercise) {
-                        // Use the correct property name based on API response
+
                         const exerciseId = matchingExercise.exercise_id || matchingExercise.id;
 
                         console.log(`Enter key pressed - selecting exercise: ${matchingExercise.name}, ID: ${exerciseId}`);
@@ -109,17 +100,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // History category filter
         if (historyCategoryFilterSelect) {
             historyCategoryFilterSelect.addEventListener('change', handleHistoryCategoryFilterChange);
         }
 
-        // History edit button
         if (historyEditBtn) {
             historyEditBtn.addEventListener('click', showHistoryEditModal);
         }
 
-        // History Edit Modal - Add/Remove Set buttons
         if (historyEditAddSetBtn) {
             historyEditAddSetBtn.addEventListener('click', () => {
                 historyEditSets.push({ reps: '', weight: '', unit: 'lbs' });
@@ -136,19 +124,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // History Edit Form submission
         if (historyEditForm) {
             historyEditForm.addEventListener('submit', handleHistoryEditFormSubmit);
         }
 
-        // History Edit Modal - Close button and click outside
         const historyEditModalCloseBtn = historyEditModal?.querySelector('.close-button');
         historyEditModalCloseBtn?.addEventListener('click', hideHistoryEditModal);
         historyEditModal?.addEventListener('click', (event) => {
             if (event.target === historyEditModal) hideHistoryEditModal();
         });
 
-        // Event delegation for delete log buttons (added dynamically)
         if (historyEditLogListEl) {
             historyEditLogListEl.addEventListener('click', async (event) => {
                 const deleteBtn = event.target.closest('.btn-delete-log-entry');
@@ -165,16 +150,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-                        // Remove the log item from the DOM
                         const logItem = deleteBtn.closest('.log-item');
                         if (logItem) logItem.remove();
 
-                        // Refresh the chart
                         if (currentHistoryExerciseId) {
                             fetchAndRenderHistoryChart(currentHistoryExerciseId);
                         }
 
-                        // Show success message
                         alert('Log entry deleted successfully.');
                     } catch (error) {
                         console.error('Error deleting log entry:', error);
@@ -185,10 +167,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- API Functions ---
     async function loadAvailableExercises() {
         try {
-            // Show loading indicator in the search results if visible
+
             if (historySearchResultsEl && historySearchResultsEl.style.display === 'block') {
                 historySearchResultsEl.innerHTML = '<div class="search-result-item">Loading exercises...</div>';
             }
@@ -198,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await response.json();
 
-            // Validate the data
             if (!data || !Array.isArray(data)) {
                 throw new Error('Invalid exercise data received from server');
             }
@@ -206,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
             availableExercises = data;
             console.log(`Loaded ${availableExercises.length} exercises`);
 
-            // Debug: Log the first few exercises to check their structure
             if (availableExercises.length > 0) {
                 console.log('Sample exercise data structure:', availableExercises.slice(0, 3));
             }
@@ -215,17 +194,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error loading exercises:', error);
 
-            // Show error in search results if visible
             if (historySearchResultsEl && historySearchResultsEl.style.display === 'block') {
                 historySearchResultsEl.innerHTML = '<div class="search-result-item">Error loading exercises. Please refresh the page.</div>';
             }
 
-            // Return empty array to prevent further errors
             return [];
         }
     }
 
-    // --- Event Handlers ---
     function handleHistorySearchInput(event) {
         try {
             if (!event || !event.target) {
@@ -241,12 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Check if exercises are loaded
             if (!availableExercises || !Array.isArray(availableExercises) || availableExercises.length === 0) {
                 console.warn('No exercises available for search. Attempting to reload...');
-                // Try to reload exercises
+
                 loadAvailableExercises().then(() => {
-                    // Retry the search after loading
+
                     if (availableExercises && availableExercises.length > 0) {
                         handleHistorySearchInput(event);
                     } else {
@@ -257,7 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Filter exercises based on search term and category filter
             const filteredExercises = availableExercises.filter(exercise => {
                 if (!exercise || !exercise.name) return false;
                 const matchesSearch = exercise.name.toLowerCase().includes(searchTerm);
@@ -265,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return matchesSearch && matchesCategory;
             });
 
-            // Render search results
             historySearchResultsEl.innerHTML = '';
 
             if (filteredExercises.length === 0) {
@@ -276,13 +249,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     resultItem.className = 'search-result-item';
                     resultItem.textContent = exercise.name;
 
-                    // Use the correct property name based on API response
                     const exerciseId = exercise.exercise_id || exercise.id;
 
                     resultItem.dataset.exerciseId = exerciseId;
                     resultItem.dataset.exerciseName = exercise.name;
 
-                    // Log the exercise data for debugging
                     console.log(`Creating search result for: ${exercise.name}, ID: ${exerciseId}`);
 
                     resultItem.addEventListener('click', () => handleHistorySearchResultClick(exerciseId, exercise.name));
@@ -302,7 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentHistoryCategoryFilter = event.target.value;
         console.log(`Category filter changed to: ${currentHistoryCategoryFilter}`);
 
-        // If there's an active search, re-trigger it with the new filter
         if (historyExerciseSearchInput.value.trim().length > 0) {
             handleHistorySearchInput({ target: historyExerciseSearchInput });
         }
@@ -311,11 +281,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleHistorySearchResultClick(selectedId, selectedName) {
         console.log(`Result clicked and processed: ID=${selectedId}, Name=${selectedName}`);
 
-        // Validate the exercise ID
         if (!selectedId || isNaN(parseInt(selectedId))) {
             console.error(`Invalid exercise ID: ${selectedId}`);
 
-            // Try to find the exercise by name as a fallback
             if (selectedName) {
                 const matchingExercise = availableExercises.find(ex =>
                     ex.name.toLowerCase() === selectedName.toLowerCase());
@@ -333,7 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Ensure ID is an integer
         const exerciseId = parseInt(selectedId);
         console.log(`Using exercise ID: ${exerciseId}`);
 
@@ -341,7 +308,6 @@ document.addEventListener('DOMContentLoaded', function() {
         historySearchResultsEl.innerHTML = '';
         historySearchResultsEl.style.display = 'none';
 
-        // Hide the prediction table until new data is loaded
         const tableContainer = document.getElementById('prediction-table-container');
         if (tableContainer) {
             tableContainer.style.display = 'none';
@@ -349,7 +315,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetchAndRenderHistoryChart(exerciseId);
 
-        // Store selected exercise and show Edit button
         currentHistoryExerciseId = exerciseId;
         currentHistoryExerciseName = selectedName;
         historyEditBtn.style.display = 'inline-block';
@@ -362,12 +327,10 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.disabled = true;
         submitButton.textContent = 'Saving...';
 
-        // Gather form data
         const exerciseId = parseInt(historyEditExerciseIdInput.value);
         const datePerformed = historyEditDateInput.value;
         const notes = historyEditNotesInput.value;
 
-        // Gather sets data
         const setsData = [];
         const setRows = historyEditSetsContainer.querySelectorAll('.history-edit-set-row');
 
@@ -394,7 +357,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Prepare log data
         const logData = {
             exercise_id: exerciseId,
             date_performed: datePerformed,
@@ -416,13 +378,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             console.log('New past log saved:', result);
 
-            // Refresh the existing logs list in the modal
             fetchAndRenderExistingLogs(logData.exercise_id);
 
-            // Refresh the history chart
             fetchAndRenderHistoryChart(logData.exercise_id);
 
-            // Clear the add form
             historyEditForm.reset();
             historyEditSets = [{ reps: '', weight: '', unit: 'lbs' }];
             renderHistoryEditSets();
@@ -437,27 +396,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- Unit Conversion Utility Functions ---
     function convertWeight(weight, fromUnit, toUnit) {
         if (fromUnit === toUnit) return weight;
 
-        // Convert kg to lbs
         if (fromUnit === 'kg' && toUnit === 'lbs') {
             return weight * 2.20462;
         }
 
-        // Convert lbs to kg
         if (fromUnit === 'lbs' && toUnit === 'kg') {
             return weight / 2.20462;
         }
 
-        // If units are not recognized, return original weight
         return weight;
     }
 
-    // --- 1RM Calculation Function ---
     function calculate1RM(weight, reps, unit) {
-        // Based on the repetition percentages table
+
         const percentages = {
             1: 100,
             2: 97,
@@ -491,20 +445,16 @@ document.addEventListener('DOMContentLoaded', function() {
             30: 50
         };
 
-        // If reps is beyond our table, default to 50%
         const percentage = percentages[reps] || 50;
 
-        // Calculate 1RM: weight / percentage * 100
         const oneRepMax = Math.round((weight / percentage) * 100);
 
         return oneRepMax;
     }
 
-    // --- Prediction Table Functions ---
     function generatePredictionTable(oneRepMax, bestSet, unit, historyData) {
         console.log('Generating prediction table with 1RM:', oneRepMax, 'Best set:', bestSet, 'Unit:', unit);
 
-        // Get the table container and body elements
         const tableContainer = document.getElementById('prediction-table-container');
         const tableBody = document.getElementById('prediction-table-body');
         const bestSetInfo = document.getElementById('best-set-info');
@@ -514,16 +464,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Show the table container
         tableContainer.style.display = 'block';
 
-        // Update the best set info
         bestSetInfo.textContent = `${bestSet.weight} ${unit} × ${bestSet.reps} reps`;
 
-        // Clear existing table rows
         tableBody.innerHTML = '';
 
-        // Get the percentages for 1-30 reps
         const percentages = {
             1: 100,
             2: 97,
@@ -557,20 +503,17 @@ document.addEventListener('DOMContentLoaded', function() {
             30: 50
         };
 
-        // Extract all sets from history data for comparison
         const historySets = [];
         if (historyData && historyData.length > 0) {
             historyData.forEach(log => {
-                // Parse the comma-separated strings into arrays
+
                 const reps = log.reps_completed ? log.reps_completed.split(',').map(Number) : [];
                 const weights = log.weight_used ? log.weight_used.split(',').map(Number) : [];
                 const logUnit = log.weight_unit || 'kg';
 
-                // Create set objects for each set in the log
                 for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
                     if (isNaN(reps[i]) || isNaN(weights[i])) continue;
 
-                    // Convert weight to the current display unit if needed
                     let convertedWeight = weights[i];
                     if (logUnit !== unit) {
                         convertedWeight = convertWeight(weights[i], logUnit, unit);
@@ -588,16 +531,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('History sets for comparison (converted to display unit):', historySets);
 
-        // Create a map of actual weights achieved for each rep count
         const actualWeightsByReps = {};
         const actualSetsByReps = {}; // Store the full set info for each rep count
 
-        // Find the best weight for each rep count from history
         historySets.forEach(set => {
             const reps = set.reps;
             const weight = set.weight;
 
-            // If we don't have a weight for this rep count yet, or this weight is higher
             if (!actualWeightsByReps[reps] || weight > actualWeightsByReps[reps]) {
                 actualWeightsByReps[reps] = weight;
                 actualSetsByReps[reps] = set; // Store the full set info
@@ -606,15 +546,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('Actual weights by rep count (converted to display unit):', actualWeightsByReps);
 
-        // Generate table rows for 1-30 reps
         for (let reps = 1; reps <= 30; reps++) {
             const percentage = percentages[reps];
 
-            // Always calculate the predicted weight
             let predictedWeight = oneRepMax * (percentage / 100);
             let roundedPredictedWeight = Math.floor(predictedWeight / 5) * 5; // Round down to nearest 5
 
-            // Check if we have an actual weight for this rep count
             let isActual = false;
             let actualSet = null;
 
@@ -623,27 +560,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 actualSet = actualSetsByReps[reps];
             }
 
-            // Create a new table row
             const row = document.createElement('tr');
 
-            // Add 'achieved' class if this is an actual weight from history
             if (isActual) {
                 row.classList.add('achieved');
             }
 
-            // Special handling for the row that matches the best set
             const isBestSet = (reps === bestSet.reps &&
                                ((actualWeightsByReps[reps] && Math.abs(actualWeightsByReps[reps] - bestSet.weight) < 0.1) ||
                                 Math.abs(roundedPredictedWeight - bestSet.weight) < 0.1));
 
-            // Add checkmark only if this is an actual weight from history
-            // AND it's not the same as the best set (to avoid duplicate checkmarks)
+
             const showCheckmark = isActual && !isBestSet;
 
-            // For the best set row, add a special indicator
             const bestSetIndicator = isBestSet ? ' ✓' : '';
 
-            // Get the best achieved weight for this rep count
             const bestAchievedWeight = actualWeightsByReps[reps] || null;
 
             row.innerHTML = `
@@ -653,14 +584,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${percentage}%</td>
             `;
 
-            // Add the row to the table
             tableBody.appendChild(row);
         }
     }
 
-    // --- History Chart Functions ---
     async function fetchAndRenderHistoryChart(exerciseId) {
-        // Get the history message element
+
         const historyMessageEl = document.getElementById('history-message');
 
         if (!historyMessageEl) {
@@ -687,7 +616,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const historyData = await response.json();
             console.log("Raw History Data Received:", JSON.stringify(historyData));
 
-            // Store the raw history data for tooltip access
             currentHistoryData = historyData;
 
             if (historyData.length === 0) {
@@ -697,7 +625,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     exerciseHistoryChart = null;
                 }
 
-                // Hide the prediction table
                 const tableContainer = document.getElementById('prediction-table-container');
                 if (tableContainer) {
                     tableContainer.style.display = 'none';
@@ -706,40 +633,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Process data for chart
             console.log("Processing history data:", historyData);
 
             const processedData = historyData.map(log => {
                 console.log("Processing log entry:", log);
 
-                // Parse the comma-separated strings into arrays
                 const reps = log.reps_completed ? log.reps_completed.split(',').map(Number) : [];
                 const weights = log.weight_used ? log.weight_used.split(',').map(Number) : [];
                 const unit = log.weight_unit || 'kg';
 
                 console.log("Parsed values:", { reps, weights, unit });
 
-                // Calculate total volume (weight * reps) for each set
                 let totalVolume = 0;
                 let maxOneRepMax = 0;
                 let bestSet = { weight: 0, reps: 0 };
                 let bestSetVolume = 0;
 
                 for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
-                    // Make sure we're working with valid numbers
+
                     if (isNaN(reps[i]) || isNaN(weights[i])) continue;
 
                     const setVolume = reps[i] * weights[i];
                     totalVolume += setVolume;
 
-                    // Track the best set (highest volume)
                     if (setVolume > bestSetVolume) {
                         bestSetVolume = setVolume;
                         bestSet = { weight: weights[i], reps: reps[i], unit: unit };
                     }
 
-                    // Calculate 1RM for each set and keep the highest value
-                    // Always calculate 1RM in the original unit to avoid conversion errors
+
                     const setOneRepMax = calculate1RM(weights[i], reps[i]);
                     if (setOneRepMax > maxOneRepMax) {
                         maxOneRepMax = setOneRepMax;
@@ -759,11 +681,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
             });
 
-            // Sort by date
             processedData.sort((a, b) => a.date - b.date);
             console.log("Sorted processed data:", processedData);
 
-            // Format dates and extract volumes and 1RM for chart
             const labels = processedData.map(item => item.date.toLocaleDateString());
             const volumes = processedData.map(item => item.volume);
             const oneRepMaxes = processedData.map(item => item.oneRepMax);
@@ -778,12 +698,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Data for Chart - Volumes:", volumes);
             console.log("Data for Chart - 1RM:", oneRepMaxes);
 
-            // Get the most recent 1RM value and best set
             const latestOneRepMax = oneRepMaxes[oneRepMaxes.length - 1];
             const unit = processedData[processedData.length - 1].unit;
             const latestBestSet = processedData[processedData.length - 1].bestSet;
 
-            // Create a message with the latest 1RM value
             let message = '';
             if (latestOneRepMax > 0) {
                 message = `Estimated 1RM: ${latestOneRepMax} ${unit}`;
@@ -791,10 +709,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             renderHistoryChart(labels, volumes, oneRepMaxes, processedData, 'Volume (Weight * Reps)', '1RM (Estimated)');
 
-            // Display the 1RM message
             historyMessageEl.textContent = message;
 
-            // Generate and display the prediction table
             if (latestOneRepMax > 0 && latestBestSet) {
                 generatePredictionTable(latestOneRepMax, latestBestSet, unit, historyData);
             }
@@ -802,7 +718,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error fetching or processing exercise history:', error);
 
-            // Display error message
             historyMessageEl.textContent = `Error loading history: ${error.message}`;
 
             if (exerciseHistoryChart) {
@@ -810,7 +725,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 exerciseHistoryChart = null;
             }
 
-            // Hide the prediction table
             const tableContainer = document.getElementById('prediction-table-container');
             if (tableContainer) {
                 tableContainer.style.display = 'none';
@@ -818,7 +732,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // currentHistoryData is already defined at the top of the file
 
     function renderHistoryChart(labels, volumeData, oneRepMaxData, processedData, volumeLabel = 'Volume', oneRepMaxLabel = '1RM') {
         console.log("renderHistoryChart called with:", { labels, volumeData, oneRepMaxData, processedData, volumeLabel, oneRepMaxLabel });
@@ -833,7 +746,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Canvas context obtained:", ctx);
             console.log("Rendering chart with Labels:", labels, "Volume Data:", volumeData, "1RM Data:", oneRepMaxData);
 
-            // Destroy existing chart before creating new one
             if (exerciseHistoryChart) {
                 console.log("Destroying existing chart instance.");
                 exerciseHistoryChart.destroy();
@@ -842,7 +754,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("No existing chart instance to destroy.");
             }
 
-            // Create new chart with only the volume dataset (1RM removed as requested)
             exerciseHistoryChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -860,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             fill: true,
                             yAxisID: 'y'
                         }
-                        // 1RM dataset removed as requested by user
+
                     ]
                 },
                 options: {
@@ -884,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 color: '#4CAF50'
                             }
                         },
-                        // y1 axis removed as we no longer show 1RM line
+
                         x: {
                             grid: {
                                 color: 'rgba(255, 255, 255, 0.1)'
@@ -923,7 +834,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             },
                             callbacks: {
                                 title: function(tooltipItems) {
-                                    // Show the date as the title
+
                                     if (tooltipItems.length > 0) {
                                         const dataIndex = tooltipItems[0].dataIndex;
                                         const dataPoint = processedData[dataIndex];
@@ -935,7 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 },
                                 label: function(context) {
                                     try {
-                                        // We'll return an empty string here and handle all formatting in the footer
+
                                         return '';
                                     } catch (error) {
                                         console.error('Error in tooltip callback:', error);
@@ -951,10 +862,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                         if (!dataPoint) return '';
 
-                                        // Get the date for this data point
                                         const logDate = new Date(dataPoint.date).toLocaleDateString();
 
-                                        // Find the original log data
                                         let matchingLog = null;
                                         if (currentHistoryData && Array.isArray(currentHistoryData)) {
                                             matchingLog = currentHistoryData.find(log => {
@@ -965,17 +874,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                         if (!matchingLog) return 'No set data available';
 
-                                        // Parse the comma-separated strings into arrays
                                         const reps = matchingLog.reps_completed ? matchingLog.reps_completed.split(',').map(Number) : [];
                                         const weights = matchingLog.weight_used ? matchingLog.weight_used.split(',').map(Number) : [];
                                         const unit = matchingLog.weight_unit || 'kg';
 
                                         if (reps.length === 0 || weights.length === 0) return 'No set data available';
 
-                                        // Find the best set of all time
                                         let allTimeBestSet = { weight: 0, reps: 0, volume: 0 };
 
-                                        // Loop through all history data to find the best set of all time
                                         if (currentHistoryData && Array.isArray(currentHistoryData)) {
                                             currentHistoryData.forEach(log => {
                                             const logReps = log.reps_completed ? log.reps_completed.split(',').map(Number) : [];
@@ -996,13 +902,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                         });
                                         }
 
-                                        // Create an array of formatted set strings
                                         const setStrings = [];
 
                                         for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
                                             if (isNaN(reps[i]) || isNaN(weights[i])) continue;
 
-                                            // Check if this is the all-time best set and highlight it
                                             const isAllTimeBestSet = (weights[i] === allTimeBestSet.weight && reps[i] === allTimeBestSet.reps);
                                             if (isAllTimeBestSet && allTimeBestSet.volume > 0) {
                                                 setStrings.push(`${weights[i]}${unit}×${reps[i]} ⭐`);
@@ -1011,7 +915,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                             }
                                         }
 
-                                        // Join the set strings with line breaks
                                         return setStrings.join('\n');
                                     } catch (error) {
                                         console.error('Error in tooltip footer callback:', error);
@@ -1027,7 +930,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (chartError) {
             console.error("Error creating Chart.js instance:", chartError);
 
-            // Display error message
             const historyMessageEl = document.getElementById('history-message');
             if (historyMessageEl) {
                 historyMessageEl.textContent = `Error rendering chart: ${chartError.message}`;
@@ -1035,24 +937,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- History Edit Modal Functions ---
     function showHistoryEditModal() {
         if (!currentHistoryExerciseId || !currentHistoryExerciseName) {
             alert('Please select an exercise from the search first.');
             return;
         }
 
-        // Pre-fill modal add section
         historyEditExerciseNameEl.textContent = currentHistoryExerciseName;
         historyEditExerciseIdInput.value = currentHistoryExerciseId;
         historyEditForm.reset(); // Clear previous add form entries
         historyEditDateInput.valueAsDate = new Date(); // Default to today
 
-        // Reset and render initial set row for adding
         historyEditSets = [{ reps: '', weight: '', unit: 'kg' }];
         renderHistoryEditSets();
 
-        // Fetch and display existing logs
         fetchAndRenderExistingLogs(currentHistoryExerciseId);
 
         historyEditModal.style.display = 'block';
@@ -1087,7 +985,6 @@ document.addEventListener('DOMContentLoaded', function() {
             historyEditSetsContainer.appendChild(setRow);
         });
 
-        // Update button states
         historyEditRemoveSetBtn.disabled = historyEditSets.length <= 1;
     }
 
@@ -1107,16 +1004,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Sort logs newest first for display
             logs.sort((a, b) => new Date(b.date_performed) - new Date(a.date_performed));
 
             logs.forEach(log => {
-                // Parse the comma-separated strings into arrays
+
                 const reps = log.reps_completed ? log.reps_completed.split(',').map(Number) : [];
                 const weights = log.weight_used ? log.weight_used.split(',').map(Number) : [];
                 const unit = log.weight_unit || 'kg';
 
-                // Create a formatted summary with better alignment
                 let summary = '';
                 for (let i = 0; i < Math.min(reps.length, weights.length); i++) {
                     if (i > 0) summary += ' ';
@@ -1146,6 +1041,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize the page
     initialize();
 });

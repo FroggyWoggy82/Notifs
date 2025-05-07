@@ -1,0 +1,148 @@
+/**
+ * Complete Edit Form
+ * Styling for the completely replaced edit ingredient form
+ */
+
+/* Main edit form container */
+.edit-ingredient-form {
+    margin-top: 5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 3px !important;
+    padding: 8px !important;
+    background-color: rgba(25, 25, 25, 0.7) !important;
+    color: #e0e0e0 !important;
+}
+
+/* Form header */
+.edit-ingredient-form h4 {
+    margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    font-size: 0.85em !important;
+    font-weight: 500 !important;
+    color: #e0e0e0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 3px !important;
+}
+
+/* Nutrition sections */
+.edit-ingredient-form .nutrition-section {
+    margin-bottom: 5px !important;
+    padding-bottom: 3px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Section headers */
+.edit-ingredient-form .nutrition-section h4 {
+    font-size: 0.8em !important;
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    padding-bottom: 2px !important;
+    border-bottom: none !important;
+    color: #e0e0e0 !important;
+    font-weight: 500 !important;
+}
+
+/* Nutrition grid */
+.edit-ingredient-form .nutrition-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)) !important;
+    gap: 3px !important;
+}
+
+/* Nutrition items */
+.edit-ingredient-form .nutrition-item {
+    margin-bottom: 3px !important;
+}
+
+/* Labels */
+.edit-ingredient-form .nutrition-item label {
+    font-size: 0.65em !important;
+    margin-bottom: 1px !important;
+    color: #aaa !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Inputs */
+.edit-ingredient-form .nutrition-item input {
+    width: 45px !important;
+    padding: 0px 2px !important;
+    height: 18px !important;
+    font-size: 0.7em !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 2px !important;
+}
+
+/* Make name field wider */
+.edit-ingredient-form .nutrition-item input#edit-ingredient-name {
+    width: 140px !important;
+}
+
+/* Form actions */
+.edit-ingredient-form .form-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 5px !important;
+    margin-top: 8px !important;
+}
+
+/* Buttons */
+.edit-ingredient-form .form-actions button {
+    padding: 3px 8px !important;
+    border: none !important;
+    border-radius: 2px !important;
+    font-size: 0.75em !important;
+    cursor: pointer !important;
+    background-color: #333 !important;
+    color: white !important;
+}
+
+/* Save button */
+.edit-ingredient-form .form-actions .save-ingredient-btn {
+    background-color: #444 !important;
+}
+
+/* Cancel button */
+.edit-ingredient-form .form-actions .cancel-edit-btn {
+    background-color: #333 !important;
+}
+
+/* Hover effects */
+.edit-ingredient-form .form-actions button:hover {
+    background-color: #555 !important;
+}
+
+/* Status messages */
+.edit-ingredient-form .status {
+    margin-top: 8px !important;
+    font-size: 0.8em !important;
+}
+
+/* Info status */
+.edit-ingredient-form .status.info {
+    color: #88f !important;
+}
+
+/* Error status */
+.edit-ingredient-form .status.error {
+    color: #f88 !important;
+}
+
+/* Success status */
+.edit-ingredient-form .status.success {
+    color: #8f8 !important;
+}
+
+/* Warning status */
+.edit-ingredient-form .status.warning {
+    color: #ff8 !important;
+}
+
+/* Ensure edit form is visible when it's supposed to be */
+.edit-ingredient-form[style*="display: block"] {
+    display: block !important;
+}

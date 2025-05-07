@@ -2,38 +2,33 @@
 require('dotenv').config(); // Load .env file if present
 const { Pool } = require('pg');
 
-// Railway provides DATABASE_URL automatically
+// Use the provided connection string or get it from environment variables
 // For local dev, create a .env file with DATABASE_URL=postgresql://user:password@host:port/database
-const connectionString = process.env.DATABASE_URL;
+let connectionString = process.env.DATABASE_URL;
+
+// Hardcoded connection string as fallback (from user input)
+const hardcodedConnectionString = 'postgresql://postgres:NOQsdhTojgbpjdjEaMDjezkGMVHLBIsP@nozomi.proxy.rlwy.net:18056/railway';
 
 if (!connectionString) {
-    console.error("WARNING: DATABASE_URL environment variable is not set. Using fallback configuration.");
+    console.log("DATABASE_URL environment variable is not set. Using hardcoded connection string.");
+    connectionString = hardcodedConnectionString;
 }
 
+console.log("Using database connection string:", connectionString.replace(/:[^:]*@/, ':****@')); // Log with password hidden
+
 // Configure the database connection
-const poolConfig = connectionString ?
-    {
-        connectionString,
-        // Always enable SSL for Railway PostgreSQL connections
-        ssl: {
-            rejectUnauthorized: false
-        },
-        // Add connection timeout to prevent hanging
-        connectionTimeoutMillis: 10000, // 10 seconds
-        idleTimeoutMillis: 30000, // 30 seconds
-        max: 10 // Maximum number of clients in the pool
-    } :
-    {
-        host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME || 'notifs',
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
-        // Add connection timeout to prevent hanging
-        connectionTimeoutMillis: 10000, // 10 seconds
-        idleTimeoutMillis: 30000, // 30 seconds
-        max: 10 // Maximum number of clients in the pool
-    };
+const poolConfig = {
+    connectionString,
+    // Always enable SSL for Railway PostgreSQL connections
+    ssl: {
+        rejectUnauthorized: false
+    },
+    // Add connection timeout to prevent hanging
+    connectionTimeoutMillis: 15000, // 15 seconds
+    idleTimeoutMillis: 60000, // 60 seconds
+    max: 20, // Maximum number of clients in the pool
+    statement_timeout: 30000 // 30 seconds statement timeout
+};
 
 console.log('Database connection config:', {
     usingConnectionString: !!connectionString,

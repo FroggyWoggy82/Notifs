@@ -1,0 +1,79 @@
+/**
+ * Detailed Nutrition Integration
+ * 
+ * This script integrates the detailed nutrition view into the recipe ingredient table.
+ * It modifies the renderIngredientDetails function to include the detailed nutrition view.
+ */
+
+(function() {
+    // Store the original renderIngredientDetails function
+    const originalRenderIngredientDetails = window.renderIngredientDetails;
+
+    // Override the renderIngredientDetails function
+    window.renderIngredientDetails = function(ingredients, container) {
+        // Call the original function
+        originalRenderIngredientDetails(ingredients, container);
+
+        // Find the toggle button and add event listener
+        const toggleButton = container.querySelector('.toggle-detailed-nutrition');
+        if (!toggleButton) {
+            // Add the toggle button if it doesn't exist
+            const tableContainer = container.querySelector('.responsive-table-container');
+            if (tableContainer) {
+                const toggleButtonContainer = document.createElement('div');
+                toggleButtonContainer.className = 'nutrition-controls';
+                toggleButtonContainer.innerHTML = `
+                    <button type="button" class="toggle-detailed-nutrition">Show Detailed Nutrition</button>
+                `;
+                tableContainer.parentNode.insertBefore(toggleButtonContainer, tableContainer);
+                
+                // Get the newly created button
+                const newToggleButton = toggleButtonContainer.querySelector('.toggle-detailed-nutrition');
+                if (newToggleButton) {
+                    addToggleListener(newToggleButton, ingredients, container);
+                }
+            }
+        } else {
+            // Add listener to existing button
+            addToggleListener(toggleButton, ingredients, container);
+        }
+    };
+
+    // Function to add toggle listener
+    function addToggleListener(toggleButton, ingredients, container) {
+        toggleButton.addEventListener('click', function() {
+            // Check if detailed nutrition container exists
+            let detailedNutritionContainer = container.querySelector('.detailed-nutrition-container');
+            
+            // If it doesn't exist, create it
+            if (!detailedNutritionContainer) {
+                // Create the detailed nutrition container
+                detailedNutritionContainer = document.createElement('div');
+                detailedNutritionContainer.className = 'detailed-nutrition-container';
+                detailedNutritionContainer.style.display = 'none';
+                
+                // Add the detailed nutrition HTML
+                if (typeof window.createDetailedNutritionHTML === 'function') {
+                    detailedNutritionContainer.innerHTML = window.createDetailedNutritionHTML(ingredients)
+                        .replace('<div class="detailed-nutrition-container" style="display: none; margin-top: 20px;">', '')
+                        .replace('</div>', '');
+                } else {
+                    detailedNutritionContainer.innerHTML = '<p>Detailed nutrition view not available.</p>';
+                }
+                
+                // Insert after the table
+                const table = container.querySelector('.ingredient-table');
+                if (table) {
+                    table.parentNode.insertBefore(detailedNutritionContainer, table.nextSibling);
+                }
+            }
+            
+            // Toggle visibility
+            const isVisible = detailedNutritionContainer.style.display !== 'none';
+            detailedNutritionContainer.style.display = isVisible ? 'none' : 'block';
+            
+            // Update button text
+            toggleButton.textContent = isVisible ? 'Show Detailed Nutrition' : 'Hide Detailed Nutrition';
+        });
+    }
+})();

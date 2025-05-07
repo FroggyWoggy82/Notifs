@@ -3,22 +3,22 @@
  * This CSS file ensures the workouts icon has the same styling as other pages
  */
 
-/* Make the active item white, just like other pages */
+
 .bottom-nav .nav-item.active {
-    color: #FFFFFF !important; /* White color for active item */
+    color: #FFFFFF !important; 
 }
 
-/* Make the workouts icon white when active */
+
 .bottom-nav .nav-item[href*="workouts.html"].active .nav-icon i {
     color: #FFFFFF !important;
 }
 
-/* Make the workouts text white when active */
+
 .bottom-nav .nav-item[href*="workouts.html"].active span {
     color: #FFFFFF !important;
 }
 
-/* Ensure the text is not transformed to uppercase */
+
 .bottom-nav .nav-item[href*="workouts.html"] span,
 .bottom-nav .nav-item[href*="workouts.html"].active span {
     text-transform: none !important;
@@ -27,12 +27,12 @@
     letter-spacing: normal !important;
 }
 
-/* Make the workouts item white when active */
+
 .bottom-nav .nav-item[href*="workouts.html"].active {
     color: #FFFFFF !important;
 }
 
-/* Add the white highlight line at the bottom for active item */
+
 .bottom-nav .nav-item[href*="workouts.html"].active::before {
     content: '' !important;
     position: absolute !important;
@@ -46,7 +46,7 @@
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Add hover effect for the workouts tab */
+
 .bottom-nav .nav-item[href*="workouts.html"]:hover {
     color: #FFFFFF !important;
 }
@@ -56,7 +56,7 @@
     color: #FFFFFF !important;
 }
 
-/* Add the white highlight line on hover */
+
 .bottom-nav .nav-item[href*="workouts.html"]:hover::before {
     content: '' !important;
     position: absolute !important;
@@ -70,7 +70,7 @@
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Ensure the dumbbell icon is displayed correctly */
+
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i {
     font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
     font-weight: 900 !important;
@@ -79,5 +79,5 @@
 }
 
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i::before {
-    content: "\f44b" !important; /* fa-dumbbell */
+    content: "\f44b" !important; 
 }

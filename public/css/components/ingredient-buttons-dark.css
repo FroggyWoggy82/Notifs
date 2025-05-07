@@ -1,6 +1,6 @@
-/* Dark theme styling for ingredient section buttons */
 
-/* Make the Ingredients heading white */
+
+
 #recipe-creation-section h3,
 #recipes-display-section h2 {
     color: #ffffff !important;
@@ -9,7 +9,7 @@
     margin-bottom: 15px;
 }
 
-/* Unified button styling for all ingredient buttons */
+
 .toggle-detailed-nutrition,
 .add-ingredient-btn-inline,
 .remove-ingredient-btn,
@@ -27,7 +27,7 @@
     line-height: 1.2 !important;
 }
 
-/* Hover state for all buttons */
+
 .toggle-detailed-nutrition:hover,
 .add-ingredient-btn-inline:hover,
 .remove-ingredient-btn:hover,
@@ -36,13 +36,13 @@
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Active state for toggle button */
+
 .toggle-detailed-nutrition.active {
     background-color: rgba(40, 40, 40, 0.9) !important;
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Save Recipe button */
+
 #create-recipe-form button[type="submit"] {
     background-color: rgba(30, 30, 30, 0.7) !important;
     color: #e0e0e0 !important;
@@ -61,7 +61,7 @@
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Recipe card buttons styling */
+
 .recipe-card-btn,
 .recipe-card-btn.primary,
 .recipe-card-btn.danger {
@@ -80,7 +80,7 @@
     width: 90px !important;
 }
 
-/* Hover state for recipe card buttons */
+
 .recipe-card-btn:hover,
 .recipe-card-btn.primary:hover,
 .recipe-card-btn.danger:hover {
@@ -90,7 +90,7 @@
     box-shadow: none !important;
 }
 
-/* Recipe card calories styling */
+
 .recipe-card-calories {
     color: #ffffff !important;
     background-color: rgba(30, 30, 30, 0.7) !important;

@@ -1,0 +1,62 @@
+/**
+ * Force Single Button Set
+ * CSS to ensure only one set of buttons is displayed in edit forms
+ */
+
+/* Hide all form-actions except the last one */
+.edit-ingredient-form .form-actions:not(:last-of-type) {
+    display: none !important;
+}
+
+/* Make sure the last form-actions is visible and properly styled */
+.edit-ingredient-form .form-actions:last-of-type {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 15px !important;
+    margin-bottom: 5px !important;
+}
+
+/* Style the Save Changes button */
+.edit-ingredient-form .form-actions:last-of-type button[type="submit"],
+.edit-ingredient-form .form-actions:last-of-type .save-ingredient-btn {
+    background-color: #333 !important;
+    color: white !important;
+    border: 1px solid #444 !important;
+    border-radius: 3px !important;
+    padding: 8px 15px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+}
+
+/* Style the Cancel button */
+.edit-ingredient-form .form-actions:last-of-type button[type="button"],
+.edit-ingredient-form .form-actions:last-of-type .cancel-edit-btn {
+    background-color: #333 !important;
+    color: white !important;
+    border: 1px solid #444 !important;
+    border-radius: 3px !important;
+    padding: 8px 15px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+}
+
+/* Hover effect for buttons */
+.edit-ingredient-form .form-actions:last-of-type button:hover {
+    background-color: #444 !important;
+}
+
+/* Hide any standalone buttons that might be outside of form-actions */
+.edit-ingredient-form > button.save-ingredient-btn,
+.edit-ingredient-form > button.cancel-edit-btn,
+.edit-ingredient-form > button[type="submit"],
+.edit-ingredient-form > button[type="button"]:not(.toggle-detailed-nutrition):not(#show-detailed-nutrition-btn) {
+    display: none !important;
+}
+
+/* Hide any buttons that might be directly in the form */
+.edit-ingredient-form form > button.save-ingredient-btn,
+.edit-ingredient-form form > button.cancel-edit-btn,
+.edit-ingredient-form form > button[type="submit"],
+.edit-ingredient-form form > button[type="button"]:not(.toggle-detailed-nutrition):not(#show-detailed-nutrition-btn) {
+    display: none !important;
+}

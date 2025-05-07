@@ -1,0 +1,231 @@
+/**
+ * Detailed Nutrition View Module
+ * 
+ * This module adds a detailed nutrition view to the recipe ingredient table.
+ */
+
+(function() {
+    // Initialize the detailed nutrition view when the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add CSS for the detailed nutrition view
+        addDetailedNutritionStyles();
+        
+        // Initialize event listeners for the toggle button
+        initToggleButtonListeners();
+    });
+
+    /**
+     * Add CSS styles for the detailed nutrition view
+     */
+    function addDetailedNutritionStyles() {
+        const styleElement = document.createElement('style');
+        styleElement.textContent = `
+            .nutrition-controls {
+                margin-bottom: 10px;
+                text-align: right;
+            }
+            
+            .toggle-detailed-nutrition {
+                background-color: #000;
+                color: #fff;
+                border: 1px solid #fff;
+                padding: 5px 10px;
+                cursor: pointer;
+                transition: background-color 0.3s, color 0.3s;
+            }
+            
+            .toggle-detailed-nutrition:hover {
+                background-color: #fff;
+                color: #000;
+            }
+            
+            .detailed-nutrition-container {
+                margin-top: 20px;
+                background-color: #111;
+                padding: 15px;
+                border-bottom: 2px solid #00ff00;
+            }
+            
+            .detailed-nutrition-container h4 {
+                color: #fff;
+                margin-top: 0;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+            
+            .detailed-nutrition-tables {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .detailed-nutrition-table {
+                width: 100%;
+                border-collapse: collapse;
+                color: #fff;
+            }
+            
+            .detailed-nutrition-table th,
+            .detailed-nutrition-table td {
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #333;
+            }
+            
+            .detailed-nutrition-table th {
+                background-color: #222;
+                font-weight: bold;
+            }
+            
+            .detailed-nutrition-table td strong {
+                color: #00ff00;
+                font-weight: normal;
+            }
+            
+            @media (min-width: 992px) {
+                .detailed-nutrition-tables {
+                    flex-direction: row;
+                }
+                
+                .detailed-nutrition-table {
+                    width: 50%;
+                }
+            }
+        `;
+        document.head.appendChild(styleElement);
+    }
+
+    /**
+     * Initialize event listeners for the toggle button
+     */
+    function initToggleButtonListeners() {
+        // Use event delegation to handle toggle button clicks
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('toggle-detailed-nutrition')) {
+                const container = event.target.closest('.ingredient-details');
+                if (container) {
+                    const detailedNutritionContainer = container.querySelector('.detailed-nutrition-container');
+                    if (detailedNutritionContainer) {
+                        // Toggle visibility
+                        const isVisible = detailedNutritionContainer.style.display !== 'none';
+                        detailedNutritionContainer.style.display = isVisible ? 'none' : 'block';
+                        
+                        // Update button text
+                        event.target.textContent = isVisible ? 'Show Detailed Nutrition' : 'Hide Detailed Nutrition';
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Create the detailed nutrition HTML for a list of ingredients
+     * @param {Array} ingredients - The list of ingredients
+     * @returns {string} - The HTML for the detailed nutrition view
+     */
+    window.createDetailedNutritionHTML = function(ingredients) {
+        return `
+        <!-- Detailed Nutrition Table (hidden by default) -->
+        <div class="detailed-nutrition-container" style="display: none; margin-top: 20px;">
+            <h4>Detailed Nutrition Information</h4>
+            <div class="detailed-nutrition-tables">
+                <table class="detailed-nutrition-table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>Carbohydrates</th>
+                            <th>Lipids</th>
+                            <th>Protein</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    ${ingredients.map(ing => `
+                        <tr data-ingredient-id="${ing.id}">
+                            <td>${escapeHtml(ing.name)}</td>
+                            <td>
+                                <strong>Fiber:</strong> ${ing.fiber ? ing.fiber.toFixed(1) : '0.0'}g<br>
+                                <strong>Starch:</strong> ${ing.starch ? ing.starch.toFixed(1) : '0.0'}g<br>
+                                <strong>Sugars:</strong> ${ing.sugars ? ing.sugars.toFixed(1) : '0.0'}g<br>
+                                <strong>Added Sugars:</strong> ${ing.added_sugars ? ing.added_sugars.toFixed(1) : '0.0'}g<br>
+                                <strong>Net Carbs:</strong> ${ing.net_carbs ? ing.net_carbs.toFixed(1) : '0.0'}g
+                            </td>
+                            <td>
+                                <strong>Saturated:</strong> ${ing.saturated ? ing.saturated.toFixed(1) : '0.0'}g<br>
+                                <strong>Monounsaturated:</strong> ${ing.monounsaturated ? ing.monounsaturated.toFixed(1) : '0.0'}g<br>
+                                <strong>Polyunsaturated:</strong> ${ing.polyunsaturated ? ing.polyunsaturated.toFixed(1) : '0.0'}g<br>
+                                <strong>Omega-3:</strong> ${ing.omega3 ? ing.omega3.toFixed(1) : '0.0'}g<br>
+                                <strong>Omega-6:</strong> ${ing.omega6 ? ing.omega6.toFixed(1) : '0.0'}g<br>
+                                <strong>Trans Fat:</strong> ${ing.trans ? ing.trans.toFixed(1) : '0.0'}g<br>
+                                <strong>Cholesterol:</strong> ${ing.cholesterol ? ing.cholesterol.toFixed(1) : '0.0'}mg
+                            </td>
+                            <td>
+                                <strong>Histidine:</strong> ${ing.histidine ? ing.histidine.toFixed(1) : '0.0'}g<br>
+                                <strong>Isoleucine:</strong> ${ing.isoleucine ? ing.isoleucine.toFixed(1) : '0.0'}g<br>
+                                <strong>Leucine:</strong> ${ing.leucine ? ing.leucine.toFixed(1) : '0.0'}g<br>
+                                <strong>Lysine:</strong> ${ing.lysine ? ing.lysine.toFixed(1) : '0.0'}g<br>
+                                <strong>Methionine:</strong> ${ing.methionine ? ing.methionine.toFixed(1) : '0.0'}g<br>
+                                <strong>Phenylalanine:</strong> ${ing.phenylalanine ? ing.phenylalanine.toFixed(1) : '0.0'}g<br>
+                                <strong>Threonine:</strong> ${ing.threonine ? ing.threonine.toFixed(1) : '0.0'}g<br>
+                                <strong>Tryptophan:</strong> ${ing.tryptophan ? ing.tryptophan.toFixed(1) : '0.0'}g<br>
+                                <strong>Tyrosine:</strong> ${ing.tyrosine ? ing.tyrosine.toFixed(1) : '0.0'}g<br>
+                                <strong>Valine:</strong> ${ing.valine ? ing.valine.toFixed(1) : '0.0'}g<br>
+                                <strong>Cystine:</strong> ${ing.cystine ? ing.cystine.toFixed(1) : '0.0'}g
+                            </td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table>
+                
+                <table class="detailed-nutrition-table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>Vitamins</th>
+                            <th>Minerals</th>
+                            <th>General</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    ${ingredients.map(ing => `
+                        <tr data-ingredient-id="${ing.id}">
+                            <td>${escapeHtml(ing.name)}</td>
+                            <td>
+                                <strong>Vitamin A:</strong> ${ing.vitamin_a ? ing.vitamin_a.toFixed(1) : '0.0'}μg<br>
+                                <strong>Vitamin B1:</strong> ${ing.thiamine ? ing.thiamine.toFixed(1) : '0.0'}mg<br>
+                                <strong>Vitamin B2:</strong> ${ing.riboflavin ? ing.riboflavin.toFixed(1) : '0.0'}mg<br>
+                                <strong>Vitamin B3:</strong> ${ing.niacin ? ing.niacin.toFixed(1) : '0.0'}mg<br>
+                                <strong>Vitamin B5:</strong> ${ing.pantothenic_acid ? ing.pantothenic_acid.toFixed(1) : '0.0'}mg<br>
+                                <strong>Vitamin B6:</strong> ${ing.vitamin_b6 ? ing.vitamin_b6.toFixed(1) : '0.0'}mg<br>
+                                <strong>Vitamin B12:</strong> ${ing.vitamin_b12 ? ing.vitamin_b12.toFixed(1) : '0.0'}μg<br>
+                                <strong>Folate:</strong> ${ing.folate ? ing.folate.toFixed(1) : '0.0'}μg<br>
+                                <strong>Vitamin C:</strong> ${ing.vitamin_c ? ing.vitamin_c.toFixed(1) : '0.0'}mg<br>
+                                <strong>Vitamin D:</strong> ${ing.vitamin_d ? ing.vitamin_d.toFixed(1) : '0.0'}μg<br>
+                                <strong>Vitamin E:</strong> ${ing.vitamin_e ? ing.vitamin_e.toFixed(1) : '0.0'}mg<br>
+                                <strong>Vitamin K:</strong> ${ing.vitamin_k ? ing.vitamin_k.toFixed(1) : '0.0'}μg
+                            </td>
+                            <td>
+                                <strong>Calcium:</strong> ${ing.calcium ? ing.calcium.toFixed(1) : '0.0'}mg<br>
+                                <strong>Copper:</strong> ${ing.copper ? ing.copper.toFixed(1) : '0.0'}mg<br>
+                                <strong>Iron:</strong> ${ing.iron ? ing.iron.toFixed(1) : '0.0'}mg<br>
+                                <strong>Magnesium:</strong> ${ing.magnesium ? ing.magnesium.toFixed(1) : '0.0'}mg<br>
+                                <strong>Manganese:</strong> ${ing.manganese ? ing.manganese.toFixed(1) : '0.0'}mg<br>
+                                <strong>Phosphorus:</strong> ${ing.phosphorus ? ing.phosphorus.toFixed(1) : '0.0'}mg<br>
+                                <strong>Potassium:</strong> ${ing.potassium ? ing.potassium.toFixed(1) : '0.0'}mg<br>
+                                <strong>Selenium:</strong> ${ing.selenium ? ing.selenium.toFixed(1) : '0.0'}μg<br>
+                                <strong>Sodium:</strong> ${ing.sodium ? ing.sodium.toFixed(1) : '0.0'}mg<br>
+                                <strong>Zinc:</strong> ${ing.zinc ? ing.zinc.toFixed(1) : '0.0'}mg
+                            </td>
+                            <td>
+                                <strong>Alcohol:</strong> ${ing.alcohol ? ing.alcohol.toFixed(1) : '0.0'}g<br>
+                                <strong>Caffeine:</strong> ${ing.caffeine ? ing.caffeine.toFixed(1) : '0.0'}mg<br>
+                                <strong>Water:</strong> ${ing.water ? ing.water.toFixed(1) : '0.0'}g
+                            </td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        `;
+    };
+})();

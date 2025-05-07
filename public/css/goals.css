@@ -74,7 +74,7 @@ button:hover {
     background-color: #45a049;
 }
 
-/* --- Goal Tree Structure --- */
+
 .goal-tree {
     flex: 1;
     display: flex;
@@ -98,7 +98,7 @@ button:hover {
     margin: 0 10px;
 }
 
-/* Ensure first node is block centered */
+
 .goal-tree > .goal-node:first-child {
    display: flex;
    flex-direction: column;
@@ -108,7 +108,7 @@ button:hover {
    width: fit-content;
 }
 
-/* Goal box styling */
+
 .goal-box {
     background-color: #e9f7ef;
     border: 2px solid #4CAF50;
@@ -128,14 +128,14 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Text span inside the box */
+
 .goal-text {
     display: block;
     width: 100%;
     text-align: center;
 }
 
-/* Edit input field styling */
+
 .goal-edit-input {
     display: none;
     width: calc(100% - 20px);
@@ -147,12 +147,12 @@ button:hover {
     box-sizing: border-box;
 }
 
-/* Style for when the box is in editing mode */
+
 .goal-box.editing {
     border-color: #ff9800;
 }
 
-/* Sub-goals container */
+
 .sub-goals {
     display: flex;
     justify-content: center;
@@ -160,8 +160,8 @@ button:hover {
     position: relative;
 }
 
-/* --- Connecting Lines (Refined) --- */
-/* Vertical line DOWN from PARENT box (if it has children) */
+
+
 .goal-node:has(> .sub-goals:not(:empty)) > .goal-box::after {
     content: '';
     position: absolute;
@@ -174,7 +174,7 @@ button:hover {
     z-index: 1;
 }
 
-/* Vertical line UP from CHILD box */
+
 .sub-goals > .goal-node > .goal-box::before {
     content: '';
     position: absolute;
@@ -187,7 +187,7 @@ button:hover {
     z-index: 1;
 }
 
-/* Connect first child to horizontal line */
+
 .sub-goals > .goal-node:first-child:not(:only-child)::before {
     content: '';
     position: absolute;
@@ -199,7 +199,7 @@ button:hover {
     z-index: 1;
 }
 
-/* Connect last child to horizontal line */
+
 .sub-goals > .goal-node:last-child:not(:only-child)::after {
     content: '';
     position: absolute;
@@ -211,7 +211,7 @@ button:hover {
     z-index: 1;
 }
 
-/* Connect middle children to horizontal line */
+
 .sub-goals > .goal-node:not(:first-child):not(:last-child)::before {
     content: '';
     position: absolute;
@@ -223,18 +223,18 @@ button:hover {
     z-index: 1;
 }
 
-/* Hide connector pieces for the single child case */
+
 .sub-goals > .goal-node:only-child::before,
 .sub-goals > .goal-node:only-child::after {
     display: none;
 }
 
-/* Hide parent's downward line if it has no children displayed */
+
 .goal-node:not(:has(.sub-goals:not(:empty))) > .goal-box::after {
     display: none;
 }
 
-/* Ensure no trailing lines for empty sub-goals containers */
+
 .sub-goals:empty {
     padding-top: 0;
     margin-top: 0;
@@ -254,8 +254,8 @@ button:hover {
     background-color: #f57c00;
 }
 
-/* --- Action Buttons --- */
-/* (Keep styles from previous version) */
+
+
 .goal-actions {
     position: absolute;
     right: 5px;
@@ -284,7 +284,7 @@ button:hover {
 .delete-button { background-color: #f44336; color: white; border-color: #f44336; }
 .delete-button:hover { background-color: #d32f2f; }
 
-/* Styling for Edit, Save, Cancel buttons */
+
 .edit-button {
     background-color: #2196F3;
     color: white;
@@ -306,7 +306,7 @@ button:hover {
 }
 .cancel-button:hover { background-color: #D32F2F; }
 
-/* Bottom Navigation (Keep existing styles) */
+
 .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; background-color: #fff;
     display: flex; justify-content: space-around; padding: 10px 0;
@@ -319,11 +319,11 @@ button:hover {
 .nav-item.active { color: #2196F3; }
 .nav-icon { font-size: 24px; margin-bottom: 2px; }
 
-/* Page visibility (Keep existing styles) */
+
 .page { display: none; }
 .page.active { display: block; }
 
-/* Media Queries for Responsiveness */
+
 @media screen and (max-width: 768px) {
     .container {
         padding: 10px;
@@ -352,7 +352,7 @@ button:hover {
     }
 }
 
-/* For very small screens */
+
 @media screen and (max-width: 480px) {
     .goal-box {
         min-width: 150px;
@@ -365,7 +365,7 @@ button:hover {
     }
 }
 
-/* For large screens */
+
 @media screen and (min-width: 1200px) {
     .container {
         padding: 30px;

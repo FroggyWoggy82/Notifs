@@ -4,7 +4,7 @@
  * Matches the styling of the Tasks page
  */
 
-/* Body and container */
+
 body {
     background-color: #0a0a0a !important;
     color: #e0e0e0 !important;
@@ -14,13 +14,13 @@ body {
     background-color: transparent !important;
 }
 
-/* Page title */
+
 h1 {
     color: white !important;
     text-align: center !important;
 }
 
-/* Search elements */
+
 .search-input {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -38,7 +38,7 @@ h1 {
     border-color: rgba(0, 230, 118, 0.6) !important;
 }
 
-/* Results container */
+
 .result-item {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -58,7 +58,7 @@ h1 {
     color: #aaaaaa !important;
 }
 
-/* Nutrition container */
+
 .nutrition-container {
     background-color: rgba(18, 18, 18, 0.95) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -91,7 +91,7 @@ h1 {
     color: #aaaaaa !important;
 }
 
-/* Screenshot container */
+
 .screenshot-container {
     background-color: rgba(18, 18, 18, 0.95) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -114,7 +114,7 @@ h1 {
     border-color: rgba(0, 230, 118, 0.6) !important;
 }
 
-/* Paste area */
+
 .paste-area {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 2px dashed rgba(0, 176, 255, 0.3) !important;
@@ -130,24 +130,24 @@ h1 {
     color: #aaaaaa !important;
 }
 
-/* Error message */
+
 .error {
     background-color: rgba(255, 61, 0, 0.1) !important;
     color: #FF3D00 !important;
     border: 1px solid rgba(255, 61, 0, 0.3) !important;
 }
 
-/* Loading indicator */
+
 .loading {
     color: #e0e0e0 !important;
 }
 
-/* File input */
+
 input[type="file"] {
     color: #e0e0e0 !important;
 }
 
-/* Bottom navigation */
+
 .bottom-nav {
     background-color: rgba(18, 18, 18, 0.95) !important;
     border-top: 1px solid rgba(255, 255, 255, 0.03) !important;

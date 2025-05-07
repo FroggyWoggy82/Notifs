@@ -1,6 +1,6 @@
-/* Grocery List Inline Styles */
 
-/* Main section styling */
+
+
 #grocery-list-section {
     margin-top: 40px;
     padding: 25px;
@@ -29,14 +29,14 @@
     padding-bottom: 8px;
 }
 
-/* Container layout */
+
 .grocery-list-container {
     display: flex;
     flex-direction: column;
     gap: 25px;
 }
 
-/* Recipe selection area */
+
 .recipe-selection-area {
     background-color: rgba(30, 30, 30, 0.7);
     border-radius: 6px;
@@ -50,7 +50,7 @@
     padding-right: 5px;
 }
 
-/* Recipe checkbox item */
+
 .recipe-checkbox-item {
     display: flex;
     align-items: center;
@@ -92,7 +92,7 @@
     margin-left: 10px;
 }
 
-/* Calorie adjustment area */
+
 .calorie-adjustment-area {
     background-color: rgba(30, 30, 30, 0.7);
     border-radius: 6px;
@@ -155,7 +155,7 @@
     margin-top: 5px;
 }
 
-/* Grocery list controls */
+
 .grocery-list-controls {
     display: flex;
     gap: 10px;
@@ -195,7 +195,7 @@
     cursor: not-allowed;
 }
 
-/* Grocery list results */
+
 #grocery-list-results {
     background-color: rgba(30, 30, 30, 0.7);
     border-radius: 6px;
@@ -203,7 +203,7 @@
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Grocery list table */
+
 .grocery-list-table {
     width: 100%;
     border-collapse: collapse;
@@ -232,13 +232,13 @@
     background-color: rgba(50, 50, 50, 0.7);
 }
 
-/* Package count styling */
+
 .package-count {
     font-weight: bold;
     color: #00bfa5;
 }
 
-/* Status message */
+
 .status {
     padding: 10px;
     margin: 10px 0;
@@ -264,7 +264,7 @@
     border: 1px solid rgba(33, 150, 243, 0.5);
 }
 
-/* Loading and empty messages */
+
 .loading-message, .empty-message {
     color: #aaa;
     text-align: center;
@@ -272,7 +272,7 @@
     font-style: italic;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
     .calorie-adjustment-header {
         flex-direction: column;

@@ -1,0 +1,108 @@
+/**
+ * Fix Form Submission
+ * 
+ * This script fixes issues with form submission in the food page.
+ * It ensures that package amount and micronutrient data are properly included in the form submission.
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the form submission fix
+        initFormSubmissionFix();
+    });
+
+    /**
+     * Initialize the form submission fix
+     */
+    function initFormSubmissionFix() {
+        console.log('[Form Submission Fix] Initializing...');
+
+        // Find the create recipe form
+        const createRecipeForm = document.getElementById('create-recipe-form');
+        if (!createRecipeForm) {
+            console.error('[Form Submission Fix] Create recipe form not found');
+            return;
+        }
+
+        // Add our submit event listener with capture phase to run before other handlers
+        createRecipeForm.addEventListener('submit', function(event) {
+            // Don't prevent default yet
+            console.log('[Form Submission Fix] Form submitted');
+
+            // Get all ingredient items
+            const ingredientItems = document.querySelectorAll('.ingredient-item');
+            console.log(`[Form Submission Fix] Found ${ingredientItems.length} ingredient items`);
+
+            // Process each ingredient item
+            ingredientItems.forEach((item, index) => {
+                console.log(`[Form Submission Fix] Processing ingredient item ${index + 1}`);
+
+                // Get the package amount input
+                const packageAmountInput = item.querySelector('.ingredient-package-amount');
+                if (packageAmountInput) {
+                    // Ensure package amount is properly formatted
+                    const packageAmount = packageAmountInput.value.trim();
+                    if (packageAmount) {
+                        // Parse as float and format with 2 decimal places
+                        const parsedAmount = parseFloat(packageAmount);
+                        if (!isNaN(parsedAmount)) {
+                            // Update the input value
+                            packageAmountInput.value = parsedAmount;
+                            console.log(`[Form Submission Fix] Updated package amount: ${parsedAmount}`);
+                        }
+                    }
+                }
+
+                // Check if the ingredient has micronutrient data
+                if (item.dataset.completeNutritionData) {
+                    console.log(`[Form Submission Fix] Ingredient item ${index + 1} has complete nutrition data`);
+                    
+                    try {
+                        // Parse the complete nutrition data
+                        const nutritionData = JSON.parse(item.dataset.completeNutritionData);
+                        
+                        // Get or create DB format data
+                        let dbFormatData = {};
+                        if (item.dataset.dbFormatNutritionData) {
+                            dbFormatData = JSON.parse(item.dataset.dbFormatNutritionData);
+                        } else if (window.NutritionFieldMapper) {
+                            dbFormatData = window.NutritionFieldMapper.toDbFormat(nutritionData);
+                            // Store the DB format data for later use
+                            item.dataset.dbFormatNutritionData = JSON.stringify(dbFormatData);
+                        }
+                        
+                        // Create hidden fields for all micronutrient data
+                        for (const [key, value] of Object.entries(dbFormatData)) {
+                            // Skip null or undefined values
+                            if (value === null || value === undefined) continue;
+                            
+                            // Skip basic fields that are already handled
+                            if (['name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount'].includes(key)) {
+                                continue;
+                            }
+                            
+                            // Create or update the hidden field
+                            let hiddenField = item.querySelector(`.ingredient-${key}`);
+                            if (!hiddenField) {
+                                hiddenField = document.createElement('input');
+                                hiddenField.type = 'hidden';
+                                hiddenField.name = `ingredient-${key}`;
+                                hiddenField.className = `ingredient-${key}`;
+                                item.appendChild(hiddenField);
+                            }
+                            
+                            // Set the value
+                            hiddenField.value = value;
+                            console.log(`[Form Submission Fix] Added micronutrient data: ${key} = ${value}`);
+                        }
+                    } catch (error) {
+                        console.error(`[Form Submission Fix] Error processing micronutrient data:`, error);
+                    }
+                }
+            });
+        }, true); // Use capture phase to run before other handlers
+
+        console.log('[Form Submission Fix] Initialized');
+    }
+})();

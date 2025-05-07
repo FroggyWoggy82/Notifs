@@ -1,0 +1,571 @@
+/**
+ * Consolidated Recipe Ingredient Fix
+ *
+ * This script consolidates the functionality of multiple fix scripts:
+ * - fix-add-ingredient.js
+ * - fix-direct-api-call.js
+ * - fix-recipe-ingredient-api.js
+ * - fix-ingredient-refresh.js
+ *
+ * It provides a unified solution for adding ingredients to recipes
+ * and refreshing the ingredient list.
+ */
+
+(function() {
+    console.log('[Recipe Ingredient Fix] Initializing consolidated fix...');
+
+    // Store the original fetch function
+    const originalFetch = window.fetch;
+
+    // Flag to prevent recursion in fetch calls
+    let apiCallInProgress = false;
+
+    /**
+     * Make a direct API call that bypasses any interceptors
+     */
+    async function directApiCall(url, options) {
+        console.log(`[Recipe Ingredient Fix] Making direct API call to: ${url} (${options.method})`);
+
+        try {
+            // Set a flag to prevent recursion
+            apiCallInProgress = true;
+
+            // Use the original fetch function directly
+            const response = await originalFetch(url, options);
+
+            // Log response status
+            if (response.ok) {
+                console.log(`[Recipe Ingredient Fix] Request successful: ${response.status}`);
+            } else {
+                console.error(`[Recipe Ingredient Fix] Request failed: ${response.status}`);
+
+                // Try to get more details about the error
+                try {
+                    const clonedResponse = response.clone();
+                    const responseData = await clonedResponse.json();
+                    console.error(`[Recipe Ingredient Fix] Error response:`, responseData);
+                } catch (error) {
+                    // Ignore JSON parsing errors
+                }
+            }
+
+            // Reset the flag
+            apiCallInProgress = false;
+            return response;
+        } catch (error) {
+            console.error(`[Recipe Ingredient Fix] Error:`, error);
+            // Reset the flag even on error
+            apiCallInProgress = false;
+            throw error;
+        }
+    }
+
+    /**
+     * Process ingredient data to ensure all fields are properly formatted
+     */
+    function processIngredientData(ingredientData) {
+        // Ensure all numeric fields are numbers, not strings
+        const numericFields = [
+            'amount', 'package_amount', 'price', 'calories', 'protein', 'fats', 'carbohydrates',
+            'fiber', 'starch', 'sugars', 'added_sugars', 'net_carbs', 'monounsaturated',
+            'polyunsaturated', 'omega3', 'omega6', 'saturated', 'trans', 'cholesterol',
+            'alcohol', 'caffeine', 'water', 'thiamine', 'riboflavin', 'niacin', 'pantothenic_acid',
+            'vitamin_b6', 'vitamin_b12', 'folate', 'vitamin_a', 'vitamin_c', 'vitamin_d',
+            'vitamin_e', 'vitamin_k', 'calcium', 'copper', 'iron', 'magnesium', 'manganese',
+            'phosphorus', 'potassium', 'selenium', 'sodium', 'zinc', 'cystine', 'histidine',
+            'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine',
+            'tryptophan', 'tyrosine', 'valine'
+        ];
+
+        // Create a copy of the ingredient data to avoid modifying the original
+        const processedData = { ...ingredientData };
+
+        // Convert string values to numbers for numeric fields
+        numericFields.forEach(field => {
+            if (processedData[field] !== undefined && processedData[field] !== null) {
+                if (typeof processedData[field] === 'string') {
+                    processedData[field] = parseFloat(processedData[field]);
+                    if (isNaN(processedData[field])) {
+                        processedData[field] = 0;
+                    }
+                }
+            }
+        });
+
+        // Extract the required fields for the API
+        const requiredData = {
+            name: processedData.name || processedData['add-ingredient-name'],
+            amount: processedData.amount || processedData['add-ingredient-amount'],
+            package_amount: processedData.package_amount || processedData['add-ingredient-package-amount'],
+            price: processedData.price || processedData['add-ingredient-price'],
+            calories: processedData.calories || processedData['add-ingredient-calories'] || processedData['ingredient-calories'],
+            protein: processedData.protein || processedData['add-ingredient-protein'] || processedData['ingredient-protein'],
+            fats: processedData.fats || processedData['add-ingredient-fats'] || processedData['ingredient-fat'],
+            carbohydrates: processedData.carbohydrates || processedData['add-ingredient-carbs'] || processedData['ingredient-carbs']
+        };
+
+        // Ensure all required fields are numbers
+        ['amount', 'calories', 'protein', 'fats', 'carbohydrates', 'price'].forEach(field => {
+            if (requiredData[field] === undefined || requiredData[field] === null) {
+                console.warn(`[Recipe Ingredient Fix] Required field ${field} is missing, setting to 0`);
+                requiredData[field] = 0;
+            } else if (typeof requiredData[field] === 'string') {
+                requiredData[field] = parseFloat(requiredData[field]);
+                if (isNaN(requiredData[field])) {
+                    requiredData[field] = 0;
+                }
+            }
+        });
+
+        // Ensure name is a string
+        if (!requiredData.name) {
+            console.warn('[Recipe Ingredient Fix] Name is missing, setting to "Unnamed Ingredient"');
+            requiredData.name = 'Unnamed Ingredient';
+        }
+
+        // Handle package_amount specially (it's optional)
+        if (requiredData.package_amount !== undefined && requiredData.package_amount !== null) {
+            if (typeof requiredData.package_amount === 'string') {
+                requiredData.package_amount = parseFloat(requiredData.package_amount);
+                if (isNaN(requiredData.package_amount)) {
+                    delete requiredData.package_amount;
+                }
+            }
+        }
+
+        // Add micronutrient data if available
+        numericFields.forEach(field => {
+            // Skip fields already added
+            if (['amount', 'package_amount', 'price', 'calories', 'protein', 'fats', 'carbohydrates'].includes(field)) {
+                return;
+            }
+
+            // Check all possible field name variations
+            const value = processedData[field] ||
+                          processedData[`add-ingredient-${field}`] ||
+                          processedData[`ingredient-${field}`] ||
+                          processedData[`add-ingredient-${field.replace('_', '-')}`] || // Handle dash vs underscore
+                          processedData[`ingredient-${field.replace('_', '-')}`];
+
+            if (value !== undefined && value !== null) {
+                requiredData[field] = parseFloat(value);
+                if (isNaN(requiredData[field])) {
+                    requiredData[field] = 0;
+                }
+            }
+        });
+
+        // Special handling for trans fat which might be named differently
+        if (processedData.trans_fat !== undefined) {
+            requiredData.trans = parseFloat(processedData.trans_fat);
+            if (isNaN(requiredData.trans)) {
+                requiredData.trans = 0;
+            }
+        } else if (processedData['add-ingredient-trans-fat'] !== undefined) {
+            requiredData.trans = parseFloat(processedData['add-ingredient-trans-fat']);
+            if (isNaN(requiredData.trans)) {
+                requiredData.trans = 0;
+            }
+        }
+
+        console.log('[Recipe Ingredient Fix] Processed ingredient data:', requiredData);
+        return requiredData;
+    }
+
+    /**
+     * Add an ingredient to a recipe using the correct API endpoint
+     */
+    async function addIngredientToRecipe(recipeId, ingredientData) {
+        console.log(`[Recipe Ingredient Fix] Adding ingredient to recipe ${recipeId}`);
+
+        // Process the ingredient data
+        const processedData = processIngredientData(ingredientData);
+
+        try {
+            // Use the standard endpoint which is properly registered in the server
+            console.log('[Recipe Ingredient Fix] Using standard endpoint...');
+
+            // First try the /api/recipes/:recipeId/ingredients endpoint
+            let response = await directApiCall(`/api/recipes/${recipeId}/ingredients`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                },
+                body: JSON.stringify(processedData)
+            });
+
+            if (response.ok) {
+                console.log('[Recipe Ingredient Fix] Ingredient added successfully');
+                return response;
+            } else {
+                // If the standard endpoint fails, log the error
+                console.error(`[Recipe Ingredient Fix] Standard endpoint failed with status: ${response.status}`);
+
+                try {
+                    // Try to get more details about the error
+                    const errorData = await response.clone().json();
+                    console.error('[Recipe Ingredient Fix] Error details:', errorData);
+
+                    // If the error is "API endpoint not found", try the alternative endpoint
+                    if (errorData.error && errorData.error.includes('API endpoint not found')) {
+                        console.log('[Recipe Ingredient Fix] Trying alternative endpoint...');
+
+                        // Try the /api/recipe-ingredients/:recipeId/ingredients endpoint as fallback
+                        response = await directApiCall(`/api/recipe-ingredients/${recipeId}/ingredients`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Cache-Control': 'no-cache, no-store, must-revalidate'
+                            },
+                            body: JSON.stringify(processedData)
+                        });
+
+                        if (response.ok) {
+                            console.log('[Recipe Ingredient Fix] Ingredient added successfully using alternative endpoint');
+                            return response;
+                        } else {
+                            console.error(`[Recipe Ingredient Fix] Alternative endpoint also failed with status: ${response.status}`);
+                            return response;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore JSON parsing errors
+                    console.error('[Recipe Ingredient Fix] Error parsing error response:', e);
+                }
+
+                return response;
+            }
+        } catch (error) {
+            console.error('[Recipe Ingredient Fix] Error adding ingredient:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Fetch and display ingredients for a recipe
+     */
+    async function fetchAndDisplayIngredients(recipeId, detailsDiv, button, forceRefresh = false) {
+        console.log(`[Recipe Ingredient Fix] Fetching ingredients for recipe ${recipeId}`);
+
+        // Check if we already have the ingredients and don't need to refresh
+        if (!forceRefresh && detailsDiv.innerHTML.trim() !== '') {
+            console.log('[Recipe Ingredient Fix] Ingredients already loaded, skipping fetch');
+            return;
+        }
+
+        try {
+            // Add a timestamp to prevent caching
+            const timestamp = Date.now();
+            console.log(`[Recipe Ingredient Fix] Fetching recipe data with timestamp ${timestamp}`);
+
+            // Fetch the recipe data
+            const response = await fetch(`/api/recipes/${recipeId}?timestamp=${timestamp}`);
+
+            if (!response.ok) {
+                console.error(`[Recipe Ingredient Fix] API response status: ${response.status}`);
+                return;
+            }
+
+            console.log(`[Recipe Ingredient Fix] API response status: ${response.status}`);
+
+            // Parse the response
+            const recipeData = await response.json();
+            console.log(`[Recipe Ingredient Fix] Fetched recipe data:`, recipeData);
+
+            // Check if we have ingredients
+            if (!recipeData.ingredients || !Array.isArray(recipeData.ingredients)) {
+                console.log(`[Recipe Ingredient Fix] No ingredients found for recipe ${recipeId}`);
+                detailsDiv.innerHTML = '<p>No ingredients found for this recipe.</p>';
+                return;
+            }
+
+            console.log(`[Recipe Ingredient Fix] Fetched ${recipeData.ingredients.length} ingredients`);
+
+            // Call the original renderIngredientDetails function if available
+            if (typeof window.renderIngredientDetails === 'function') {
+                console.log('[Recipe Ingredient Fix] Calling original renderIngredientDetails function');
+                window.renderIngredientDetails(recipeData.ingredients, detailsDiv, timestamp);
+            } else {
+                // Fallback rendering
+                console.log('[Recipe Ingredient Fix] Using fallback rendering');
+                let html = '<h3>Ingredients</h3>';
+                html += '<table class="ingredient-table">';
+                html += '<thead><tr><th>Name</th><th>Amount (g)</th><th>Calories</th></tr></thead>';
+                html += '<tbody>';
+
+                recipeData.ingredients.forEach(ingredient => {
+                    html += `<tr>
+                        <td>${ingredient.name}</td>
+                        <td>${ingredient.amount}</td>
+                        <td>${ingredient.calories}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                detailsDiv.innerHTML = html;
+            }
+
+            // Scroll to the ingredient details
+            detailsDiv.scrollIntoView({ behavior: 'smooth' });
+            console.log('[Recipe Ingredient Fix] Scrolled to ingredient details');
+        } catch (error) {
+            console.error('[Recipe Ingredient Fix] Error fetching ingredients:', error);
+            detailsDiv.innerHTML = '<p>Error loading ingredients. Please try again.</p>';
+        }
+    }
+
+    // Override the fetch function to intercept recipe API calls
+    window.fetch = function(url, options) {
+        // Skip if this is a direct API call
+        if (apiCallInProgress) {
+            return originalFetch(url, options);
+        }
+
+        // Check if this is a recipe API call
+        if (typeof url === 'string') {
+            // Fix for adding ingredients to recipes
+            if (url.match(/\/api\/recipes\/\d+\/ingredients$/) && options && options.method === 'POST') {
+                console.log('[Recipe Ingredient Fix] Intercepted add ingredient request');
+
+                // Extract the recipe ID from the URL
+                const recipeId = url.match(/\/api\/recipes\/(\d+)\/ingredients/)[1];
+
+                try {
+                    // Parse the request body
+                    const ingredientData = JSON.parse(options.body);
+
+                    // Use our addIngredientToRecipe function
+                    return addIngredientToRecipe(recipeId, ingredientData);
+                } catch (error) {
+                    console.error('[Recipe Ingredient Fix] Error parsing request body:', error);
+                }
+            }
+
+            // Also intercept requests to the recipe-ingredients endpoint and redirect them
+            if (url.match(/\/api\/recipe-ingredients\/\d+\/ingredients$/) && options && options.method === 'POST') {
+                console.log('[Recipe Ingredient Fix] Intercepted recipe-ingredients endpoint request - redirecting to standard endpoint');
+
+                // Extract the recipe ID from the URL
+                const recipeId = url.match(/\/api\/recipe-ingredients\/(\d+)\/ingredients/)[1];
+
+                try {
+                    // Parse the request body
+                    const ingredientData = JSON.parse(options.body);
+
+                    // Use our addIngredientToRecipe function with the standard endpoint
+                    return addIngredientToRecipe(recipeId, ingredientData);
+                } catch (error) {
+                    console.error('[Recipe Ingredient Fix] Error parsing request body:', error);
+                }
+            }
+
+            // Handle any other API calls to non-existent endpoints
+            if (url.match(/\/api\/.*/) && !apiCallInProgress) {
+                // Make the original request
+                return originalFetch(url, options)
+                    .then(response => {
+                        // If the response is a 404 with "API endpoint not found" message
+                        if (response.status === 404) {
+                            return response.clone().json()
+                                .then(data => {
+                                    if (data.error && data.error.includes('API endpoint not found')) {
+                                        console.error(`[Recipe Ingredient Fix] API endpoint not found: ${url}`);
+                                        console.error('[Recipe Ingredient Fix] This might be a misconfigured API call');
+
+                                        // If this is a recipe-related endpoint, try to suggest a fix
+                                        if (url.includes('/recipes/') || url.includes('/recipe-ingredients/')) {
+                                            console.log('[Recipe Ingredient Fix] This appears to be a recipe-related endpoint');
+                                            console.log('[Recipe Ingredient Fix] Try using /api/recipes/:recipeId/ingredients instead');
+                                        }
+                                    }
+                                    return response;
+                                })
+                                .catch(() => {
+                                    // If we can't parse the response as JSON, just return it
+                                    return response;
+                                });
+                        }
+                        return response;
+                    });
+            }
+
+            // Fix for getting a single ingredient from a recipe
+            if (url.match(/\/api\/recipes\/\d+\/ingredients\/\d+$/) && options && options.method === 'GET') {
+                console.log('[Recipe Ingredient Fix] Intercepted get ingredient request');
+
+                // Extract the recipe ID and ingredient ID from the URL
+                const matches = url.match(/\/api\/recipes\/(\d+)\/ingredients\/(\d+)/);
+                const recipeId = matches[1];
+                const ingredientId = matches[2];
+
+                // Create a new URL for the correct endpoint
+                const newUrl = `/api/recipes/${recipeId}`;
+                console.log(`[Recipe Ingredient Fix] Redirecting to: ${newUrl}`);
+
+                // Return the fetch with the new URL
+                return originalFetch(newUrl, options)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(`[Recipe Ingredient Fix] Response status: ${response.status}`);
+                            return response;
+                        }
+
+                        // Clone the response to avoid consuming it
+                        return response.clone().json()
+                            .then(data => {
+                                // Find the ingredient with the matching ID
+                                const ingredient = data.ingredients.find(i => i.id == ingredientId);
+
+                                if (!ingredient) {
+                                    console.error(`[Recipe Ingredient Fix] Ingredient with ID ${ingredientId} not found`);
+                                    return new Response(JSON.stringify({
+                                        error: `Ingredient with ID ${ingredientId} not found`
+                                    }), {
+                                        status: 404,
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        }
+                                    });
+                                }
+
+                                // Create a new response with just the ingredient
+                                return new Response(JSON.stringify(ingredient), {
+                                    status: 200,
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+                            })
+                            .catch(error => {
+                                console.error('[Recipe Ingredient Fix] Error parsing response:', error);
+                                return response;
+                            });
+                    });
+            }
+        }
+
+        // For all other requests, use the original fetch
+        return originalFetch(url, options);
+    };
+
+    // Expose the functions to the global scope
+    window.directApiCall = directApiCall;
+    window.addIngredientToRecipe = addIngredientToRecipe;
+    window.fetchAndDisplayIngredients = fetchAndDisplayIngredients;
+
+    // Override the add ingredient form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('[Recipe Ingredient Fix] Setting up form submission override');
+
+        // Find all add ingredient forms
+        const forms = document.querySelectorAll('form#add-ingredient-form');
+
+        forms.forEach(form => {
+            console.log('[Recipe Ingredient Fix] Found add ingredient form');
+
+            form.addEventListener('submit', async function(event) {
+                console.log('[Recipe Ingredient Fix] Form submission intercepted');
+                event.preventDefault();
+
+                // Get the recipe ID
+                const recipeIdInput = form.querySelector('#add-ingredient-recipe-id');
+                if (!recipeIdInput || !recipeIdInput.value) {
+                    console.error('[Recipe Ingredient Fix] Recipe ID not found');
+                    return;
+                }
+
+                const recipeId = recipeIdInput.value;
+
+                // Collect all form data
+                const formData = new FormData(form);
+                const ingredientData = {};
+
+                // Process form data
+                for (const [key, value] of formData.entries()) {
+                    ingredientData[key] = value;
+                }
+
+                // Get micronutrient data from hidden fields
+                const hiddenFields = form.querySelectorAll('input[type="hidden"]');
+                hiddenFields.forEach(field => {
+                    if (field.name && field.value) {
+                        ingredientData[field.name] = field.value;
+                    }
+                });
+
+                // Check if we have complete nutrition data stored in the form
+                if (form.dataset.completeNutritionData) {
+                    try {
+                        const nutritionData = JSON.parse(form.dataset.completeNutritionData);
+
+                        // Add all nutrition data to the ingredient data
+                        Object.entries(nutritionData).forEach(([key, value]) => {
+                            if (key !== 'success') {
+                                ingredientData[key] = value;
+                            }
+                        });
+                    } catch (error) {
+                        console.error('[Recipe Ingredient Fix] Error parsing complete nutrition data:', error);
+                    }
+                }
+
+                // Check if we have DB format nutrition data stored in the form
+                if (form.dataset.dbFormatNutritionData) {
+                    try {
+                        const dbFormatData = JSON.parse(form.dataset.dbFormatNutritionData);
+
+                        // Add all DB format nutrition data to the ingredient data
+                        Object.entries(dbFormatData).forEach(([key, value]) => {
+                            ingredientData[key] = value;
+                        });
+                    } catch (error) {
+                        console.error('[Recipe Ingredient Fix] Error parsing DB format nutrition data:', error);
+                    }
+                }
+
+                // Add the ingredient
+                try {
+                    console.log('[Recipe Ingredient Fix] Sending ingredient data:', ingredientData);
+                    const response = await addIngredientToRecipe(recipeId, ingredientData);
+
+                    if (response.ok) {
+                        console.log('[Recipe Ingredient Fix] Ingredient added successfully');
+
+                        // Hide the form
+                        form.style.display = 'none';
+
+                        // Refresh the ingredient list
+                        const recipeCard = document.querySelector(`.recipe-card[data-id="${recipeId}"]`);
+                        if (recipeCard) {
+                            const detailsDiv = recipeCard.querySelector('.ingredient-details');
+                            if (detailsDiv) {
+                                console.log('[Recipe Ingredient Fix] Refreshing ingredient list');
+                                fetchAndDisplayIngredients(recipeId, detailsDiv, null, true);
+                            }
+                        }
+                    } else {
+                        console.error('[Recipe Ingredient Fix] Failed to add ingredient:', response.status);
+
+                        try {
+                            // Try to get more details about the error
+                            const errorData = await response.clone().json();
+                            console.error('[Recipe Ingredient Fix] Error details:', errorData);
+
+                            // Show error message to user
+                            alert(`Failed to add ingredient: ${errorData.error || 'Unknown error'}`);
+                        } catch (e) {
+                            // If we can't parse the error, show a generic message
+                            alert('Failed to add ingredient. Please check the console for details.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('[Recipe Ingredient Fix] Error adding ingredient:', error);
+                    alert(`Error adding ingredient: ${error.message}`);
+                }
+            });
+        });
+    });
+
+    console.log('[Recipe Ingredient Fix] Consolidated fix initialized');
+})();

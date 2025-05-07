@@ -3,10 +3,10 @@
  * Makes the FAB in workouts.html match the design of the one in tasks.html
  */
 
-/* Override the FAB styling to match the tasks.html FAB */
+
 #add-exercise-fab.fab {
     position: fixed;
-    bottom: 80px; /* Adjusted for bottom nav height */
+    bottom: 80px; 
     right: 20px;
     width: 56px;
     height: 56px;
@@ -15,7 +15,7 @@
     border-radius: 50%;
     border: none;
     font-size: 24px;
-    display: flex !important; /* Force display flex */
+    display: flex !important; 
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
@@ -34,7 +34,7 @@
     transform: scale(0.95);
 }
 
-/* Adjust FAB position for different screen sizes */
+
 @media screen and (min-width: 600px) {
     #add-exercise-fab.fab {
         bottom: 80px;
@@ -42,13 +42,13 @@
     }
 }
 
-/* Fix for when sidebar is active */
+
 body.sidebar-active #add-exercise-fab.fab {
-    right: calc(20px + 280px); /* Adjust for sidebar width */
+    right: calc(20px + 280px); 
 }
 
 @media screen and (max-width: 768px) {
     body.sidebar-active #add-exercise-fab.fab {
-        right: calc(20px + 250px); /* Adjust for smaller sidebar width on mobile */
+        right: calc(20px + 250px); 
     }
 }

@@ -3,14 +3,14 @@
  * This file contains styles to fix the View Exercise button color and delete button position
  */
 
-/* Make the View Exercise button match the exercise name color */
+
 .btn-view-exercise,
 .template-editor-list .btn-view-exercise,
 #template-editor-page .btn-view-exercise,
 .exercise-item .btn-view-exercise,
 button[class*="view-exercise"],
 button[title*="View Exercise"] {
-    background-color: #03dac6 !important; /* Match the exercise name color */
+    background-color: #03dac6 !important; 
     color: #000 !important;
     border: none !important;
     border-radius: 4px !important;
@@ -35,21 +35,21 @@ button[title*="View Exercise"]:hover {
     background-color: #00b8a6 !important;
 }
 
-/* Hide the delete button in its original position */
+
 .template-editor-list .exercise-header-actions .delete-template-exercise-btn,
 #template-editor-page .exercise-header-actions .delete-template-exercise-btn,
 .exercise-item .exercise-header-actions .delete-template-exercise-btn {
     display: none !important;
 }
 
-/* Position the delete button in the top right corner */
+
 .template-editor-list .exercise-item,
 #template-editor-page .exercise-item,
 .exercise-item {
-    position: relative !important; /* Ensure position relative for absolute positioning */
+    position: relative !important; 
 }
 
-/* Style the delete overlay button */
+
 .template-editor-list .exercise-item .delete-overlay,
 #template-editor-page .exercise-item .delete-overlay,
 .exercise-item .delete-overlay,
@@ -72,7 +72,7 @@ button[title*="Remove Exercise"] {
     z-index: 10 !important;
 }
 
-/* Additional style for delete buttons that might not have the overlay class */
+
 .exercise-item button.btn-delete-exercise,
 .exercise-item button.delete-template-exercise-btn,
 .exercise-item button[title="Remove Exercise"],
@@ -82,7 +82,7 @@ button[title*="Remove Exercise"] {
     right: 10px !important;
 }
 
-/* Ensure labels never get the X button styling */
+
 .exercise-options-menu-label label,
 .weight-increment-label,
 .weight-unit-label {
@@ -92,7 +92,7 @@ button[title*="Remove Exercise"] {
     content: attr(data-label) !important;
 }
 
-/* Add the X symbol to the delete button */
+
 .template-editor-list .exercise-item .delete-overlay::before,
 #template-editor-page .exercise-item .delete-overlay::before,
 .exercise-item .delete-overlay::before,
@@ -103,7 +103,7 @@ button[title*="Remove Exercise"]::before {
     font-weight: bold !important;
 }
 
-/* Ensure the X is properly centered and sized */
+
 .exercise-item button.btn-delete-exercise,
 .exercise-item button.delete-template-exercise-btn,
 .exercise-item button[title="Remove Exercise"],

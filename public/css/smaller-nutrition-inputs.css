@@ -3,32 +3,32 @@
  * Makes the number input boxes smaller in the ingredient edit form
  */
 
-/* Target all input fields in the detailed nutrition panel */
+
 .detailed-nutrition-panel .nutrition-item input,
 .detailed-nutrition-panel .nutrition-item input[type="number"] {
-    width: 50px !important; /* Reduce width */
-    padding: 1px 3px !important; /* Smaller padding */
-    height: 20px !important; /* Smaller height */
-    font-size: 0.75em !important; /* Smaller font */
+    width: 50px !important; 
+    padding: 1px 3px !important; 
+    height: 20px !important; 
+    font-size: 0.75em !important; 
 }
 
-/* Make the grid denser */
+
 .detailed-nutrition-panel .nutrition-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
-    gap: 6px !important; /* Smaller gap */
+    gap: 6px !important; 
 }
 
-/* Adjust the basic information inputs at the top */
+
 .form-group-column .form-group input,
 .edit-ingredient-form input[type="number"],
 .edit-ingredient-form input[type="text"] {
-    width: 80px !important; /* Reduce width */
-    padding: 2px 4px !important; /* Smaller padding */
-    height: 24px !important; /* Smaller height */
-    font-size: 0.8em !important; /* Smaller font */
+    width: 80px !important; 
+    padding: 2px 4px !important; 
+    height: 24px !important; 
+    font-size: 0.8em !important; 
 }
 
-/* Make the labels smaller and tighter */
+
 .nutrition-item label {
     font-size: 0.7em !important;
     margin-bottom: 1px !important;
@@ -37,24 +37,24 @@
     text-overflow: ellipsis !important;
 }
 
-/* Make the section headers smaller */
+
 .nutrition-section h4 {
     font-size: 0.85em !important;
     margin-bottom: 5px !important;
     padding-bottom: 2px !important;
 }
 
-/* Reduce padding in the panel */
+
 .detailed-nutrition-panel {
     padding: 8px !important;
 }
 
-/* Reduce margin between sections */
+
 .nutrition-section {
     margin-bottom: 8px !important;
 }
 
-/* Target specific input fields in the ingredient table */
+
 .ingredient-details input[type="number"],
 .ingredient-details input[type="text"],
 #edit-ingredient-form input[type="number"],
@@ -65,27 +65,27 @@
     font-size: 0.75em !important;
 }
 
-/* Make the form more compact overall */
+
 .edit-ingredient-form form {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
 }
 
-/* Make the form actions more compact */
+
 .edit-ingredient-form .form-actions {
     margin-top: 8px !important;
     gap: 6px !important;
 }
 
-/* Make the buttons more compact */
+
 .edit-ingredient-form .form-actions button {
     padding: 4px 8px !important;
     font-size: 0.8em !important;
     height: 26px !important;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
     .detailed-nutrition-panel .nutrition-grid {
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;

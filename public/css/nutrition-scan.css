@@ -1,4 +1,4 @@
-/* Nutrition scan styles */
+
 
 .scan-buttons-group {
     display: flex;
@@ -20,7 +20,7 @@
 }
 
 .scan-template-btn {
-    background-color: #28a745; /* Green color for template button */
+    background-color: #28a745; 
 }
 
 .scan-nutrition-btn:hover, .paste-nutrition-btn:hover {
@@ -86,7 +86,7 @@
     border: 1px solid #f5c6cb;
 }
 
-/* Paste area styles */
+
 .paste-area {
     width: 100%;
     min-height: 100px;
@@ -148,7 +148,7 @@
     background-color: rgba(255, 0, 0, 0.1);
 }
 
-/* Empty field highlight animation */
+
 @keyframes pulseHighlight {
     0% {
         box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
@@ -165,7 +165,7 @@
     animation: pulseHighlight 2s infinite;
 }
 
-/* Auto-corrected field highlight animation */
+
 @keyframes pulseGreenHighlight {
     0% {
         box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
@@ -183,7 +183,7 @@
     position: relative;
 }
 
-/* Add a small indicator in the corner of auto-corrected fields */
+
 .auto-corrected::after {
     content: '✓';
     position: absolute;
@@ -194,7 +194,7 @@
     font-weight: bold;
 }
 
-/* Nutrition percentage display */
+
 .nutrition-item {
     position: relative;
 }
@@ -216,7 +216,7 @@
     font-style: italic;
 }
 
-/* Nutrition input with percentage container */
+
 .nutrition-input-container {
     position: relative;
     width: 100%;

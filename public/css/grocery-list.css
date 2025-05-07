@@ -1,13 +1,13 @@
-/* Grocery List Styles */
 
-/* Main container styles */
+
+
 .content {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Section styling */
+
 section {
     background-color: rgba(25, 25, 25, 0.7);
     border-radius: 8px;
@@ -24,7 +24,7 @@ section h2 {
     padding-bottom: 10px;
 }
 
-/* Recipe selection container */
+
 .recipe-selection-container {
     display: flex;
     gap: 20px;
@@ -53,7 +53,7 @@ section h2 {
     padding-right: 5px;
 }
 
-/* Recipe item styling */
+
 .recipe-item {
     background-color: rgba(40, 40, 40, 0.8);
     border-radius: 4px;
@@ -84,7 +84,7 @@ section h2 {
     font-size: 0.9rem;
 }
 
-/* Selection controls */
+
 .selection-controls {
     display: flex;
     flex-direction: column;
@@ -116,7 +116,7 @@ section h2 {
     cursor: not-allowed;
 }
 
-/* Calorie adjustment section */
+
 .calorie-adjustment-item {
     background-color: rgba(40, 40, 40, 0.8);
     border-radius: 6px;
@@ -166,7 +166,7 @@ section h2 {
     background-color: rgba(50, 50, 50, 0.7);
 }
 
-/* Grocery list section */
+
 .grocery-list-controls {
     display: flex;
     gap: 10px;
@@ -206,7 +206,7 @@ section h2 {
     cursor: not-allowed;
 }
 
-/* Grocery list table */
+
 .grocery-list-table {
     width: 100%;
     border-collapse: collapse;
@@ -235,13 +235,13 @@ section h2 {
     background-color: rgba(50, 50, 50, 0.7);
 }
 
-/* Package count styling */
+
 .package-count {
     font-weight: bold;
     color: #00bfa5;
 }
 
-/* Status message */
+
 .status {
     padding: 10px;
     margin: 10px 0;
@@ -267,7 +267,7 @@ section h2 {
     border: 1px solid rgba(33, 150, 243, 0.5);
 }
 
-/* Loading and empty messages */
+
 .loading-message, .empty-message {
     color: #aaa;
     text-align: center;
@@ -275,7 +275,7 @@ section h2 {
     font-style: italic;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
     .recipe-selection-container {
         flex-direction: column;

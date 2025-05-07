@@ -1,15 +1,12 @@
-/* 
- * Habit Text Fix
- * Fixes issues with truncated text in habit items
- */
 
-/* Ensure habit item has enough height for content */
+
+
 .habit-item {
     min-height: 60px !important;
     height: auto !important;
 }
 
-/* Fix habit title display */
+
 .habit-title {
     display: block !important;
     white-space: normal !important;
@@ -20,7 +17,7 @@
     margin-bottom: 4px !important;
 }
 
-/* Fix frequency text display */
+
 .habit-frequency {
     display: block !important;
     white-space: normal !important;
@@ -30,7 +27,7 @@
     line-height: 1.2 !important;
 }
 
-/* Ensure content area has enough space */
+
 .habit-content {
     padding-right: 16px !important;
     min-width: 0 !important;
@@ -38,23 +35,23 @@
     max-width: 60% !important;
 }
 
-/* Ensure indicators don't shrink too much */
+
 .habit-indicators-row {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
 }
 
-/* Ensure progress container doesn't shrink */
+
 .habit-progress-container {
     flex-shrink: 0 !important;
 }
 
-/* Ensure level indicator doesn't shrink */
+
 .habit-level {
     flex-shrink: 0 !important;
 }
 
-/* Media query for smaller screens */
+
 @media screen and (max-width: 768px) {
     .habit-content {
         max-width: 100% !important;

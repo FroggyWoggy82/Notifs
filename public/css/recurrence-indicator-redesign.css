@@ -3,19 +3,19 @@
  * Creates a more compact and visually appealing recurrence indicator
  */
 
-/* Hide the old recurring icon */
+
 .recurring-icon {
     display: none !important;
 }
 
-/* New recurrence indicator - inline with task title */
+
 .task-title-container {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
 }
 
-/* Add a subtle recurrence indicator after the task title */
+
 .task-title-container.recurring::after {
     content: '';
     display: inline-block !important;
@@ -29,14 +29,14 @@
     box-shadow: 0 0 4px rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Hide the green dot for Progress Photo task */
+
 .task-item .task-title-container.recurring:has(.task-title:contains("Progress Photo"))::after,
 .task-item .task-title-container.recurring:has(.task-title[textContent="Progress Photo"])::after,
 .task-item:has(.task-title:contains("Progress Photo")) .task-title-container.recurring::after {
     display: none !important;
 }
 
-/* Color variations based on recurrence type */
+
 .task-title-container.recurring.daily::after {
     background-color: #42A5F5 !important;
     box-shadow: 0 0 4px rgba(66, 165, 245, 0.4) !important;
@@ -57,7 +57,7 @@
     box-shadow: 0 0 4px rgba(255, 152, 0, 0.4) !important;
 }
 
-/* Add a subtle recurrence badge to the task title */
+
 .task-title.recurring {
     position: relative !important;
     padding-right: 20px !important;
@@ -77,7 +77,7 @@
     opacity: 0.8 !important;
 }
 
-/* Hide the Weekly text for Progress Photo task */
+
 .task-item .task-title:contains("Progress Photo").recurring::after,
 .task-item .task-title[textContent="Progress Photo"].recurring::after,
 .task-title:contains("Progress Photo").recurring::after,
@@ -85,7 +85,7 @@
     display: none !important;
 }
 
-/* Recurrence interval badge - small and subtle */
+
 .recurrence-interval {
     font-size: 0.7em !important;
     color: rgba(255, 255, 255, 0.7) !important;
@@ -97,7 +97,7 @@
     display: inline-block !important;
 }
 
-/* Color variations for interval badge */
+
 .recurrence-interval.daily {
     color: #42A5F5 !important;
     border: 1px solid rgba(66, 165, 245, 0.3) !important;
@@ -118,7 +118,7 @@
     border: 1px solid rgba(255, 152, 0, 0.3) !important;
 }
 
-/* Recurrence type indicator in metadata - more compact */
+
 .recurrence-indicator {
     display: inline-flex !important;
     align-items: center !important;
@@ -132,7 +132,7 @@
     box-shadow: none !important;
 }
 
-/* Add a small recurrence icon to the indicator */
+
 .recurrence-indicator::before {
     content: '↻' !important;
     display: inline-block !important;
@@ -140,7 +140,7 @@
     font-size: 0.9em !important;
 }
 
-/* Ensure the task metadata is properly aligned */
+
 .task-metadata {
     display: flex !important;
     flex-wrap: wrap !important;

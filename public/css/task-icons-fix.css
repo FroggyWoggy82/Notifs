@@ -3,7 +3,7 @@
  * Replaces emoji icons with Font Awesome icons for task actions
  */
 
-/* Style the action icons to match the bottom nav */
+
 html body .task-actions .pencil-icon,
 html body .task-actions .x-icon {
     font-style: normal !important;
@@ -16,7 +16,7 @@ html body .task-actions .x-icon {
     transition: color 0.2s ease !important;
 }
 
-/* Hover effects for the icons */
+
 html body .task-actions .edit-task-btn:hover .pencil-icon {
     color: var(--color-primary, #00E676) !important;
 }
@@ -25,7 +25,7 @@ html body .task-actions .delete-btn:hover .x-icon {
     color: var(--color-accent, #FF3D00) !important;
 }
 
-/* Style the buttons to be transparent */
+
 html body .task-actions .icon-btn {
     background-color: transparent !important;
     border-radius: 50% !important;
@@ -38,7 +38,7 @@ html body .task-actions .icon-btn {
     cursor: pointer !important;
 }
 
-/* Hover effects for the buttons */
+
 html body .task-actions .edit-task-btn:hover {
     background-color: rgba(0, 230, 118, 0.1) !important;
     transform: scale(1.1) !important;
@@ -49,7 +49,7 @@ html body .task-actions .delete-btn:hover {
     transform: scale(1.1) !important;
 }
 
-/* Apply the same styling to habit action buttons */
+
 html body .habit-actions .pencil-icon,
 html body .habit-actions .x-icon {
     font-style: normal !important;
@@ -72,7 +72,7 @@ html body .habit-actions .delete-habit-icon-btn:hover .x-icon {
     color: var(--color-accent, #FF3D00) !important;
 }
 
-/* Style the habit action buttons */
+
 html body .habit-actions .icon-btn {
     background-color: transparent !important;
     border-radius: 50% !important;

@@ -3,7 +3,7 @@
  * Specifically targets the edit form that appears when clicking the Edit button in the ingredient table
  */
 
-/* Target the edit form in the ingredient table */
+
 .ingredient-details .edit-ingredient-form {
     margin-top: 10px !important;
     margin-bottom: 10px !important;
@@ -12,7 +12,7 @@
     background-color: transparent !important;
 }
 
-/* Style the Basic Information section */
+
 .ingredient-details .edit-ingredient-form .nutrition-section.basic-information {
     margin-bottom: 8px !important;
     padding: 8px !important;
@@ -24,7 +24,7 @@
     flex-direction: column !important;
 }
 
-/* Style the Basic Information header */
+
 .ingredient-details .edit-ingredient-form .nutrition-section.basic-information > h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -35,21 +35,21 @@
     font-size: 0.85em !important;
 }
 
-/* Style the nutrition grid */
+
 .ingredient-details .edit-ingredient-form .nutrition-section.basic-information > .nutrition-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
     gap: 3px !important;
 }
 
-/* Style the nutrition items */
+
 .ingredient-details .edit-ingredient-form .nutrition-section.basic-information .nutrition-item {
     margin-bottom: 2px !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Style the labels */
+
 .ingredient-details .edit-ingredient-form .nutrition-section.basic-information .nutrition-item label {
     font-size: 0.7em !important;
     margin-bottom: 1px !important;
@@ -60,7 +60,7 @@
     text-overflow: ellipsis !important;
 }
 
-/* Style the inputs */
+
 .ingredient-details .edit-ingredient-form .nutrition-section.basic-information .nutrition-item input {
     width: 35px !important;
     padding: 1px 2px !important;
@@ -72,12 +72,12 @@
     border-radius: 3px !important;
 }
 
-/* Make the name field wider */
+
 .ingredient-details .edit-ingredient-form .nutrition-section.basic-information .nutrition-item input#new-edit-ingredient-name {
     width: 80px !important;
 }
 
-/* Hide the original inputs */
+
 .ingredient-details .edit-ingredient-form #edit-ingredient-name,
 .ingredient-details .edit-ingredient-form #edit-ingredient-amount,
 .ingredient-details .edit-ingredient-form #edit-ingredient-package-amount,
@@ -85,14 +85,14 @@
     display: none !important;
 }
 
-/* Hide any original Basic Information sections or form-group-rows */
+
 .ingredient-details .edit-ingredient-form form > div:first-of-type:not(.nutrition-section),
 .ingredient-details .edit-ingredient-form .form-group-row:not(.nutrition-section),
 .ingredient-details .edit-ingredient-form .basic-information:not(.nutrition-section) {
     display: none !important;
 }
 
-/* Style the other nutrition sections */
+
 .ingredient-details .edit-ingredient-form .nutrition-section {
     margin-bottom: 8px !important;
     padding: 8px !important;
@@ -102,7 +102,7 @@
     color: #e0e0e0 !important;
 }
 
-/* Style the section headers */
+
 .ingredient-details .edit-ingredient-form .nutrition-section > h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -113,7 +113,7 @@
     font-size: 0.85em !important;
 }
 
-/* Style the form actions */
+
 .ingredient-details .edit-ingredient-form .form-actions {
     display: flex !important;
     justify-content: flex-end !important;
@@ -121,7 +121,7 @@
     margin-top: 8px !important;
 }
 
-/* Style the buttons */
+
 .ingredient-details .edit-ingredient-form .form-actions button {
     padding: 3px 6px !important;
     font-size: 0.75em !important;
@@ -131,13 +131,13 @@
     height: 24px !important;
 }
 
-/* Style the save button */
+
 .ingredient-details .edit-ingredient-form .form-actions button.save-changes-btn {
     background-color: #ffffff !important;
     color: #121212 !important;
 }
 
-/* Style the cancel button */
+
 .ingredient-details .edit-ingredient-form .form-actions button.cancel-edit-btn {
     background-color: transparent !important;
     color: #e0e0e0 !important;

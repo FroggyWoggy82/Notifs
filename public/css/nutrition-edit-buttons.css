@@ -2,7 +2,7 @@
  * Add Save and Cancel buttons to the detailed nutrition panel
  */
 
-/* Container for the nutrition edit buttons */
+
 .nutrition-edit-buttons {
     display: flex !important;
     justify-content: space-between !important;
@@ -12,7 +12,7 @@
     box-sizing: border-box !important;
 }
 
-/* Style the buttons */
+
 .nutrition-edit-buttons button {
     padding: 5px 10px !important;
     font-size: 0.8em !important;
@@ -25,32 +25,32 @@
     margin: 0 5px !important;
 }
 
-/* Save button */
+
 .nutrition-edit-buttons button.save-nutrition {
     background-color: #ffffff !important;
     color: #121212 !important;
 }
 
-/* Cancel button */
+
 .nutrition-edit-buttons button.cancel-nutrition {
     background-color: rgba(255, 255, 255, 0.1) !important;
     color: #e0e0e0 !important;
 }
 
-/* Button hover states */
+
 .nutrition-edit-buttons button:hover {
     opacity: 0.9 !important;
     transform: translateY(-1px) !important;
 }
 
-/* Make sure the detailed nutrition panel has the buttons */
+
 .detailed-nutrition-panel {
     position: relative !important;
-    padding-bottom: 45px !important; /* Make space for the buttons */
+    padding-bottom: 45px !important; 
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Position the buttons at the bottom of the panel */
+
 .detailed-nutrition-panel .nutrition-edit-buttons {
     position: absolute !important;
     bottom: 5px !important;
@@ -62,7 +62,7 @@
     padding-top: 5px !important;
 }
 
-/* Make sure the buttons are visible in all contexts */
+
 .ingredient-item .detailed-nutrition-panel .nutrition-edit-buttons,
 #create-recipe-form .detailed-nutrition-panel .nutrition-edit-buttons,
 .edit-ingredient-form .detailed-nutrition-panel .nutrition-edit-buttons {

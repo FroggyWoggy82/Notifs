@@ -3,7 +3,7 @@
  * Makes the Basic Information section match the styling of other sections
  */
 
-/* Style the Basic Information section to match other sections */
+
 .edit-ingredient-form .basic-information,
 .edit-ingredient-form div:has(> h4:contains("Basic Information")),
 .edit-ingredient-form div:has(> .basic-information) {
@@ -14,7 +14,7 @@
     color: white !important;
 }
 
-/* Style the Basic Information header to match other section headers */
+
 .edit-ingredient-form h4:contains("Basic Information"),
 .edit-ingredient-form .basic-information h4 {
     color: white !important;
@@ -24,13 +24,13 @@
     font-weight: bold !important;
 }
 
-/* Add proper spacing to the Basic Information section */
+
 .edit-ingredient-form .basic-information .form-group,
 .edit-ingredient-form .basic-information .nutrition-item {
     margin-bottom: 8px !important;
 }
 
-/* Make the Basic Information section labels match other sections */
+
 .edit-ingredient-form .basic-information label {
     color: white !important;
     font-size: 0.9em !important;
@@ -38,7 +38,7 @@
     margin-bottom: 3px !important;
 }
 
-/* Make the Basic Information section inputs match other sections */
+
 .edit-ingredient-form .basic-information input {
     background-color: #333 !important;
     color: white !important;
@@ -47,7 +47,7 @@
     padding: 5px !important;
 }
 
-/* Add a specific fix for the Basic Information section */
+
 .edit-ingredient-form > div:first-of-type:not(.edit-ingredient-form-header) {
     background-color: #1e1e1e !important;
     border-radius: 5px !important;

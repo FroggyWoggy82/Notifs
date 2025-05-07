@@ -14,7 +14,7 @@ const ConfettiCelebration = {
     animationId: null,
     
     init: function() {
-        // Create canvas element if it doesn't exist
+
         if (!this.canvas) {
             this.canvas = document.createElement('canvas');
             this.canvas.id = 'confetti-canvas';
@@ -28,8 +28,7 @@ const ConfettiCelebration = {
             document.body.appendChild(this.canvas);
             
             this.context = this.canvas.getContext('2d');
-            
-            // Set canvas size
+
             this.resizeCanvas();
             window.addEventListener('resize', () => this.resizeCanvas());
         }
@@ -69,20 +68,17 @@ const ConfettiCelebration = {
         
         for (let i = 0; i < this.particles.length; i++) {
             const p = this.particles[i];
-            
-            // Update position
+
             p.x += Math.sin(p.angle) * 0.5;
             p.y += p.speed;
             p.rotation += p.rotationSpeed;
-            
-            // Draw particle
+
             this.context.save();
             this.context.translate(p.x, p.y);
             this.context.rotate(p.rotation);
             this.context.fillStyle = p.color;
             this.context.beginPath();
-            
-            // Randomly choose between rectangle and circle
+
             if (Math.random() > 0.5) {
                 this.context.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
             } else {
@@ -91,8 +87,7 @@ const ConfettiCelebration = {
             }
             
             this.context.restore();
-            
-            // Reset particle if it's off screen
+
             if (p.y > this.canvas.height) {
                 p.y = Math.random() * -100;
                 p.x = Math.random() * this.canvas.width;
@@ -115,5 +110,4 @@ const ConfettiCelebration = {
     }
 };
 
-// Make it globally available
 window.ConfettiCelebration = ConfettiCelebration;

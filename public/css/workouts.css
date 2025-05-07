@@ -1,79 +1,57 @@
-/* public/css/workouts.css */
-
-/* === Temporary Debug Outlines === */
-/*
-.photo-slider-container {
-    outline: 2px solid red !important;
-}
-.photo-viewport {
-    outline: 2px solid blue !important;
-}
-.photo-reel {
-     outline: 2px solid yellow !important;
-     pointer-events: none !important;
-}
-.photo-reel img {
-    outline: 1px solid orange !important;
-    pointer-events: none !important;
-}
-.slider-nav-btn {
-    outline: 3px solid limegreen !important;
-    z-index: 5 !important;
-}
-.pagination-dots {
-    outline: 2px solid cyan !important;
-}
-*/
-/* === End Temporary Debug Outlines === */
 
 
-/* === Page Divider === */
+
+
+
+
+
+
 .page-divider {
-    border: none; /* Remove default border */
-    height: 1px; /* Make it thin */
-    background-color: #444; /* Subtle dark line */
-    margin-top: 15px; /* Reduced top margin */
-    margin-bottom: 15px; /* Reduced bottom margin */
+    border: none; 
+    height: 1px; 
+    background-color: #444; 
+    margin-top: 15px; 
+    margin-bottom: 15px; 
 }
-/* === End Page Divider === */
 
 
-/* --- Dark Theme & Base Styles --- */
+
+
 body {
-    /* Assuming dark theme is applied globally or via a class */
-    background-color: #121212; /* Example dark background */
-    color: #e0e0e0; /* Example light text */
-    /* If theme is specific to this page, apply here or on a wrapper */
+    
+    background-color: #121212; 
+    color: #e0e0e0; 
+    
 }
 
 .workout-content {
     padding: 15px;
-    padding-bottom: 80px; /* Space for bottom nav */
-    background-color: #121212; /* Black background for workout area */
-    color: #f5f5f5; /* Light text */
+    padding-bottom: 80px; 
+    background-color: #121212; 
+    color: #f5f5f5; 
     flex-grow: 1;
     display: flex;
     flex-direction: column;
 }
 
-/* Page Visibility */
+
 .page {
-    display: none; /* Hidden by default */
+    display: none; 
     width: 100%;
     flex-direction: column;
     align-items: center;
 }
 .page.active {
-    display: flex; /* Show active page */
+    display: flex; 
 }
 
 h1, h2 {
     text-align: center;
-    color: #03dac6; /* Teal accent color */
+    color: #03dac6; 
     margin-bottom: 20px;
 }
 
-/* --- Buttons --- */
+
 .btn {
     display: inline-block;
     padding: 12px 25px;
@@ -91,8 +69,8 @@ h1, h2 {
 }
 
 .btn-primary {
-    background-color: #03dac6; /* Teal */
-    color: #121212; /* Dark text */
+    background-color: #03dac6; 
+    color: #121212; 
 }
 .btn-primary:hover {
     background-color: #01c4b3;
@@ -108,16 +86,16 @@ h1, h2 {
 }
 
 .btn-success {
-    background-color: #4CAF50; /* Green */
+    background-color: #4CAF50; 
     color: white;
 }
 .btn-success:hover {
     background-color: #45a049;
 }
 
-/* Added for Complete Workout button success state */
+
 .success {
-    background-color: #4CAF50 !important; /* Green */
+    background-color: #4CAF50 !important; 
     color: white !important;
     border-color: #4CAF50 !important;
 }
@@ -128,89 +106,89 @@ h1, h2 {
     margin-bottom: 30px;
 }
 
-/* --- Landing Page --- */
+
 #workout-landing-page {
-    gap: 25px; /* Space between elements */
+    gap: 25px; 
 }
 
 .my-workouts-section {
     width: 100%;
-    /* max-width: 80%; */ /* Keep this potentially, or adjust if needed */
+     
     margin: 0 auto;
-    display: flex; /* Use flexbox for centering button */
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center children horizontally */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
 }
 
 .search-filter-container {
     display: flex;
     gap: 10px;
     margin-bottom: 15px;
-    width: 100%; /* Allow container to take width */
-    max-width: 500px; /* Limit container width (adjust as needed) */
-    /* Removed justify-content, align-items centers the input */
+    width: 100%; 
+    max-width: 500px; 
+    
 }
 
 .search-filter-container #start-empty-workout-btn {
-    /* flex-shrink: 0; /* Remove shrink property */
-    margin: 0; /* Remove default btn margins */
-    padding: 10px 15px; /* Match input padding height */
-    flex-basis: 24%; /* Set basis to ~25% */
-    /* Ensure button text doesn't cause overflow */
+    
+    margin: 0; 
+    padding: 10px 15px; 
+    flex-basis: 24%; 
+    
      white-space: nowrap;
      overflow: hidden;
      text-overflow: ellipsis;
 }
 
-/* Input takes available space within the limited container */
+
 .search-filter-container input[type="text"] {
-    flex-grow: 1; /* Allow input to take available space */
+    flex-grow: 1; 
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #444;
     background-color: #222;
     color: #f5f5f5;
     font-size: 1rem;
-    /* Removed max-width here, container handles it */
+    
 }
 
-/* --- Style the new button container --- */
+
 .template-actions-header {
     display: flex;
-    /* Remove justify-content: center; Buttons will now fill the space */
-    gap: 15px; /* Space between buttons */
-    margin-bottom: 20px; /* Space below the buttons */
-    width: 100%; /* Take full width */
-    max-width: 500px; /* <<<< ADDED: Match the search container max-width */
+    
+    gap: 15px; 
+    margin-bottom: 20px; 
+    width: 100%; 
+    max-width: 500px; 
 }
-/* --- END button container --- */
 
-/* --- NEW: Style for buttons inside the header --- */
+
+
 .template-actions-header .btn {
-    flex-grow: 1; /* Allow buttons to grow equally */
-    margin: 0; /* Remove default btn margin if needed */
-    /* Remove specific width/padding if they interfere */
-     padding-left: 15px; /* Adjust padding as needed */
+    flex-grow: 1; 
+    margin: 0; 
+    
+     padding-left: 15px; 
      padding-right: 15px;
 }
-/* --- END button styling --- */
+
 
 .card-list {
     display: grid;
-    /* --- Force columns to be exactly the card max-width --- */
-    grid-template-columns: repeat(auto-fit, 250px); /* Removed minmax, using fixed size */
-    /* --- --- --- --- --- --- --- --- --- --- --- --- --- */
-    gap: 20px; /* Increased gap for better spacing between cards */
+    
+    grid-template-columns: repeat(auto-fit, 250px); 
+    
+    gap: 20px; 
     padding: 20px;
     max-width: 1200px;
     margin: 20px auto;
-    align-items: stretch; /* Keep items stretching vertically */
+    align-items: stretch; 
     width: 100%;
-    justify-content: center; /* Keep centering the group of columns */
-    /* justify-items: center; */ /* Ensure this is not active */
+    justify-content: center; 
+     
 }
 
-/* Workout Template Card - Keep size */
+
 .workout-template-card {
     background-color: #2a2a2a;
     border-radius: 8px;
@@ -220,22 +198,22 @@ h1, h2 {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    /* --- Keep the smaller max-width --- */
+    
     max-width: 250px;
-    /* --- --- --- --- --- --- --- --- --- */
-    /* margin-left: auto; */ /* Ensure this remains commented out */
-    /* margin-right: auto; */ /* Ensure this remains commented out */
+    
+     
+     
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
     margin-bottom: 0;
-    pointer-events: auto; /* Ensure card elements receive pointer events */
+    pointer-events: auto; 
 }
 .workout-template-card:hover {
     background-color: #333;
 }
 
-/* Title Ellipsis */
+
 .workout-template-card h3 {
     margin-top: 0;
     margin-bottom: 8px;
@@ -243,15 +221,15 @@ h1, h2 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-right: 60px; /* Increased padding to make room for edit buttons */
+    padding-right: 60px; 
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    font-size: 1.0rem; /* Slightly larger than before, but still small enough to prevent overlap */
-    position: relative; /* For badge positioning */
+    font-size: 1.0rem; 
+    position: relative; 
 }
 
-/* Completion Count Badge */
+
 .completion-count-badge {
     display: inline-flex;
     align-items: center;
@@ -259,17 +237,17 @@ h1, h2 {
     background-color: #03dac6;
     color: #121212;
     border-radius: 50%;
-    width: 16px; /* Smaller badge */
-    height: 16px; /* Smaller badge */
-    font-size: 0.55rem; /* Smaller font */
+    width: 16px; 
+    height: 16px; 
+    font-size: 0.55rem; 
     font-weight: bold;
-    margin-left: 4px; /* Less margin */
+    margin-left: 4px; 
     flex-shrink: 0;
-    z-index: 30 !important; /* Even higher z-index to ensure it's always on top */
-    position: relative; /* Create stacking context */
+    z-index: 30 !important; 
+    position: relative; 
 }
 
-/* Description styling */
+
 .workout-template-card .template-description {
     font-size: 0.9rem;
     color: #bbb;
@@ -280,18 +258,18 @@ h1, h2 {
     flex-shrink: 0;
 }
 
-/* Author and Edition styling */
+
 .template-author-edition {
-    font-size: 0.7rem; /* Slightly larger than before */
-    color: #00e6e6; /* Teal color to match the theme */
+    font-size: 0.7rem; 
+    color: #00e6e6; 
     font-style: italic;
     font-weight: normal;
-    letter-spacing: 0.4px; /* Slightly increased letter spacing */
-    margin-left: 4px; /* Slightly increased margin */
-    word-spacing: 0.8px; /* Slightly increased word spacing */
+    letter-spacing: 0.4px; 
+    margin-left: 4px; 
+    word-spacing: 0.8px; 
 }
 
-/* Vertical Exercise Summary Container */
+
 .exercise-summary-vertical {
     font-size: 0.85rem;
     color: #aaa;
@@ -300,7 +278,7 @@ h1, h2 {
     flex-grow: 1;
 }
 
-/* Individual exercise item in the vertical list */
+
 .exercise-summary-vertical .exercise-list-item {
     margin-bottom: 3px;
     white-space: nowrap;
@@ -308,13 +286,13 @@ h1, h2 {
     text-overflow: ellipsis;
 }
 
-/* Default message style */
+
 .exercise-summary-vertical .no-exercises {
     color: #888;
     font-style: italic;
 }
 
-/* Actions pushed to the bottom */
+
 .template-actions {
     margin-top: auto;
     padding-top: 10px;
@@ -327,18 +305,18 @@ h1, h2 {
     padding: 8px 15px;
 }
 
-/* Container for buttons in the top-right corner of the card */
+
 .card-corner-actions {
     position: absolute;
     top: 8px;
     right: 8px;
     display: flex;
     gap: 5px;
-    z-index: 10; /* Increased z-index to ensure buttons are clickable */
+    z-index: 10; 
     max-width: 60px;
 }
 
-/* Style for the delete button on the card */
+
 .btn-delete-template,
 .btn-edit-template,
 .btn-edit-exercise,
@@ -359,7 +337,7 @@ h1, h2 {
     transition: color 0.2s ease;
 }
 
-/* Combine focus and hover for consistent styling, remove default outline */
+
 .btn-delete-template:focus,
 .btn-delete-template:hover,
 .btn-delete-exercise:focus,
@@ -368,7 +346,7 @@ h1, h2 {
     outline: none;
 }
 
-/* Different hover/focus color for edit button */
+
 .btn-edit-template:focus,
 .btn-edit-template:hover,
 .btn-edit-exercise:focus,
@@ -376,7 +354,7 @@ h1, h2 {
     color: #2196F3;
 }
 
-/* Ensure outline is visible for keyboard navigation (accessibility) */
+
 .btn-delete-template:focus-visible,
 .btn-edit-template:focus-visible,
 .btn-delete-exercise:focus-visible,
@@ -385,14 +363,14 @@ h1, h2 {
      outline-offset: 1px;
 }
 
-/* Add padding to the right of the title to push text away */
+
 .workout-template-card h3 {
     margin-top: 0;
     margin-bottom: 8px;
     color: #03dac6;
 }
 
-/* ALSO add padding to other text elements inside the card */
+
 .workout-template-card p,
 .workout-template-card .exercise-summary {
     font-size: 0.9rem;
@@ -407,7 +385,7 @@ h1, h2 {
     color: #888;
 }
 
-/* --- Active Workout Page --- */
+
 #active-workout-page {
     width: 100%;
 }
@@ -432,37 +410,37 @@ h1, h2 {
 #workout-timer {
     font-size: 1.3rem;
     font-weight: bold;
-    color: #03dac6; /* Teal */
+    color: #03dac6; 
 }
 
 .exercise-list {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Space between exercise items */
+    gap: 15px; 
     margin-bottom: 20px;
 }
 
-/* Individual Exercise Item (in active workout) */
+
 .exercise-item {
     background-color: #2a2a2a;
     border: 1px solid #444;
-    border-radius: 4px; /* Reduced border radius */
-    padding: 10px 8px; /* Further reduced padding */
-    width: 100%; /* Ensure it takes full width */
+    border-radius: 4px; 
+    padding: 10px 8px; 
+    width: 100%; 
     box-sizing: border-box;
-    /* position: relative; */ /* <<< इंश्योर करें कि यह हटाया गया है या टिप्पणी की गई है */
-    margin-bottom: 10px; /* Reduced margin */
+     
+    margin-bottom: 10px; 
 }
 
 .exercise-item-header {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
-    gap: 5px; /* Reduced gap for tighter spacing */
+    gap: 5px; 
     padding-top: 3px;
-    flex-wrap: nowrap; /* Prevent wrapping */
-    position: relative; /* For absolute positioning of dropdown */
+    flex-wrap: nowrap; 
+    position: relative; 
 }
 
 .exercise-item-header h4 {
@@ -475,10 +453,10 @@ h1, h2 {
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
-    order: 1; /* Place title first */
+    order: 1; 
 }
 
-/* Options button (three dots) */
+
 .btn-exercise-options {
     background: none;
     border: none;
@@ -495,20 +473,20 @@ h1, h2 {
     transition: color 0.2s ease;
     margin-left: auto;
     order: 2;
-    align-self: center; /* Align vertically with the exercise name */
-    margin-top: -2px; /* Fine-tune vertical alignment */
+    align-self: center; 
+    margin-top: -2px; 
 }
 
 .btn-exercise-options:hover {
     color: #03dac6;
 }
 
-/* Options dropdown menu */
+
 .exercise-options-menu {
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #2a2a2a; /* Grey background */
+    background-color: #2a2a2a; 
     border: 1px solid #444;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -523,7 +501,7 @@ h1, h2 {
     display: block;
 }
 
-/* Menu items */
+
 .exercise-options-menu-item {
     display: flex;
     align-items: center;
@@ -536,7 +514,7 @@ h1, h2 {
     transition: background-color 0.2s ease;
 }
 
-/* Row for aligned items */
+
 .exercise-options-menu-row {
     display: flex;
     justify-content: space-between;
@@ -546,7 +524,7 @@ h1, h2 {
     margin-bottom: 8px;
 }
 
-/* Labels row styling */
+
 .exercise-options-menu-label {
     display: flex;
     justify-content: space-between;
@@ -560,7 +538,7 @@ h1, h2 {
     padding: 0 5px;
 }
 
-/* Inputs row styling */
+
 .exercise-options-menu-row.inputs-row {
     display: flex;
     justify-content: space-between;
@@ -582,7 +560,7 @@ h1, h2 {
     box-sizing: border-box;
 }
 
-/* Buttons row specific styling */
+
 .exercise-options-menu-row.buttons-row {
     display: flex;
     justify-content: space-between;
@@ -590,19 +568,19 @@ h1, h2 {
     margin-top: 12px;
     border-top: 1px solid #444;
     padding-top: 12px;
-    height: 36px; /* Fixed height for alignment */
-    margin-bottom: 8px; /* Add margin at the bottom */
+    height: 36px; 
+    margin-bottom: 8px; 
 }
 
-/* Right-aligned button group */
+
 .button-group-right {
     display: flex;
     gap: 5px;
     height: 36px;
-    align-items: center; /* Vertically center the buttons */
+    align-items: center; 
 }
 
-/* Weight unit and increment options */
+
 .exercise-options-menu-item {
     display: flex;
     flex-direction: column;
@@ -610,19 +588,19 @@ h1, h2 {
     margin-bottom: 10px;
 }
 
-/* Specific styling for weight unit and increment items */
+
 .exercise-options-menu-item.weight-unit,
 .exercise-options-menu-item.weight-increment {
-    flex: 1; /* Equal width for both */
+    flex: 1; 
     margin-bottom: 0;
 }
 
-/* Ensure the inputs are the same height and aligned */
+
 .exercise-options-menu-item.weight-unit select,
 .exercise-options-menu-item.weight-increment input {
-    height: 36px; /* Match height for both inputs */
+    height: 36px; 
     box-sizing: border-box;
-    width: 100%; /* Full width of their container */
+    width: 100%; 
 }
 
 .exercise-options-menu-item label {
@@ -643,7 +621,7 @@ h1, h2 {
     height: 32px;
 }
 
-/* View Exercise button styling */
+
 .btn-view-exercise {
     background-color: #03dac6;
     color: #000;
@@ -653,21 +631,21 @@ h1, h2 {
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: bold;
-    height: 32px; /* Slightly smaller height to match icon buttons better */
-    width: 130px; /* Fixed width */
+    height: 32px; 
+    width: 130px; 
     display: flex;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-    margin: 0 10px 0 5px; /* Add margin around the button */
-    line-height: 1; /* Match line height with icon buttons */
+    margin: 0 10px 0 5px; 
+    line-height: 1; 
 }
 
 .btn-view-exercise:hover {
     background-color: #00b8a6;
 }
 
-/* Styling for when no video is available */
+
 .btn-view-exercise:not(.has-video) {
     background-color: #555;
     color: #ddd;
@@ -677,9 +655,9 @@ h1, h2 {
     background-color: #666;
 }
 
-/* Styling for when video is available */
+
 .btn-view-exercise.has-video {
-    background-color: #0066cc; /* Dark blue color */
+    background-color: #0066cc; 
     color: white;
     position: relative;
 }
@@ -688,7 +666,7 @@ h1, h2 {
     background-color: #0055aa;
 }
 
-/* Add a small indicator dot for videos */
+
 .btn-view-exercise.has-video::after {
     content: "";
     position: absolute;
@@ -696,7 +674,7 @@ h1, h2 {
     right: 5px;
     width: 6px;
     height: 6px;
-    background-color: #ff3333; /* Red dot like YouTube */
+    background-color: #ff3333; 
     border-radius: 50%;
     animation: pulse 2s infinite;
 }
@@ -718,7 +696,7 @@ h1, h2 {
     }
 }
 
-/* Edit and Delete button styling */
+
 .btn-edit-exercise-name,
 .btn-delete-exercise {
     background: none;
@@ -748,7 +726,7 @@ h1, h2 {
     margin-bottom: 0;
 }
 
-/* Menu divider */
+
 .menu-divider {
     height: 1px;
     background-color: #444;
@@ -770,7 +748,7 @@ h1, h2 {
     background-color: rgba(3, 218, 198, 0.15);
 }
 
-/* Style for buttons inside menu items */
+
 .exercise-options-menu-item .btn-edit-exercise,
 .exercise-options-menu-item .btn-delete-exercise,
 .exercise-options-menu-item .btn-edit-exercise-name,
@@ -802,7 +780,7 @@ h1, h2 {
     font-size: 1.3rem;
 }
 
-/* Hide specific buttons when using the options menu, but NOT template buttons */
+
 .exercise-unit-select,
 .btn-edit-exercise,
 .btn-delete-exercise,
@@ -810,13 +788,13 @@ h1, h2 {
     display: none;
 }
 
-/* Ensure template buttons are always visible */
+
 .btn-edit-template,
 .btn-delete-template {
     display: inline-flex !important;
 }
 
-/* Style for the new header unit select */
+
 .exercise-unit-select {
     padding: 4px 8px;
     background-color: #333;
@@ -829,13 +807,13 @@ h1, h2 {
     flex-shrink: 0;
     flex-basis: 65px;
     max-width: 65px;
-    margin-left: auto; /* Push to the right side */
-    margin-right: 0; /* No gap between dropdown and buttons */
-    height: 28px; /* Match height with buttons */
-    order: 2; /* Control the order of flex items */
+    margin-left: auto; 
+    margin-right: 0; 
+    height: 28px; 
+    order: 2; 
 }
 
-/* Column headers for exercise items */
+
 .column-headers {
     display: grid;
     grid-template-columns: auto 90px 1fr 1fr 90px 36px;
@@ -848,37 +826,37 @@ h1, h2 {
     margin-bottom: 5px;
 }
 
-/* Style for set rows within an exercise */
-/* Target ONLY set rows directly inside .exercise-list (Active Workout), NOT .template-editor-list */
+
+
 #current-exercise-list .set-row {
     display: grid;
-    /* Set#, Previous, Weight Input, Reps Input, Goal, Toggle */
+    
     grid-template-columns: auto 90px 1fr 1fr 90px 36px;
     gap: 6px;
     align-items: center;
     padding: 4px 0;
     border-bottom: 1px solid #333;
     font-size: 0.95rem;
-    transition: background-color 0.3s ease; /* Added from highlight rule */
+    transition: background-color 0.3s ease; 
 }
 #current-exercise-list .set-row:last-child {
     border-bottom: none;
 }
 
-/* Style for the new 'Previous Log' span */
+
 .previous-log {
     color: #aaa;
     font-size: 0.85rem;
-    text-align: right; /* Align to the right within its column */
-    white-space: nowrap; /* Prevent wrapping */
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Show ... if overflow */
-    padding-right: 5px; /* Add a little space before next column */
+    text-align: right; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    padding-right: 5px; 
 }
 
-/* Style for the goal target span */
+
 .goal-target {
-    color: #03dac6; /* Blue/teal color to match the UI */
+    color: #03dac6; 
     font-size: 0.85rem;
     font-weight: 500;
     text-align: right;
@@ -886,7 +864,7 @@ h1, h2 {
     overflow: hidden;
     text-overflow: ellipsis;
     padding-right: 5px;
-    min-width: 75px; /* Ensure minimum width for goal text */
+    min-width: 75px; 
 }
 
 .set-number {
@@ -894,7 +872,7 @@ h1, h2 {
     color: #bbb;
 }
 
-/* Mobile-specific set number style */
+
 @media screen and (max-width: 599px) {
     .set-number {
         font-size: 0.65rem;
@@ -906,7 +884,7 @@ h1, h2 {
     }
 }
 
-/* Removed .weight-input-group styles */
+
 
 .set-row input[type="number"],
 .set-row input[type="text"] {
@@ -917,22 +895,22 @@ h1, h2 {
     color: #f5f5f5;
     border-radius: 3px;
     font-size: 0.9rem;
-    box-sizing: border-box; /* Include padding in width */
-    /* For number input */
-    -moz-appearance: textfield; /* Hide number input spinners FF */
-    appearance: textfield; /* Standard property */
-    height: 28px; /* Fixed height for consistency */
+    box-sizing: border-box; 
+    
+    -moz-appearance: textfield; 
+    appearance: textfield; 
+    height: 28px; 
 }
 .set-row input[type="number"]::-webkit-outer-spin-button,
 .set-row input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none; /* Hide number input spinners Chrome */
+  -webkit-appearance: none; 
   margin: 0;
 }
 
-/* Removed .weight-input-group specific styles */
+
 
 .set-complete-toggle {
-    /* Style as a checkmark button */
+    
     width: 26px;
     height: 26px;
     border: 2px solid #555;
@@ -942,41 +920,41 @@ h1, h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #4CAF50; /* Green check */
+    color: #4CAF50; 
     font-size: 1.1rem;
     font-weight: bold;
     padding: 0;
-    margin: 0 auto; /* Center horizontally in the grid cell */
+    margin: 0 auto; 
 }
 .set-complete-toggle.completed {
     background-color: #4CAF50;
     border-color: #4CAF50;
-    color: #fff; /* White check on green background */
+    color: #fff; 
 }
 
-/* Highlight the row when the set is completed */
+
 .set-row:has(.set-complete-toggle.completed) {
-    background-color: #2e4a2e; /* Subtle dark green background */
-    /* Add transition for smoother effect */
+    background-color: #2e4a2e; 
+    
     transition: background-color 0.3s ease;
 }
 
-/* Style disabled inputs in completed set rows */
+
 .set-row:has(.set-complete-toggle.completed) .weight-input:disabled,
 .set-row:has(.set-complete-toggle.completed) .reps-input:disabled,
 .weight-input.completed,
 .reps-input.completed {
-    background-color: #3a3a3a; /* Darker background */
-    color: #aaa; /* Lighter text color */
-    opacity: 0.7; /* Slightly transparent */
-    cursor: not-allowed; /* Indicate non-interactive */
-    border-color: #4CAF50; /* Green border to indicate completion */
+    background-color: #3a3a3a; 
+    color: #aaa; 
+    opacity: 0.7; 
+    cursor: not-allowed; 
+    border-color: #4CAF50; 
 }
 
 .btn-complete {
     width: 100%;
     max-width: 300px;
-    margin: 20px auto; /* Center button */
+    margin: 20px auto; 
 }
 
 .active-workout-actions {
@@ -987,72 +965,72 @@ h1, h2 {
     width: 100%;
 }
 
-/* Add rounded corners to cancel and complete workout buttons */
+
 .active-workout-actions .btn {
-    border-radius: 20px; /* Rounded corners */
+    border-radius: 20px; 
 }
 
-/* Ensure buttons within the container don't take full width */
+
 .active-workout-actions .btn {
     width: auto;
-    max-width: 200px; /* Adjust as needed */
+    max-width: 200px; 
 }
 
-/* --- Floating Action Button (FAB) --- */
+
 .fab {
     position: fixed;
-    bottom: 100px; /* Adjusted based on ~80px nav + 20px margin */
-    right: 20px; /* Keep in right corner */
+    bottom: 100px; 
+    right: 20px; 
     width: 56px;
     height: 56px;
-    background-color: #03dac6; /* Match teal accent color used elsewhere */
+    background-color: #03dac6; 
     color: white;
     border-radius: 50%;
     border: none;
     font-size: 24px;
-    display: none; /* Hide by default, show with JS on active workout page */
-    align-items: center; /* Center vertically */
-    justify-content: center; /* Center horizontally */
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     z-index: 100;
     transition: background-color 0.2s ease, transform 0.1s ease;
 }
 .fab:active {
-    transform: scale(0.95); /* Simple scale effect */
+    transform: scale(0.95); 
 }
-/* #active-workout-page.active + .fab { */ /* REMOVING this rule - relying on JS */
-/*    display: block; */
-/* } */
+ 
 
 
-/* --- Exercise Selection Modal --- */
+
+
+
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1001; /* Sit on top */
+    display: none; 
+    position: fixed; 
+    z-index: 1001; 
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.7); 
 }
 
 .modal-content {
-    background-color: #2a2a2a; /* Dark background */
+    background-color: #2a2a2a; 
     color: #f5f5f5;
-    margin: 10% auto; /* Centered vertically & horizontally */
+    margin: 10% auto; 
     padding: 25px;
     border: 1px solid #555;
     border-radius: 8px;
-    width: 90%; /* Responsive width */
-    max-width: 500px; /* Max width */
+    width: 90%; 
+    max-width: 500px; 
     position: relative;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    max-height: 80vh; /* Limit height, allow scrolling */
+    max-height: 80vh; 
 }
 
 .close-button {
@@ -1063,10 +1041,10 @@ h1, h2 {
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    background: none; /* Remove any background */
-    border: none; /* Remove any border */
-    padding: 0; /* Remove padding */
-    line-height: 1; /* Adjust line height */
+    background: none; 
+    border: none; 
+    padding: 0; 
+    line-height: 1; 
 }
 .close-button:hover,
 .close-button:focus {
@@ -1077,7 +1055,7 @@ h1, h2 {
 .modal-content h2 {
     margin-top: 0;
     text-align: center;
-    color: #03dac6; /* Teal */
+    color: #03dac6; 
 }
 
 .modal-search-filter {
@@ -1098,8 +1076,8 @@ h1, h2 {
 .modal-search-filter select { flex-basis: 150px; }
 
 .modal-list {
-    flex-grow: 1; /* Allow list to take available space */
-    overflow-y: auto; /* Enable scrolling for list */
+    flex-grow: 1; 
+    overflow-y: auto; 
     margin-bottom: 15px;
     border-top: 1px solid #444;
     border-bottom: 1px solid #444;
@@ -1162,7 +1140,7 @@ h1, h2 {
      box-sizing: border-box;
 }
 
-/* Make modal buttons smaller */
+
 .modal-content .btn-small {
     padding: 8px 15px;
     font-size: 0.9rem;
@@ -1170,11 +1148,11 @@ h1, h2 {
 }
 
 
-/* --- Media Queries --- */
 
-/* Mobile-specific adjustments */
+
+
 @media screen and (max-width: 599px) {
-    /* Complete redesign for mobile: stack previous/goal above inputs */
+    
     #current-exercise-list .set-row {
         display: flex;
         flex-direction: column;
@@ -1185,12 +1163,12 @@ h1, h2 {
         position: relative;
     }
 
-    /* Hide column headers on mobile */
+    
     .column-headers {
         display: none;
     }
 
-    /* Mobile-specific previous log styling */
+    
     .previous-log {
         font-size: 0.7rem;
         width: auto;
@@ -1199,23 +1177,23 @@ h1, h2 {
         overflow: hidden;
         text-overflow: ellipsis;
         padding: 2px 4px;
-        color: #ffffff; /* White color for maximum visibility */
-        background-color: rgba(50, 50, 50, 0.5); /* Subtle background for better contrast */
+        color: #ffffff; 
+        background-color: rgba(50, 50, 50, 0.5); 
         border-radius: 3px;
         display: inline-block;
         text-align: left;
         line-height: 1.2;
-        margin-left: 20px; /* Space for set number */
+        margin-left: 20px; 
     }
 
-    /* Create a container for inputs on mobile */
+    
     .set-row::after {
         content: '';
         display: block;
         clear: both;
     }
 
-    /* Style for the input container */
+    
     .set-row .input-container {
         display: flex;
         width: 100%;
@@ -1224,13 +1202,13 @@ h1, h2 {
         margin-top: 2px;
     }
 
-    /* Automatically create the input container with JavaScript */
+    
     .set-row .weight-input,
     .set-row .reps-input {
         flex: 1;
     }
 
-    /* Mobile input styling */
+    
     .set-row input[type="number"],
     .set-row input[type="text"] {
         padding: 4px;
@@ -1242,7 +1220,7 @@ h1, h2 {
         border-width: 1px;
     }
 
-    /* Position set number absolutely */
+    
     .set-row .set-number {
         position: absolute;
         left: 0;
@@ -1252,7 +1230,7 @@ h1, h2 {
         text-align: center;
     }
 
-    /* Position complete toggle button */
+    
     .set-complete-toggle {
         width: 30px;
         height: 30px;
@@ -1275,16 +1253,16 @@ h1, h2 {
         justify-content: center;
     }
 
-    /* Override for add/remove set buttons on mobile */
+    
     .btn-add-set,
     .btn-remove-set {
         min-width: 36px;
-        min-height: 30px; /* Keep consistent with desktop */
+        min-height: 30px; 
         height: 30px;
-        padding: 6px 8px; /* Slightly smaller horizontal padding on mobile */
+        padding: 6px 8px; 
     }
 
-    /* Mobile-specific goal styling */
+    
     .goal-display,
     .goal-target {
         font-size: 0.7rem;
@@ -1295,21 +1273,21 @@ h1, h2 {
         text-overflow: ellipsis;
         padding: 2px 4px;
         text-align: left;
-        color: #03dac6; /* Brighter teal color for better visibility */
-        font-weight: 600; /* Bolder for better visibility */
-        background-color: rgba(3, 218, 198, 0.1); /* Very subtle teal background */
+        color: #03dac6; 
+        font-weight: 600; 
+        background-color: rgba(3, 218, 198, 0.1); 
         border-radius: 3px;
         display: inline-block;
         line-height: 1.2;
-        margin-left: 5px; /* Space after previous */
+        margin-left: 5px; 
     }
 
-    /* Optimize photo slider for mobile */
+    
     .photo-reel {
-        will-change: transform; /* Hardware acceleration hint */
+        will-change: transform; 
     }
 
-    /* Prevent text selection on touch devices */
+    
     .touch-device .set-row,
     .touch-device .exercise-item-header,
     .touch-device .photo-reel,
@@ -1318,14 +1296,14 @@ h1, h2 {
         user-select: none;
     }
 
-    /* Make column headers match our ultra-compact mobile layout */
+    
     .column-headers {
         font-size: 0.6rem;
         padding: 1px 0;
         text-align: center;
     }
 
-    /* Ensure column headers are properly aligned with their columns */
+    
     .column-headers > div {
         text-align: center;
         padding: 0;
@@ -1334,17 +1312,17 @@ h1, h2 {
         text-overflow: ellipsis;
     }
 
-    /* Reduce vertical spacing between sets */
+    
     #current-exercise-list .set-row {
         padding: 1px 0;
     }
 
-    /* Reduce padding in exercise items */
+    
     .exercise-item {
         padding: 6px 4px;
     }
 
-    /* Ensure exercise container doesn't add unnecessary width */
+    
     #current-exercise-list {
         padding: 0;
         width: 100%;
@@ -1352,18 +1330,18 @@ h1, h2 {
         overflow-x: hidden;
     }
 
-    /* Make exercise header more compact */
+    
     .exercise-item-header {
         margin-bottom: 4px;
         gap: 2px;
     }
 
-    /* Make exercise name smaller */
+    
     .exercise-item-header h4 {
         font-size: 1rem;
     }
 
-    /* Style for the mobile info row */
+    
     .mobile-info-row {
         display: flex;
         width: 100%;
@@ -1371,38 +1349,36 @@ h1, h2 {
     }
 }
 
-/* Larger screen adjustments */
+
 @media screen and (min-width: 600px) {
-    /* Removed grid-template-columns rule - base rule is now sufficient */
-    /* .card-list { */
-    /*     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); */
-    /* } */
+    
+    
+    
+    
     .fab {
-        bottom: 100px; /* Increased to clear ~80px nav bar */
-        right: 30px; /* Slightly more margin on larger screens */
+        bottom: 100px; 
+        right: 30px; 
     }
 }
 
 @media screen and (min-width: 900px) {
-    /* Removed grid-template-columns rule - base rule is now sufficient */
-    /* .card-list { */
-    /*     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
-    /* } */
+    
+    
+    
+    
     .set-row {
-        /* Potentially adjust grid layout for more space */
+        
     }
 }
 
-/* Add styles for swipe actions if implemented via JS library or custom */
-/* Example placeholder - Removed empty ruleset */
-/* .swipe-delete {
-}
-*/
 
-/* --- Template Editor Styles --- */
+
+
+
+
 #template-editor-page {
     width: 100%;
-    max-width: 700px; /* Slightly wider for editor */
+    max-width: 700px; 
     margin: 0 auto;
     padding: 20px;
 }
@@ -1430,15 +1406,15 @@ h1, h2 {
     box-sizing: border-box;
 }
 
-/* Style for author and edition fields */
+
 #template-author,
 #template-edition {
     background-color: #222;
-    color: #00e6e6; /* Teal color to match the theme */
+    color: #00e6e6; 
     border: 1px solid #444;
 }
 
-/* Toggle switch for reusing author and edition */
+
 .toggle-switch-container {
     display: flex;
     align-items: center;
@@ -1454,7 +1430,7 @@ h1, h2 {
     cursor: pointer;
     color: #bbb;
     font-size: 0.9rem;
-    height: 24px; /* Fixed height to ensure vertical alignment */
+    height: 24px; 
 }
 
 .toggle-switch-label input {
@@ -1471,9 +1447,9 @@ h1, h2 {
     height: 20px;
     background-color: #444;
     border-radius: 20px;
-    margin-right: 12px; /* Increased spacing between switch and text */
+    margin-right: 12px; 
     transition: all 0.3s;
-    flex-shrink: 0; /* Prevent the switch from shrinking */
+    flex-shrink: 0; 
 }
 
 .toggle-switch:before {
@@ -1505,23 +1481,23 @@ input:checked + .toggle-switch:before {
 }
 
 .template-editor-list .exercise-item {
-    /* Reuse existing .exercise-item styles, maybe add specific adjustments */
-    background-color: #303030; /* Slightly different background? */
+    
+    background-color: #303030; 
 }
 
-/* Remove completion toggle in editor view */
+
 .template-editor-list .set-complete-toggle {
     display: none;
 }
 .template-editor-list .set-row {
-     /* Adjust grid if toggle is removed */
-    grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps (Notes removed) */
+     
+    grid-template-columns: auto 1fr 1fr; 
 }
 
-/* Update to match active workout layout */
+
 .template-editor-list .set-row {
     display: grid;
-    grid-template-columns: auto 1fr 1fr; /* Set#, Weight, Reps */
+    grid-template-columns: auto 1fr 1fr; 
     gap: 10px;
     align-items: center;
     padding: 8px 0;
@@ -1546,33 +1522,33 @@ input:checked + .toggle-switch:before {
     color: #f5f5f5;
     font-size: 0.9rem;
     box-sizing: border-box;
-    resize: vertical; /* Allow vertical resize */
-    min-height: 40px; /* Reduced minimum height */
-    max-height: 100px; /* Limit maximum height */
+    resize: vertical; 
+    min-height: 40px; 
+    max-height: 100px; 
 }
 
-/* Container for Add/Remove Set buttons */
+
 .set-actions-container {
-    display: flex; /* Arrange buttons side-by-side */
-    justify-content: center; /* Center the buttons */
-    gap: 6px; /* Further reduced space between buttons */
-    margin-top: 3px; /* Further reduced top margin */
-    margin-bottom: 3px; /* Reduced bottom margin */
+    display: flex; 
+    justify-content: center; 
+    gap: 6px; 
+    margin-top: 3px; 
+    margin-bottom: 3px; 
 }
 
-/* Specific styles for add/remove set buttons */
+
 .btn-add-set, .btn-remove-set {
-    padding: 6px 10px; /* Smaller padding */
-    font-size: 0.8rem; /* Smaller font */
-    height: 30px; /* Fixed height */
-    min-height: 30px; /* Override mobile styles */
-    margin: 0; /* Remove margin */
+    padding: 6px 10px; 
+    font-size: 0.8rem; 
+    height: 30px; 
+    min-height: 30px; 
+    margin: 0; 
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Remove set button specific styles */
+
 .btn-remove-set:disabled {
     background-color: #555;
     color: #999;
@@ -1583,7 +1559,7 @@ input:checked + .toggle-switch:before {
 .template-editor-actions {
     margin-top: 30px;
     display: flex;
-    flex-direction: column; /* Stack Add button above Save/Cancel */
+    flex-direction: column; 
     align-items: center;
     gap: 15px;
 }
@@ -1600,7 +1576,7 @@ input:checked + .toggle-switch:before {
     max-width: 300px;
 }
 
-/* Adjust button danger color */
+
 .btn-danger {
     background-color: #f44336;
     color: white;
@@ -1609,77 +1585,77 @@ input:checked + .toggle-switch:before {
     background-color: #d32f2f;
 }
 
-/* Style for the action buttons within an active exercise item */
-/* INCREASE SPECIFICITY by adding parent context */
+
+
 .exercise-item .btn-delete-exercise,
 .exercise-item .btn-delete-template-exercise,
 .exercise-item .btn-edit-exercise {
-    /* Use flexbox ordering instead of absolute positioning */
+    
     background: none;
-    order: 3; /* Place after the dropdown */
+    order: 3; 
     margin: 0;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 28px; /* Match height with dropdown */
+    height: 28px; 
     border: none;
     color: #aaa;
-    /* Reduce font size */
+    
     font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
-    /* Reduce padding */
-    padding: 2px 4px; /* Smaller padding (vertical horizontal) */
+    
+    padding: 2px 4px; 
     line-height: 1;
     transition: color 0.2s ease;
-    z-index: 5; /* Can probably remove z-index too, but keep for now */
+    z-index: 5; 
 
-    /* Ensure it doesn't shrink or grow unexpectedly */
+    
     flex-grow: 0;
     flex-shrink: 0;
-    flex-basis: 30px; /* <<< ADD explicit basis */
-    max-width: 30px;  /* <<< ADD explicit max-width */
+    flex-basis: 30px; 
+    max-width: 30px;  
 
-    /* margin-left: auto; */ /* <<< REMOVE THIS */
+     
 }
 
-/* Hover/Focus for active exercise buttons */
-/* INCREASE SPECIFICITY */
+
+
 .exercise-item .btn-delete-exercise:focus,
 .exercise-item .btn-delete-exercise:hover,
 .exercise-item .btn-delete-template-exercise:focus,
 .exercise-item .btn-delete-template-exercise:hover {
-    color: #f44336; /* Red */
+    color: #f44336; 
     outline: none;
 }
 
 .exercise-item .btn-edit-exercise:focus,
 .exercise-item .btn-edit-exercise:hover {
-    color: #03dac6; /* Teal */
+    color: #03dac6; 
     outline: none;
 }
 
-/* INCREASE SPECIFICITY */
+
 .exercise-item .btn-delete-exercise:focus-visible,
 .exercise-item .btn-delete-template-exercise:focus-visible {
-     outline: 2px solid #bb86fc; /* Match theme focus */
+     outline: 2px solid #bb86fc; 
      outline-offset: 1px;
 }
 
-/* Template Editor List Styles */
+
 .template-editor-list {
     margin: 20px 0;
 }
 
-/* Drag and Drop Styles */
+
 .template-editor-list .exercise-item {
     position: relative;
     transition: transform 0.2s ease, box-shadow 0.2s ease, margin 0.2s ease;
-    cursor: default; /* Reset cursor to default */
+    cursor: default; 
 }
 
-/* Drag handle */
+
 .drag-handle {
     position: absolute;
     left: 0;
@@ -1706,7 +1682,7 @@ input:checked + .toggle-switch:before {
     cursor: grabbing;
 }
 
-/* Dragging state */
+
 .template-editor-list .exercise-item.dragging {
     opacity: 0.8;
     transform: scale(1.02);
@@ -1716,7 +1692,7 @@ input:checked + .toggle-switch:before {
     pointer-events: none;
 }
 
-/* Drop indicators */
+
 .template-editor-list .exercise-item.drop-before {
     border-top: 2px solid #03dac6;
     margin-top: 10px;
@@ -1729,7 +1705,7 @@ input:checked + .toggle-switch:before {
     padding-bottom: 8px !important;
 }
 
-/* Ghost element for drag preview */
+
 .drag-ghost {
     opacity: 0.5;
     background: #2a2a2a;
@@ -1737,7 +1713,7 @@ input:checked + .toggle-switch:before {
     pointer-events: none;
 }
 
-/* Container styling during drag operations */
+
 .template-editor-list.dragging-in-progress {
     background-color: rgba(3, 218, 198, 0.05);
     border: 1px dashed rgba(3, 218, 198, 0.3);
@@ -1745,7 +1721,7 @@ input:checked + .toggle-switch:before {
     border-radius: 4px;
 }
 
-/* Add a hint message when dragging */
+
 .template-editor-list.dragging-in-progress::before {
     content: "Drop to reorder";
     display: block;
@@ -1756,7 +1732,7 @@ input:checked + .toggle-switch:before {
     font-style: italic;
 }
 
-/* Improved drag handle styling */
+
 .drag-handle {
     position: absolute;
     left: 5px;
@@ -1785,7 +1761,7 @@ input:checked + .toggle-switch:before {
     cursor: grabbing;
 }
 
-/* Make the drag handle more visible in template editor */
+
 .template-editor-list .drag-handle {
     left: 8px;
     top: 15px;
@@ -1798,12 +1774,12 @@ input:checked + .toggle-switch:before {
     background-color: rgba(3, 218, 198, 0.3);
 }
 
-/* Exercise Notes Group */
+
 .exercise-notes-group {
     margin-top: 10px;
 }
 
-/* Shared styles for input fields */
+
 .text-input {
     padding: 10px;
     margin: 5px 0 15px 0;
@@ -1811,43 +1787,43 @@ input:checked + .toggle-switch:before {
     border-radius: 4px;
     background-color: #333;
     color: #eee;
-    width: 95%; /* Default width */
+    width: 95%; 
     font-size: 1rem;
 }
 
-/* More specific width for history search */
+
 .history-search-input {
-    /* width: 60%; /* Removed fixed percentage */
-    /* max-width: 400px; */
-    /* Width will be controlled by flex container now */
+    
+    
+    
 }
 
-/* New container for history search+filter */
+
 .history-search-filter-container {
     display: flex;
-    align-items: flex-start; /* Align items to the top */
+    align-items: flex-start; 
     gap: 15px;
     margin-bottom: 20px;
-    justify-content: center; /* Center items */
+    justify-content: center; 
 }
 
-/* History Search Specific Styles */
+
 .history-search-group {
-    position: relative; /* Needed for absolute positioning of results */
-    flex-grow: 1; /* Allow search to take more space */
-    max-width: 350px; /* Reduced max width */
-    margin-bottom: 0; /* Remove bottom margin */
+    position: relative; 
+    flex-grow: 1; 
+    max-width: 350px; 
+    margin-bottom: 0; 
 }
 
 .history-category-group {
-     flex-shrink: 0; /* Prevent dropdown from shrinking */
-     margin-bottom: 0; /* Remove bottom margin */
+     flex-shrink: 0; 
+     margin-bottom: 0; 
 }
 
 .history-category-group select {
     padding: 10px;
-    margin-top: 5px; /* Align with text input margin */
-    height: 43px; /* Match typical input height */
+    margin-top: 5px; 
+    height: 43px; 
     border: 1px solid #444;
     border-radius: 4px;
     background-color: #333;
@@ -1856,7 +1832,7 @@ input:checked + .toggle-switch:before {
     cursor: pointer;
 }
 
-/* Style for visually hidden labels (accessibility) */
+
 .sr-only {
     position: absolute;
     width: 1px;
@@ -1870,20 +1846,20 @@ input:checked + .toggle-switch:before {
 }
 
 .search-results-list {
-    display: none; /* Hidden by default */
+    display: none; 
     position: absolute;
     left: 0;
-    top: 100%; /* Position below the input group */
+    top: 100%; 
     background-color: #444;
     border: 1px solid #555;
     border-top: none;
     border-radius: 0 0 4px 4px;
-    width: 100%; /* Match the width of the search input group */
-    /* width: 60%; Match history input width */
-    /* max-width: 400px; Match history input width */
+    width: 100%; 
+    
+    
     max-height: 200px;
     overflow-y: auto;
-    z-index: 1000; /* Significantly increased z-index */
+    z-index: 1000; 
 }
 
 .search-results-list div {
@@ -1901,12 +1877,12 @@ input:checked + .toggle-switch:before {
     background-color: #5a5a5a;
 }
 
-/* Specific style for smaller Add Past Log button */
-#history-edit-btn { /* Renamed from #history-add-log-btn */
+
+#history-edit-btn { 
     padding: 4px 10px;
     font-size: 0.8rem;
     margin-top: 5px;
-    max-width: 80px; /* Reduced width further */
+    max-width: 80px; 
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1917,9 +1893,9 @@ input:checked + .toggle-switch:before {
     justify-content: center;
 }
 
-/* Manual Log Modal Styles */
+
 #manual-log-modal .modal-content {
-    max-width: 450px; /* Slightly narrower */
+    max-width: 450px; 
 }
 
 #manual-log-form .form-group {
@@ -1958,17 +1934,17 @@ input:checked + .toggle-switch:before {
 #manual-log-modal .modal-actions {
      margin-top: 20px;
      display: flex;
-     justify-content: flex-end; /* Align buttons to the right */
+     justify-content: flex-end; 
      gap: 10px;
 }
 
-/* Style the set rows specifically within the manual log modal */
+
 .history-edit-set-row {
     display: grid;
-    grid-template-columns: auto 1fr 1fr; /* Set#, Weight Group, Reps Input */
+    grid-template-columns: auto 1fr 1fr; 
     gap: 10px;
     align-items: center;
-    padding: 6px 0; /* Slightly less padding than active workout */
+    padding: 6px 0; 
     border-bottom: 1px solid #3a3a3a;
 }
 
@@ -1976,27 +1952,27 @@ input:checked + .toggle-switch:before {
     border-bottom: none;
 }
 
-/* Ensure inputs in history edit take full width of their grid cell */
+
 .history-edit-set-row .weight-input-group,
 .history-edit-set-row .reps-input {
     width: 100%;
 }
 
-/* Adjust spacing within the weight group if needed */
+
 .history-edit-set-row .weight-input-group {
-    /* display: flex; */
-    /* gap: 5px; */
+    
+    
 }
 
-/* Existing Log List in Modal */
+
 #history-edit-log-list {
     margin-top: 15px;
     border: 1px solid #555;
     border-radius: 4px;
-    /* --- Try a fixed pixel height --- */
-    max-height: 450px; /* Changed from 60vh (Adjust if needed) */
-    overflow-y: auto; /* Ensure scrolling is enabled */
-    /* --- --- --- --- --- --- --- --- */
+    
+    max-height: 450px; 
+    overflow-y: auto; 
+    
 }
 
 .log-list-item {
@@ -2013,7 +1989,7 @@ input:checked + .toggle-switch:before {
 
 .log-item-details {
     display: flex;
-    flex-direction: column; /* Stack date and summary */
+    flex-direction: column; 
     gap: 2px;
 }
 
@@ -2034,73 +2010,73 @@ input:checked + .toggle-switch:before {
     min-width: auto;
 }
 
-/* === Main Photo Slider Styles (Redesigned Carousel) === */
-/* New container for navigation with buttons outside */
+
+
 .photo-navigation-container {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 700px; /* Increased from 500px to make photos larger */
-    margin: 20px auto; /* Center the container */
-    gap: 15px; /* Space between buttons and slider */
+    max-width: 700px; 
+    margin: 20px auto; 
+    gap: 15px; 
 }
 
 .photo-slider-container {
     position: relative;
     width: 100%;
-    max-width: 600px; /* Increased from 400px to make photos larger */
-    margin: 0 auto; /* Center the slider */
+    max-width: 600px; 
+    margin: 0 auto; 
 }
 
 .photo-viewport {
     width: 100%;
-    overflow: hidden; /* Clip the reel */
+    overflow: hidden; 
     border-radius: 8px;
     background-color: #2a2a2a;
 }
 
 .photo-reel {
-    display: flex; /* Arrange images horizontally */
-    /* Width calculated by JS: numPhotos * 100% */
-    height: auto; /* Adjust based on image aspect ratios? Or keep fixed like viewport? */
-    transition: transform 0.3s ease-in-out; /* Smooth transition between photos */
-    /* transform: translateX(0); */ /* Initial position set by JS */
-    color: transparent !important; /* Hide any text */
-    font-size: 0 !important; /* Further ensure text is not visible */
-    text-indent: -9999px !important; /* Move text off-screen */
+    display: flex; 
+    
+    height: auto; 
+    transition: transform 0.3s ease-in-out; 
+     
+    color: transparent !important; 
+    font-size: 0 !important; 
+    text-indent: -9999px !important; 
 }
 
 .photo-reel img {
-    width: 100%; /* Each image takes the full viewport width */
-    flex-shrink: 0; /* Prevent images from shrinking */
+    width: 100%; 
+    flex-shrink: 0; 
     display: block;
     height: auto;
-    aspect-ratio: 3 / 4; /* Changed from 4/3 to make photos taller than wide */
-    object-fit: contain; /* Scale image within bounds */
-    background-color: #333; /* Placeholder background */
-    transition: opacity 0.3s ease-in-out; /* Smooth transition for opacity changes */
-    color: transparent !important; /* Hide alt text */
-    font-size: 0 !important; /* Further ensure alt text is not visible */
-    text-indent: -9999px !important; /* Move alt text off-screen */
-    overflow: hidden; /* Prevent text from overflowing */
-    text-shadow: none !important; /* Remove any text shadow */
-    -webkit-user-select: none; /* Prevent text selection */
+    aspect-ratio: 3 / 4; 
+    object-fit: contain; 
+    background-color: #333; 
+    transition: opacity 0.3s ease-in-out; 
+    color: transparent !important; 
+    font-size: 0 !important; 
+    text-indent: -9999px !important; 
+    overflow: hidden; 
+    text-shadow: none !important; 
+    -webkit-user-select: none; 
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    min-height: 400px; /* Increased from 200px to make photos taller */
+    min-height: 400px; 
 }
 
-/* Slider Navigation Buttons (Updated for outside positioning) */
+
 .slider-nav-btn {
-    background-color: #03dac6; /* Updated to match the teal color used in other UI elements */
+    background-color: #03dac6; 
     color: black;
     border: none;
     border-radius: 50%;
-    width: 60px; /* Increased from 50px to match larger photo area */
-    height: 60px; /* Increased from 50px to match larger photo area */
-    font-size: 28px; /* Increased from 24px for better visibility */
+    width: 60px; 
+    height: 60px; 
+    font-size: 28px; 
     font-weight: bold;
     cursor: pointer;
     z-index: 10;
@@ -2108,20 +2084,20 @@ input:checked + .toggle-switch:before {
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    flex-shrink: 0; /* Prevent buttons from shrinking */
+    flex-shrink: 0; 
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
-    outline: none; /* Remove outline on focus */
+    outline: none; 
 }
 
 .slider-nav-btn:hover {
-    background-color: #3eecd8; /* Slightly lighter on hover */
+    background-color: #3eecd8; 
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(3, 218, 198, 0.5);
 }
 
 .slider-nav-btn:active {
     transform: scale(0.95);
-    background-color: #02b8a7; /* Slightly darker when clicked */
+    background-color: #02b8a7; 
 }
 
 .slider-nav-btn:disabled {
@@ -2133,16 +2109,16 @@ input:checked + .toggle-switch:before {
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* No longer need absolute positioning */
+
 .slider-nav-btn.prev {
-    /* No left positioning needed */
+    
 }
 
 .slider-nav-btn.next {
-    /* No right positioning needed */
+    
 }
 
-/* Pagination Dots */
+
 .pagination-dots {
     text-align: center;
     padding: 10px 0;
@@ -2153,7 +2129,7 @@ input:checked + .toggle-switch:before {
     height: 12px;
     width: 12px;
     margin: 0 4px;
-    background-color: #555; /* Inactive dot color */
+    background-color: #555; 
     border-radius: 50%;
     display: inline-block;
     transition: background-color 0.3s ease;
@@ -2161,22 +2137,22 @@ input:checked + .toggle-switch:before {
 
 .dot.active,
 .dot:hover {
-    background-color: #bbb; /* Active/hover dot color */
+    background-color: #bbb; 
 }
-/* === END Main Photo Slider Styles (Redesigned Carousel) === */
 
 
-/* === NEW Photo Comparison Section Styles === */
+
+
 #photo-comparison-section {
-    /* Inherits padding/background from .progress-photos-section */
-    margin-top: 10px; /* FURTHER REDUCED top margin */
-    margin-bottom: 10px; /* FURTHER REDUCED bottom margin */
+    
+    margin-top: 10px; 
+    margin-bottom: 10px; 
 }
 
 .comparison-controls {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    justify-content: space-around; /* Space out the dropdowns */
+    flex-wrap: wrap; 
+    justify-content: space-around; 
     align-items: center;
     gap: 15px;
     margin-bottom: 20px;
@@ -2184,7 +2160,7 @@ input:checked + .toggle-switch:before {
 
 .comparison-select-group {
     display: flex;
-    flex-direction: column; /* Stack label above select */
+    flex-direction: column; 
     gap: 5px;
 }
 
@@ -2195,48 +2171,48 @@ input:checked + .toggle-switch:before {
     background-color: #333;
     color: #eee;
     font-size: 1.1rem;
-    min-width: 180px; /* Increased width */
-    height: 45px; /* Set explicit height */
+    min-width: 180px; 
+    height: 45px; 
 }
 
 #comparison-images-container {
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    min-height: 200px; /* Ensure container has height even if images aren't loaded */
-    background-color: #1f1f1f; /* Slightly different background for contrast */
+    min-height: 200px; 
+    background-color: #1f1f1f; 
     padding: 10px;
     border-radius: 4px;
 }
 
 #comparison-images-container img {
-    width: 49%; /* Slightly less than 50% to account for gap */
-    height: auto; /* Maintain aspect ratio */
-    max-height: 400px; /* Limit max height */
-    object-fit: contain; /* Show whole image, scale down if needed */
-    background-color: #333; /* Placeholder background */
+    width: 49%; 
+    height: auto; 
+    max-height: 400px; 
+    object-fit: contain; 
+    background-color: #333; 
     border-radius: 4px;
     border: 1px solid #444;
 }
 
-/* ============================================ */
 
-/* Mobile Adjustments */
+
+
 @media screen and (max-width: 600px) {
-    /* Template List Adjustments */
+    
     .my-workouts-section {
-        /* Keep existing styles */
+        
     }
 
     .search-filter-container {
-        /* Adjust max-width for mobile if needed */
+        
         max-width: 95%;
     }
 
     .card-list {
-        grid-template-columns: 1fr; /* Mobile remains single column */
+        grid-template-columns: 1fr; 
         padding: 15px 15px;
-        gap: 15px; /* Increased gap for mobile but still less than desktop */
+        gap: 15px; 
         width: 100%;
         max-width: none;
         box-sizing: border-box;
@@ -2244,74 +2220,74 @@ input:checked + .toggle-switch:before {
     }
 
     .workout-template-card {
-        /* Keep percentage max-width for mobile flexibility */
-        max-width: 95%; /* Mobile width remains responsive */
+        
+        max-width: 95%; 
     }
 
-    /* Adjust button header for mobile if needed */
+    
     .template-actions-header {
-        max-width: 95%; /* Example: Use percentage on mobile */
+        max-width: 95%; 
     }
 
-    /* Photo Carousel Mobile Adjustments */
+    
     .photo-reel img {
-        min-height: 350px; /* Increased from 250px for taller photos on mobile */
-        background-color: #444; /* Darker background for better visibility */
-        border: 1px solid #666; /* Add border for visibility */
+        min-height: 350px; 
+        background-color: #444; 
+        border: 1px solid #666; 
     }
 
     .photo-navigation-container {
-        max-width: 95%; /* Make container responsive on mobile */
-        gap: 5px; /* Reduce gap on mobile */
+        max-width: 95%; 
+        gap: 5px; 
     }
 
     .photo-slider-container {
-        margin-bottom: 20px; /* Add more space below slider */
-        max-width: 100%; /* Allow full width on mobile */
+        margin-bottom: 20px; 
+        max-width: 100%; 
     }
 
-    /* Make navigation buttons larger and more visible on mobile */
+    
     .slider-nav-btn {
-        width: 50px; /* Increased but still smaller than desktop */
-        height: 50px; /* Increased but still smaller than desktop */
-        font-size: 24px; /* Increased for better visibility */
-        background-color: rgba(3, 218, 198, 0.8); /* More visible teal color with transparency */
+        width: 50px; 
+        height: 50px; 
+        font-size: 24px; 
+        background-color: rgba(3, 218, 198, 0.8); 
     }
 }
 
-/* Cleaned up removed button style */
-/* #create-template-btn { ... } */
 
-/* === Progress Photo Header Styles === */
+
+
+
 .progress-section-header {
-    /* REMOVED display: flex; */
-    /* REMOVED justify-content: space-between; */
-    /* REMOVED align-items: center; */
-    margin-bottom: 10px; /* Reduced margin */
+    
+    
+    
+    margin-bottom: 10px; 
 }
 
 .progress-section-header h2 {
-    /* REMOVED margin: 0; */
-    color: #03dac6; /* Keep color */
-    text-align: center; /* Ensure centered */
-    margin-bottom: 10px; /* Add margin below title */
-    /* REMOVED flex-grow: 1; */
-    /* REMOVED text-align: left; */
+    
+    color: #03dac6; 
+    text-align: center; 
+    margin-bottom: 10px; 
+    
+    
 }
 
 .header-buttons {
-    display: flex; /* Keep buttons horizontal */
-    justify-content: center; /* Center the buttons */
-    gap: 10px; /* Keep gap */
-    /* REMOVED flex-shrink: 0; */
+    display: flex; 
+    justify-content: center; 
+    gap: 10px; 
+    
 }
 
 .header-buttons .btn {
-    margin: 0; /* Keep margin reset */
+    margin: 0; 
 }
-/* === END Progress Photo Header Styles === */
 
-/* Sets input group styles */
+
+
 .sets-input-group {
     display: flex;
     flex-wrap: wrap;
@@ -2344,7 +2320,7 @@ input:checked + .toggle-switch:before {
     text-align: center;
 }
 
-/* Default settings styles */
+
 .default-settings-container {
     background-color: #222;
     border-radius: 8px;
@@ -2381,7 +2357,7 @@ input:checked + .toggle-switch:before {
     font-weight: bold;
 }
 
-/* YouTube URL Modal */
+
 #youtube-url-modal {
     display: none;
     position: fixed;
@@ -2443,7 +2419,7 @@ input:checked + .toggle-switch:before {
     color: #f5f5f5;
 }
 
-/* Video Player Modal */
+
 .video-modal .modal-content {
     max-width: 800px;
     width: 90%;
@@ -2474,7 +2450,7 @@ input:checked + .toggle-switch:before {
 
 .video-container {
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    padding-bottom: 56.25%; 
     height: 0;
     overflow: hidden;
 }
@@ -2489,7 +2465,7 @@ input:checked + .toggle-switch:before {
     border-radius: 0 0 8px 8px;
 }
 
-/* Mobile responsiveness for video modal */
+
 @media (max-width: 768px) {
     .video-modal .modal-content {
         width: 95%;
@@ -2514,15 +2490,15 @@ input:checked + .toggle-switch:before {
     color: #fff;
 }
 
-/* Show photo nav buttons */
+
 #photo-prev-btn,
 #photo-next-btn {
-    display: flex; /* Use flex for centering content */
+    display: flex; 
     align-items: center;
     justify-content: center;
 }
 
-/* Add cursor styles for the hover container (handled by JS) */
+
 .photo-slider-container {
-    /* The JS will set the cursor directly based on hover zone */
+    
 }

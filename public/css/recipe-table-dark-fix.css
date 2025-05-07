@@ -3,7 +3,7 @@
  * Fixes the background color and edit button in the recipe table to match the dark theme
  */
 
-/* Table header styling */
+
 .recipe-table-header,
 .recipe-table th {
     background-color: rgba(30, 30, 30, 0.9) !important;
@@ -11,7 +11,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Table row styling */
+
 .recipe-table tr,
 .recipe-table td {
     background-color: transparent !important;
@@ -19,17 +19,17 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Alternate row styling */
+
 .recipe-table tr:nth-child(even) td {
     background-color: rgba(40, 40, 40, 0.3) !important;
 }
 
-/* Hover effect for rows */
+
 .recipe-table tr:hover td {
     background-color: rgba(40, 40, 40, 0.9) !important;
 }
 
-/* Edit button styling */
+
 .recipe-table .edit-btn,
 .recipe-table button.edit-btn,
 .recipe-table button[class*="edit"] {
@@ -44,7 +44,7 @@
     box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Edit button hover effect */
+
 .recipe-table .edit-btn:hover,
 .recipe-table button.edit-btn:hover,
 .recipe-table button[class*="edit"]:hover {
@@ -52,7 +52,7 @@
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Table action buttons (Hide, Adjust, Delete) */
+
 .recipe-action-btn,
 button.recipe-action-btn,
 button[class*="recipe-action"] {
@@ -66,7 +66,7 @@ button[class*="recipe-action"] {
     transition: all 0.2s ease !important;
 }
 
-/* Table action buttons hover effect */
+
 .recipe-action-btn:hover,
 button.recipe-action-btn:hover,
 button[class*="recipe-action"]:hover {
@@ -74,17 +74,17 @@ button[class*="recipe-action"]:hover {
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Ensure all table elements have proper text color */
+
 .recipe-table * {
     color: #e0e0e0 !important;
 }
 
-/* Ensure numeric values are properly aligned */
+
 .recipe-table td[data-numeric="true"] {
     text-align: right !important;
 }
 
-/* Fix for any specific buttons in the table */
+
 .recipe-table button.edit {
     background-color: #ffffff !important;
     color: #121212 !important;

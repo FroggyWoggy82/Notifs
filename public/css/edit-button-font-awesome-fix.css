@@ -3,7 +3,7 @@
  * This CSS file ensures the edit button uses a black Font Awesome icon
  */
 
-/* Style the edit button with Font Awesome icon */
+
 .btn-edit-exercise-name {
     background-color: #ffffff !important;
     display: flex !important;
@@ -22,7 +22,7 @@
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Style the Font Awesome icon */
+
 .btn-edit-exercise-name i.fas.fa-pencil-alt,
 .btn-edit-exercise-name i.fa-pencil-alt,
 .btn-edit-exercise-name i {
@@ -32,19 +32,19 @@
     font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
 }
 
-/* Remove any previous styling */
+
 .btn-edit-exercise-name::before,
 .btn-edit-exercise-name::after {
     content: none !important;
 }
 
-/* Override any colored styling */
+
 .exercise-options-menu-item.edit .btn-edit-exercise-name,
 .exercise-options-menu-item.edit .btn-edit-exercise-name i {
     color: #121212 !important;
 }
 
-/* Ensure the button is visible */
+
 .exercise-options-menu .button-group-right .btn-edit-exercise-name {
     display: flex !important;
     visibility: visible !important;

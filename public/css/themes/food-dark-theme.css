@@ -4,7 +4,7 @@
  * Matches the styling of the Tasks page
  */
 
-/* Main sections */
+
 #weight-goal-section,
 #recipe-creation-section,
 #recipes-display-section,
@@ -17,7 +17,7 @@
     color: #e0e0e0 !important;
 }
 
-/* Section headers */
+
 #weight-goal-section h2,
 #recipe-creation-section h2,
 #recipes-display-section h2,
@@ -28,7 +28,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Form inputs */
+
 input[type="text"],
 input[type="number"],
 select,
@@ -38,7 +38,7 @@ textarea {
     color: #e0e0e0 !important;
 }
 
-/* User selector */
+
 #user-selector,
 .user-selector-container select {
     background-color: rgba(30, 30, 30, 0.7) !important;
@@ -46,12 +46,12 @@ textarea {
     color: #e0e0e0 !important;
 }
 
-/* Labels */
+
 label {
     color: #e0e0e0 !important;
 }
 
-/* Buttons */
+
 #add-ingredient-btn,
 #save-recipe-btn,
 .scan-nutrition-btn,
@@ -77,7 +77,7 @@ label {
     border-color: rgba(0, 230, 118, 0.6) !important;
 }
 
-/* Save Goal and Save Target Buttons - Special styling */
+
 .save-goal-btn,
 .save-btn {
     background-color: rgba(30, 30, 30, 0.7) !important;
@@ -91,7 +91,7 @@ label {
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Recipe cards */
+
 .recipe-card {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -114,7 +114,7 @@ label {
     border: 1px solid rgba(0, 230, 118, 0.3) !important;
 }
 
-/* Ingredient items */
+
 .ingredient-item {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -129,7 +129,7 @@ label {
     color: #e0e0e0 !important;
 }
 
-/* Nutrition scan area */
+
 .simplified-paste-area {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -141,7 +141,7 @@ label {
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Chart styling */
+
 .reset-scale-btn {
     background-color: rgba(30, 30, 30, 0.7) !important;
     color: #e0e0e0 !important;
@@ -153,7 +153,7 @@ label {
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Correct field highlighting */
+
 .nutrition-field.correct {
     background-color: rgba(0, 230, 118, 0.1) !important;
     border-color: rgba(0, 230, 118, 0.3) !important;
@@ -164,7 +164,7 @@ label {
     border-color: rgba(255, 171, 0, 0.3) !important;
 }
 
-/* Raw OCR container */
+
 .raw-ocr-container {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -192,7 +192,7 @@ label {
     border-color: rgba(0, 230, 118, 0.6) !important;
 }
 
-/* Status messages */
+
 .simplified-scan-status.success {
     background-color: rgba(0, 230, 118, 0.1) !important;
     color: #00E676 !important;
@@ -217,19 +217,19 @@ label {
     border: 1px solid rgba(0, 176, 255, 0.3) !important;
 }
 
-/* Chart styling */
+
 .chart-container {
     background-color: rgba(18, 18, 18, 0.95) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Canvas background */
+
 canvas {
     background-color: rgba(20, 20, 20, 0.8) !important;
     border-radius: 4px !important;
 }
 
-/* Chart controls */
+
 .chart-controls,
 .axis-controls {
     background-color: rgba(30, 30, 30, 0.7) !important;
@@ -249,10 +249,10 @@ canvas {
 }
 
 .scale-value {
-    color: #e0e0e0 !important; /* Changed from green to white */
+    color: #e0e0e0 !important; 
 }
 
-/* Slider styling */
+
 input[type="range"] {
     background-color: rgba(30, 30, 30, 0.7) !important;
 }
@@ -265,7 +265,7 @@ input[type="range"]::-moz-range-thumb {
     background: #00E676 !important;
 }
 
-/* Axis control containers */
+
 .x-axis-control,
 .y-axis-control {
     background-color: rgba(30, 30, 30, 0.7) !important;
@@ -274,13 +274,13 @@ input[type="range"]::-moz-range-thumb {
     border-radius: 4px !important;
 }
 
-/* Page title */
+
 h1 {
     color: white !important;
     text-align: center !important;
 }
 
-/* Calorie target display */
+
 .calorie-target-display {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -302,19 +302,19 @@ h1 {
     font-weight: bold !important;
 }
 
-/* Section separator */
+
 .section-separator {
     background-color: rgba(255, 255, 255, 0.05) !important;
     height: 1px !important;
     margin: 20px 0 !important;
 }
 
-/* Small text */
+
 small {
     color: #aaaaaa !important;
 }
 
-/* Daily Calorie Target section */
+
 #calorie-target {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;

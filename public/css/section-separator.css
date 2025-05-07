@@ -1,0 +1,24 @@
+
+#recipe-creation-section {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+    position: relative;
+}
+
+
+section + section {
+    margin-top: 40px;
+}
+
+
+.section-header-compact {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #333;
+}
+
+
+#weight-goal-section {
+    margin-bottom: 60px;
+}

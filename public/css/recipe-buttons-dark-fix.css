@@ -3,7 +3,7 @@
  * Fixes the styling of the buttons in the recipe edit modal
  */
 
-/* Primary buttons (Save, Submit, etc.) */
+
 .btn-primary,
 .btn-success,
 button[type="submit"],
@@ -19,7 +19,7 @@ button[type="submit"],
     box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Primary buttons hover */
+
 .btn-primary:hover,
 .btn-success:hover,
 button[type="submit"]:hover,
@@ -29,7 +29,7 @@ button[type="submit"]:hover,
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Secondary buttons (Cancel, Close, etc.) */
+
 .btn-secondary,
 .btn-danger,
 .cancel-btn,
@@ -43,7 +43,7 @@ button[type="submit"]:hover,
     transition: all 0.2s ease !important;
 }
 
-/* Secondary buttons hover */
+
 .btn-secondary:hover,
 .btn-danger:hover,
 .cancel-btn:hover,
@@ -52,13 +52,13 @@ button[type="submit"]:hover,
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Button groups */
+
 .btn-group {
     display: flex !important;
     gap: 10px !important;
 }
 
-/* Save Changes button */
+
 #save-changes-btn,
 .save-changes-btn {
     background-color: #ffffff !important;
@@ -77,7 +77,7 @@ button[type="submit"]:hover,
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Cancel button */
+
 #cancel-btn,
 .cancel-btn {
     background-color: rgba(30, 30, 30, 0.7) !important;

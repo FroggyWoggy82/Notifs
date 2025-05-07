@@ -2,7 +2,7 @@
  * Ensure all buttons are visible in all forms
  */
 
-/* Make sure all form action buttons are visible */
+
 .form-actions,
 form .form-actions,
 .edit-ingredient-form .form-actions,
@@ -14,7 +14,7 @@ form .form-actions,
     width: 100% !important;
 }
 
-/* Style all buttons consistently */
+
 .form-actions button,
 form .form-actions button,
 .edit-ingredient-form .form-actions button,
@@ -33,14 +33,14 @@ form > button[type="submit"],
     margin: 0 5px !important;
 }
 
-/* Cancel button styling */
+
 .form-actions button.cancel,
 form .form-actions button.cancel {
     background-color: rgba(255, 255, 255, 0.1) !important;
     color: #e0e0e0 !important;
 }
 
-/* Button hover states */
+
 .form-actions button:hover,
 form .form-actions button:hover,
 form > button[type="submit"]:hover,
@@ -49,26 +49,26 @@ form > button[type="submit"]:hover,
     transform: translateY(-1px) !important;
 }
 
-/* Ensure the Save Recipe button is visible and properly styled */
+
 #create-recipe-form > button[type="submit"] {
     margin: 10px auto !important;
     display: block !important;
     width: 200px !important;
 }
 
-/* Add specific styling for ingredient edit form buttons */
+
 .edit-ingredient-form .form-actions {
     position: relative !important;
     z-index: 100 !important;
 }
 
-/* Make sure buttons in the ingredient list are visible */
+
 .ingredient-item .buttons-row button {
     display: inline-block !important;
     margin: 5px !important;
 }
 
-/* Ensure all action buttons are visible */
+
 button.add-ingredient-btn,
 button.remove-ingredient-btn,
 button.toggle-detailed-nutrition,
@@ -84,7 +84,7 @@ button.add-ingredient-btn-inline {
     color: #e0e0e0 !important;
 }
 
-/* Hover state for action buttons */
+
 button.add-ingredient-btn:hover,
 button.remove-ingredient-btn:hover,
 button.toggle-detailed-nutrition:hover,

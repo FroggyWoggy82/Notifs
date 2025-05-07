@@ -3,22 +3,22 @@
  * Makes task edit and delete buttons only appear on hover
  */
 
-/* Hide task actions by default with high specificity */
+
 html body .task-item .task-actions {
     opacity: 0 !important;
     visibility: hidden !important;
     transition: opacity 0.2s ease, visibility 0.2s ease !important;
-    pointer-events: none !important; /* Prevent interaction when hidden */
+    pointer-events: none !important; 
 }
 
-/* Show task actions only on hover with high specificity */
+
 html body .task-item:hover .task-actions {
     opacity: 1 !important;
     visibility: visible !important;
-    pointer-events: auto !important; /* Allow interaction when visible */
+    pointer-events: auto !important; 
 }
 
-/* Ensure proper positioning of action buttons */
+
 html body .task-actions {
     position: absolute !important;
     right: 10px !important;
@@ -30,7 +30,7 @@ html body .task-actions {
     z-index: 5 !important;
 }
 
-/* Style the buttons for better visibility when they appear */
+
 html body .task-actions .icon-btn {
     background-color: rgba(18, 18, 18, 0.7) !important;
     border-radius: 50% !important;
@@ -43,33 +43,33 @@ html body .task-actions .icon-btn {
     cursor: pointer !important;
 }
 
-/* Edit button hover effect */
+
 html body .task-actions .edit-task-btn:hover {
     background-color: rgba(0, 230, 118, 0.2) !important;
     transform: scale(1.1) !important;
 }
 
-/* Delete button hover effect */
+
 html body .task-actions .delete-btn:hover {
     background-color: rgba(244, 67, 54, 0.2) !important;
     transform: scale(1.1) !important;
 }
 
-/* Make sure the icons themselves are visible */
+
 html body .task-actions .pencil-icon,
 html body .task-actions .x-icon {
     opacity: 0.9 !important;
     font-size: 16px !important;
 }
 
-/* For touch devices - will be handled with JavaScript */
+
 html body .task-item.show-actions .task-actions {
     opacity: 1 !important;
     visibility: visible !important;
-    pointer-events: auto !important; /* Allow interaction when visible */
+    pointer-events: auto !important; 
 }
 
-/* Fix for completed tasks to ensure actions are still accessible */
+
 html body .task-item.complete .task-actions {
     opacity: 0 !important;
     visibility: hidden !important;
@@ -81,7 +81,7 @@ html body .task-item.complete:hover .task-actions {
     pointer-events: auto !important;
 }
 
-/* Fix for overdue tasks to ensure actions are still accessible */
+
 html body .task-item.overdue .task-actions,
 html body .task-item[data-overdue="true"] .task-actions {
     opacity: 0 !important;

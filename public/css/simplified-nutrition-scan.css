@@ -1,6 +1,6 @@
-/* Simplified Nutrition Scan Styles */
 
-/* Field Highlighting */
+
+
 .nutrition-field.correct {
     background-color: #d4edda !important;
     border-color: #c3e6cb !important;
@@ -11,7 +11,7 @@
     border-color: #ffeeba !important;
 }
 
-/* Raw OCR Text Display */
+
 .raw-ocr-container {
     margin-top: 20px;
     border: 1px solid #ddd;
@@ -96,7 +96,7 @@
     font-weight: normal;
 }
 
-/* OCR Engine Toggle - Removed as we now only use PaddleOCR */
+
 
 .simplified-paste-preview {
     width: 100%;
@@ -153,7 +153,7 @@
 }
 
 .simplified-scan-status {
-    display: none; /* Hidden by default */
+    display: none; 
     margin-top: 15px;
     padding: 10px;
     border-radius: 4px;
@@ -165,7 +165,7 @@
     background-color: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
-    display: block; /* Override the default hidden state */
+    display: block; 
     font-weight: bold;
     padding: 10px;
     margin-top: 15px;

@@ -1,0 +1,23 @@
+/* Habit header row styling */
+.habit-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.habit-header-row h2 {
+    margin: 0;
+}
+
+#resetHabitsButton {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#resetHabitsButton:before {
+    content: "↻";
+    font-size: 1.1rem;
+}

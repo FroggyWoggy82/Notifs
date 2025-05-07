@@ -3,19 +3,19 @@
  * Styles for the ingredient name autocomplete dropdown
  */
 
-/* Style the datalist dropdown (through the input that uses it) */
+
 .ingredient-name {
     position: relative;
 }
 
-/* Style the autocomplete options (this is browser-specific and may not work in all browsers) */
+
 input.ingredient-name::-webkit-calendar-picker-indicator {
     display: block;
     opacity: 0.8;
     cursor: pointer;
 }
 
-/* Add a subtle indicator that autocomplete is available */
+
 .ingredient-name {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>');
     background-repeat: no-repeat;
@@ -24,13 +24,13 @@ input.ingredient-name::-webkit-calendar-picker-indicator {
     padding-right: 30px !important;
 }
 
-/* Highlight the input when it has focus */
+
 .ingredient-name:focus {
     border-color: rgba(255, 255, 255, 0.8) !important;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Style for the autocomplete dropdown (browser-specific) */
+
 datalist {
     background-color: #1e1e1e;
     color: white;
@@ -40,7 +40,7 @@ datalist {
     overflow-y: auto;
 }
 
-/* Style for autocomplete options (browser-specific) */
+
 option {
     background-color: #1e1e1e;
     color: white;

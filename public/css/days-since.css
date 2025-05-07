@@ -1,4 +1,4 @@
-/* Days Since specific styles */
+
 .days-since-input-section,
 .days-since-list-section {
     margin-top: 40px;
@@ -58,7 +58,7 @@
     margin-left: 20px;
 }
 
-/* Make rules more specific to override index.css */
+
 .event-actions .edit-btn,
 .event-actions .delete-btn {
     padding: 6px 12px !important;
@@ -73,7 +73,7 @@
     flex-shrink: 0;
 }
 
-/* Keep individual background colors */
+
 .event-actions .edit-btn {
     background-color: #4db6ac;
     color: white;
@@ -92,7 +92,7 @@
     background-color: #c0392b;
 }
 
-/* Empty state */
+
 .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -103,14 +103,14 @@
     margin-bottom: 20px;
 }
 
-/* Loading state */
+
 .loading {
     text-align: center;
     padding: 20px;
     color: #566573;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 480px) {
     .days-since-event {
         flex-direction: column;

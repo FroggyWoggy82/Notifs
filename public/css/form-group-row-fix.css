@@ -3,7 +3,7 @@
  * Specifically targets and fixes the form-group-row structure that appears when editing an existing ingredient
  */
 
-/* Target the form-group-row structure */
+
 .edit-ingredient-form .form-group-row {
     margin-bottom: 8px !important;
     padding: 8px !important;
@@ -15,7 +15,7 @@
     flex-direction: column !important;
 }
 
-/* Add a header to the form-group-row if it doesn't have one */
+
 .edit-ingredient-form .form-group-row:not(:has(> h4)):before {
     content: "Basic Information";
     display: block;
@@ -27,7 +27,7 @@
     font-size: 0.85em !important;
 }
 
-/* Style the form-group-row header */
+
 .edit-ingredient-form .form-group-row > h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -38,7 +38,7 @@
     font-size: 0.85em !important;
 }
 
-/* Create a grid layout for the form-group-row */
+
 .edit-ingredient-form .form-group-row > .nutrition-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
@@ -46,7 +46,7 @@
     margin-bottom: 0 !important;
 }
 
-/* Style the form groups in the form-group-row */
+
 .edit-ingredient-form .form-group-row > .form-group {
     margin-bottom: 2px !important;
     display: flex !important;
@@ -54,7 +54,7 @@
     width: auto !important;
 }
 
-/* Style the labels in the form-group-row */
+
 .edit-ingredient-form .form-group-row label {
     font-size: 0.7em !important;
     margin-bottom: 1px !important;
@@ -65,7 +65,7 @@
     text-overflow: ellipsis !important;
 }
 
-/* Style the inputs in the form-group-row */
+
 .edit-ingredient-form .form-group-row input {
     width: 35px !important;
     padding: 1px 2px !important;
@@ -77,17 +77,17 @@
     border-radius: 3px !important;
 }
 
-/* Make the name field wider */
+
 .edit-ingredient-form .form-group-row input#edit-ingredient-name {
     width: 80px !important;
 }
 
-/* Hide any form groups that have been replaced with nutrition items */
+
 .edit-ingredient-form .form-group-row > .form-group.replaced {
     display: none !important;
 }
 
-/* Style the nutrition items in the form-group-row */
+
 .edit-ingredient-form .form-group-row .nutrition-item {
     margin-bottom: 2px !important;
     display: flex !important;

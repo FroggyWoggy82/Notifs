@@ -1,0 +1,117 @@
+/**
+ * Template Exercise Button Fix
+ * This file contains styles to fix the View Exercise button color and delete button position
+ */
+
+/* Make the View Exercise button match the exercise name color */
+.btn-view-exercise,
+.template-editor-list .btn-view-exercise,
+#template-editor-page .btn-view-exercise,
+.exercise-item .btn-view-exercise,
+button[class*="view-exercise"],
+button[title*="View Exercise"] {
+    background-color: #03dac6 !important; /* Match the exercise name color */
+    color: #000 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 0 10px !important;
+    cursor: pointer !important;
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+}
+
+.btn-view-exercise:hover,
+.template-editor-list .btn-view-exercise:hover,
+#template-editor-page .btn-view-exercise:hover,
+.exercise-item .btn-view-exercise:hover,
+button[class*="view-exercise"]:hover,
+button[title*="View Exercise"]:hover {
+    background-color: #00b8a6 !important;
+}
+
+/* Hide the delete button in its original position */
+.template-editor-list .exercise-header-actions .delete-template-exercise-btn,
+#template-editor-page .exercise-header-actions .delete-template-exercise-btn,
+.exercise-item .exercise-header-actions .delete-template-exercise-btn {
+    display: none !important;
+}
+
+/* Position the delete button in the top right corner */
+.template-editor-list .exercise-item,
+#template-editor-page .exercise-item,
+.exercise-item {
+    position: relative !important; /* Ensure position relative for absolute positioning */
+}
+
+/* Style the delete overlay button */
+.template-editor-list .exercise-item .delete-overlay,
+#template-editor-page .exercise-item .delete-overlay,
+.exercise-item .delete-overlay,
+button[class*="delete-template-exercise"],
+button[title*="Remove Exercise"] {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 30px !important;
+    height: 30px !important;
+    background-color: #f44336 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 24px !important;
+    z-index: 10 !important;
+}
+
+/* Additional style for delete buttons that might not have the overlay class */
+.exercise-item button.btn-delete-exercise,
+.exercise-item button.delete-template-exercise-btn,
+.exercise-item button[title="Remove Exercise"],
+.exercise-item button[title="Delete Exercise"] {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+}
+
+/* Ensure labels never get the X button styling */
+.exercise-options-menu-label label,
+.weight-increment-label,
+.weight-unit-label {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    content: attr(data-label) !important;
+}
+
+/* Add the X symbol to the delete button */
+.template-editor-list .exercise-item .delete-overlay::before,
+#template-editor-page .exercise-item .delete-overlay::before,
+.exercise-item .delete-overlay::before,
+button[class*="delete-template-exercise"]::before,
+button[title*="Remove Exercise"]::before {
+    content: "×" !important;
+    line-height: 1 !important;
+    font-weight: bold !important;
+}
+
+/* Ensure the X is properly centered and sized */
+.exercise-item button.btn-delete-exercise,
+.exercise-item button.delete-template-exercise-btn,
+.exercise-item button[title="Remove Exercise"],
+.exercise-item button[title="Delete Exercise"] {
+    font-size: 24px !important;
+    line-height: 1 !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}

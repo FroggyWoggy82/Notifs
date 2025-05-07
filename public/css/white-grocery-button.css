@@ -3,10 +3,10 @@
  * Changes the Generate Grocery List button to have white background with black text
  */
 
-/* Style the Generate Grocery List button */
+
 #generate-list-btn {
-    background-color: #ffffff !important; /* White background */
-    color: #121212 !important; /* Black text */
+    background-color: #ffffff !important; 
+    color: #121212 !important; 
     border: none !important;
     border-radius: 4px !important;
     padding: 10px 15px !important;
@@ -15,15 +15,15 @@
     transition: background-color 0.2s !important;
 }
 
-/* Hover effect */
+
 #generate-list-btn:hover:not(:disabled) {
-    background-color: #f0f0f0 !important; /* Slightly darker white on hover */
+    background-color: #f0f0f0 !important; 
 }
 
-/* Disabled state */
+
 #generate-list-btn:disabled {
-    background-color: rgba(255, 255, 255, 0.5) !important; /* Faded white when disabled */
-    color: rgba(18, 18, 18, 0.5) !important; /* Faded black text when disabled */
+    background-color: rgba(255, 255, 255, 0.5) !important; 
+    color: rgba(18, 18, 18, 0.5) !important; 
     cursor: not-allowed !important;
     opacity: 0.7 !important;
 }

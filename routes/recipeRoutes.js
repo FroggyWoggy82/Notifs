@@ -336,4 +336,68 @@ router.patch('/:recipeId/ingredients/:ingredientId/package-amount', RecipeContro
  */
 router.patch('/:recipeId/ingredients/:ingredientId/omega-values', RecipeController.updateIngredientOmegaValues);
 
+/**
+ * @swagger
+ * /api/recipes/{recipeId}/ingredients:
+ *   post:
+ *     summary: Add a new ingredient to an existing recipe
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The recipe ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - calories
+ *               - amount
+ *               - protein
+ *               - fats
+ *               - carbohydrates
+ *               - price
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The ingredient name
+ *               calories:
+ *                 type: number
+ *                 description: The ingredient calories
+ *               amount:
+ *                 type: number
+ *                 description: The ingredient amount in grams
+ *               protein:
+ *                 type: number
+ *                 description: The ingredient protein in grams
+ *               fats:
+ *                 type: number
+ *                 description: The ingredient fats in grams
+ *               carbohydrates:
+ *                 type: number
+ *                 description: The ingredient carbohydrates in grams
+ *               price:
+ *                 type: number
+ *                 description: The ingredient price
+ *               package_amount:
+ *                 type: number
+ *                 description: The package amount in grams (optional)
+ *     responses:
+ *       201:
+ *         description: Ingredient added successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Recipe not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/:recipeId/ingredients', RecipeController.addIngredientToRecipe);
+
 module.exports = router;

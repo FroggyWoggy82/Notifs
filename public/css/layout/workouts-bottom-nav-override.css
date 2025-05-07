@@ -3,12 +3,12 @@
  * This file overrides the styles in workout-dark-theme.css for the bottom navigation
  */
 
-/* Override the bottom navigation styles from workout-dark-theme.css */
+
 .bottom-nav {
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
-    width: calc(100% - 15px) !important; /* Account for scrollbar */
+    width: calc(100% - 15px) !important; 
     background-color: rgba(18, 18, 18, 0.95) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
@@ -22,16 +22,16 @@
     height: 60px !important;
     box-sizing: border-box !important;
     margin: 0 !important;
-    right: 15px !important; /* Leave space for scrollbar */
+    right: 15px !important; 
 }
 
-/* Override the navigation item styles */
+
 .bottom-nav .nav-item {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    color: rgba(158, 158, 158, 0.9) !important; /* Gray color */
+    color: rgba(158, 158, 158, 0.9) !important; 
     text-decoration: none !important;
     font-size: 0.75rem !important;
     padding: 5px 0 !important;
@@ -42,21 +42,21 @@
     flex: 1 !important;
     text-align: center !important;
     margin: 0 !important;
-    width: 20% !important; /* 5 items = 20% each */
+    width: 20% !important; 
     overflow: hidden !important;
 }
 
-/* Override the active item styling */
+
 .bottom-nav .nav-item.active {
-    color: #FFFFFF !important; /* White for active item */
+    color: #FFFFFF !important; 
 }
 
-/* Override the hover effect */
+
 .bottom-nav .nav-item:hover {
     color: #FFFFFF !important;
 }
 
-/* Override the icon styling */
+
 .bottom-nav .nav-icon {
     font-size: 20px !important;
     margin-bottom: 2px !important;
@@ -67,12 +67,12 @@
     width: 100% !important;
 }
 
-/* Override the active icon styling */
+
 .bottom-nav .nav-item.active .nav-icon {
     color: #FFFFFF !important;
 }
 
-/* Override the text styling */
+
 .bottom-nav .nav-item span {
     font-size: 0.75rem !important;
     line-height: 1.2 !important;
@@ -80,46 +80,46 @@
     width: 100% !important;
     display: block !important;
     color: inherit !important;
-    text-transform: none !important; /* Prevent uppercase text */
-    font-weight: normal !important; /* Prevent bold text */
-    letter-spacing: normal !important; /* Prevent letter spacing */
+    text-transform: none !important; 
+    font-weight: normal !important; 
+    letter-spacing: normal !important; 
 }
 
-/* Override the highlight line at bottom */
+
 .bottom-nav .nav-item::before {
     content: '' !important;
     position: absolute !important;
     bottom: 0 !important;
-    top: auto !important; /* Override any top positioning */
+    top: auto !important; 
     left: 0 !important;
     width: 100% !important;
     height: 2px !important;
-    background-color: #FFFFFF !important; /* White highlight line */
+    background-color: #FFFFFF !important; 
     transform: translateX(-100%) !important;
     transition: transform 0.3s ease !important;
     opacity: 0 !important;
-    z-index: 10 !important; /* Ensure it's above other elements */
+    z-index: 10 !important; 
 }
 
-/* Override show highlight line on hover */
+
 .bottom-nav .nav-item:hover::before {
     transform: translateX(0) !important;
     opacity: 1 !important;
 }
 
-/* Override always show highlight line for active item */
+
 .bottom-nav .nav-item.active::before {
     transform: translateX(0) !important;
     opacity: 1 !important;
 }
 
-/* Override glow effect to the highlight line */
+
 .bottom-nav .nav-item:hover::before,
 .bottom-nav .nav-item.active::before {
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Override FontAwesome icons to display correctly */
+
 .bottom-nav .nav-icon i {
     font-style: normal !important;
     font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
@@ -128,28 +128,28 @@
     color: inherit !important;
 }
 
-/* Specific icon overrides for each navigation item */
+
 .bottom-nav .nav-item[href*="index.html"] .nav-icon i::before {
-    content: "\f00c" !important; /* fa-check */
+    content: "\f00c" !important; 
 }
 
 .bottom-nav .nav-item[href*="goals.html"] .nav-icon i::before {
-    content: "\f005" !important; /* fa-star */
+    content: "\f005" !important; 
 }
 
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i::before {
-    content: "\f44b" !important; /* fa-dumbbell */
+    content: "\f44b" !important; 
 }
 
 .bottom-nav .nav-item[href*="calendar.html"] .nav-icon i::before {
-    content: "\f073" !important; /* fa-calendar-alt */
+    content: "\f073" !important; 
 }
 
 .bottom-nav .nav-item[href*="food.html"] .nav-icon i::before {
-    content: "\f2e7" !important; /* fa-utensils */
+    content: "\f2e7" !important; 
 }
 
-/* Super aggressive override for the workouts icon */
+
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i {
     display: inline-block !important;
     font: normal normal normal 14px/1 'Font Awesome 6 Free' !important;
@@ -161,5 +161,5 @@
 }
 
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i::before {
-    content: "\f44b" !important; /* fa-dumbbell */
+    content: "\f44b" !important; 
 }

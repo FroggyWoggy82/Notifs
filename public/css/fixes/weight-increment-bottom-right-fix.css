@@ -1,14 +1,11 @@
-/*
- * Weight Increment Top Right Fix
- * This file specifically positions the X button in the top right corner of the Weight Increment section
- */
 
-/* Target the X button in the Weight Increment section */
+
+
 .weight-increment-container button,
 .weight-increment-container .btn-delete-exercise,
 .weight-increment-container [class*="btn-"],
 .weight-increment-container .weight-increment-x-button {
-    /* Override any hide rules */
+    
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -18,14 +15,14 @@
     pointer-events: auto !important;
     z-index: 1000 !important;
 
-    /* Position at the top right */
+    
     position: absolute !important;
     top: 0 !important;
     right: 0 !important;
     bottom: auto !important;
     left: auto !important;
 
-    /* Style the button */
+    
     align-items: center !important;
     justify-content: center !important;
     background-color: #f44336 !important;
@@ -37,12 +34,12 @@
     cursor: pointer !important;
 }
 
-/* Ensure the container has relative positioning */
+
 .weight-increment-container {
     position: relative !important;
 }
 
-/* Hide any buttons in the view exercise row */
+
 .view-exercise-row .btn-delete-exercise,
 .view-exercise-row [class*="btn-delete"],
 .view-exercise-row [class*="btn-remove"] {
@@ -57,7 +54,7 @@
     z-index: -1 !important;
 }
 
-/* Ensure the X button is visible */
+
 .weight-increment-container button::before,
 .weight-increment-container .btn-delete-exercise::before,
 .weight-increment-container [class*="btn-"]::before,
@@ -65,7 +62,7 @@
     content: none !important;
 }
 
-/* Set the content to X */
+
 .weight-increment-container button,
 .weight-increment-container .btn-delete-exercise,
 .weight-increment-container [class*="btn-"],

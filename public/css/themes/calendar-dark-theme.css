@@ -3,7 +3,7 @@
  * Applies dark theme styling to the calendar grid and controls
  */
 
-/* Calendar Controls */
+
 .calendar-controls {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -13,7 +13,7 @@
     color: white !important;
 }
 
-/* Calendar Grid */
+
 .calendar-grid {
     background-color: rgba(20, 20, 20, 0.8) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -57,7 +57,7 @@
     color: #4db6ac !important;
 }
 
-/* Task and Habit Items */
+
 .calendar-task-item {
     background-color: rgba(19, 82, 62, 0.3) !important;
     color: #a6dabc !important;
@@ -100,7 +100,7 @@
     border-left: 3px solid #9b59b6 !important;
 }
 
-/* Task and habit count indicators */
+
 .task-count-indicator {
     background-color: rgba(77, 182, 172, 0.3) !important;
     color: white !important;
@@ -111,7 +111,7 @@
     color: white !important;
 }
 
-/* Container header */
+
 .container h1 {
     color: white !important;
     text-align: center !important;

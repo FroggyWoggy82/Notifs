@@ -3,7 +3,7 @@
  * Makes the Show Detailed Nutrition button match the size of Add Ingredient and Remove buttons
  */
 
-/* Style for the toggle button to match other buttons */
+
 .toggle-detailed-nutrition {
     background-color: #ffffff !important;
     color: #121212 !important;
@@ -13,8 +13,8 @@
     font-size: 0.9em !important;
     cursor: pointer !important;
     margin: 5px !important;
-    width: 100% !important;  /* Match the full width of other buttons */
-    height: 38px !important; /* Match the height of other buttons */
+    width: 100% !important;  
+    height: 38px !important; 
     display: inline-block !important;
     text-align: center !important;
     transition: all 0.2s ease !important;
@@ -24,20 +24,20 @@
     vertical-align: middle !important;
 }
 
-/* Hover state */
+
 .toggle-detailed-nutrition:hover {
     opacity: 0.9 !important;
     transform: translateY(-1px) !important;
 }
 
-/* Make the button container match the layout of other buttons */
+
 .buttons-container {
     display: flex !important;
     width: 100% !important;
     margin-bottom: 10px !important;
 }
 
-/* Ensure the button is in a row with other buttons */
+
 .ingredient-form .buttons-row {
     display: flex !important;
     justify-content: space-between !important;
@@ -46,14 +46,14 @@
     margin-bottom: 10px !important;
 }
 
-/* Make the toggle button take up the same width as other buttons */
+
 .ingredient-form .buttons-row .toggle-detailed-nutrition {
     flex: 1 !important;
     margin-right: 5px !important;
     margin-left: 5px !important;
 }
 
-/* Ensure the Add Ingredient and Remove buttons have the same styling */
+
 .ingredient-form .buttons-row button {
     flex: 1 !important;
     height: 38px !important;
@@ -61,12 +61,12 @@
     margin-left: 5px !important;
 }
 
-/* First button in the row */
+
 .ingredient-form .buttons-row button:first-child {
     margin-left: 0 !important;
 }
 
-/* Last button in the row */
+
 .ingredient-form .buttons-row button:last-child {
     margin-right: 0 !important;
 }

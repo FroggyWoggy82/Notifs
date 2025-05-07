@@ -10,11 +10,11 @@
 window.createNextOccurrence = async function(taskId) {
     console.log(`Creating next occurrence for task ${taskId}...`);
     try {
-        // Get the task details first to ensure we have the correct data
+
         const taskDetailsResponse = await fetch(`/api/tasks/${taskId}`);
         if (!taskDetailsResponse.ok) {
             console.error(`Failed to get task details: ${taskDetailsResponse.status}`);
-            // Try to create the next occurrence using the API endpoint directly
+
             try {
                 const nextOccurrenceResponse = await fetch(`/api/tasks/${taskId}/next-occurrence`, {
                     method: 'POST',
@@ -38,14 +38,12 @@ window.createNextOccurrence = async function(taskId) {
         const taskDetails = await taskDetailsResponse.json();
         console.log(`Got task details:`, taskDetails);
 
-        // Only proceed if this is a recurring task
         if (taskDetails.recurrence_type && taskDetails.recurrence_type !== 'none') {
-            // Calculate the next due date
+
             const dueDate = new Date(taskDetails.due_date);
             const interval = taskDetails.recurrence_interval || 1;
             let nextDueDate = new Date(dueDate);
 
-            // Calculate the next occurrence based on recurrence type
             switch (taskDetails.recurrence_type) {
                 case 'daily':
                     nextDueDate.setDate(nextDueDate.getDate() + interval);
@@ -61,11 +59,9 @@ window.createNextOccurrence = async function(taskId) {
                     break;
             }
 
-            // Format the date as YYYY-MM-DD
             const formattedDate = nextDueDate.toISOString().split('T')[0];
 
-            // Create a new task with the same details but a new due date
-            // IMPORTANT: Set both assignedDate and dueDate to ensure it appears on the calendar
+
             const createResponse = await fetch('/api/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -108,7 +104,6 @@ window.showNextOccurrenceNotification = function(taskTitle, dueDate) {
     notification.textContent = `Next occurrence of "${taskTitle}" created for ${new Date(dueDate).toLocaleDateString()}`;
     document.body.appendChild(notification);
 
-    // Remove the notification after 5 seconds
     setTimeout(() => {
         notification.remove();
     }, 5000);

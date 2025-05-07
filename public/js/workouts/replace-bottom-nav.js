@@ -3,19 +3,16 @@
  * This script completely replaces the bottom navigation with a new one
  */
 
-// Wait for the page to fully load
 window.addEventListener('load', function() {
-    // Function to replace the bottom navigation
+
     function replaceBottomNav() {
         console.log('Replacing bottom navigation...');
-        
-        // First, remove any existing bottom navigation
+
         const existingBottomNav = document.querySelector('.bottom-nav');
         if (existingBottomNav) {
             existingBottomNav.remove();
         }
-        
-        // Create a new bottom navigation element
+
         const bottomNav = document.createElement('div');
         bottomNav.className = 'bottom-nav';
         bottomNav.style.position = 'fixed';
@@ -34,8 +31,7 @@ window.addEventListener('load', function() {
         bottomNav.style.boxSizing = 'border-box';
         bottomNav.style.margin = '0';
         bottomNav.style.right = '15px';
-        
-        // Define the navigation items
+
         const navItems = [
             { href: '/index.html', icon: 'fas fa-check', text: 'Tasks', dataPage: 'home-page', active: false },
             { href: '/pages/goals.html', icon: 'fas fa-star', text: 'Goals', dataPage: 'goal-page', active: false },
@@ -43,8 +39,7 @@ window.addEventListener('load', function() {
             { href: '/pages/calendar.html', icon: 'fas fa-calendar-alt', text: 'Calendar', dataPage: 'calendar-page', active: false },
             { href: '/pages/food.html', icon: 'fas fa-utensils', text: 'Food', dataPage: 'food-page', active: false }
         ];
-        
-        // Add the navigation items
+
         navItems.forEach(item => {
             const navItem = document.createElement('a');
             navItem.href = item.href;
@@ -96,8 +91,7 @@ window.addEventListener('load', function() {
             navText.style.textTransform = 'none';
             navText.style.fontWeight = 'normal';
             navText.style.letterSpacing = 'normal';
-            
-            // Add highlight line for active item
+
             if (item.active) {
                 const highlightLine = document.createElement('div');
                 highlightLine.style.position = 'absolute';
@@ -115,35 +109,29 @@ window.addEventListener('load', function() {
             navItem.appendChild(navText);
             bottomNav.appendChild(navItem);
         });
-        
-        // Add the bottom navigation to the page
+
         document.body.appendChild(bottomNav);
     }
-    
-    // Run the replacement immediately
+
     replaceBottomNav();
-    
-    // Also run after a short delay to ensure it takes effect
+
     setTimeout(replaceBottomNav, 100);
     setTimeout(replaceBottomNav, 500);
     setTimeout(replaceBottomNav, 1000);
 });
 
-// Also run when the DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Run the replacement immediately
+
     setTimeout(function() {
-        // Function to replace the bottom navigation
+
         function replaceBottomNav() {
             console.log('Replacing bottom navigation (DOMContentLoaded)...');
-            
-            // First, remove any existing bottom navigation
+
             const existingBottomNav = document.querySelector('.bottom-nav');
             if (existingBottomNav) {
                 existingBottomNav.remove();
             }
-            
-            // Create a new bottom navigation element
+
             const bottomNav = document.createElement('div');
             bottomNav.className = 'bottom-nav';
             bottomNav.style.position = 'fixed';
@@ -162,8 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
             bottomNav.style.boxSizing = 'border-box';
             bottomNav.style.margin = '0';
             bottomNav.style.right = '15px';
-            
-            // Define the navigation items
+
             const navItems = [
                 { href: '/index.html', icon: 'fas fa-check', text: 'Tasks', dataPage: 'home-page', active: false },
                 { href: '/pages/goals.html', icon: 'fas fa-star', text: 'Goals', dataPage: 'goal-page', active: false },
@@ -171,8 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { href: '/pages/calendar.html', icon: 'fas fa-calendar-alt', text: 'Calendar', dataPage: 'calendar-page', active: false },
                 { href: '/pages/food.html', icon: 'fas fa-utensils', text: 'Food', dataPage: 'food-page', active: false }
             ];
-            
-            // Add the navigation items
+
             navItems.forEach(item => {
                 const navItem = document.createElement('a');
                 navItem.href = item.href;
@@ -224,8 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 navText.style.textTransform = 'none';
                 navText.style.fontWeight = 'normal';
                 navText.style.letterSpacing = 'normal';
-                
-                // Add highlight line for active item
+
                 if (item.active) {
                     const highlightLine = document.createElement('div');
                     highlightLine.style.position = 'absolute';
@@ -243,15 +228,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 navItem.appendChild(navText);
                 bottomNav.appendChild(navItem);
             });
-            
-            // Add the bottom navigation to the page
+
             document.body.appendChild(bottomNav);
         }
-        
-        // Run the replacement immediately
+
         replaceBottomNav();
-        
-        // Also run after a short delay to ensure it takes effect
+
         setTimeout(replaceBottomNav, 100);
         setTimeout(replaceBottomNav, 500);
         setTimeout(replaceBottomNav, 1000);

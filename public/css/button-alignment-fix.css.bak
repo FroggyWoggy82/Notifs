@@ -1,0 +1,66 @@
+/**
+ * Button Alignment Fix
+ * Fixes the alignment and text display of the Show Detailed Nutrition button
+ */
+
+/* Fix the button alignment and text display */
+.toggle-detailed-nutrition {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 38px !important;
+    line-height: 1 !important;
+    padding: 0 15px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: 0.9em !important;
+    vertical-align: middle !important;
+    margin: 0 !important;
+}
+
+/* Make sure all buttons in the row are aligned */
+.ingredient-form .buttons-row,
+.ingredient-form [class*="button-container"],
+.ingredient-form [class*="buttons-container"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+    height: 38px !important;
+}
+
+/* Make all buttons in the row have the same height and alignment */
+.ingredient-form .buttons-row button,
+.ingredient-form [class*="button-container"] button,
+.ingredient-form [class*="buttons-container"] button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 38px !important;
+    line-height: 1 !important;
+    padding: 0 15px !important;
+    margin: 0 5px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: 0.9em !important;
+    vertical-align: middle !important;
+}
+
+/* Ensure the text is properly displayed */
+.toggle-detailed-nutrition span,
+.toggle-detailed-nutrition div {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+/* Fix for the button text being cut off */
+.toggle-detailed-nutrition {
+    width: auto !important;
+    min-width: 150px !important;
+    max-width: none !important;
+    flex: 1 !important;
+}

@@ -3,7 +3,7 @@
  * Changes the Set button to white after hitting Adjust in recipes
  */
 
-/* Set button */
+
 .set-btn,
 button[id*="set-btn"],
 button[class*="set-btn"],
@@ -20,7 +20,7 @@ input[type="submit"][value="Set"] {
     box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Set button hover */
+
 .set-btn:hover,
 button[id*="set-btn"]:hover,
 button[class*="set-btn"]:hover,
@@ -31,7 +31,7 @@ input[type="submit"][value="Set"]:hover {
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Adjustment buttons (-25%, +25%, etc.) */
+
 .adjust-btn,
 button[id*="adjust-btn"],
 button[class*="adjust-btn"],
@@ -48,7 +48,7 @@ button:contains("+200") {
     transition: all 0.2s ease !important;
 }
 
-/* Adjustment buttons hover */
+
 .adjust-btn:hover,
 button[id*="adjust-btn"]:hover,
 button[class*="adjust-btn"]:hover,
@@ -60,7 +60,7 @@ button:contains("+200"):hover {
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Input field for calorie adjustment */
+
 input[type="text"][id*="cal-total"],
 input[type="number"][id*="cal-total"],
 input[id*="cal-total"] {
@@ -71,7 +71,7 @@ input[id*="cal-total"] {
     padding: 8px 12px !important;
 }
 
-/* Input field focus */
+
 input[type="text"][id*="cal-total"]:focus,
 input[type="number"][id*="cal-total"]:focus,
 input[id*="cal-total"]:focus {

@@ -4,11 +4,11 @@
  * Futuristic Dark Theme
  */
 
-/* Import fonts */
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
 
-/* Base typography */
+
 body {
   font-family: var(--font-family-base);
   font-size: var(--font-size-base);
@@ -18,7 +18,7 @@ body {
   letter-spacing: 0.01em;
 }
 
-/* Headings */
+
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
   margin-bottom: var(--spacing-md);
@@ -62,14 +62,14 @@ h6 {
   letter-spacing: 0.05em;
 }
 
-/* Paragraphs */
+
 p {
   margin-top: 0;
   margin-bottom: var(--spacing-md);
   color: var(--color-dark-text);
 }
 
-/* Links */
+
 a {
   color: var(--color-primary-light);
   text-decoration: none;
@@ -100,7 +100,7 @@ a:hover:after {
   transform-origin: bottom left;
 }
 
-/* Lists */
+
 ul, ol {
   margin-top: 0;
   margin-bottom: var(--spacing-md);
@@ -131,7 +131,7 @@ li {
   margin-bottom: var(--spacing-xs);
 }
 
-/* Inline text elements */
+
 strong, b {
   font-weight: var(--font-weight-bold);
   color: var(--color-white);
@@ -168,7 +168,7 @@ pre code {
   background-color: transparent;
 }
 
-/* Text utilities */
+
 .text-xs {
   font-size: var(--font-size-xs);
 }
@@ -256,7 +256,7 @@ pre code {
   font-family: 'Roboto Mono', monospace;
 }
 
-/* Text colors */
+
 .text-primary {
   color: var(--color-primary);
 }
@@ -293,7 +293,7 @@ pre code {
   color: var(--color-white);
 }
 
-/* Responsive typography */
+
 @media (max-width: 768px) {
   h1 {
     font-size: var(--font-size-2xl);

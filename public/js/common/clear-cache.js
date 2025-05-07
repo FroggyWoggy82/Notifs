@@ -3,14 +3,12 @@
  * This script helps clear the service worker cache to ensure fresh data
  */
 
-// Function to clear the service worker cache
 async function clearServiceWorkerCache() {
     if ('serviceWorker' in navigator) {
         try {
-            // Get all service worker registrations
+
             const registrations = await navigator.serviceWorker.getRegistrations();
 
-            // Send a message to each service worker to clear its cache
             for (const registration of registrations) {
                 if (registration.active) {
                     console.log('Sending CLEAR_CACHE message to service worker');
@@ -20,7 +18,6 @@ async function clearServiceWorkerCache() {
 
             console.log('Cache clearing message sent to all service workers');
 
-            // Also clear the browser cache for API requests
             if ('caches' in window) {
                 try {
                     const cacheNames = await caches.keys();
@@ -36,7 +33,6 @@ async function clearServiceWorkerCache() {
                 }
             }
 
-            // Clear application cache
             if (window.applicationCache) {
                 try {
                     window.applicationCache.swapCache();
@@ -46,9 +42,8 @@ async function clearServiceWorkerCache() {
                 }
             }
 
-            // Clear local storage for API-related items
             try {
-                // Only clear items related to API responses
+
                 const keysToKeep = [];
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
@@ -75,7 +70,6 @@ async function clearServiceWorkerCache() {
     }
 }
 
-// Function to reload the page after a delay
 function reloadPageAfterDelay(delay = 1000) {
     console.log(`Will reload page in ${delay}ms`);
     setTimeout(() => {
@@ -84,14 +78,12 @@ function reloadPageAfterDelay(delay = 1000) {
     }, delay);
 }
 
-// Function to force a day change for habit counters
 function forceDayChange() {
-    // Set the last counter reset date to yesterday using Central Time
+
     const now = new Date();
     const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
     centralTime.setDate(centralTime.getDate() - 1);
 
-    // Format as YYYY-MM-DD
     const year = centralTime.getFullYear();
     const month = String(centralTime.getMonth() + 1).padStart(2, '0');
     const day = String(centralTime.getDate()).padStart(2, '0');
@@ -100,21 +92,17 @@ function forceDayChange() {
     localStorage.setItem('lastCounterResetDate', yesterdayString);
     console.log(`Forced day change by setting lastCounterResetDate to ${yesterdayString} (Central Time)`);
 
-    // Reload the page to apply the change
     reloadPageAfterDelay(500);
 
     return `Day change forced. Reset date set to ${yesterdayString} (Central Time). Page will reload.`;
 }
 
-// Function to check the current day change status
 function checkDayChangeStatus() {
     const lastCounterResetDate = localStorage.getItem('lastCounterResetDate');
 
-    // Get today's date in Central Time
     const now = new Date();
     const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
 
-    // Format as YYYY-MM-DD
     const year = centralTime.getFullYear();
     const month = String(centralTime.getMonth() + 1).padStart(2, '0');
     const day = String(centralTime.getDate()).padStart(2, '0');
@@ -133,7 +121,6 @@ function checkDayChangeStatus() {
     }
 }
 
-// Function to manually reset habit counters
 function resetHabitCounters() {
     if (typeof window.resetCounterHabits === 'function') {
         window.resetCounterHabits();
@@ -144,12 +131,10 @@ function resetHabitCounters() {
     }
 }
 
-// Make the functions available globally
 window.forceDayChange = forceDayChange;
 window.checkDayChangeStatus = checkDayChangeStatus;
 window.resetHabitCounters = resetHabitCounters;
 
-// Clear the cache when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Clearing service worker cache on page load');
     clearServiceWorkerCache().then(success => {
@@ -161,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Also run outside the DOMContentLoaded event in case it already fired
 console.log('Clearing service worker cache immediately');
 clearServiceWorkerCache().then(success => {
     if (success) {

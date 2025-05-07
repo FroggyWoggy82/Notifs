@@ -26,6 +26,8 @@
   },
   "dependencies": {
     "@google-cloud/vision": "^4.0.1",
+    "acorn": "^8.14.1",
+    "acorn-walk": "^8.3.4",
     "axios": "^1.8.4",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",

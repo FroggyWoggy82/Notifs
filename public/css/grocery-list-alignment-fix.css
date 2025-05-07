@@ -3,7 +3,7 @@
  * Improves the alignment of elements in the grocery list generator
  */
 
-/* Recipe checkbox item - better alignment of elements */
+
 .recipe-checkbox-item {
     display: flex;
     align-items: center;
@@ -11,26 +11,26 @@
     padding: 10px !important;
 }
 
-/* Container for checkbox and name */
+
 .recipe-checkbox-item .checkbox-name-container {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* Recipe name span */
+
 .recipe-name-span {
     margin-right: auto;
 }
 
-/* Recipe calories span - align to the right */
+
 .recipe-calories-span {
     margin-left: auto;
     text-align: right;
     white-space: nowrap;
 }
 
-/* Calorie adjustment header - better spacing */
+
 .calorie-adjustment-header {
     display: flex;
     justify-content: space-between !important;
@@ -41,7 +41,7 @@
     table-layout: fixed !important;
 }
 
-/* Calorie adjustment name - prevent wrapping */
+
 .calorie-adjustment-name {
     white-space: nowrap;
     overflow: hidden;
@@ -50,13 +50,13 @@
     max-width: 200px;
 }
 
-/* Calorie adjustment controls - keep together */
+
 .calorie-adjustment-controls {
     margin-left: auto;
     text-align: right;
 }
 
-/* Style table cells in the controls */
+
 .calorie-adjustment-controls table {
     border-collapse: collapse;
     margin-left: auto;
@@ -71,7 +71,7 @@
     background-color: transparent !important;
 }
 
-/* Make buttons more compact and aligned */
+
 .adjustment-btn {
     padding: 5px 8px !important;
     white-space: nowrap;
@@ -92,13 +92,13 @@
     outline: none !important;
 }
 
-/* Hover effect for buttons */
+
 .adjustment-btn:hover {
     background-color: #444444 !important;
     color: #ffffff !important;
 }
 
-/* Reset button styling */
+
 .reset-btn {
     background-color: #3a3a3a !important;
 }
@@ -107,7 +107,7 @@
     background-color: #4a4a4a !important;
 }
 
-/* Make input more compact and aligned */
+
 .calorie-adjustment-input {
     width: 80px !important;
     padding: 5px 8px !important;
@@ -124,19 +124,19 @@
     border-radius: 4px !important;
 }
 
-/* Focus state for input */
+
 .calorie-adjustment-input:focus {
     background-color: #444444 !important;
     color: #ffffff !important;
 }
 
-/* Info text alignment */
+
 .calorie-adjustment-info {
     text-align: left;
     font-size: 0.85rem !important;
 }
 
-/* Adjustment item spacing */
+
 .calorie-adjustment-item {
     margin-bottom: 10px !important;
     padding: 10px !important;

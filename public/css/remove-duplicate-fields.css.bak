@@ -1,0 +1,47 @@
+/**
+ * Remove Duplicate Fields
+ * Removes the duplicate input fields and dark area below the Basic Information section
+ */
+
+/* Hide any extra form-group-column elements */
+.edit-ingredient-form form > .form-group-column:not(.nutrition-grid):not(.basic-info-grid) {
+    display: none !important;
+}
+
+/* Hide any standalone input fields */
+.edit-ingredient-form form > input[type="text"],
+.edit-ingredient-form form > input[type="number"] {
+    display: none !important;
+}
+
+/* Hide any dark areas that are not nutrition sections or detailed nutrition panel */
+.edit-ingredient-form form > div:not(.nutrition-section):not(.basic-info-section):not(.form-actions):not(.detailed-nutrition-panel) {
+    display: none !important;
+}
+
+/* Ensure the detailed nutrition panel is displayed */
+.edit-ingredient-form form .detailed-nutrition-panel {
+    display: block !important;
+}
+
+/* Hide any duplicate input fields */
+.edit-ingredient-form form > .form-group {
+    display: none !important;
+}
+
+/* Hide any extra rows of input fields */
+.edit-ingredient-form form > .row,
+.edit-ingredient-form form > .form-row {
+    display: none !important;
+}
+
+/* Ensure the nutrition sections are displayed */
+.edit-ingredient-form form .nutrition-section,
+.edit-ingredient-form form .basic-info-section {
+    display: block !important;
+}
+
+/* Ensure the form actions are displayed */
+.edit-ingredient-form form .form-actions {
+    display: flex !important;
+}

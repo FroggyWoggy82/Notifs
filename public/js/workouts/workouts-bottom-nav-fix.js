@@ -3,17 +3,14 @@
  * Special fix for the workouts page bottom navigation
  */
 
-// Function to fix the bottom navigation on the workouts page
 function fixWorkoutsBottomNav() {
     console.log('Fixing workouts bottom navigation...');
 
-    // First, remove any existing bottom navigation
     const existingBottomNav = document.querySelector('.bottom-nav');
     if (existingBottomNav) {
         existingBottomNav.remove();
     }
 
-    // Create a completely new bottom navigation with the exact same HTML structure as the other pages
     const bottomNavHTML = `
     <div class="bottom-nav">
         <a href="/index.html" class="nav-item" data-page="home-page">
@@ -39,23 +36,17 @@ function fixWorkoutsBottomNav() {
     </div>
     `;
 
-    // Insert the new bottom navigation at the end of the body
     document.body.insertAdjacentHTML('beforeend', bottomNavHTML);
 }
 
-// Run immediately
 fixWorkoutsBottomNav();
 
-// Also run after a short delay
 setTimeout(fixWorkoutsBottomNav, 100);
 
-// Run again when the window is fully loaded
 window.addEventListener('load', function() {
     fixWorkoutsBottomNav();
 
-    // And again after a short delay
     setTimeout(fixWorkoutsBottomNav, 500);
 
-    // And one more time after a longer delay
     setTimeout(fixWorkoutsBottomNav, 1000);
 });

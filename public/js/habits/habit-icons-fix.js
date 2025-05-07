@@ -6,7 +6,7 @@
  */
 
 (function() {
-    // Wait for the DOM to be fully loaded
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initHabitIconsFix);
     } else {
@@ -16,18 +16,16 @@
     function initHabitIconsFix() {
         console.log('[Habit Icons Fix] Initializing...');
 
-        // Set up a mutation observer to watch for habit list changes
         const habitListContainer = document.getElementById('habitList');
         if (!habitListContainer) {
             console.error('[Habit Icons Fix] Could not find habit list container');
             return;
         }
 
-        // Create a mutation observer to watch for new habits being added
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    // Check if any of the added nodes are habit items
+
                     mutation.addedNodes.forEach((node) => {
                         if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('habit-item')) {
                             updateHabitIcons(node);
@@ -37,10 +35,8 @@
             });
         });
 
-        // Start observing the habit list for changes
         observer.observe(habitListContainer, { childList: true, subtree: true });
 
-        // Also update any existing habit items
         const existingHabits = habitListContainer.querySelectorAll('.habit-item');
         existingHabits.forEach(updateHabitIcons);
 
@@ -52,7 +48,7 @@
      * @param {HTMLElement} habitItem - The habit item element
      */
     function updateHabitIcons(habitItem) {
-        // Find the existing buttons
+
         const editBtn = habitItem.querySelector('.edit-habit-btn');
         const deleteBtn = habitItem.querySelector('.delete-habit-btn');
 
@@ -61,7 +57,6 @@
             return;
         }
 
-        // Get the habit actions container
         let actionsContainer = habitItem.querySelector('.habit-actions');
 
         if (!actionsContainer) {
@@ -71,21 +66,17 @@
             habitItem.appendChild(actionsContainer);
         }
 
-        // Clear the existing buttons from the container
         actionsContainer.innerHTML = '';
 
-        // Create new icon buttons
         const newEditBtn = document.createElement('button');
         newEditBtn.className = 'icon-btn edit-habit-icon-btn';
         newEditBtn.innerHTML = '<i class="pencil-icon"><i class="fas fa-pencil-alt"></i></i>'; // Font Awesome icon
         newEditBtn.title = 'Edit habit';
 
-        // Copy the click event handler from the original edit button
         newEditBtn.addEventListener('click', (event) => {
-            // Prevent the event from bubbling up
+
             event.stopPropagation();
 
-            // Trigger a click on the original button
             editBtn.click();
         });
 
@@ -94,20 +85,16 @@
         newDeleteBtn.innerHTML = '<i class="x-icon"><i class="fas fa-times"></i></i>'; // Font Awesome icon
         newDeleteBtn.title = 'Delete habit';
 
-        // Copy the click event handler from the original delete button
         newDeleteBtn.addEventListener('click', (event) => {
-            // Prevent the event from bubbling up
+
             event.stopPropagation();
 
-            // Trigger a click on the original button
             deleteBtn.click();
         });
 
-        // Add the new buttons to the actions container
         actionsContainer.appendChild(newEditBtn);
         actionsContainer.appendChild(newDeleteBtn);
 
-        // Add touch event handler for mobile devices
         habitItem.addEventListener('touchstart', handleHabitTouch);
 
         console.log('[Habit Icons Fix] Updated habit item icons');
@@ -118,13 +105,11 @@
      * @param {TouchEvent} event - The touch event
      */
     function handleHabitTouch(event) {
-        // Get the habit item
+
         const habitItem = event.currentTarget;
 
-        // Toggle the show-actions class
         habitItem.classList.toggle('show-actions');
 
-        // Remove the class after 3 seconds
         setTimeout(() => {
             habitItem.classList.remove('show-actions');
         }, 3000);

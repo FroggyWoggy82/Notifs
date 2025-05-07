@@ -3,7 +3,7 @@
  * Styles the completely replaced Basic Information section
  */
 
-/* Style the Basic Information section */
+
 .edit-ingredient-form .nutrition-section.basic-information {
     background-color: rgba(25, 25, 25, 0.7) !important;
     border-radius: 4px !important;
@@ -13,7 +13,7 @@
     color: #e0e0e0 !important;
 }
 
-/* Style the header */
+
 .edit-ingredient-form .nutrition-section.basic-information > h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -24,21 +24,21 @@
     font-size: 0.85em !important;
 }
 
-/* Style the nutrition grid */
+
 .edit-ingredient-form .nutrition-section.basic-information > .nutrition-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
     gap: 3px !important;
 }
 
-/* Style the nutrition items */
+
 .edit-ingredient-form .nutrition-section.basic-information .nutrition-item {
     margin-bottom: 2px !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Style the labels */
+
 .edit-ingredient-form .nutrition-section.basic-information .nutrition-item label {
     font-size: 0.7em !important;
     margin-bottom: 1px !important;
@@ -49,7 +49,7 @@
     text-overflow: ellipsis !important;
 }
 
-/* Style the inputs */
+
 .edit-ingredient-form .nutrition-section.basic-information .nutrition-item input {
     width: 35px !important;
     padding: 1px 2px !important;
@@ -61,12 +61,12 @@
     border-radius: 3px !important;
 }
 
-/* Make the name field wider */
+
 .edit-ingredient-form .nutrition-section.basic-information .nutrition-item input#new-edit-ingredient-name {
     width: 80px !important;
 }
 
-/* Hide the original inputs */
+
 .edit-ingredient-form #edit-ingredient-name,
 .edit-ingredient-form #edit-ingredient-amount,
 .edit-ingredient-form #edit-ingredient-package-amount,

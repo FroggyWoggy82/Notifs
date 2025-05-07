@@ -1,4 +1,4 @@
-/* Modal fix CSS - Dark Theme */
+
 #editTaskModal,
 #addTaskModal,
 #addHabitModal,
@@ -31,8 +31,8 @@
 #addTaskModal .modal-content,
 #addHabitModal .modal-content,
 #editHabitModal .modal-content {
-    background-color: #121212 !important; /* Dark background */
-    color: #e0e0e0 !important; /* Light text */
+    background-color: #121212 !important; 
+    color: #e0e0e0 !important; 
     padding: 20px !important;
     border-radius: 8px !important;
     width: 80% !important;
@@ -56,7 +56,7 @@
 #addTaskModal .modal-header h2,
 #addHabitModal .modal-header h2,
 #editHabitModal .modal-header h2 {
-    color: #00e676 !important; /* Green accent color */
+    color: #00e676 !important; 
     margin: 0 !important;
     font-size: 1.5rem !important;
 }
@@ -78,7 +78,7 @@
 #addTaskModal .close-button:hover,
 #addHabitModal .close-button:hover,
 #editHabitModal .close-button:hover {
-    color: #00e676 !important; /* Green accent on hover */
+    color: #00e676 !important; 
 }
 
 #editTaskModal form,
@@ -96,7 +96,7 @@
 #editHabitModal .form-label {
     font-weight: 500 !important;
     margin-bottom: 5px !important;
-    color: #00e676 !important; /* Green accent color */
+    color: #00e676 !important; 
     font-size: 0.9rem !important;
 }
 
@@ -113,7 +113,7 @@
 #editHabitModal textarea,
 #editHabitModal select {
     padding: 10px !important;
-    background-color: #1e1e1e !important; /* Slightly lighter than background */
+    background-color: #1e1e1e !important; 
     color: #e0e0e0 !important;
     border: 1px solid #333 !important;
     border-radius: 4px !important;
@@ -132,7 +132,7 @@
 #editHabitModal input:focus,
 #editHabitModal textarea:focus,
 #editHabitModal select:focus {
-    border-color: #00e676 !important; /* Green accent color */
+    border-color: #00e676 !important; 
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2) !important;
 }
@@ -183,8 +183,8 @@
 #addTaskModal .btn.btn--primary,
 #addHabitModal .btn.btn--primary,
 #editHabitModal .btn.btn--primary {
-    background-color: #00e676 !important; /* Green accent color */
-    color: #121212 !important; /* Dark text on light button */
+    background-color: #00e676 !important; 
+    color: #121212 !important; 
     padding: 12px 15px !important;
     border: none !important;
     border-radius: 4px !important;
@@ -204,7 +204,7 @@
 #addTaskModal .btn.btn--primary:hover,
 #addHabitModal .btn.btn--primary:hover,
 #editHabitModal .btn.btn--primary:hover {
-    background-color: #00c853 !important; /* Darker green on hover */
+    background-color: #00c853 !important; 
 }
 
 #editTaskModal button[type="submit"]:disabled,
@@ -247,7 +247,7 @@
     border: 1px solid rgba(244, 67, 54, 0.3) !important;
 }
 
-/* Toggle switch styling for Add Task modal */
+
 #addTaskModal .toggle-container {
     display: flex !important;
     align-items: center !important;

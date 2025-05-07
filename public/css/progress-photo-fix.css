@@ -3,17 +3,17 @@
  * Removes the Weekly indicator and green dot from the Progress Photo task
  */
 
-/* Hide the green dot for Progress Photo task */
+
 .progress-photo-task .task-title-container::after {
     display: none !important;
 }
 
-/* Hide the Weekly text for Progress Photo task */
+
 .progress-photo-title::after {
     display: none !important;
 }
 
-/* Ensure the Progress Photo task doesn't have any recurring indicators */
+
 .progress-photo-task .task-title-container.recurring::after {
     display: none !important;
 }
@@ -22,7 +22,7 @@
     display: none !important;
 }
 
-/* Hide any recurrence interval badges */
+
 .progress-photo-task .recurrence-interval {
     display: none !important;
 }

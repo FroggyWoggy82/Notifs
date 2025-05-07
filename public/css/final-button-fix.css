@@ -3,12 +3,12 @@
  * CSS to ensure only one set of buttons is displayed in edit forms
  */
 
-/* Hide all form-actions except the last one */
+
 .edit-ingredient-form .form-actions:not(:last-of-type) {
     display: none !important;
 }
 
-/* Make sure the last form-actions is visible and properly styled */
+
 .edit-ingredient-form .form-actions:last-of-type {
     display: flex !important;
     justify-content: space-between !important;
@@ -16,7 +16,7 @@
     margin-bottom: 5px !important;
 }
 
-/* Style the Save Changes button */
+
 .edit-ingredient-form .form-actions:last-of-type button.save-ingredient-btn {
     background-color: #333 !important;
     color: white !important;
@@ -27,7 +27,7 @@
     transition: background-color 0.2s !important;
 }
 
-/* Style the Cancel button */
+
 .edit-ingredient-form .form-actions:last-of-type button.cancel-edit-btn {
     background-color: #333 !important;
     color: white !important;
@@ -38,12 +38,12 @@
     transition: background-color 0.2s !important;
 }
 
-/* Hover effect for buttons */
+
 .edit-ingredient-form .form-actions:last-of-type button:hover {
     background-color: #444 !important;
 }
 
-/* Hide any standalone buttons that might be outside of form-actions */
+
 .edit-ingredient-form > button.save-ingredient-btn,
 .edit-ingredient-form > button.cancel-edit-btn,
 .edit-ingredient-form > button[type="submit"],
@@ -51,7 +51,7 @@
     display: none !important;
 }
 
-/* Hide any buttons that might be directly in the form */
+
 .edit-ingredient-form form > button.save-ingredient-btn,
 .edit-ingredient-form form > button.cancel-edit-btn,
 .edit-ingredient-form form > button[type="submit"],
@@ -59,7 +59,7 @@
     display: none !important;
 }
 
-/* Hide any buttons that might be in the middle of the form */
+
 .edit-ingredient-form form > div:not(.form-actions) button.save-ingredient-btn,
 .edit-ingredient-form form > div:not(.form-actions) button.cancel-edit-btn,
 .edit-ingredient-form form > div:not(.form-actions) button[type="submit"],

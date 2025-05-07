@@ -3,7 +3,7 @@
  * This file contains styles for the new weight increment container
  */
 
-/* Style the weight increment container */
+
 .weight-increment-container {
     display: inline-block;
     background: none;
@@ -15,7 +15,7 @@
     height: auto;
 }
 
-/* Style the weight increment text */
+
 .weight-increment-text {
     color: #bbb;
     font-size: 0.9rem;
@@ -28,7 +28,7 @@
     line-height: normal;
 }
 
-/* Ensure the weight increment container doesn't get any button styling */
+
 .weight-increment-container button,
 .weight-increment-container::after,
 .weight-increment-container::before,
@@ -48,7 +48,7 @@
     z-index: -1 !important;
 }
 
-/* Ensure the weight increment container has the same layout as the weight unit label */
+
 .exercise-options-menu-label .weight-increment-container {
     flex: 1;
     font-size: 0.9rem;

@@ -1,9 +1,9 @@
-// Nutrition Label Scanner functionality
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Function to set up event listeners for scan buttons
+
     function setupScanButtons() {
         console.log('Setting up scan buttons...');
-        // Use event delegation for scan buttons
+
         document.addEventListener('click', (event) => {
             console.log('Click event detected on:', event.target);
             if (event.target.classList.contains('scan-nutrition-btn') || event.target.classList.contains('scan-template-btn')) {
@@ -12,12 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fileInput = ingredientItem.querySelector('.nutrition-image-input');
                 console.log('Found file input:', fileInput);
 
-                // Set OCR type based on which button was clicked
                 if (event.target.classList.contains('scan-template-btn')) {
                     ingredientItem.dataset.ocrType = 'template';
                     console.log('Using template-based OCR');
                 } else {
-                    // Use the selected OCR type from the dropdown
+
                     const ocrTypeSelector = ingredientItem.querySelector('.ocr-type-selector');
                     ingredientItem.dataset.ocrType = ocrTypeSelector ? ocrTypeSelector.value : 'auto';
                     console.log('Using OCR type:', ingredientItem.dataset.ocrType);
@@ -32,23 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ingredientItem = event.target.closest('.ingredient-item');
                 const pasteArea = ingredientItem.querySelector('.paste-area');
 
-                // Use the selected OCR type from the dropdown
                 const ocrTypeSelector = ingredientItem.querySelector('.ocr-type-selector');
                 ingredientItem.dataset.ocrType = ocrTypeSelector ? ocrTypeSelector.value : 'auto';
                 console.log('Using OCR type for paste:', ingredientItem.dataset.ocrType);
 
                 if (pasteArea) {
-                    // Focus the paste area to make it ready for paste
+
                     pasteArea.focus();
-                    // Add active class to indicate it's ready for paste
+
                     pasteArea.classList.add('active');
-                    // Show a message to the user
+
                     alert('Now press Ctrl+V to paste your screenshot');
                 }
             }
         });
 
-        // Use event delegation for file inputs
         document.addEventListener('change', (event) => {
             console.log('Change event detected on:', event.target);
             if (event.target.classList.contains('nutrition-image-input')) {
@@ -63,36 +60,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Set up clipboard paste event listeners
         setupClipboardPaste();
     }
 
-    // Function to set up OCR toggle (removed PaddleOCR specific code)
     function setupPaddleOCRToggle() {
-        // This function is kept for backward compatibility but no longer does anything
+
         console.log('OCR toggle setup - using Google Cloud Vision by default');
     }
 
-    // Function to set up clipboard paste functionality
     function setupClipboardPaste() {
-        // Use event delegation for paste events
+
         document.addEventListener('paste', (event) => {
-            // Check if the active element is a paste area
+
             const pasteArea = document.activeElement.closest('.paste-area');
             if (!pasteArea) return;
 
-            // Get the ingredient item
             const ingredientItem = pasteArea.closest('.ingredient-item');
             if (!ingredientItem) return;
 
-            // Prevent the default paste behavior
             event.preventDefault();
 
-            // Get the clipboard items
             const clipboardItems = event.clipboardData.items;
             let imageFile = null;
 
-            // Look for an image in the clipboard
             for (let i = 0; i < clipboardItems.length; i++) {
                 if (clipboardItems[i].type.indexOf('image') !== -1) {
                     imageFile = clipboardItems[i].getAsFile();
@@ -100,23 +90,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // If an image was found, process it
             if (imageFile) {
                 console.log('Image found in clipboard:', imageFile);
 
-                // Show a preview of the image
                 const previewDiv = pasteArea.querySelector('.paste-preview');
                 const instructionsDiv = pasteArea.querySelector('.paste-instructions');
 
                 if (previewDiv && instructionsDiv) {
-                    // Create a URL for the image
+
                     const imageUrl = URL.createObjectURL(imageFile);
 
-                    // Create an image element
                     const img = document.createElement('img');
                     img.src = imageUrl;
 
-                    // Create a remove button
                     const removeBtn = document.createElement('button');
                     removeBtn.className = 'remove-image';
                     removeBtn.innerHTML = '×';
@@ -129,87 +115,74 @@ document.addEventListener('DOMContentLoaded', () => {
                         pasteArea.classList.remove('active');
                     });
 
-                    // Clear the preview and add the new image
                     previewDiv.innerHTML = '';
                     previewDiv.appendChild(img);
                     previewDiv.appendChild(removeBtn);
                     previewDiv.classList.add('has-image');
 
-                    // Hide the instructions
                     instructionsDiv.style.display = 'none';
                 }
 
-                // Process the image
                 processNutritionImage(imageFile, ingredientItem);
             } else {
                 console.log('No image found in clipboard');
                 alert('No image found in clipboard. Please copy an image first.');
             }
 
-            // Remove the active class
             pasteArea.classList.remove('active');
         });
 
-        // Add click event listener to paste areas
         document.addEventListener('click', (event) => {
             const pasteArea = event.target.closest('.paste-area');
             if (pasteArea) {
-                // Focus the paste area
+
                 pasteArea.focus();
-                // Add active class
+
                 pasteArea.classList.add('active');
             } else {
-                // Remove active class from all paste areas when clicking elsewhere
+
                 document.querySelectorAll('.paste-area.active').forEach(area => {
                     area.classList.remove('active');
                 });
             }
         });
 
-        // Add blur event listener to paste areas
         document.addEventListener('blur', (event) => {
             if (event.target.classList.contains('paste-area')) {
-                // Remove active class when the paste area loses focus
+
                 event.target.classList.remove('active');
             }
         }, true);
     }
 
-    // Function to process the nutrition image
     async function processNutritionImage(file, ingredientItem) {
-        // Show loading status
+
         const scanStatus = ingredientItem.querySelector('.scan-status');
         scanStatus.textContent = 'Processing image...';
         scanStatus.className = 'scan-status loading';
         scanStatus.style.display = 'block';
 
-        // Log information about the file for debugging
         console.log(`Processing file: ${file.name}, size: ${file.size} bytes, type: ${file.type}`);
 
-        // Create a FormData object to send the file to the server
         const formData = new FormData();
         formData.append('image', file);
 
-        // Variable to store the nutrition data
         let nutritionData = null;
         let response = null;
 
         try {
-            // Get the OCR type from the ingredient item's dataset
+
             const ocrType = ingredientItem.dataset.ocrType || 'auto';
             console.log('Using OCR type:', ocrType);
 
-            // Define endpoints based on OCR type
             let endpoints = [];
 
-            // Always use Google Cloud Vision OCR
             console.log('OCR engine set to: Google Cloud Vision');
             scanStatus.textContent = 'Processing image with Google Cloud Vision...';
             endpoints = [
                 '/api/vision-ocr/nutrition'
             ];
 
-            // Try each endpoint in sequence
             for (const endpoint of endpoints) {
                 try {
                     console.log(`Trying ${endpoint} endpoint...`);
@@ -230,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // If all endpoints failed, show error
             if (!nutritionData) {
                 console.log('All API endpoints failed, showing error');
                 throw new Error('Failed to extract nutrition information from image. Please try again or enter values manually.');
@@ -238,10 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Final OCR Results:', nutritionData);
 
-            // Fill in the form fields with the extracted data
             fillNutritionFields(ingredientItem, nutritionData);
 
-            // Show appropriate message based on whether fallback data was used or auto-corrections were made
             if (nutritionData.fallback) {
                 if (nutritionData.ocrResults && nutritionData.ocrResults.some(result => result.text && result.text.includes('PaddleOCR not installed'))) {
                     scanStatus.textContent = 'Using sample nutrition data (PaddleOCR not installed)';
@@ -260,48 +230,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 scanStatus.className = 'scan-status success';
             }
 
-            // Hide the status after 3 seconds
             setTimeout(() => {
                 scanStatus.style.display = 'none';
             }, 3000);
         } catch (error) {
             console.error('Error processing nutrition image:', error);
 
-            // Show error message
             scanStatus.textContent = `${error.message}`;
             scanStatus.className = 'scan-status error';
             scanStatus.style.display = 'block';
 
-            // Keep the error message visible for 5 seconds
             setTimeout(() => {
                 scanStatus.style.display = 'none';
             }, 5000);
         }
     }
 
-    // Function to fill in the nutrition fields
     function fillNutritionFields(ingredientItem, data) {
-        // Get all the basic input fields
+
         const caloriesInput = ingredientItem.querySelector('.ingredient-calories');
         const amountInput = ingredientItem.querySelector('.ingredient-amount');
         const proteinInput = ingredientItem.querySelector('.ingredient-protein');
         const fatInput = ingredientItem.querySelector('.ingredient-fat');
         const carbsInput = ingredientItem.querySelector('.ingredient-carbs');
 
-        // Fill in the basic fields if data is available
-        // Only update fields with non-null values
+
         if (data.amount !== null && data.amount !== undefined) {
             amountInput.value = data.amount;
-            // Store original value if auto-corrected
+
             if (data.amountCorrected && data.originalAmount !== undefined) {
                 amountInput.dataset.originalValue = data.originalAmount;
             }
         }
 
-        // Update hidden fields with the latest values only if they're not null
         if (data.calories !== null && data.calories !== undefined) {
             caloriesInput.value = data.calories;
-            // Store original value if auto-corrected
+
             if (data.caloriesCorrected && data.originalCalories !== undefined) {
                 caloriesInput.dataset.originalValue = data.originalCalories;
             }
@@ -309,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.protein !== null && data.protein !== undefined) {
             proteinInput.value = data.protein;
-            // Store original value if auto-corrected
+
             if (data.proteinCorrected && data.originalProtein !== undefined) {
                 proteinInput.dataset.originalValue = data.originalProtein;
             }
@@ -317,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.fat !== null && data.fat !== undefined) {
             fatInput.value = data.fat;
-            // Store original value if auto-corrected
+
             if (data.fatCorrected && data.originalFat !== undefined) {
                 fatInput.dataset.originalValue = data.originalFat;
             }
@@ -325,23 +289,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.carbs !== null && data.carbs !== undefined) {
             carbsInput.value = data.carbs;
-            // Store original value if auto-corrected
+
             if (data.carbsCorrected && data.originalCarbs !== undefined) {
                 carbsInput.dataset.originalValue = data.originalCarbs;
             }
         }
 
-        // Only highlight fields that were actually filled, with special highlighting for auto-corrected values
         highlightField(amountInput, data.amount !== null && data.amount !== undefined, data.amountCorrected);
 
-        // Get and fill detailed nutrition fields
-        // General section
+
         const energyInput = ingredientItem.querySelector('.nutrition-energy');
         const alcoholInput = ingredientItem.querySelector('.nutrition-alcohol');
         const caffeineInput = ingredientItem.querySelector('.nutrition-caffeine');
         const waterInput = ingredientItem.querySelector('.nutrition-water');
 
-        // Carbohydrates section
         const carbsTotalInput = ingredientItem.querySelector('.nutrition-carbs-total');
         const fiberInput = ingredientItem.querySelector('.nutrition-fiber');
         const starchInput = ingredientItem.querySelector('.nutrition-starch');
@@ -349,7 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const addedSugarsInput = ingredientItem.querySelector('.nutrition-added-sugars');
         const netCarbsInput = ingredientItem.querySelector('.nutrition-net-carbs');
 
-        // Lipids section
         const fatTotalInput = ingredientItem.querySelector('.nutrition-fat-total');
         const saturatedInput = ingredientItem.querySelector('.nutrition-saturated');
         const monounsaturatedInput = ingredientItem.querySelector('.nutrition-monounsaturated');
@@ -359,7 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const transFatInput = ingredientItem.querySelector('.nutrition-trans-fat');
         const cholesterolInput = ingredientItem.querySelector('.nutrition-cholesterol');
 
-        // Protein section
         const proteinTotalInput = ingredientItem.querySelector('.nutrition-protein-total');
         const cystineInput = ingredientItem.querySelector('.nutrition-cystine');
         const histidineInput = ingredientItem.querySelector('.nutrition-histidine');
@@ -373,7 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const tyrosineInput = ingredientItem.querySelector('.nutrition-tyrosine');
         const valineInput = ingredientItem.querySelector('.nutrition-valine');
 
-        // Vitamins section
         const vitaminB1Input = ingredientItem.querySelector('.nutrition-vitamin-b1');
         const vitaminB2Input = ingredientItem.querySelector('.nutrition-vitamin-b2');
         const vitaminB3Input = ingredientItem.querySelector('.nutrition-vitamin-b3');
@@ -387,7 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const vitaminEInput = ingredientItem.querySelector('.nutrition-vitamin-e');
         const vitaminKInput = ingredientItem.querySelector('.nutrition-vitamin-k');
 
-        // Minerals section
         const calciumInput = ingredientItem.querySelector('.nutrition-calcium');
         const copperInput = ingredientItem.querySelector('.nutrition-copper');
         const ironInput = ingredientItem.querySelector('.nutrition-iron');
@@ -399,11 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const sodiumInput = ingredientItem.querySelector('.nutrition-sodium');
         const zincInput = ingredientItem.querySelector('.nutrition-zinc');
 
-        // Fill in detailed fields with data from the scan or with the basic values
-        // General section
+
         if (energyInput && data.calories !== null && data.calories !== undefined) {
             energyInput.value = data.calories;
-            // Store original value if auto-corrected
+
             if (data.caloriesCorrected && data.originalCalories !== undefined) {
                 energyInput.dataset.originalValue = data.originalCalories;
             }
@@ -418,10 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Carbohydrates section
         if (carbsTotalInput && data.carbs !== null && data.carbs !== undefined) {
             carbsTotalInput.value = data.carbs;
-            // Store original value if auto-corrected
+
             if (data.carbsCorrected && data.originalCarbs !== undefined) {
                 carbsTotalInput.dataset.originalValue = data.originalCarbs;
             }
@@ -432,10 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (addedSugarsInput && data.addedSugars !== null && data.addedSugars !== undefined) addedSugarsInput.value = data.addedSugars;
         if (netCarbsInput && data.netCarbs !== null && data.netCarbs !== undefined) netCarbsInput.value = data.netCarbs;
 
-        // Lipids section
         if (fatTotalInput && data.fat !== null && data.fat !== undefined) {
             fatTotalInput.value = data.fat;
-            // Store original value if auto-corrected
+
             if (data.fatCorrected && data.originalFat !== undefined) {
                 fatTotalInput.dataset.originalValue = data.originalFat;
             }
@@ -448,10 +402,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (transFatInput && data.transFat !== null && data.transFat !== undefined) transFatInput.value = data.transFat;
         if (cholesterolInput && data.cholesterol !== null && data.cholesterol !== undefined) cholesterolInput.value = data.cholesterol;
 
-        // Protein section
         if (proteinTotalInput && data.protein !== null && data.protein !== undefined) {
             proteinTotalInput.value = data.protein;
-            // Store original value if auto-corrected
+
             if (data.proteinCorrected && data.originalProtein !== undefined) {
                 proteinTotalInput.dataset.originalValue = data.originalProtein;
             }
@@ -468,7 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tyrosineInput && data.tyrosine !== null && data.tyrosine !== undefined) tyrosineInput.value = data.tyrosine;
         if (valineInput && data.valine !== null && data.valine !== undefined) valineInput.value = data.valine;
 
-        // Vitamins section
         if (vitaminB1Input && data.vitaminB1 !== null && data.vitaminB1 !== undefined) vitaminB1Input.value = data.vitaminB1;
         if (vitaminB2Input && data.vitaminB2 !== null && data.vitaminB2 !== undefined) vitaminB2Input.value = data.vitaminB2;
         if (vitaminB3Input && data.vitaminB3 !== null && data.vitaminB3 !== undefined) vitaminB3Input.value = data.vitaminB3;
@@ -482,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (vitaminEInput && data.vitaminE !== null && data.vitaminE !== undefined) vitaminEInput.value = data.vitaminE;
         if (vitaminKInput && data.vitaminK !== null && data.vitaminK !== undefined) vitaminKInput.value = data.vitaminK;
 
-        // Minerals section
         if (calciumInput && data.calcium !== null && data.calcium !== undefined) calciumInput.value = data.calcium;
         if (copperInput && data.copper !== null && data.copper !== undefined) copperInput.value = data.copper;
         if (ironInput && data.iron !== null && data.iron !== undefined) ironInput.value = data.iron;
@@ -494,8 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sodiumInput && data.sodium !== null && data.sodium !== undefined) sodiumInput.value = data.sodium;
         if (zincInput && data.zinc !== null && data.zinc !== undefined) zincInput.value = data.zinc;
 
-        // Highlight detailed fields that were filled
-        // General section
+
         if (energyInput) {
             highlightField(energyInput, data.calories !== null && data.calories !== undefined, data.caloriesCorrected);
             addPercentageIndicator(energyInput, 'calories', data.percentages);
@@ -513,7 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPercentageIndicator(waterInput, 'water', data.percentages);
         }
 
-        // Carbohydrates section
         if (carbsTotalInput) {
             highlightField(carbsTotalInput, data.carbs !== null && data.carbs !== undefined, data.carbsCorrected);
             addPercentageIndicator(carbsTotalInput, 'carbs', data.percentages);
@@ -539,7 +488,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPercentageIndicator(netCarbsInput, 'netCarbs', data.percentages);
         }
 
-        // Lipids section
         if (fatTotalInput) {
             highlightField(fatTotalInput, data.fat !== null && data.fat !== undefined, data.fatCorrected);
             addPercentageIndicator(fatTotalInput, 'fat', data.percentages);
@@ -573,7 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPercentageIndicator(cholesterolInput, 'cholesterol', data.percentages);
         }
 
-        // Protein section
         if (proteinTotalInput) {
             highlightField(proteinTotalInput, data.protein !== null && data.protein !== undefined, data.proteinCorrected);
             addPercentageIndicator(proteinTotalInput, 'protein', data.percentages);
@@ -623,7 +570,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPercentageIndicator(valineInput, 'valine', data.percentages);
         }
 
-        // Vitamins section
         if (vitaminB1Input) {
             highlightField(vitaminB1Input, data.vitaminB1 !== null && data.vitaminB1 !== undefined);
             addPercentageIndicator(vitaminB1Input, 'vitaminB1', data.percentages);
@@ -673,7 +619,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPercentageIndicator(vitaminKInput, 'vitaminK', data.percentages);
         }
 
-        // Minerals section
         if (calciumInput) {
             highlightField(calciumInput, data.calcium !== null && data.calcium !== undefined);
             addPercentageIndicator(calciumInput, 'calcium', data.percentages);
@@ -715,7 +660,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPercentageIndicator(zincInput, 'zinc', data.percentages);
         }
 
-        // Add a note about N/T values if any were found
         if (data.percentages && Object.values(data.percentages).some(val => val === 'N/T')) {
             const scanStatus = ingredientItem.querySelector('.scan-status');
             if (scanStatus) {
@@ -724,9 +668,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Function to add percentage indicators to nutrition fields
     function addPercentageIndicator(inputElement, nutrientName, percentages) {
-        // Remove any existing percentage indicator
+
         const parentElement = inputElement.closest('.nutrition-item');
         if (!parentElement) return;
 
@@ -735,15 +678,12 @@ document.addEventListener('DOMContentLoaded', () => {
             existingIndicator.remove();
         }
 
-        // Check if we have a percentage value for this nutrient
         if (percentages && (percentages[nutrientName] !== undefined || percentages[nutrientName.toLowerCase()] !== undefined)) {
             const percentValue = percentages[nutrientName] !== undefined ? percentages[nutrientName] : percentages[nutrientName.toLowerCase()];
 
-            // Create the percentage indicator
             const indicator = document.createElement('span');
             indicator.className = 'nutrition-percentage';
 
-            // Handle N/T values differently
             if (percentValue === 'N/T') {
                 indicator.textContent = 'N/T';
                 indicator.classList.add('nt');
@@ -753,53 +693,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 indicator.title = `${percentValue}% of daily recommended value`;
             }
 
-            // Add the indicator to the parent element
             parentElement.appendChild(indicator);
         }
     }
 
-    // Function to highlight a field that was filled or needs to be filled
     function highlightField(inputElement, wasUpdated, wasAutoCorrected = false) {
         if (wasUpdated) {
             if (wasAutoCorrected) {
-                // Add a persistent green highlight for auto-corrected fields
+
                 inputElement.style.backgroundColor = '#c3e6cb'; // Darker green
                 inputElement.style.borderColor = '#28a745'; // Bootstrap success color
                 inputElement.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)'; // Green glow
                 inputElement.classList.add('auto-corrected');
 
-                // Add a tooltip or data attribute to show the original value
                 if (inputElement.dataset.originalValue) {
                     inputElement.title = `Auto-corrected from: ${inputElement.dataset.originalValue}`;
                 } else {
                     inputElement.title = 'Auto-corrected value - please verify';
                 }
             } else {
-                // Add a temporary highlight effect for filled fields
+
                 inputElement.style.backgroundColor = '#d4edda';
                 inputElement.style.borderColor = '#c3e6cb';
 
-                // Remove the highlight after 2 seconds
                 setTimeout(() => {
                     inputElement.style.backgroundColor = '';
                     inputElement.style.borderColor = '';
                 }, 2000);
             }
         } else {
-            // Highlight fields that need to be filled with a more noticeable color
+
             inputElement.style.backgroundColor = '#fff3cd';
             inputElement.style.borderColor = '#ffc107';
             inputElement.style.boxShadow = '0 0 0 0.2rem rgba(255, 193, 7, 0.25)';
 
-            // Keep the highlight for these fields
-            // Add a subtle pulsing effect to draw attention to empty fields
+
             inputElement.classList.add('empty-field-highlight');
         }
     }
 
-    // Function to set up the detailed nutrition toggle buttons
     function setupDetailedNutritionToggles() {
-        // Use event delegation for toggle buttons
+
         document.addEventListener('click', (event) => {
             if (event.target.classList.contains('toggle-detailed-nutrition')) {
                 const button = event.target;
@@ -815,7 +749,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Auto-expand detailed nutrition on page load for better visibility
         document.querySelectorAll('.detailed-nutrition-panel').forEach(panel => {
             panel.style.display = 'block';
             const button = panel.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
@@ -823,18 +756,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Function to update hidden fields when detailed nutrition fields change
     function setupNutritionFieldSync() {
-        // We no longer need to listen for changes to the basic fields since they're hidden
 
-        // Listen for changes to the detailed nutrition fields
+
         document.addEventListener('change', (event) => {
             const target = event.target;
             const ingredientItem = target.closest('.ingredient-item');
 
             if (!ingredientItem) return;
 
-            // Update hidden fields when detailed fields change
             if (target.classList.contains('nutrition-energy')) {
                 const caloriesInput = ingredientItem.querySelector('.ingredient-calories');
                 if (caloriesInput) caloriesInput.value = target.value;
@@ -857,7 +787,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initialize the scanner functionality
     setupScanButtons();
     setupPaddleOCRToggle();
     setupDetailedNutritionToggles();

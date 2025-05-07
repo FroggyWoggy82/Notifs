@@ -3,13 +3,13 @@
  * Makes the "+ New Habit" button text white and improves progress badges
  */
 
-/* Make the "+ New Habit" button text white */
+
 #addHabitBtn,
 .btn--primary {
     color: white !important;
 }
 
-/* Style the progress badges with dark background and white text */
+
 .habit-progress-container,
 .habit-progress,
 .habit-item .habit-progress-container {
@@ -19,7 +19,7 @@
     box-shadow: none !important;
 }
 
-/* Override any level-specific styling */
+
 .habit-progress.level-1,
 .habit-progress.level-3,
 .habit-progress.level-5,
@@ -30,7 +30,7 @@
     box-shadow: none !important;
 }
 
-/* Ensure the progress badges have consistent styling */
+
 .habit-progress-container,
 .habit-progress,
 .habit-item .habit-progress-container {

@@ -3,7 +3,7 @@
  * Specifically targets and fixes the Basic Information section when editing an existing ingredient
  */
 
-/* Target the Basic Information section in edit forms */
+
 .edit-ingredient-form form > div:first-of-type,
 .edit-ingredient-form .form-group-row,
 .edit-ingredient-form .basic-information {
@@ -17,7 +17,7 @@
     flex-direction: column !important;
 }
 
-/* Add a header to the Basic Information section if it doesn't have one */
+
 .edit-ingredient-form form > div:first-of-type:not(:has(> h4)):before,
 .edit-ingredient-form .form-group-row:not(:has(> h4)):before {
     content: "Basic Information";
@@ -30,7 +30,7 @@
     font-size: 0.85em !important;
 }
 
-/* Style the Basic Information header */
+
 .edit-ingredient-form form > div:first-of-type > h4,
 .edit-ingredient-form .form-group-row > h4,
 .edit-ingredient-form .basic-information > h4 {
@@ -43,7 +43,7 @@
     font-size: 0.85em !important;
 }
 
-/* Create a grid layout for the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type > .nutrition-grid,
 .edit-ingredient-form .form-group-row > .nutrition-grid,
 .edit-ingredient-form .basic-information > .nutrition-grid {
@@ -53,7 +53,7 @@
     margin-bottom: 0 !important;
 }
 
-/* Style the form groups in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type > .form-group,
 .edit-ingredient-form .form-group-row > .form-group {
     margin-bottom: 2px !important;
@@ -62,7 +62,7 @@
     width: auto !important;
 }
 
-/* Style the labels in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type label,
 .edit-ingredient-form .form-group-row label,
 .edit-ingredient-form .basic-information label {
@@ -75,7 +75,7 @@
     text-overflow: ellipsis !important;
 }
 
-/* Style the inputs in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type input,
 .edit-ingredient-form .form-group-row input,
 .edit-ingredient-form .basic-information input {
@@ -89,14 +89,14 @@
     border-radius: 3px !important;
 }
 
-/* Make the name field wider */
+
 .edit-ingredient-form form > div:first-of-type input#edit-ingredient-name,
 .edit-ingredient-form .form-group-row input#edit-ingredient-name,
 .edit-ingredient-form .basic-information input#edit-ingredient-name {
     width: 80px !important;
 }
 
-/* Hide any form groups that have been replaced with nutrition items */
+
 .edit-ingredient-form .basic-information .form-group.replaced,
 .edit-ingredient-form form > div:first-of-type > .form-group.replaced,
 .edit-ingredient-form .form-group-row > .form-group.replaced {

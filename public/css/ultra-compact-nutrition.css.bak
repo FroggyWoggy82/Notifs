@@ -1,0 +1,74 @@
+/**
+ * Ultra Compact Nutrition Display
+ * Makes the nutrition display extremely compact
+ */
+
+/* Override any existing spacing */
+.detailed-nutrition-panel {
+    padding: 6px !important;
+    margin-top: 6px !important;
+}
+
+/* Make sections more compact */
+.nutrition-section {
+    margin-bottom: 6px !important;
+    padding-bottom: 4px !important;
+}
+
+/* Reduce header size */
+.nutrition-section h4 {
+    font-size: 0.75em !important;
+    margin-bottom: 3px !important;
+    padding-bottom: 1px !important;
+}
+
+/* Make grid denser */
+.nutrition-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+    gap: 3px !important;
+}
+
+/* Make input fields smaller */
+.nutrition-item input,
+.nutrition-item input[type="number"] {
+    height: 16px !important;
+    padding: 1px 2px !important;
+    font-size: 0.65em !important;
+}
+
+/* Make labels smaller */
+.nutrition-item label {
+    font-size: 0.6em !important;
+    margin-bottom: 0 !important;
+    line-height: 1.1 !important;
+}
+
+/* Reduce spacing between items */
+.nutrition-item {
+    margin-bottom: 1px !important;
+}
+
+/* Make form more compact */
+.edit-ingredient-form form {
+    gap: 4px !important;
+}
+
+/* Make form actions more compact */
+.edit-ingredient-form .form-actions {
+    margin-top: 4px !important;
+    gap: 4px !important;
+}
+
+/* Make buttons smaller */
+.edit-ingredient-form .form-actions button {
+    padding: 2px 6px !important;
+    font-size: 0.7em !important;
+    height: 20px !important;
+}
+
+/* Responsive adjustments for very small screens */
+@media (max-width: 768px) {
+    .nutrition-grid {
+        grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important;
+    }
+}

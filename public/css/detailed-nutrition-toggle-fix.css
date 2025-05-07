@@ -3,7 +3,7 @@
  * Ensures proper styling when toggling sections
  */
 
-/* Style for the toggle button */
+
 button.toggle-detailed-nutrition,
 #show-detailed-nutrition-btn,
 button.show-detailed-nutrition {
@@ -23,7 +23,7 @@ button.show-detailed-nutrition {
     height: 28px !important;
 }
 
-/* Hover state for the toggle button */
+
 button.toggle-detailed-nutrition:hover,
 #show-detailed-nutrition-btn:hover,
 button.show-detailed-nutrition:hover {
@@ -31,14 +31,14 @@ button.show-detailed-nutrition:hover {
     transform: translateY(-1px) !important;
 }
 
-/* Ensure the button is properly positioned */
+
 .nutrition-summary button,
 .nutrition-controls button {
     margin: 10px auto !important;
     display: block !important;
 }
 
-/* Initially hide all sections except General */
+
 .carbohydrates,
 .lipids,
 .protein,
@@ -52,13 +52,13 @@ section.minerals {
     display: none !important;
 }
 
-/* Always show the General section */
+
 .general,
 section.general {
     display: block !important;
 }
 
-/* Override the display property when sections are toggled */
+
 .carbohydrates.show,
 .lipids.show,
 .protein.show,
@@ -72,7 +72,7 @@ section.minerals.show {
     display: block !important;
 }
 
-/* Ensure the nutrition sections are properly spaced */
+
 .nutrition-section,
 section.general,
 section.carbohydrates,
@@ -85,7 +85,7 @@ section.minerals {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Style for section headers */
+
 .nutrition-section h4,
 section h4 {
     font-size: 0.85em !important;

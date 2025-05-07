@@ -8,24 +8,19 @@
 (function() {
     console.log('[Overdue Recurrence Adjuster] Script loaded');
 
-    // We need to wait a bit to ensure all other scripts are fully loaded
     setTimeout(initOverdueRecurrenceAdjuster, 1000);
 
     function initOverdueRecurrenceAdjuster() {
         console.log('[Overdue Recurrence Adjuster] Initializing...');
 
-        // Dump all task items for debugging
         scanForOverdueRecurringTasks();
 
-        // Set up a periodic scan to detect overdue recurring tasks
         setInterval(scanForOverdueRecurringTasks, 5000);
 
-        // Find the task list container
         const taskListContainer = document.getElementById('task-list-container');
         if (!taskListContainer) {
             console.error('[Overdue Recurrence Adjuster] Could not find task-list-container');
 
-            // Try to find an alternative container
             const alternativeContainer = document.querySelector('.task-list') || document.body;
             if (alternativeContainer) {
                 console.log('[Overdue Recurrence Adjuster] Found alternative container:', alternativeContainer.className || 'body');
@@ -38,36 +33,29 @@
             attachEventListener(taskListContainer);
         }
 
-        // Also attach to document body as a fallback
         console.log('[Overdue Recurrence Adjuster] Adding fallback event listener to document body');
         attachEventListener(document.body);
 
-        // Add a direct click handler to all checkboxes
         document.addEventListener('click', function(event) {
-            // Check if this is a checkbox
+
             if (event.target.type === 'checkbox' && event.target.closest('.task-item')) {
                 console.log('[Overdue Recurrence Adjuster] Direct checkbox click detected');
 
-                // Get the task item
                 const taskItem = event.target.closest('.task-item');
                 const checkbox = event.target;
 
-                // Only handle when tasks are being marked as complete
                 if (!checkbox.checked) {
                     return;
                 }
 
-                // Check if this is a recurring task that's overdue using our enhanced detection
                 const isOverdueRecurring = isTaskOverdueAndRecurring(taskItem);
 
                 if (isOverdueRecurring) {
                     console.log('[Overdue Recurrence Adjuster] Direct handler found overdue recurring task');
 
-                    // Prevent the default behavior
                     event.preventDefault();
                     event.stopPropagation();
 
-                    // Handle the task
                     handleOverdueRecurringTask(event, checkbox, taskItem);
                 }
             }
@@ -91,10 +79,8 @@
                 overdueRecurringCount++;
                 console.log(`[Overdue Recurrence Adjuster] Found overdue recurring task #${index}: "${taskTitle}"`);
 
-                // Add a data attribute to mark this task for easier identification
                 item.setAttribute('data-overdue-recurring', 'true');
 
-                // Add a click handler directly to this task's checkbox
                 const checkbox = item.querySelector('input[type="checkbox"]');
                 if (checkbox && !checkbox.hasAttribute('data-overdue-handler')) {
                     checkbox.setAttribute('data-overdue-handler', 'true');
@@ -104,11 +90,9 @@
 
                         console.log('[Overdue Recurrence Adjuster] Direct checkbox handler triggered');
 
-                        // Prevent the default behavior
                         event.preventDefault();
                         event.stopPropagation();
 
-                        // Handle the task
                         handleOverdueRecurringTask(event, checkbox, item);
                     }, true);
                 }
@@ -124,7 +108,7 @@
      * @returns {boolean} - Whether the task is both overdue and recurring
      */
     function isTaskOverdueAndRecurring(taskItem) {
-        // Check for overdue indicators
+
         const isOverdue = taskItem.classList.contains('overdue') ||
                           taskItem.getAttribute('data-overdue') === 'true' ||
                           taskItem.style.backgroundColor === 'rgb(255, 235, 238)' || // #ffebee
@@ -132,7 +116,6 @@
                           taskItem.style.borderLeftColor === 'rgb(244, 67, 54)' ||   // #f44336
                           taskItem.querySelector('.due-date-indicator.overdue') !== null;
 
-        // Check for recurrence indicators
         const recurrenceIndicator = taskItem.querySelector('.recurrence-indicator');
         const dueDateText = taskItem.querySelector('.due-date-indicator')?.textContent || '';
         const taskText = taskItem.textContent || '';
@@ -145,9 +128,9 @@
     }
 
     function attachEventListener(container) {
-        // Add a direct event listener for checkbox clicks
+
         container.addEventListener('click', async function(event) {
-            // Check if this is a checkbox or a click near a checkbox
+
             const checkbox = event.target.type === 'checkbox' ?
                              event.target :
                              event.target.closest('.task-item')?.querySelector('input[type="checkbox"]');
@@ -158,8 +141,7 @@
 
             console.log('[Overdue Recurrence Adjuster] Checkbox or task item clicked');
 
-            // Only handle when tasks are being marked as complete
-            // For clicks on the task item, we need to check if the checkbox would be checked after the click
+
             const wouldBeChecked = event.target === checkbox ?
                                   !checkbox.checked : // It will toggle
                                   !checkbox.checked;  // It will be checked if it's currently unchecked
@@ -169,22 +151,19 @@
                 return;
             }
 
-            // Get the task item
             const taskItem = checkbox.closest('.task-item');
             if (!taskItem) {
                 console.error('[Overdue Recurrence Adjuster] Could not find parent task-item element');
                 return;
             }
 
-            // Check if this is a recurring task that's overdue
-            // Look for multiple indicators of overdue status
+
             const isOverdue = taskItem.classList.contains('overdue') ||
                               taskItem.getAttribute('data-overdue') === 'true' ||
                               taskItem.style.backgroundColor === 'rgb(255, 235, 238)' || // #ffebee
                               taskItem.style.borderLeftColor === 'rgb(244, 67, 54)' ||   // #f44336
                               taskItem.querySelector('.due-date-indicator.overdue') !== null;
 
-            // Look for multiple indicators of recurrence
             const recurrenceIndicator = taskItem.querySelector('.recurrence-indicator');
             const recurrenceText = taskItem.textContent.match(/daily|weekly|monthly|yearly/i);
             const isRecurring = recurrenceIndicator !== null || recurrenceText !== null;
@@ -207,17 +186,15 @@
                 taskHTML: taskItem.innerHTML.substring(0, 200) + '...' // First 200 chars for debugging
             });
 
-            // If it's an overdue recurring task, show the confirmation dialog
             if (isOverdue && isRecurring) {
                 console.log('[Overdue Recurrence Adjuster] Found overdue recurring task, handling...');
 
-                // Prevent the default behavior
                 event.preventDefault();
                 event.stopPropagation();
 
                 handleOverdueRecurringTask(event, checkbox, taskItem);
             } else {
-                // For non-overdue or non-recurring tasks, let the default handler take over
+
                 console.log('[Overdue Recurrence Adjuster] Not an overdue recurring task, proceeding normally');
             }
         }, true); // Use capturing to intercept before the default handler
@@ -240,24 +217,20 @@
         console.log('[Overdue Recurrence Adjuster] Processing task directly without showing dialog:', taskTitle);
 
         try {
-            // Check the checkbox to show immediate feedback
+
             checkbox.checked = true;
 
-            // Add a visual indicator that the task is being processed
             taskItem.style.opacity = '0.7';
 
-            // Complete the task with the adjustment preference (always keep original schedule)
             await completeTaskWithAdjustment(taskId, false);
 
-            // Note: We don't need to manually update the UI here anymore
-            // The completeTaskWithAdjustment function now handles moving the task
-            // to the completed section and updating the UI
+
+
         } catch (error) {
             console.error('[Overdue Recurrence Adjuster] Error handling overdue recurring task:', error);
             alert('An error occurred while processing the task. Please try again.');
             checkbox.checked = false;
 
-            // Restore opacity if there was an error
             taskItem.style.opacity = '1';
         }
     }
@@ -269,7 +242,7 @@
      */
     async function showRecurrenceAdjustmentModal(taskTitle) {
         return new Promise((resolve) => {
-            // Create modal elements
+
             const modalOverlay = document.createElement('div');
             modalOverlay.id = 'overdue-recurrence-modal-overlay';
             modalOverlay.className = 'modal-overlay';
@@ -368,7 +341,6 @@
             adjustButton.style.minWidth = '180px';
             adjustButton.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
 
-            // Add event listeners
             cancelButton.addEventListener('click', () => {
                 document.body.removeChild(modalOverlay);
                 resolve('cancel');
@@ -384,7 +356,6 @@
                 resolve('adjust');
             });
 
-            // Assemble the modal
             buttonContainer.appendChild(cancelButton);
             buttonContainer.appendChild(keepButton);
             buttonContainer.appendChild(adjustButton);
@@ -394,7 +365,6 @@
             modalContent.appendChild(buttonContainer);
             modalOverlay.appendChild(modalContent);
 
-            // Add to the document
             document.body.appendChild(modalOverlay);
         });
     }
@@ -408,14 +378,12 @@
         try {
             console.log(`[Overdue Recurrence Adjuster] Completing task ${taskId} with adjust_future_recurrences=${adjustFutureRecurrences}`);
 
-            // Find the task element in the DOM
             const taskItem = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
             if (taskItem) {
-                // Add visual feedback
+
                 taskItem.style.opacity = '0.7';
             }
 
-            // Mark the task as complete
             const completeResponse = await fetch(`/api/tasks/${taskId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -433,7 +401,6 @@
             const completedTask = await completeResponse.json();
             console.log(`[Overdue Recurrence Adjuster] Task ${taskId} marked complete with adjust_future_recurrences=${adjustFutureRecurrences}`);
 
-            // If we're adjusting future recurrences, we need to calculate based on today's date
             if (adjustFutureRecurrences) {
                 console.log(`[Overdue Recurrence Adjuster] Adjusting future recurrences for task ${taskId}`);
 
@@ -447,10 +414,9 @@
                         const result = await adjustedResponse.json();
                         console.log(`[Overdue Recurrence Adjuster] Successfully adjusted recurrences:`, result);
                     } else {
-                        // If the endpoint doesn't exist yet, fall back to regular next occurrence
+
                         console.warn(`[Overdue Recurrence Adjuster] Adjust recurrences endpoint not available, falling back to regular next occurrence`);
 
-                        // Create the next occurrence with today as the base date
                         const today = new Date();
                         const formattedToday = today.toISOString().split('T')[0];
 
@@ -471,33 +437,27 @@
                     }
                 } catch (adjustError) {
                     console.error('[Overdue Recurrence Adjuster] Error during recurrence adjustment:', adjustError);
-                    // Continue execution - we still want to move the task to completed
+
                 }
             }
 
-            // Show a notification about the completion
             showCompletionNotification(completedTask, adjustFutureRecurrences);
 
-            // Move the task to the completed section
             if (taskItem) {
                 console.log('[Overdue Recurrence Adjuster] Moving task to completed section');
 
-                // Add the complete class
                 taskItem.classList.add('complete');
 
-                // Find the completed tasks container
                 const completedTaskListDiv = document.getElementById('completed-task-list');
                 if (completedTaskListDiv) {
-                    // Remove from current container and add to completed container
+
                     if (taskItem.parentNode) {
                         taskItem.parentNode.removeChild(taskItem);
                     }
                     completedTaskListDiv.appendChild(taskItem);
 
-                    // Make sure the completed section is visible
                     completedTaskListDiv.style.display = 'block';
 
-                    // Update the completed tasks count in the header
                     const completedTasksHeader = document.getElementById('completed-tasks-header');
                     if (completedTasksHeader) {
                         const currentText = completedTasksHeader.textContent || '';
@@ -510,26 +470,22 @@
                         }
                     }
 
-                    // Remove any "No completed tasks" placeholder
                     const placeholder = completedTaskListDiv.querySelector('p');
                     if (placeholder) {
                         placeholder.remove();
                     }
                 }
 
-                // Restore opacity
                 taskItem.style.opacity = '1';
             }
 
-            // Dispatch a custom event to notify other components (like calendar)
             const taskCompletedEvent = new CustomEvent('taskCompleted', {
                 detail: { taskId: completedTask.id, task: completedTask }
             });
             document.dispatchEvent(taskCompletedEvent);
             console.log('[Overdue Recurrence Adjuster] Dispatched taskCompleted event');
 
-            // Refresh the task list to ensure everything is in sync
-            // But do it with a slight delay to allow the UI to update first
+
             setTimeout(() => {
                 if (typeof window.loadTasks === 'function') {
                     console.log('[Overdue Recurrence Adjuster] Reloading tasks...');
@@ -541,7 +497,6 @@
             console.error('[Overdue Recurrence Adjuster] Error completing task with adjustment:', error);
             alert(`Error completing task: ${error.message}`);
 
-            // Restore opacity if there was an error
             const taskItem = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
             if (taskItem) {
                 taskItem.style.opacity = '1';
@@ -566,7 +521,6 @@
 
         document.body.appendChild(notification);
 
-        // Remove the notification after 5 seconds
         setTimeout(() => {
             notification.remove();
         }, 5000);

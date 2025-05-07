@@ -5,15 +5,14 @@
  * It's designed to work with text copied from the Cronometer nutrition details panel.
  */
 
-// Regular expressions for matching nutrition data patterns
-const PATTERNS = {
-    // General section
+
+window.CRONOMETER_PATTERNS = window.CRONOMETER_PATTERNS || {
+
     ENERGY: /Energy\s*(\d+\.?\d*)\s*kcal/i,
     ALCOHOL: /Alcohol\s*(\d+\.?\d*)\s*g/i,
     CAFFEINE: /Caffeine\s*(\d+\.?\d*)\s*mg/i,
     WATER: /Water\s*(\d+\.?\d*)\s*g/i,
 
-    // Carbohydrates section
     CARBS: /Carbs\s*(\d+\.?\d*)\s*g/i,
     FIBER: /Fiber\s*(\d+\.?\d*)\s*g/i,
     STARCH: /Starch\s*(\d+\.?\d*)\s*g/i,
@@ -21,7 +20,6 @@ const PATTERNS = {
     ADDED_SUGARS: /Added Sugars\s*(\d+\.?\d*)\s*g/i,
     NET_CARBS: /Net Carbs\s*(\d+\.?\d*)\s*g/i,
 
-    // Lipids section
     FAT: /Fat\s*(\d+\.?\d*)\s*g/i,
     MONOUNSATURATED: /Monounsaturated\s*(\d+\.?\d*)\s*g/i,
     POLYUNSATURATED: /Polyunsaturated\s*(\d+\.?\d*)\s*g/i,
@@ -31,7 +29,6 @@ const PATTERNS = {
     TRANS_FATS: /Trans-Fats\s*(\d+\.?\d*)\s*g/i,
     CHOLESTEROL: /Cholesterol\s*(\d+\.?\d*)\s*mg/i,
 
-    // Protein section
     PROTEIN: /Protein\s*(\d+\.?\d*)\s*g/i,
     CYSTINE: /Cystine\s*(\d+\.?\d*)\s*g/i,
     HISTIDINE: /Histidine\s*(\d+\.?\d*)\s*g/i,
@@ -45,7 +42,6 @@ const PATTERNS = {
     TYROSINE: /Tyrosine\s*(\d+\.?\d*)\s*g/i,
     VALINE: /Valine\s*(\d+\.?\d*)\s*g/i,
 
-    // Vitamins section
     THIAMINE: /B1 \(Thiamine\)\s*(\d+\.?\d*)\s*mg/i,
     RIBOFLAVIN: /B2 \(Riboflavin\)\s*(\d+\.?\d*)\s*mg/i,
     NIACIN: /B3 \(Niacin\)\s*(\d+\.?\d*)\s*mg/i,
@@ -59,7 +55,6 @@ const PATTERNS = {
     VITAMIN_E: /Vitamin E\s*(\d+\.?\d*)\s*mg/i,
     VITAMIN_K: /Vitamin K\s*(\d+\.?\d*)\s*µg/i,
 
-    // Minerals section
     CALCIUM: /Calcium\s*(\d+\.?\d*)\s*mg/i,
     COPPER: /Copper\s*(\d+\.?\d*)\s*mg/i,
     IRON: /Iron\s*(\d+\.?\d*)\s*mg/i,
@@ -72,81 +67,78 @@ const PATTERNS = {
     ZINC: /Zinc\s*(\d+\.?\d*)\s*mg/i
 };
 
+
+
+
 /**
  * Parse Cronometer text and extract nutrition data
  * @param {string} text - Text copied from Cronometer
  * @returns {Object} - Extracted nutrition data
  */
 function parseCronometerText(text) {
-    // Initialize result object
+
     const result = {
         success: true,
-        // General
-        calories: extractValue(text, PATTERNS.ENERGY),
-        alcohol: extractValue(text, PATTERNS.ALCOHOL),
-        caffeine: extractValue(text, PATTERNS.CAFFEINE),
-        water: extractValue(text, PATTERNS.WATER),
 
-        // Carbohydrates
-        carbs: extractValue(text, PATTERNS.CARBS),
-        fiber: extractValue(text, PATTERNS.FIBER),
-        starch: extractValue(text, PATTERNS.STARCH),
-        sugars: extractValue(text, PATTERNS.SUGARS),
-        addedSugars: extractValue(text, PATTERNS.ADDED_SUGARS),
-        netCarbs: extractValue(text, PATTERNS.NET_CARBS),
+        calories: extractValue(text, window.CRONOMETER_PATTERNS.ENERGY),
+        alcohol: extractValue(text, window.CRONOMETER_PATTERNS.ALCOHOL),
+        caffeine: extractValue(text, window.CRONOMETER_PATTERNS.CAFFEINE),
+        water: extractValue(text, window.CRONOMETER_PATTERNS.WATER),
 
-        // Lipids
-        fat: extractValue(text, PATTERNS.FAT),
-        monounsaturated: extractValue(text, PATTERNS.MONOUNSATURATED),
-        polyunsaturated: extractValue(text, PATTERNS.POLYUNSATURATED),
-        omega3: extractValue(text, PATTERNS.OMEGA3),
-        omega6: extractValue(text, PATTERNS.OMEGA6),
-        saturated: extractValue(text, PATTERNS.SATURATED),
-        transFat: extractValue(text, PATTERNS.TRANS_FATS),
-        cholesterol: extractValue(text, PATTERNS.CHOLESTEROL),
+        carbs: extractValue(text, window.CRONOMETER_PATTERNS.CARBS),
+        fiber: extractValue(text, window.CRONOMETER_PATTERNS.FIBER),
+        starch: extractValue(text, window.CRONOMETER_PATTERNS.STARCH),
+        sugars: extractValue(text, window.CRONOMETER_PATTERNS.SUGARS),
+        addedSugars: extractValue(text, window.CRONOMETER_PATTERNS.ADDED_SUGARS),
+        netCarbs: extractValue(text, window.CRONOMETER_PATTERNS.NET_CARBS),
 
-        // Protein
-        protein: extractValue(text, PATTERNS.PROTEIN),
-        cystine: extractValue(text, PATTERNS.CYSTINE),
-        histidine: extractValue(text, PATTERNS.HISTIDINE),
-        isoleucine: extractValue(text, PATTERNS.ISOLEUCINE),
-        leucine: extractValue(text, PATTERNS.LEUCINE),
-        lysine: extractValue(text, PATTERNS.LYSINE),
-        methionine: extractValue(text, PATTERNS.METHIONINE),
-        phenylalanine: extractValue(text, PATTERNS.PHENYLALANINE),
-        threonine: extractValue(text, PATTERNS.THREONINE),
-        tryptophan: extractValue(text, PATTERNS.TRYPTOPHAN),
-        tyrosine: extractValue(text, PATTERNS.TYROSINE),
-        valine: extractValue(text, PATTERNS.VALINE),
+        fat: extractValue(text, window.CRONOMETER_PATTERNS.FAT),
+        monounsaturated: extractValue(text, window.CRONOMETER_PATTERNS.MONOUNSATURATED),
+        polyunsaturated: extractValue(text, window.CRONOMETER_PATTERNS.POLYUNSATURATED),
+        omega3: extractValue(text, window.CRONOMETER_PATTERNS.OMEGA3),
+        omega6: extractValue(text, window.CRONOMETER_PATTERNS.OMEGA6),
+        saturated: extractValue(text, window.CRONOMETER_PATTERNS.SATURATED),
+        transFat: extractValue(text, window.CRONOMETER_PATTERNS.TRANS_FATS),
+        cholesterol: extractValue(text, window.CRONOMETER_PATTERNS.CHOLESTEROL),
 
-        // Vitamins
-        vitaminB1: extractValue(text, PATTERNS.THIAMINE),
-        vitaminB2: extractValue(text, PATTERNS.RIBOFLAVIN),
-        vitaminB3: extractValue(text, PATTERNS.NIACIN),
-        vitaminB5: extractValue(text, PATTERNS.PANTOTHENIC_ACID),
-        vitaminB6: extractValue(text, PATTERNS.PYRIDOXINE),
-        vitaminB12: extractValue(text, PATTERNS.COBALAMIN),
-        folate: extractValue(text, PATTERNS.FOLATE),
-        vitaminA: extractValue(text, PATTERNS.VITAMIN_A),
-        vitaminC: extractValue(text, PATTERNS.VITAMIN_C),
-        vitaminD: extractValue(text, PATTERNS.VITAMIN_D),
-        vitaminE: extractValue(text, PATTERNS.VITAMIN_E),
-        vitaminK: extractValue(text, PATTERNS.VITAMIN_K),
+        protein: extractValue(text, window.CRONOMETER_PATTERNS.PROTEIN),
+        cystine: extractValue(text, window.CRONOMETER_PATTERNS.CYSTINE),
+        histidine: extractValue(text, window.CRONOMETER_PATTERNS.HISTIDINE),
+        isoleucine: extractValue(text, window.CRONOMETER_PATTERNS.ISOLEUCINE),
+        leucine: extractValue(text, window.CRONOMETER_PATTERNS.LEUCINE),
+        lysine: extractValue(text, window.CRONOMETER_PATTERNS.LYSINE),
+        methionine: extractValue(text, window.CRONOMETER_PATTERNS.METHIONINE),
+        phenylalanine: extractValue(text, window.CRONOMETER_PATTERNS.PHENYLALANINE),
+        threonine: extractValue(text, window.CRONOMETER_PATTERNS.THREONINE),
+        tryptophan: extractValue(text, window.CRONOMETER_PATTERNS.TRYPTOPHAN),
+        tyrosine: extractValue(text, window.CRONOMETER_PATTERNS.TYROSINE),
+        valine: extractValue(text, window.CRONOMETER_PATTERNS.VALINE),
 
-        // Minerals
-        calcium: extractValue(text, PATTERNS.CALCIUM),
-        copper: extractValue(text, PATTERNS.COPPER),
-        iron: extractValue(text, PATTERNS.IRON),
-        magnesium: extractValue(text, PATTERNS.MAGNESIUM),
-        manganese: extractValue(text, PATTERNS.MANGANESE),
-        phosphorus: extractValue(text, PATTERNS.PHOSPHORUS),
-        potassium: extractValue(text, PATTERNS.POTASSIUM),
-        selenium: extractValue(text, PATTERNS.SELENIUM),
-        sodium: extractValue(text, PATTERNS.SODIUM),
-        zinc: extractValue(text, PATTERNS.ZINC)
+        vitaminB1: extractValue(text, window.CRONOMETER_PATTERNS.THIAMINE),
+        vitaminB2: extractValue(text, window.CRONOMETER_PATTERNS.RIBOFLAVIN),
+        vitaminB3: extractValue(text, window.CRONOMETER_PATTERNS.NIACIN),
+        vitaminB5: extractValue(text, window.CRONOMETER_PATTERNS.PANTOTHENIC_ACID),
+        vitaminB6: extractValue(text, window.CRONOMETER_PATTERNS.PYRIDOXINE),
+        vitaminB12: extractValue(text, window.CRONOMETER_PATTERNS.COBALAMIN),
+        folate: extractValue(text, window.CRONOMETER_PATTERNS.FOLATE),
+        vitaminA: extractValue(text, window.CRONOMETER_PATTERNS.VITAMIN_A),
+        vitaminC: extractValue(text, window.CRONOMETER_PATTERNS.VITAMIN_C),
+        vitaminD: extractValue(text, window.CRONOMETER_PATTERNS.VITAMIN_D),
+        vitaminE: extractValue(text, window.CRONOMETER_PATTERNS.VITAMIN_E),
+        vitaminK: extractValue(text, window.CRONOMETER_PATTERNS.VITAMIN_K),
+
+        calcium: extractValue(text, window.CRONOMETER_PATTERNS.CALCIUM),
+        copper: extractValue(text, window.CRONOMETER_PATTERNS.COPPER),
+        iron: extractValue(text, window.CRONOMETER_PATTERNS.IRON),
+        magnesium: extractValue(text, window.CRONOMETER_PATTERNS.MAGNESIUM),
+        manganese: extractValue(text, window.CRONOMETER_PATTERNS.MANGANESE),
+        phosphorus: extractValue(text, window.CRONOMETER_PATTERNS.PHOSPHORUS),
+        potassium: extractValue(text, window.CRONOMETER_PATTERNS.POTASSIUM),
+        selenium: extractValue(text, window.CRONOMETER_PATTERNS.SELENIUM),
+        sodium: extractValue(text, window.CRONOMETER_PATTERNS.SODIUM),
+        zinc: extractValue(text, window.CRONOMETER_PATTERNS.ZINC)
     };
 
-    // Check if we found any data
     const hasData = Object.values(result).some(value =>
         value !== null && value !== undefined && value !== false && value !== 0);
 
@@ -176,13 +168,12 @@ function extractValue(text, pattern) {
  * @param {HTMLElement} container - Container element (usually the document or a specific section)
  */
 function initializeCronometerTextParser(container = document) {
-    // Check if container is an ingredient item itself
+
     if (container.classList && container.classList.contains('ingredient-item')) {
         initializeIngredientItem(container);
         return;
     }
 
-    // Find all ingredient items
     const ingredientItems = container.querySelectorAll('.ingredient-item');
 
     ingredientItems.forEach(ingredientItem => {
@@ -195,41 +186,57 @@ function initializeCronometerTextParser(container = document) {
  * @param {HTMLElement} ingredientItem - The ingredient item element
  */
 function initializeIngredientItem(ingredientItem) {
-    // Skip if already initialized
+    console.log('Initializing ingredient item:', ingredientItem);
+
     if (ingredientItem.dataset.cronometerParserInitialized === 'true') {
         console.log('Skipping already initialized ingredient item');
         return;
     }
 
-    // Mark as initialized
     ingredientItem.dataset.cronometerParserInitialized = 'true';
 
-    // Find the existing text paste area
     const textPasteArea = ingredientItem.querySelector('.cronometer-text-paste-area');
     const parseButton = ingredientItem.querySelector('.cronometer-parse-button');
     const statusElement = ingredientItem.querySelector('.cronometer-parse-status');
 
+    console.log('Found elements:', {
+        textPasteArea: !!textPasteArea,
+        parseButton: !!parseButton,
+        statusElement: !!statusElement
+    });
+
     if (textPasteArea && parseButton && statusElement) {
         console.log('Adding event listeners to Cronometer text parser elements');
 
-        // Add event listener to the parse button
-        parseButton.addEventListener('click', () => {
+        parseButton.removeEventListener('click', parseButtonClickHandler);
+
+        function parseButtonClickHandler() {
+            console.log('Parse button clicked (from cronometer-text-parser.js)');
             const text = textPasteArea.value.trim();
             if (text) {
+                console.log('Processing text:', text.substring(0, 50) + '...');
                 processCronometerText(text, ingredientItem, statusElement);
             } else {
                 showParseStatus(statusElement, 'Please paste Cronometer nutrition data first', 'error');
             }
-        });
+        }
 
-        // Add event listener for paste events
+        parseButton._parseButtonClickHandler = parseButtonClickHandler;
+
+        parseButton.addEventListener('click', parseButtonClickHandler);
+
+        parseButton.setAttribute('onclick', 'if(window.processCronometerText){window.processCronometerText(this.parentNode.querySelector(".cronometer-text-paste-area").value.trim(), this.closest(".ingredient-item"), this.parentNode.querySelector(".cronometer-parse-status"))}');
+
         textPasteArea.addEventListener('paste', () => {
-            // Clear any previous status
+
             statusElement.textContent = '';
             statusElement.className = 'cronometer-parse-status';
         });
+
+        console.log('Event listeners added successfully');
     } else {
         console.error('Cronometer text parser elements not found in ingredient item');
+        console.log('ingredientItem HTML:', ingredientItem.innerHTML);
     }
 }
 
@@ -241,32 +248,136 @@ function initializeIngredientItem(ingredientItem) {
  */
 function processCronometerText(text, ingredientItem, statusElement) {
     try {
-        // Show processing status
+
         showParseStatus(statusElement, 'Processing Cronometer data...', 'loading');
 
-        // Parse the text
+        if (!ingredientItem || (ingredientItem.tagName !== 'FORM' && !ingredientItem.classList.contains('ingredient-item'))) {
+            console.log('ingredientItem is not a form or ingredient-item, trying to find the closest form');
+
+            if (statusElement) {
+                const closestForm = statusElement.closest('form');
+                if (closestForm) {
+                    ingredientItem = closestForm;
+                    console.log('Found form from statusElement:', ingredientItem);
+                } else {
+
+                    const addForm = document.getElementById('add-ingredient-form');
+                    if (addForm) {
+                        ingredientItem = addForm;
+                        console.log('Using add-ingredient-form:', ingredientItem);
+                    } else {
+                        console.error('Could not find a valid form to update');
+                        showParseStatus(statusElement, 'Error: Could not find a valid form to update', 'error');
+                        return;
+                    }
+                }
+            }
+        }
+
+        console.log('Processing Cronometer text for:', ingredientItem);
+
         const nutritionData = parseCronometerText(text);
+        console.log('Parsed nutrition data:', nutritionData);
 
         if (nutritionData.success) {
-            // Update the nutrition fields
+
             updateNutritionFieldsFromText(nutritionData, ingredientItem);
 
-            // Show success message
+
+            if (window.NutritionFieldMapper) {
+
+                const dbFormatData = window.NutritionFieldMapper.toDbFormat(nutritionData);
+
+                ingredientItem.dataset.completeNutritionData = JSON.stringify(nutritionData);
+                ingredientItem.dataset.dbFormatNutritionData = JSON.stringify(dbFormatData);
+
+                console.log('Stored complete nutrition data:', nutritionData);
+                console.log('Stored DB format nutrition data:', dbFormatData);
+
+                for (const [key, value] of Object.entries(dbFormatData)) {
+
+                    if (value === null || value === undefined) continue;
+
+                    if (['name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount'].includes(key)) {
+                        continue;
+                    }
+
+                    let hiddenField = ingredientItem.querySelector(`.ingredient-${key}`);
+                    if (!hiddenField) {
+                        hiddenField = document.createElement('input');
+                        hiddenField.type = 'hidden';
+                        hiddenField.name = `ingredient-${key}`;  // Add name attribute for form submission
+                        hiddenField.className = `ingredient-${key}`;
+                        ingredientItem.appendChild(hiddenField);
+                    }
+
+                    hiddenField.value = value;
+
+                    console.log(`Created/updated hidden field for micronutrient: ${key} = ${value}`);
+                }
+
+                let micronutrientFlagField = ingredientItem.querySelector('.ingredient-has-micronutrients');
+                if (!micronutrientFlagField) {
+                    micronutrientFlagField = document.createElement('input');
+                    micronutrientFlagField.type = 'hidden';
+                    micronutrientFlagField.name = 'ingredient-has-micronutrients';
+                    micronutrientFlagField.className = 'ingredient-has-micronutrients';
+                    ingredientItem.appendChild(micronutrientFlagField);
+                }
+                micronutrientFlagField.value = 'true';
+
+                const form = ingredientItem.tagName === 'FORM' ? ingredientItem : ingredientItem.closest('form');
+                if (form && !form.dataset.micronutrientHandlerAdded) {
+                    form.dataset.micronutrientHandlerAdded = 'true';
+
+                    form.addEventListener('submit', function(event) {
+
+                        console.log('Form submit intercepted by Cronometer parser');
+
+                        const ingredientItems = form.querySelectorAll('.ingredient-item');
+                        let hasMicronutrientData = false;
+
+                        ingredientItems.forEach(item => {
+                            if (item.querySelector('.ingredient-has-micronutrients')) {
+                                hasMicronutrientData = true;
+                                console.log('Found ingredient with micronutrient data:', item);
+
+                                const hiddenFields = item.querySelectorAll('input[type="hidden"]');
+                                hiddenFields.forEach(field => {
+                                    if (!field.name && field.className) {
+                                        field.name = field.className;
+                                        console.log(`Added name attribute to hidden field: ${field.name}`);
+                                    }
+                                });
+                            }
+                        });
+
+                        if (hasMicronutrientData) {
+                            console.log('Form has micronutrient data, ensuring it will be included in submission');
+                        }
+                    });
+
+                    console.log('Added micronutrient form submission handler');
+                }
+            } else {
+                console.warn('NutritionFieldMapper not available. Complete nutrition data will not be stored.');
+            }
+
             showParseStatus(statusElement, 'Nutrition data extracted successfully!', 'success');
 
-            // Expand the detailed nutrition panel
             const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
             if (detailedPanel) {
                 detailedPanel.style.display = 'block';
 
-                // Update the toggle button text if it exists
-                const toggleButton = ingredientItem.querySelector('.toggle-detailed-nutrition');
-                if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
+                const toggleButton = ingredientItem.querySelector('.toggle-detailed-nutrition') ||
+                                    document.querySelector('.toggle-detailed-nutrition');
+                if (toggleButton && toggleButton.textContent.includes('Show')) {
                     toggleButton.textContent = 'Hide Detailed Nutrition';
+                    toggleButton.classList.add('active');
                 }
             }
         } else {
-            // Show error message
+
             showParseStatus(statusElement, 'Could not extract nutrition data. Please check the format.', 'error');
         }
     } catch (error) {
@@ -281,75 +392,74 @@ function processCronometerText(text, ingredientItem, statusElement) {
  * @param {HTMLElement} ingredientItem - Ingredient item element
  */
 function updateNutritionFieldsFromText(data, ingredientItem) {
-    // Basic fields
+
+    const isEditForm = ingredientItem.querySelector('#edit-ingredient-form') !== null;
+    const prefix = isEditForm ? 'edit' : 'add';
+
+    console.log(`Updating nutrition fields in ${isEditForm ? 'edit' : 'add'} form`);
+
     updateFieldIfExists(ingredientItem, '.ingredient-calories', data.calories);
     updateFieldIfExists(ingredientItem, '.ingredient-protein', data.protein);
     updateFieldIfExists(ingredientItem, '.ingredient-fat', data.fat);
     updateFieldIfExists(ingredientItem, '.ingredient-carbs', data.carbs);
 
-    // General section
-    updateFieldIfExists(ingredientItem, '.nutrition-energy', data.calories);
-    updateFieldIfExists(ingredientItem, '.nutrition-alcohol', data.alcohol);
-    updateFieldIfExists(ingredientItem, '.nutrition-caffeine', data.caffeine);
-    updateFieldIfExists(ingredientItem, '.nutrition-water', data.water);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-calories`, data.calories);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-alcohol`, data.alcohol);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-caffeine`, data.caffeine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-water`, data.water);
 
-    // Carbohydrates section
-    updateFieldIfExists(ingredientItem, '.nutrition-carbs-total', data.carbs);
-    updateFieldIfExists(ingredientItem, '.nutrition-fiber', data.fiber);
-    updateFieldIfExists(ingredientItem, '.nutrition-starch', data.starch);
-    updateFieldIfExists(ingredientItem, '.nutrition-sugars', data.sugars);
-    updateFieldIfExists(ingredientItem, '.nutrition-added-sugars', data.addedSugars);
-    updateFieldIfExists(ingredientItem, '.nutrition-net-carbs', data.netCarbs);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-carbs`, data.carbs);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-fiber`, data.fiber);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-starch`, data.starch);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-sugars`, data.sugars);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-added-sugars`, data.addedSugars);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-net-carbs`, data.netCarbs);
 
-    // Lipids section
-    updateFieldIfExists(ingredientItem, '.nutrition-fat-total', data.fat);
-    updateFieldIfExists(ingredientItem, '.nutrition-monounsaturated', data.monounsaturated);
-    updateFieldIfExists(ingredientItem, '.nutrition-polyunsaturated', data.polyunsaturated);
-    updateFieldIfExists(ingredientItem, '.nutrition-omega3', data.omega3);
-    updateFieldIfExists(ingredientItem, '.nutrition-omega6', data.omega6);
-    updateFieldIfExists(ingredientItem, '.nutrition-saturated', data.saturated);
-    updateFieldIfExists(ingredientItem, '.nutrition-trans-fat', data.transFat);
-    updateFieldIfExists(ingredientItem, '.nutrition-cholesterol', data.cholesterol);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-fats`, data.fat);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-monounsaturated`, data.monounsaturated);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-polyunsaturated`, data.polyunsaturated);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-omega3`, data.omega3);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-omega6`, data.omega6);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-saturated`, data.saturated);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-trans-fat`, data.transFat);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-cholesterol`, data.cholesterol);
 
-    // Protein section
-    updateFieldIfExists(ingredientItem, '.nutrition-protein-total', data.protein);
-    updateFieldIfExists(ingredientItem, '.nutrition-cystine', data.cystine);
-    updateFieldIfExists(ingredientItem, '.nutrition-histidine', data.histidine);
-    updateFieldIfExists(ingredientItem, '.nutrition-isoleucine', data.isoleucine);
-    updateFieldIfExists(ingredientItem, '.nutrition-leucine', data.leucine);
-    updateFieldIfExists(ingredientItem, '.nutrition-lysine', data.lysine);
-    updateFieldIfExists(ingredientItem, '.nutrition-methionine', data.methionine);
-    updateFieldIfExists(ingredientItem, '.nutrition-phenylalanine', data.phenylalanine);
-    updateFieldIfExists(ingredientItem, '.nutrition-threonine', data.threonine);
-    updateFieldIfExists(ingredientItem, '.nutrition-tryptophan', data.tryptophan);
-    updateFieldIfExists(ingredientItem, '.nutrition-tyrosine', data.tyrosine);
-    updateFieldIfExists(ingredientItem, '.nutrition-valine', data.valine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-protein`, data.protein);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-cystine`, data.cystine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-histidine`, data.histidine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-isoleucine`, data.isoleucine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-leucine`, data.leucine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-lysine`, data.lysine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-methionine`, data.methionine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-phenylalanine`, data.phenylalanine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-threonine`, data.threonine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-tryptophan`, data.tryptophan);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-tyrosine`, data.tyrosine);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-valine`, data.valine);
 
-    // Vitamins section
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-b1', data.vitaminB1);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-b2', data.vitaminB2);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-b3', data.vitaminB3);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-b5', data.vitaminB5);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-b6', data.vitaminB6);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-b12', data.vitaminB12);
-    updateFieldIfExists(ingredientItem, '.nutrition-folate', data.folate);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-a', data.vitaminA);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-c', data.vitaminC);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-d', data.vitaminD);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-e', data.vitaminE);
-    updateFieldIfExists(ingredientItem, '.nutrition-vitamin-k', data.vitaminK);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-b1`, data.vitaminB1);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-b2`, data.vitaminB2);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-b3`, data.vitaminB3);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-b5`, data.vitaminB5);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-b6`, data.vitaminB6);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-b12`, data.vitaminB12);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-folate`, data.folate);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-a`, data.vitaminA);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-c`, data.vitaminC);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-d`, data.vitaminD);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-e`, data.vitaminE);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-vitamin-k`, data.vitaminK);
 
-    // Minerals section
-    updateFieldIfExists(ingredientItem, '.nutrition-calcium', data.calcium);
-    updateFieldIfExists(ingredientItem, '.nutrition-copper', data.copper);
-    updateFieldIfExists(ingredientItem, '.nutrition-iron', data.iron);
-    updateFieldIfExists(ingredientItem, '.nutrition-magnesium', data.magnesium);
-    updateFieldIfExists(ingredientItem, '.nutrition-manganese', data.manganese);
-    updateFieldIfExists(ingredientItem, '.nutrition-phosphorus', data.phosphorus);
-    updateFieldIfExists(ingredientItem, '.nutrition-potassium', data.potassium);
-    updateFieldIfExists(ingredientItem, '.nutrition-selenium', data.selenium);
-    updateFieldIfExists(ingredientItem, '.nutrition-sodium', data.sodium);
-    updateFieldIfExists(ingredientItem, '.nutrition-zinc', data.zinc);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-calcium`, data.calcium);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-copper`, data.copper);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-iron`, data.iron);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-magnesium`, data.magnesium);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-manganese`, data.manganese);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-phosphorus`, data.phosphorus);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-potassium`, data.potassium);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-selenium`, data.selenium);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-sodium`, data.sodium);
+    updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-zinc`, data.zinc);
 }
 
 /**
@@ -365,6 +475,9 @@ function updateFieldIfExists(container, selector, value) {
     if (field) {
         field.value = value;
         field.classList.add('cronometer-parsed');
+        console.log(`Updated field ${selector} with value ${value}`);
+    } else {
+        console.warn(`Field not found: ${selector}`);
     }
 }
 
@@ -379,16 +492,39 @@ function showParseStatus(statusElement, message, type) {
     statusElement.className = `cronometer-parse-status ${type}`;
 }
 
-// Initialize when the DOM is loaded
+window.processCronometerText = processCronometerText;
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Cronometer Text Parser: DOM loaded, initializing parser');
     initializeCronometerTextParser();
 
-    // Also initialize when new ingredients are added
     document.addEventListener('ingredientAdded', (event) => {
+        console.log('Cronometer Text Parser: ingredientAdded event received');
         if (event.detail && event.detail.ingredientItem) {
+            console.log('Cronometer Text Parser: Initializing specific ingredient item');
             initializeCronometerTextParser(event.detail.ingredientItem);
         } else {
+            console.log('Cronometer Text Parser: Initializing all ingredient items');
             initializeCronometerTextParser();
+        }
+    });
+
+    document.addEventListener('click', function(event) {
+        if (event.target && event.target.classList.contains('cronometer-parse-button')) {
+            console.log('Parse button clicked (from global event listener)');
+            const ingredientItem = event.target.closest('.ingredient-item');
+            const textPasteArea = ingredientItem.querySelector('.cronometer-text-paste-area');
+            const statusElement = ingredientItem.querySelector('.cronometer-parse-status');
+
+            if (ingredientItem && textPasteArea && statusElement) {
+                const text = textPasteArea.value.trim();
+                if (text) {
+                    console.log('Processing text from global handler:', text.substring(0, 50) + '...');
+                    processCronometerText(text, ingredientItem, statusElement);
+                } else {
+                    showParseStatus(statusElement, 'Please paste Cronometer nutrition data first', 'error');
+                }
+            }
         }
     });
 });

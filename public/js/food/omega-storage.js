@@ -6,7 +6,7 @@
  */
 
 const OmegaStorage = (function() {
-    // Prefix for all omega storage keys
+
     const STORAGE_PREFIX = 'omega_values_';
 
     /**
@@ -23,7 +23,6 @@ const OmegaStorage = (function() {
                 return false;
             }
 
-            // Skip if both values are undefined
             if (omega3Value === undefined && omega6Value === undefined) {
                 console.log('No omega values to save');
                 return false;
@@ -31,7 +30,6 @@ const OmegaStorage = (function() {
 
             const storageKey = `${STORAGE_PREFIX}${ingredientId}`;
 
-            // Process omega_3 value
             let omega3 = null;
             if (omega3Value !== undefined) {
                 if (omega3Value === null || omega3Value === '') {
@@ -42,7 +40,6 @@ const OmegaStorage = (function() {
                 }
             }
 
-            // Process omega_6 value
             let omega6 = null;
             if (omega6Value !== undefined) {
                 if (omega6Value === null || omega6Value === '') {
@@ -53,15 +50,13 @@ const OmegaStorage = (function() {
                 }
             }
 
-            // Create storage object
-            // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+
             const storageData = {
                 omega3: omega3,
                 omega6: omega6,
                 timestamp: Date.now()
             };
 
-            // Save to localStorage
             window.localStorage.setItem(storageKey, JSON.stringify(storageData));
             console.log(`Saved omega values to localStorage for ingredient ${ingredientId}:`, storageData);
 
@@ -116,16 +111,13 @@ const OmegaStorage = (function() {
             return ingredient;
         }
 
-        // Create a copy of the ingredient
         const updatedIngredient = { ...ingredient };
 
-        // Apply omega3 value if available (using the correct column name)
         if (storedValues.omega3 !== null && storedValues.omega3 !== undefined) {
             console.log(`Applying omega3 value from localStorage: ${storedValues.omega3} (was ${ingredient.omega3})`);
             updatedIngredient.omega3 = storedValues.omega3;
         }
 
-        // Apply omega6 value if available (using the correct column name)
         if (storedValues.omega6 !== null && storedValues.omega6 !== undefined) {
             console.log(`Applying omega6 value from localStorage: ${storedValues.omega6} (was ${ingredient.omega6})`);
             updatedIngredient.omega6 = storedValues.omega6;
@@ -158,7 +150,6 @@ const OmegaStorage = (function() {
                 return false;
             }
 
-            // Get all keys
             const keys = [];
             for (let i = 0; i < window.localStorage.length; i++) {
                 const key = window.localStorage.key(i);
@@ -167,7 +158,6 @@ const OmegaStorage = (function() {
                 }
             }
 
-            // Remove all omega values
             keys.forEach(key => window.localStorage.removeItem(key));
             console.log(`Cleared ${keys.length} omega values from localStorage`);
 
@@ -178,7 +168,6 @@ const OmegaStorage = (function() {
         }
     }
 
-    // Public API
     return {
         saveOmegaValues,
         loadOmegaValues,
@@ -188,5 +177,4 @@ const OmegaStorage = (function() {
     };
 })();
 
-// Make available globally
 window.OmegaStorage = OmegaStorage;

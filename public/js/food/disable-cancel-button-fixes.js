@@ -5,63 +5,69 @@
  */
 
 (function() {
-    console.log('Initializing cancel button fix - disabling conflicting scripts');
-    
-    // The original simple handler that should work
+
+    const DEBUG = false;
+
+    if (DEBUG) console.log('Initializing cancel button fix - disabling conflicting scripts');
+
+    const processedButtons = new Set();
+
     function applyOriginalCancelHandler() {
-        // Find all cancel buttons
-        const cancelButtons = document.querySelectorAll('.cancel-edit-btn');
-        
+
+        const cancelButtons = document.querySelectorAll('.cancel-edit-btn:not([data-original-handler-applied="true"])');
+
+        if (cancelButtons.length === 0) return; // No new buttons to process
+
         cancelButtons.forEach(button => {
-            // Remove all existing event listeners by cloning the button
+
+            if (processedButtons.has(button)) return;
+
             const newButton = button.cloneNode(true);
             if (button.parentNode) {
                 button.parentNode.replaceChild(newButton, button);
             }
-            
-            // Add the simple original handler
+
             newButton.addEventListener('click', function(event) {
-                // Find the closest edit form
+
                 const editForm = this.closest('.edit-ingredient-form');
                 if (editForm) {
-                    // Simply hide the form
+
                     editForm.style.display = 'none';
-                    console.log('Edit form hidden by original handler');
+                    if (DEBUG) console.log('Edit form hidden by original handler');
                 }
             });
+
+            newButton.setAttribute('data-original-handler-applied', 'true');
+
+            processedButtons.add(newButton);
         });
     }
-    
-    // Apply the original handler immediately
+
     setTimeout(applyOriginalCancelHandler, 100);
-    
-    // Also apply it when edit buttons are clicked
+
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-ingredient-btn')) {
-            // Wait for the form to be displayed
+
             setTimeout(applyOriginalCancelHandler, 200);
         }
     });
-    
-    // Apply it periodically to catch any dynamically added buttons
-    setInterval(applyOriginalCancelHandler, 1000);
-    
-    // Add a global event handler as a fallback
+
+    setInterval(applyOriginalCancelHandler, 5000); // Reduced from 1000ms to 5000ms
+
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('cancel-edit-btn')) {
-            // Find the closest edit form
+
             const editForm = event.target.closest('.edit-ingredient-form');
             if (editForm) {
-                // Simply hide the form
+
                 editForm.style.display = 'none';
-                console.log('Edit form hidden by global handler');
-                
-                // Prevent other handlers from running
+                if (DEBUG) console.log('Edit form hidden by global handler');
+
                 event.stopPropagation();
                 event.preventDefault();
             }
         }
     }, true); // Use capture phase to ensure this runs before other handlers
-    
-    console.log('Cancel button fix initialized');
+
+    if (DEBUG) console.log('Cancel button fix initialized');
 })();

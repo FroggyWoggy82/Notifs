@@ -5,7 +5,7 @@
  */
 
 (function() {
-    // Disable logging to reduce console spam
+
     const DEBUG = false;
 
     function log(message, ...args) {
@@ -16,23 +16,19 @@
 
     log('[Direct X Button Fix] Script loaded');
 
-    // Function to directly remove X buttons
     function removeXButtons() {
         log('[Direct X Button Fix] Running removal');
 
-        // Find all visible options menus
         const optionsMenus = document.querySelectorAll('.exercise-options-menu.show');
 
         optionsMenus.forEach(menu => {
             log('[Direct X Button Fix] Processing menu');
 
-            // Find the Weight Increment section
             const weightIncrementLabels = menu.querySelectorAll('.weight-increment-label, .weight-increment-text, .weight-increment-container');
 
             weightIncrementLabels.forEach(label => {
                 log('[Direct X Button Fix] Processing label');
 
-                // Find all buttons inside the label
                 const buttons = label.querySelectorAll('button');
 
                 buttons.forEach(button => {
@@ -46,7 +42,6 @@
                     button.style.zIndex = '-1';
                     button.style.pointerEvents = 'none';
 
-                    // Also try to remove it from the DOM
                     try {
                         button.remove();
                     } catch (e) {
@@ -54,15 +49,12 @@
                     }
                 });
 
-                // Replace the label's content with plain text
                 try {
-                    // Create a new text node
+
                     const textNode = document.createTextNode('Weight Increment:');
 
-                    // Clear the label's content
                     label.innerHTML = '';
 
-                    // Add the text node
                     label.appendChild(textNode);
 
                     log('[Direct X Button Fix] Replaced label content with plain text');
@@ -71,7 +63,6 @@
                 }
             });
 
-            // Make sure the main buttons are visible and properly styled
             const mainDeleteButton = menu.querySelector('.button-group-right .btn-delete-exercise');
             if (mainDeleteButton) {
                 mainDeleteButton.style.display = 'flex';
@@ -81,7 +72,6 @@
                 mainDeleteButton.style.zIndex = 'auto';
                 mainDeleteButton.style.pointerEvents = 'auto';
 
-                // Use a simple HTML entity for X
                 mainDeleteButton.innerHTML = '&#10005;'; // HTML entity for "✕" (U+2715 MULTIPLICATION X)
                 mainDeleteButton.style.fontSize = '0.9rem';
                 mainDeleteButton.style.fontWeight = 'bold';
@@ -123,32 +113,26 @@
         });
     }
 
-    // Function to handle options menu opening
     function setupOptionsMenuListener() {
         log('[Direct X Button Fix] Setting up options menu listener');
 
-        // Listen for clicks on the options button
         document.addEventListener('click', event => {
             const target = event.target;
 
-            // Check if the clicked element is an options button
             if (target.classList.contains('btn-exercise-options')) {
                 log('[Direct X Button Fix] Options button clicked');
 
-                // Wait for the menu to open
                 setTimeout(() => {
                     removeXButtons();
                 }, 50);
 
-                // Run again after a longer delay to catch any late-appearing buttons
                 setTimeout(() => {
                     removeXButtons();
                 }, 200);
             }
         });
 
-        // Also run periodically to catch any menus that might be opened by other means
-        // But at a much lower frequency to reduce console spam
+
         setInterval(() => {
             const visibleMenus = document.querySelectorAll('.exercise-options-menu.show');
             if (visibleMenus.length > 0) {
@@ -158,7 +142,6 @@
         }, 2000); // Reduced frequency from 500ms to 2000ms
     }
 
-    // Run when the DOM is loaded
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             console.log('[Direct X Button Fix] DOM loaded');

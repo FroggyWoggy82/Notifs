@@ -3,17 +3,17 @@
  * This CSS file removes the recurrence label above tasks and the green dot for future recurring tasks
  */
 
-/* Remove the recurrence label (Weekly, Daily, etc.) that appears above the task name */
+
 .task-title.recurring::after {
     display: none !important;
 }
 
-/* Remove the green dot indicator for recurring tasks */
+
 .task-title-container.recurring::after {
     display: none !important;
 }
 
-/* Remove the green dot for all recurrence types */
+
 .task-title-container.recurring.daily::after,
 .task-title-container.recurring.weekly::after,
 .task-title-container.recurring.monthly::after,
@@ -21,12 +21,12 @@
     display: none !important;
 }
 
-/* Keep the recurrence indicator in the metadata section (if present) */
+
 .recurrence-indicator {
-    /* Keep existing styles */
+    
 }
 
-/* Remove any extra padding that was added for the recurrence label */
+
 .task-title.recurring {
     padding-right: 0 !important;
 }

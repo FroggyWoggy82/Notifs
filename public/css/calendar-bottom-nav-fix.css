@@ -3,7 +3,7 @@
  * Ensures the bottom navigation bar is properly aligned on calendar.html
  */
 
-/* Fix the width to account for scrollbar */
+
 .bottom-nav {
     width: 100% !important;
     left: 0 !important;
@@ -15,10 +15,10 @@
     margin: 0 !important;
 }
 
-/* Ensure each nav item takes equal space */
+
 .bottom-nav .nav-item,
 .bottom-nav a.nav-item {
-    flex: 1 1 20% !important; /* 5 items = 20% each */
+    flex: 1 1 20% !important; 
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
@@ -30,7 +30,7 @@
     box-sizing: border-box !important;
 }
 
-/* Center the icons */
+
 .bottom-nav .nav-icon,
 .bottom-nav a.nav-item .nav-icon {
     display: flex !important;
@@ -41,7 +41,7 @@
     width: 100% !important;
 }
 
-/* Center the icon within the container */
+
 .bottom-nav .nav-icon i,
 .bottom-nav a.nav-item .nav-icon i {
     display: block !important;
@@ -49,7 +49,7 @@
     text-align: center !important;
 }
 
-/* Center the text */
+
 .bottom-nav .nav-item span,
 .bottom-nav a.nav-item span {
     display: block !important;
@@ -59,7 +59,7 @@
     margin: 0 auto !important;
 }
 
-/* Ensure active item is white */
+
 .bottom-nav .nav-item.active,
 .bottom-nav a.nav-item.active,
 .bottom-nav .nav-item.active .nav-icon,
@@ -69,7 +69,7 @@
     color: #FFFFFF !important;
 }
 
-/* Fix for the highlight line */
+
 .bottom-nav .nav-item::before,
 .bottom-nav a.nav-item::before {
     content: '' !important;
@@ -84,7 +84,7 @@
     opacity: 0 !important;
 }
 
-/* Show highlight line for active item */
+
 .bottom-nav .nav-item.active::before,
 .bottom-nav a.nav-item.active::before {
     transform: translateX(0) !important;

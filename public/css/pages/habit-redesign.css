@@ -1,9 +1,6 @@
-/*
- * Habit List Redesign
- * Redesigns the habit list to match the futuristic dark theme with a new layout
- */
 
-/* Main habit list container */
+
+
 #habitList {
     margin-top: 20px;
     padding: 0;
@@ -14,7 +11,7 @@
     max-width: 100%;
 }
 
-/* Individual habit item */
+
 .habit-item {
     background-color: rgba(18, 18, 18, 0.8);
     margin-bottom: 0;
@@ -27,9 +24,9 @@
     align-items: center;
     padding: 12px 16px;
     overflow: hidden;
-    /* Add subtle gradient background for futuristic look */
+    
     background-image: linear-gradient(to bottom, rgba(30, 30, 30, 0.5), rgba(18, 18, 18, 0.8));
-    /* Center content better */
+    
     justify-content: flex-start;
     width: 100%;
     max-width: 100%;
@@ -44,7 +41,7 @@
     transform: translateY(-1px);
 }
 
-/* Left side circle for checkbox or +1 button */
+
 .habit-control-container {
     width: 32px;
     height: 32px;
@@ -57,12 +54,12 @@
     margin-right: 12px;
     position: relative;
     border: 1px solid rgba(0, 230, 118, 0.3);
-    /* Add subtle glow for futuristic look */
+    
     box-shadow: 0 0 5px rgba(0, 230, 118, 0.1);
     margin-left: 0;
 }
 
-/* Habit checkbox styling */
+
 .habit-checkbox {
     appearance: none;
     -webkit-appearance: none;
@@ -80,13 +77,13 @@
     box-sizing: border-box;
 }
 
-/* Checkbox checked state */
+
 .habit-checkbox:checked {
     background-color: rgba(0, 230, 118, 0.2);
     border-color: rgba(0, 230, 118, 0.8);
 }
 
-/* Create checkmark using ::after pseudo-element */
+
 .habit-checkbox:checked::after {
     content: '✓';
     position: absolute;
@@ -99,7 +96,7 @@
     line-height: 1;
 }
 
-/* Increment button styling */
+
 .habit-increment-btn {
     width: 32px;
     height: 32px;
@@ -129,13 +126,13 @@
     cursor: default;
 }
 
-/* Middle content section */
+
 .habit-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     padding-right: 16px;
-    max-width: 50%; /* Prevent content from taking too much space */
+    max-width: 50%; 
     text-align: left;
 }
 
@@ -154,16 +151,16 @@
     font-size: 0.8rem;
 }
 
-/* Right side indicators */
+
 .habit-indicators-row {
     display: flex;
     align-items: center;
-    gap: 12px; /* Reduced gap */
+    gap: 12px; 
     margin-left: auto;
-    margin-right: 8px; /* Add right margin */
+    margin-right: 8px; 
 }
 
-/* Progress indicator */
+
 .habit-progress-container {
     background-color: rgba(240, 240, 240, 0.1);
     border-radius: 20px;
@@ -174,7 +171,7 @@
     font-size: 0.85rem;
 }
 
-/* Level indicator */
+
 .habit-level {
     background-color: #00796B;
     color: white;
@@ -186,7 +183,7 @@
     font-weight: 500;
 }
 
-/* Level colors based on progress */
+
 .habit-level.level-beginner {
     background-color: #00796B;
 }
@@ -208,7 +205,7 @@
     box-shadow: 0 0 10px rgba(245, 127, 23, 0.5);
 }
 
-/* Action buttons container */
+
 .habit-actions {
     display: flex;
     gap: 8px;
@@ -221,7 +218,7 @@
     opacity: 1;
 }
 
-/* Edit and delete buttons */
+
 .habit-item .edit-habit-icon-btn,
 .habit-item .delete-habit-icon-btn {
     width: 32px;
@@ -244,18 +241,18 @@
     background-color: rgba(244, 67, 54, 0.2);
 }
 
-/* Completed habit styling */
+
 .habit-item.complete,
 .habit-item.counter-complete,
 .habit-item[data-completed="true"] {
     background-color: rgba(0, 230, 118, 0.05);
     border-left: 4px solid rgba(0, 230, 118, 0.8);
     box-shadow: 0 2px 10px rgba(0, 230, 118, 0.1);
-    /* Maintain the gradient but with a green tint */
+    
     background-image: linear-gradient(to bottom, rgba(0, 230, 118, 0.05), rgba(18, 18, 18, 0.8));
 }
 
-/* Add New Habit button styling */
+
 #addHabitBtn {
     background-color: #00E676;
     color: #121212;
@@ -271,7 +268,7 @@
     box-shadow: 0 2px 8px rgba(0, 230, 118, 0.3);
 }
 
-/* Bottom Add New Habit button */
+
 .add-new-habit-btn {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.3);
@@ -291,7 +288,7 @@
     border-color: rgba(0, 230, 118, 0.6);
 }
 
-/* Responsive adjustments */
+
 @media screen and (max-width: 768px) {
     .habit-indicators-row {
         flex-direction: column;

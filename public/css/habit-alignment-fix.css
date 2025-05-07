@@ -1,9 +1,6 @@
-/*
- * Habit Alignment Fix
- * Fixes the alignment of habit items that are pushed too far to the right
- */
 
-/* Reset all margins and paddings for habit containers */
+
+
 .habit-list-section,
 .habit-list-section .card,
 .habit-list-section .card__body,
@@ -16,7 +13,7 @@
     box-sizing: border-box !important;
 }
 
-/* Improve the overall habit item layout */
+
 .habit-item {
     width: 100% !important;
     max-width: 100% !important;
@@ -29,7 +26,7 @@
     position: relative !important;
 }
 
-/* Adjust the habit content to take appropriate space */
+
 .habit-content {
     flex: 1 !important;
     max-width: 60% !important;
@@ -38,7 +35,7 @@
     overflow: visible !important;
 }
 
-/* Ensure the habit top row is properly aligned */
+
 .habit-top-row {
     display: flex !important;
     align-items: center !important;
@@ -46,7 +43,7 @@
     width: auto !important;
 }
 
-/* Fix the habit indicators row alignment */
+
 .habit-indicators-row {
     display: flex !important;
     align-items: center !important;
@@ -60,7 +57,7 @@
     z-index: 1 !important;
 }
 
-/* Ensure the progress container is properly sized */
+
 .habit-progress-container {
     display: flex !important;
     align-items: center !important;
@@ -76,7 +73,7 @@
     text-align: center !important;
 }
 
-/* Ensure the level container is properly sized */
+
 .habit-level-container {
     display: flex !important;
     align-items: center !important;
@@ -84,7 +81,7 @@
     width: auto !important;
 }
 
-/* Fix the habit actions positioning */
+
 .habit-actions {
     display: flex !important;
     align-items: center !important;
@@ -100,7 +97,7 @@
     opacity: 1 !important;
 }
 
-/* Ensure the habit frequency doesn't break the layout */
+
 .habit-frequency {
     font-size: 0.8rem !important;
     color: #999 !important;
@@ -111,7 +108,7 @@
     text-overflow: clip !important;
 }
 
-/* Adjust the habit title to ensure it doesn't wrap unnecessarily */
+
 .habit-title {
     font-weight: 500 !important;
     color: #E0E0E0 !important;
@@ -124,7 +121,7 @@
     line-height: 1.2 !important;
 }
 
-/* Ensure the habit progress indicator is properly sized */
+
 .habit-progress {
     font-size: 0.9em !important;
     font-weight: 500 !important;
@@ -136,7 +133,7 @@
     white-space: nowrap !important;
 }
 
-/* Ensure the habit level indicator is properly sized */
+
 .habit-level {
     font-size: 0.85rem !important;
     font-weight: 500 !important;
@@ -152,7 +149,7 @@
     background-color: #00796B !important;
 }
 
-/* Media query for mobile devices */
+
 @media screen and (max-width: 768px) {
     .habit-item {
         flex-direction: column !important;

@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Food & Recipes - Task List</title>
     <meta name="description" content="Create and manage recipes">
+
+    <!-- Console log suppressor - load this first to suppress console logs -->
+    <script src="../js/console-log-suppressor.js"></script>
+    <script src="../js/console-log-helper.js"></script>
+
     <link rel="stylesheet" href="../css/index.css"> <!-- Global styles -->
     <link rel="stylesheet" href="../css/food.css">   <!-- Food specific styles -->
     <link rel="stylesheet" href="../css/sidebar.css">
@@ -17,6 +22,10 @@
     <link rel="stylesheet" href="../css/chart-dark-theme.css"> <!-- Dark theme for Chart.js -->
     <link rel="stylesheet" href="../css/ingredient-buttons-dark.css"> <!-- Dark theme for ingredient buttons -->
     <link rel="stylesheet" href="../css/detailed-nutrition-dark.css"> <!-- Dark theme for detailed nutrition panel -->
+    <link rel="stylesheet" href="../css/detailed-nutrition-view.css"> <!-- Detailed nutrition view styling -->
+    <link rel="stylesheet" href="../css/micronutrient-display.css"> <!-- Micronutrient display styling -->
+    <link rel="stylesheet" href="../css/custom-goal-weights.css"> <!-- Custom goal weights styling -->
+    <link rel="stylesheet" href="../css/section-separator.css"> <!-- Section separator styling -->
 
     <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <!-- Font Awesome for icons -->
@@ -40,18 +49,10 @@
     <link rel="stylesheet" href="../css/grocery-list-inline.css"> <!-- Styling for grocery list section -->
     <link rel="stylesheet" href="../css/ingredient-autocomplete.css"> <!-- Styling for ingredient autocomplete -->
     <link rel="stylesheet" href="../css/recipe-header-buttons.css"> <!-- Styling for recipe header buttons -->
-    <!-- Commenting out CSS files that might affect the styling -->
-    <!-- <link rel="stylesheet" href="../css/smaller-nutrition-inputs.css"> -->
-    <!-- <link rel="stylesheet" href="../css/horizontal-ingredient-edit.css"> -->
-    <!-- <link rel="stylesheet" href="../css/horizontal-edit-fields.css"> -->
-    <!-- <link rel="stylesheet" href="../css/top-fields-dark-fix.css"> -->
+
     <link rel="stylesheet" href="../css/remove-duplicate-fields.css"> <!-- Remove duplicate fields and dark area -->
     <link rel="stylesheet" href="../css/show-nutrition-panel.css"> <!-- Ensure nutrition panel is displayed -->
-    <!-- <link rel="stylesheet" href="../css/nutrition-display-redesign.css"> -->
-    <!-- <link rel="stylesheet" href="../css/ultra-compact-nutrition.css"> -->
-    <!-- <link rel="stylesheet" href="../css/super-compact-nutrition.css"> -->
-    <!-- <link rel="stylesheet" href="../css/nutrition-grid-fix.css"> -->
-    <!-- Removed move-buttons-above-header.css which was causing duplicate buttons -->
+
     <link rel="stylesheet" href="../css/button-text-styling.css"> <!-- Button text styling -->
     <link rel="stylesheet" href="../css/basic-info-alignment-fix.css"> <!-- Fix for Basic Information alignment -->
     <link rel="stylesheet" href="../css/nutrition-edit-buttons.css"> <!-- Add Save and Cancel buttons to nutrition panel -->
@@ -211,19 +212,54 @@
             </div>
             <canvas id="weight-goal-chart"></canvas>
             <p id="weight-chart-message" style="text-align: center;">Weight data needed to display graph.</p>
+
+            <!-- Custom Goal Weights Panel -->
+            <div id="custom-weights-panel" class="custom-weights-container">
+                <div class="custom-weights-header">
+                    <h3>Custom Goal Weights</h3>
+                    <button id="edit-goal-weights-btn">Edit Goal Weights</button>
+                </div>
+                <div class="custom-weights-description">
+                    <p>Customize your goal weight path by adjusting individual weekly targets.</p>
+                </div>
+                <p id="point-selection-instructions">Click on goal weight points (red dots) to select them for adjustment. You can select multiple points.</p>
+                <p id="selected-weeks"></p>
+                <div id="weight-input-container">
+                    <label for="custom-weight-input">New Weight (lbs):</label>
+                    <input type="number" id="custom-weight-input" step="0.1" min="0" placeholder="Enter weight">
+                    <div class="weight-input-help">Enter the new target weight for the selected week(s)</div>
+                </div>
+                <div id="custom-weights-actions">
+                    <button id="save-custom-weights-btn">Save Changes</button>
+                    <button id="cancel-custom-weights-btn">Cancel</button>
+                    <button id="reset-custom-weights-btn">Reset All</button>
+                    <button id="debug-points-btn" style="background-color: #333; color: #999; font-size: 12px; margin-top: 10px;">Debug Points</button>
+                </div>
+            </div>
+
+            <!-- Add a clear div to ensure proper spacing -->
+            <div style="clear: both; height: 40px;"></div>
+
+            <!-- Add a visual separator -->
+            <hr style="border: 0; height: 1px; background-color: #333; margin: 30px 0;">
         </div>
     </section>
     <!-- ===== End Weight Goal & Daily Calorie Target Section ===== -->
 
+    <!-- Spacer to ensure sections don't overlap -->
+    <div style="height: 60px; clear: both;"></div>
+
     <!-- Recipe Creation Section -->
     <section id="recipe-creation-section">
-        <h2>Create New Recipe</h2>
+        <div class="section-header-compact">
+            <h2>Create New Recipe</h2>
+        </div>
         <!-- Form will go here -->
         <form id="create-recipe-form">
             <!-- Recipe Name Input -->
             <div class="form-group">
                 <label for="recipeName">Recipe Name:</label>
-                <input type="text" id="recipeName" placeholder="Enter recipe name" required>
+                <input type="text" id="recipeName" name="recipe-name" placeholder="Enter recipe name" required>
             </div>
 
             <h3>Ingredients</h3>
@@ -234,8 +270,8 @@
                         <!-- Ingredient Name, Amount, and Price stacked vertically -->
                         <div class="ingredient-inputs-container">
                             <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-                            <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.1" required>
-                            <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="0.1">
+                            <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.01" required>
+                            <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="0.01">
                             <input type="number" placeholder="Package Price" class="ingredient-price" step="0.01" required>
                             <!-- Hidden fields for form submission with default values -->
                             <input type="hidden" class="ingredient-calories" required>
@@ -248,7 +284,7 @@
                         <div class="cronometer-text-paste-container">
                             <div class="cronometer-header">Cronometer Text Parser</div>
                             <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." rows="5"></textarea>
-                            <button type="button" class="cronometer-parse-button">Parse Nutrition Data</button>
+                            <button type="button" class="cronometer-parse-button" onclick="if(window.processCronometerText){window.processCronometerText(this.parentNode.querySelector('.cronometer-text-paste-area').value.trim(), this.closest('.ingredient-item'), this.parentNode.querySelector('.cronometer-parse-status'))}">Parse Nutrition Data</button>
                             <div class="cronometer-parse-status"></div>
                         </div>
                     </div>
@@ -625,8 +661,7 @@
         });
     </script>
 
-    <!-- Console log suppressor - must be loaded first -->
-    <script src="../js/food/console-log-suppressor.js"></script> <!-- Suppresses console logs from fix scripts -->
+    <!-- Console log suppressor is already loaded in the head section -->
 
     <!-- Server availability check - must be loaded before other scripts -->
     <script src="../js/food/server-check.js"></script> <!-- Checks if the server is available -->
@@ -634,6 +669,7 @@
     <!-- Local storage manager for package amounts -->
     <script src="../js/food/local-storage-manager.js"></script> <!-- Manages package amounts in local storage -->
     <script src="../js/food/omega-storage.js"></script> <!-- Manages omega values in local storage -->
+    <script src="../js/food/nutrition-field-mapper.js"></script> <!-- Maps nutrition fields between frontend and database -->
 
     <!-- Common utilities -->
     <script src="../js/common/sidebar.js"></script>
@@ -644,6 +680,7 @@
     <!-- Food functionality -->
     <script src="../js/food/custom-tooltip.js"></script> <!-- Custom tooltip implementation -->
     <script src="../js/food/food.js"></script> <!-- Food specific JS -->
+    <script src="../js/food/custom-goal-weights.js"></script> <!-- Custom goal weights functionality -->
     <script src="../js/food/simplified-nutrition-scan.js"></script> <!-- Simplified nutrition scanning functionality -->
     <script src="../js/food/cronometer-text-parser.js"></script> <!-- Cronometer text parser functionality -->
     <script src="../js/food/white-text-fix.js"></script> <!-- Fix for white calorie text -->
@@ -660,11 +697,7 @@
     <script src="../js/food/ingredient-autocomplete.js"></script> <!-- Ingredient autocomplete functionality -->
     <script src="../js/food/ingredient-autofill.js"></script> <!-- Ingredient autofill functionality -->
     <script src="../js/field-updater.js"></script> <!-- Field updater for direct field updates -->
-    <!-- Commenting out JavaScript files that might affect the styling -->
-    <!-- <script src="../js/food/horizontal-ingredient-edit.js"></script> -->
-    <!-- <script src="../js/food/horizontal-edit-fields.js"></script> -->
     <script src="../js/food/fix-missing-fields.js"></script> <!-- Fix for missing fields in edit form -->
-    <!-- <script src="../js/food/top-fields-dark-fix.js"></script> -->
     <script src="../js/food/remove-duplicate-fields.js"></script> <!-- Remove duplicate fields and dark area -->
     <script src="../js/food/show-nutrition-panel.js"></script> <!-- Ensure nutrition panel is displayed -->
     <script src="../js/food/remove-duplicate-buttons.js"></script> <!-- Remove duplicate buttons -->
@@ -682,10 +715,42 @@
     <script src="../js/food/remove-top-buttons.js"></script> <!-- Remove any duplicate top buttons -->
     <!-- Removed conflicting scripts that were causing cancel button issues -->
 
+    <!-- Disable original edit handler -->
+    <script src="../js/food/disable-original-edit-handler.js"></script> <!-- Disable original edit handler -->
+
     <!-- Complete edit form replacement -->
     <script src="../js/food/complete-edit-form-replacement.js"></script> <!-- Complete edit form replacement -->
 
     <!-- Simple fix that restores the original cancel button handler -->
     <script src="../js/food/disable-cancel-button-fixes.js"></script> <!-- Restores original cancel button handler -->
+
+    <!-- Detailed nutrition view -->
+    <script src="../js/food/detailed-nutrition.js"></script> <!-- Detailed nutrition view -->
+    <script src="../js/food/detailed-nutrition-integration.js"></script> <!-- Detailed nutrition integration -->
+    <script src="../js/food/micronutrient-display.js"></script> <!-- Micronutrient display in recipe view -->
+    <script src="../js/food/cronometer-text-parser.js"></script> <!-- Cronometer text parser for nutrition data -->
+    <script src="../js/food/cronometer-data-fix.js"></script> <!-- Fix for Cronometer data not being saved -->
+    <script src="../js/food/cronometer-debug.js"></script> <!-- Debug tool for Cronometer parser -->
+    <script src="../js/food/debug-cronometer-parser.js"></script> <!-- Debug tool for testing Cronometer parser -->
+    <script src="../js/food/form-submission-debug.js"></script> <!-- Debug tool for form submission -->
+    <script src="../js/food/nutrition-save-debug.js"></script> <!-- Debug tool for Save Nutrition button -->
+    <script src="../js/food/simple-form-handler.js"></script> <!-- Simple form handler for recipe submission -->
+
+    <!-- Fix for package amount validation -->
+    <script src="../js/food/fix-package-amount-validation.js"></script> <!-- Fix for package amount validation -->
+
+    <!-- Fix for recipe API endpoints -->
+    <script src="../js/food/fix-recipe-api-endpoints.js"></script> <!-- Fix for recipe API endpoints -->
+
+    <!-- Fix for form submission -->
+    <script src="../js/food/fix-form-submission.js"></script> <!-- Fix for form submission issues -->
+
+    <!-- Fix for Cronometer text parser -->
+    <script src="../js/food/fix-cronometer-parser.js"></script> <!-- Fix for Cronometer text parser issues -->
+
+    <!-- Consolidated fix for recipe ingredients -->
+    <script src="../js/food/consolidated-recipe-ingredient-fix.js"></script> <!-- Consolidated fix for recipe ingredients -->
+
+
 </body>
 </html>

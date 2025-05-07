@@ -3,7 +3,7 @@
  * Makes the "My Tasks" text white and reduces dropdown padding
  */
 
-/* Make the "My Tasks" text white instead of gradient */
+
 .container h1.gradient-text {
     background: none !important;
     -webkit-background-clip: initial !important;
@@ -14,26 +14,26 @@
     letter-spacing: 0.5px !important;
 }
 
-/* Reduce padding for the task filter dropdown */
+
 #taskFilter,
 .form-control--glass,
 .task-filter-container select {
-    padding: 8px 30px 8px 12px !important; /* Increased right padding for dropdown arrow */
+    padding: 8px 30px 8px 12px !important; 
     height: auto !important;
     min-height: 36px !important;
     font-size: 0.9rem !important;
-    box-shadow: none !important; /* Remove any glow effect */
-    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
-    background-color: rgba(30, 30, 30, 0.7) !important; /* Dark background */
+    box-shadow: none !important; 
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+    background-color: rgba(30, 30, 30, 0.7) !important; 
     color: white !important;
-    appearance: none !important; /* Hide native dropdown arrow */
+    appearance: none !important; 
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
     border-radius: 4px !important;
-    background-image: none !important; /* Remove any background image arrow */
+    background-image: none !important; 
 }
 
-/* Remove focus outline and glow */
+
 #taskFilter:focus,
 .form-control--glass:focus,
 .task-filter-container select:focus {
@@ -42,14 +42,14 @@
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Adjust the task filter container */
+
 .task-filter-container {
     margin: 0 !important;
     padding: 0 !important;
     position: relative !important;
 }
 
-/* Style the dropdown arrow */
+
 .task-filter-container::after {
     content: '' !important;
     position: absolute !important;
@@ -62,15 +62,15 @@
     border-right: 5px solid transparent !important;
     border-top: 5px solid rgba(255, 255, 255, 0.7) !important;
     pointer-events: none !important;
-    z-index: 10 !important; /* Ensure our arrow is on top */
+    z-index: 10 !important; 
 }
 
-/* Remove any other dropdown arrows */
+
 .task-filter-container select::-ms-expand {
     display: none !important;
 }
 
-/* Override any other dropdown arrow styles */
+
 #taskFilter,
 .form-control--glass,
 .task-filter-container select,
@@ -78,17 +78,17 @@
     background-image: none !important;
 }
 
-/* Reduce spacing around the dropdown */
+
 .card__header {
     padding: 12px 15px !important;
 }
 
-/* Ensure proper alignment in the header */
+
 .card__title {
     margin: 0 !important;
 }
 
-/* Reduce spacing between header and content */
+
 .card__body {
     padding-top: 10px !important;
 }

@@ -1,9 +1,6 @@
-/* 
- * Remove Top X Button
- * This file specifically removes the X button in the top right corner of the Weight Increment section
- */
 
-/* Target the X button in the top right corner */
+
+
 .weight-increment-container button,
 .weight-increment-container .btn-delete-exercise,
 .weight-increment-container [class*="btn-"],
@@ -19,7 +16,7 @@
     z-index: -1 !important;
 }
 
-/* Ensure the weight increment label and input are visible */
+
 .weight-increment-label,
 .weight-increment-text,
 .weight-increment-input {
@@ -28,7 +25,7 @@
     opacity: 1 !important;
 }
 
-/* Keep the bottom X button visible */
+
 .view-exercise-row .btn-delete-exercise,
 .exercise-options-menu-row .btn-delete-exercise,
 .buttons-row .btn-delete-exercise,

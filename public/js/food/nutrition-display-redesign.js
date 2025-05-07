@@ -4,41 +4,34 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to redesign the nutrition display
+
     function redesignNutritionDisplay() {
-        // Find all edit ingredient forms
+
         const editForms = document.querySelectorAll('.edit-ingredient-form');
 
         editForms.forEach(form => {
-            // Skip if already processed
+
             if (form.dataset.nutritionDisplayRedesigned === 'true') return;
 
-            // Get the form element
             const formElement = form.querySelector('form');
             if (!formElement) return;
 
-            // Check if the detailed nutrition panel exists
             let detailedNutritionPanel = formElement.querySelector('.detailed-nutrition-panel');
 
-            // If the panel doesn't exist, we need to create it
             if (!detailedNutritionPanel) {
                 console.log('Creating detailed nutrition panel');
 
-                // Create the detailed nutrition panel
                 detailedNutritionPanel = document.createElement('div');
                 detailedNutritionPanel.className = 'detailed-nutrition-panel';
                 detailedNutritionPanel.style.display = 'block';
                 detailedNutritionPanel.style.padding = '8px';
                 detailedNutritionPanel.style.marginTop = '8px';
 
-                // Add the panel to the form
                 formElement.appendChild(detailedNutritionPanel);
             }
 
-            // Clear the existing content
             detailedNutritionPanel.innerHTML = '';
 
-            // Add the General section
             const generalSection = createNutritionSection('General', [
                 { id: 'edit-ingredient-calories', label: 'Energy', unit: 'kcal', primary: true, required: true },
                 { id: 'edit-ingredient-water', label: 'Water', unit: 'g' },
@@ -47,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             detailedNutritionPanel.appendChild(generalSection);
 
-            // Add the Carbohydrates section
             const carbsSection = createNutritionSection('Carbohydrates', [
                 { id: 'edit-ingredient-carbs', label: 'Total Carbs', unit: 'g', primary: true, required: true },
                 { id: 'edit-ingredient-fiber', label: 'Fiber', unit: 'g', primary: true },
@@ -58,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             detailedNutritionPanel.appendChild(carbsSection);
 
-            // Add the Lipids section
             const lipidsSection = createNutritionSection('Lipids', [
                 { id: 'edit-ingredient-fats', label: 'Total Fat', unit: 'g', primary: true, required: true },
                 { id: 'edit-ingredient-saturated', label: 'Saturated', unit: 'g', primary: true },
@@ -71,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             detailedNutritionPanel.appendChild(lipidsSection);
 
-            // Add the Protein section
             const proteinSection = createNutritionSection('Proteins', [
                 { id: 'edit-ingredient-protein', label: 'Total Protein', unit: 'g', primary: true, required: true },
                 { id: 'edit-ingredient-leucine', label: 'Leucine', unit: 'g' },
@@ -88,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             detailedNutritionPanel.appendChild(proteinSection);
 
-            // Add the Vitamins section
             const vitaminsSection = createNutritionSection('Vitamins', [
                 { id: 'edit-ingredient-vitamin-a', label: 'Vitamin A', unit: 'μg', primary: true },
                 { id: 'edit-ingredient-vitamin-c', label: 'Vitamin C', unit: 'mg', primary: true },
@@ -105,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             detailedNutritionPanel.appendChild(vitaminsSection);
 
-            // Add the Minerals section
             const mineralsSection = createNutritionSection('Minerals', [
                 { id: 'edit-ingredient-calcium', label: 'Calcium', unit: 'mg', primary: true },
                 { id: 'edit-ingredient-iron', label: 'Iron', unit: 'mg', primary: true },
@@ -120,9 +108,8 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             detailedNutritionPanel.appendChild(mineralsSection);
 
-            // Set up form submission handler to ensure all values are synced
             const formSubmitHandler = function(e) {
-                // Sync all values from redesigned inputs to original inputs
+
                 const redesignedInputs = detailedNutritionPanel.querySelectorAll('input');
 
                 redesignedInputs.forEach(input => {
@@ -135,18 +122,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             };
 
-            // Remove any existing handler to avoid duplicates
             formElement.removeEventListener('submit', formSubmitHandler);
 
-            // Add the submit handler
             formElement.addEventListener('submit', formSubmitHandler);
 
-            // Mark as processed
             form.dataset.nutritionDisplayRedesigned = 'true';
         });
     }
 
-    // Helper function to create a nutrition section
     function createNutritionSection(title, fields) {
         const section = document.createElement('div');
         section.className = 'nutrition-section';
@@ -166,7 +149,6 @@ document.addEventListener('DOMContentLoaded', function() {
         grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(90px, 1fr))';
         grid.style.gap = '4px';
 
-        // Sort fields to put primary ones first
         fields.sort((a, b) => {
             if (a.primary && !b.primary) return -1;
             if (!a.primary && b.primary) return 1;
@@ -194,12 +176,10 @@ document.addEventListener('DOMContentLoaded', function() {
             label.style.justifyContent = 'space-between';
             label.style.lineHeight = '1.2';
 
-            // Create the label text
             const labelText = document.createElement('span');
             labelText.textContent = field.label;
             label.appendChild(labelText);
 
-            // Create the unit display
             const unitDisplay = document.createElement('span');
             unitDisplay.className = 'unit';
             unitDisplay.textContent = field.unit;
@@ -225,19 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.required = true;
             }
 
-            // Get the existing value if it exists
             const existingInput = document.getElementById(field.id);
             if (existingInput && existingInput.value) {
                 input.value = existingInput.value;
             }
 
-            // Set up event listener to sync with any hidden original inputs
             input.addEventListener('input', function() {
                 const originalInput = document.getElementById(field.id);
                 if (originalInput && originalInput !== input) {
                     originalInput.value = input.value;
 
-                    // Trigger change event on the original input
                     const event = new Event('change', { bubbles: true });
                     originalInput.dispatchEvent(event);
                 }
@@ -252,10 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return section;
     }
 
-    // Run the redesign when the page loads
     setTimeout(redesignNutritionDisplay, 300);
 
-    // Set up a mutation observer to watch for new forms
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.addedNodes.length) {
@@ -264,24 +239,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Start observing the document body for changes
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Also handle dynamic form creation through event delegation
     document.body.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-ingredient-btn')) {
-            // Wait for the form to be displayed
+
             setTimeout(redesignNutritionDisplay, 200);
-            // Try again after a bit longer to ensure it's applied
+
             setTimeout(redesignNutritionDisplay, 500);
             setTimeout(redesignNutritionDisplay, 1000);
         }
     });
 
-    // Run periodically to ensure the nutrition display is redesigned
     setInterval(redesignNutritionDisplay, 2000);
 
-    // Function to sync values from original inputs to redesigned inputs
     function syncInputValues() {
         document.querySelectorAll('.edit-ingredient-form').forEach(form => {
             if (form.dataset.nutritionDisplayRedesigned === 'true') {
@@ -291,14 +262,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const detailedNutritionPanel = formElement.querySelector('.detailed-nutrition-panel');
                 if (!detailedNutritionPanel) return;
 
-                // Find all inputs in the redesigned display
                 const redesignedInputs = detailedNutritionPanel.querySelectorAll('input');
 
                 redesignedInputs.forEach(input => {
                     const id = input.id;
                     const originalInput = document.getElementById(id);
 
-                    // If there's an original input with a different value, update the redesigned input
                     if (originalInput && originalInput !== input && originalInput.value !== input.value) {
                         input.value = originalInput.value;
                     }
@@ -307,6 +276,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Run the sync function periodically
     setInterval(syncInputValues, 500);
 });

@@ -4,10 +4,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize dashboard stats
+
     updateDashboardStats();
-    
-    // Update stats when tasks or habits change
+
     document.addEventListener('tasksLoaded', updateDashboardStats);
     document.addEventListener('habitsLoaded', updateDashboardStats);
     document.addEventListener('taskCompleted', updateDashboardStats);
@@ -29,14 +28,11 @@ function updateDashboardStats() {
 function updateActiveTaskCount() {
     const activeTaskCountElement = document.getElementById('activeTaskCount');
     if (!activeTaskCountElement) return;
-    
-    // Get tasks from localStorage
+
     const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    
-    // Count active (non-completed) tasks
+
     const activeTaskCount = tasks.filter(task => !task.completed).length;
-    
-    // Update the dashboard
+
     activeTaskCountElement.textContent = activeTaskCount;
 }
 
@@ -46,15 +42,12 @@ function updateActiveTaskCount() {
 function updateCompletedTodayCount() {
     const completedTodayCountElement = document.getElementById('completedTodayCount');
     if (!completedTodayCountElement) return;
-    
-    // Get tasks from localStorage
+
     const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    
-    // Get today's date (without time)
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    // Count tasks completed today
+
     const completedTodayCount = tasks.filter(task => {
         if (!task.completed) return false;
         
@@ -63,8 +56,7 @@ function updateCompletedTodayCount() {
         
         return completedDate.getTime() === today.getTime();
     }).length;
-    
-    // Update the dashboard
+
     completedTodayCountElement.textContent = completedTodayCount;
 }
 
@@ -75,11 +67,9 @@ function updateCompletedTodayCount() {
 function updateHabitStreakCount() {
     const habitStreakCountElement = document.getElementById('habitStreakCount');
     if (!habitStreakCountElement) return;
-    
-    // Get habits from localStorage
+
     const habits = JSON.parse(localStorage.getItem('habits') || '[]');
-    
-    // Find the longest current streak
+
     let longestStreak = 0;
     
     habits.forEach(habit => {
@@ -88,7 +78,6 @@ function updateHabitStreakCount() {
             longestStreak = streak;
         }
     });
-    
-    // Update the dashboard
+
     habitStreakCountElement.textContent = longestStreak;
 }

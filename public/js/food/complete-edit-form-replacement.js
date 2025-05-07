@@ -5,27 +5,22 @@
  */
 
 (function() {
-    // Flag to track if we've already initialized
+
     let initialized = false;
 
-    // Function to create a new edit form
     function createNewEditForm(ingredientId, recipeId, container) {
         console.log('Creating new edit form for ingredient:', ingredientId, 'in recipe:', recipeId);
 
-        // Get the existing edit form
         const existingForm = container.querySelector('.edit-ingredient-form');
         if (!existingForm) {
             console.error('Could not find existing edit form');
             return;
         }
 
-        // Store the original form content to restore it if needed
         existingForm.originalContent = existingForm.innerHTML;
 
-        // Clear the existing form content completely
         existingForm.innerHTML = '';
 
-        // Set the new HTML structure
         existingForm.innerHTML = `
             <h4>Edit Ingredient</h4>
             <form id="edit-ingredient-form" style="margin: 0; padding: 0;">
@@ -42,38 +37,31 @@
             <div class="edit-ingredient-status status"></div>
         `;
 
-        // Get the form element
         const formElement = existingForm.querySelector('form');
 
-        // Add event listeners
         formElement.addEventListener('submit', handleEditIngredientSubmit);
 
-        // Get the cancel button and add a robust event listener
         const cancelButton = existingForm.querySelector('.cancel-edit-btn');
         if (cancelButton) {
-            // Remove any existing event listeners by cloning the button
+
             const newCancelButton = cancelButton.cloneNode(true);
             if (cancelButton.parentNode) {
                 cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
             }
 
-            // Add a new event listener with event prevention
             newCancelButton.addEventListener('click', function(event) {
-                // Prevent default behavior and stop propagation
+
                 event.preventDefault();
                 event.stopPropagation();
 
                 console.log('Cancel button clicked, hiding form');
 
-                // Use a more aggressive approach to hide the form
                 existingForm.style.display = 'none';
                 existingForm.classList.remove('show-edit-form');
                 existingForm.classList.add('hide-edit-form');
 
-                // Add a data attribute to force it to stay hidden
                 existingForm.setAttribute('data-force-hidden', 'true');
 
-                // Also use a timeout to ensure it stays hidden
                 setTimeout(function() {
                     existingForm.style.display = 'none';
                     console.log('Edit form hidden (timeout)');
@@ -83,33 +71,23 @@
             console.error('Cancel button not found in the form');
         }
 
-        // Fetch the ingredient data and populate the form
         fetchAndPopulateForm(ingredientId, recipeId, formElement);
 
         return existingForm;
     }
 
-    // Function to fetch ingredient data and populate the form
     function fetchAndPopulateForm(ingredientId, recipeId, formElement) {
-        console.log('DEBUG: fetchAndPopulateForm called');
-        console.log('Fetching data for ingredient:', ingredientId, 'in recipe:', recipeId);
+        if (DEBUG) console.log('fetchAndPopulateForm called');
+        if (DEBUG) console.log('Fetching data for ingredient:', ingredientId, 'in recipe:', recipeId);
 
-        // Log the form element to make sure it exists
-        console.log('DEBUG: Form element:', formElement);
-
-        // Show loading message
         const container = formElement.closest('.ingredient-details');
-        console.log('DEBUG: Container:', container);
-
         const statusElement = container.querySelector('.edit-ingredient-status');
-        console.log('DEBUG: Status element:', statusElement);
 
         if (statusElement) {
             statusElement.textContent = 'Loading ingredient data...';
             statusElement.className = 'status info';
         }
 
-        // Fetch the ingredient data
         fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`)
             .then(response => {
                 if (!response.ok) {
@@ -120,19 +98,16 @@
             .then(ingredient => {
                 console.log('Ingredient data received:', ingredient);
 
-                // Clear any status message
                 if (statusElement) {
                     statusElement.textContent = '';
                     statusElement.className = 'status';
                 }
 
-                // Create the form sections
                 createFormSections(formElement, ingredient);
             })
             .catch(error => {
                 console.error('Error fetching ingredient data:', error);
 
-                // Show error message
                 if (statusElement) {
                     statusElement.textContent = 'Error loading ingredient data. Please try again.';
                     statusElement.className = 'status error';
@@ -140,9 +115,8 @@
             });
     }
 
-    // Function to create all form sections with consistent styling
     function createFormSections(formElement, ingredient) {
-        // Create the sections
+
         const sections = [
             createBasicInfoSection(ingredient),
             createGeneralSection(ingredient),
@@ -153,14 +127,12 @@
             createMineralsSection(ingredient)
         ];
 
-        // Insert the sections before the form actions
         const formActions = formElement.querySelector('.form-actions');
         sections.forEach(section => {
             formElement.insertBefore(section, formActions);
         });
     }
 
-    // Function to create a section with consistent styling
     function createSection(title, fields) {
         const section = document.createElement('div');
         section.className = 'nutrition-section';
@@ -185,7 +157,6 @@
         grid.style.gap = '3px';
         section.appendChild(grid);
 
-        // Add fields to the grid
         fields.forEach(field => {
             const item = document.createElement('div');
             item.className = 'nutrition-item';
@@ -233,7 +204,6 @@
         return section;
     }
 
-    // Function to create the Basic Information section
     function createBasicInfoSection(ingredient) {
         return createSection('Basic Information', [
             {
@@ -263,7 +233,6 @@
         ]);
     }
 
-    // Function to create the General section
     function createGeneralSection(ingredient) {
         return createSection('General', [
             {
@@ -290,7 +259,6 @@
         ]);
     }
 
-    // Function to create the Carbohydrates section
     function createCarbohydratesSection(ingredient) {
         return createSection('Carbohydrates', [
             {
@@ -327,9 +295,8 @@
         ]);
     }
 
-    // Function to create the Lipids section
     function createLipidsSection(ingredient) {
-        // Handle both omega3/omega6 and omega_3/omega_6 naming conventions
+
         const omega3Value = ingredient.omega3 !== undefined ? ingredient.omega3 :
                            (ingredient.omega_3 !== undefined ? ingredient.omega_3 : '');
         const omega6Value = ingredient.omega6 !== undefined ? ingredient.omega6 :
@@ -380,7 +347,6 @@
         ]);
     }
 
-    // Function to create the Protein section
     function createProteinSection(ingredient) {
         return createSection('Protein', [
             {
@@ -447,7 +413,6 @@
         ]);
     }
 
-    // Function to create the Vitamins section
     function createVitaminsSection(ingredient) {
         return createSection('Vitamins', [
             {
@@ -520,7 +485,6 @@
         ]);
     }
 
-    // Function to create the Minerals section
     function createMineralsSection(ingredient) {
         return createSection('Minerals', [
             {
@@ -579,26 +543,21 @@
         ]);
     }
 
-    // Function to handle form submission
     function handleEditIngredientSubmit(event) {
         event.preventDefault();
 
-        // Get the form and container
         const form = event.target;
         const container = form.closest('.edit-ingredient-form');
         const statusElement = container.querySelector('.edit-ingredient-status');
 
-        // Get the ingredient ID and recipe ID
         const ingredientId = form.querySelector('#edit-ingredient-id').value;
         const recipeId = form.querySelector('#edit-recipe-id').value;
 
-        // Show loading message
         if (statusElement) {
             statusElement.textContent = 'Saving changes...';
             statusElement.className = 'status info';
         }
 
-        // Collect all the form data
         const formData = {
             name: form.querySelector('#edit-ingredient-name').value,
             amount: parseFloat(form.querySelector('#edit-ingredient-amount').value),
@@ -610,7 +569,6 @@
             carbohydrates: parseFloat(form.querySelector('#edit-ingredient-carbs').value) || 0
         };
 
-        // Add optional fields if they exist and have values
         const optionalFields = [
             'alcohol', 'caffeine', 'water', 'fiber', 'starch', 'sugars', 'added_sugars', 'net_carbs',
             'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'saturated', 'trans_fat', 'cholesterol',
@@ -623,7 +581,7 @@
         ];
 
         optionalFields.forEach(field => {
-            // Handle fields with underscores by replacing all underscores with hyphens
+
             const inputId = 'edit-ingredient-' + field.replace(/_/g, '-');
             const input = form.querySelector('#' + inputId);
             if (input && input.value !== '') {
@@ -631,7 +589,6 @@
             }
         });
 
-        // Send the data to the server
         fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
             method: 'PUT',
             headers: {
@@ -648,21 +605,18 @@
         .then(data => {
             console.log('Ingredient updated successfully:', data);
 
-            // Show success message
             if (statusElement) {
                 statusElement.textContent = 'Ingredient updated successfully!';
                 statusElement.className = 'status success';
             }
 
-            // Hide the form after a short delay
             setTimeout(() => {
                 container.style.display = 'none';
 
-                // Refresh the ingredient list
                 if (typeof fetchAndDisplayIngredients === 'function') {
                     fetchAndDisplayIngredients(recipeId);
                 } else {
-                    // Reload the page as a fallback
+
                     window.location.reload();
                 }
             }, 1500);
@@ -670,7 +624,6 @@
         .catch(error => {
             console.error('Error updating ingredient:', error);
 
-            // Show error message
             if (statusElement) {
                 statusElement.textContent = 'Error updating ingredient. Please try again.';
                 statusElement.className = 'status error';
@@ -678,111 +631,93 @@
         });
     }
 
-    // Function to handle edit button clicks
-    function handleEditButtonClick(event) {
-        console.log('DEBUG: Click event detected, checking if it was on an edit button', event.target);
+    const DEBUG = false;
 
-        // Check if the click was on an edit button
+    function handleEditButtonClick(event) {
+        if (DEBUG) console.log('Click event detected, checking if it was on an edit button');
+
         if (event.target.classList.contains('edit-ingredient-btn') ||
             (event.target.tagName === 'BUTTON' &&
              event.target.textContent === 'Edit' &&
              event.target.closest('tr'))) {
 
-            console.log('DEBUG: Edit button clicked, replacing edit form');
+            if (DEBUG) console.log('Edit button clicked, replacing edit form');
 
-            // Prevent event propagation to avoid conflicts with other handlers
             event.stopPropagation();
             event.preventDefault();
 
-            // Get the row and container
             const row = event.target.closest('tr');
             if (!row) return;
 
             const ingredientId = row.dataset.ingredientId;
             const recipeId = row.dataset.recipeId;
 
-            console.log('DEBUG: Found ingredientId:', ingredientId, 'recipeId:', recipeId);
+            if (DEBUG) console.log('Found ingredientId:', ingredientId, 'recipeId:', recipeId);
 
             const container = row.closest('.ingredient-details');
             if (!container) {
-                console.log('DEBUG: Could not find container');
+                if (DEBUG) console.log('Could not find container');
                 return;
             }
 
-            // Find the edit form
             const editForm = container.querySelector('.edit-ingredient-form');
             if (editForm) {
-                console.log('DEBUG: Found edit form, making it visible');
+                if (DEBUG) console.log('Found edit form, making it visible');
 
-                // Make sure it's visible
                 editForm.style.display = 'block';
 
-                // Create the new edit form
                 createNewEditForm(ingredientId, recipeId, container);
             } else {
-                console.log('DEBUG: Could not find edit form');
+                if (DEBUG) console.log('Could not find edit form');
             }
         }
     }
 
-    // Function to initialize the script
     function init() {
         if (initialized) return;
 
-        console.log('Initializing complete edit form replacement');
+        if (DEBUG) console.log('Initializing complete edit form replacement');
 
-        // Add a debug message to help troubleshoot
-        console.log('DEBUG: complete-edit-form-replacement.js is loaded and running');
-
-        // Add event listener for edit button clicks with capture phase to ensure it runs first
         document.body.addEventListener('click', handleEditButtonClick, true);
 
-        // Add a global event listener for all cancel buttons
         document.body.addEventListener('click', function(event) {
-            // Check if the click was on a cancel button
+
             if (event.target.classList.contains('cancel-edit-btn') ||
                 (event.target.textContent === 'Cancel' && event.target.closest('.edit-ingredient-form'))) {
 
-                console.log('Cancel button clicked (global handler)');
+                if (DEBUG) console.log('Cancel button clicked (global handler)');
 
-                // Find the edit form
                 const editForm = event.target.closest('.edit-ingredient-form');
                 if (editForm) {
-                    // Use a more aggressive approach to hide the form
+
                     editForm.style.display = 'none';
                     editForm.classList.remove('show-edit-form');
                     editForm.classList.add('hide-edit-form');
 
-                    // Add a data attribute to force it to stay hidden
                     editForm.setAttribute('data-force-hidden', 'true');
 
-                    // Add a style to ensure it stays hidden
                     const style = document.createElement('style');
                     style.textContent = '.edit-ingredient-form[data-force-hidden="true"] { display: none !important; }';
                     document.head.appendChild(style);
 
-                    // Also use a timeout to ensure it stays hidden
                     setTimeout(function() {
                         editForm.style.display = 'none';
-                        console.log('Edit form hidden (timeout)');
+                        if (DEBUG) console.log('Edit form hidden (timeout)');
                     }, 10);
 
-                    console.log('Edit form hidden (global handler)');
+                    if (DEBUG) console.log('Edit form hidden (global handler)');
                 }
 
-                // Prevent event propagation to avoid conflicts with other handlers
                 event.stopPropagation();
                 event.preventDefault();
             }
         }, true); // Use capture phase to ensure this runs before other handlers
 
-        // Mark as initialized
         initialized = true;
 
-        console.log('Complete edit form replacement initialized');
+        if (DEBUG) console.log('Complete edit form replacement initialized');
     }
 
-    // Initialize when the DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

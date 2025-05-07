@@ -1,24 +1,20 @@
-// Days Since functionality
-// Helper functions
+
+
 function calculateTimeSince(startDate) {
-    // Create date objects for start and now
+
     const start = new Date(startDate);
     const now = new Date();
 
-    // Calculate the time difference in milliseconds
     let diffMs = now - start;
 
-    // Handle cases where the start date might be slightly in the future due to clock skew
     if (diffMs < 0) {
         diffMs = 0;
     }
 
-    // Calculate days, hours, and minutes
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-    // Return an object instead of a string
     return { days, hours, minutes };
 }
 
@@ -52,7 +48,6 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// Render events in the list
 function renderEvents(events) {
     const daysSinceList = document.getElementById('daysSinceList');
     console.log('Rendering events:', events); // Debug log
@@ -69,7 +64,6 @@ function renderEvents(events) {
     const renderedHtml = events.map(event => {
         const timeComponents = calculateTimeSince(event.start_date);
 
-        // Format the time difference descriptively
         let timeSinceFormatted = '';
         if (timeComponents.days > 0) {
             timeSinceFormatted += `${timeComponents.days} ${timeComponents.days === 1 ? 'day' : 'days'}`;
@@ -80,7 +74,7 @@ function renderEvents(events) {
         if (timeComponents.minutes > 0) {
             timeSinceFormatted += `${timeSinceFormatted ? ', ' : ''}${timeComponents.minutes} ${timeComponents.minutes === 1 ? 'minute' : 'minutes'}`;
         }
-        // Handle the case where the difference is less than a minute
+
         if (timeSinceFormatted === '') {
             timeSinceFormatted = 'Less than a minute';
         }
@@ -103,14 +97,12 @@ function renderEvents(events) {
     console.log('Setting innerHTML:', renderedHtml); // Debug log
     daysSinceList.innerHTML = renderedHtml;
 
-    // Update counters every minute
     setTimeout(() => loadEvents(), 60000);
 }
 
-// Define loadEvents function
 async function loadEvents() {
     try {
-        // Add cache-busting query parameter
+
         const response = await fetch('/api/days-since?' + new Date().getTime());
         if (!response.ok) {
             throw new Error('Failed to fetch events');
@@ -125,7 +117,6 @@ async function loadEvents() {
     }
 }
 
-// Make functions available globally
 window.loadEvents = loadEvents;
 window.formatDate = formatDate;
 window.showStatus = showStatus;
@@ -135,9 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addEventForm = document.getElementById('addEventForm');
     const addEventStatus = document.getElementById('addEventStatus');
 
-    // Set default datetime to now in local timezone
     const now = new Date();
-    // Format the date in local timezone
+
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
@@ -146,10 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const nowString = `${year}-${month}-${day}T${hours}:${minutes}`;
     document.getElementById('eventStartDate').value = nowString;
 
-    // Load events on page load
     loadEvents();
 
-    // Handle form submission
     addEventForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -162,8 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Create a Date object in local time and preserve the local time
-            // by sending the date string directly without timezone conversion
+
+
             const response = await fetch('/api/days-since', {
                 method: 'POST',
                 headers: {
@@ -190,15 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Global functions for event actions
 window.editEvent = function(id, currentName, currentDate) {
     const eventElement = document.querySelector(`.days-since-event[data-id="${id}"]`);
     if (!eventElement) return;
 
-    // Use current time instead of the event's time
     const now = new Date();
 
-    // Format the current time for datetime-local input (YYYY-MM-DDTHH:MM)
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
@@ -207,7 +192,6 @@ window.editEvent = function(id, currentName, currentDate) {
 
     const formattedCurrentTime = `${year}-${month}-${day}T${hours}:${minutes}`;
 
-    // Create and show edit form
     const editForm = document.createElement('form');
     editForm.classList.add('edit-form-inline'); // Add a class for potential styling
     editForm.innerHTML = `
@@ -227,11 +211,9 @@ window.editEvent = function(id, currentName, currentDate) {
         <div id="editStatus_${id}" class="status"></div>
     `;
 
-    // Replace event content with the form
     eventElement.innerHTML = ''; // Clear existing content
     eventElement.appendChild(editForm);
 
-    // Handle form submission
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const updatedName = document.getElementById(`editEventName_${id}`).value.trim();
@@ -255,7 +237,7 @@ window.editEvent = function(id, currentName, currentDate) {
             }
 
             showStatus(editStatus, 'Event updated!', 'success');
-            // Reload events after a short delay to show the success message
+
             setTimeout(loadEvents, 1000);
         } catch (error) {
             console.error('Error updating event:', error);

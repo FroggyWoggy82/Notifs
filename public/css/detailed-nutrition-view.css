@@ -1,0 +1,75 @@
+/**
+ * Detailed Nutrition View Styles
+ */
+
+.nutrition-controls {
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+.toggle-detailed-nutrition {
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.toggle-detailed-nutrition:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.detailed-nutrition-container {
+    margin-top: 20px;
+    background-color: #111;
+    padding: 15px;
+    border-bottom: 2px solid #00ff00;
+}
+
+.detailed-nutrition-container h4 {
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.detailed-nutrition-tables {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.detailed-nutrition-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.detailed-nutrition-table th,
+.detailed-nutrition-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+
+.detailed-nutrition-table th {
+    background-color: #222;
+    font-weight: bold;
+}
+
+.detailed-nutrition-table td strong {
+    color: #00ff00;
+    font-weight: normal;
+}
+
+@media (min-width: 992px) {
+    .detailed-nutrition-tables {
+        flex-direction: row;
+    }
+    
+    .detailed-nutrition-table {
+        width: 50%;
+    }
+}

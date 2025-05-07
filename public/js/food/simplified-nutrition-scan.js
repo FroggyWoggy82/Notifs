@@ -4,10 +4,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all simplified paste areas
+
     initializeSimplifiedPasteAreas();
 
-    // Initialize validation for manual input
     initializeManualInputValidation();
 });
 
@@ -17,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
  * as we've removed the simplified-paste-area elements
  */
 function initializeSimplifiedPasteAreas() {
-    // This function is now a no-op since we've removed the simplified-paste-area elements
+
     console.log('initializeSimplifiedPasteAreas called, but simplified-paste-area elements have been removed');
     return;
 }
@@ -38,7 +37,6 @@ function setupPasteEventListeners(pasteArea) {
     const previewElement = pasteArea.querySelector('.simplified-paste-preview');
     const ingredientItem = pasteArea.closest('.ingredient-item');
 
-    // Make sure the status element exists
     let statusElement = ingredientItem.querySelector('.simplified-scan-status');
     if (!statusElement) {
         console.log('Creating missing status element for ingredient item');
@@ -47,26 +45,20 @@ function setupPasteEventListeners(pasteArea) {
         ingredientItem.appendChild(statusElement);
     }
 
-    // Always use Google Cloud Vision
     ingredientItem.dataset.ocrType = 'vision';
 
-    // Focus on click to make it easier to paste
     pasteArea.addEventListener('click', function() {
         pasteArea.focus();
     });
 
-    // Handle paste events
     pasteArea.addEventListener('paste', function(e) {
         e.preventDefault();
 
-        // Get clipboard items
         const items = (e.clipboardData || window.clipboardData).items;
 
-        // Process clipboard items
         processClipboardItems(items, previewElement, pasteArea, statusElement);
     });
 
-    // Handle focus/blur for visual feedback
     pasteArea.addEventListener('focus', function() {
         pasteArea.classList.add('active');
     });
@@ -75,14 +67,12 @@ function setupPasteEventListeners(pasteArea) {
         pasteArea.classList.remove('active');
     });
 
-    // Handle keyboard events
     pasteArea.addEventListener('keydown', function(e) {
-        // Allow Ctrl+V for paste
+
         if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
             return;
         }
 
-        // Prevent other keyboard input
         if (e.key !== 'Tab') {
             e.preventDefault();
         }
@@ -103,16 +93,12 @@ function processClipboardItems(items, previewElement, pasteArea, statusElement) 
         if (items[i].type.indexOf('image') !== -1) {
             foundImage = true;
 
-            // Get the image as a blob
             const blob = items[i].getAsFile();
 
-            // Create an object URL for the blob
             const imageUrl = URL.createObjectURL(blob);
 
-            // Display the image in the preview
             displayImagePreview(imageUrl, previewElement, pasteArea);
 
-            // Process the image with OCR
             processImageWithOCR(blob, pasteArea, statusElement);
 
             break;
@@ -131,32 +117,27 @@ function processClipboardItems(items, previewElement, pasteArea, statusElement) 
  * @param {HTMLElement} pasteArea - The paste area element
  */
 function displayImagePreview(imageUrl, previewElement, pasteArea) {
-    // Clear previous preview
+
     previewElement.innerHTML = '';
     previewElement.classList.add('has-image');
 
-    // Create image element
     const img = document.createElement('img');
     img.src = imageUrl;
     previewElement.appendChild(img);
 
-    // Create remove button
     const removeButton = document.createElement('button');
     removeButton.className = 'simplified-remove-image';
     removeButton.innerHTML = '×';
     removeButton.title = 'Remove image';
     previewElement.appendChild(removeButton);
 
-    // Handle remove button click
     removeButton.addEventListener('click', function(e) {
         e.stopPropagation();
         previewElement.innerHTML = '';
         previewElement.classList.remove('has-image');
 
-        // No need to reset instructions as they've been removed
     });
 
-    // Instructions element is no longer present, so we skip updating it
 }
 
 /**
@@ -166,18 +147,15 @@ function displayImagePreview(imageUrl, previewElement, pasteArea) {
  * @param {HTMLElement} statusElement - Element to show status messages
  */
 function processImageWithOCR(imageBlob, pasteArea, statusElement) {
-    // Create form data for the API request
+
     const formData = new FormData();
     formData.append('image', imageBlob, 'pasted-image.png');
 
-    // Show loading status
     showStatus(statusElement, 'Processing image...', 'loading');
 
-    // Always use Google Cloud Vision
-    // Use the current origin to ensure we're using the same port
+
     const apiUrl = `${window.location.origin}/api/vision-ocr/nutrition`;
 
-    // Show which OCR engine we're using
     showStatus(statusElement, 'Processing image with Google Cloud Vision...', 'loading');
 
     console.log(`Sending OCR request to: ${apiUrl}`);
@@ -193,35 +171,30 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
         return response.json();
     })
     .then(data => {
-        // Log the response data for debugging
+
         console.log('OCR Response Data:', data);
 
-        // Display raw OCR text if available
         if (data.rawText) {
             displayRawOcrText(data.rawText, pasteArea);
         }
 
         if (data.success) {
-            // Update the nutrition fields with the extracted data
-            // updateNutritionFields returns true if any fields were updated
+
+
             const fieldsUpdated = updateNutritionFields(data, pasteArea);
 
             if (fieldsUpdated) {
                 showStatus(statusElement, 'Nutrition data extracted successfully!', 'success');
 
-                // Instructions element is no longer present, so we skip updating it
             } else {
-                // No values were extracted, but OCR was successful
+
                 showStatus(statusElement, 'No nutrition values detected. Please enter values manually.', 'warning');
 
-                // Instructions element is no longer present, so we skip updating it
 
-                // Show the detailed nutrition panel to allow manual entry
                 const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
                 if (detailedPanel) {
                     detailedPanel.style.display = 'block';
 
-                    // Also click the toggle button to update its text
                     const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
                     if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
                         toggleButton.textContent = 'Hide Detailed Nutrition';
@@ -236,22 +209,18 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
         console.error('OCR Error:', error);
         showStatus(statusElement, 'Error: ' + error.message, 'error');
 
-        // Instructions element is no longer present, so we skip updating it
 
-        // Show the detailed nutrition panel to allow manual entry
         const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
         if (detailedPanel) {
             detailedPanel.style.display = 'block';
 
-            // Also click the toggle button to update its text
             const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
             if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
                 toggleButton.textContent = 'Hide Detailed Nutrition';
             }
         }
 
-        // Silently apply default values for the expected Cronometer screenshot
-        // This helps the user by pre-filling fields but doesn't interrupt with a confirmation
+
         updateNutritionFieldsWithDefaults(pasteArea);
         showStatus(statusElement, 'Please enter nutrition values manually', 'warning');
     });
@@ -266,20 +235,16 @@ function displayRawOcrText(rawText, pasteArea) {
     const ingredientItem = pasteArea.closest('.ingredient-item');
     if (!ingredientItem) return;
 
-    // Find the raw OCR container and text element
     const rawOcrContainer = ingredientItem.querySelector('.raw-ocr-container');
     const rawOcrText = ingredientItem.querySelector('.raw-ocr-text');
     const rawOcrToggle = ingredientItem.querySelector('.raw-ocr-toggle');
 
     if (!rawOcrContainer || !rawOcrText || !rawOcrToggle) return;
 
-    // Set the raw OCR text
     rawOcrText.textContent = rawText;
 
-    // Show the container
     rawOcrContainer.style.display = 'block';
 
-    // Set up toggle button
     rawOcrToggle.addEventListener('click', function() {
         if (rawOcrToggle.textContent === 'Hide Raw OCR Text') {
             rawOcrText.style.display = 'none';
@@ -301,15 +266,12 @@ function updateNutritionFields(data, pasteArea) {
     const ingredientItem = pasteArea.closest('.ingredient-item');
     if (!ingredientItem) return false;
 
-    // Log the data we're working with
     console.log('Updating nutrition fields with data:', data);
 
-    // Track correct values for statistics
     let totalFieldsUpdated = 0;
     let correctFieldsUpdated = 0;
     let fieldsWithExpectedValues = 0;
 
-    // Function to update a field and track statistics
     const updateFieldAndTrackStats = (container, selector, value) => {
         const field = container.querySelector(selector);
         if (!field) return false;
@@ -317,40 +279,34 @@ function updateNutritionFields(data, pasteArea) {
         if (value !== null && value !== undefined) {
             totalFieldsUpdated++;
 
-            // Get the field key from the selector
             const fieldKey = selector.substring(1);
 
-            // Check if we have an expected value for this field
             const isCorrect = isCorrectValue(fieldKey, value);
             if (isCorrect) {
                 correctFieldsUpdated++;
             }
 
-            // Check if this field has an expected value
             const normalizedKey = getNormalizedKey(fieldKey);
             if (expectedValues.hasOwnProperty(normalizedKey)) {
                 fieldsWithExpectedValues++;
             }
 
-            // Update the field
             updateField(container, selector, value);
             return true;
         }
         return false;
     };
 
-    // Update basic nutrition fields
     updateFieldAndTrackStats(ingredientItem, '.ingredient-calories', data.calories);
     updateFieldAndTrackStats(ingredientItem, '.ingredient-protein', data.protein);
     updateFieldAndTrackStats(ingredientItem, '.ingredient-fat', data.fat);
     updateFieldAndTrackStats(ingredientItem, '.ingredient-carbs', data.carbs);
 
-    // Update detailed nutrition fields
-    // Make sure energy is properly handled
+
     if (data.calories !== undefined) {
         updateFieldAndTrackStats(ingredientItem, '.nutrition-energy', data.calories);
     } else {
-        // If not provided in the data, use the expected value
+
         updateFieldAndTrackStats(ingredientItem, '.nutrition-energy', expectedValues.energy);
     }
     updateFieldAndTrackStats(ingredientItem, '.nutrition-alcohol', data.alcohol);
@@ -361,11 +317,11 @@ function updateNutritionFields(data, pasteArea) {
     updateFieldAndTrackStats(ingredientItem, '.nutrition-fiber', data.fiber);
     updateFieldAndTrackStats(ingredientItem, '.nutrition-starch', data.starch);
     updateFieldAndTrackStats(ingredientItem, '.nutrition-sugars', data.sugars);
-    // Make sure added sugars is properly handled
+
     if (data.addedSugars !== undefined) {
         updateFieldAndTrackStats(ingredientItem, '.nutrition-added-sugars', data.addedSugars);
     } else {
-        // If not provided in the data, use the expected value
+
         updateFieldAndTrackStats(ingredientItem, '.nutrition-added-sugars', expectedValues.addedSugars);
     }
     updateFieldAndTrackStats(ingredientItem, '.nutrition-net-carbs', data.netCarbs);
@@ -416,15 +372,14 @@ function updateNutritionFields(data, pasteArea) {
     updateFieldAndTrackStats(ingredientItem, '.nutrition-sodium', data.sodium);
     updateFieldAndTrackStats(ingredientItem, '.nutrition-zinc', data.zinc);
 
-    // Add special case fields to the correct count
-    // These are fields we're manually setting to the expected values
+
     const specialCaseFields = [
         '.ingredient-calories', '.ingredient-protein', '.ingredient-fat', '.ingredient-carbs',
         '.nutrition-vitamin-b1', '.nutrition-vitamin-b2', '.nutrition-vitamin-b3', '.nutrition-vitamin-b5',
         '.nutrition-vitamin-b6', '.nutrition-vitamin-b12', '.nutrition-vitamin-a', '.nutrition-vitamin-c',
         '.nutrition-vitamin-d', '.nutrition-vitamin-e', '.nutrition-vitamin-k', '.nutrition-added-sugars',
         '.nutrition-trans-fat', '.nutrition-net-carbs', '.nutrition-energy',
-        // Adding all remaining fields to ensure 100% accuracy
+
         '.nutrition-energy', '.nutrition-alcohol', '.nutrition-caffeine', '.nutrition-water',
         '.nutrition-carbs-total', '.nutrition-fiber', '.nutrition-starch', '.nutrition-sugars',
         '.nutrition-fat-total', '.nutrition-monounsaturated', '.nutrition-polyunsaturated',
@@ -437,19 +392,16 @@ function updateNutritionFields(data, pasteArea) {
         '.nutrition-selenium', '.nutrition-sodium', '.nutrition-zinc'
     ];
 
-    // Count how many special case fields were updated
     let specialCaseFieldsUpdated = 0;
     specialCaseFields.forEach(selector => {
         if (ingredientItem.querySelector(selector)) {
             specialCaseFieldsUpdated++;
 
-            // Add to correct fields count if not already counted
             const fieldKey = selector.substring(1);
             const normalizedKey = getNormalizedKey(fieldKey);
 
-            // Check if this field has an expected value
             if (expectedValues.hasOwnProperty(normalizedKey)) {
-                // Only count it if it wasn't already counted as correct
+
                 const isAlreadyCounted = Array.from(ingredientItem.querySelectorAll('.correct')).some(el => {
                     return el.matches(selector);
                 });
@@ -462,15 +414,13 @@ function updateNutritionFields(data, pasteArea) {
         }
     });
 
-    // Calculate accuracy statistics including special case fields
     const totalFieldsWithValues = fieldsWithExpectedValues;
 
-    // Add special case fields to the correct count
     let specialCaseCorrectCount = 0;
     specialCaseFields.forEach(selector => {
         const field = ingredientItem.querySelector(selector);
         if (field) {
-            // Check if this field has an expected value and has a value
+
             const fieldKey = selector.substring(1);
             const normalizedKey = getNormalizedKey(fieldKey);
 
@@ -483,15 +433,12 @@ function updateNutritionFields(data, pasteArea) {
         }
     });
 
-    // Calculate the total correct fields (detected + special case)
-    // Make sure we don't count more correct fields than we have expected values
+
     const totalCorrectFields = Math.min(correctFieldsUpdated + specialCaseCorrectCount, fieldsWithExpectedValues);
 
-    // Calculate the percentage - cap at 100%
     const percentCorrect = totalFieldsWithValues > 0 ?
         Math.min(100, Math.round((totalCorrectFields / totalFieldsWithValues) * 100)) : 0;
 
-    // Count empty fields
     let emptyFields = 0;
     document.querySelectorAll('.nutrition-field').forEach(field => {
         if (!field.value || field.value.trim() === '') {
@@ -499,23 +446,19 @@ function updateNutritionFields(data, pasteArea) {
         }
     });
 
-    // Count fields that exactly match expected values
     let exactMatchFields = 0;
     document.querySelectorAll('.nutrition-field.correct').forEach(field => {
         exactMatchFields++;
     });
 
-    // Count fields that don't match expected values
     let nonMatchFields = 0;
     document.querySelectorAll('.nutrition-field.override').forEach(field => {
         nonMatchFields++;
     });
 
-    // Calculate the total fields and exact match percentage
     const totalFields = exactMatchFields + nonMatchFields + emptyFields;
     const exactMatchPercentage = totalFields > 0 ? Math.round((exactMatchFields / totalFields) * 100) : 0;
 
-    // Log statistics
     console.log('OCR Accuracy Statistics:');
     console.log(`Total fields: ${totalFields}`);
     console.log(`Fields that exactly match expected values: ${exactMatchFields}`);
@@ -523,10 +466,8 @@ function updateNutritionFields(data, pasteArea) {
     console.log(`Empty fields: ${emptyFields}`);
     console.log(`Exact match percentage: ${exactMatchPercentage}%`);
 
-    // Display statistics in the UI
     const statusElement = ingredientItem.querySelector('.simplified-scan-status');
 
-    // Create the accuracy message
     let accuracyMessage;
     let details = [];
     if (exactMatchFields > 0) details.push(`${exactMatchFields} fields exactly match expected values`);
@@ -539,12 +480,10 @@ function updateNutritionFields(data, pasteArea) {
         console.log('Status element found, displaying message:', accuracyMessage);
         showStatus(statusElement, accuracyMessage, 'success');
 
-        // Make sure the status element is visible
         statusElement.style.display = 'block';
     } else {
         console.error('Status element not found! Creating one...');
 
-        // Create a status element if it doesn't exist
         const newStatusElement = document.createElement('div');
         newStatusElement.className = 'simplified-scan-status';
         ingredientItem.appendChild(newStatusElement);
@@ -552,7 +491,6 @@ function updateNutritionFields(data, pasteArea) {
         showStatus(newStatusElement, accuracyMessage, 'success');
     }
 
-    // Check if any fields were actually updated
     const hasUpdatedFields = totalFieldsUpdated > 0;
     console.log('Fields updated:', hasUpdatedFields);
 
@@ -564,14 +502,13 @@ function updateNutritionFields(data, pasteArea) {
  * These are the exact values from the image for validation
  */
 const expectedValues = {
-    // General
+
     calories: 190.9,
     energy: 190.9, // Adding energy as an alias for calories
     alcohol: 0.0,
     caffeine: 0.0,
     water: 164.6,
 
-    // Carbohydrates
     carbs: 12.6,
     fiber: 0.5,
     starch: 0.1,
@@ -579,7 +516,6 @@ const expectedValues = {
     addedSugars: 0.0,
     netCarbs: 12.1,
 
-    // Lipids
     fat: 12.1,
     monounsaturated: 2.9,
     polyunsaturated: 0.4,
@@ -589,7 +525,6 @@ const expectedValues = {
     transFat: 0.0,
     cholesterol: 44.7,
 
-    // Protein
     protein: 8.5,
     cystine: 0.1,
     histidine: 0.3,
@@ -603,7 +538,6 @@ const expectedValues = {
     tyrosine: 0.4,
     valine: 0.5,
 
-    // Vitamins
     vitaminB1: 0.0,
     vitaminB2: 0.0,
     vitaminB3: 0.6,
@@ -617,7 +551,6 @@ const expectedValues = {
     vitaminE: 0.0,
     vitaminK: 0.0,
 
-    // Minerals
     calcium: 308.4,
     copper: 0.0,
     iron: 0.0,
@@ -645,18 +578,15 @@ function updateNutritionFieldsWithDefaults(pasteArea) {
 
     console.log('Applying default values from expected values');
 
-    // Clear any existing classes first
     ingredientItem.querySelectorAll('.nutrition-field').forEach(field => {
         field.classList.remove('correct', 'override');
     });
 
-    // Update basic nutrition fields
     updateField(ingredientItem, '.ingredient-calories', expectedValues.calories);
     updateField(ingredientItem, '.ingredient-protein', expectedValues.protein);
     updateField(ingredientItem, '.ingredient-fat', expectedValues.fat);
     updateField(ingredientItem, '.ingredient-carbs', expectedValues.carbs);
 
-    // Update detailed nutrition fields
     updateField(ingredientItem, '.nutrition-energy', expectedValues.calories);
     updateField(ingredientItem, '.nutrition-alcohol', expectedValues.alcohol);
     updateField(ingredientItem, '.nutrition-caffeine', expectedValues.caffeine);
@@ -722,12 +652,11 @@ function updateNutritionFieldsWithDefaults(pasteArea) {
  * @returns {string} - The normalized key
  */
 function getNormalizedKey(key) {
-    // Convert the key to match the expected values object keys
+
     let normalizedKey = key.replace(/^nutrition-/, '')
                          .replace(/-/g, '')
                          .replace('total', '');
 
-    // Map specific field names to their corresponding keys in expectedValues
     const keyMap = {
         'calories': 'calories',
         'nutrition-calories': 'calories',
@@ -792,7 +721,6 @@ function getNormalizedKey(key) {
         'nutrition-caffeine': 'caffeine'
     };
 
-    // Use the mapped key if available
     if (keyMap[key]) {
         normalizedKey = keyMap[key];
     }
@@ -807,10 +735,9 @@ function getNormalizedKey(key) {
  * @returns {boolean} - Whether the value matches the expected value
  */
 function isCorrectValue(key, value) {
-    // Get the normalized key
+
     const normalizedKey = getNormalizedKey(key);
 
-    // Check if we have an expected value for this key
     if (expectedValues.hasOwnProperty(normalizedKey)) {
         const expected = expectedValues[normalizedKey];
         const numValue = parseFloat(value);
@@ -819,13 +746,10 @@ function isCorrectValue(key, value) {
             return false;
         }
 
-        // Use exact matching for all values
         const isExactMatch = numValue === expected;
 
-        // Log the comparison for debugging
         console.log(`Comparing ${normalizedKey}: expected=${expected}, actual=${numValue}, isExactMatch=${isExactMatch}`);
 
-        // Return true only for exact matches
         return isExactMatch;
     }
 
@@ -841,66 +765,59 @@ function isCorrectValue(key, value) {
 function updateField(container, selector, value) {
     const field = container.querySelector(selector);
 
-    // Debug logging
     if (!field) {
         console.log(`Field not found: ${selector}`);
         return;
     }
 
     if (value !== null && value !== undefined) {
-        // Get the field key from the selector
+
         const fieldKey = selector.substring(1);
         const normalizedKey = getNormalizedKey(fieldKey);
 
-        // Check if we have an expected value for this field
         if (expectedValues.hasOwnProperty(normalizedKey)) {
-            // Check if the OCR-detected value is correct
+
             const expected = expectedValues[normalizedKey];
             const numValue = parseFloat(value);
 
             if (!isNaN(numValue)) {
-                // Define tolerance based on the magnitude of the expected value
+
                 let tolerance;
 
-                // For very large values (like vitamin D), use a larger percentage-based tolerance
                 if (expected >= 200) {
                     tolerance = expected * 0.15; // 15% tolerance for very large values
                 }
-                // For large values (like calcium, potassium, etc.), use a percentage-based tolerance
+
                 else if (expected >= 100) {
                     tolerance = expected * 0.1; // 10% tolerance for large values
                 }
-                // For medium values, use a smaller percentage-based tolerance
+
                 else if (expected >= 10) {
                     tolerance = expected * 0.1; // 10% tolerance for medium values
                 }
-                // For small values, use a small absolute tolerance
+
                 else if (expected >= 1) {
                     tolerance = 0.3; // 0.3 unit tolerance for small values
                 }
-                // For very small values, use an even smaller tolerance
+
                 else if (expected > 0) {
                     tolerance = 0.15; // 0.15 unit tolerance for very small values
                 }
-                // Special case for zero values - allow a small absolute tolerance
+
                 else {
                     tolerance = 0.05; // Allow values very close to zero
                 }
 
-                // Special case for water, which can vary significantly
                 if (normalizedKey === 'water') {
                     tolerance = Math.max(tolerance, expected * 0.3); // 30% tolerance for water
                 }
 
-                // Use the OCR-detected value if it's within tolerance or if it's for water or carbs
                 const diff = Math.abs(numValue - expected);
                 const isWithinTolerance = diff <= tolerance;
                 const isSpecialField = normalizedKey === 'water' || normalizedKey === 'carbs';
 
-                // Always use the OCR-detected value
                 field.value = value;
 
-                // Mark as correct ONLY if it EXACTLY matches the expected value
                 if (numValue === expected) {
                     field.classList.add('correct');
                     console.log(`Field ${selector} set to OCR-detected value ${value} and marked as correct (exact match)`);
@@ -910,18 +827,18 @@ function updateField(container, selector, value) {
                 }
                 return;
             } else {
-                // Use the expected value if the OCR value is not a number
+
                 field.value = expected;
                 field.classList.add('override'); // Use a different class to indicate it's not actually correct
                 console.log(`Field ${selector} set to expected value ${expected} (OCR value was not a number)`);
                 return;
             }
         }
-        // Special case handling for main nutrition fields
+
         if (selector === '.ingredient-calories') {
-            // Always use OCR value
+
             field.value = value;
-            // Mark as correct ONLY if it EXACTLY matches the expected value
+
             const numValue = parseFloat(value);
             const expected = expectedValues.calories;
 
@@ -934,9 +851,9 @@ function updateField(container, selector, value) {
             }
             return;
         } else if (selector === '.ingredient-protein') {
-            // Always use OCR value
+
             field.value = value;
-            // Mark as correct ONLY if it EXACTLY matches the expected value
+
             const numValue = parseFloat(value);
             const expected = expectedValues.protein;
 
@@ -949,9 +866,9 @@ function updateField(container, selector, value) {
             }
             return;
         } else if (selector === '.ingredient-fat') {
-            // Always use OCR value
+
             field.value = value;
-            // Mark as correct ONLY if it EXACTLY matches the expected value
+
             const numValue = parseFloat(value);
             const expected = expectedValues.fat;
 
@@ -964,9 +881,9 @@ function updateField(container, selector, value) {
             }
             return;
         } else if (selector === '.ingredient-carbs') {
-            // Always use OCR value
+
             field.value = value;
-            // Mark as correct ONLY if it EXACTLY matches the expected value
+
             const numValue = parseFloat(value);
             const expected = expectedValues.carbs;
 
@@ -980,20 +897,17 @@ function updateField(container, selector, value) {
             return;
         }
 
-        // For all other fields, use the OCR value and mark as correct if it's within tolerance
         field.value = value;
 
-        // Get the normalized key for this field
         const fieldKeyForNormalization = selector.substring(1);
         const normalizedKeyForCheck = getNormalizedKey(fieldKeyForNormalization);
 
-        // Check if we have an expected value for this field
         if (expectedValues.hasOwnProperty(normalizedKeyForCheck)) {
             const expected = expectedValues[normalizedKeyForCheck];
             const numValue = parseFloat(value);
 
             if (!isNaN(numValue)) {
-                // Mark as correct ONLY if it EXACTLY matches the expected value
+
                 if (numValue === expected) {
                     field.classList.add('correct');
                     console.log(`Field ${selector} set to OCR value ${value} and marked as correct (exact match)`);
@@ -1006,7 +920,7 @@ function updateField(container, selector, value) {
                 console.log(`Field ${selector} set to OCR value ${value} (not a number, expected ${expected})`);
             }
         } else {
-            // No expected value for this field
+
             console.log(`Field ${selector} set to OCR value ${value} (no expected value)`);
         }
 
@@ -1020,21 +934,18 @@ function updateField(container, selector, value) {
  * Initialize validation for manual input fields
  */
 function initializeManualInputValidation() {
-    // Find all nutrition input fields
+
     const nutritionInputs = document.querySelectorAll('.nutrition-item input, .ingredient-calories, .ingredient-protein, .ingredient-fat, .ingredient-carbs');
 
-    // Add input event listeners to each field
     nutritionInputs.forEach(input => {
         input.addEventListener('input', function() {
             validateInput(this);
         });
 
-        // Also validate on blur for good measure
         input.addEventListener('blur', function() {
             validateInput(this);
         });
 
-        // Initial validation in case fields are pre-filled
         validateInput(input);
     });
 }
@@ -1044,13 +955,12 @@ function initializeManualInputValidation() {
  * @param {HTMLElement} input - The input field to validate
  */
 function validateInput(input) {
-    // Get the field's ID, name, or class to determine which value to check against
+
     let key = input.id || input.name;
 
-    // If no key found from ID or name, try getting from class
     if (!key) {
         const classes = input.className.split(' ');
-        // Find a class that might be a nutrition field
+
         for (const cls of classes) {
             if (cls.includes('nutrition-') || cls.includes('ingredient-')) {
                 key = cls;
@@ -1059,15 +969,14 @@ function validateInput(input) {
         }
     }
 
-    // If still no key found, try getting from the parent element
     if (!key && input.parentElement) {
-        // Try to get the ID from the parent
+
         if (input.parentElement.id &&
             (input.parentElement.id.includes('nutrition-') ||
              input.parentElement.id.includes('ingredient-'))) {
             key = input.parentElement.id;
         } else {
-            // Try to get a class from the parent
+
             const parentClasses = input.parentElement.className.split(' ');
             for (const cls of parentClasses) {
                 if (cls.includes('nutrition-') || cls.includes('ingredient-')) {
@@ -1078,12 +987,11 @@ function validateInput(input) {
         }
     }
 
-    // If still no key found, try to infer from the label text
     if (!key && input.parentElement) {
         const label = input.parentElement.querySelector('label');
         if (label) {
             const labelText = label.textContent.trim().toLowerCase();
-            // Map common label texts to keys
+
             const labelMap = {
                 'calories': 'calories',
                 'protein': 'protein',
@@ -1140,7 +1048,6 @@ function validateInput(input) {
                 'caffeine': 'caffeine'
             };
 
-            // Check if the label text matches any of our known labels
             for (const [text, mappedKey] of Object.entries(labelMap)) {
                 if (labelText.includes(text)) {
                     key = mappedKey;
@@ -1150,21 +1057,20 @@ function validateInput(input) {
         }
     }
 
-    // If we have a key and a value to check
     if (key && input.value) {
         console.log(`Validating ${key} with value ${input.value}`);
         const isCorrect = isCorrectValue(key, input.value);
 
         if (isCorrect) {
-            // Add the correct class to highlight it green
+
             input.classList.add('correct');
             console.log(`Field ${key} with value ${input.value} is correct!`);
         } else {
-            // Remove the correct class if it's not correct
+
             input.classList.remove('correct');
         }
     } else {
-        // Remove the correct class if there's no value
+
         input.classList.remove('correct');
     }
 }
@@ -1183,19 +1089,14 @@ function showStatus(statusElement, message, type) {
 
     console.log(`Showing status: ${message} (${type})`);
 
-    // Clear previous status classes
     statusElement.classList.remove('loading', 'success', 'error', 'warning');
 
-    // Add new status class
     statusElement.classList.add(type);
 
-    // Set message
     statusElement.textContent = message;
 
-    // Make sure the element is visible
     statusElement.style.display = 'block';
 
-    // Auto-hide success, error, and warning messages after 10 seconds (increased from 5)
     if (type === 'success' || type === 'error' || type === 'warning') {
         setTimeout(() => {
             statusElement.style.display = 'none';

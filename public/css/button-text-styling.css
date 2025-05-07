@@ -2,7 +2,7 @@
  * Button text styling
  */
 
-/* Style the save button */
+
 .edit-ingredient-form-top-buttons button.save-changes {
     background-color: #ffffff !important;
     color: #121212 !important;
@@ -12,7 +12,7 @@
     font-size: 0.7em !important;
 }
 
-/* Style the cancel button */
+
 .edit-ingredient-form-top-buttons button.cancel {
     background-color: rgba(255, 255, 255, 0.1) !important;
     color: #e0e0e0 !important;
@@ -22,7 +22,7 @@
     font-size: 0.7em !important;
 }
 
-/* Button hover states */
+
 .edit-ingredient-form-top-buttons button:hover {
     opacity: 0.9 !important;
     transform: translateY(-1px) !important;
@@ -30,13 +30,13 @@
     color: #121212 !important;
 }
 
-/* Make the buttons more compact */
+
 .edit-ingredient-form-top-buttons {
     margin-bottom: 0 !important;
     padding: 0 !important;
 }
 
-/* Add a subtle border to the buttons */
+
 .edit-ingredient-form-top-buttons button {
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }

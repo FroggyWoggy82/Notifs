@@ -45,6 +45,7 @@ const mobileUploadRoutes = require('./routes/mobile-upload'); // NEW: Mobile-spe
 const basicUploadRoutes = require('./routes/basic-upload'); // NEW: Ultra-basic photo upload route
 const habitRoutes = require('./routes/habitRoutesSimple'); // Using extremely simplified route handler
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
+const recipeIngredientRoutes = require('./routes/recipeIngredientRoutes'); // NEW: Recipe ingredient routes
 const uniqueIngredientsRoutes = require('./routes/uniqueIngredients'); // NEW: Unique ingredients route
 const ingredientDetailsRoutes = require('./routes/ingredientDetailsRoutes'); // NEW: Ingredient details route
 const debugRoutes = require('./routes/debugRoutes'); // DEBUG: Routes for debugging
@@ -52,6 +53,7 @@ const directUpdateRoutes = require('./routes/directUpdateRoutes'); // DIRECT: Ro
 const packageAmountRoutes = require('./routes/packageAmountRoutes'); // PACKAGE: Routes for package amount
 const directTransFatUpdate = require('./routes/directTransFatUpdate'); // DIRECT: Routes for trans fat updates
 const weightRoutes = require('./routes/weight'); // Main weight routes file
+const customGoalWeightRoutes = require('./routes/customGoalWeightRoutes'); // Custom goal weight routes
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
@@ -154,6 +156,7 @@ app.use('/api/mobile', mobileUploadRoutes); // NEW: Mobile-specific upload route
 app.use('/api/basic', basicUploadRoutes); // NEW: Ultra-basic upload route
 app.use('/api/habits', habitRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/recipe-ingredients', recipeIngredientRoutes); // NEW: Recipe ingredient routes
 app.use('/api/unique-ingredients', uniqueIngredientsRoutes); // NEW: Unique ingredients route
 app.use('/api/ingredient-details', ingredientDetailsRoutes); // NEW: Ingredient details route
 app.use('/api/debug', debugRoutes); // DEBUG: Routes for debugging
@@ -161,6 +164,7 @@ app.use('/api/direct-update', directUpdateRoutes); // DIRECT: Routes for direct 
 app.use('/api/package-amount', packageAmountRoutes); // PACKAGE: Routes for package amount
 app.use('/api/direct', directTransFatUpdate); // DIRECT: Routes for trans fat updates
 app.use('/api/weight', weightRoutes);
+app.use('/api/custom-goal-weights', customGoalWeightRoutes); // NEW: Custom goal weights route
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);

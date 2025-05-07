@@ -1,6 +1,6 @@
-/* YouTube URL Modal Specific Styles */
+
 #youtube-url-modal {
-    z-index: 10000 !important; /* Ensure it's above everything else */
+    z-index: 10000 !important; 
 }
 
 #youtube-url-modal .modal-content {

@@ -1,11 +1,9 @@
-// Status bar color management
+
 let currentPage = 'unknown';
 
-// Function to update status bar color based on current page
 function updateStatusBarColor() {
     let color = '#ffffff'; // Default white
 
-    // Get the background color of the current page
     switch(currentPage) {
         case 'tasks':
             color = '#ffffff'; // White background for tasks page
@@ -32,14 +30,13 @@ function updateStatusBarColor() {
             color = '#ffffff'; // Default white
     }
 
-    // Get the actual background color of the body or main container
     try {
-        // Try to get the computed background color of the body
+
         const bodyColor = window.getComputedStyle(document.body).backgroundColor;
         if (bodyColor && bodyColor !== 'rgba(0, 0, 0, 0)' && bodyColor !== 'transparent') {
             color = bodyColor;
         } else {
-            // Try to get the background color of the main container
+
             const mainContainer = document.querySelector('main') || document.querySelector('.container');
             if (mainContainer) {
                 const mainColor = window.getComputedStyle(mainContainer).backgroundColor;
@@ -52,26 +49,23 @@ function updateStatusBarColor() {
         console.error('Error getting computed background color:', error);
     }
 
-    // Update the theme-color meta tag
     const metaThemeColor = document.querySelector('meta[name=theme-color]');
     if (metaThemeColor) {
         metaThemeColor.setAttribute('content', color);
     }
 
-    // For iOS
     const metaAppleStatusBar = document.querySelector('meta[name=apple-mobile-web-app-status-bar-style]');
     if (metaAppleStatusBar) {
-        // For iOS, we can use 'black-translucent' to make the status bar transparent
-        // and then the background color will show through
+
+
         metaAppleStatusBar.setAttribute('content', 'black-translucent');
     }
 
     console.log('Updated status bar color to:', color);
 }
 
-// Initialize status bar color management
 document.addEventListener('DOMContentLoaded', () => {
-    // Set the current page based on the URL
+
     const path = window.location.pathname;
     if (path.includes('/pages/goals.html')) {
         currentPage = 'goals';
@@ -89,14 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPage = 'tasks'; // Default to tasks page
     }
 
-    // Update the status bar color based on the current page
     updateStatusBarColor();
 
-    // Add event listeners to navigation items to update status bar color
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', () => {
-            // Update currentPage based on the clicked nav item
+
             const dataPage = item.getAttribute('data-page');
             if (dataPage === 'home-page') {
                 currentPage = 'tasks';
@@ -108,12 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPage = 'calendar';
             } else if (dataPage === 'food-page') {
                 currentPage = 'food';
-            // Days Since page is only in sidebar, not in bottom nav
-            // else if (dataPage === 'days-since-page') {
-            //     currentPage = 'days-since';
+
+
+
             }
 
-            // Update the status bar color
             updateStatusBarColor();
         });
     });

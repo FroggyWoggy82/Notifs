@@ -1,29 +1,25 @@
-// Settings functionality
+
 document.addEventListener('DOMContentLoaded', () => {
     const notifyBtn = document.getElementById('notifyBtn');
     const statusDiv = document.getElementById('status');
     const permissionStatusDiv = document.getElementById('permissionStatus');
     
     let swRegistration = null;
-    
-    // --- PWA & Notification Permission Handling ---
+
     if ('serviceWorker' in navigator && 'PushManager' in window) {
         console.log('Service Worker and Push is supported');
 
-        // Register service worker with updateViaCache: 'none' to always check for updates
         navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
             .then(swReg => {
                 console.log('Service Worker is registered', swReg);
                 swRegistration = swReg;
 
-                // Force update check on every page load
                 swReg.update().then(() => {
                     console.log('Service worker update check completed');
                 }).catch(err => {
                     console.error('Service worker update check failed:', err);
                 });
 
-                // Setup push subscription if permission is already granted
                 checkNotificationPermission(true); // Check permission silently first
             })
             .catch(error => {
@@ -31,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateStatus('Service Worker registration failed', true);
             });
 
-        // Listen for messages from the service worker
         navigator.serviceWorker.addEventListener('message', event => {
             console.log('Received message from service worker:', event.data);
             if (event.data && event.data.type === 'CACHE_CLEARED') {
@@ -40,10 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Listen for controller change (new SW taking over)
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             console.log('New service worker activated and controlling the page');
-            // Reload page for new SW after a short delay
+
             setTimeout(() => {
                 console.log('Reloading page to use new service worker');
                 window.location.reload();
@@ -81,11 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
         permissionStatusDiv.classList.remove('permission-granted', 'permission-denied', 'permission-default');
 
         if (permission === 'granted') {
-            // Hide the permission status text when granted
+
             permissionStatusDiv.style.display = 'none';
             notifyBtn.textContent = 'Background Reminders Enabled';
             notifyBtn.disabled = true;
-            // If granted, ensure subscription is set up
+
             if (!silent) setupPushSubscription();
         } else if (permission === 'denied') {
             permissionStatusDiv.style.display = 'block';
@@ -109,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             checkNotificationPermission(); // Update UI based on new permission
             if (permissionResult === 'granted') {
                 console.log('Notification permission granted.');
-                // Hide permission status when granted
+
                 permissionStatusDiv.style.display = 'none';
                 updateStatus('Permission granted! Setting up background sync...', false);
                 await setupPushSubscription();
@@ -135,8 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let subscription = await swRegistration.pushManager.getSubscription();
             if (subscription) {
                 console.log('User IS already subscribed.');
-                // Optional: Update server with latest subscription info? Might be redundant.
-                // sendSubscriptionToServer(subscription);
+
+
                 updateStatus('Already subscribed for background reminders.', false);
                 notifyBtn.disabled = true;
                 notifyBtn.textContent = 'Reminders Enabled';
@@ -190,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- General Status Update Function ---
     function updateStatus(message, isError = false) {
         console.log(`Status Update: ${message} (Error: ${isError})`);
         statusDiv.textContent = message;

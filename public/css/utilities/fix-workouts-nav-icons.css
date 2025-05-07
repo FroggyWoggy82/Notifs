@@ -4,31 +4,31 @@
  * to match the styling in the tasks page
  */
 
-/* Reset all bottom navigation styling to match the tasks page */
+
 .bottom-nav {
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
     width: 100% !important;
-    background-color: #121212 !important; /* Match tasks page */
+    background-color: #121212 !important; 
     display: flex !important;
     justify-content: space-around !important;
     align-items: center !important;
     padding: 0 !important;
     z-index: 1030 !important;
-    border-top: 1px solid #1e1e1e !important; /* Match tasks page */
+    border-top: 1px solid #1e1e1e !important; 
     height: 60px !important;
     box-sizing: border-box !important;
     margin: 0 !important;
 }
 
-/* Match the navigation item styling from tasks page */
+
 .bottom-nav .nav-item {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #9e9e9e !important; /* Gray color from tasks page */
+    color: #9e9e9e !important; 
     text-decoration: none !important;
     font-size: 0.75rem !important;
     padding: 5px 0 !important;
@@ -41,17 +41,17 @@
     margin: 0 !important;
 }
 
-/* Match the active item styling from tasks page */
+
 .bottom-nav .nav-item.active {
-    color: #9e9e9e !important; /* Gray color from tasks page */
+    color: #9e9e9e !important; 
 }
 
-/* Match the hover effect from tasks page */
+
 .bottom-nav .nav-item:hover {
-    color: #9e9e9e !important; /* Gray color from tasks page */
+    color: #9e9e9e !important; 
 }
 
-/* Match the icon styling from tasks page */
+
 .bottom-nav .nav-icon {
     font-size: 20px !important;
     margin-bottom: 2px !important;
@@ -62,12 +62,12 @@
     width: 100% !important;
 }
 
-/* Match the active icon styling from tasks page */
+
 .bottom-nav .nav-item.active .nav-icon {
-    color: inherit !important; /* Keep the same color as the item */
+    color: inherit !important; 
 }
 
-/* Match the text styling from tasks page */
+
 .bottom-nav .nav-item span {
     font-size: 0.75rem !important;
     line-height: 1.2 !important;
@@ -75,12 +75,12 @@
     width: 100% !important;
     display: block !important;
     color: inherit !important;
-    text-transform: none !important; /* No uppercase text */
-    font-weight: normal !important; /* Normal font weight */
-    letter-spacing: normal !important; /* Normal letter spacing */
+    text-transform: none !important; 
+    font-weight: normal !important; 
+    letter-spacing: normal !important; 
 }
 
-/* Match the highlight line at bottom from tasks page */
+
 .bottom-nav .nav-item::before {
     content: '' !important;
     position: absolute !important;
@@ -88,24 +88,24 @@
     left: 0 !important;
     width: 100% !important;
     height: 2px !important;
-    background-color: #FFFFFF !important; /* White highlight line */
+    background-color: #FFFFFF !important; 
     transform: translateX(-100%) !important;
     transition: transform 0.3s ease !important;
     opacity: 0 !important;
 }
 
-/* Match the highlight line behavior on hover from tasks page */
+
 .bottom-nav .nav-item:hover::before {
-    opacity: 0 !important; /* Don't show on hover */
+    opacity: 0 !important; 
 }
 
-/* Match the highlight line behavior for active item from tasks page */
+
 .bottom-nav .nav-item.active::before {
     transform: translateX(0) !important;
     opacity: 1 !important;
 }
 
-/* Match the FontAwesome icons from tasks page */
+
 .bottom-nav .nav-icon i {
     font-style: normal !important;
     font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
@@ -114,7 +114,7 @@
     color: inherit !important;
 }
 
-/* Specific fix for the dumbbell icon to match tasks page */
+
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i {
     font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
     font-weight: 900 !important;
@@ -123,10 +123,10 @@
 }
 
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i::before {
-    content: "\f44b" !important; /* fa-dumbbell */
+    content: "\f44b" !important; 
 }
 
-/* Force the workouts icon to be gray like in the tasks page */
+
 .bottom-nav .nav-item[href*="workouts.html"] {
     color: #9e9e9e !important;
 }

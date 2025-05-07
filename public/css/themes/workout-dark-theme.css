@@ -3,7 +3,7 @@
  * Applies the futuristic dark theme to all workout pages
  */
 
-/* Base styles for dark theme */
+
 body {
     background-color: var(--color-dark-bg);
     color: var(--color-dark-text);
@@ -17,7 +17,7 @@ body {
 
 .workout-content {
     padding: 15px;
-    padding-bottom: 80px; /* Space for bottom nav */
+    padding-bottom: 80px; 
     background-color: var(--color-dark-bg);
     color: var(--color-dark-text);
     flex-grow: 1;
@@ -25,18 +25,18 @@ body {
     flex-direction: column;
 }
 
-/* Page Visibility */
+
 .page {
-    display: none; /* Hidden by default */
+    display: none; 
     width: 100%;
     flex-direction: column;
     align-items: center;
 }
 .page.active {
-    display: flex; /* Show active page */
+    display: flex; 
 }
 
-/* Headings */
+
 h1, h2, h3, h4, h5, h6 {
     color: var(--color-white);
 }
@@ -55,7 +55,7 @@ h2 {
     font-size: var(--font-size-xl);
 }
 
-/* Page Divider */
+
 .page-divider {
     border: none;
     height: 1px;
@@ -65,7 +65,7 @@ h2 {
     width: 100%;
 }
 
-/* Buttons */
+
 .btn {
     display: inline-block;
     padding: 12px 25px;
@@ -132,7 +132,7 @@ h2 {
     font-size: var(--font-size-sm);
 }
 
-/* Input fields */
+
 input[type="text"],
 input[type="number"],
 input[type="date"],
@@ -156,7 +156,7 @@ select:focus {
     box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2);
 }
 
-/* Floating Action Button (FAB) */
+
 .fab {
     position: fixed;
     bottom: 100px;
@@ -187,7 +187,7 @@ select:focus {
     transform: translateY(-1px);
 }
 
-/* Workout Template Cards */
+
 .card-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, 250px);
@@ -238,7 +238,7 @@ select:focus {
     position: relative;
 }
 
-/* Completion Count Badge */
+
 .completion-count-badge {
     display: inline-flex;
     align-items: center;
@@ -256,7 +256,7 @@ select:focus {
     position: relative;
 }
 
-/* Template description */
+
 .workout-template-card .template-description {
     font-size: 0.9rem;
     color: var(--color-dark-text);
@@ -267,7 +267,7 @@ select:focus {
     flex-shrink: 0;
 }
 
-/* Author and Edition styling */
+
 .template-author-edition {
     font-size: 0.7rem;
     color: var(--color-secondary);
@@ -278,7 +278,7 @@ select:focus {
     word-spacing: 0.8px;
 }
 
-/* Exercise Summary */
+
 .exercise-summary-vertical {
     font-size: 0.85rem;
     color: var(--color-dark-text-secondary);
@@ -299,7 +299,7 @@ select:focus {
     font-style: italic;
 }
 
-/* Template actions */
+
 .template-actions {
     margin-top: auto;
     padding-top: 10px;
@@ -307,7 +307,7 @@ select:focus {
     flex-shrink: 0;
 }
 
-/* Card corner actions */
+
 .card-corner-actions {
     position: absolute;
     top: 8px;
@@ -354,7 +354,7 @@ select:focus {
     outline: none;
 }
 
-/* Active Workout Styles */
+
 .workout-header {
     display: flex;
     justify-content: space-between;
@@ -420,7 +420,7 @@ select:focus {
     order: 1;
 }
 
-/* Set rows styling */
+
 .set-row {
     display: grid;
     grid-template-columns: auto 90px 1fr 1fr 90px 36px;
@@ -463,7 +463,7 @@ select:focus {
     min-width: 75px;
 }
 
-/* Set completion toggle */
+
 .set-complete-toggle {
     width: 26px;
     height: 26px;
@@ -487,13 +487,13 @@ select:focus {
     color: var(--color-dark-bg);
 }
 
-/* Highlight completed set row */
+
 .set-row:has(.set-complete-toggle.completed) {
     background-color: rgba(var(--color-success-rgb), 0.15);
     transition: background-color 0.3s ease;
 }
 
-/* Modal Styling */
+
 .modal {
     display: none;
     position: fixed;
@@ -584,7 +584,7 @@ select:focus {
     margin-left: 0px;
 }
 
-/* History Popup Styling */
+
 .history-popup-modal {
     display: none;
     position: fixed;
@@ -665,7 +665,7 @@ select:focus {
     box-shadow: var(--glow-secondary);
 }
 
-/* Bottom Navigation */
+
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -707,13 +707,13 @@ select:focus {
     letter-spacing: normal;
 }
 
-/* Animation */
+
 @keyframes fadeIn {
     from {opacity: 0}
     to {opacity: 1}
 }
 
-/* Template Editor Styles */
+
 #template-editor-page {
     width: 100%;
     max-width: 700px;
@@ -744,7 +744,7 @@ select:focus {
     box-sizing: border-box;
 }
 
-/* Author and edition fields */
+
 #template-author,
 #template-edition {
     background-color: var(--color-dark-surface-2);
@@ -752,7 +752,7 @@ select:focus {
     border: 1px solid var(--color-dark-border);
 }
 
-/* Toggle switch for reusing author and edition */
+
 .toggle-switch-container {
     display: flex;
     align-items: center;
@@ -822,7 +822,7 @@ input:checked + .toggle-switch:before {
     background-color: var(--color-dark-surface-3);
 }
 
-/* Template editor set rows */
+
 .template-editor-list .set-row {
     display: grid;
     grid-template-columns: auto 1fr 1fr;
@@ -855,7 +855,7 @@ input:checked + .toggle-switch:before {
     max-height: 100px;
 }
 
-/* Set actions container */
+
 .set-actions-container {
     display: flex;
     justify-content: center;
@@ -864,7 +864,7 @@ input:checked + .toggle-switch:before {
     margin-bottom: 3px;
 }
 
-/* Add/remove set buttons */
+
 .btn-add-set, .btn-remove-set {
     padding: 6px 10px;
     font-size: 0.8rem;
@@ -903,7 +903,7 @@ input:checked + .toggle-switch:before {
     max-width: 300px;
 }
 
-/* Exercise History Section */
+
 .history-section {
     width: 100%;
     max-width: 800px;
@@ -972,7 +972,7 @@ input:checked + .toggle-switch:before {
     background-color: var(--color-dark-surface-2);
 }
 
-/* Progress Photos Section */
+
 .progress-photos-section {
     width: 100%;
     max-width: 800px;

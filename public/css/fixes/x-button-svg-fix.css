@@ -3,7 +3,7 @@
  * This CSS file provides a simple text-based approach for the delete button
  */
 
-/* Style the delete button with text */
+
 .exercise-options-menu .button-group-right .btn-delete-exercise {
     font-size: 0.9rem !important;
     font-weight: bold !important;
@@ -23,21 +23,21 @@
     line-height: 1 !important;
 }
 
-/* Clear any existing content */
+
 .exercise-options-menu .button-group-right .btn-delete-exercise::before,
 .exercise-options-menu .button-group-right .btn-delete-exercise::after {
     content: none !important;
     display: none !important;
 }
 
-/* Set the X content using ::after pseudo-element */
+
 .exercise-options-menu .button-group-right .btn-delete-exercise::after {
-    content: "\2715" !important; /* Unicode for "✕" (U+2715 MULTIPLICATION X) */
+    content: "\2715" !important; 
     display: inline-block !important;
     font-size: 1.2rem !important;
 }
 
-/* Hover effect */
+
 .exercise-options-menu .button-group-right .btn-delete-exercise:hover {
     background-color: #f44336 !important;
     color: white !important;

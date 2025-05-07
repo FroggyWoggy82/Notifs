@@ -1,4 +1,4 @@
-/* Cronometer Text Parser Dark Theme Styles */
+
 
 .cronometer-text-paste-container {
     margin: 10px 0;
@@ -70,18 +70,18 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Highlight fields that were updated by the parser */
+
 .cronometer-parsed {
     background-color: rgba(0, 149, 182, 0.2) !important;
     border-color: rgba(0, 149, 182, 0.3) !important;
 }
 
-/* Remove the default label */
+
 .cronometer-text-paste-container::before {
     content: none;
 }
 
-/* Add a custom header */
+
 .cronometer-header {
     color: #e0e0e0;
     font-weight: 500;
@@ -91,7 +91,7 @@
     padding-bottom: 5px;
 }
 
-/* Responsive styles */
+
 @media (max-width: 768px) {
     .cronometer-text-paste-area {
         font-size: 12px;

@@ -3,15 +3,15 @@
  * This file contains styles to fix alignment issues in the workout template editor
  */
 
-/* Hide the default column headers that come from the active workout view */
+
 .template-editor-list .exercise-item .column-headers {
     display: none !important;
 }
 
-/* Fix set number alignment in template editor */
+
 .template-editor-list .set-row {
     display: grid;
-    grid-template-columns: 40px 1fr 1fr; /* Set#, Weight, Reps */
+    grid-template-columns: 40px 1fr 1fr; 
     gap: 10px;
     align-items: center;
     padding: 8px 0;
@@ -22,7 +22,7 @@
     box-sizing: border-box;
 }
 
-/* Center the set numbers */
+
 .template-editor-list .set-row .set-number {
     width: 40px;
     min-width: 40px;
@@ -43,10 +43,10 @@
     grid-column: 1;
 }
 
-/* Add column headers for template editor */
+
 .template-editor-list > .column-headers {
     display: grid !important;
-    grid-template-columns: 40px 1fr 1fr; /* Set#, Weight, Reps */
+    grid-template-columns: 40px 1fr 1fr; 
     gap: 10px;
     align-items: center;
     padding: 5px 0;
@@ -62,7 +62,7 @@
     border-radius: 4px;
 }
 
-/* Style column headers */
+
 .template-editor-list > .column-headers span {
     text-align: center;
     display: flex;
@@ -70,7 +70,7 @@
     justify-content: center;
 }
 
-/* Style the first column header (SET) */
+
 .template-editor-list > .column-headers span:nth-child(1) {
     width: 40px;
     min-width: 40px;
@@ -78,13 +78,13 @@
     grid-column: 1;
 }
 
-/* Hide unnecessary elements in template editor */
+
 .template-editor-list .previous-log,
 .template-editor-list .goal-target {
     display: none !important;
 }
 
-/* Fix input styling in template editor */
+
 .template-editor-list .weight-input,
 .template-editor-list .reps-input {
     width: 100% !important;
@@ -95,16 +95,16 @@
     text-align: center !important;
 }
 
-/* Fix exercise item styling */
+
 .template-editor-list .exercise-item {
     margin-bottom: 15px !important;
-    padding: 10px 10px 10px 40px !important; /* Add left padding for drag handle */
+    padding: 10px 10px 10px 40px !important; 
     border-radius: 4px !important;
     background-color: #303030 !important;
-    position: relative !important; /* Ensure position relative for absolute positioning of drag handle */
+    position: relative !important; 
 }
 
-/* Fix exercise header styling */
+
 .template-editor-list .exercise-item-header {
     margin-bottom: 10px !important;
     display: flex !important;
@@ -115,7 +115,7 @@
     border-radius: 4px !important;
 }
 
-/* Fix exercise name styling */
+
 .template-editor-list .exercise-item-header h4 {
     margin: 0 !important;
     color: #03dac6 !important;
@@ -126,14 +126,14 @@
     max-width: 70% !important;
 }
 
-/* Style the exercise header actions container */
+
 .exercise-header-actions {
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
 }
 
-/* Style the weight unit select dropdown */
+
 .exercise-unit-select {
     height: 30px !important;
     padding: 0 8px !important;
@@ -143,7 +143,7 @@
     color: white !important;
 }
 
-/* Style the delete button */
+
 .delete-template-exercise-btn {
     height: 30px !important;
     width: 30px !important;

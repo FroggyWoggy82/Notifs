@@ -1,13 +1,11 @@
-// Global Chart.js configuration for better handling of large numbers
 
-// Wait for Chart.js to load
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Give time for Chart.js to fully initialize
+
     setTimeout(function() {
         if (typeof Chart !== 'undefined') {
             console.log('[Chart Config] Configuring global Chart.js defaults');
 
-            // Helper function to format large numbers
             const formatLargeNumber = (value) => {
                 if (!value && value !== 0) return '';
 
@@ -19,25 +17,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 return value;
             };
 
-            // Set global defaults for all charts
             Chart.defaults.font.family = "'Roboto', 'Helvetica', 'Arial', sans-serif";
             Chart.defaults.font.size = 12;
             Chart.defaults.color = '#e0e0e0'; // Light text for dark theme
 
-            // Configure scale defaults
             Chart.defaults.scales.linear.beginAtZero = true;
 
-            // Set dark theme colors for grid lines and ticks
             Chart.defaults.scales.linear.grid = {
                 color: 'rgba(255, 255, 255, 0.1)',
                 borderColor: 'rgba(255, 255, 255, 0.2)'
             };
 
-            // Set dark theme colors for the chart
             Chart.defaults.backgroundColor = 'rgba(0, 230, 118, 0.2)';
             Chart.defaults.borderColor = '#00E676';
 
-            // Configure tick callbacks for y-axis
             Chart.defaults.scales.linear.ticks = {
                 precision: 0,
                 callback: function(value, index, values) {
@@ -45,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
 
-            // Configure tooltip callbacks
             Chart.defaults.plugins.tooltip.callbacks = {
                 label: function(context) {
                     let label = context.dataset.label || '';
@@ -55,10 +47,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     const value = context.parsed.y;
                     if (value !== null && value !== undefined) {
-                        // Always show full value in tooltip
+
                         label += value.toLocaleString();
 
-                        // Add formatted version for readability if value is large
                         if (value >= 1000) {
                             label += ` (${formatLargeNumber(value)})`;
                         }
@@ -68,8 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
 
-            // Skip annotation plugin registration here - it's handled in food.html
-            // This avoids potential double registration issues
+
 
             console.log('[Chart Config] Chart.js global defaults configured successfully');
         } else {
@@ -78,13 +68,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000); // Wait 1 second to ensure Chart.js is fully loaded
 });
 
-// Function to create a chart with proper scaling for large numbers
 window.createScaledChart = function(ctx, type, data, options = {}) {
-    // Calculate appropriate y-axis range
+
     let maxValue = 100; // Default if no data
 
     if (data && data.datasets && data.datasets.length > 0) {
-        // Find the maximum value across all datasets
+
         const allValues = [];
         data.datasets.forEach(dataset => {
             if (dataset.data && dataset.data.length > 0) {
@@ -98,12 +87,11 @@ window.createScaledChart = function(ctx, type, data, options = {}) {
 
         if (allValues.length > 0) {
             maxValue = Math.max(...allValues);
-            // Add padding to the max value (20% padding)
+
             maxValue = maxValue * 1.2;
         }
     }
 
-    // Merge provided options with our defaults
     const mergedOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -150,7 +138,6 @@ window.createScaledChart = function(ctx, type, data, options = {}) {
         ...options
     };
 
-    // Create and return the chart
     return new Chart(ctx, {
         type: type,
         data: data,

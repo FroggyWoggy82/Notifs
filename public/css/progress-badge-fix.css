@@ -3,7 +3,7 @@
  * Removes the double outline around progress badges
  */
 
-/* Reset all styling for progress containers and elements */
+
 .habit-progress-container,
 .habit-progress,
 .habit-item .habit-progress-container {
@@ -14,7 +14,7 @@
     margin: 0 !important;
 }
 
-/* Apply styling only to the actual progress element */
+
 .habit-progress {
     background-color: rgba(20, 20, 20, 0.6) !important;
     color: rgba(255, 255, 255, 0.9) !important;
@@ -34,13 +34,13 @@
     height: 100% !important;
 }
 
-/* Hover effect for progress element */
+
 .habit-progress:hover {
     background-color: rgba(30, 30, 30, 0.8) !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Ensure consistent sizing for containers */
+
 .habit-progress-container,
 .habit-level-container {
     height: 32px !important;

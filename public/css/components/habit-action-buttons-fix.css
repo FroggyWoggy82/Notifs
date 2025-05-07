@@ -1,15 +1,12 @@
-/*
- * Habit Action Buttons Fix
- * Fixes the issue where edit/delete buttons overlap with the level indicator
- */
 
-/* Fix the habit item layout to accommodate action buttons */
+
+
 .habit-item {
     position: relative !important;
     overflow: visible !important;
 }
 
-/* Fix the habit indicators row to prevent overlap */
+
 .habit-indicators-row {
     margin-right: 80px !important;
     position: relative !important;
@@ -17,7 +14,7 @@
     flex-shrink: 0 !important;
 }
 
-/* Position the action buttons correctly */
+
 .habit-actions {
     position: absolute !important;
     right: 16px !important;
@@ -31,12 +28,12 @@
     padding: 4px !important;
 }
 
-/* Show action buttons on hover */
+
 .habit-item:hover .habit-actions {
     opacity: 1 !important;
 }
 
-/* Style the action buttons */
+
 .edit-habit-icon-btn,
 .delete-habit-icon-btn {
     width: 28px !important;
@@ -63,7 +60,7 @@
     color: #F44336 !important;
 }
 
-/* Media query for mobile devices */
+
 @media screen and (max-width: 768px) {
     .habit-indicators-row {
         margin-right: 0 !important;

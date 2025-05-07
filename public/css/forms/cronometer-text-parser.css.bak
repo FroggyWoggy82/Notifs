@@ -1,0 +1,92 @@
+/* Cronometer Text Parser Styles */
+
+.cronometer-text-paste-container {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cronometer-text-paste-area {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+.cronometer-parse-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.cronometer-parse-button:hover {
+    background-color: #45a049;
+}
+
+.cronometer-parse-status {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    display: none;
+}
+
+.cronometer-parse-status.success {
+    display: block;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.cronometer-parse-status.error {
+    display: block;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.cronometer-parse-status.loading {
+    display: block;
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #ced4da;
+}
+
+/* Highlight fields that were updated by the parser */
+.cronometer-parsed {
+    background-color: #d1ecf1 !important;
+    border-color: #bee5eb !important;
+}
+
+/* Add a label to indicate the source of the data */
+.cronometer-text-paste-container::before {
+    content: "Cronometer Text Parser";
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .cronometer-text-paste-area {
+        font-size: 12px;
+    }
+
+    .cronometer-parse-button {
+        width: 100%;
+    }
+}

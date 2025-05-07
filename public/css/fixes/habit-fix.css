@@ -1,31 +1,31 @@
-/* CSS to ensure completed habits stay visually completed */
 
-/* Style for the habit item to indicate completion */
+
+
 .habit-item[data-completed="true"] {
     background-color: rgba(0, 230, 118, 0.05) !important;
     border-left: 4px solid rgba(0, 230, 118, 0.8) !important;
     box-shadow: 0 0 15px rgba(0, 230, 118, 0.1) !important;
 }
 
-/* Ensure the control container has proper positioning for the checkmark */
+
 .habit-control-container {
     position: relative;
 }
 
-/* Completely replace the checkbox with our own visual indicator */
+
 .habit-item[data-completed="true"] .habit-control-container {
     position: relative;
 }
 
-/* Make the checkbox visible but styled when completed */
+
 .habit-item[data-completed="true"] .habit-checkbox {
     opacity: 1 !important;
     position: relative !important;
     pointer-events: auto !important;
-    z-index: 30 !important; /* Make sure it's above our custom elements */
+    z-index: 30 !important; 
 }
 
-/* Create a custom checkbox replacement */
+
 .habit-item[data-completed="true"] .habit-control-container::before {
     content: '';
     position: absolute;
@@ -41,7 +41,7 @@
     box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
 }
 
-/* Add a checkmark that can't be removed */
+
 .habit-item[data-completed="true"] .habit-control-container::after {
     content: '✓';
     position: absolute;
@@ -56,7 +56,7 @@
     text-shadow: 0 0 5px rgba(0, 230, 118, 0.8);
 }
 
-/* Add a completion indicator text - but not for counter habits */
+
 .habit-item[data-completed="true"]:not([data-counter="true"]) .habit-title::after {
     content: ' (Completed Today)';
     color: #00E676;
@@ -65,17 +65,17 @@
     text-shadow: 0 0 3px rgba(0, 230, 118, 0.3);
 }
 
-/* Make the entire habit item non-interactive */
+
 .habit-item[data-completed="true"] {
     pointer-events: auto !important;
 }
 
-/* But allow the edit and delete buttons to still work */
+
 .habit-item[data-completed="true"] .habit-actions {
     pointer-events: auto !important;
 }
 
-/* Ensure the checkbox appears checked in all browsers */
+
 .habit-item[data-completed="true"] input[type="checkbox"] {
     appearance: none !important;
     -webkit-appearance: none !important;
@@ -84,7 +84,7 @@
     border: none !important;
 }
 
-/* Add a completion overlay but allow interaction */
+
 .habit-item[data-completed="true"]::before {
     content: '';
     position: absolute;

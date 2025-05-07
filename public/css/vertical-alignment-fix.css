@@ -3,29 +3,29 @@
  * Fixes the vertical alignment of the Show Detailed Nutrition button
  */
 
-/* Fix the vertical alignment of all buttons in the row */
+
 .ingredient-form .buttons-row,
 .ingredient-form [class*="button-container"],
 .ingredient-form [class*="buttons-container"] {
     display: flex !important;
-    align-items: center !important; /* Center align items vertically */
+    align-items: center !important; 
     justify-content: space-between !important;
     width: 100% !important;
-    height: auto !important; /* Allow natural height */
+    height: auto !important; 
     margin: 10px 0 !important;
     padding: 0 !important;
 }
 
-/* Make all buttons in the row have the exact same height and vertical alignment */
+
 .ingredient-form .buttons-row button,
 .ingredient-form [class*="button-container"] button,
 .ingredient-form [class*="buttons-container"] button,
 .toggle-detailed-nutrition {
-    height: 36px !important; /* Exact height to match other buttons */
-    line-height: 36px !important; /* Line height matches height */
+    height: 36px !important; 
+    line-height: 36px !important; 
     padding: 0 15px !important;
     margin: 0 5px !important;
-    display: inline-block !important; /* Use inline-block instead of flex */
+    display: inline-block !important; 
     vertical-align: middle !important;
     box-sizing: border-box !important;
     font-size: 0.9em !important;
@@ -41,23 +41,23 @@
     flex: 1 !important;
 }
 
-/* Remove any top/bottom margins or padding that might be causing misalignment */
+
 .toggle-detailed-nutrition {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     position: relative !important;
-    top: 0 !important; /* Ensure no top offset */
+    top: 0 !important; 
 }
 
-/* Ensure text is vertically centered in the button */
+
 .toggle-detailed-nutrition span,
 .toggle-detailed-nutrition div {
     display: inline-block !important;
     vertical-align: middle !important;
-    line-height: normal !important; /* Reset line height for text */
+    line-height: normal !important; 
     position: relative !important;
     top: 50% !important;
-    transform: translateY(-50%) !important; /* Center text vertically */
+    transform: translateY(-50%) !important; 
 }

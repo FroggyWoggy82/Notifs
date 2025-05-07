@@ -4,30 +4,27 @@
  */
 
 (function() {
-    // Run immediately
+
     fixBottomRightXButton();
-    
-    // Also run after DOM is loaded
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', fixBottomRightXButton);
     } else {
         fixBottomRightXButton();
     }
-    
-    // Run periodically to catch any dynamically added buttons
+
     setInterval(fixBottomRightXButton, 500);
     
     function fixBottomRightXButton() {
-        // Find all weight increment containers
+
         const containers = document.querySelectorAll('.weight-increment-container');
         
         containers.forEach(container => {
-            // Find all buttons within the container
+
             const buttons = container.querySelectorAll('button');
-            
-            // Position all buttons at the bottom right
+
             buttons.forEach(button => {
-                // Style the button
+
                 button.style.position = 'absolute';
                 button.style.bottom = '10px';
                 button.style.right = '10px';
@@ -47,24 +44,20 @@
                 button.style.visibility = 'visible';
                 button.style.opacity = '1';
                 button.style.pointerEvents = 'auto';
-                
-                // Clear any existing content and set a single X character
+
                 button.innerHTML = '×';
             });
-            
-            // Ensure the container has relative positioning
+
             container.style.position = 'relative';
             container.style.minHeight = '80px';
             container.style.paddingBottom = '40px';
-            
-            // If no button exists, create one
+
             if (buttons.length === 0) {
                 const newButton = document.createElement('button');
                 newButton.type = 'button';
                 newButton.className = 'weight-increment-x-button';
                 newButton.textContent = '×';
-                
-                // Style the button
+
                 newButton.style.position = 'absolute';
                 newButton.style.bottom = '10px';
                 newButton.style.right = '10px';
@@ -81,8 +74,7 @@
                 newButton.style.fontWeight = 'bold';
                 newButton.style.cursor = 'pointer';
                 newButton.style.zIndex = '1000';
-                
-                // Add click handler to clear the input
+
                 newButton.addEventListener('click', function() {
                     const input = container.querySelector('input');
                     if (input) {
@@ -91,8 +83,7 @@
                         input.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 });
-                
-                // Add the button to the container
+
                 container.appendChild(newButton);
             }
         });

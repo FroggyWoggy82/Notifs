@@ -10,8 +10,51 @@ const db = require('../utils/db');
  * @returns {Promise<Array>} - Promise resolving to an array of recipes
  */
 async function getAllRecipes() {
-    const result = await db.query('SELECT id, name, total_calories FROM recipes ORDER BY name ASC');
-    return result.rows;
+    console.log('=== getAllRecipes called ===');
+    try {
+        // First, check if the recipes table exists
+        console.log('Checking if recipes table exists...');
+        const tableCheckResult = await db.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public'
+                AND table_name = 'recipes'
+            );
+        `);
+
+        const tableExists = tableCheckResult.rows[0].exists;
+        console.log(`Recipes table exists: ${tableExists}`);
+
+        if (!tableExists) {
+            console.error('Recipes table does not exist!');
+            return [];
+        }
+
+        // Check if the table has any data
+        console.log('Checking if recipes table has data...');
+        const countResult = await db.query('SELECT COUNT(*) FROM recipes');
+        const recipeCount = parseInt(countResult.rows[0].count);
+        console.log(`Recipe count: ${recipeCount}`);
+
+        if (recipeCount === 0) {
+            console.log('No recipes found in the database');
+            return [];
+        }
+
+        // Now fetch all recipes
+        console.log('Executing query to get all recipes...');
+        const result = await db.query('SELECT id, name, total_calories FROM recipes ORDER BY name ASC');
+        console.log(`Query returned ${result.rowCount} recipes`);
+        console.log('Recipes:', result.rows);
+        return result.rows;
+    } catch (error) {
+        console.error('Error in getAllRecipes:', error);
+        console.error('Error stack:', error.stack);
+
+        // Return empty array instead of throwing error
+        console.log('Returning empty array due to error');
+        return [];
+    }
 }
 
 /**
@@ -62,33 +105,51 @@ async function getRecipeById(id) {
  * @returns {Promise<Object>} - Promise resolving to the created recipe with ingredients
  */
 async function createRecipe(name, ingredients) {
+    console.log('=== createRecipe called ===');
+    console.log('Recipe name:', name);
+    console.log('Ingredients count:', ingredients ? ingredients.length : 0);
+
     if (!name || !ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+        console.error('Validation error: Recipe name and at least one ingredient are required');
         throw new Error('Recipe name and at least one ingredient are required');
     }
 
     // Calculate total calories from ingredients
     let calculatedTotalCalories = 0;
     for (const ing of ingredients) {
+        console.log(`Processing ingredient: ${ing.name}, calories: ${ing.calories}`);
         if (typeof ing.calories !== 'number' || ing.calories < 0) {
+            console.error(`Invalid calorie data for ingredient: ${ing.name}, value: ${ing.calories}, type: ${typeof ing.calories}`);
             throw new Error('Invalid calorie data for ingredient: ' + ing.name);
         }
         calculatedTotalCalories += ing.calories;
     }
+    console.log(`Total calculated calories: ${calculatedTotalCalories}`);
 
+    console.log('Getting database client for transaction...');
     const client = await db.getClient(); // Use client for transaction
 
     try {
+        console.log('Beginning database transaction...');
         await client.query('BEGIN'); // Start transaction
 
         // Insert the recipe
+        console.log(`Inserting recipe: ${name.trim()} with total calories: ${calculatedTotalCalories}`);
         const recipeInsertResult = await client.query(
             'INSERT INTO recipes (name, total_calories) VALUES ($1, $2) RETURNING id',
             [name.trim(), calculatedTotalCalories]
         );
+
+        if (!recipeInsertResult.rows || recipeInsertResult.rows.length === 0) {
+            console.error('Recipe insert failed: No ID returned');
+            throw new Error('Failed to insert recipe: No ID returned');
+        }
+
         const newRecipeId = recipeInsertResult.rows[0].id;
+        console.log(`Recipe inserted successfully with ID: ${newRecipeId}`);
 
         // Insert ingredients
-        const ingredientInsertPromises = ingredients.map(ing => {
+        const ingredientInsertPromises = ingredients.map(async ing => {
             // Validate required ingredient fields
             if (!ing.name || typeof ing.calories !== 'number' || typeof ing.amount !== 'number' ||
                 typeof ing.protein !== 'number' || typeof ing.fats !== 'number' ||
@@ -98,28 +159,200 @@ async function createRecipe(name, ingredients) {
 
             // Log the ingredient data being inserted
             console.log('Inserting ingredient with package_amount:', ing.package_amount);
+            console.log('Full ingredient data:', JSON.stringify(ing, null, 2));
 
-            return client.query(
-                'INSERT INTO ingredients (recipe_id, name, calories, amount, package_amount, protein, fats, carbohydrates, price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-                [newRecipeId, ing.name.trim(), ing.calories, ing.amount, ing.package_amount || null, ing.protein, ing.fats, ing.carbohydrates, ing.price]
+            // Check for micronutrient data
+            const micronutrientFields = Object.keys(ing).filter(key =>
+                !['name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount', 'has_micronutrients'].includes(key)
             );
-        });
-        await Promise.all(ingredientInsertPromises);
 
+            console.log(`Ingredient ${ing.name} has ${micronutrientFields.length} micronutrient fields:`, micronutrientFields);
+
+            // Build a dynamic query to insert all fields that are present in the ingredient data
+            const columns = ['recipe_id', 'name', 'calories', 'amount', 'package_amount', 'protein', 'fats', 'carbohydrates', 'price'];
+            const values = [newRecipeId, ing.name.trim(), ing.calories, ing.amount, ing.package_amount || null, ing.protein, ing.fats, ing.carbohydrates, ing.price];
+            const placeholders = ['$1', '$2', '$3', '$4', '$5', '$6', '$7', '$8', '$9'];
+            let paramIndex = 10;
+
+            // Helper function to add a field to the insert query if it exists in the ingredient data
+            const addFieldIfExists = (fieldName, dbFieldName = fieldName) => {
+                console.log(`Checking if field exists: ${fieldName} -> ${dbFieldName}`);
+                if (ing[fieldName] !== undefined && ing[fieldName] !== null) {
+                    columns.push(dbFieldName);
+                    placeholders.push(`$${paramIndex}`);
+
+                    // Convert string numbers to actual numbers
+                    let value = ing[fieldName];
+                    if (typeof value === 'string' && !isNaN(parseFloat(value))) {
+                        value = parseFloat(value);
+                        console.log(`Converted string to number: ${fieldName} = ${ing[fieldName]} -> ${value}`);
+                    }
+
+                    values.push(value);
+                    paramIndex++;
+                    console.log(`Added field to insert query: ${fieldName} -> ${dbFieldName} = ${value}`);
+                    return true;
+                }
+                console.log(`Field not found: ${fieldName}`);
+                return false;
+            };
+
+            // Add General section fields
+            addFieldIfExists('alcohol');
+            addFieldIfExists('caffeine');
+            addFieldIfExists('water');
+
+            // Add Carbohydrates section fields
+            addFieldIfExists('fiber');
+            addFieldIfExists('starch');
+            addFieldIfExists('sugars');
+            addFieldIfExists('addedSugars', 'added_sugars');
+            addFieldIfExists('added_sugars');
+            addFieldIfExists('netCarbs', 'net_carbs');
+            addFieldIfExists('net_carbs');
+
+            // Add Lipids section fields
+            addFieldIfExists('saturated');
+            addFieldIfExists('monounsaturated');
+            addFieldIfExists('polyunsaturated');
+            addFieldIfExists('omega3', 'omega3');
+            addFieldIfExists('omega_3', 'omega3');
+            addFieldIfExists('omega6', 'omega6');
+            addFieldIfExists('omega_6', 'omega6');
+            addFieldIfExists('transFat', 'trans');
+            addFieldIfExists('trans_fat', 'trans');
+            addFieldIfExists('cholesterol');
+
+            // Add Protein section fields
+            addFieldIfExists('histidine');
+            addFieldIfExists('isoleucine');
+            addFieldIfExists('leucine');
+            addFieldIfExists('lysine');
+            addFieldIfExists('methionine');
+            addFieldIfExists('phenylalanine');
+            addFieldIfExists('threonine');
+            addFieldIfExists('tryptophan');
+            addFieldIfExists('valine');
+            addFieldIfExists('tyrosine');
+            addFieldIfExists('cystine');
+
+            // Add Vitamins section fields
+            addFieldIfExists('thiamine');
+            addFieldIfExists('riboflavin');
+            addFieldIfExists('niacin');
+            addFieldIfExists('vitaminB6', 'vitamin_b6');
+            addFieldIfExists('vitamin_b6');
+            addFieldIfExists('folate');
+            addFieldIfExists('vitaminB12', 'vitamin_b12');
+            addFieldIfExists('vitamin_b12');
+            addFieldIfExists('vitaminB5', 'pantothenic_acid');
+            addFieldIfExists('pantothenic_acid');
+            addFieldIfExists('biotin');
+            addFieldIfExists('vitaminA', 'vitamin_a');
+            addFieldIfExists('vitamin_a');
+            addFieldIfExists('vitaminC', 'vitamin_c');
+            addFieldIfExists('vitamin_c');
+            addFieldIfExists('vitaminD', 'vitamin_d');
+            addFieldIfExists('vitamin_d');
+            addFieldIfExists('vitaminE', 'vitamin_e');
+            addFieldIfExists('vitamin_e');
+            addFieldIfExists('vitaminK', 'vitamin_k');
+            addFieldIfExists('vitamin_k');
+
+            // Add Minerals section fields
+            addFieldIfExists('calcium');
+            addFieldIfExists('copper');
+            addFieldIfExists('iron');
+            addFieldIfExists('magnesium');
+            addFieldIfExists('manganese');
+            addFieldIfExists('phosphorus');
+            addFieldIfExists('potassium');
+            addFieldIfExists('selenium');
+            addFieldIfExists('sodium');
+            addFieldIfExists('zinc');
+
+            // Build and execute the query
+            const insertQuery = `
+                INSERT INTO ingredients (${columns.join(', ')})
+                VALUES (${placeholders.join(', ')})
+                RETURNING id
+            `;
+
+            console.log('Executing dynamic insert query with columns:', columns);
+            console.log('Values:', values);
+
+            // Execute the query
+            const result = await client.query(insertQuery, values);
+
+            // Log the result
+            console.log(`Inserted ingredient with ID: ${result.rows[0].id}`);
+
+            // Verify the data was saved correctly
+            const verifyResult = await client.query('SELECT * FROM ingredients WHERE id = $1', [result.rows[0].id]);
+            console.log('Verified ingredient data:', JSON.stringify(verifyResult.rows[0], null, 2));
+
+            // Check specific micronutrient fields
+            const fields = [
+                'fiber', 'sugars', 'saturated', 'monounsaturated', 'polyunsaturated',
+                'omega3', 'omega6', 'cholesterol', 'vitamin_a', 'vitamin_c', 'vitamin_d',
+                'vitamin_e', 'vitamin_k', 'calcium', 'iron', 'magnesium', 'phosphorus',
+                'potassium', 'sodium', 'zinc', 'water'
+            ];
+
+            console.log('Checking micronutrient fields:');
+            fields.forEach(field => {
+                console.log(`${field}: ${verifyResult.rows[0][field]}`);
+            });
+
+            return result;
+        });
+        console.log('Waiting for all ingredient inserts to complete...');
+        await Promise.all(ingredientInsertPromises);
+        console.log('All ingredients inserted successfully');
+
+        console.log('Committing transaction...');
         await client.query('COMMIT'); // Commit transaction
+        console.log('Transaction committed successfully');
 
         // Fetch the newly created recipe with ingredients to return it
+        console.log(`Fetching complete recipe with ID: ${newRecipeId}`);
         const finalResult = await db.query('SELECT * FROM recipes WHERE id = $1', [newRecipeId]);
+
+        if (!finalResult.rows || finalResult.rows.length === 0) {
+            console.error(`Failed to fetch newly created recipe with ID: ${newRecipeId}`);
+            throw new Error('Failed to fetch newly created recipe');
+        }
+
+        console.log(`Fetching ingredients for recipe ID: ${newRecipeId}`);
         const finalIngredients = await db.query('SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC', [newRecipeId]);
+        console.log(`Found ${finalIngredients.rowCount} ingredients for recipe ID: ${newRecipeId}`);
+
         const newRecipe = finalResult.rows[0];
         newRecipe.ingredients = finalIngredients.rows;
 
+        console.log('Recipe creation completed successfully');
         return newRecipe;
     } catch (error) {
-        await client.query('ROLLBACK'); // Rollback transaction on error
+        console.error('Error in createRecipe:', error);
+        console.error('Error stack:', error.stack);
+
+        console.log('Rolling back transaction...');
+        try {
+            await client.query('ROLLBACK'); // Rollback transaction on error
+            console.log('Transaction rolled back successfully');
+        } catch (rollbackError) {
+            console.error('Error rolling back transaction:', rollbackError);
+        }
+
         throw error;
     } finally {
-        client.release(); // Release client back to the pool
+        console.log('Releasing database client...');
+        try {
+            client.release(); // Release client back to the pool
+            console.log('Database client released successfully');
+        } catch (releaseError) {
+            console.error('Error releasing database client:', releaseError);
+        }
     }
 }
 
@@ -240,22 +473,7 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
         throw new Error('Ingredient data is required');
     }
 
-    // Process package_amount
-    let packageAmount = null;
-    if (ingredientData.package_amount !== undefined &&
-        ingredientData.package_amount !== null &&
-        ingredientData.package_amount !== '') {
-
-        // Convert to number
-        packageAmount = Number(ingredientData.package_amount);
-
-        // If conversion failed, set to null
-        if (isNaN(packageAmount)) {
-            packageAmount = null;
-        }
-    }
-
-    console.log('Final package_amount:', packageAmount, typeof packageAmount);
+    // Process package_amount (will be handled by the field mapping)
 
     const client = await db.getClient();
 
@@ -274,111 +492,132 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
         const oldIngredient = ingredientResult.rows[0];
 
         // Build a dynamic query to update all fields that are present in ingredientData
-        // Start with the basic fields
         const updateFields = [];
         const updateValues = [];
         let paramIndex = 1;
 
-        // Helper function to add a field to the update query if it exists in ingredientData
-        const addFieldIfExists = (fieldName, dbFieldName = fieldName) => {
-            if (ingredientData[fieldName] !== undefined) {
-                updateFields.push(`${dbFieldName} = $${paramIndex}`);
-                updateValues.push(ingredientData[fieldName]);
-                paramIndex++;
-                return true;
-            }
-            return false;
+        // Map of JavaScript property names to database column names
+        const fieldMappings = {
+            // Basic fields
+            name: 'name',
+            calories: 'calories',
+            amount: 'amount',
+            protein: 'protein',
+            fats: 'fats',
+            carbohydrates: 'carbohydrates',
+            price: 'price',
+            package_amount: 'package_amount',
+
+            // General
+            alcohol: 'alcohol',
+            caffeine: 'caffeine',
+            water: 'water',
+
+            // Carbohydrates breakdown
+            fiber: 'fiber',
+            starch: 'starch',
+            sugars: 'sugars',
+            addedSugars: 'added_sugars',
+            added_sugars: 'added_sugars', // Alias
+            netCarbs: 'net_carbs',
+            net_carbs: 'net_carbs', // Alias
+
+            // Lipids
+            fat: 'fats', // Alias for fats
+            saturated: 'saturated',
+            monounsaturated: 'monounsaturated',
+            polyunsaturated: 'polyunsaturated',
+            omega3: 'omega3',
+            omega_3: 'omega3', // Alias for omega3
+            omega6: 'omega6',
+            omega_6: 'omega6', // Alias for omega6
+            transFat: 'trans',
+            trans_fat: 'trans', // Alias for trans
+            cholesterol: 'cholesterol',
+
+            // Vitamins
+            vitaminA: 'vitamin_a',
+            vitamin_a: 'vitamin_a', // Alias
+            vitaminB1: 'thiamine',
+            thiamine: 'thiamine', // Alias
+            vitaminB2: 'riboflavin',
+            riboflavin: 'riboflavin', // Alias
+            vitaminB3: 'niacin',
+            niacin: 'niacin', // Alias
+            vitaminB5: 'pantothenic_acid',
+            pantothenic_acid: 'pantothenic_acid', // Alias
+            vitaminB6: 'vitamin_b6',
+            vitamin_b6: 'vitamin_b6', // Alias
+            vitaminB12: 'vitamin_b12',
+            vitamin_b12: 'vitamin_b12', // Alias
+            vitaminC: 'vitamin_c',
+            vitamin_c: 'vitamin_c', // Alias
+            vitaminD: 'vitamin_d',
+            vitamin_d: 'vitamin_d', // Alias
+            vitaminE: 'vitamin_e',
+            vitamin_e: 'vitamin_e', // Alias
+            vitaminK: 'vitamin_k',
+            vitamin_k: 'vitamin_k', // Alias
+            folate: 'folate',
+            biotin: 'biotin',
+
+            // Minerals
+            calcium: 'calcium',
+            copper: 'copper',
+            iron: 'iron',
+            magnesium: 'magnesium',
+            manganese: 'manganese',
+            phosphorus: 'phosphorus',
+            potassium: 'potassium',
+            selenium: 'selenium',
+            sodium: 'sodium',
+            zinc: 'zinc',
+
+            // Amino acids
+            histidine: 'histidine',
+            isoleucine: 'isoleucine',
+            leucine: 'leucine',
+            lysine: 'lysine',
+            methionine: 'methionine',
+            phenylalanine: 'phenylalanine',
+            threonine: 'threonine',
+            tryptophan: 'tryptophan',
+            tyrosine: 'tyrosine',
+            valine: 'valine',
+            cystine: 'cystine'
         };
 
-        // Add basic fields
-        addFieldIfExists('name');
-        addFieldIfExists('calories');
-        addFieldIfExists('amount');
-        addFieldIfExists('protein');
-        addFieldIfExists('fats');
-        addFieldIfExists('carbohydrates');
-        addFieldIfExists('price');
+        // Process all fields from ingredientData
+        const processedFields = new Set(); // To track which database fields we've already processed
 
-        // Add General section fields
-        addFieldIfExists('alcohol');
-        addFieldIfExists('caffeine');
-        addFieldIfExists('water');
+        for (const [key, value] of Object.entries(ingredientData)) {
+            // Skip undefined values
+            if (value === undefined) continue;
 
-        // Add Carbohydrates section fields
-        addFieldIfExists('fiber');
-        addFieldIfExists('starch');
-        addFieldIfExists('sugars');
-        addFieldIfExists('added_sugars');
-        addFieldIfExists('net_carbs');
+            // Get the corresponding database column name
+            const columnName = fieldMappings[key];
 
-        // Add Lipids section fields
-        addFieldIfExists('saturated');
-        addFieldIfExists('monounsaturated');
-        addFieldIfExists('polyunsaturated');
+            // Skip if no mapping exists
+            if (!columnName) continue;
 
-        // Special handling for omega_3 and omega_6 will be done separately
-        // Don't include them in the general update
+            // Skip duplicate fields (e.g., if both omega3 and omega_3 are present)
+            if (processedFields.has(columnName)) continue;
 
-        // Special handling for trans_fat
-        if (ingredientData.trans_fat !== undefined) {
-            console.log('Processing trans_fat value:', ingredientData.trans_fat, typeof ingredientData.trans_fat);
+            // Mark this field as processed
+            processedFields.add(columnName);
 
-            // Ensure it's a number
-            let transFatValue = ingredientData.trans_fat;
-            if (typeof transFatValue === 'string') {
-                transFatValue = parseFloat(transFatValue);
-                if (isNaN(transFatValue)) {
-                    transFatValue = 0;
-                }
+            // Add to update fields
+            updateFields.push(`${columnName} = $${paramIndex}`);
+
+            // Convert string numbers to actual numbers
+            let finalValue = value;
+            if (typeof finalValue === 'string' && !isNaN(parseFloat(finalValue))) {
+                finalValue = parseFloat(finalValue);
             }
 
-            updateFields.push(`trans_fat = $${paramIndex}`);
-            updateValues.push(transFatValue);
+            updateValues.push(finalValue);
             paramIndex++;
-            console.log('Added trans_fat to update query with value:', transFatValue);
         }
-
-        addFieldIfExists('cholesterol');
-
-        // Add Protein section fields
-        addFieldIfExists('histidine');
-        addFieldIfExists('isoleucine');
-        addFieldIfExists('leucine');
-        addFieldIfExists('lysine');
-        addFieldIfExists('methionine');
-        addFieldIfExists('phenylalanine');
-        addFieldIfExists('threonine');
-        addFieldIfExists('tryptophan');
-        addFieldIfExists('valine');
-        addFieldIfExists('tyrosine');
-        addFieldIfExists('cystine');
-
-        // Add Vitamins section fields
-        addFieldIfExists('thiamine');
-        addFieldIfExists('riboflavin');
-        addFieldIfExists('niacin');
-        addFieldIfExists('vitamin_b6');
-        addFieldIfExists('folate');
-        addFieldIfExists('vitamin_b12');
-        addFieldIfExists('pantothenic_acid');
-        addFieldIfExists('biotin');
-        addFieldIfExists('vitamin_a');
-        addFieldIfExists('vitamin_c');
-        addFieldIfExists('vitamin_d');
-        addFieldIfExists('vitamin_e');
-        addFieldIfExists('vitamin_k');
-
-        // Add Minerals section fields
-        addFieldIfExists('calcium');
-        addFieldIfExists('copper');
-        addFieldIfExists('iron');
-        addFieldIfExists('magnesium');
-        addFieldIfExists('manganese');
-        addFieldIfExists('phosphorus');
-        addFieldIfExists('potassium');
-        addFieldIfExists('selenium');
-        addFieldIfExists('sodium');
-        addFieldIfExists('zinc');
 
         // Add the WHERE clause
         updateValues.push(ingredientId);
@@ -397,110 +636,8 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
             console.log('No fields to update');
         }
 
-        // Update package_amount separately
-        console.log('Updating package_amount to:', packageAmount, typeof packageAmount);
-
-        // CRITICAL FIX: Ensure package_amount is properly formatted
-        // If it's a string, convert it to a number
-        let finalPackageAmount = packageAmount;
-        if (typeof finalPackageAmount === 'string' && finalPackageAmount.trim() !== '') {
-            finalPackageAmount = Number(finalPackageAmount);
-            if (isNaN(finalPackageAmount)) {
-                finalPackageAmount = null;
-            }
-        }
-
-        console.log('Final package_amount to save:', finalPackageAmount, typeof finalPackageAmount);
-
-        await client.query(`
-            UPDATE ingredients SET package_amount = $1 WHERE id = $2
-        `, [finalPackageAmount, ingredientId]);
-
-        // Update trans_fat separately to ensure it's saved
-        if (ingredientData.trans_fat !== undefined) {
-            console.log('Directly updating trans_fat value to:', ingredientData.trans_fat, typeof ingredientData.trans_fat);
-
-            // Ensure trans_fat is properly formatted
-            let transFatValue = ingredientData.trans_fat;
-            if (typeof transFatValue === 'string' && transFatValue.trim() !== '') {
-                transFatValue = Number(transFatValue);
-                if (isNaN(transFatValue)) {
-                    transFatValue = 0;
-                }
-            }
-
-            console.log('Final trans_fat value to save:', transFatValue, typeof transFatValue);
-
-            try {
-                const transFatResult = await client.query(`
-                    UPDATE ingredients SET trans_fat = $1 WHERE id = $2 RETURNING id, name, trans_fat
-                `, [transFatValue, ingredientId]);
-
-                console.log('Trans_fat update result:', transFatResult.rows[0]);
-            } catch (error) {
-                console.error('Error updating trans_fat:', error);
-            }
-        }
-
-        // CRITICAL FIX: Update omega3 (without underscore) separately to ensure it's saved
-        // Check for both omega3 and omega_3 in the input data
-        if (ingredientData.omega3 !== undefined || ingredientData.omega_3 !== undefined) {
-            // Prioritize omega3 (without underscore) if both are provided
-            const omegaValue = ingredientData.omega3 !== undefined ? ingredientData.omega3 : ingredientData.omega_3;
-            console.log('Directly updating omega3 value to:', omegaValue, typeof omegaValue);
-
-            // Ensure omega3 is properly formatted
-            let omega3Value = omegaValue;
-            if (typeof omega3Value === 'string' && omega3Value.trim() !== '') {
-                omega3Value = Number(omega3Value);
-                if (isNaN(omega3Value)) {
-                    omega3Value = 0;
-                }
-            }
-
-            console.log('Final omega3 value to save:', omega3Value, typeof omega3Value);
-
-            try {
-                // CRITICAL FIX: Use omega3 (without underscore) to match database column name
-                const omega3Result = await client.query(`
-                    UPDATE ingredients SET omega3 = $1 WHERE id = $2 RETURNING id, name, omega3
-                `, [omega3Value, ingredientId]);
-
-                console.log('Omega3 update result:', omega3Result.rows[0]);
-            } catch (error) {
-                console.error('Error updating omega3:', error);
-            }
-        }
-
-        // CRITICAL FIX: Update omega6 (without underscore) separately to ensure it's saved
-        // Check for both omega6 and omega_6 in the input data
-        if (ingredientData.omega6 !== undefined || ingredientData.omega_6 !== undefined) {
-            // Prioritize omega6 (without underscore) if both are provided
-            const omegaValue = ingredientData.omega6 !== undefined ? ingredientData.omega6 : ingredientData.omega_6;
-            console.log('Directly updating omega6 value to:', omegaValue, typeof omegaValue);
-
-            // Ensure omega6 is properly formatted
-            let omega6Value = omegaValue;
-            if (typeof omega6Value === 'string' && omega6Value.trim() !== '') {
-                omega6Value = Number(omega6Value);
-                if (isNaN(omega6Value)) {
-                    omega6Value = 0;
-                }
-            }
-
-            console.log('Final omega6 value to save:', omega6Value, typeof omega6Value);
-
-            try {
-                // CRITICAL FIX: Use omega6 (without underscore) to match database column name
-                const omega6Result = await client.query(`
-                    UPDATE ingredients SET omega6 = $1 WHERE id = $2 RETURNING id, name, omega6
-                `, [omega6Value, ingredientId]);
-
-                console.log('Omega6 update result:', omega6Result.rows[0]);
-            } catch (error) {
-                console.error('Error updating omega6:', error);
-            }
-        }
+        // All fields are now handled by the dynamic field mapping above
+        // No need for separate updates for package_amount, trans_fat, omega3, or omega6
 
         // Verify the update
         const verifyResult = await client.query(
@@ -607,8 +744,7 @@ async function updateIngredientPackageAmount(recipeId, ingredientId, packageAmou
         // Log the current package_amount
         console.log('Current package_amount:', ingredientResult.rows[0].package_amount, typeof ingredientResult.rows[0].package_amount);
 
-        // CRITICAL FIX: Ensure package_amount is properly formatted
-        // Convert to number if it's not null
+        // Ensure package_amount is properly formatted
         let finalPackageAmount = null;
         if (packageAmount !== null && packageAmount !== undefined && packageAmount !== '') {
             // Force to number
@@ -622,8 +758,8 @@ async function updateIngredientPackageAmount(recipeId, ingredientId, packageAmou
 
         console.log('Final package_amount to save:', finalPackageAmount, typeof finalPackageAmount);
 
-        // Update only the package_amount using a direct SQL query
-        console.log('Executing direct package_amount update...');
+        // Use the updateIngredient function to update the package_amount
+        // This will use our field mapping approach
         const updateResult = await client.query(
             'UPDATE ingredients SET package_amount = $1 WHERE id = $2 RETURNING *',
             [finalPackageAmount, ingredientId]
@@ -706,72 +842,271 @@ async function updateIngredientOmegaValues(recipeId, ingredientId, omegaData) {
         console.log('Current omega3:', ingredientResult.rows[0].omega3);
         console.log('Current omega6:', ingredientResult.rows[0].omega6);
 
-        // Build the update query
-        const updateFields = [];
-        const updateValues = [];
-        let paramIndex = 1;
-
-        // CRITICAL FIX: Handle both naming conventions, prioritizing without underscore
-        if (omegaData.omega3 !== undefined || omegaData.omega_3 !== undefined) {
-            const omega3Value = omegaData.omega3 !== undefined ? omegaData.omega3 : omegaData.omega_3;
-            updateFields.push(`omega3 = $${paramIndex}`);
-            updateValues.push(omega3Value);
-            paramIndex++;
-        }
-
-        if (omegaData.omega6 !== undefined || omegaData.omega_6 !== undefined) {
-            const omega6Value = omegaData.omega6 !== undefined ? omegaData.omega6 : omegaData.omega_6;
-            updateFields.push(`omega6 = $${paramIndex}`);
-            updateValues.push(omega6Value);
-            paramIndex++;
-        }
-
-        // Add the WHERE clause
-        updateValues.push(ingredientId);
-
-        // Execute the update query
-        const updateQuery = `
-            UPDATE ingredients SET
-                ${updateFields.join(', ')}
-            WHERE id = $${paramIndex}
-            RETURNING *
-        `;
-
-        console.log('Executing omega values update query:', updateQuery);
-        console.log('Update values:', updateValues);
-
-        const updateResult = await client.query(updateQuery, updateValues);
-
-        if (updateResult.rowCount === 0) {
-            throw new Error('Failed to update omega values');
-        }
-
-        console.log('Update result:', updateResult.rows[0]);
-        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
-        console.log('Updated omega3:', updateResult.rows[0].omega3);
-        console.log('Updated omega6:', updateResult.rows[0].omega6);
-
-        // Verify the update with a separate query
-        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
-        const verifyResult = await client.query(
-            'SELECT id, name, omega3, omega6 FROM ingredients WHERE id = $1',
-            [ingredientId]
-        );
-
-        console.log('Verified result:', verifyResult.rows[0]);
-        console.log('Verified omega3:', verifyResult.rows[0].omega3);
-        console.log('Verified omega6:', verifyResult.rows[0].omega6);
-
+        // Use the updateIngredient function to update omega values
+        // This will use our field mapping approach
         await client.query('COMMIT');
-
-        // Get the full recipe to return
-        const recipe = await getRecipeById(recipeId);
-        return recipe;
+        return await updateIngredient(recipeId, ingredientId, omegaData);
     } catch (error) {
         await client.query('ROLLBACK');
         throw error;
     } finally {
         client.release();
+    }
+}
+
+/**
+ * Add a new ingredient to an existing recipe
+ * @param {number} recipeId - The recipe ID
+ * @param {Object} ingredientData - The ingredient data
+ * @returns {Promise<Object>} - Promise resolving to the updated recipe with ingredients
+ */
+async function addIngredientToRecipe(recipeId, ingredientData) {
+    console.log('=== addIngredientToRecipe called ===');
+    console.log('recipeId:', recipeId);
+    console.log('ingredientData:', JSON.stringify(ingredientData, null, 2));
+
+    // Validate inputs
+    if (!recipeId) {
+        console.error('Recipe ID is required');
+        throw new Error('Recipe ID is required');
+    }
+
+    if (!ingredientData || typeof ingredientData !== 'object') {
+        console.error('Ingredient data is required or invalid format');
+        throw new Error('Ingredient data is required');
+    }
+
+    // Log all the fields for debugging
+    console.log('Ingredient fields present:');
+    Object.keys(ingredientData).forEach(key => {
+        console.log(`- ${key}: ${ingredientData[key]} (${typeof ingredientData[key]})`);
+    });
+
+    // Convert numeric string values to numbers
+    ['calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount'].forEach(field => {
+        if (typeof ingredientData[field] === 'string' && !isNaN(parseFloat(ingredientData[field]))) {
+            ingredientData[field] = parseFloat(ingredientData[field]);
+            console.log(`Converted ${field} from string to number: ${ingredientData[field]}`);
+        }
+    });
+
+    // Validate required ingredient fields
+    if (!ingredientData.name || typeof ingredientData.calories !== 'number' ||
+        typeof ingredientData.amount !== 'number' || typeof ingredientData.protein !== 'number' ||
+        typeof ingredientData.fats !== 'number' || typeof ingredientData.carbohydrates !== 'number' ||
+        typeof ingredientData.price !== 'number' || ingredientData.amount <= 0) {
+        console.error('Invalid data for ingredient:', ingredientData.name || '[Missing Name]');
+        console.error('Validation details:');
+        console.error(`- name: ${ingredientData.name} (${typeof ingredientData.name})`);
+        console.error(`- calories: ${ingredientData.calories} (${typeof ingredientData.calories})`);
+        console.error(`- amount: ${ingredientData.amount} (${typeof ingredientData.amount})`);
+        console.error(`- protein: ${ingredientData.protein} (${typeof ingredientData.protein})`);
+        console.error(`- fats: ${ingredientData.fats} (${typeof ingredientData.fats})`);
+        console.error(`- carbohydrates: ${ingredientData.carbohydrates} (${typeof ingredientData.carbohydrates})`);
+        console.error(`- price: ${ingredientData.price} (${typeof ingredientData.price})`);
+        throw new Error('Invalid data for ingredient: ' + (ingredientData.name || '[Missing Name]'));
+    }
+
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // Check if recipe exists
+        const recipeResult = await client.query('SELECT * FROM recipes WHERE id = $1', [recipeId]);
+        if (recipeResult.rowCount === 0) {
+            console.error(`Recipe with ID ${recipeId} not found`);
+            throw new Error('Recipe not found');
+        }
+
+        const recipe = recipeResult.rows[0];
+        console.log(`Found recipe: ${recipe.name} (ID: ${recipe.id})`);
+        const currentTotalCalories = recipe.total_calories;
+
+        // Build a dynamic query to insert all fields that are present in the ingredient data
+        const columns = ['recipe_id', 'name', 'calories', 'amount', 'package_amount', 'protein', 'fats', 'carbohydrates', 'price'];
+        const values = [recipeId, ingredientData.name.trim(), ingredientData.calories, ingredientData.amount,
+                        ingredientData.package_amount || null, ingredientData.protein, ingredientData.fats,
+                        ingredientData.carbohydrates, ingredientData.price];
+        const placeholders = ['$1', '$2', '$3', '$4', '$5', '$6', '$7', '$8', '$9'];
+        let paramIndex = 10;
+
+        // Helper function to add a field to the insert query if it exists in the ingredient data
+        const addFieldIfExists = (fieldName, dbFieldName = fieldName) => {
+            console.log(`Checking if field exists: ${fieldName} -> ${dbFieldName}`);
+            if (ingredientData[fieldName] !== undefined && ingredientData[fieldName] !== null) {
+                columns.push(dbFieldName);
+                placeholders.push(`$${paramIndex}`);
+
+                // Convert string numbers to actual numbers
+                let value = ingredientData[fieldName];
+                if (typeof value === 'string' && !isNaN(parseFloat(value))) {
+                    value = parseFloat(value);
+                    console.log(`Converted string to number: ${fieldName} = ${ingredientData[fieldName]} -> ${value}`);
+                }
+
+                values.push(value);
+                paramIndex++;
+                console.log(`Added field to insert query: ${fieldName} -> ${dbFieldName} = ${value}`);
+                return true;
+            }
+            console.log(`Field not found: ${fieldName}`);
+            return false;
+        };
+
+        // Add General section fields
+        addFieldIfExists('alcohol');
+        addFieldIfExists('caffeine');
+        addFieldIfExists('water');
+
+        // Add Carbohydrates section fields
+        addFieldIfExists('fiber');
+        addFieldIfExists('starch');
+        addFieldIfExists('sugars');
+        addFieldIfExists('addedSugars', 'added_sugars');
+        addFieldIfExists('added_sugars');
+        addFieldIfExists('netCarbs', 'net_carbs');
+        addFieldIfExists('net_carbs');
+
+        // Add Lipids section fields
+        addFieldIfExists('saturated');
+        addFieldIfExists('monounsaturated');
+        addFieldIfExists('polyunsaturated');
+        addFieldIfExists('omega3', 'omega3');
+        addFieldIfExists('omega_3', 'omega3');
+        addFieldIfExists('omega6', 'omega6');
+        addFieldIfExists('omega_6', 'omega6');
+        addFieldIfExists('transFat', 'trans');
+        addFieldIfExists('trans_fat', 'trans');
+        addFieldIfExists('cholesterol');
+
+        // Add Protein section fields
+        addFieldIfExists('histidine');
+        addFieldIfExists('isoleucine');
+        addFieldIfExists('leucine');
+        addFieldIfExists('lysine');
+        addFieldIfExists('methionine');
+        addFieldIfExists('phenylalanine');
+        addFieldIfExists('threonine');
+        addFieldIfExists('tryptophan');
+        addFieldIfExists('valine');
+        addFieldIfExists('tyrosine');
+        addFieldIfExists('cystine');
+
+        // Add Vitamins section fields
+        addFieldIfExists('thiamine');
+        addFieldIfExists('vitamin_b1', 'thiamine');
+        addFieldIfExists('riboflavin');
+        addFieldIfExists('vitamin_b2', 'riboflavin');
+        addFieldIfExists('niacin');
+        addFieldIfExists('vitamin_b3', 'niacin');
+        addFieldIfExists('vitaminB6', 'vitamin_b6');
+        addFieldIfExists('vitamin_b6');
+        addFieldIfExists('folate');
+        addFieldIfExists('vitaminB12', 'vitamin_b12');
+        addFieldIfExists('vitamin_b12');
+        addFieldIfExists('vitaminB5', 'pantothenic_acid');
+        addFieldIfExists('vitamin_b5', 'pantothenic_acid');
+        addFieldIfExists('pantothenic_acid');
+        addFieldIfExists('biotin');
+        addFieldIfExists('vitaminA', 'vitamin_a');
+        addFieldIfExists('vitamin_a');
+        addFieldIfExists('vitaminC', 'vitamin_c');
+        addFieldIfExists('vitamin_c');
+        addFieldIfExists('vitaminD', 'vitamin_d');
+        addFieldIfExists('vitamin_d');
+        addFieldIfExists('vitaminE', 'vitamin_e');
+        addFieldIfExists('vitamin_e');
+        addFieldIfExists('vitaminK', 'vitamin_k');
+        addFieldIfExists('vitamin_k');
+
+        // Add Minerals section fields
+        addFieldIfExists('calcium');
+        addFieldIfExists('copper');
+        addFieldIfExists('iron');
+        addFieldIfExists('magnesium');
+        addFieldIfExists('manganese');
+        addFieldIfExists('phosphorus');
+        addFieldIfExists('potassium');
+        addFieldIfExists('selenium');
+        addFieldIfExists('sodium');
+        addFieldIfExists('zinc');
+
+        // Build and execute the query
+        const insertQuery = `
+            INSERT INTO ingredients (${columns.join(', ')})
+            VALUES (${placeholders.join(', ')})
+            RETURNING id
+        `;
+
+        console.log('Executing dynamic insert query with columns:', columns);
+        console.log('Values:', values);
+
+        // Execute the query
+        const result = await client.query(insertQuery, values);
+        const newIngredientId = result.rows[0].id;
+        console.log(`Inserted ingredient with ID: ${newIngredientId}`);
+
+        // Verify the ingredient was inserted correctly
+        const verifyResult = await client.query('SELECT * FROM ingredients WHERE id = $1', [newIngredientId]);
+        if (verifyResult.rowCount === 0) {
+            console.error(`Failed to verify ingredient with ID ${newIngredientId}`);
+            throw new Error('Failed to verify ingredient insertion');
+        }
+
+        console.log('Verified ingredient data:', JSON.stringify(verifyResult.rows[0], null, 2));
+
+        // Update the recipe's total calories
+        const newTotalCalories = currentTotalCalories + ingredientData.calories;
+        await client.query('UPDATE recipes SET total_calories = $1 WHERE id = $2', [newTotalCalories, recipeId]);
+
+        // Verify the recipe was updated correctly
+        const verifyRecipeResult = await client.query('SELECT * FROM recipes WHERE id = $1', [recipeId]);
+        if (verifyRecipeResult.rowCount === 0) {
+            console.error(`Failed to verify recipe update with ID ${recipeId}`);
+            throw new Error('Failed to verify recipe update');
+        }
+
+        console.log('Verified recipe data:', JSON.stringify(verifyRecipeResult.rows[0], null, 2));
+
+        // Commit the transaction
+        await client.query('COMMIT');
+        console.log('Transaction committed successfully');
+
+        // Fetch the updated recipe with ingredients to return it
+        console.log(`Fetching complete recipe with ID: ${recipeId}`);
+        const updatedRecipe = await getRecipeById(recipeId);
+
+        // Verify the ingredients were fetched correctly
+        console.log(`Recipe has ${updatedRecipe.ingredients ? updatedRecipe.ingredients.length : 0} ingredients`);
+        if (updatedRecipe.ingredients && updatedRecipe.ingredients.length > 0) {
+            console.log('Last ingredient:', JSON.stringify(updatedRecipe.ingredients[updatedRecipe.ingredients.length - 1], null, 2));
+        }
+
+        return updatedRecipe;
+    } catch (error) {
+        console.error('Error in addIngredientToRecipe:', error);
+        console.error('Error stack:', error.stack);
+
+        // Rollback the transaction
+        console.log('Rolling back transaction...');
+        try {
+            await client.query('ROLLBACK');
+            console.log('Transaction rolled back successfully');
+        } catch (rollbackError) {
+            console.error('Error rolling back transaction:', rollbackError);
+        }
+
+        throw error;
+    } finally {
+        // Release the client
+        console.log('Releasing database client...');
+        try {
+            client.release();
+            console.log('Database client released successfully');
+        } catch (releaseError) {
+            console.error('Error releasing database client:', releaseError);
+        }
     }
 }
 
@@ -784,5 +1119,6 @@ module.exports = {
     updateIngredient,
     getIngredientById,
     updateIngredientPackageAmount,
-    updateIngredientOmegaValues
+    updateIngredientOmegaValues,
+    addIngredientToRecipe
 };

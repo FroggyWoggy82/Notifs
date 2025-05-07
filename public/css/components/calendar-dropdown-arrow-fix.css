@@ -4,7 +4,7 @@
  * Arrows point left (←) when closed and down when open
  */
 
-/* Remove default dropdown arrow */
+
 .calendar-filter select {
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
@@ -12,26 +12,26 @@
     background-image: none !important;
     background-repeat: no-repeat !important;
     background-position: right center !important;
-    padding-right: 30px !important; /* Make space for our custom arrow */
+    padding-right: 30px !important; 
 }
 
-/* Remove IE-specific dropdown arrow */
+
 .calendar-filter select::-ms-expand {
     display: none !important;
 }
 
-/* Position the container for the arrow */
+
 .calendar-filter {
     position: relative !important;
 }
 
-/* Style the dropdown arrow - default is left-facing when closed */
+
 .calendar-filter::after {
     content: '' !important;
     position: absolute !important;
     right: 12px !important;
     top: 50% !important;
-    transform: translateY(-50%) rotate(90deg) !important; /* Rotate to point left */
+    transform: translateY(-50%) rotate(90deg) !important; 
     width: 0 !important;
     height: 0 !important;
     border-left: 6px solid transparent !important;
@@ -42,12 +42,12 @@
     transition: transform 0.2s ease !important;
 }
 
-/* When dropdown is open, change to down-facing arrow */
+
 .calendar-filter.dropdown-open::after {
-    transform: translateY(-50%) rotate(0deg) !important; /* Rotate back to point down */
+    transform: translateY(-50%) rotate(0deg) !important; 
 }
 
-/* Dark theme styling for the dropdown */
+
 .calendar-filter {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -68,5 +68,5 @@
 
 .calendar-filter select:focus {
     border-color: rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important; /* White glow instead of green */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important; 
 }

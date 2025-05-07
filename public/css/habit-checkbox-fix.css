@@ -3,7 +3,7 @@
  * Removes green glow from habit checkboxes and replaces with white styling
  */
 
-/* Base styling for habit checkboxes */
+
 .habit-checkbox,
 html body .habit-item .habit-checkbox {
     appearance: none !important;
@@ -23,14 +23,14 @@ html body .habit-item .habit-checkbox {
     box-shadow: none !important;
 }
 
-/* Hover state */
+
 .habit-checkbox:hover,
 html body .habit-item .habit-checkbox:hover {
     border-color: rgba(255, 255, 255, 0.7) !important;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Checked state */
+
 .habit-checkbox:checked,
 html body .habit-item .habit-checkbox:checked {
     background-color: rgba(255, 255, 255, 0.1) !important;
@@ -38,7 +38,7 @@ html body .habit-item .habit-checkbox:checked {
     box-shadow: none !important;
 }
 
-/* Create checkmark using ::after pseudo-element */
+
 .habit-checkbox:checked::after,
 html body .habit-item .habit-checkbox:checked::after {
     content: '✓' !important;
@@ -53,7 +53,7 @@ html body .habit-item .habit-checkbox:checked::after {
     text-shadow: none !important;
 }
 
-/* Habit control container styling */
+
 .habit-control-container,
 html body .habit-control-container {
     width: 32px !important;
@@ -71,7 +71,7 @@ html body .habit-control-container {
     margin-left: 0 !important;
 }
 
-/* Override completed habit checkbox styling */
+
 .habit-item[data-completed="true"] .habit-control-container::before {
     content: '' !important;
     position: absolute !important;
@@ -87,7 +87,7 @@ html body .habit-control-container {
     box-shadow: none !important;
 }
 
-/* Override completed habit checkmark styling */
+
 .habit-item[data-completed="true"] .habit-control-container::after {
     content: '✓' !important;
     position: absolute !important;

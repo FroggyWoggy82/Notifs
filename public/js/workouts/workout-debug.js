@@ -3,11 +3,9 @@
  * This script adds diagnostic functions to help debug workout data persistence issues
  */
 
-// Add this to the window object so we can call it from the console
 window.debugWorkoutStorage = function() {
     console.group('🔍 WORKOUT STORAGE DEBUG');
 
-    // Check all localStorage keys
     console.log('All localStorage keys:');
     const allKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -15,7 +13,6 @@ window.debugWorkoutStorage = function() {
     }
     console.table(allKeys);
 
-    // Check specific workout keys
     const workoutKeys = [
         'workout_tracker_current_workout',
         'workout_tracker_input_values',
@@ -54,7 +51,6 @@ window.debugWorkoutStorage = function() {
 
     console.table(workoutValues);
 
-    // Check DOM state
     console.log('Current DOM state:');
     const domState = {
         currentPage: window.currentPage || 'unknown',
@@ -72,7 +68,6 @@ window.debugWorkoutStorage = function() {
     return 'Debug information logged to console.';
 };
 
-// Add debug functions to window object but don't auto-run
 window.saveAllInputsNow = function() {
     if (typeof saveWorkoutData === 'function') {
         console.log('Manually saving workout data...');

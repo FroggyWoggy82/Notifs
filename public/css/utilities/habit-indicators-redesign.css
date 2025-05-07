@@ -3,7 +3,7 @@
  * Improves the design of progress badges and level indicators
  */
 
-/* Redesigned progress badges */
+
 .habit-progress-container,
 .habit-progress {
     background-color: rgba(20, 20, 20, 0.6) !important;
@@ -20,14 +20,14 @@
     transition: all 0.2s ease !important;
 }
 
-/* Hover effect for progress badges */
+
 .habit-progress-container:hover,
 .habit-progress:hover {
     background-color: rgba(30, 30, 30, 0.8) !important;
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Redesigned level indicators with gradient backgrounds */
+
 .habit-level {
     background: linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(40, 40, 40, 0.8)) !important;
     color: rgba(255, 255, 255, 0.9) !important;
@@ -43,21 +43,21 @@
     transition: all 0.2s ease !important;
 }
 
-/* Hover effect for level indicators */
+
 .habit-level:hover {
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Level-specific styling with subtle color accents */
-/* Handle all possible level classes */
 
-/* Level 0 */
+
+
+
 .habit-level.level-0 {
     background: linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(40, 40, 40, 0.8)) !important;
     border-left: 3px solid rgba(150, 150, 150, 0.5) !important;
 }
 
-/* Levels 1-5 */
+
 .habit-level.level-1,
 .habit-level.level-2,
 .habit-level.level-3,
@@ -68,7 +68,7 @@
     border-left: 3px solid rgba(0, 191, 165, 0.5) !important;
 }
 
-/* Levels 6-10 */
+
 .habit-level.level-6,
 .habit-level.level-7,
 .habit-level.level-8,
@@ -79,7 +79,7 @@
     border-left: 3px solid rgba(33, 150, 243, 0.5) !important;
 }
 
-/* Levels 11-20 */
+
 .habit-level.level-11,
 .habit-level.level-12,
 .habit-level.level-13,
@@ -95,7 +95,7 @@
     border-left: 3px solid rgba(156, 39, 176, 0.5) !important;
 }
 
-/* Levels 21+ */
+
 .habit-level.level-21,
 .habit-level.level-22,
 .habit-level.level-23,
@@ -107,14 +107,14 @@
     border-left: 3px solid rgba(255, 152, 0, 0.5) !important;
 }
 
-/* Improve spacing between indicators */
+
 .habit-indicators-row {
     gap: 10px !important;
     align-items: center !important;
     justify-content: flex-end !important;
 }
 
-/* Ensure consistent sizing */
+
 .habit-progress-container,
 .habit-level {
     height: 32px !important;
@@ -123,14 +123,14 @@
     justify-content: center !important;
 }
 
-/* Remove any additional borders or outlines from parent containers */
+
 .habit-indicators-row > div {
     border: none !important;
     box-shadow: none !important;
     background: none !important;
 }
 
-/* Ensure the progress container doesn't have a border */
+
 .habit-progress-container {
     border: none !important;
     padding: 0 !important;
@@ -138,7 +138,7 @@
     background: none !important;
 }
 
-/* Only the actual progress element should have styling */
+
 .habit-progress {
     width: 100% !important;
     height: 100% !important;

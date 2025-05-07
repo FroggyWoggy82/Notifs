@@ -1,0 +1,56 @@
+/* Styling for habit increment buttons */
+
+/* Base style for the increment button */
+.habit-increment-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect */
+.habit-increment-btn:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Active/pressed effect */
+.habit-increment-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Completed button style */
+.habit-increment-btn.completed {
+    background-color: #27ae60;
+    cursor: default;
+}
+
+/* Disabled button style */
+.habit-increment-btn:disabled {
+    opacity: 0.8;
+    cursor: default;
+}
+
+/* Container for the button to ensure proper alignment */
+.habit-control-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+/* All progress and level styling moved to index.css */

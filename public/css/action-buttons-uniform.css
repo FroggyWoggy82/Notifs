@@ -3,7 +3,7 @@
  * Makes habit and task edit/delete buttons have consistent styling
  */
 
-/* Unified styling for both task and habit action buttons */
+
 html body .task-actions .icon-btn,
 html body .habit-actions .icon-btn,
 html body .habit-actions .edit-habit-icon-btn,
@@ -21,7 +21,7 @@ html body .habit-actions .delete-habit-icon-btn {
     color: rgba(255, 255, 255, 0.7) !important;
 }
 
-/* Unified hover effects */
+
 html body .task-actions .edit-task-btn:hover,
 html body .habit-actions .edit-habit-btn:hover,
 html body .habit-actions .edit-habit-icon-btn:hover {
@@ -38,7 +38,7 @@ html body .habit-actions .delete-habit-icon-btn:hover {
     color: rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Unified icon styling */
+
 html body .task-actions .pencil-icon,
 html body .task-actions .x-icon,
 html body .habit-actions .pencil-icon,
@@ -53,7 +53,7 @@ html body .habit-actions .x-icon {
     transition: color 0.2s ease !important;
 }
 
-/* Unified hover effects for icons */
+
 html body .task-actions .edit-task-btn:hover .pencil-icon,
 html body .habit-actions .edit-habit-btn:hover .pencil-icon,
 html body .habit-actions .edit-habit-icon-btn:hover .pencil-icon {
@@ -66,7 +66,7 @@ html body .habit-actions .delete-habit-icon-btn:hover .x-icon {
     color: rgba(255, 61, 0, 0.9) !important;
 }
 
-/* Ensure consistent positioning */
+
 html body .task-actions,
 html body .habit-actions {
     position: absolute !important;
@@ -81,13 +81,13 @@ html body .habit-actions {
     background-color: transparent !important;
 }
 
-/* Show actions on hover */
+
 html body .task-item:hover .task-actions,
 html body .habit-item:hover .habit-actions {
     opacity: 1 !important;
 }
 
-/* Fix for the edit habit button text */
+
 .edit-habit-text {
     display: none !important;
 }

@@ -3,7 +3,7 @@
  * Directly styles the Show Detailed Nutrition button
  */
 
-/* Target the Show Detailed Nutrition button specifically */
+
 button.toggle-detailed-nutrition,
 button#show-detailed-nutrition-btn,
 button:first-of-type {
@@ -23,7 +23,7 @@ button:first-of-type {
     transition: all 0.2s ease !important;
 }
 
-/* Hover state */
+
 button.toggle-detailed-nutrition:hover,
 button#show-detailed-nutrition-btn:hover,
 button:first-of-type:hover {
@@ -31,7 +31,7 @@ button:first-of-type:hover {
     transform: translateY(-1px) !important;
 }
 
-/* Hide all sections except General by default */
+
 .carbohydrates,
 .lipids,
 .protein,
@@ -40,7 +40,7 @@ button:first-of-type:hover {
     display: none !important;
 }
 
-/* Always show the General section */
+
 .general {
     display: block !important;
 }

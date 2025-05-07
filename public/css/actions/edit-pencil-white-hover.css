@@ -3,33 +3,33 @@
  * Changes the edit pencil icon hover color from blue to white
  */
 
-/* Target the edit template button hover color */
+
 .btn-edit-template:focus,
 .btn-edit-template:hover,
 .btn-edit-exercise:focus,
 .btn-edit-exercise:hover {
-    color: #FFFFFF !important; /* White color on hover */
+    color: #FFFFFF !important; 
 }
 
-/* Override any other hover colors for edit buttons */
+
 .template-card-button-fix .btn-edit-template:hover,
 .workout-template-card .btn-edit-template:hover,
 .workout-dark-theme .btn-edit-template:hover,
 .template-card-button-fix .btn-edit-template:focus,
 .workout-template-card .btn-edit-template:focus,
 .workout-dark-theme .btn-edit-template:focus {
-    color: #FFFFFF !important; /* White color on hover */
+    color: #FFFFFF !important; 
 }
 
-/* Make sure this overrides any other styles */
+
 html body .btn-edit-template:hover,
 html body .btn-edit-template:focus,
 html body .btn-edit-exercise:hover,
 html body .btn-edit-exercise:focus {
-    color: #FFFFFF !important; /* White color on hover */
+    color: #FFFFFF !important; 
 }
 
-/* Add a subtle glow effect */
+
 .btn-edit-template:hover,
 .btn-edit-template:focus,
 .btn-edit-exercise:hover,

@@ -1,10 +1,10 @@
-/* X Button Position Fix CSS */
 
-/* Position the X button at the bottom right next to the pencil icon */
+
+
 .exercise-options-menu .btn-delete-exercise {
     position: absolute !important;
     bottom: 10px !important;
-    right: 45px !important; /* Position to the left of the pencil icon */
+    right: 45px !important; 
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -22,23 +22,23 @@
     opacity: 1 !important;
 }
 
-/* Ensure the button is visible */
+
 .exercise-options-menu .btn-delete-exercise::before {
     content: none !important;
 }
 
-/* Style the X character */
+
 .exercise-options-menu .btn-delete-exercise {
     font-size: 1.5rem !important;
     line-height: 1 !important;
 }
 
-/* Button hover effect */
+
 .exercise-options-menu .btn-delete-exercise:hover {
     background-color: #d32f2f !important;
 }
 
-/* Ensure the pencil icon (edit button) is positioned correctly */
+
 .exercise-options-menu .btn-edit-exercise {
     position: absolute !important;
     bottom: 10px !important;

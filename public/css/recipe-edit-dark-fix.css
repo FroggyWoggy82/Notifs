@@ -3,7 +3,7 @@
  * Fixes the styling of the recipe edit actions to match the dark theme
  */
 
-/* Edit button in recipe table */
+
 .recipe-table .edit-btn,
 .recipe-table button[class*="edit"],
 .recipe-table [id*="edit-btn"] {
@@ -21,7 +21,7 @@
     border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Recipe edit modal */
+
 .recipe-edit-modal,
 .modal[id*="edit-recipe"],
 .modal[class*="edit-recipe"],
@@ -31,13 +31,13 @@
     border-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Modal header */
+
 .modal-header {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Modal title */
+
 .modal-title,
 .modal-header h3,
 .modal-header h4,
@@ -45,13 +45,13 @@
     color: #ffffff !important;
 }
 
-/* Modal body */
+
 .modal-body {
     background-color: rgba(18, 18, 18, 0.95) !important;
     color: #e0e0e0 !important;
 }
 
-/* Modal footer */
+
 .modal-footer {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1) !important;

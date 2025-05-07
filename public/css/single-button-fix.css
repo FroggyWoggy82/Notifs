@@ -3,7 +3,7 @@
  * Ensures there's only one Show Detailed Nutrition button with proper styling
  */
 
-/* Hide all sections except General by default */
+
 .carbohydrates,
 .lipids,
 .protein,
@@ -12,17 +12,17 @@
     display: none !important;
 }
 
-/* Always show the General section */
+
 .general {
     display: block !important;
 }
 
-/* Remove any duplicate buttons */
+
 button:not(:first-of-type):contains("Detailed Nutrition") {
     display: none !important;
 }
 
-/* Style for the toggle button */
+
 button:contains("Detailed Nutrition") {
     background-color: #ffffff !important;
     color: #121212 !important;
@@ -40,7 +40,7 @@ button:contains("Detailed Nutrition") {
     transition: all 0.2s ease !important;
 }
 
-/* Hover state */
+
 button:contains("Detailed Nutrition"):hover {
     opacity: 0.9 !important;
     transform: translateY(-1px) !important;

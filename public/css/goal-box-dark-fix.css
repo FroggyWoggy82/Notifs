@@ -3,7 +3,7 @@
  * Ensures goal boxes have the correct dark theme background color
  */
 
-/* Override the goal box background color */
+
 .goal-box {
     background-color: var(--color-dark-surface-2) !important;
     border: 2px solid var(--color-primary) !important;
@@ -11,12 +11,12 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* Ensure text is white */
+
 .goal-text {
     color: var(--color-white) !important;
 }
 
-/* Make sure connecting lines match the theme */
+
 .goal-node:has(> .sub-goals:not(:empty)) > .goal-box::after,
 .sub-goals > .goal-node > .goal-box::before,
 .sub-goals > .goal-node:first-child:not(:only-child)::before,
@@ -25,7 +25,7 @@
     background-color: var(--color-primary) !important;
 }
 
-/* Ensure edit input has dark background */
+
 .goal-edit-input {
     background-color: var(--color-dark-surface-3) !important;
     color: var(--color-white) !important;

@@ -1,10 +1,6 @@
-/*
- * Bottom Navigation Bar Fix
- * Makes the bottom navigation bar height and styling consistent across all pages
- * Futuristic Dark Theme
- */
 
-/* Reset any page-specific styles */
+
+
 .bottom-nav {
     position: fixed !important;
     bottom: 0 !important;
@@ -24,7 +20,7 @@
     box-sizing: border-box !important;
 }
 
-/* Consistent nav item styling */
+
 .nav-item {
     display: flex !important;
     flex-direction: column !important;
@@ -49,7 +45,7 @@
     color: var(--color-white, #FFFFFF) !important;
 }
 
-/* Consistent icon styling */
+
 .nav-icon {
     font-size: 20px !important;
     margin-bottom: 2px !important;
@@ -60,22 +56,22 @@
     color: var(--color-primary, #00E676) !important;
 }
 
-/* Ensure Font Awesome icons are used */
+
 .nav-icon i {
     display: inline-block !important;
 }
 
-/* Adjust FAB position to be consistent with the bottom nav height */
+
 .fab {
-    bottom: 70px !important; /* Adjusted for bottom nav height */
+    bottom: 70px !important; 
 }
 
-/* Adjust body padding to account for the fixed bottom nav height */
+
 body {
-    padding-bottom: 70px !important; /* Override any page-specific padding */
+    padding-bottom: 70px !important; 
 }
 
-/* Media query for mobile devices */
+
 @media (max-width: 768px) {
     .bottom-nav {
         height: 60px !important;

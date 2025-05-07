@@ -4,46 +4,39 @@
  */
 
 (function() {
-    // Function to fix the Basic Information section
+
     function fixBasicInfoSection() {
-        // Find all edit forms
+
         const editForms = document.querySelectorAll('.edit-ingredient-form');
         
         editForms.forEach(form => {
-            // Skip if already processed
+
             if (form.dataset.extremeBasicInfoFixed === 'true') return;
             
             console.log('Applying extreme fix to Basic Information section');
-            
-            // Find the form element
+
             const formElement = form.querySelector('form');
             if (!formElement) return;
-            
-            // Find the Basic Information section (first div in the form)
+
             const basicInfoSection = formElement.querySelector('.basic-information') || formElement.querySelector('div:first-of-type');
             if (!basicInfoSection) return;
-            
-            // Get the current values from the form
+
             const nameInput = formElement.querySelector('#edit-ingredient-name');
             const amountInput = formElement.querySelector('#edit-ingredient-amount');
             const packageAmountInput = formElement.querySelector('#edit-ingredient-package-amount');
             const priceInput = formElement.querySelector('#edit-ingredient-price');
             
             if (!nameInput || !amountInput) return;
-            
-            // Get the current values
+
             const nameValue = nameInput.value || '';
             const amountValue = amountInput.value || '';
             const packageAmountValue = packageAmountInput ? packageAmountInput.value || '' : '';
             const priceValue = priceInput ? priceInput.value || '' : '';
-            
-            // Add the nutrition-section class to the Basic Information section
+
             basicInfoSection.classList.add('nutrition-section');
-            
-            // Clear the Basic Information section
+
             basicInfoSection.innerHTML = '';
-            
-            // Create the header
+
             const header = document.createElement('h4');
             header.textContent = 'Basic Information';
             header.style.marginTop = '0';
@@ -54,16 +47,14 @@
             header.style.fontWeight = '500';
             header.style.fontSize = '0.85em';
             basicInfoSection.appendChild(header);
-            
-            // Create the nutrition grid
+
             const nutritionGrid = document.createElement('div');
             nutritionGrid.className = 'nutrition-grid';
             nutritionGrid.style.display = 'grid';
             nutritionGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(70px, 1fr))';
             nutritionGrid.style.gap = '3px';
             basicInfoSection.appendChild(nutritionGrid);
-            
-            // Create the name input
+
             const nameItem = document.createElement('div');
             nameItem.className = 'nutrition-item';
             nameItem.style.marginBottom = '2px';
@@ -98,8 +89,7 @@
             nameItem.appendChild(nameLabel);
             nameItem.appendChild(newNameInput);
             nutritionGrid.appendChild(nameItem);
-            
-            // Create the amount input
+
             const amountItem = document.createElement('div');
             amountItem.className = 'nutrition-item';
             amountItem.style.marginBottom = '2px';
@@ -136,8 +126,7 @@
             amountItem.appendChild(amountLabel);
             amountItem.appendChild(newAmountInput);
             nutritionGrid.appendChild(amountItem);
-            
-            // Create the package amount input if it exists
+
             if (packageAmountInput) {
                 const packageAmountItem = document.createElement('div');
                 packageAmountItem.className = 'nutrition-item';
@@ -174,11 +163,10 @@
                 packageAmountItem.appendChild(packageAmountLabel);
                 packageAmountItem.appendChild(newPackageAmountInput);
                 nutritionGrid.appendChild(packageAmountItem);
-                
-                // Add event listeners to sync the values
+
                 newPackageAmountInput.addEventListener('input', function() {
                     packageAmountInput.value = this.value;
-                    // Trigger change event
+
                     const event = new Event('change', { bubbles: true });
                     packageAmountInput.dispatchEvent(event);
                 });
@@ -187,8 +175,7 @@
                     newPackageAmountInput.value = this.value;
                 });
             }
-            
-            // Create the price input if it exists
+
             if (priceInput) {
                 const priceItem = document.createElement('div');
                 priceItem.className = 'nutrition-item';
@@ -225,11 +212,10 @@
                 priceItem.appendChild(priceLabel);
                 priceItem.appendChild(newPriceInput);
                 nutritionGrid.appendChild(priceItem);
-                
-                // Add event listeners to sync the values
+
                 newPriceInput.addEventListener('input', function() {
                     priceInput.value = this.value;
-                    // Trigger change event
+
                     const event = new Event('change', { bubbles: true });
                     priceInput.dispatchEvent(event);
                 });
@@ -238,11 +224,10 @@
                     newPriceInput.value = this.value;
                 });
             }
-            
-            // Add event listeners to sync the values
+
             newNameInput.addEventListener('input', function() {
                 nameInput.value = this.value;
-                // Trigger change event
+
                 const event = new Event('change', { bubbles: true });
                 nameInput.dispatchEvent(event);
             });
@@ -253,7 +238,7 @@
             
             newAmountInput.addEventListener('input', function() {
                 amountInput.value = this.value;
-                // Trigger change event
+
                 const event = new Event('change', { bubbles: true });
                 amountInput.dispatchEvent(event);
             });
@@ -261,36 +246,30 @@
             amountInput.addEventListener('input', function() {
                 newAmountInput.value = this.value;
             });
-            
-            // Hide the original inputs
+
             nameInput.style.display = 'none';
             amountInput.style.display = 'none';
             if (packageAmountInput) packageAmountInput.style.display = 'none';
             if (priceInput) priceInput.style.display = 'none';
-            
-            // Apply styling to the Basic Information section
+
             basicInfoSection.style.backgroundColor = 'rgba(25, 25, 25, 0.7)';
             basicInfoSection.style.borderRadius = '4px';
             basicInfoSection.style.border = '1px solid rgba(255, 255, 255, 0.1)';
             basicInfoSection.style.padding = '8px';
             basicInfoSection.style.marginBottom = '8px';
             basicInfoSection.style.color = '#e0e0e0';
-            
-            // Mark as processed
+
             form.dataset.extremeBasicInfoFixed = 'true';
             
             console.log('Extreme fix applied to Basic Information section');
         });
     }
-    
-    // Function to initialize
+
     function init() {
         console.log('Initializing Extreme Basic Info Fix');
-        
-        // Initial fix
+
         fixBasicInfoSection();
-        
-        // Set up a mutation observer to watch for new forms
+
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.addedNodes.length) {
@@ -298,11 +277,9 @@
                 }
             });
         });
-        
-        // Start observing the document body for changes
+
         observer.observe(document.body, { childList: true, subtree: true });
-        
-        // Also handle edit button clicks directly
+
         document.body.addEventListener('click', function(event) {
             if (event.target.tagName === 'BUTTON' && 
                 event.target.textContent === 'Edit' && 
@@ -310,23 +287,20 @@
                 event.target.closest('.ingredient-details')) {
                 
                 console.log('Edit button clicked, applying extreme Basic Info fix');
-                
-                // Wait for the form to be displayed
+
                 setTimeout(fixBasicInfoSection, 100);
-                // Try again after a bit longer to ensure it's applied
+
                 setTimeout(fixBasicInfoSection, 300);
                 setTimeout(fixBasicInfoSection, 500);
                 setTimeout(fixBasicInfoSection, 1000);
             }
         });
-        
-        // Run periodically to ensure the fix is applied
+
         setInterval(fixBasicInfoSection, 1000);
         
         console.log('Extreme Basic Info Fix initialized');
     }
-    
-    // Initialize when the DOM is ready
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

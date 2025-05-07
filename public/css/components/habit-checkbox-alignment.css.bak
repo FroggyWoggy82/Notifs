@@ -1,0 +1,64 @@
+/**
+ * Habit Checkbox Alignment
+ * Adjusts the position of habit checkboxes to be better aligned with task checkboxes
+ */
+
+/* Adjust the habit item layout to move checkboxes to the right */
+.habit-item {
+    padding-left: 20px !important; /* Add padding to the left */
+}
+
+/* Adjust the habit control container positioning */
+.habit-control-container,
+html body .habit-control-container {
+    margin-left: 15px !important; /* Move checkbox to the right */
+    margin-right: 15px !important; /* Consistent spacing */
+}
+
+/* Ensure the habit checkbox is properly positioned */
+.habit-checkbox,
+html body .habit-item .habit-checkbox {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Adjust the habit content to maintain proper spacing */
+.habit-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* Ensure consistent alignment between tasks and habits */
+.task-item,
+.habit-item {
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 20px !important;
+}
+
+/* Make task and habit checkboxes align vertically */
+.task-checkbox-container,
+.habit-control-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Ensure consistent spacing between checkbox and content */
+.task-content,
+.habit-content {
+    margin-left: 10px !important;
+}
+
+/* Fix for mobile view */
+@media (max-width: 768px) {
+    .habit-item {
+        padding-left: 15px !important;
+    }
+    
+    .habit-control-container,
+    html body .habit-control-container {
+        margin-left: 10px !important;
+        margin-right: 10px !important;
+    }
+}

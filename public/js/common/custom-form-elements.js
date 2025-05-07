@@ -1,8 +1,7 @@
-// JavaScript for custom form elements
 
-// Update file name display when files are selected
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all file inputs with custom styling
+
     const fileInputs = document.querySelectorAll('.custom-file-input input[type="file"]');
 
     fileInputs.forEach(input => {
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Also update the file size display if it exists
             if (typeof displayFileSize === 'function') {
                 displayFileSize(this);
             }
@@ -27,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Function to display file size - make it globally available
 window.displayFileSize = function(fileInput) {
     const fileSizeInfo = document.getElementById('file-size-info');
     const fileSizeDisplay = document.getElementById('file-size-display');
@@ -35,7 +32,6 @@ window.displayFileSize = function(fileInput) {
 
     if (!fileSizeInfo || !fileSizeDisplay) return;
 
-    // Update file name display if it exists
     if (fileNameDisplay) {
         if (fileInput.files.length === 0) {
             fileNameDisplay.textContent = 'No file chosen';
@@ -78,7 +74,6 @@ window.displayFileSize = function(fileInput) {
         }
     }
 
-    // Add warning for large files
     if (totalSize > 5 * 1024 * 1024) { // > 5MB
         sizeHTML += `<div style="color: #ff9800; margin-top: 5px;">
             <strong>Note:</strong> Large files will be automatically compressed before upload.

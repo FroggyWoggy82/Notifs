@@ -3,7 +3,7 @@
  * Final styling for the Show Detailed Nutrition button
  */
 
-/* Style for the toggle button */
+
 .toggle-detailed-nutrition {
     background-color: #ffffff !important;
     color: #121212 !important;
@@ -21,7 +21,7 @@
     transition: all 0.2s ease !important;
 }
 
-/* Hover state */
+
 .toggle-detailed-nutrition:hover {
     opacity: 0.9 !important;
     transform: translateY(-1px) !important;

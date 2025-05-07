@@ -1,0 +1,168 @@
+/**
+ * YouTube Modal Fix
+ * This CSS file redesigns the YouTube URL modal to match the theme
+ */
+
+/* Style the YouTube URL modal */
+#youtube-url-modal .modal-content {
+    background-color: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    padding: 20px !important;
+    position: relative !important;
+}
+
+/* Style the modal title */
+#youtube-url-modal h3 {
+    color: #ffffff !important;
+    margin-top: 0 !important;
+    margin-bottom: 15px !important;
+    padding-right: 30px !important; /* Make room for the close button */
+    font-size: 1.2rem !important;
+    text-align: left !important;
+}
+
+/* Style the modal text */
+#youtube-url-modal p {
+    color: #ffffff !important;
+    margin-bottom: 15px !important;
+    text-align: left !important;
+}
+
+/* Style the input field */
+#youtube-url-input {
+    width: 100% !important;
+    padding: 10px !important;
+    background-color: #333 !important;
+    border: 1px solid #444 !important;
+    border-radius: 4px !important;
+    color: #ffffff !important;
+    margin-bottom: 20px !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Style the input field when focused */
+#youtube-url-input:focus {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border-color: #03dac6 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(3, 218, 198, 0.3) !important;
+}
+
+/* Style the buttons container */
+#youtube-url-modal .modal-buttons {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+}
+
+/* Style the Save button */
+#save-youtube-url {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    transition: all 0.2s ease !important;
+}
+
+#save-youtube-url:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Style the Cancel button */
+#cancel-youtube-url {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    transition: all 0.2s ease !important;
+}
+
+#cancel-youtube-url:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Style the close button (X) */
+#youtube-url-modal .close-modal {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    color: #ffffff !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transition: all 0.2s ease !important;
+}
+
+#youtube-url-modal .close-modal:hover {
+    color: #03dac6 !important;
+    transform: scale(1.1) !important;
+}
+
+/* Video player modal styling */
+#video-player-modal .modal-content {
+    background-color: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+#video-player-modal .modal-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 15px 20px !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+#video-player-modal h3 {
+    color: #ffffff !important;
+    margin: 0 !important;
+    font-size: 1.2rem !important;
+}
+
+#video-player-modal .close-modal {
+    color: #ffffff !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transition: all 0.2s ease !important;
+}
+
+#video-player-modal .close-modal:hover {
+    color: #03dac6 !important;
+    transform: scale(1.1) !important;
+}
+
+/* Fallback button styling */
+#open-in-new-tab {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    transition: all 0.2s ease !important;
+}
+
+#open-in-new-tab:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}

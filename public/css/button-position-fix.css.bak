@@ -1,0 +1,54 @@
+/**
+ * Button Position Fix
+ * Fixes the vertical position of the Show Detailed Nutrition button
+ */
+
+/* Fix the vertical position of the toggle button */
+.toggle-detailed-nutrition {
+    position: relative !important;
+    top: 0 !important; /* Reset any top offset */
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 36px !important; /* Exact height to match other buttons */
+    line-height: 36px !important; /* Line height matches height */
+}
+
+/* Make sure all buttons in the row have the same vertical position */
+.ingredient-form .buttons-row button,
+.ingredient-form [class*="button-container"] button,
+.ingredient-form [class*="buttons-container"] button {
+    position: relative !important;
+    top: 0 !important; /* Reset any top offset */
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 36px !important; /* Exact height to match other buttons */
+    line-height: 36px !important; /* Line height matches height */
+}
+
+/* Ensure the button row has no extra padding or margin */
+.ingredient-form .buttons-row,
+.ingredient-form [class*="button-container"],
+.ingredient-form [class*="buttons-container"] {
+    padding: 0 !important;
+    margin: 10px 0 !important;
+    height: 36px !important; /* Exact height to match buttons */
+    line-height: 36px !important; /* Line height matches height */
+}
+
+/* Ensure text is vertically centered */
+.toggle-detailed-nutrition {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Make all buttons in the row have the same flex basis */
+.ingredient-form .buttons-row button,
+.ingredient-form [class*="button-container"] button,
+.ingredient-form [class*="buttons-container"] button {
+    flex: 1 1 0 !important; /* Equal flex basis */
+}

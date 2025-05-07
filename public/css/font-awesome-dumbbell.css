@@ -3,7 +3,7 @@
  * This CSS file ensures the dumbbell icon is displayed correctly using Font Awesome
  */
 
-/* Force the workouts icon to use Font Awesome */
+
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i {
     font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
     font-weight: 900 !important;
@@ -12,12 +12,12 @@
     font-size: 20px !important;
 }
 
-/* Force the dumbbell icon to use the correct Unicode character */
+
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon i::before {
-    content: "\f44b" !important; /* fa-dumbbell */
+    content: "\f44b" !important; 
 }
 
-/* Remove any SVG icons in the workouts tab */
+
 .bottom-nav .nav-item[href*="workouts.html"] .nav-icon svg {
     display: none !important;
 }

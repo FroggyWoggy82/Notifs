@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
+
     const journalDateInput = document.getElementById('journal-date');
     const journalContentTextarea = document.getElementById('journal-content');
     const saveEntryButton = document.getElementById('save-entry');
@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusMessage = document.getElementById('status-message');
     const wordCountElement = document.getElementById('word-count');
 
-    // Set today's date as default (using local date to avoid timezone issues)
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
@@ -18,26 +17,21 @@ document.addEventListener('DOMContentLoaded', function() {
     journalDateInput.value = formattedDate;
     console.log('Setting journal date to local date:', formattedDate);
 
-    // Initialize
     loadEntries();
     loadMemoryEntries();
 
-    // Event Listeners
     saveEntryButton.addEventListener('click', saveEntry);
     analyzeEntryButton.addEventListener('click', analyzeEntry);
     journalDateInput.addEventListener('change', loadEntryForDate);
     journalContentTextarea.addEventListener('input', updateWordCount);
 
-    // Initialize word count
     updateWordCount();
 
-    // Test Ollama button
     const testOllamaButton = document.getElementById('test-ollama');
     if (testOllamaButton) {
         testOllamaButton.addEventListener('click', testOllama);
     }
 
-    // Functions
     async function saveEntry() {
         const date = journalDateInput.value;
         const content = journalContentTextarea.value.trim();
@@ -69,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             showStatus('Journal entry saved successfully!', 'success');
 
-            // Reload entries to update the list
             loadEntries();
         } catch (error) {
             console.error('Error saving journal entry:', error);
@@ -90,24 +83,22 @@ document.addEventListener('DOMContentLoaded', function() {
             showStatus('Analyzing journal entry with AI therapist...', 'info');
             analysisContentElement.innerHTML = '<p>Analyzing your journal entry with AI therapist...</p>';
 
-            // Get recent entries for context
             let themes = '';
             let memoryEntries = [];
             try {
                 const memoryResponse = await fetch('/api/journal/memory');
                 if (memoryResponse.ok) {
                     memoryEntries = await memoryResponse.json();
-                    // Include all entries instead of just the last 5
+
                     themes = memoryEntries.map(e => {
                         return `- Entry: "${e.text || ''}"\n  Summary: ${e.summary || 'No summary yet.'}`;
                     }).join('\n');
                 }
             } catch (memoryError) {
                 console.error('Error fetching memory:', memoryError);
-                // Continue even if memory fetch fails
+
             }
 
-            // Get current date information
             const now = new Date();
             const currentDate = now.toLocaleDateString('en-US', {
                 weekday: 'long',
@@ -120,17 +111,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 minute: '2-digit'
             });
 
-            // Function to check for specific information in memory
             function getSpecificMemoryContext(entries, text) {
-                // This function now returns an empty string as we've simplified the prompt
-                // and removed special handling for specific questions
+
+
                 return '';
             }
 
-            // Get specific context based on the current entry
             const specificContext = getSpecificMemoryContext(memoryEntries, content);
 
-            // Create the prompt for Ollama
             const prompt = `
             You are an empathetic AI therapist having a conversation with someone about their journal entry.
 
@@ -145,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
             At the very end, include a one-sentence summary of this entry prefixed with [SUMMARY:] that I can use to track themes (this will be hidden from the user).
             `;
 
-            // Call Ollama directly
             const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
                 method: 'POST',
                 headers: {
@@ -166,11 +153,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const ollamaResult = await ollamaResponse.json();
             const aiResponse = ollamaResult.response;
 
-            // Extract summary from the response
             const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)\]/i);
             const summary = summaryMatch ? summaryMatch[1].trim() : 'No summary generated';
 
-            // Extract questions from the response
             const questions = [];
             const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
             let questionMatch;
@@ -181,7 +166,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Extract insights from the response
             const insights = [];
             const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
             let insightMatch;
@@ -191,7 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Save to memory
             try {
                 await fetch('/api/journal/memory', {
                     method: 'POST',
@@ -206,16 +189,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } catch (memoryError) {
                 console.error('Error saving to memory:', memoryError);
-                // Continue even if memory save fails
+
             }
 
-            // Format the analysis for better readability
             const formattedAnalysis = formatAIAnalysis(aiResponse, questions);
             analysisContentElement.innerHTML = formattedAnalysis;
 
             showStatus('AI analysis complete!', 'success');
 
-            // Save the entry with the analysis
             if (date) {
                 try {
                     await fetch('/api/journal', {
@@ -231,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 } catch (saveError) {
                     console.error('Error saving analysis with entry:', saveError);
-                    // Continue even if saving fails
+
                 }
             }
         } catch (error) {
@@ -242,28 +223,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function formatAIAnalysis(analysisText, questions = []) {
-        // Extract and remove the summary for internal use
+
         const summaryMatch = analysisText.match(/\[SUMMARY:\s*(.+?)\]/i);
         let formatted = analysisText;
 
         if (summaryMatch) {
-            // Remove the summary from the displayed text
+
             formatted = formatted.replace(/\[SUMMARY:\s*.+?\]/i, '');
         }
 
-        // Remove question tags from the displayed text
         formatted = formatted.replace(/\[QUESTION\s+\d+:\s*.+?(?:\]|\n|$)/gi, '');
 
-        // Remove insight tags from the displayed text
         formatted = formatted.replace(/\[INSIGHT:\s*.+?(?:\]|\n|$)/gi, '');
 
-        // Replace line breaks with HTML breaks
         formatted = formatted.replace(/\n/g, '<br>');
 
-        // Remove any remaining headings format
         formatted = formatted.replace(/^([A-Za-z\s]+:)/gm, '$1');
 
-        // Create HTML for questions if there are any
         let questionsHTML = '';
         if (questions && questions.length > 0) {
             questionsHTML = `
@@ -276,7 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
-        // Wrap in a container with a more conversational style
         return `
             <div class="ai-analysis-conversation">
                 ${formatted}
@@ -300,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const errorData = await response.json();
                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 } catch (jsonError) {
-                    // If we can't parse the error as JSON, just use the status
+
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
             }
@@ -323,7 +298,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         entryListElement.innerHTML = '';
 
-        // Sort entries by date (newest first)
         entries.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         entries.forEach(entry => {
@@ -331,7 +305,6 @@ document.addEventListener('DOMContentLoaded', function() {
             li.dataset.date = entry.date;
             li.dataset.id = entry.id;
 
-            // Format the date for display
             const entryDate = new Date(entry.date);
             const formattedDate = entryDate.toLocaleDateString('en-US', {
                 weekday: 'short',
@@ -340,7 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 year: 'numeric'
             });
 
-            // Create a preview of the content (first 50 characters)
             const contentPreview = entry.content.substring(0, 50) + (entry.content.length > 50 ? '...' : '');
 
             li.innerHTML = `
@@ -355,19 +327,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadEntry(entry) {
-        // Set the date input to the entry's date
+
         journalDateInput.value = entry.date;
 
-        // Set the content textarea to the entry's content
         journalContentTextarea.value = entry.content;
 
-        // Update word count
         updateWordCount();
 
-        // Clear any previous analysis
         analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
 
-        // Scroll to the top of the page
         window.scrollTo(0, 0);
     }
 
@@ -378,9 +346,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/api/journal/date/${selectedDate}`);
 
             if (response.status === 404) {
-                // No entry for this date, clear the textarea
+
                 journalContentTextarea.value = '';
-                // Update word count
+
                 updateWordCount();
                 analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
                 return;
@@ -394,10 +362,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const entry = await response.json();
             journalContentTextarea.value = entry.content;
 
-            // Update word count
             updateWordCount();
 
-            // Clear any previous analysis
             analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
         } catch (error) {
             console.error('Error loading entry for date:', error);
@@ -437,16 +403,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const memoryEntries = await response.json();
             console.log('Memory entries loaded:', memoryEntries.length);
 
-            // You can use these entries to display themes or patterns
-            // For now, we'll just log them to the console
+
         } catch (error) {
             console.error('Error loading memory entries:', error);
-            // Add a more user-friendly error message in the UI if needed
-            // showStatus(`Error loading memory entries: ${error.message}`, 'error');
+
+
         }
     }
 
-    // Function to update word count
     function updateWordCount() {
         const text = journalContentTextarea.value.trim();
         const wordCount = text ? text.split(/\s+/).length : 0;
@@ -458,7 +422,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showStatus('Testing Ollama connection...', 'info');
             analysisContentElement.innerHTML = '<p>Testing Ollama connection...</p>';
 
-            // First, check if Ollama is running
             try {
                 const response = await fetch('http://localhost:11434/api/generate', {
                     method: 'POST',

@@ -1,0 +1,158 @@
+/**
+ * Debug Cronometer Parser
+ * 
+ * This script adds a button to test the Cronometer parser with sample data
+ * and verify that the micronutrient data is being properly processed.
+ */
+
+(function() {
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        initDebugScript();
+    });
+
+    /**
+     * Initialize the debug script
+     */
+    function initDebugScript() {
+        console.log('[Debug Cronometer Parser] Initializing...');
+
+        const debugButton = document.createElement('button');
+        debugButton.textContent = 'Test Cronometer Parser';
+        debugButton.style.backgroundColor = '#333';
+        debugButton.style.color = '#fff';
+        debugButton.style.border = '1px solid #555';
+        debugButton.style.padding = '5px 10px';
+        debugButton.style.margin = '10px';
+        debugButton.style.cursor = 'pointer';
+
+        debugButton.addEventListener('click', testCronometerParser);
+
+        const createRecipeForm = document.getElementById('create-recipe-form');
+        if (createRecipeForm) {
+            createRecipeForm.parentNode.insertBefore(debugButton, createRecipeForm);
+        } else {
+            document.body.appendChild(debugButton);
+        }
+
+        console.log('[Debug Cronometer Parser] Initialized');
+    }
+
+    /**
+     * Test the Cronometer parser with sample data
+     */
+    function testCronometerParser() {
+        console.log('[Debug Cronometer Parser] Testing Cronometer parser...');
+
+        const sampleData = `Energy 100 kcal
+Protein 10 g
+Fat 5 g
+Carbs 15 g
+Fiber 2 g
+Sugars 3 g
+Saturated 1.5 g
+Monounsaturated 2.5 g
+Polyunsaturated 1 g
+Omega-3 0.5 g
+Omega-6 0.5 g
+Cholesterol 20 mg
+Vitamin A 500 µg
+Vitamin C 30 mg
+Vitamin D 5 IU
+Vitamin E 2 mg
+Vitamin K 10 µg
+Calcium 100 mg
+Iron 2 mg
+Magnesium 30 mg
+Phosphorus 50 mg
+Potassium 200 mg
+Sodium 150 mg
+Zinc 1 mg`;
+
+        const ingredientItems = document.querySelectorAll('.ingredient-item');
+        if (ingredientItems.length === 0) {
+            console.error('[Debug Cronometer Parser] No ingredient items found');
+            alert('No ingredient items found. Please add an ingredient first.');
+            return;
+        }
+
+        const ingredientItem = ingredientItems[0];
+
+        const nameInput = ingredientItem.querySelector('.ingredient-name');
+        const amountInput = ingredientItem.querySelector('.ingredient-amount');
+        const priceInput = ingredientItem.querySelector('.ingredient-price');
+
+        if (nameInput) nameInput.value = 'Test Ingredient';
+        if (amountInput) amountInput.value = '100';
+        if (priceInput) priceInput.value = '1.00';
+
+        const textArea = ingredientItem.querySelector('.cronometer-text-paste-area');
+        if (!textArea) {
+            console.error('[Debug Cronometer Parser] No Cronometer text area found');
+            alert('No Cronometer text area found. Please check the page structure.');
+            return;
+        }
+
+        textArea.value = sampleData;
+
+        const parseButton = ingredientItem.querySelector('.cronometer-parse-button');
+        if (!parseButton) {
+            console.error('[Debug Cronometer Parser] No parse button found');
+            alert('No parse button found. Please check the page structure.');
+            return;
+        }
+
+        parseButton.click();
+
+        setTimeout(function() {
+
+            if (ingredientItem.dataset.completeNutritionData) {
+                console.log('[Debug Cronometer Parser] Complete nutrition data:', JSON.parse(ingredientItem.dataset.completeNutritionData));
+            } else {
+                console.error('[Debug Cronometer Parser] No complete nutrition data found');
+            }
+
+            if (ingredientItem.dataset.dbFormatNutritionData) {
+                console.log('[Debug Cronometer Parser] DB format nutrition data:', JSON.parse(ingredientItem.dataset.dbFormatNutritionData));
+            } else {
+                console.error('[Debug Cronometer Parser] No DB format nutrition data found');
+            }
+
+            const hiddenFields = ingredientItem.querySelectorAll('input[type="hidden"]');
+            console.log('[Debug Cronometer Parser] Hidden fields:', hiddenFields);
+
+            const fields = ['fiber', 'sugars', 'saturated', 'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'cholesterol', 'vitamin_a', 'vitamin_c', 'vitamin_d', 'vitamin_e', 'vitamin_k', 'calcium', 'iron', 'magnesium', 'phosphorus', 'potassium', 'sodium', 'zinc'];
+
+            fields.forEach(field => {
+                const hiddenField = ingredientItem.querySelector(`.ingredient-${field}`);
+                console.log(`[Debug Cronometer Parser] Hidden field ${field}:`, hiddenField ? hiddenField.value : 'Not found');
+            });
+
+            const report = document.createElement('div');
+            report.style.backgroundColor = '#222';
+            report.style.color = '#fff';
+            report.style.padding = '10px';
+            report.style.margin = '10px';
+            report.style.border = '1px solid #444';
+            report.style.maxHeight = '300px';
+            report.style.overflowY = 'auto';
+            report.style.fontSize = '12px';
+            report.style.fontFamily = 'monospace';
+
+            report.innerHTML = `<h3>Cronometer Parser Debug Report</h3>`;
+            report.innerHTML += `<p>Complete nutrition data: ${ingredientItem.dataset.completeNutritionData ? 'Found' : 'Not found'}</p>`;
+            report.innerHTML += `<p>DB format nutrition data: ${ingredientItem.dataset.dbFormatNutritionData ? 'Found' : 'Not found'}</p>`;
+            report.innerHTML += `<p>Hidden fields: ${hiddenFields.length} found</p>`;
+            report.innerHTML += `<h4>Micronutrient Fields:</h4>`;
+            report.innerHTML += `<ul>`;
+            fields.forEach(field => {
+                const hiddenField = ingredientItem.querySelector(`.ingredient-${field}`);
+                report.innerHTML += `<li>${field}: ${hiddenField ? hiddenField.value : 'Not found'}</li>`;
+            });
+            report.innerHTML += `</ul>`;
+
+            ingredientItem.appendChild(report);
+        }, 1000);
+    }
+})();

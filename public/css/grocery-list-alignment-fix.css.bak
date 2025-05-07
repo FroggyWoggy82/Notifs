@@ -1,0 +1,146 @@
+/**
+ * Grocery List Alignment Fix
+ * Improves the alignment of elements in the grocery list generator
+ */
+
+/* Recipe checkbox item - better alignment of elements */
+.recipe-checkbox-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between !important;
+    padding: 10px !important;
+}
+
+/* Container for checkbox and name */
+.recipe-checkbox-item .checkbox-name-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Recipe name span */
+.recipe-name-span {
+    margin-right: auto;
+}
+
+/* Recipe calories span - align to the right */
+.recipe-calories-span {
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Calorie adjustment header - better spacing */
+.calorie-adjustment-header {
+    display: flex;
+    justify-content: space-between !important;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+
+/* Calorie adjustment name - prevent wrapping */
+.calorie-adjustment-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px;
+    max-width: 200px;
+}
+
+/* Calorie adjustment controls - keep together */
+.calorie-adjustment-controls {
+    margin-left: auto;
+    text-align: right;
+}
+
+/* Style table cells in the controls */
+.calorie-adjustment-controls table {
+    border-collapse: collapse;
+    margin-left: auto;
+    border: none !important;
+    background-color: transparent !important;
+}
+
+.calorie-adjustment-controls td {
+    padding: 0 !important;
+    vertical-align: middle;
+    border: none !important;
+    background-color: transparent !important;
+}
+
+/* Make buttons more compact and aligned */
+.adjustment-btn {
+    padding: 5px 8px !important;
+    white-space: nowrap;
+    min-width: 50px;
+    height: 32px !important;
+    display: inline-block !important;
+    text-align: center !important;
+    line-height: 20px !important;
+    margin: 0 3px !important;
+    vertical-align: middle !important;
+    border: none !important;
+    background-color: #333333 !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s, color 0.2s !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Hover effect for buttons */
+.adjustment-btn:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+}
+
+/* Reset button styling */
+.reset-btn {
+    background-color: #3a3a3a !important;
+}
+
+.reset-btn:hover {
+    background-color: #4a4a4a !important;
+}
+
+/* Make input more compact and aligned */
+.calorie-adjustment-input {
+    width: 80px !important;
+    padding: 5px 8px !important;
+    height: 32px !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    margin: 0 3px !important;
+    vertical-align: middle !important;
+    border: none !important;
+    background-color: #333333 !important;
+    color: #e0e0e0 !important;
+    outline: none !important;
+    transition: background-color 0.2s, color 0.2s !important;
+    border-radius: 4px !important;
+}
+
+/* Focus state for input */
+.calorie-adjustment-input:focus {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+}
+
+/* Info text alignment */
+.calorie-adjustment-info {
+    text-align: left;
+    font-size: 0.85rem !important;
+}
+
+/* Adjustment item spacing */
+.calorie-adjustment-item {
+    margin-bottom: 10px !important;
+    padding: 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+}

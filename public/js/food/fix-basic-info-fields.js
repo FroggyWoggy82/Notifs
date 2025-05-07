@@ -5,11 +5,10 @@
  */
 
 (function() {
-    // Function to create a Basic Information section with fields
+
     function createBasicInfoSection(formElement) {
         console.log('Creating Basic Information section');
 
-        // Create the Basic Information section
         const basicInfoSection = document.createElement('div');
         basicInfoSection.className = 'nutrition-section basic-information';
         basicInfoSection.style.marginBottom = '8px';
@@ -31,7 +30,6 @@
 
         basicInfoSection.appendChild(header);
 
-        // Create a grid for the inputs
         const grid = document.createElement('div');
         grid.className = 'nutrition-grid';
         grid.style.display = 'grid';
@@ -39,7 +37,6 @@
         grid.style.gap = '3px';
         basicInfoSection.appendChild(grid);
 
-        // Create the name field
         const nameGroup = document.createElement('div');
         nameGroup.className = 'form-group nutrition-item';
         nameGroup.style.marginBottom = '2px';
@@ -75,7 +72,6 @@
         nameGroup.appendChild(nameInput);
         grid.appendChild(nameGroup);
 
-        // Create the amount field
         const amountGroup = document.createElement('div');
         amountGroup.className = 'form-group nutrition-item';
         amountGroup.style.marginBottom = '2px';
@@ -113,7 +109,6 @@
         amountGroup.appendChild(amountInput);
         grid.appendChild(amountGroup);
 
-        // Create the package amount field
         const packageAmountGroup = document.createElement('div');
         packageAmountGroup.className = 'form-group nutrition-item';
         packageAmountGroup.style.marginBottom = '2px';
@@ -150,7 +145,6 @@
         packageAmountGroup.appendChild(packageAmountInput);
         grid.appendChild(packageAmountGroup);
 
-        // Create the price field
         const priceGroup = document.createElement('div');
         priceGroup.className = 'form-group nutrition-item';
         priceGroup.style.marginBottom = '2px';
@@ -187,7 +181,6 @@
         priceGroup.appendChild(priceInput);
         grid.appendChild(priceGroup);
 
-        // Insert at the beginning of the form
         if (formElement.firstChild) {
             formElement.insertBefore(basicInfoSection, formElement.firstChild);
         } else {
@@ -197,11 +190,9 @@
         return basicInfoSection;
     }
 
-    // Function to handle edit button clicks
     function handleEditButtonClick(event) {
         console.log('Edit button clicked, fixing Basic Information section');
 
-        // Get the row and container
         const row = event.target.closest('tr');
         if (!row) return;
 
@@ -211,17 +202,13 @@
         const editForm = container.querySelector('.edit-ingredient-form');
         if (!editForm) return;
 
-        // Make sure the form is visible
         editForm.style.display = 'block';
 
-        // Get the form element
         const formElement = editForm.querySelector('form');
         if (!formElement) return;
 
-        // Check if we already processed this form
         if (formElement.dataset.basicInfoFixed === 'true') return;
 
-        // Remove any existing Basic Information sections
         const existingHeaders = formElement.querySelectorAll('h4');
         existingHeaders.forEach(header => {
             if (header.textContent.trim() === 'Basic Information') {
@@ -232,17 +219,13 @@
             }
         });
 
-        // Create a new Basic Information section
         const basicInfoSection = createBasicInfoSection(formElement);
 
-        // Mark as processed
         formElement.dataset.basicInfoFixed = 'true';
 
-        // Get the ingredient ID and recipe ID
         const ingredientId = row.dataset.ingredientId;
         const recipeId = row.dataset.recipeId;
 
-        // Fetch the ingredient data
         fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`)
             .then(response => {
                 if (!response.ok) {
@@ -251,7 +234,7 @@
                 return response.json();
             })
             .then(ingredient => {
-                // Fill in the fields
+
                 const nameInput = formElement.querySelector('#edit-ingredient-name');
                 const amountInput = formElement.querySelector('#edit-ingredient-amount');
                 const packageAmountInput = formElement.querySelector('#edit-ingredient-package-amount');
@@ -269,20 +252,17 @@
             });
     }
 
-    // Function to initialize
     function init() {
         console.log('Initializing Fix Basic Info Fields');
 
-        // Handle edit button clicks
         document.body.addEventListener('click', function(event) {
             if (event.target.tagName === 'BUTTON' &&
                 event.target.textContent === 'Edit' &&
                 event.target.closest('tr') &&
                 event.target.closest('.ingredient-details')) {
 
-                // Wait for the form to be displayed
                 setTimeout(() => handleEditButtonClick(event), 100);
-                // Try again after a bit longer to ensure it's applied
+
                 setTimeout(() => handleEditButtonClick(event), 300);
                 setTimeout(() => handleEditButtonClick(event), 500);
             }
@@ -291,7 +271,6 @@
         console.log('Fix Basic Info Fields initialized');
     }
 
-    // Initialize when the DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

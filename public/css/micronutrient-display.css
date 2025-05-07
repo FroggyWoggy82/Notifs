@@ -1,0 +1,88 @@
+/**
+ * Micronutrient Display Styles
+ */
+
+.micronutrient-button-container {
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.micronutrient-button {
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.micronutrient-button:hover,
+.micronutrient-button.active {
+    background-color: #fff;
+    color: #000;
+}
+
+.micronutrient-display {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background-color: #111;
+    padding: 15px;
+    border-bottom: 2px solid #00ff00;
+}
+
+.micronutrient-display h3 {
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.micronutrient-display h4 {
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.micronutrient-tables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.micronutrient-table {
+    flex: 1;
+    min-width: 300px;
+}
+
+.micronutrient-table table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.micronutrient-table th {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+    background-color: #222;
+}
+
+.micronutrient-table th:last-child {
+    text-align: right;
+}
+
+.micronutrient-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+
+.micronutrient-table td:last-child {
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .micronutrient-tables {
+        flex-direction: column;
+    }
+}

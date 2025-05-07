@@ -3,7 +3,7 @@
  * Directly applies the exact same styling to the Basic Information section as the other sections
  */
 
-/* Style the Basic Information section */
+
 .edit-ingredient-form .basic-information {
     background-color: rgba(25, 25, 25, 0.7) !important;
     border-radius: 4px !important;
@@ -13,7 +13,7 @@
     color: #e0e0e0 !important;
 }
 
-/* Style the header */
+
 .edit-ingredient-form .basic-information h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -24,7 +24,7 @@
     font-size: 0.85em !important;
 }
 
-/* Style the labels */
+
 .edit-ingredient-form .basic-information label {
     font-size: 0.7em !important;
     margin-bottom: 1px !important;
@@ -32,7 +32,7 @@
     display: block !important;
 }
 
-/* Style the inputs */
+
 .edit-ingredient-form .basic-information input {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -43,7 +43,7 @@
     font-size: 0.6em !important;
 }
 
-/* Force the Basic Information section to have the same styling as the other sections */
+
 .edit-ingredient-form .basic-information {
     display: block !important;
 }

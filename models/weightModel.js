@@ -12,7 +12,7 @@ class WeightGoal {
      */
     static async getGoal(userId) {
         const result = await db.query(
-            'SELECT target_weight, weekly_gain_goal FROM weight_goals WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
+            'SELECT target_weight, weekly_gain_goal, start_weight, start_date FROM weight_goals WHERE user_id = $1 ORDER BY updated_at DESC LIMIT 1',
             [userId]
         );
 
@@ -20,10 +20,18 @@ class WeightGoal {
             return {
                 target_weight: parseFloat(result.rows[0].target_weight),
                 weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal),
+                start_weight: result.rows[0].start_weight ? parseFloat(result.rows[0].start_weight) : null,
+                start_date: result.rows[0].start_date ? result.rows[0].start_date.toISOString().split('T')[0] : null,
                 user_id: userId
             };
         } else {
-            return { target_weight: null, weekly_gain_goal: null, user_id: userId };
+            return {
+                target_weight: null,
+                weekly_gain_goal: null,
+                start_weight: null,
+                start_date: null,
+                user_id: userId
+            };
         }
     }
 
@@ -34,16 +42,32 @@ class WeightGoal {
      * @param {number} userId - The user ID
      * @returns {Promise<Object>} The saved weight goal
      */
-    static async saveGoal(targetWeight, weeklyGain, userId) {
+    static async saveGoal(targetWeight, weeklyGain, userId, startWeight = null, startDate = null) {
         await db.query('BEGIN');
         try {
+            // If startWeight is not provided, get the most recent weight log
+            let finalStartWeight = startWeight;
+            let finalStartDate = startDate || new Date().toISOString().split('T')[0]; // Default to today
+
+            if (finalStartWeight === null) {
+                // Get the most recent weight log for this user
+                const weightLogResult = await db.query(
+                    'SELECT weight FROM weight_logs WHERE user_id = $1 ORDER BY log_date DESC LIMIT 1',
+                    [userId]
+                );
+
+                if (weightLogResult.rows.length > 0) {
+                    finalStartWeight = parseFloat(weightLogResult.rows[0].weight);
+                }
+            }
+
             // Delete existing goals for this user
             await db.query('DELETE FROM weight_goals WHERE user_id = $1', [userId]);
 
-            // Insert new goal
+            // Insert new goal with start weight and date
             const result = await db.query(
-                'INSERT INTO weight_goals (target_weight, weekly_gain_goal, user_id) VALUES ($1, $2, $3) RETURNING target_weight, weekly_gain_goal, user_id',
-                [targetWeight, weeklyGain, userId]
+                'INSERT INTO weight_goals (target_weight, weekly_gain_goal, user_id, start_weight, start_date) VALUES ($1, $2, $3, $4, $5) RETURNING target_weight, weekly_gain_goal, user_id, start_weight, start_date',
+                [targetWeight, weeklyGain, userId, finalStartWeight, finalStartDate]
             );
 
             await db.query('COMMIT');
@@ -51,6 +75,8 @@ class WeightGoal {
             return {
                 target_weight: parseFloat(result.rows[0].target_weight),
                 weekly_gain_goal: parseFloat(result.rows[0].weekly_gain_goal),
+                start_weight: result.rows[0].start_weight ? parseFloat(result.rows[0].start_weight) : null,
+                start_date: result.rows[0].start_date ? result.rows[0].start_date.toISOString().split('T')[0] : null,
                 user_id: parseInt(result.rows[0].user_id)
             };
         } catch (error) {

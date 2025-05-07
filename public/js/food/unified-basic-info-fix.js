@@ -4,31 +4,28 @@
  */
 
 (function() {
-    // Function to fix the Basic Information section
+
     function fixBasicInfoSection() {
-        // Find all edit ingredient forms
+
         const editForms = document.querySelectorAll('.edit-ingredient-form');
         
         editForms.forEach(form => {
-            // Skip if already processed
+
             if (form.dataset.unifiedBasicInfoFixed === 'true') return;
             
             console.log('Applying unified fix to Basic Information section');
-            
-            // Find the form element
+
             const formElement = form.querySelector('form');
             if (!formElement) return;
-            
-            // Find the existing Basic Information section or the first div in the form
+
             let basicInfoSection = formElement.querySelector('.basic-information');
             if (!basicInfoSection) {
-                // Look for the first div which might contain the basic fields
+
                 basicInfoSection = formElement.querySelector('div:first-of-type');
             }
             
             if (!basicInfoSection) return;
-            
-            // Get the current values from the form
+
             const nameInput = formElement.querySelector('#edit-ingredient-name');
             const amountInput = formElement.querySelector('#edit-ingredient-amount');
             const packageAmountInput = formElement.querySelector('#edit-ingredient-package-amount');
@@ -40,8 +37,7 @@
             const amountValue = amountInput.value || '';
             const packageAmountValue = packageAmountInput ? packageAmountInput.value || '' : '';
             const priceValue = priceInput ? priceInput.value || '' : '';
-            
-            // Create a completely new Basic Information section with inline styles
+
             const newBasicInfoSection = document.createElement('div');
             newBasicInfoSection.className = 'nutrition-section basic-information';
             newBasicInfoSection.style.marginBottom = '8px';
@@ -50,8 +46,7 @@
             newBasicInfoSection.style.borderRadius = '4px';
             newBasicInfoSection.style.border = '1px solid rgba(255, 255, 255, 0.1)';
             newBasicInfoSection.style.color = '#e0e0e0';
-            
-            // Create the HTML content with inline styles
+
             newBasicInfoSection.innerHTML = `
                 <h4 style="margin-top: 0; margin-bottom: 6px; font-size: 0.85em; font-weight: 500; color: #e0e0e0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 3px;">Basic Information</h4>
                 <div class="nutrition-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 3px;">
@@ -77,83 +72,69 @@
                     ` : ''}
                 </div>
             `;
-            
-            // Replace the existing Basic Information section
+
             basicInfoSection.parentNode.replaceChild(newBasicInfoSection, basicInfoSection);
-            
-            // Sync the values between the new inputs and the original inputs
+
             const unifiedNameInput = newBasicInfoSection.querySelector('#unified-edit-ingredient-name');
             const unifiedAmountInput = newBasicInfoSection.querySelector('#unified-edit-ingredient-amount');
             const unifiedPackageAmountInput = newBasicInfoSection.querySelector('#unified-edit-ingredient-package-amount');
             const unifiedPriceInput = newBasicInfoSection.querySelector('#unified-edit-ingredient-price');
-            
-            // Sync name input
+
             if (unifiedNameInput && nameInput) {
                 unifiedNameInput.addEventListener('input', function() {
                     nameInput.value = this.value;
-                    // Trigger change event on the original
+
                     const event = new Event('change', { bubbles: true });
                     nameInput.dispatchEvent(event);
                 });
-                
-                // Hide the original input
+
                 nameInput.style.display = 'none';
             }
-            
-            // Sync amount input
+
             if (unifiedAmountInput && amountInput) {
                 unifiedAmountInput.addEventListener('input', function() {
                     amountInput.value = this.value;
-                    // Trigger change event on the original
+
                     const event = new Event('change', { bubbles: true });
                     amountInput.dispatchEvent(event);
                 });
-                
-                // Hide the original input
+
                 amountInput.style.display = 'none';
             }
-            
-            // Sync package amount input
+
             if (unifiedPackageAmountInput && packageAmountInput) {
                 unifiedPackageAmountInput.addEventListener('input', function() {
                     packageAmountInput.value = this.value;
-                    // Trigger change event on the original
+
                     const event = new Event('change', { bubbles: true });
                     packageAmountInput.dispatchEvent(event);
                 });
-                
-                // Hide the original input
+
                 packageAmountInput.style.display = 'none';
             }
-            
-            // Sync price input
+
             if (unifiedPriceInput && priceInput) {
                 unifiedPriceInput.addEventListener('input', function() {
                     priceInput.value = this.value;
-                    // Trigger change event on the original
+
                     const event = new Event('change', { bubbles: true });
                     priceInput.dispatchEvent(event);
                 });
-                
-                // Hide the original input
+
                 priceInput.style.display = 'none';
             }
-            
-            // Mark the form as processed
+
             form.dataset.unifiedBasicInfoFixed = 'true';
             
             console.log('Basic Information section fixed with unified approach');
         });
     }
-    
-    // Function to initialize
+
     function init() {
         console.log('Initializing Unified Basic Info Fix');
-        
-        // Initial fix
+
         fixBasicInfoSection();
-        
-        // Set up a mutation observer to watch for new forms
+
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.addedNodes.length) {
@@ -161,33 +142,28 @@
                 }
             });
         });
-        
-        // Start observing the document body for changes
+
         observer.observe(document.body, { childList: true, subtree: true });
-        
-        // Also handle edit button clicks directly
+
         document.body.addEventListener('click', function(event) {
             if (event.target.classList.contains('edit-ingredient-btn') || 
                 event.target.classList.contains('edit-btn') ||
                 (event.target.tagName === 'BUTTON' && event.target.textContent === 'Edit')) {
                 console.log('Edit button clicked, applying unified Basic Info fix');
-                
-                // Wait for the form to be displayed
+
                 setTimeout(fixBasicInfoSection, 100);
-                // Try again after a bit longer to ensure it's applied
+
                 setTimeout(fixBasicInfoSection, 300);
                 setTimeout(fixBasicInfoSection, 500);
                 setTimeout(fixBasicInfoSection, 1000);
             }
         });
-        
-        // Run periodically to ensure the fix is applied
+
         setInterval(fixBasicInfoSection, 1000);
         
         console.log('Unified Basic Info Fix initialized');
     }
-    
-    // Initialize when the DOM is ready
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

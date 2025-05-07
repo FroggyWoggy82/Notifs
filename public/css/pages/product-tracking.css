@@ -1,4 +1,4 @@
-/* Product Tracking Styles */
+
 
 .content-wrapper {
     padding: 20px;
@@ -18,7 +18,7 @@ h1 {
     margin-bottom: 30px;
 }
 
-/* Section Styles */
+
 section {
     background-color: #fff;
     border-radius: 8px;
@@ -34,7 +34,7 @@ section h2 {
     margin-top: 0;
 }
 
-/* Form Styles */
+
 .form-group {
     margin-bottom: 15px;
 }
@@ -85,7 +85,7 @@ button:hover {
     background-color: #2980b9;
 }
 
-/* Product List Styles */
+
 .filter-container {
     margin-bottom: 20px;
 }
@@ -162,7 +162,7 @@ button:hover {
     border-radius: 3px;
 }
 
-/* Modal Styles */
+
 .modal {
     display: none;
     position: fixed;
@@ -198,7 +198,7 @@ button:hover {
     color: #555;
 }
 
-/* Tracking History Styles */
+
 .tracking-history {
     margin-top: 20px;
     border-top: 1px solid #ecf0f1;
@@ -238,14 +238,14 @@ button:hover {
     border-radius: 4px;
 }
 
-/* Add Entry Section */
+
 .add-entry-section {
     margin-top: 20px;
     border-top: 1px solid #ecf0f1;
     padding-top: 20px;
 }
 
-/* Status Messages */
+
 .status {
     margin-top: 15px;
     padding: 10px;
@@ -265,7 +265,7 @@ button:hover {
     display: block;
 }
 
-/* Responsive Adjustments */
+
 @media (max-width: 768px) {
     .content-wrapper {
         padding: 15px;

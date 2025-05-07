@@ -2,23 +2,23 @@
  * Direct fix for the Ghost of the Goon template
  */
 
-/* Target all template cards */
+
 .workout-template-card {
     position: relative;
 }
 
-/* Ensure all badges have high z-index */
+
 .completion-count-badge {
     z-index: 30 !important;
 }
 
-/* Target the specific template by adding a class via JavaScript */
+
 .ghost-template h3 {
     font-size: 0.7rem !important;
     padding-right: 60px !important;
 }
 
-/* Make the badge smaller for this template */
+
 .ghost-template .completion-count-badge {
     width: 16px !important;
     height: 16px !important;

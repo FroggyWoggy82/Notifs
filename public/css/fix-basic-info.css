@@ -3,7 +3,7 @@
  * Simple CSS to ensure the Basic Information section has the correct styling
  */
 
-/* Style the Basic Information section */
+
 .edit-ingredient-form form .nutrition-section.basic-information {
     margin-bottom: 8px !important;
     padding: 8px !important;
@@ -16,7 +16,7 @@
     opacity: 1 !important;
 }
 
-/* Style the Basic Information header */
+
 .edit-ingredient-form form .nutrition-section.basic-information h4 {
     color: #e0e0e0 !important;
     margin-top: 0 !important;
@@ -27,21 +27,21 @@
     padding-bottom: 3px !important;
 }
 
-/* Style the nutrition grid */
+
 .edit-ingredient-form form .nutrition-section.basic-information .nutrition-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
     gap: 3px !important;
 }
 
-/* Style the nutrition items */
+
 .edit-ingredient-form form .nutrition-section.basic-information .nutrition-item {
     margin-bottom: 2px !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Style the labels */
+
 .edit-ingredient-form form .nutrition-section.basic-information .nutrition-item label {
     color: #aaa !important;
     font-size: 0.7em !important;
@@ -53,7 +53,7 @@
     text-overflow: ellipsis !important;
 }
 
-/* Style the inputs */
+
 .edit-ingredient-form form .nutrition-section.basic-information .nutrition-item input {
     width: 50px !important;
     height: 14px !important;
@@ -66,7 +66,7 @@
     border-radius: 4px !important;
 }
 
-/* Make the name field wider */
+
 .edit-ingredient-form form .nutrition-section.basic-information .nutrition-item input#edit-ingredient-name {
     width: 100px !important;
 }

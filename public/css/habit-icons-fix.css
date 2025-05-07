@@ -1,9 +1,6 @@
-/*
- * Habit Icons Fix
- * Makes habit edit and delete buttons match the task list's hover icons
- */
 
-/* Style the edit and delete buttons */
+
+
 .habit-item .edit-habit-btn,
 .habit-item .delete-habit-btn {
     background: none;
@@ -17,14 +14,14 @@
     transition: background-color 0.2s;
 }
 
-/* Style the habit actions container to match task actions */
+
 .habit-item .habit-actions {
     margin-left: auto;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 8px;
-    opacity: 0; /* Hide by default */
+    opacity: 0; 
     transition: opacity 0.2s ease;
     position: absolute;
     right: 15px;
@@ -32,27 +29,27 @@
     transform: translateY(-50%);
 }
 
-/* Show habit actions on hover */
+
 .habit-item:hover .habit-actions {
     opacity: 1;
 }
 
-/* For touch devices - will be handled with JavaScript */
+
 .habit-item.show-actions .habit-actions {
     opacity: 1;
 }
 
-/* Edit button hover effect */
+
 .habit-item .edit-habit-btn:hover {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Delete button hover effect */
+
 .habit-item .delete-habit-btn:hover {
     background-color: rgba(231, 76, 60, 0.1);
 }
 
-/* Pencil and X icons */
+
 .habit-item .pencil-icon,
 .habit-item .x-icon {
     font-style: normal;
@@ -60,13 +57,13 @@
     line-height: 1;
 }
 
-/* Ensure proper spacing in the habit item */
+
 .habit-item {
-    padding-right: 80px; /* Make room for the icons */
+    padding-right: 80px; 
     position: relative;
 }
 
-/* Media query for mobile devices */
+
 @media screen and (max-width: 768px) {
     .habit-item .habit-actions {
         position: static;

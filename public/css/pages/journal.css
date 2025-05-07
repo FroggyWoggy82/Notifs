@@ -1,4 +1,4 @@
-/* Journal Page Styles */
+
 
 .journal-container {
     display: flex;
@@ -152,7 +152,7 @@
     color: #333;
 }
 
-/* Keep the old styles for backward compatibility */
+
 .ai-analysis {
     line-height: 1.6;
     font-size: 16px;
@@ -263,7 +263,7 @@
     background-color: #7f8c8d;
 }
 
-/* Responsive styles */
+
 @media (max-width: 768px) {
     .journal-controls {
         flex-direction: column;

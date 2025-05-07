@@ -1,8 +1,8 @@
-/* Exercise History Specific Styles */
 
-/* Add styling for the Workout Analytics heading to match the green accent color */
+
+
 h1 {
-    color: #4CAF50; /* Green accent color to match the rest of the page */
+    color: #4CAF50; 
 }
 
 .history-section {
@@ -98,7 +98,7 @@ h1 {
     top: 0 !important;
 }
 
-/* Edit History Button */
+
 #history-edit-btn {
     flex: 0 0 auto;
     height: 40px !important;
@@ -121,7 +121,7 @@ h1 {
     margin-top: 20px;
 }
 
-/* History Edit Modal Styles */
+
 .modal-list {
     max-height: 300px;
     overflow-y: auto;
@@ -157,7 +157,7 @@ h1 {
     line-height: 1.5;
 }
 
-/* Styling for the weight x reps format */
+
 .weight-reps-pair {
     display: inline-block;
     margin-right: 10px;
@@ -179,7 +179,7 @@ h1 {
     opacity: 0.7;
 }
 
-/* Delete button styling */
+
 .btn-delete-log-entry {
     background-color: #f44336;
     color: white;
@@ -243,7 +243,7 @@ h1 {
     margin: 20px 0;
 }
 
-/* Prediction Table Styles */
+
 #prediction-table-container {
     background-color: #333;
     padding: 20px;
@@ -300,9 +300,9 @@ h1 {
     font-weight: bold;
 }
 
-/* Style for the Best Achieved column */
+
 .prediction-table th:nth-child(3) {
-    color: #64B5F6; /* Blue color to differentiate from predicted */
+    color: #64B5F6; 
 }
 
 .prediction-table td {
@@ -311,9 +311,9 @@ h1 {
     border-bottom: 1px solid #444;
 }
 
-/* Style for the Best Achieved column values */
+
 .prediction-table td:nth-child(3) {
-    color: #64B5F6; /* Blue color to match the header */
+    color: #64B5F6; 
     font-weight: bold;
 }
 
@@ -333,7 +333,7 @@ h1 {
     background-color: rgba(76, 175, 80, 0.3) !important;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
     .history-search-filter-container {
         flex-direction: column;

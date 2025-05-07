@@ -1,0 +1,109 @@
+/* Sidebar styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    background-color: #121212; /* Match the workout page background color */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Lighter shadow */
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    overflow-y: auto;
+    padding-top: 60px;
+}
+
+.sidebar.active {
+    transform: translateX(0);
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid #e8eef2;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+}
+
+.sidebar-nav {
+    padding: 20px 0;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #2c3e50; /* Changed from #566573 to match page text color */
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-nav-item:hover {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+}
+
+.sidebar-nav-item.active {
+    background-color: #e8f5e9;
+    color: #4db6ac;
+}
+
+.sidebar-nav-item .nav-icon {
+    margin-right: 12px;
+    font-size: 1.2em;
+}
+
+/* Overlay for when sidebar is open */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    z-index: 1050;
+}
+
+.sidebar.active + .sidebar-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Menu button */
+.menu-button {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #2c3e50;
+    cursor: pointer;
+    z-index: 1001;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    width: auto;
+    display: inline-block;
+}
+
+.menu-button:hover {
+    background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        max-width: 300px;
+    }
+}

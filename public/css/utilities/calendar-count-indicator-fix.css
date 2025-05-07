@@ -3,9 +3,9 @@
  * Changes the task and habit count indicators to grey
  */
 
-/* Task count indicator */
+
 .task-count-indicator {
-    background-color: rgba(255, 255, 255, 0.2) !important; /* Grey background */
+    background-color: rgba(255, 255, 255, 0.2) !important; 
     color: white !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.1) !important;
@@ -15,9 +15,9 @@
     font-weight: 500 !important;
 }
 
-/* Habit count indicator */
+
 .habit-count-indicator {
-    background-color: rgba(255, 255, 255, 0.2) !important; /* Grey background */
+    background-color: rgba(255, 255, 255, 0.2) !important; 
     color: white !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.1) !important;

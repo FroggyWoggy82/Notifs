@@ -4,24 +4,24 @@
  * Futuristic Dark Theme
  */
 
-/* Import base stylesheets */
+
 @import 'variables.css';
 @import 'reset.css';
 @import 'typography.css';
 
-/* Global styles - Dark theme by default */
+
 body {
   background-color: var(--color-dark-bg);
   color: var(--color-dark-text);
   margin: 0 auto;
-  padding: 15px 15px 60px 15px; /* Adjusted for bottom navigation */
+  padding: 15px 15px 60px 15px; 
   text-align: left;
   line-height: var(--line-height-base);
   font-family: var(--font-family-base);
   transition: background-color var(--transition-base);
 }
 
-/* Container */
+
 .container {
   width: 100%;
   max-width: var(--container-max-width);
@@ -31,7 +31,7 @@ body {
   padding-right: var(--spacing-xs);
 }
 
-/* Section spacing */
+
 section {
   margin-bottom: var(--spacing-md);
   padding: var(--spacing-sm);
@@ -47,7 +47,7 @@ section h2 {
   padding-bottom: var(--spacing-xs);
 }
 
-/* Status messages */
+
 .status {
   padding: var(--spacing-sm) var(--spacing-md);
   margin: var(--spacing-md) 0;
@@ -84,7 +84,7 @@ section h2 {
   box-shadow: 0 0 5px rgba(0, 176, 255, 0.2);
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
   body {
     padding: 10px 10px 60px 10px;
@@ -108,13 +108,13 @@ section h2 {
   }
 }
 
-/* Light theme support (if needed) */
+
 body.light-theme {
   background-color: var(--color-white);
   color: var(--color-gray-800);
 }
 
-/* Utility classes */
+
 .hidden {
   display: none !important;
 }
@@ -133,7 +133,7 @@ body.light-theme {
   clear: both;
 }
 
-/* Accessibility */
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -146,7 +146,7 @@ body.light-theme {
   border-width: 0;
 }
 
-/* Glassmorphism effect */
+
 .glass {
   background: rgba(30, 30, 30, 0.7);
   backdrop-filter: blur(var(--blur-md));
@@ -154,7 +154,7 @@ body.light-theme {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Glow effects */
+
 .glow-primary {
   box-shadow: var(--glow-primary);
 }
@@ -167,7 +167,7 @@ body.light-theme {
   box-shadow: var(--glow-accent);
 }
 
-/* Gradient text */
+
 .gradient-text {
   background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   -webkit-background-clip: text;

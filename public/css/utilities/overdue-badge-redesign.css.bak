@@ -1,0 +1,64 @@
+/**
+ * Date Badge Redesign
+ * Redesigns the date indicators (Overdue, Due Today) to match the Weekly badge style
+ */
+
+/* Hide the calendar icon in date indicators */
+.due-date-indicator.overdue i,
+.due-date-indicator.due-soon i,
+.next-occurrence-indicator.overdue i,
+.next-occurrence-indicator.due-soon i {
+    display: none !important;
+}
+
+/* Style the overdue indicator like the Weekly badge */
+.due-date-indicator.overdue,
+.next-occurrence-indicator.overdue {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-top: 4px !important;
+    padding: 3px 6px !important;
+    border-radius: 3px !important;
+    font-size: 0.7em !important;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: #FF3D00 !important;
+    border: 1px solid rgba(255, 61, 0, 0.3) !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    margin-left: 4px !important;
+}
+
+/* Style the due today indicator like the Weekly badge */
+.due-date-indicator.due-soon,
+.next-occurrence-indicator.due-soon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-top: 4px !important;
+    padding: 3px 6px !important;
+    border-radius: 3px !important;
+    font-size: 0.7em !important;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: #FFC107 !important; /* Yellow color for due today */
+    border: 1px solid rgba(255, 193, 7, 0.3) !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+    margin-left: 4px !important;
+}
+
+/* Special styling for next occurrence overdue indicator */
+.next-occurrence-overdue {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: #FF3D00 !important;
+    border: 1px solid rgba(255, 61, 0, 0.3) !important;
+    box-shadow: none !important;
+}
+
+/* Ensure the text is properly centered without the icon */
+.due-date-indicator.overdue span,
+.due-date-indicator.due-soon span,
+.next-occurrence-indicator.overdue span,
+.next-occurrence-indicator.due-soon span {
+    margin-left: 0 !important;
+}

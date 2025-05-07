@@ -3,7 +3,7 @@
  * Directly styles the Basic Information section to match other sections
  */
 
-/* Target the first div in the form */
+
 .edit-ingredient-form form > div:first-of-type {
     background-color: #1e1e1e !important;
     border-radius: 5px !important;
@@ -12,7 +12,7 @@
     color: white !important;
 }
 
-/* Target the form-group-row class */
+
 .edit-ingredient-form .form-group-row {
     background-color: #1e1e1e !important;
     border-radius: 5px !important;
@@ -21,7 +21,7 @@
     color: white !important;
 }
 
-/* Add a header to the Basic Information section */
+
 .edit-ingredient-form .form-group-row::before {
     content: "Basic Information";
     display: block;
@@ -32,14 +32,14 @@
     font-weight: bold !important;
 }
 
-/* Style the form groups in the Basic Information section */
+
 .edit-ingredient-form .form-group-row .form-group {
     margin-bottom: 8px !important;
     display: inline-block !important;
     margin-right: 15px !important;
 }
 
-/* Style the labels in the Basic Information section */
+
 .edit-ingredient-form .form-group-row label {
     color: white !important;
     font-size: 0.9em !important;
@@ -47,7 +47,7 @@
     margin-bottom: 3px !important;
 }
 
-/* Style the inputs in the Basic Information section */
+
 .edit-ingredient-form .form-group-row input {
     background-color: #333 !important;
     color: white !important;
@@ -56,7 +56,7 @@
     padding: 5px !important;
 }
 
-/* Force the nutrition-section class to have the right styling */
+
 .edit-ingredient-form .nutrition-section {
     background-color: #1e1e1e !important;
     border-radius: 5px !important;
@@ -65,7 +65,7 @@
     color: white !important;
 }
 
-/* Force the nutrition-section headers to have the right styling */
+
 .edit-ingredient-form .nutrition-section h4 {
     color: white !important;
     margin-top: 0 !important;
@@ -74,19 +74,19 @@
     font-weight: bold !important;
 }
 
-/* Force the nutrition-grid to have the right styling */
+
 .edit-ingredient-form .nutrition-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
     gap: 10px !important;
 }
 
-/* Force the nutrition-item to have the right styling */
+
 .edit-ingredient-form .nutrition-item {
     margin-bottom: 8px !important;
 }
 
-/* Force the nutrition-item labels to have the right styling */
+
 .edit-ingredient-form .nutrition-item label {
     color: white !important;
     font-size: 0.9em !important;
@@ -94,7 +94,7 @@
     margin-bottom: 3px !important;
 }
 
-/* Force the nutrition-item inputs to have the right styling */
+
 .edit-ingredient-form .nutrition-item input {
     background-color: #333 !important;
     color: white !important;

@@ -3,7 +3,7 @@
  * Makes all bottom navigation icons gray instead of green when active
  */
 
-/* Override the active item styling */
+
 .nav-item.active {
     color: #9E9E9E !important;
 }
@@ -12,7 +12,7 @@
     color: #9E9E9E !important;
 }
 
-/* Ensure the dumbbell icon is displayed correctly */
+
 .nav-item[href*="workouts.html"] .nav-icon i {
     font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
     font-weight: 900 !important;
@@ -21,5 +21,5 @@
 }
 
 .nav-item[href*="workouts.html"] .nav-icon i::before {
-    content: "\f44b" !important; /* fa-dumbbell */
+    content: "\f44b" !important; 
 }

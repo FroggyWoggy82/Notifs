@@ -3,7 +3,7 @@
  * Directly targets the specific structure of the Basic Information section
  */
 
-/* Target the Basic Information section by its position in the DOM */
+
 .edit-ingredient-form form > div:first-of-type {
     background-color: rgba(25, 25, 25, 0.7) !important;
     border-radius: 4px !important;
@@ -16,7 +16,7 @@
     opacity: 1 !important;
 }
 
-/* Target the Basic Information section by its content */
+
 .edit-ingredient-form form > div:has(> .form-group > label[for="edit-ingredient-name"]) {
     background-color: rgba(25, 25, 25, 0.7) !important;
     border-radius: 4px !important;
@@ -29,7 +29,7 @@
     opacity: 1 !important;
 }
 
-/* Target the Basic Information section by its inputs */
+
 .edit-ingredient-form form > div:has(> .form-group > #edit-ingredient-name) {
     background-color: rgba(25, 25, 25, 0.7) !important;
     border-radius: 4px !important;
@@ -42,7 +42,7 @@
     opacity: 1 !important;
 }
 
-/* Target the Basic Information section by its header */
+
 .edit-ingredient-form form > div:has(> h4:contains("Basic Information")) {
     background-color: rgba(25, 25, 25, 0.7) !important;
     border-radius: 4px !important;
@@ -55,7 +55,7 @@
     opacity: 1 !important;
 }
 
-/* Target the Basic Information section by its class */
+
 .edit-ingredient-form .basic-information {
     background-color: rgba(25, 25, 25, 0.7) !important;
     border-radius: 4px !important;
@@ -68,7 +68,7 @@
     opacity: 1 !important;
 }
 
-/* Target the form groups in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type .form-group,
 .edit-ingredient-form form > div:has(> .form-group > label[for="edit-ingredient-name"]) .form-group,
 .edit-ingredient-form form > div:has(> .form-group > #edit-ingredient-name) .form-group,
@@ -79,7 +79,7 @@
     margin-right: 10px !important;
 }
 
-/* Target the labels in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type label,
 .edit-ingredient-form form > div:has(> .form-group > label[for="edit-ingredient-name"]) label,
 .edit-ingredient-form form > div:has(> .form-group > #edit-ingredient-name) label,
@@ -94,7 +94,7 @@
     text-overflow: ellipsis !important;
 }
 
-/* Target the inputs in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type input,
 .edit-ingredient-form form > div:has(> .form-group > label[for="edit-ingredient-name"]) input,
 .edit-ingredient-form form > div:has(> .form-group > #edit-ingredient-name) input,
@@ -109,7 +109,7 @@
     border-radius: 3px !important;
 }
 
-/* Target the header in the Basic Information section */
+
 .edit-ingredient-form form > div:first-of-type h4,
 .edit-ingredient-form form > div:has(> .form-group > label[for="edit-ingredient-name"]) h4,
 .edit-ingredient-form form > div:has(> .form-group > #edit-ingredient-name) h4,
@@ -124,7 +124,7 @@
     font-size: 0.85em !important;
 }
 
-/* Add a header if it doesn't exist */
+
 .edit-ingredient-form form > div:first-of-type:not(:has(> h4)):before {
     content: "Basic Information";
     display: block;
@@ -137,7 +137,7 @@
     font-size: 0.85em;
 }
 
-/* Target the specific edit form that appears when clicking the Edit button in the ingredient table */
+
 .ingredient-details .edit-ingredient-form form > div:first-of-type,
 .ingredient-details .edit-ingredient-form form > div:has(> .form-group > label[for="edit-ingredient-name"]),
 .ingredient-details .edit-ingredient-form form > div:has(> .form-group > #edit-ingredient-name),
@@ -154,7 +154,7 @@
     opacity: 1 !important;
 }
 
-/* Target the specific inputs in the edit form */
+
 .edit-ingredient-form #edit-ingredient-name,
 .edit-ingredient-form #edit-ingredient-amount,
 .edit-ingredient-form #edit-ingredient-package-amount,

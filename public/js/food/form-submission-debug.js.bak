@@ -1,0 +1,275 @@
+/**
+ * Form Submission Override
+ *
+ * This script completely overrides the form submission process to ensure micronutrient data
+ * is properly included in the data sent to the backend.
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the form submission override
+        initFormSubmissionOverride();
+    });
+
+    /**
+     * Initialize the form submission override
+     */
+    function initFormSubmissionOverride() {
+        console.log('[Form Submission Override] Initializing...');
+
+        // Find the create recipe form
+        const createRecipeForm = document.getElementById('create-recipe-form');
+        if (!createRecipeForm) {
+            console.error('[Form Submission Override] Create recipe form not found');
+            return;
+        }
+
+        // Instead of cloning, just remove existing listeners and add our own
+        // This is a safer approach that preserves all the original elements
+
+        // Debug the form
+        console.log('[Form Submission Override] Form:', createRecipeForm);
+        console.log('[Form Submission Override] Recipe name input:', createRecipeForm.querySelector('#recipeName'));
+
+        // Remove existing listeners by cloning the form node itself (not its children)
+        const newForm = createRecipeForm.cloneNode(false);
+
+        // Copy all the children from the original form
+        while (createRecipeForm.firstChild) {
+            newForm.appendChild(createRecipeForm.firstChild);
+        }
+
+        // Replace the original form with our new one
+        createRecipeForm.parentNode.replaceChild(newForm, createRecipeForm);
+
+        // Add our submit event listener
+        newForm.addEventListener('submit', function(event) {
+            // Prevent the default form submission
+            event.preventDefault();
+
+            console.log('[Form Submission Override] Form submitted');
+
+            // Get the recipe name
+            console.log('[Form Submission Override] Form elements:', newForm.elements);
+            console.log('[Form Submission Override] All inputs:', newForm.querySelectorAll('input'));
+
+            // Try different ways to get the recipe name
+            const recipeNameById = newForm.querySelector('#recipeName');
+            const recipeNameByName = newForm.querySelector('input[name="recipe-name"]');
+            const firstInput = newForm.querySelector('input');
+
+            console.log('[Form Submission Override] Recipe name by ID:', recipeNameById);
+            console.log('[Form Submission Override] Recipe name by name:', recipeNameByName);
+            console.log('[Form Submission Override] First input:', firstInput);
+
+            // Use the first available method
+            let recipeNameInput = recipeNameById || recipeNameByName || firstInput;
+
+            if (!recipeNameInput) {
+                console.error('[Form Submission Override] Recipe name input not found');
+                return;
+            }
+
+            console.log('[Form Submission Override] Using recipe name input:', recipeNameInput);
+            const recipeName = recipeNameInput.value;
+            console.log('[Form Submission Override] Recipe name:', recipeName);
+
+            // Get all ingredient items
+            const ingredientItems = newForm.querySelectorAll('.ingredient-item');
+            console.log(`[Form Submission Override] Found ${ingredientItems.length} ingredient items`);
+
+            // Create an array to store ingredient data
+            const ingredients = [];
+
+            // Check if the form is valid
+            let formIsValid = true;
+
+            // Process each ingredient item
+            ingredientItems.forEach((item, index) => {
+                console.log(`[Form Submission Override] Processing ingredient item ${index + 1}`);
+
+                // Get the basic ingredient data
+                const nameInput = item.querySelector('.ingredient-name');
+                const amountInput = item.querySelector('.ingredient-amount');
+                const packageAmountInput = item.querySelector('.ingredient-package-amount');
+                const priceInput = item.querySelector('.ingredient-price');
+                const caloriesInput = item.querySelector('.ingredient-calories');
+                const proteinInput = item.querySelector('.ingredient-protein');
+                const fatInput = item.querySelector('.ingredient-fat');
+                const carbsInput = item.querySelector('.ingredient-carbs');
+
+                // Check if required fields are filled
+                if (!nameInput.value || !amountInput.value || !priceInput.value ||
+                    !caloriesInput.value || !proteinInput.value || !fatInput.value || !carbsInput.value) {
+                    console.warn(`[Form Submission Override] Ingredient item ${index + 1} has missing required fields`);
+                    formIsValid = false;
+                    return;
+                }
+
+                // Parse numeric values
+                const name = nameInput.value;
+                const amount = parseFloat(amountInput.value);
+                const packageAmount = packageAmountInput ? parseFloat(packageAmountInput.value) : 0;
+                const price = parseFloat(priceInput.value);
+                const calories = parseFloat(caloriesInput.value);
+                const protein = parseFloat(proteinInput.value);
+                const fats = parseFloat(fatInput.value);
+                const carbs = parseFloat(carbsInput.value);
+
+                // Validate numeric values
+                if (isNaN(amount) || amount <= 0 || isNaN(price) || price < 0 ||
+                    isNaN(calories) || calories < 0 || isNaN(protein) || protein < 0 ||
+                    isNaN(fats) || fats < 0 || isNaN(carbs) || carbs < 0) {
+                    console.warn(`[Form Submission Override] Ingredient item ${index + 1} has invalid numeric values`);
+                    formIsValid = false;
+                    return;
+                }
+
+                // Create the ingredient data
+                const ingredientData = {
+                    name,
+                    calories,
+                    amount,
+                    package_amount: packageAmount || null,
+                    protein,
+                    fats,
+                    carbohydrates: carbs,
+                    price
+                };
+
+                // Add micronutrient data if available
+                if (item.dataset.dbFormatNutritionData) {
+                    try {
+                        console.log(`[Form Submission Override] Ingredient item ${index + 1} has DB format nutrition data`);
+                        const dbFormatData = JSON.parse(item.dataset.dbFormatNutritionData);
+
+                        // Add all micronutrient data to the ingredient data
+                        for (const [key, value] of Object.entries(dbFormatData)) {
+                            // Skip null or undefined values
+                            if (value === null || value === undefined) continue;
+
+                            // Skip basic fields that are already handled
+                            if (['name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount'].includes(key)) {
+                                continue;
+                            }
+
+                            // Add the field to the ingredient data
+                            ingredientData[key] = value;
+                            console.log(`[Form Submission Override] Added micronutrient data: ${key} = ${value}`);
+                        }
+                    } catch (error) {
+                        console.error(`[Form Submission Override] Error adding micronutrient data:`, error);
+                    }
+                } else {
+                    console.warn(`[Form Submission Override] Ingredient item ${index + 1} has no DB format nutrition data`);
+
+                    // Try to get micronutrient data from hidden fields
+                    const hiddenFields = item.querySelectorAll('input[type="hidden"]');
+                    console.log(`[Form Submission Override] Found ${hiddenFields.length} hidden fields`);
+
+                    hiddenFields.forEach(field => {
+                        // Skip basic fields that are already handled
+                        if (['ingredient-calories', 'ingredient-protein', 'ingredient-fat', 'ingredient-carbs'].includes(field.className)) {
+                            return;
+                        }
+
+                        // Extract the field name from the class name
+                        const fieldName = field.className.replace('ingredient-', '');
+
+                        // Skip empty fields
+                        if (!field.value) return;
+
+                        // Convert to number if possible
+                        const value = parseFloat(field.value);
+                        if (!isNaN(value)) {
+                            ingredientData[fieldName] = value;
+                            console.log(`[Form Submission Override] Added micronutrient data from hidden field: ${fieldName} = ${value}`);
+                        }
+                    });
+                }
+
+                // Add the ingredient data to the array
+                ingredients.push(ingredientData);
+                console.log(`[Form Submission Override] Added ingredient data:`, ingredientData);
+            });
+
+            // Check if the form is valid
+            if (!formIsValid) {
+                console.error('[Form Submission Override] Form is invalid');
+
+                // Show error message
+                const createRecipeStatus = document.getElementById('create-recipe-status');
+                if (createRecipeStatus) {
+                    createRecipeStatus.textContent = 'Please fill all ingredient fields correctly (all values >= 0, amount > 0).';
+                    createRecipeStatus.className = 'status error';
+                }
+
+                return;
+            }
+
+            // Log the data being sent to the backend
+            console.log('[Form Submission Override] Sending data to backend:', { name: recipeName, ingredients });
+
+            // Send the data to the backend
+            fetch('/api/recipes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: recipeName, ingredients })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(newRecipe => {
+                console.log('[Form Submission Override] Recipe saved successfully:', newRecipe);
+
+                // Show success message
+                const createRecipeStatus = document.getElementById('create-recipe-status');
+                if (createRecipeStatus) {
+                    createRecipeStatus.textContent = `Recipe '${newRecipe.name}' saved successfully!`;
+                    createRecipeStatus.className = 'status success';
+                }
+
+                // Reset the form
+                newForm.reset();
+
+                // Reset ingredients list to one empty row
+                const ingredientsList = document.getElementById('ingredients-list');
+                if (ingredientsList) {
+                    ingredientsList.innerHTML = '';
+
+                    // Add a new ingredient row
+                    const addIngredientRowButton = document.getElementById('add-ingredient-row');
+                    if (addIngredientRowButton) {
+                        addIngredientRowButton.click();
+                    }
+                }
+
+                // Refresh the recipe list
+                const loadRecipesButton = document.getElementById('refresh-recipes');
+                if (loadRecipesButton) {
+                    loadRecipesButton.click();
+                }
+            })
+            .catch(error => {
+                console.error('[Form Submission Override] Error saving recipe:', error);
+
+                // Show error message
+                const createRecipeStatus = document.getElementById('create-recipe-status');
+                if (createRecipeStatus) {
+                    createRecipeStatus.textContent = `Error saving recipe: ${error.message}`;
+                    createRecipeStatus.className = 'status error';
+                }
+            });
+        });
+
+        console.log('[Form Submission Override] Initialized');
+    }
+})();

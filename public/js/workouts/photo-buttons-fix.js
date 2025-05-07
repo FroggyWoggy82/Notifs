@@ -5,28 +5,24 @@
  */
 
 (function() {
-    // Wait for the page to fully load
+
     window.addEventListener('load', function() {
         console.log('[Photo Button Fix] Script loaded, waiting for DOM...');
 
-        // Wait a bit to ensure all other scripts have run
         setTimeout(function() {
             console.log('[Photo Button Fix] Applying button fixes...');
 
-            // Get direct references to the buttons
             const prevButton = document.getElementById('photo-prev-btn');
             const nextButton = document.getElementById('photo-next-btn');
 
             if (prevButton) {
                 console.log('[Photo Button Fix] Found previous button, adding direct click handler');
 
-                // Add direct click handler
                 prevButton.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('[Photo Button Fix] Previous button clicked directly');
 
-                    // Call the showPreviousPhoto function if it exists
                     if (typeof showPreviousPhoto === 'function') {
                         showPreviousPhoto();
                     } else {
@@ -36,7 +32,6 @@
                     return false;
                 };
 
-                // Make sure the button is visible and styled correctly
                 prevButton.style.cursor = 'pointer';
                 prevButton.style.backgroundColor = '#03dac6'; // Updated to match the teal color
                 prevButton.style.color = 'black';
@@ -56,13 +51,11 @@
             if (nextButton) {
                 console.log('[Photo Button Fix] Found next button, adding direct click handler');
 
-                // Add direct click handler
                 nextButton.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('[Photo Button Fix] Next button clicked directly');
 
-                    // Call the showNextPhoto function if it exists
                     if (typeof showNextPhoto === 'function') {
                         showNextPhoto();
                     } else {
@@ -72,7 +65,6 @@
                     return false;
                 };
 
-                // Make sure the button is visible and styled correctly
                 nextButton.style.cursor = 'pointer';
                 nextButton.style.backgroundColor = '#03dac6'; // Updated to match the teal color
                 nextButton.style.color = 'black';

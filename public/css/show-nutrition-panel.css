@@ -3,7 +3,7 @@
  * Ensures the detailed nutrition panel is displayed and styled correctly
  */
 
-/* Ensure the detailed nutrition panel is displayed */
+
 .edit-ingredient-form .detailed-nutrition-panel {
     display: block !important;
     margin-top: 10px !important;
@@ -14,13 +14,13 @@
     color: #e0e0e0 !important;
 }
 
-/* Style the nutrition sections */
+
 .edit-ingredient-form .nutrition-section {
     margin-bottom: 12px !important;
     display: block !important;
 }
 
-/* Style the section headers */
+
 .edit-ingredient-form .nutrition-section h4 {
     margin-top: 0 !important;
     margin-bottom: 6px !important;
@@ -31,20 +31,20 @@
     font-size: 0.85em !important;
 }
 
-/* Style the grid layout */
+
 .edit-ingredient-form .nutrition-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
     gap: 6px !important;
 }
 
-/* Style the individual nutrition items */
+
 .edit-ingredient-form .nutrition-item {
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Style the labels */
+
 .edit-ingredient-form .nutrition-item label {
     font-size: 0.7em !important;
     margin-bottom: 2px !important;
@@ -54,7 +54,7 @@
     text-overflow: ellipsis !important;
 }
 
-/* Style the input fields */
+
 .edit-ingredient-form .nutrition-item input,
 .edit-ingredient-form .nutrition-item input[type="number"] {
     width: 50px !important;
@@ -67,7 +67,7 @@
     color: #e0e0e0 !important;
 }
 
-/* Style the input fields on focus */
+
 .edit-ingredient-form .nutrition-item input:focus,
 .edit-ingredient-form .nutrition-item input[type="number"]:focus {
     background-color: rgba(40, 40, 40, 0.9) !important;
@@ -76,27 +76,27 @@
     outline: none !important;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
     .edit-ingredient-form .nutrition-grid {
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
     }
 }
 
-/* Make the form more compact overall */
+
 .edit-ingredient-form form {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
 }
 
-/* Make the form actions more compact */
+
 .edit-ingredient-form .form-actions {
     margin-top: 8px !important;
     gap: 6px !important;
 }
 
-/* Make the buttons more compact */
+
 .edit-ingredient-form .form-actions button {
     padding: 4px 8px !important;
     font-size: 0.8em !important;

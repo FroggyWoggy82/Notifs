@@ -1,37 +1,36 @@
 /**
  * Server Availability Check
- * 
+ *
  * This script checks if the server is available and provides fallback mechanisms
  * for when the server is not available.
  */
 
-// Global variable to track if the server is available
 window._serverAvailable = true;
 
-// Function to check if the server is available
 async function checkServerAvailability() {
     try {
-        // Try to fetch a simple endpoint that should always work
-        const response = await fetch('/api/health-check', { 
+
+
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 1000000);
+        const response = await fetch(`/api/recipes?timestamp=${timestamp}&random=${random}`, {
             method: 'GET',
-            // Add a cache-busting parameter
+
             headers: { 'Cache-Control': 'no-cache' }
         });
-        
-        // If we get any response, consider the server available
+
         window._serverAvailable = true;
         return true;
     } catch (error) {
-        // If there's an error, the server is probably not available
+
         window._serverAvailable = false;
         console.log('Server appears to be unavailable - some features will be simulated');
         return false;
     }
 }
 
-// Function to safely make a fetch request with fallback
 async function safeFetch(url, options = {}) {
-    // If the server is not available, return a fake successful response
+
     if (!window._serverAvailable) {
         console.log(`Server unavailable - simulating response for: ${url}`);
         return new Response(JSON.stringify({
@@ -43,13 +42,12 @@ async function safeFetch(url, options = {}) {
             headers: { 'Content-Type': 'application/json' }
         });
     }
-    
-    // Otherwise, make the actual fetch request
+
     try {
         return await fetch(url, options);
     } catch (error) {
         console.log(`Error fetching ${url}: ${error.message}`);
-        // Return a fake response on error
+
         return new Response(JSON.stringify({
             success: false,
             error: error.message,
@@ -61,8 +59,7 @@ async function safeFetch(url, options = {}) {
     }
 }
 
-// Check server availability when the page loads
 document.addEventListener('DOMContentLoaded', async function() {
-    // Check if the server is available
+
     await checkServerAvailability();
 });

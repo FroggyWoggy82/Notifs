@@ -4,7 +4,7 @@
  * Futuristic Dark Theme
  */
 
-/* Base button styles */
+
 .btn {
   display: inline-block;
   font-weight: var(--font-weight-medium);
@@ -30,18 +30,18 @@
   color: var(--color-dark-text);
 }
 
-/* Button hover effect with subtle glow */
+
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
-/* Button active effect */
+
 .btn:active {
   transform: translateY(0);
 }
 
-/* Disabled button */
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -49,7 +49,7 @@
   background-color: var(--color-dark-surface);
 }
 
-/* Button ripple effect */
+
 .btn::after {
   content: '';
   position: absolute;
@@ -83,7 +83,7 @@
   }
 }
 
-/* Button variants */
+
 .btn--primary {
   background-color: var(--color-primary-dark);
   color: var(--color-white);
@@ -168,7 +168,7 @@
   box-shadow: 0 0 15px rgba(0, 145, 234, 0.5);
 }
 
-/* Glass button */
+
 .btn--glass {
   background: rgba(30, 30, 30, 0.7);
   backdrop-filter: blur(var(--blur-md));
@@ -182,7 +182,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Outline buttons */
+
 .btn--outline-primary {
   background-color: transparent;
   color: var(--color-primary);
@@ -205,7 +205,7 @@
   box-shadow: 0 0 10px rgba(24, 255, 255, 0.3);
 }
 
-/* Dark surface button */
+
 .btn--dark {
   background-color: var(--color-dark-surface-3);
   color: var(--color-dark-text);
@@ -216,7 +216,7 @@
   background-color: var(--color-dark-surface-2);
 }
 
-/* Link button */
+
 .btn--link {
   background-color: transparent;
   color: var(--color-primary);
@@ -239,7 +239,7 @@
   display: none;
 }
 
-/* Button sizes */
+
 .btn--sm {
   padding: var(--spacing-xs) var(--spacing-md);
   font-size: var(--font-size-sm);
@@ -250,7 +250,7 @@
   font-size: var(--font-size-lg);
 }
 
-/* Button widths */
+
 .btn--auto {
   width: auto;
 }
@@ -260,7 +260,7 @@
   width: 100%;
 }
 
-/* Button groups */
+
 .btn-group {
   display: flex;
   gap: var(--spacing-sm);
@@ -271,7 +271,7 @@
   margin-top: 0;
 }
 
-/* Icon buttons */
+
 .btn-icon {
   display: inline-flex;
   align-items: center;
@@ -291,7 +291,7 @@
   transform: translateY(-2px);
 }
 
-/* Floating action button */
+
 .fab {
   position: fixed;
   bottom: calc(var(--bottom-nav-height) + var(--spacing-md));
@@ -321,7 +321,7 @@
   transform: translateY(-1px) scale(1);
 }
 
-/* Light theme buttons (if needed) */
+
 .light-theme .btn {
   background-color: var(--color-gray-200);
   color: var(--color-gray-800);
@@ -332,7 +332,7 @@
   color: var(--color-white);
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
   .btn-group {
     flex-direction: column;

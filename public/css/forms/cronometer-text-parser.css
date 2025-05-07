@@ -1,4 +1,4 @@
-/* Cronometer Text Parser Styles */
+
 
 .cronometer-text-paste-container {
     margin: 10px 0;
@@ -65,13 +65,13 @@
     border: 1px solid #ced4da;
 }
 
-/* Highlight fields that were updated by the parser */
+
 .cronometer-parsed {
     background-color: #d1ecf1 !important;
     border-color: #bee5eb !important;
 }
 
-/* Add a label to indicate the source of the data */
+
 .cronometer-text-paste-container::before {
     content: "Cronometer Text Parser";
     display: block;
@@ -80,7 +80,7 @@
     color: #495057;
 }
 
-/* Responsive styles */
+
 @media (max-width: 768px) {
     .cronometer-text-paste-area {
         font-size: 12px;

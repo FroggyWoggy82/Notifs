@@ -3,7 +3,7 @@
  * Changes highlight colors in modals from green to white
  */
 
-/* Modal headers and titles */
+
 .modal-header h2,
 .modal-content h2,
 #addTaskModal h2,
@@ -18,7 +18,7 @@
     -webkit-text-fill-color: white !important;
 }
 
-/* Form labels */
+
 .modal-content .form-label,
 #addTaskModal .form-label,
 #editTaskModal .form-label,
@@ -27,7 +27,7 @@
     color: rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Input focus states */
+
 .modal-content input:focus,
 .modal-content select:focus,
 .modal-content textarea:focus,
@@ -48,7 +48,7 @@
     outline: none !important;
 }
 
-/* Input borders */
+
 .modal-content input,
 .modal-content select,
 .modal-content textarea,
@@ -67,7 +67,7 @@
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Submit buttons */
+
 #addTaskBtn,
 #saveTaskBtn,
 #submitHabitBtn,
@@ -81,13 +81,13 @@
     box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Specific fix for the Add Task button */
+
 .modal-content button[type="submit"] i.fas.fa-plus-circle,
 #addTaskBtn i.fas.fa-plus-circle {
     color: #121212 !important;
 }
 
-/* Submit button hover states */
+
 #addTaskBtn:hover,
 #saveTaskBtn:hover,
 #submitHabitBtn:hover,
@@ -100,7 +100,7 @@
     transform: translateY(-1px) !important;
 }
 
-/* Toggle switches */
+
 .toggle-switch input:checked + .toggle-slider {
     background-color: rgba(255, 255, 255, 0.8) !important;
 }
@@ -109,7 +109,7 @@
     background-color: #121212 !important;
 }
 
-/* Checkbox and radio button focus and checked states */
+
 .modal-content input[type="checkbox"]:checked,
 .modal-content input[type="radio"]:checked,
 #addTaskModal input[type="checkbox"]:checked,
@@ -124,14 +124,14 @@
     border-color: white !important;
 }
 
-/* Optional text colors */
+
 .modal-content .form-text,
 .modal-content small,
 .modal-content .text-muted {
     color: rgba(255, 255, 255, 0.6) !important;
 }
 
-/* Add Task FAB button */
+
 #addTaskFab {
     background-color: rgba(255, 255, 255, 0.9) !important;
     color: #121212 !important;
@@ -143,7 +143,7 @@
     box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Green text in modals */
+
 .modal-content [style*="color: #00E676"],
 .modal-content [style*="color:#00E676"],
 .modal-content .text-success,

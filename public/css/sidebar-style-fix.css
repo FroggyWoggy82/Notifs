@@ -3,9 +3,9 @@
  * Ensures consistent sidebar styling across all pages to match index.html
  */
 
-/* Fix z-index issues */
+
 .sidebar {
-    z-index: 1060 !important; /* Higher than modal backdrop */
+    z-index: 1060 !important; 
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -22,7 +22,7 @@
     transform: translateX(0) !important;
 }
 
-/* Fix overlay */
+
 .sidebar-overlay {
     position: fixed !important;
     top: 0 !important;
@@ -30,7 +30,7 @@
     width: 100% !important;
     height: 100% !important;
     background-color: rgba(0, 0, 0, 0.7) !important;
-    z-index: 1050 !important; /* Lower than sidebar but higher than other content */
+    z-index: 1050 !important; 
     opacity: 0 !important;
     visibility: hidden !important;
     transition: opacity 0.3s ease, visibility 0.3s ease !important;
@@ -43,16 +43,16 @@
     pointer-events: auto !important;
 }
 
-/* Fix for sidebar overlay activation */
+
 body.sidebar-active .sidebar-overlay {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
 }
 
-/* Fix menu button */
+
 .menu-button {
-    z-index: 1070 !important; /* Higher than sidebar */
+    z-index: 1070 !important; 
     position: fixed !important;
     top: 15px !important;
     left: 15px !important;
@@ -65,12 +65,12 @@ body.sidebar-active .sidebar-overlay {
     margin: 0 !important;
 }
 
-/* Fix body when sidebar is active */
+
 body.sidebar-active {
     overflow: hidden !important;
 }
 
-/* Sidebar header styling */
+
 .sidebar-header {
     background-color: #121212 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -87,7 +87,7 @@ body.sidebar-active {
     opacity: 1 !important;
 }
 
-/* Sidebar navigation styling */
+
 .sidebar-nav {
     padding: 0 !important;
     margin: 0 !important;
@@ -123,7 +123,7 @@ body.sidebar-active {
     font-size: 1rem !important;
 }
 
-/* Ensure Font Awesome icons are properly styled */
+
 .sidebar-nav-item .nav-icon i {
     display: inline-block !important;
     font-size: 1.2em !important;
@@ -136,7 +136,7 @@ body.sidebar-active {
     color: var(--color-primary, #FFFFFF) !important;
 }
 
-/* Adjust content positioning */
+
 .content-wrapper, .container, .main-content, h1, .card, .workout-container, .calendar-container, .food-container, .journal-container, .product-tracking-container {
     margin-left: 0 !important;
     padding-left: 20px !important;
@@ -144,7 +144,7 @@ body.sidebar-active {
     transition: margin-left 0.3s ease !important;
 }
 
-/* Only apply margin when sidebar is active */
+
 body.sidebar-active .content-wrapper,
 body.sidebar-active .main-content,
 body.sidebar-active .workout-container,
@@ -155,16 +155,16 @@ body.sidebar-active .product-tracking-container {
     margin-left: 280px !important;
 }
 
-/* Keep container centered even when sidebar is active */
+
 body.sidebar-active .container {
     margin: 0 auto !important;
     padding-left: 20px !important;
     padding-right: 20px !important;
     max-width: 800px !important;
-    transform: translateX(140px) !important; /* Half of sidebar width to keep it centered in remaining space */
+    transform: translateX(140px) !important; 
 }
 
-/* Fix for workouts page specific content */
+
 .workout-tracker, .workout-templates, .exercise-history {
     margin-left: 0 !important;
     transition: margin-left 0.3s ease !important;
@@ -176,7 +176,7 @@ body.sidebar-active .exercise-history {
     margin-left: 280px !important;
 }
 
-/* Specific fixes for index.html */
+
 .container {
     padding-left: 20px !important;
     padding-right: 20px !important;
@@ -196,14 +196,14 @@ body.sidebar-active .exercise-history {
     width: 100% !important;
 }
 
-/* Fix for task list and habit list cards */
+
 .card {
     width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
 }
 
-/* Fix for bottom navigation bar */
+
 .bottom-nav {
     position: fixed !important;
     bottom: 0 !important;
@@ -227,7 +227,7 @@ body.sidebar-active .exercise-history {
     justify-content: center !important;
     padding: 10px 0 !important;
     margin: 0 !important;
-    max-width: 20% !important; /* Ensure equal width for all items */
+    max-width: 20% !important; 
 }
 
 .bottom-nav .nav-icon {
@@ -249,14 +249,14 @@ body.sidebar-active .exercise-history {
     width: 100% !important;
 }
 
-/* Bottom navigation bar adjustments for sidebar active state */
+
 body.sidebar-active .bottom-nav {
     width: calc(100% - 280px) !important;
     left: 280px !important;
     transition: left 0.3s ease, width 0.3s ease !important;
 }
 
-/* Mobile adjustments */
+
 @media (max-width: 768px) {
     .sidebar {
         width: 250px !important;

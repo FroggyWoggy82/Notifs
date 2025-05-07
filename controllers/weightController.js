@@ -37,11 +37,11 @@ class WeightController {
      */
     static async saveGoal(req, res) {
         try {
-            const { targetWeight, weeklyGain } = req.body;
+            const { targetWeight, weeklyGain, startWeight, startDate } = req.body;
             // Get user_id from request body, default to 1 if not provided
             const userId = req.body.user_id || req.body.userId || 1;
 
-            console.log(`Received POST /api/weight/goal: target=${targetWeight}, gain=${weeklyGain}, user_id=${userId}`);
+            console.log(`Received POST /api/weight/goal: target=${targetWeight}, gain=${weeklyGain}, startWeight=${startWeight}, startDate=${startDate}, user_id=${userId}`);
 
             // Ensure userId is a number
             const userIdNum = parseInt(userId, 10);
@@ -52,11 +52,30 @@ class WeightController {
             const p_targetWeight = parseFloat(targetWeight);
             const p_weeklyGain = parseFloat(weeklyGain);
 
+            // Parse startWeight if provided
+            let p_startWeight = null;
+            if (startWeight !== undefined && startWeight !== null && startWeight !== '') {
+                p_startWeight = parseFloat(startWeight);
+                if (isNaN(p_startWeight)) {
+                    return res.status(400).json({ error: 'Invalid start weight. Must be a number.' });
+                }
+            }
+
+            // Validate startDate if provided
+            let p_startDate = null;
+            if (startDate !== undefined && startDate !== null && startDate !== '') {
+                // Validate date format (YYYY-MM-DD)
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+                    return res.status(400).json({ error: 'Invalid start date format. Use YYYY-MM-DD.' });
+                }
+                p_startDate = startDate;
+            }
+
             if (isNaN(p_targetWeight) || p_targetWeight <= 0 || isNaN(p_weeklyGain) || p_weeklyGain === 0) {
                 return res.status(400).json({ error: 'Invalid input. Target weight must be positive and weekly goal cannot be zero.' });
             }
 
-            const savedGoal = await WeightGoal.saveGoal(p_targetWeight, p_weeklyGain, userIdNum);
+            const savedGoal = await WeightGoal.saveGoal(p_targetWeight, p_weeklyGain, userIdNum, p_startWeight, p_startDate);
             console.log("Weight goal saved:", savedGoal);
             res.status(201).json(savedGoal);
         } catch (err) {

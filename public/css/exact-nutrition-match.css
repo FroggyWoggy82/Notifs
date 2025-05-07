@@ -3,7 +3,7 @@
  * Makes the edit ingredient form match the exact sizing and layout of the detailed nutrition panel
  */
 
-/* Override the edit ingredient form styling */
+
 .edit-ingredient-form {
     margin-top: 8px !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -13,7 +13,7 @@
     color: #e0e0e0 !important;
 }
 
-/* Override the Basic Information section styling to match other sections */
+
 .edit-ingredient-form .basic-information {
     margin-bottom: 8px !important;
     padding-bottom: 5px !important;
@@ -23,7 +23,7 @@
     padding: 8px !important;
 }
 
-/* Override the Basic Information header styling */
+
 .edit-ingredient-form .basic-information h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -34,16 +34,16 @@
     font-size: 0.85em !important;
 }
 
-/* Override the Basic Information grid styling */
+
 .edit-ingredient-form .basic-information .nutrition-grid,
 .edit-ingredient-form .form-group-column {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important; /* Smaller columns */
-    gap: 3px !important; /* Smaller gap */
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important; 
+    gap: 3px !important; 
     margin-bottom: 0 !important;
 }
 
-/* Override the Basic Information form group styling */
+
 .edit-ingredient-form .basic-information .form-group,
 .edit-ingredient-form .form-group-column .form-group,
 .edit-ingredient-form .basic-information .nutrition-item {
@@ -53,7 +53,7 @@
     width: auto !important;
 }
 
-/* Override the Basic Information label styling */
+
 .edit-ingredient-form .basic-information label,
 .edit-ingredient-form .form-group-column .form-group label,
 .edit-ingredient-form .basic-information .nutrition-item label {
@@ -66,33 +66,33 @@
     text-overflow: ellipsis !important;
 }
 
-/* Override the Basic Information input styling */
+
 .edit-ingredient-form .basic-information input,
 .edit-ingredient-form .form-group-column .form-group input,
 .edit-ingredient-form .basic-information .nutrition-item input {
-    width: 35px !important; /* Even smaller width to match first image */
-    padding: 1px 2px !important; /* Smaller padding */
-    height: 14px !important; /* Smaller height */
-    font-size: 0.6em !important; /* Smaller font */
+    width: 35px !important; 
+    padding: 1px 2px !important; 
+    height: 14px !important; 
+    font-size: 0.6em !important; 
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #e0e0e0 !important;
     border-radius: 3px !important;
 }
 
-/* Make the name field wider */
+
 .edit-ingredient-form .basic-information input#edit-ingredient-name,
 .edit-ingredient-form .form-group-column .form-group input#edit-ingredient-name {
-    width: 80px !important; /* Slightly smaller to match the compact style */
+    width: 80px !important; 
 }
 
-/* Force the Basic Information section to use the same layout as other sections */
+
 .edit-ingredient-form .basic-information {
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Override the detailed nutrition panel styling */
+
 .edit-ingredient-form .detailed-nutrition-panel {
     margin-top: 8px !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -102,13 +102,13 @@
     color: #e0e0e0 !important;
 }
 
-/* Override the nutrition section styling */
+
 .edit-ingredient-form .nutrition-section {
     margin-bottom: 8px !important;
     padding-bottom: 5px !important;
 }
 
-/* Override the nutrition section header styling */
+
 .edit-ingredient-form .nutrition-section h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -119,19 +119,19 @@
     font-size: 0.85em !important;
 }
 
-/* Override the nutrition grid styling */
+
 .edit-ingredient-form .nutrition-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important; /* Smaller columns */
-    gap: 3px !important; /* Smaller gap */
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important; 
+    gap: 3px !important; 
 }
 
-/* Override the nutrition item styling */
+
 .edit-ingredient-form .nutrition-item {
     margin-bottom: 2px !important;
 }
 
-/* Override the nutrition label styling */
+
 .edit-ingredient-form .nutrition-item label {
     font-size: 0.7em !important;
     margin-bottom: 1px !important;
@@ -142,20 +142,20 @@
     text-overflow: ellipsis !important;
 }
 
-/* Override the nutrition input styling */
+
 .edit-ingredient-form .nutrition-item input,
 .edit-ingredient-form .nutrition-item input[type="number"] {
-    width: 35px !important; /* Even smaller width to match first image */
-    padding: 1px 2px !important; /* Smaller padding */
-    height: 14px !important; /* Smaller height */
-    font-size: 0.6em !important; /* Smaller font */
+    width: 35px !important; 
+    padding: 1px 2px !important; 
+    height: 14px !important; 
+    font-size: 0.6em !important; 
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #e0e0e0 !important;
     border-radius: 3px !important;
 }
 
-/* Override the form actions styling */
+
 .edit-ingredient-form .form-actions {
     display: flex !important;
     justify-content: flex-end !important;
@@ -163,7 +163,7 @@
     margin-top: 6px !important;
 }
 
-/* Override the buttons styling */
+
 .edit-ingredient-form .form-actions button {
     padding: 3px 6px !important;
     font-size: 0.75em !important;
@@ -173,20 +173,20 @@
     height: 24px !important;
 }
 
-/* Override the save button styling */
+
 .edit-ingredient-form .form-actions .save-changes-btn {
     background-color: #ffffff !important;
     color: #121212 !important;
 }
 
-/* Override the cancel button styling */
+
 .edit-ingredient-form .form-actions .cancel-edit-btn {
     background-color: transparent !important;
     color: #e0e0e0 !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Make the detailed nutrition panel match the first image exactly */
+
 .detailed-nutrition-panel {
     margin-top: 8px !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -196,13 +196,13 @@
     color: #e0e0e0 !important;
 }
 
-/* Make the nutrition sections match the first image exactly */
+
 .detailed-nutrition-panel .nutrition-section {
     margin-bottom: 8px !important;
     padding-bottom: 5px !important;
 }
 
-/* Make the nutrition section headers match the first image exactly */
+
 .detailed-nutrition-panel .nutrition-section h4 {
     margin-top: 0 !important;
     margin-bottom: 5px !important;
@@ -213,19 +213,19 @@
     font-size: 0.85em !important;
 }
 
-/* Make the nutrition grid match the first image exactly */
+
 .detailed-nutrition-panel .nutrition-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important; /* Smaller columns */
-    gap: 3px !important; /* Smaller gap */
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important; 
+    gap: 3px !important; 
 }
 
-/* Make the nutrition items match the first image exactly */
+
 .detailed-nutrition-panel .nutrition-item {
     margin-bottom: 2px !important;
 }
 
-/* Make the nutrition labels match the first image exactly */
+
 .detailed-nutrition-panel .nutrition-item label {
     font-size: 0.7em !important;
     margin-bottom: 1px !important;
@@ -236,13 +236,13 @@
     text-overflow: ellipsis !important;
 }
 
-/* Make the nutrition inputs match the first image exactly */
+
 .detailed-nutrition-panel .nutrition-item input,
 .detailed-nutrition-panel .nutrition-item input[type="number"] {
-    width: 35px !important; /* Even smaller width to match first image */
-    padding: 1px 2px !important; /* Smaller padding */
-    height: 14px !important; /* Smaller height */
-    font-size: 0.6em !important; /* Smaller font */
+    width: 35px !important; 
+    padding: 1px 2px !important; 
+    height: 14px !important; 
+    font-size: 0.6em !important; 
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #e0e0e0 !important;

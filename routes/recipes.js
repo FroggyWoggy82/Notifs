@@ -1,21 +1,89 @@
 // routes/recipes.js
 const express = require('express');
 const db = require('../utils/db');
+const RecipeModel = require('../models/recipeModel');
 const router = express.Router();
 
 // === CRUD Operations for Recipes ===
 
 // GET /api/recipes - Fetch all recipes (basic info for now)
 router.get('/', async (req, res) => {
-    console.log("Received GET /api/recipes request");
+    console.log("=== Received GET /api/recipes request ===");
+    console.log("Query parameters:", req.query);
+    console.log("Request headers:", req.headers);
+
     try {
+        // First check if the recipes table exists
+        console.log("Checking if recipes table exists...");
+        const tableCheckResult = await db.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_schema = 'public'
+                AND table_name = 'recipes'
+            );
+        `);
+
+        const tableExists = tableCheckResult.rows[0].exists;
+        console.log(`Recipes table exists: ${tableExists}`);
+
+        if (!tableExists) {
+            console.error('Recipes table does not exist!');
+            return res.status(500).json({ error: 'Recipes table does not exist' });
+        }
+
+        // Check if the table has any data
+        console.log('Checking if recipes table has data...');
+        const countResult = await db.query('SELECT COUNT(*) FROM recipes');
+        const recipeCount = parseInt(countResult.rows[0].count);
+        console.log(`Recipe count: ${recipeCount}`);
+
         // Fetch basic recipe info (id, name, total_calories)
+        console.log("Executing query to fetch recipes...");
         const result = await db.query('SELECT id, name, total_calories FROM recipes ORDER BY name ASC');
-        console.log("GET /api/recipes response:", result.rows);
+
+        console.log(`Query returned ${result.rowCount} recipes`);
+
+        if (result.rows && result.rows.length > 0) {
+            console.log(`First recipe: ${JSON.stringify(result.rows[0])}`);
+        } else {
+            console.log('No recipes found');
+        }
+
+        // Set cache control headers to prevent caching
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        // Return an empty array if no recipes found
+        if (!result.rows || result.rows.length === 0) {
+            console.log('Returning empty array');
+            return res.json([]);
+        }
+
+        console.log(`Returning ${result.rows.length} recipes`);
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching recipes:', err);
-        res.status(500).json({ error: 'Failed to fetch recipes' });
+        console.error('Error stack:', err.stack);
+
+        // Try to return a more helpful error message
+        let errorMessage = `Failed to fetch recipes: ${err.message}`;
+
+        if (err.code) {
+            errorMessage += ` (Code: ${err.code})`;
+        }
+
+        if (err.code === '42P01') {
+            errorMessage = 'Recipes table does not exist';
+        } else if (err.code === '28P01') {
+            errorMessage = 'Database authentication failed';
+        } else if (err.code === '3D000') {
+            errorMessage = 'Database does not exist';
+        } else if (err.code === 'ECONNREFUSED') {
+            errorMessage = 'Could not connect to database server';
+        }
+
+        res.status(500).json({ error: errorMessage });
     }
 });
 
@@ -48,71 +116,82 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/recipes - Create a new recipe and its ingredients
 router.post('/', async (req, res) => {
+    console.log('Received POST /api/recipes request');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+
     const { name, ingredients } = req.body; // Expecting name and an array of ingredients
-    console.log(`Received POST /api/recipes: name='${name}'`, ingredients);
+    console.log(`Recipe name: '${name}'`);
+    console.log(`Number of ingredients: ${ingredients ? ingredients.length : 0}`);
+
+    // Log each ingredient's micronutrient data
+    if (ingredients && Array.isArray(ingredients)) {
+        ingredients.forEach((ing, index) => {
+            console.log(`Ingredient ${index + 1} (${ing.name}) data:`, JSON.stringify(ing, null, 2));
+
+            // Check for micronutrient data
+            const micronutrientFields = Object.keys(ing).filter(key =>
+                !['name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount'].includes(key)
+            );
+
+            console.log(`Ingredient ${index + 1} has ${micronutrientFields.length} micronutrient fields:`, micronutrientFields);
+        });
+    } else {
+        console.error('Invalid ingredients data:', ingredients);
+    }
 
     if (!name || !ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+        console.error('Validation error: Recipe name and at least one ingredient are required');
         return res.status(400).json({ error: 'Recipe name and at least one ingredient are required' });
     }
 
-    // Calculate total calories from ingredients provided by the client
-    let calculatedTotalCalories = 0;
-    for (const ing of ingredients) {
-        if (typeof ing.calories !== 'number' || ing.calories < 0) {
-            return res.status(400).json({ error: 'Invalid calorie data for ingredient: ' + ing.name });
-        }
-        calculatedTotalCalories += ing.calories;
-    }
-
-    const client = await db.getClient(); // Use client for transaction
-
     try {
-        await client.query('BEGIN'); // Start transaction
+        console.log('Calling RecipeModel.createRecipe...');
+        // Use the RecipeModel to create the recipe
+        const recipe = await RecipeModel.createRecipe(name, ingredients);
+        console.log(`Recipe '${name}' created successfully with ID: ${recipe.id}`);
 
-        // Insert the recipe
-        const recipeInsertResult = await client.query(
-            'INSERT INTO recipes (name, total_calories) VALUES ($1, $2) RETURNING id',
-            [name.trim(), calculatedTotalCalories]
-        );
-        const newRecipeId = recipeInsertResult.rows[0].id;
+        // Check if the ingredients have micronutrient data
+        if (recipe.ingredients && recipe.ingredients.length > 0) {
+            recipe.ingredients.forEach((ing, index) => {
+                // Check for micronutrient data
+                const micronutrientFields = Object.keys(ing).filter(key =>
+                    !['id', 'recipe_id', 'name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount',
+                     'calories_per_gram', 'protein_per_gram', 'fats_per_gram', 'carbohydrates_per_gram', 'price_per_gram'].includes(key)
+                );
 
-        // Insert ingredients
-        const ingredientInsertPromises = ingredients.map(ing => {
-            // Validate required ingredient fields
-            if (!ing.name || typeof ing.calories !== 'number' || typeof ing.amount !== 'number' ||
-                typeof ing.protein !== 'number' || typeof ing.fats !== 'number' ||
-                typeof ing.carbohydrates !== 'number' || typeof ing.price !== 'number' || ing.amount <= 0) {
-                 throw new Error('Invalid data for ingredient: ' + (ing.name || '[Missing Name]')); // Throw error to trigger rollback
-            }
-            return client.query(
-                'INSERT INTO ingredients (recipe_id, name, calories, amount, protein, fats, carbohydrates, price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [newRecipeId, ing.name.trim(), ing.calories, ing.amount, ing.protein, ing.fats, ing.carbohydrates, ing.price]
-            );
-        });
-        await Promise.all(ingredientInsertPromises);
+                console.log(`Saved ingredient ${index + 1} (${ing.name}) has ${micronutrientFields.length} micronutrient fields:`, micronutrientFields);
 
-        await client.query('COMMIT'); // Commit transaction
+                // Check specific micronutrient fields
+                const fields = [
+                    'fiber', 'sugars', 'saturated', 'monounsaturated', 'polyunsaturated',
+                    'omega3', 'omega6', 'cholesterol', 'vitamin_a', 'vitamin_c', 'vitamin_d',
+                    'vitamin_e', 'vitamin_k', 'calcium', 'iron', 'magnesium', 'phosphorus',
+                    'potassium', 'sodium', 'zinc', 'water'
+                ];
 
-        console.log(`Recipe '${name}' created successfully with ID: ${newRecipeId}`);
-        // Fetch the newly created recipe with ingredients to return it
-        const finalResult = await db.query('SELECT * FROM recipes WHERE id = $1', [newRecipeId]);
-        const finalIngredients = await db.query('SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC', [newRecipeId]);
-        const newRecipe = finalResult.rows[0];
-        newRecipe.ingredients = finalIngredients.rows;
-
-        res.status(201).json(newRecipe);
-
-    } catch (err) {
-        await client.query('ROLLBACK'); // Rollback transaction on error
-        console.error('Error creating recipe:', err);
-        // Check if it was our specific validation error
-        if (err.message.startsWith('Invalid data for ingredient')) {
-             res.status(400).json({ error: err.message });
-        } else {
-            res.status(500).json({ error: 'Failed to create recipe' });
+                console.log(`Checking micronutrient fields for saved ingredient ${index + 1}:`);
+                fields.forEach(field => {
+                    console.log(`${field}: ${ing[field]}`);
+                });
+            });
         }
-    } finally {
-        client.release(); // Release client back to the pool
+
+        console.log('Sending response with created recipe');
+        res.status(201).json(recipe);
+    } catch (err) {
+        console.error('Error creating recipe:', err);
+        console.error('Error stack:', err.stack);
+
+        // Check if it was our specific validation error
+        if (err.message.startsWith('Invalid data for ingredient') ||
+            err.message.includes('required') ||
+            err.message.includes('Invalid calorie data')) {
+            console.error('Validation error:', err.message);
+            res.status(400).json({ error: err.message });
+        } else {
+            console.error('Server error:', err.message);
+            res.status(500).json({ error: `Failed to create recipe: ${err.message}` });
+        }
     }
 });
 

@@ -1,6 +1,6 @@
-// Grocery List Generator
+
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
+
     const availableRecipesContainer = document.querySelector('#available-recipes .recipe-list-container');
     const selectedRecipesContainer = document.querySelector('#selected-recipes .recipe-list-container');
     const addRecipeBtn = document.getElementById('add-recipe-btn');
@@ -12,25 +12,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const groceryListContainer = document.getElementById('grocery-list-container');
     const statusMessage = document.getElementById('status-message');
 
-    // State
     let allRecipes = [];
     let selectedRecipes = [];
     let adjustedRecipes = [];
     let groceryList = null;
 
-    // Initialize
     init();
 
-    // Functions
     async function init() {
         try {
-            // Load recipes
+
             await loadRecipes();
-            
-            // Add event listeners
+
             addEventListeners();
-            
-            // Update UI
+
             updateUI();
         } catch (error) {
             console.error('Initialization error:', error);
@@ -48,11 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             allRecipes = await response.json();
-            
-            // Clear loading message
+
             availableRecipesContainer.innerHTML = '';
-            
-            // Render available recipes
+
             if (allRecipes.length === 0) {
                 availableRecipesContainer.innerHTML = '<p class="empty-message">No recipes available</p>';
             } else {
@@ -72,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         availableRecipesContainer.innerHTML = '';
         
         allRecipes.forEach(recipe => {
-            // Skip recipes that are already selected
+
             if (selectedRecipes.some(r => r.id === recipe.id)) {
                 return;
             }
@@ -177,8 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
             calorieAdjustmentContainer.innerHTML = '<p class="empty-message">Select recipes to adjust calories</p>';
             return;
         }
-        
-        // Initialize adjustedRecipes if it's empty
+
         if (adjustedRecipes.length === 0) {
             adjustedRecipes = selectedRecipes.map(recipe => ({
                 ...recipe,
@@ -187,8 +179,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 scaleFactor: 1
             }));
         } else {
-            // Update adjustedRecipes based on selectedRecipes
-            // Add new recipes
+
+
             selectedRecipes.forEach(recipe => {
                 if (!adjustedRecipes.some(r => r.id === recipe.id)) {
                     adjustedRecipes.push({
@@ -199,14 +191,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
             });
-            
-            // Remove recipes that are no longer selected
+
             adjustedRecipes = adjustedRecipes.filter(recipe => 
                 selectedRecipes.some(r => r.id === recipe.id)
             );
         }
-        
-        // Render adjustment controls for each recipe
+
         adjustedRecipes.forEach(recipe => {
             const adjustmentItem = document.createElement('div');
             adjustmentItem.className = 'calorie-adjustment-item';
@@ -221,16 +211,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const controlsElement = document.createElement('div');
             controlsElement.className = 'calorie-adjustment-controls';
-            
-            // Create calorie input
+
             const calorieInput = document.createElement('input');
             calorieInput.type = 'number';
             calorieInput.className = 'calorie-adjustment-input';
             calorieInput.value = recipe.adjustedCalories.toFixed(1);
             calorieInput.min = '1';
             calorieInput.step = '1';
-            
-            // Create adjustment buttons
+
             const decreaseBtn = document.createElement('button');
             decreaseBtn.className = 'adjustment-btn';
             decreaseBtn.textContent = '-10%';
@@ -242,8 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const resetBtn = document.createElement('button');
             resetBtn.className = 'adjustment-btn';
             resetBtn.textContent = 'Reset';
-            
-            // Add event listeners
+
             calorieInput.addEventListener('change', function() {
                 updateRecipeCalories(recipe.id, parseFloat(this.value));
             });
@@ -264,8 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateRecipeCalories(recipe.id, recipe.originalCalories);
                 calorieInput.value = recipe.originalCalories.toFixed(1);
             });
-            
-            // Assemble the controls
+
             controlsElement.appendChild(decreaseBtn);
             controlsElement.appendChild(calorieInput);
             controlsElement.appendChild(increaseBtn);
@@ -273,13 +259,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             header.appendChild(nameElement);
             header.appendChild(controlsElement);
-            
-            // Create info element
+
             const infoElement = document.createElement('div');
             infoElement.className = 'calorie-adjustment-info';
             infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(1)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x`;
-            
-            // Assemble the adjustment item
+
             adjustmentItem.appendChild(header);
             adjustmentItem.appendChild(infoElement);
             
@@ -293,8 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (recipe) {
             recipe.adjustedCalories = newCalories;
             recipe.scaleFactor = newCalories / recipe.originalCalories;
-            
-            // Update the info text
+
             const adjustmentItem = document.querySelector(`.calorie-adjustment-item[data-id="${recipeId}"]`);
             if (adjustmentItem) {
                 const infoElement = adjustmentItem.querySelector('.calorie-adjustment-info');
@@ -310,8 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         showStatus('Generating grocery list...', 'info');
-        
-        // Fetch full recipe details for each adjusted recipe
+
         Promise.all(adjustedRecipes.map(recipe => 
             fetch(`/api/recipes/${recipe.id}`)
                 .then(response => {
@@ -322,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
         ))
         .then(fullRecipes => {
-            // Combine ingredients from all recipes
+
             const combinedIngredients = {};
             
             fullRecipes.forEach((fullRecipe, index) => {
@@ -340,8 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             recipes: []
                         };
                     }
-                    
-                    // Scale the amount based on the recipe's scale factor
+
                     const scaledAmount = ingredient.amount * scaleFactor;
                     
                     combinedIngredients[key].amount += scaledAmount;
@@ -351,13 +332,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 });
             });
-            
-            // Convert to array and calculate package counts
+
             groceryList = Object.values(combinedIngredients).map(ingredient => {
                 let packageCount = 0;
                 
                 if (ingredient.package_amount && ingredient.package_amount > 0) {
-                    // Calculate how many packages are needed
+
                     packageCount = Math.ceil(ingredient.amount / ingredient.package_amount);
                 }
                 
@@ -366,14 +346,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     packageCount
                 };
             });
-            
-            // Sort by name
+
             groceryList.sort((a, b) => a.name.localeCompare(b.name));
-            
-            // Render the grocery list
+
             renderGroceryList();
-            
-            // Enable print and save buttons
+
             printListBtn.disabled = false;
             saveListBtn.disabled = false;
             
@@ -390,12 +367,10 @@ document.addEventListener('DOMContentLoaded', function() {
             groceryListContainer.innerHTML = '<p class="empty-message">No ingredients to display</p>';
             return;
         }
-        
-        // Create table
+
         const table = document.createElement('table');
         table.className = 'grocery-list-table';
-        
-        // Create header
+
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         
@@ -409,29 +384,24 @@ document.addEventListener('DOMContentLoaded', function() {
         
         thead.appendChild(headerRow);
         table.appendChild(thead);
-        
-        // Create body
+
         const tbody = document.createElement('tbody');
         
         groceryList.forEach(ingredient => {
             const row = document.createElement('tr');
-            
-            // Ingredient name
+
             const nameCell = document.createElement('td');
             nameCell.textContent = ingredient.name;
             row.appendChild(nameCell);
-            
-            // Amount
+
             const amountCell = document.createElement('td');
             amountCell.textContent = ingredient.amount.toFixed(1);
             row.appendChild(amountCell);
-            
-            // Package size
+
             const packageSizeCell = document.createElement('td');
             packageSizeCell.textContent = ingredient.package_amount ? ingredient.package_amount.toFixed(1) : '-';
             row.appendChild(packageSizeCell);
-            
-            // Packages needed
+
             const packagesCell = document.createElement('td');
             if (ingredient.packageCount > 0) {
                 packagesCell.innerHTML = `<span class="package-count">${ingredient.packageCount}</span>`;
@@ -439,13 +409,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 packagesCell.textContent = '-';
             }
             row.appendChild(packagesCell);
-            
-            // Package price
+
             const priceCell = document.createElement('td');
             priceCell.textContent = ingredient.price ? `$${ingredient.price.toFixed(2)}` : '-';
             row.appendChild(priceCell);
-            
-            // Total cost
+
             const totalCostCell = document.createElement('td');
             if (ingredient.packageCount > 0 && ingredient.price) {
                 const totalCost = ingredient.packageCount * ingredient.price;
@@ -454,8 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 totalCostCell.textContent = '-';
             }
             row.appendChild(totalCostCell);
-            
-            // Used in recipes
+
             const usedInCell = document.createElement('td');
             usedInCell.textContent = ingredient.recipes.map(r => r.name).join(', ');
             row.appendChild(usedInCell);
@@ -464,42 +431,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         table.appendChild(tbody);
-        
-        // Add total row
+
         const totalRow = document.createElement('tr');
         totalRow.style.fontWeight = 'bold';
         
         const totalLabelCell = document.createElement('td');
         totalLabelCell.textContent = 'TOTAL';
         totalRow.appendChild(totalLabelCell);
-        
-        // Empty cells for amount and package size
+
         totalRow.appendChild(document.createElement('td'));
         totalRow.appendChild(document.createElement('td'));
-        
-        // Total packages
+
         const totalPackagesCell = document.createElement('td');
         const totalPackages = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0), 0);
         totalPackagesCell.innerHTML = `<span class="package-count">${totalPackages}</span>`;
         totalRow.appendChild(totalPackagesCell);
-        
-        // Empty cell for package price
+
         totalRow.appendChild(document.createElement('td'));
-        
-        // Total cost
+
         const totalCostCell = document.createElement('td');
         const totalCost = groceryList.reduce((sum, ingredient) => {
             return sum + (ingredient.packageCount || 0) * (ingredient.price || 0);
         }, 0);
         totalCostCell.textContent = `$${totalCost.toFixed(2)}`;
         totalRow.appendChild(totalCostCell);
-        
-        // Empty cell for used in
+
         totalRow.appendChild(document.createElement('td'));
         
         tbody.appendChild(totalRow);
-        
-        // Clear container and add table
+
         groceryListContainer.innerHTML = '';
         groceryListContainer.appendChild(table);
     }
@@ -509,8 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showStatus('No grocery list to print.', 'error');
             return;
         }
-        
-        // Create a printable version of the grocery list
+
         const printWindow = window.open('', '_blank');
         
         if (!printWindow) {
@@ -594,8 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </tr>
             `);
         });
-        
-        // Add total row
+
         const totalPackages = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0), 0);
         const totalCost = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0) * (ingredient.price || 0), 0);
         
@@ -622,8 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showStatus('No grocery list to save.', 'error');
             return;
         }
-        
-        // Create a CSV file
+
         let csvContent = 'Ingredient,Amount (g),Package Size (g),Packages Needed,Package Price,Total Cost,Used In\n';
         
         groceryList.forEach(ingredient => {
@@ -639,14 +596,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             csvContent += row.join(',') + '\n';
         });
-        
-        // Add total row
+
         const totalPackages = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0), 0);
         const totalCost = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0) * (ingredient.price || 0), 0);
         
         csvContent += `"TOTAL",,,"${totalPackages}",,"${totalCost.toFixed(2)}",\n`;
-        
-        // Create a download link
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -684,19 +639,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addEventListeners() {
-        // Add recipe button
+
         addRecipeBtn.addEventListener('click', addSelectedRecipes);
-        
-        // Remove recipe button
+
         removeRecipeBtn.addEventListener('click', removeSelectedRecipes);
-        
-        // Generate list button
+
         generateListBtn.addEventListener('click', generateGroceryList);
-        
-        // Print list button
+
         printListBtn.addEventListener('click', printGroceryList);
-        
-        // Save list button
+
         saveListBtn.addEventListener('click', saveGroceryList);
     }
 });

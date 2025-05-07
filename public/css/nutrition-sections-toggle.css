@@ -3,7 +3,7 @@
  * Controls the visibility of nutrition sections
  */
 
-/* Initially hide all sections except General */
+
 .carbohydrates,
 .lipids,
 .protein,
@@ -12,12 +12,12 @@
     display: none !important;
 }
 
-/* Always show the General section */
+
 .general {
     display: block !important;
 }
 
-/* Style for the toggle button */
+
 button.toggle-detailed-nutrition,
 #show-detailed-nutrition-btn,
 button.show-detailed-nutrition {
@@ -37,7 +37,7 @@ button.show-detailed-nutrition {
     height: 28px !important;
 }
 
-/* Hover state for the toggle button */
+
 button.toggle-detailed-nutrition:hover,
 #show-detailed-nutrition-btn:hover,
 button.show-detailed-nutrition:hover {
@@ -45,7 +45,7 @@ button.show-detailed-nutrition:hover {
     transform: translateY(-1px) !important;
 }
 
-/* Ensure the button is properly positioned */
+
 .nutrition-summary button,
 .nutrition-controls button {
     margin: 10px auto !important;

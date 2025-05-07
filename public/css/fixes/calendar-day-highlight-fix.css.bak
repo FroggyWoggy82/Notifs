@@ -1,0 +1,70 @@
+/**
+ * Calendar Day Highlight Fix
+ * Changes the selected day highlight to white and redesigns scrollbars
+ */
+
+/* Selected day highlight */
+.calendar-day.selected {
+    background-color: rgba(255, 255, 255, 0.15) !important; /* Subtle white highlight */
+    border: 1px solid rgba(255, 255, 255, 0.5) !important; /* Brighter white border */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important; /* White glow */
+}
+
+/* Scrollbar redesign for calendar tasks and habits */
+.calendar-tasks::-webkit-scrollbar,
+.calendar-habits::-webkit-scrollbar {
+    width: 4px !important; /* Thinner scrollbar */
+}
+
+.calendar-tasks::-webkit-scrollbar-track,
+.calendar-habits::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05) !important; /* Subtle track */
+    border-radius: 2px !important;
+}
+
+.calendar-tasks::-webkit-scrollbar-thumb,
+.calendar-habits::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3) !important; /* White thumb */
+    border-radius: 2px !important;
+    border: none !important;
+}
+
+.calendar-tasks::-webkit-scrollbar-thumb:hover,
+.calendar-habits::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5) !important; /* Brighter on hover */
+}
+
+/* Firefox scrollbar styling */
+.calendar-tasks,
+.calendar-habits {
+    scrollbar-width: thin !important; /* Thin scrollbar for Firefox */
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05) !important; /* White thumb on subtle track */
+}
+
+/* Make the fade effect at the bottom more visible */
+.calendar-tasks::after,
+.calendar-habits::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 15px !important;
+    background: linear-gradient(to bottom, transparent, rgba(30, 30, 30, 0.9)) !important; /* Match the dark theme */
+    pointer-events: none !important; /* Allow clicks to pass through */
+    opacity: 0 !important; /* Hidden by default */
+    transition: opacity 0.2s ease !important;
+}
+
+/* Show the fade effect when content overflows */
+.calendar-tasks.has-overflow::after,
+.calendar-habits.has-overflow::after {
+    opacity: 1 !important;
+}
+
+/* Ensure the overflow detection works properly */
+.calendar-tasks,
+.calendar-habits {
+    position: relative !important; /* Required for the fade effect */
+    max-height: 85px !important; /* Ensure consistent max height */
+}

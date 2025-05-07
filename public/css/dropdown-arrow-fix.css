@@ -3,7 +3,7 @@
  * Removes duplicate dropdown arrows and ensures only one arrow is displayed
  */
 
-/* Remove all default dropdown arrows */
+
 select,
 .form-control,
 #taskFilter,
@@ -17,45 +17,45 @@ select,
     background-position: right center !important;
 }
 
-/* Remove IE-specific dropdown arrow */
+
 select::-ms-expand {
     display: none !important;
 }
 
-/* Override any existing dropdown arrow styles */
+
 .form-control--glass,
 select.form-control {
     background-image: none !important;
 }
 
-/* Ensure our custom arrow is the only one visible */
+
 .task-filter-container {
     position: relative !important;
 }
 
-/* Style the dropdown arrow - default is left-facing when closed */
+
 .task-filter-container::after {
     content: '' !important;
     position: absolute !important;
     right: 12px !important;
     top: 50% !important;
-    transform: translateY(-50%) rotate(90deg) !important; /* Rotate to point left */
+    transform: translateY(-50%) rotate(90deg) !important; 
     width: 0 !important;
     height: 0 !important;
     border-left: 6px solid transparent !important;
     border-right: 6px solid transparent !important;
     border-top: 6px solid rgba(255, 255, 255, 0.9) !important;
     pointer-events: none !important;
-    z-index: 100 !important; /* Very high z-index to ensure it's on top */
+    z-index: 100 !important; 
     transition: transform 0.2s ease !important;
 }
 
-/* When dropdown is open, change to down-facing arrow */
+
 .task-filter-container.dropdown-open::after {
-    transform: translateY(-50%) rotate(0deg) !important; /* Rotate back to point down */
+    transform: translateY(-50%) rotate(0deg) !important; 
 }
 
-/* Remove any other pseudo-element arrows */
+
 .task-filter-container::before,
 #taskFilter::after,
 #taskFilter::before,

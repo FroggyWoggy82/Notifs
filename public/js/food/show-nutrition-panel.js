@@ -4,32 +4,27 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to show the detailed nutrition panel
+
     function showNutritionPanel() {
-        // Find all edit ingredient forms
+
         const editForms = document.querySelectorAll('.edit-ingredient-form');
 
         editForms.forEach(form => {
-            // Skip if already processed
+
             if (form.dataset.nutritionPanelFixed === 'true') return;
 
-            // Get the form element
             const formElement = form.querySelector('form');
             if (!formElement) return;
 
-            // Check if the detailed nutrition panel exists
             let detailedNutritionPanel = formElement.querySelector('.detailed-nutrition-panel');
 
-            // If the panel doesn't exist, we need to create it
             if (!detailedNutritionPanel) {
                 console.log('Creating detailed nutrition panel');
 
-                // Create the detailed nutrition panel
                 detailedNutritionPanel = document.createElement('div');
                 detailedNutritionPanel.className = 'detailed-nutrition-panel';
                 detailedNutritionPanel.style.display = 'block';
 
-                // Add the Basic Information section first
                 const basicInfoSection = createNutritionSection('Basic Information', [
                     { id: 'edit-ingredient-name', label: 'Name:', required: true, type: 'text' },
                     { id: 'edit-ingredient-amount', label: 'Amount (g):', required: true },
@@ -38,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]);
                 detailedNutritionPanel.appendChild(basicInfoSection);
 
-                // Add the General section
                 const generalSection = createNutritionSection('General', [
                     { id: 'edit-ingredient-calories', label: 'Energy (kcal):', required: true },
                     { id: 'edit-ingredient-alcohol', label: 'Alcohol (g):' },
@@ -47,11 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]);
                 detailedNutritionPanel.appendChild(generalSection);
 
-                // Apply compact styling to the panel
                 detailedNutritionPanel.style.padding = '10px';
                 detailedNutritionPanel.style.marginTop = '10px';
 
-                // Add the Carbohydrates section
                 const carbsSection = createNutritionSection('Carbohydrates', [
                     { id: 'edit-ingredient-carbs', label: 'Carbs (g):', required: true },
                     { id: 'edit-ingredient-fiber', label: 'Fiber (g):' },
@@ -62,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]);
                 detailedNutritionPanel.appendChild(carbsSection);
 
-                // Add the Lipids section
                 const lipidsSection = createNutritionSection('Lipids', [
                     { id: 'edit-ingredient-fats', label: 'Fat (g):', required: true },
                     { id: 'edit-ingredient-monounsaturated', label: 'Monounsaturated (g):' },
@@ -75,7 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]);
                 detailedNutritionPanel.appendChild(lipidsSection);
 
-                // Add the Protein section
                 const proteinSection = createNutritionSection('Protein', [
                     { id: 'edit-ingredient-protein', label: 'Protein (g):', required: true },
                     { id: 'edit-ingredient-cystine', label: 'Cystine (g):' },
@@ -92,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]);
                 detailedNutritionPanel.appendChild(proteinSection);
 
-                // Add the Vitamins section
                 const vitaminsSection = createNutritionSection('Vitamins', [
                     { id: 'edit-ingredient-vitamin-b1', label: 'B1 (Thiamine) (mg):' },
                     { id: 'edit-ingredient-vitamin-b2', label: 'B2 (Riboflavin) (mg):' },
@@ -109,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]);
                 detailedNutritionPanel.appendChild(vitaminsSection);
 
-                // Add the Minerals section
                 const mineralsSection = createNutritionSection('Minerals', [
                     { id: 'edit-ingredient-calcium', label: 'Calcium (mg):' },
                     { id: 'edit-ingredient-copper', label: 'Copper (mg):' },
@@ -124,19 +112,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 ]);
                 detailedNutritionPanel.appendChild(mineralsSection);
 
-                // Add the panel to the form
                 formElement.appendChild(detailedNutritionPanel);
             } else {
-                // Make sure the panel is visible
+
                 detailedNutritionPanel.style.display = 'block';
             }
 
-            // Mark as processed
             form.dataset.nutritionPanelFixed = 'true';
         });
     }
 
-    // Helper function to create a nutrition section
     function createNutritionSection(title, fields) {
         const section = document.createElement('div');
         section.className = 'nutrition-section';
@@ -201,10 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return section;
     }
 
-    // Run the fix when the page loads
     setTimeout(showNutritionPanel, 200);
 
-    // Set up a mutation observer to watch for new forms
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.addedNodes.length) {
@@ -213,23 +196,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Start observing the document body for changes
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Also handle dynamic form creation through event delegation
     document.body.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-ingredient-btn')) {
-            // Wait for the form to be displayed
+
             setTimeout(showNutritionPanel, 200);
-            // Try again after a bit longer to ensure it's applied
+
             setTimeout(showNutritionPanel, 500);
             setTimeout(showNutritionPanel, 1000);
 
-            // Log that we're handling the edit button click
             console.log('Edit button clicked, applying nutrition panel with Basic Information section');
         }
     });
 
-    // Run periodically to ensure the nutrition panel is displayed
     setInterval(showNutritionPanel, 2000);
 });

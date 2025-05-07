@@ -1,0 +1,4832 @@
+# Unused Files
+
+Found 284 unused files.
+
+## public/js/pages/workouts/workouts.js
+
+Size: 327.68 KB
+
+```
+// Global function for the inline handler to use
+window.saveTemplateFromButton = function() {
+    // Directly call handleSaveTemplate instead of triggering another click event
+    if (typeof window.handleSaveTemplate === 'function') {
+        // Create a simple mock event object
+        const mockEvent = {
+            preventDefault: () => {},
+            stopPropagation: () => {}
+        };
+        window.handleSaveTemplate(mockEvent);
+```
+
+## public/js/pages/tasks/script.js
+
+Size: 205.46 KB
+
+```
+// Initialize variables at the top
+let scheduledNotifications = [];
+let deferredPrompt;
+let serviceWorkerRegistration = null;
+let lastAccessDate = localStorage.getItem('lastAccessDate') || null;
+let allHabitsData = []; // Store habits data globally
+
+// Helper to check if a date string (YYYY-MM-DD or ISO) is today
+function isToday(dateString) {
+    if (!dateString) return false;
+```
+
+## public/js/pages/calendar/calendar.js
+
+Size: 85.37 KB
+
+```
+// public/js/calendar.js
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Calendar.js: DOM content loaded');
+
+    // Initialize tracking variables for calendar rendering
+    window.lastRenderedMonth = null;
+    window.lastRenderedYear = null;
+    window.isCurrentlyRendering = false;
+    window.forceRender = false;
+
+```
+
+## public/js/food/nutrition-scan.js
+
+Size: 45.10 KB
+
+```
+// Nutrition Label Scanner functionality
+document.addEventListener('DOMContentLoaded', () => {
+    // Function to set up event listeners for scan buttons
+    function setupScanButtons() {
+        console.log('Setting up scan buttons...');
+        // Use event delegation for scan buttons
+        document.addEventListener('click', (event) => {
+            console.log('Click event detected on:', event.target);
+            if (event.target.classList.contains('scan-nutrition-btn') || event.target.classList.contains('scan-template-btn')) {
+                console.log('Scan button clicked!');
+```
+
+## public/js/pages/food/nutrition-scan.js
+
+Size: 45.10 KB
+
+```
+// Nutrition Label Scanner functionality
+document.addEventListener('DOMContentLoaded', () => {
+    // Function to set up event listeners for scan buttons
+    function setupScanButtons() {
+        console.log('Setting up scan buttons...');
+        // Use event delegation for scan buttons
+        document.addEventListener('click', (event) => {
+            console.log('Click event detected on:', event.target);
+            if (event.target.classList.contains('scan-nutrition-btn') || event.target.classList.contains('scan-template-btn')) {
+                console.log('Scan button clicked!');
+```
+
+## public/js/pages/workouts/workout-history-popup.js
+
+Size: 30.15 KB
+
+```
+// Workout History Popup Module
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Workout History Popup module loaded');
+
+    // --- State Variables ---
+    let historyPopupChart = null;
+    let currentExerciseId = null;
+    let currentExerciseName = null;
+    let currentHistoryData = [];
+
+```
+
+## public/js/food/grocery-list.js
+
+Size: 26.91 KB
+
+```
+// Grocery List Generator
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const availableRecipesContainer = document.querySelector('#available-recipes .recipe-list-container');
+    const selectedRecipesContainer = document.querySelector('#selected-recipes .recipe-list-container');
+    const addRecipeBtn = document.getElementById('add-recipe-btn');
+    const removeRecipeBtn = document.getElementById('remove-recipe-btn');
+    const calorieAdjustmentContainer = document.getElementById('calorie-adjustment-container');
+    const generateListBtn = document.getElementById('generate-list-btn');
+    const printListBtn = document.getElementById('print-list-btn');
+```
+
+## public/css/pages/food.css
+
+Size: 24.67 KB
+
+```
+/* Food & Recipe specific styles */
+
+/* ===== Weight Goal Section (NEW) ===== */
+#weight-goal-section {
+    margin-top: 20px; /* Add some space below header */
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+```
+
+## public/js/food/exact-nutrition-match.js
+
+Size: 20.22 KB
+
+```
+/**
+ * Exact Nutrition Match
+ * Makes the edit ingredient form match the exact sizing and layout of the detailed nutrition panel
+ */
+
+(function() {
+    // Function to ensure the exact layout and sizing
+    function ensureExactMatch() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/pages/journal/journal.js
+
+Size: 20.11 KB
+
+```
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const journalDateInput = document.getElementById('journal-date');
+    const journalContentTextarea = document.getElementById('journal-content');
+    const saveEntryButton = document.getElementById('save-entry');
+    const analyzeEntryButton = document.getElementById('analyze-entry');
+    const entryListElement = document.getElementById('entry-list');
+    const analysisContentElement = document.getElementById('analysis-content');
+    const statusMessage = document.getElementById('status-message');
+    const wordCountElement = document.getElementById('word-count');
+```
+
+## public/js/food/fix-edit-form-display.js
+
+Size: 16.40 KB
+
+```
+/**
+ * Fix Edit Form Display
+ * Ensures the edit form is only displayed when the edit button is clicked
+ */
+
+(function() {
+    console.log('[Fix Edit Form Display] Initializing...');
+
+    // Function to ensure edit forms are hidden
+    function hideEditForms() {
+```
+
+## public/js/food/extreme-basic-info-fix.js
+
+Size: 15.77 KB
+
+```
+/**
+ * Extreme Basic Info Fix
+ * Directly modifies the DOM structure of the Basic Information section to match the other sections
+ */
+
+(function() {
+    // Function to fix the Basic Information section
+    function fixBasicInfoSection() {
+        // Find all edit forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/nutrition-display-redesign.js
+
+Size: 14.63 KB
+
+```
+/**
+ * Nutrition Display Redesign
+ * Creates a more compact, user-friendly, and visually appealing nutrition information display
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to redesign the nutrition display
+    function redesignNutritionDisplay() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/fix-add-ingredient.js
+
+Size: 13.97 KB
+
+```
+/**
+ * Fix for add ingredient functionality
+ *
+ * This script fixes issues with adding ingredients to recipes
+ */
+
+(function() {
+    console.log('[Add Ingredient Fix] Initializing...');
+
+    // Wait for the DOM to be fully loaded
+```
+
+## public/js/food/edit-button-basic-info-fix.js
+
+Size: 13.34 KB
+
+```
+/**
+ * Edit Button Basic Info Fix
+ * Specifically targets and fixes the Basic Information section when editing an existing ingredient
+ */
+
+(function() {
+    // Function to fix the Basic Information section when editing an existing ingredient
+    function fixEditButtonBasicInfo() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/pages/calendar.css
+
+Size: 12.91 KB
+
+```
+/* /public/css/calendar.css */
+
+/* Basic container and control styling (leverages index.css mostly) */
+.container h1 {
+    margin-bottom: 20px;
+}
+
+/* Calendar Filter */
+.calendar-filter {
+    display: flex;
+```
+
+## public/js/food/fix-basic-info-fields.js
+
+Size: 12.64 KB
+
+```
+/**
+ * Fix Basic Info Fields
+ * A simple approach to ensure the Basic Information section is visible and has fields
+ * Specifically targets the edit form that appears when clicking the Edit button for an existing ingredient
+ */
+
+(function() {
+    // Function to create a Basic Information section with fields
+    function createBasicInfoSection(formElement) {
+        console.log('Creating Basic Information section');
+```
+
+## public/js/food/absolute-basic-info-fix.js
+
+Size: 12.48 KB
+
+```
+/**
+ * Absolute Basic Info Fix
+ * The most aggressive approach to fixing the Basic Information section
+ */
+
+(function() {
+    // Function to fix the Basic Information section
+    function fixBasicInfoSection() {
+        // Find all edit forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/existing-ingredient-edit-fix.js
+
+Size: 12.38 KB
+
+```
+/**
+ * Existing Ingredient Edit Fix
+ * Specifically targets the edit form that appears when clicking the Edit button in the ingredient table
+ */
+
+(function() {
+    // Function to fix the edit form for existing ingredients
+    function fixExistingIngredientEdit() {
+        // Use event delegation to handle all Edit button clicks in the ingredient table
+        document.body.addEventListener('click', function(event) {
+```
+
+## public/js/food/edit-button-handler.js
+
+Size: 12.05 KB
+
+```
+/**
+ * Edit Button Handler
+ * Specifically handles the Edit button in the ingredient table
+ */
+
+(function() {
+    // Function to handle the Edit button click
+    function handleEditButtonClick() {
+        // Use event delegation to handle all Edit button clicks
+        document.body.addEventListener('click', function(event) {
+```
+
+## public/js/food/aggressive-basic-info-replacement.js
+
+Size: 11.61 KB
+
+```
+/**
+ * Aggressive Basic Info Replacement
+ * Uses a more aggressive approach to replace the Basic Information section
+ */
+
+(function() {
+    // Function to aggressively replace the Basic Information section
+    function aggressiveBasicInfoReplacement() {
+        // Find all edit forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/fix-direct-api-call.js
+
+Size: 11.46 KB
+
+```
+/**
+ * Fix Direct API Call
+ *
+ * This script provides a direct API call function that bypasses any interceptors
+ * to ensure ingredients are properly added to recipes.
+ */
+
+(function() {
+    console.log('[Direct API Call Fix] Initializing...');
+
+```
+
+## public/js/food/basic-info-grid-format.js
+
+Size: 11.13 KB
+
+```
+/**
+ * Basic Info Grid Format
+ * Restructures the Basic Information section to use the same grid format as other sections
+ */
+
+(function() {
+    // Function to restructure the Basic Information section
+    function restructureBasicInfo() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/force-basic-info-format.js
+
+Size: 11.10 KB
+
+```
+/**
+ * Force Basic Info Format
+ * Forces the Basic Information section to have the correct format in all cases
+ */
+
+(function() {
+    // Function to force the Basic Information section format
+    function forceBasicInfoFormat() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/unified-basic-info-fix.js
+
+Size: 10.91 KB
+
+```
+/**
+ * Unified Basic Info Fix
+ * A single, clean solution for fixing the Basic Information section in the edit ingredient form
+ */
+
+(function() {
+    // Function to fix the Basic Information section
+    function fixBasicInfoSection() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/complete-basic-info-replacement.js
+
+Size: 10.62 KB
+
+```
+/**
+ * Complete Basic Info Replacement
+ * Completely replaces the Basic Information section with a properly formatted version
+ */
+
+(function() {
+    // Function to completely replace the Basic Information section
+    function completeBasicInfoReplacement() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/pages/habits/habit-redesign.js
+
+Size: 10.59 KB
+
+```
+/**
+ * Habit List Redesign
+ *
+ * Redesigns the habit list to match the futuristic dark theme with a new layout
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHabitRedesign);
+```
+
+## public/js/food/fix-recipe-ingredient-api.js
+
+Size: 10.32 KB
+
+```
+/**
+ * Fix Recipe Ingredient API
+ * 
+ * This script provides a direct API call to the recipe-ingredients endpoint
+ * to ensure ingredients are properly added to recipes.
+ */
+
+(function() {
+    console.log('[Recipe Ingredient API Fix] Initializing...');
+    
+```
+
+## public/js/food/final-button-fix.js
+
+Size: 10.29 KB
+
+```
+/**
+ * Final Button Fix
+ * A definitive solution to the duplicate buttons problem
+ */
+
+(function() {
+    console.log('[Final Button Fix] Initializing...');
+
+    // Function to completely replace the form actions
+    function replaceFormActions() {
+```
+
+## public/css/components/forms.css
+
+Size: 10.08 KB
+
+```
+/**
+ * Form Styles
+ * Defines all form-related styles
+ * Futuristic Dark Theme
+ */
+
+/* Form group */
+.form-group {
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+```
+
+## public/css/themes/goals-dark-theme.css
+
+Size: 9.66 KB
+
+```
+/**
+ * Goals Dark Theme CSS
+ * Applies the futuristic dark theme to the goals page
+ */
+
+/* Override base styles for dark theme */
+body {
+    background-color: var(--color-dark-bg);
+    color: var(--color-dark-text);
+    margin: 0;
+```
+
+## public/js/food/fix-detailed-nutrition-toggle.js
+
+Size: 9.42 KB
+
+```
+/**
+ * Fix for the Show Detailed Nutrition button
+ * Makes sure it properly toggles all micronutrient sections
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to fix the Show Detailed Nutrition button
+    function fixDetailedNutritionToggle() {
+        // Find all Show Detailed Nutrition buttons
+        document.querySelectorAll('button.toggle-detailed-nutrition, button.show-detailed-nutrition').forEach(button => {
+            // Skip if already processed
+```
+
+## public/css/components/cards.css
+
+Size: 9.38 KB
+
+```
+/**
+ * Card Styles
+ * Defines styles for card components
+ * Futuristic Dark Theme
+ */
+
+/* Base card */
+.card {
+  position: relative;
+  display: flex;
+```
+
+## public/js/food/fix-edit-form-submission.js
+
+Size: 9.35 KB
+
+```
+/**
+ * Fix Edit Form Submission
+ * Ensures the edit form submission works correctly
+ */
+
+(function() {
+    console.log('[Fix Edit Form Submission] Initializing...');
+
+    // Function to fix the edit form submission
+    function fixEditFormSubmission() {
+```
+
+## public/js/components/recurrence-indicator-redesign.js
+
+Size: 8.97 KB
+
+```
+/**
+ * Recurrence Indicator Redesign
+ * Replaces the circular arrow with a more compact and visually appealing indicator
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update task recurrence indicators
+    function updateRecurrenceIndicators() {
+        // Find all task items
+        const taskItems = document.querySelectorAll('.task-item');
+```
+
+## public/css/pages/mobile-workout-override.css
+
+Size: 8.93 KB
+
+```
+/**
+ * Mobile Workout Override
+ * This file contains styles that completely override the workout layout on mobile devices
+ * to ensure all columns are visible in a single line.
+ */
+
+/* Apply these styles regardless of screen size to ensure consistency */
+.set-row {
+    position: relative;
+    width: 100%;
+```
+
+## public/js/food/replace-basic-info.js
+
+Size: 8.58 KB
+
+```
+/**
+ * Replace Basic Information
+ * Completely replaces the Basic Information section with a properly structured one
+ */
+
+(function() {
+    console.log('[Replace Basic Info] Initializing...');
+
+    // Function to replace the Basic Information section
+    function replaceBasicInfo() {
+```
+
+## public/js/components/checkbox-redesign.js
+
+Size: 8.52 KB
+
+```
+/**
+ * Checkbox Redesign
+ * Ensures task checkboxes are properly styled and initialized
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update task checkboxes
+    function updateTaskCheckboxes() {
+        // Get all task checkboxes
+        const checkboxes = document.querySelectorAll('.task-item input[type="checkbox"]');
+```
+
+## public/css/exact-nutrition-match.css
+
+Size: 8.50 KB
+
+```
+/**
+ * Exact Nutrition Match
+ * Makes the edit ingredient form match the exact sizing and layout of the detailed nutrition panel
+ */
+
+/* Override the edit ingredient form styling */
+.edit-ingredient-form {
+    margin-top: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+```
+
+## public/js/food/basic-info-complete-replacement.js
+
+Size: 8.46 KB
+
+```
+/**
+ * Basic Info Complete Replacement
+ * Completely replaces the Basic Information section with a new one that has the exact same structure as the other sections
+ */
+
+(function() {
+    // Function to completely replace the Basic Information section
+    function basicInfoCompleteReplacement() {
+        // Find all edit forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/direct-basic-info-replacement.js
+
+Size: 8.43 KB
+
+```
+/**
+ * Direct Basic Info Replacement
+ * Directly replaces the Basic Information section with a properly styled one
+ */
+
+(function() {
+    console.log('[Direct Basic Info Replacement] Initializing...');
+
+    // Function to directly replace the Basic Information section
+    function directBasicInfoReplacement() {
+```
+
+## public/js/food/final-basic-info-fix.js
+
+Size: 8.42 KB
+
+```
+/**
+ * Final Basic Info Fix
+ * The most aggressive approach to fixing the Basic Information section
+ */
+
+(function() {
+    // Function to fix the Basic Information section
+    function fixBasicInfoSection() {
+        // Find all edit forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/components/modal-fix.css
+
+Size: 8.25 KB
+
+```
+/* Modal fix CSS - Dark Theme */
+#editTaskModal,
+#addTaskModal,
+#addHabitModal,
+#editHabitModal {
+    display: none;
+    position: fixed !important;
+    z-index: 10000 !important;
+    left: 0 !important;
+    top: 0 !important;
+```
+
+## public/css/themes/food-dark-theme.css
+
+Size: 8.00 KB
+
+```
+/**
+ * Food & Recipes Dark Theme
+ * Applies dark theme styling to the Food & Recipes page
+ * Matches the styling of the Tasks page
+ */
+
+/* Main sections */
+#weight-goal-section,
+#recipe-creation-section,
+#recipes-display-section,
+```
+
+## public/css/layout/workouts-bottom-nav-fix.css
+
+Size: 7.96 KB
+
+```
+/**
+ * Workouts Bottom Navigation Fix
+ * Special fix for the workouts page bottom navigation
+ */
+
+/* Direct override for styles in workout-dark-theme.css */
+.bottom-nav .nav-item span,
+#workouts-bottom-nav .nav-item span {
+    font-size: 0.75rem !important;
+    text-transform: none !important;
+```
+
+## public/css/workouts-bottom-nav-fix.css
+
+Size: 7.96 KB
+
+```
+/**
+ * Workouts Bottom Navigation Fix
+ * Special fix for the workouts page bottom navigation
+ */
+
+/* Direct override for styles in workout-dark-theme.css */
+.bottom-nav .nav-item span,
+#workouts-bottom-nav .nav-item span {
+    font-size: 0.75rem !important;
+    text-transform: none !important;
+```
+
+## public/js/food/top-fields-dark-fix.js
+
+Size: 7.76 KB
+
+```
+/**
+ * Top Fields Dark Fix
+ * Ensures the top fields (Name, Amount, Package Amount, Package Price) match the styling of the rest of the form
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to apply dark styling to the top fields
+    function applyTopFieldsDarkFix() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/pages/goals.css
+
+Size: 7.75 KB
+
+```
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    font-family: Arial, sans-serif;
+}
+
+```
+
+## public/js/food/ensure-single-button.js
+
+Size: 7.67 KB
+
+```
+/**
+ * Ensure Single Button
+ * Makes sure there's only one Show Detailed Nutrition button positioned correctly
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to ensure there's only one button
+    function ensureSingleButton() {
+        // Find all buttons with "Detailed Nutrition" text
+        const buttons = Array.from(document.querySelectorAll('button')).filter(btn => 
+            btn.textContent.includes('Detailed Nutrition')
+```
+
+## public/css/final-basic-info-fix.css
+
+Size: 7.54 KB
+
+```
+/**
+ * Final Basic Info Fix
+ * The most aggressive approach to styling the Basic Information section
+ */
+
+/* Target all possible Basic Information sections */
+.edit-ingredient-form .basic-information,
+.edit-ingredient-form form > div:first-of-type,
+.edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]),
+.edit-ingredient-form form > div:has(> #edit-ingredient-name),
+```
+
+## public/js/food/form-group-row-fix.js
+
+Size: 7.19 KB
+
+```
+/**
+ * Form Group Row Fix
+ * Specifically targets and fixes the form-group-row structure that appears when editing an existing ingredient
+ */
+
+(function() {
+    // Function to fix the form-group-row structure
+    function fixFormGroupRow() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/components/buttons.css
+
+Size: 7.09 KB
+
+```
+/**
+ * Button Styles
+ * Defines all button-related styles
+ * Futuristic Dark Theme
+ */
+
+/* Base button styles */
+.btn {
+  display: inline-block;
+  font-weight: var(--font-weight-medium);
+```
+
+## public/js/pages/tasks/edit-modal-fix.js
+
+Size: 7.02 KB
+
+```
+// Edit Modal Fix - Direct approach to showing the edit task modal
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Edit modal fix script loaded");
+
+    // Get the modal element
+    const editTaskModal = document.getElementById('editTaskModal');
+    const editTaskForm = document.getElementById('editTaskForm');
+    const editTaskIdInput = document.getElementById('editTaskId');
+    const editTaskTitleInput = document.getElementById('editTaskTitle');
+    const editTaskDescriptionInput = document.getElementById('editTaskDescription');
+```
+
+## public/js/utils/notification-permission-check.js
+
+Size: 6.97 KB
+
+```
+/**
+ * Notification Permission Check
+ * This script checks the notification permission status and updates the UI accordingly
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const permissionStatusDiv = document.getElementById('permissionStatus');
+    const statusDiv = document.getElementById('status');
+
+    // Only proceed if the permission status div exists
+```
+
+## public/js/workouts/direct-x-button-fix.js
+
+Size: 6.89 KB
+
+```
+/**
+ * Direct X Button Fix
+ * This script directly removes X buttons from the Weight Increment section
+ * while preserving necessary buttons
+ */
+
+(function() {
+    // Disable logging to reduce console spam
+    const DEBUG = false;
+
+```
+
+## public/css/exercise-history.css
+
+Size: 6.89 KB
+
+```
+/* Exercise History Specific Styles */
+
+/* Add styling for the Workout Analytics heading to match the green accent color */
+h1 {
+    color: #4CAF50; /* Green accent color to match the rest of the page */
+}
+
+.history-section {
+    margin: 20px 0;
+    padding: 15px;
+```
+
+## public/css/pages/habit-redesign.css
+
+Size: 6.86 KB
+
+```
+/*
+ * Habit List Redesign
+ * Redesigns the habit list to match the futuristic dark theme with a new layout
+ */
+
+/* Main habit list container */
+#habitList {
+    margin-top: 20px;
+    padding: 0;
+    display: flex;
+```
+
+## public/js/pages/tasks/add-task-modal-fix.js
+
+Size: 6.76 KB
+
+```
+// Add Task Modal Fix - Ensures Add Task modal works properly with dark theme
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Add Task modal fix script loaded");
+    
+    // Get the modal elements
+    const addTaskModal = document.getElementById('addTaskModal');
+    const addTaskForm = document.getElementById('addTaskForm');
+    const addTaskFab = document.getElementById('addTaskFab');
+    
+    // Get the close button
+```
+
+## public/js/food/force-basic-info-structure.js
+
+Size: 6.72 KB
+
+```
+/**
+ * Force Basic Information Structure
+ * Completely replaces the Basic Information section with a properly structured one
+ */
+
+(function() {
+    console.log('[Force Basic Info Structure] Initializing...');
+
+    // Function to completely replace the Basic Information section
+    function forceBasicInfoStructure() {
+```
+
+## public/css/components/navigation.css
+
+Size: 6.69 KB
+
+```
+/**
+ * Navigation Styles
+ * Defines styles for navigation components like sidebar and bottom navigation
+ * Futuristic Dark Theme
+ */
+
+/* ===== Sidebar ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+```
+
+## public/css/absolute-basic-info-fix.css
+
+Size: 6.58 KB
+
+```
+/**
+ * Absolute Basic Info Fix
+ * Directly targets the specific structure of the Basic Information section
+ */
+
+/* Target the Basic Information section by its position in the DOM */
+.edit-ingredient-form form > div:first-of-type {
+    background-color: rgba(25, 25, 25, 0.7) !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+```
+
+## public/css/pages/compact-workout.css
+
+Size: 6.43 KB
+
+```
+/**
+ * Compact Workout Layout
+ * This file contains styles for a more compact workout layout
+ * that resembles popular fitness apps and maximizes screen space.
+ */
+
+/* Overall container adjustments */
+.workout-content {
+    padding: 10px;
+    padding-bottom: 70px; /* Reduced space for bottom nav */
+```
+
+## public/js/food/edit-ingredient-nutrition-style.js
+
+Size: 6.38 KB
+
+```
+/**
+ * Edit Ingredient Nutrition Style
+ * Restructures the edit ingredient form to match the detailed nutrition panel style
+ */
+
+(function() {
+    // Function to restructure the edit ingredient form
+    function restructureEditForm() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/pages/compact-recipes.css
+
+Size: 6.24 KB
+
+```
+/* Compact Recipe Cards CSS */
+
+/* Recipe Card Container */
+.recipe-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.08);
+    margin-bottom: 20px;
+    overflow: hidden;
+```
+
+## public/js/food/direct-basic-info-fix.js
+
+Size: 5.89 KB
+
+```
+/**
+ * Direct Basic Information Fix
+ * Directly modifies the Basic Information section's HTML structure
+ */
+
+(function() {
+    console.log('[Direct Basic Info Fix] Initializing...');
+
+    // Function to fix the Basic Information section
+    function fixBasicInfoSection() {
+```
+
+## public/js/food/basic-info-structure-fix.js
+
+Size: 5.88 KB
+
+```
+/**
+ * Basic Information Structure Fix
+ * Ensures the Basic Information section has the proper structure to match other sections
+ */
+
+(function() {
+    console.log('[Basic Info Structure Fix] Initializing...');
+
+    // Function to fix the Basic Information section structure
+    function fixBasicInfoStructure() {
+```
+
+## public/css/grocery-list.css
+
+Size: 5.86 KB
+
+```
+/* Grocery List Styles */
+
+/* Main container styles */
+.content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Section styling */
+```
+
+## public/js/food/ensure-edit-nutrition-style.js
+
+Size: 5.62 KB
+
+```
+/**
+ * Ensure Edit Nutrition Style
+ * Makes sure the detailed nutrition panel in the edit ingredient form matches the style of the first image
+ */
+
+(function() {
+    // Function to ensure the detailed nutrition panel style
+    function ensureDetailedNutritionStyle() {
+        // Find all detailed nutrition panels in edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/absolute-button-fix.js
+
+Size: 5.55 KB
+
+```
+/**
+ * Absolute Button Fix
+ * A last-resort solution to ensure only one set of buttons is displayed
+ */
+
+(function() {
+    console.log('[Absolute Button Fix] Initializing...');
+
+    // Function to remove all but the last set of buttons
+    function removeExtraButtons() {
+```
+
+## public/js/food/basic-info-alignment-fix.js
+
+Size: 5.46 KB
+
+```
+/**
+ * Fix for Basic Information alignment in the Edit Ingredient form
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to fix Basic Information alignment
+    function fixBasicInfoAlignment() {
+        // Find all edit ingredient forms
+        document.querySelectorAll('.edit-ingredient-form').forEach(form => {
+            // Check if we've already processed this form
+            if (form.dataset.basicInfoFixed === 'true') {
+```
+
+## public/js/food/fix-duplicate-buttons.js
+
+Size: 5.41 KB
+
+```
+/**
+ * Fix Duplicate Buttons
+ * Removes duplicate Show Detailed Nutrition buttons and fixes the remaining one
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to fix the duplicate buttons
+    function fixDuplicateButtons() {
+        // Find all Show Detailed Nutrition buttons
+        const buttons = Array.from(document.querySelectorAll('button')).filter(btn => 
+            btn.textContent.includes('Detailed Nutrition')
+```
+
+## public/js/workouts/create-x-button.js
+
+Size: 5.26 KB
+
+```
+/**
+ * Create X Button
+ * This script creates a proper X button using a different approach
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCreateX);
+    } else {
+```
+
+## public/css/layout/workouts-bottom-nav-override.css
+
+Size: 5.20 KB
+
+```
+/**
+ * Workouts Bottom Navigation Override
+ * This file overrides the styles in workout-dark-theme.css for the bottom navigation
+ */
+
+/* Override the bottom navigation styles from workout-dark-theme.css */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/css/workouts-bottom-nav-override.css
+
+Size: 5.20 KB
+
+```
+/**
+ * Workouts Bottom Navigation Override
+ * This file overrides the styles in workout-dark-theme.css for the bottom navigation
+ */
+
+/* Override the bottom navigation styles from workout-dark-theme.css */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/js/workouts/weight-increment-x-fix.js
+
+Size: 5.05 KB
+
+```
+/**
+ * Weight Increment X Button Fix
+ * This script removes any X buttons from the Weight Increment label in the exercise options menu
+ */
+
+(function() {
+    // Function to remove X buttons from Weight Increment label
+    function removeXButtonsFromWeightIncrementLabel() {
+        // Find all Weight Increment labels
+        const weightIncrementLabels = document.querySelectorAll('.weight-increment-label');
+```
+
+## public/js/food/horizontal-edit-fields.js
+
+Size: 5.01 KB
+
+```
+/**
+ * Horizontal Edit Fields
+ * Ensures the name, amount, package amount, and package price fields are displayed horizontally
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to restructure the edit form fields
+    function restructureEditFields() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/js/food/fix-edit-button.js
+
+Size: 4.92 KB
+
+```
+/**
+ * Fix Edit Button
+ * Ensures the edit button for ingredients properly shows the edit form
+ */
+
+(function() {
+    console.log('[Fix Edit Button] Initializing...');
+
+    // Function to fix the edit button behavior
+    function fixEditButtonBehavior() {
+```
+
+## public/css/existing-ingredient-edit-fix.css
+
+Size: 4.92 KB
+
+```
+/**
+ * Existing Ingredient Edit Fix
+ * Specifically targets the edit form that appears when clicking the Edit button in the ingredient table
+ */
+
+/* Target the edit form in the ingredient table */
+.ingredient-details .edit-ingredient-form {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    padding: 0 !important;
+```
+
+## public/css/journal.css
+
+Size: 4.89 KB
+
+```
+/* Journal Page Styles */
+
+.journal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+```
+
+## public/css/components/photo-upload-modal-fix.css
+
+Size: 4.86 KB
+
+```
+/**
+ * Photo Upload Modal Fix
+ * Styles the photo upload modal with white text and buttons
+ */
+
+/* Make the modal labels white */
+#photo-upload-modal label,
+#photo-upload-modal .form-group label {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+```
+
+## public/css/fixes/habit-alignment-fix.css
+
+Size: 4.86 KB
+
+```
+/*
+ * Habit Alignment Fix
+ * Fixes the alignment of habit items that are pushed too far to the right
+ */
+
+/* Reset all margins and paddings for habit containers */
+.habit-list-section,
+.habit-list-section .card,
+.habit-list-section .card__body,
+.habit-list-section .card__content,
+```
+
+## public/js/food/fix-basic-info-on-load.js
+
+Size: 4.85 KB
+
+```
+/**
+ * Fix Basic Info On Load
+ * Fixes the Basic Information section styling immediately on page load
+ */
+
+(function() {
+    console.log('[Fix Basic Info On Load] Initializing...');
+
+    // Function to fix the Basic Information section
+    function fixBasicInfoOnLoad() {
+```
+
+## public/js/food/fix-ingredient-refresh.js
+
+Size: 4.79 KB
+
+```
+/**
+ * Fix for ingredient refresh issues
+ * 
+ * This script fixes issues with ingredients not showing up in the UI after being added
+ */
+
+(function() {
+    console.log('[Ingredient Refresh Fix] Initializing...');
+
+    // Wait for the DOM to be fully loaded
+```
+
+## public/css/base/typography.css
+
+Size: 4.79 KB
+
+```
+/**
+ * Typography
+ * Defines all typography-related styles
+ * Futuristic Dark Theme
+ */
+
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
+
+```
+
+## public/js/workouts/direct-delete-button-fix.js
+
+Size: 4.79 KB
+
+```
+/**
+ * Direct Delete Button Fix
+ * This script directly creates and inserts visible delete buttons
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDirectDeleteButtonFix);
+    } else {
+```
+
+## public/css/nutrition-display-redesign.css
+
+Size: 4.79 KB
+
+```
+/**
+ * Nutrition Display Redesign
+ * Creates a more compact, user-friendly, and visually appealing nutrition information display
+ */
+
+/* Main container for the nutrition panel */
+.detailed-nutrition-panel {
+    display: block !important;
+    margin-top: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+```
+
+## public/js/workouts/move-delete-button.js
+
+Size: 4.74 KB
+
+```
+/**
+ * Move Delete Button
+ * This script specifically moves the delete button in the exercise options menu to the bottom right next to the pencil icon
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMoveDeleteButton);
+    } else {
+```
+
+## public/css/components/checkbox-redesign.css
+
+Size: 4.73 KB
+
+```
+/**
+ * Checkbox Redesign
+ * Redesigns task checkboxes to be larger and more visually appealing
+ */
+
+/* Task checkboxes - with high specificity to override other styles */
+html body .task-item input[type="checkbox"] {
+    /* Larger size */
+    width: 24px !important;
+    height: 24px !important;
+```
+
+## public/css/utilities/checkbox-redesign.css
+
+Size: 4.73 KB
+
+```
+/**
+ * Checkbox Redesign
+ * Redesigns task checkboxes to be larger and more visually appealing
+ */
+
+/* Task checkboxes - with high specificity to override other styles */
+html body .task-item input[type="checkbox"] {
+    /* Larger size */
+    width: 24px !important;
+    height: 24px !important;
+```
+
+## public/css/layout/workouts-bottom-nav-animation.css
+
+Size: 4.67 KB
+
+```
+/**
+ * Workouts Bottom Navigation Animation
+ * Ensures the bottom navigation on the workouts page has the same animation and styling as other pages
+ */
+
+/* Ensure the bottom navigation has the correct styling */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/css/workouts-bottom-nav-animation.css
+
+Size: 4.67 KB
+
+```
+/**
+ * Workouts Bottom Navigation Animation
+ * Ensures the bottom navigation on the workouts page has the same animation and styling as other pages
+ */
+
+/* Ensure the bottom navigation has the correct styling */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/js/workouts/delete-button-fix.js
+
+Size: 4.64 KB
+
+```
+/**
+ * Delete Button Fix
+ * This script ensures the delete button remains visible and functional after being clicked
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDeleteButtonFix);
+    } else {
+```
+
+## public/js/food/direct-dom-modification.js
+
+Size: 4.62 KB
+
+```
+/**
+ * Direct DOM Modification
+ * Directly modifies the DOM structure of the Basic Information section to match the other sections
+ */
+
+(function() {
+    // Function to directly modify the DOM structure
+    function directDomModification() {
+        // Find all edit forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/edit-ingredient-nutrition-style.css
+
+Size: 4.57 KB
+
+```
+/**
+ * Edit Ingredient Nutrition Style
+ * Makes the edit ingredient form match the detailed nutrition panel style
+ */
+
+/* Basic Information section styling to match nutrition sections */
+.edit-ingredient-form .basic-information {
+    margin-bottom: 15px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 10px !important;
+```
+
+## public/css/product-tracking.css
+
+Size: 4.53 KB
+
+```
+/* Product Tracking Styles */
+
+.content-wrapper {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: #2c3e50;
+```
+
+## public/js/food/ensure-all-buttons-visible.js
+
+Size: 4.53 KB
+
+```
+/**
+ * Ensure all buttons are visible in all forms
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to ensure all buttons are visible
+    function ensureAllButtonsVisible() {
+        // Fix for Edit Ingredient form
+        document.querySelectorAll('.edit-ingredient-form').forEach(form => {
+            const formElement = form.querySelector('form');
+            if (!formElement) return;
+```
+
+## public/js/workouts/icon-diagnostic.js
+
+Size: 4.49 KB
+
+```
+/**
+ * Icon Diagnostic Script
+ * This script logs detailed information about the bottom navigation icons
+ */
+
+// Function to diagnose the icons
+function diagnoseIcons() {
+    console.log('Running icon diagnostic...');
+
+    // Find all navigation items
+```
+
+## public/css/components/calendar-modal-fix.css
+
+Size: 4.45 KB
+
+```
+/**
+ * Calendar Modal Fix
+ * Applies dark theme styling to the edit task modal in the calendar page
+ */
+
+/* Modal background */
+.modal {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+```
+
+## public/css/fix-workouts-nav-icons.css
+
+Size: 4.43 KB
+
+```
+/**
+ * Fix Workouts Navigation Icons
+ * This CSS file specifically fixes the workouts page bottom navigation icons and text
+ * to match the styling in the tasks page
+ */
+
+/* Reset all bottom navigation styling to match the tasks page */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+```
+
+## public/css/utilities/fix-workouts-nav-icons.css
+
+Size: 4.43 KB
+
+```
+/**
+ * Fix Workouts Navigation Icons
+ * This CSS file specifically fixes the workouts page bottom navigation icons and text
+ * to match the styling in the tasks page
+ */
+
+/* Reset all bottom navigation styling to match the tasks page */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+```
+
+## public/css/task-indicators.css
+
+Size: 4.34 KB
+
+```
+/* Task Indicators CSS */
+
+/* Due Date Indicator */
+.due-date-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+```
+
+## public/css/utilities/task-indicators.css
+
+Size: 4.34 KB
+
+```
+/* Task Indicators CSS */
+
+/* Due Date Indicator */
+.due-date-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+```
+
+## public/css/checkbox-alignment-fix.css
+
+Size: 4.34 KB
+
+```
+/* Checkbox alignment fix */
+
+/* Force task items to use row layout - with high specificity */
+html body .task-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important; /* Remove gap to have more control over spacing */
+}
+```
+
+## public/css/components/checkbox-alignment-fix.css
+
+Size: 4.34 KB
+
+```
+/* Checkbox alignment fix */
+
+/* Force task items to use row layout - with high specificity */
+html body .task-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important; /* Remove gap to have more control over spacing */
+}
+```
+
+## public/css/utilities/checkbox-alignment-fix.css
+
+Size: 4.34 KB
+
+```
+/* Checkbox alignment fix */
+
+/* Force task items to use row layout - with high specificity */
+html body .task-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important; /* Remove gap to have more control over spacing */
+}
+```
+
+## public/css/components/template-editor-fix.css
+
+Size: 4.34 KB
+
+```
+/**
+ * Template Editor Fix
+ * This file contains styles to fix alignment issues in the workout template editor
+ */
+
+/* Hide the default column headers that come from the active workout view */
+.template-editor-list .exercise-item .column-headers {
+    display: none !important;
+}
+
+```
+
+## public/js/workouts/force-delete-button.js
+
+Size: 4.32 KB
+
+```
+/**
+ * Force Delete Button
+ * This script forcefully replaces the delete button with a new one that is guaranteed to be visible
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initForceDeleteButton);
+    } else {
+```
+
+## public/css/layout/unified-bottom-nav-final.css
+
+Size: 4.31 KB
+
+```
+/**
+ * Unified Bottom Navigation - Final
+ * A single, consistent styling for the bottom navigation bar across all pages
+ */
+
+/* Base styling for the bottom navigation bar */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/css/utilities/habit-indicators-redesign.css
+
+Size: 4.26 KB
+
+```
+/**
+ * Habit Indicators Redesign
+ * Improves the design of progress badges and level indicators
+ */
+
+/* Redesigned progress badges */
+.habit-progress-container,
+.habit-progress {
+    background-color: rgba(20, 20, 20, 0.6) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+```
+
+## public/js/workouts/x-button-svg-fix.js
+
+Size: 4.24 KB
+
+```
+/**
+ * X Button SVG Fix
+ * This script replaces the X character with an SVG icon as a last resort
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSvgFix);
+    } else {
+```
+
+## public/js/components/date-badge-redesign.js
+
+Size: 4.14 KB
+
+```
+/**
+ * Date Badge Redesign
+ * Removes the calendar icon from all date indicators and styles them like the Weekly badge
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update date indicators
+    function updateDateIndicators() {
+        // Find all date indicators (overdue, due today, and next)
+        const dateIndicators = document.querySelectorAll('.due-date-indicator, .next-occurrence-indicator');
+```
+
+## public/js/workouts/bottom-right-x-fix.js
+
+Size: 4.10 KB
+
+```
+/**
+ * Bottom Right X Fix
+ * This script specifically positions the X button in the bottom right corner of the Weight Increment section
+ */
+
+(function() {
+    // Run immediately
+    fixBottomRightXButton();
+    
+    // Also run after DOM is loaded
+```
+
+## public/css/layout/unified-bottom-nav.css
+
+Size: 4.08 KB
+
+```
+/**
+ * Unified Bottom Navigation
+ * A single, consistent styling for the bottom navigation bar across all pages
+ */
+
+/* Reset and override any page-specific styles */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/css/unified-bottom-nav.css
+
+Size: 4.08 KB
+
+```
+/**
+ * Unified Bottom Navigation
+ * A single, consistent styling for the bottom navigation bar across all pages
+ */
+
+/* Reset and override any page-specific styles */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/css/components/modal-highlight-fix.css
+
+Size: 4.07 KB
+
+```
+/**
+ * Modal Highlight Fix
+ * Changes highlight colors in modals from green to white
+ */
+
+/* Modal headers and titles */
+.modal-header h2,
+.modal-content h2,
+#addTaskModal h2,
+#editTaskModal h2,
+```
+
+## public/css/nutrition-scan.css
+
+Size: 4.01 KB
+
+```
+/* Nutrition scan styles */
+
+.scan-buttons-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.scan-nutrition-btn, .paste-nutrition-btn, .scan-template-btn {
+```
+
+## public/css/pages/nutrition-scan.css
+
+Size: 4.01 KB
+
+```
+/* Nutrition scan styles */
+
+.scan-buttons-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.scan-nutrition-btn, .paste-nutrition-btn, .scan-template-btn {
+```
+
+## public/js/components/task-icons-fix.js
+
+Size: 3.99 KB
+
+```
+/**
+ * Task Icons Fix
+ * Replaces emoji icons with Font Awesome icons for task actions
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update task action icons
+    function updateTaskActionIcons() {
+        // Replace pencil emoji with Font Awesome icon
+        document.querySelectorAll('.task-actions .pencil-icon').forEach(icon => {
+```
+
+## public/css/fixes/weight-increment-x-button-fix.css
+
+Size: 3.95 KB
+
+```
+/**
+ * Direct fix for the duplicate X button in the Weight Increment section
+ * This file contains a very targeted fix that only affects the X button in the Weight Increment label
+ */
+
+/* Target the no-x-button class specifically */
+.no-x-button button,
+.no-x-button::after,
+.no-x-button::before,
+.no-x-button > button,
+```
+
+## public/css/weight-increment-x-button-fix.css
+
+Size: 3.95 KB
+
+```
+/**
+ * Direct fix for the duplicate X button in the Weight Increment section
+ * This file contains a very targeted fix that only affects the X button in the Weight Increment label
+ */
+
+/* Target the no-x-button class specifically */
+.no-x-button button,
+.no-x-button::after,
+.no-x-button::before,
+.no-x-button > button,
+```
+
+## public/js/food/fix-form-buttons.js
+
+Size: 3.92 KB
+
+```
+/**
+ * Fix Form Buttons
+ * Ensures only one set of form action buttons is displayed
+ */
+
+(function() {
+    console.log('[Fix Form Buttons] Initializing...');
+
+    // Function to remove duplicate buttons
+    function removeDuplicateButtons() {
+```
+
+## public/js/food/horizontal-ingredient-edit.js
+
+Size: 3.92 KB
+
+```
+/**
+ * Horizontal Ingredient Edit
+ * Restructures the ingredient edit form to use a horizontal layout
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to restructure the edit form
+    function restructureEditForm() {
+        // Find all edit ingredient forms on the page
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/fixes/food-edit-button-fix.css
+
+Size: 3.88 KB
+
+```
+/**
+ * Food Edit Button Fix
+ * Changes the edit button styling in the food tracking interface to match the dark theme
+ */
+
+/* Edit button styling - change from blue to dark with white text */
+.edit-ingredient-btn {
+    background-color: rgba(30, 30, 30, 0.7) !important; /* Dark background to match theme */
+    color: white !important; /* White text */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
+```
+
+## public/css/components/template-exercise-button-fix.css
+
+Size: 3.87 KB
+
+```
+/**
+ * Template Exercise Button Fix
+ * This file contains styles to fix the View Exercise button color and delete button position
+ */
+
+/* Make the View Exercise button match the exercise name color */
+.btn-view-exercise,
+.template-editor-list .btn-view-exercise,
+#template-editor-page .btn-view-exercise,
+.exercise-item .btn-view-exercise,
+```
+
+## public/css/direct-x-button-fix.css
+
+Size: 3.87 KB
+
+```
+/**
+ * Direct X Button Fix
+ * This file contains targeted CSS to remove X buttons from the Weight Increment section
+ * while preserving necessary buttons
+ */
+
+/* Only target X buttons in the Weight Increment label */
+.exercise-options-menu-label .weight-increment-label button,
+.exercise-options-menu-label .weight-increment-container button,
+.exercise-options-menu-label .weight-increment-text button {
+```
+
+## public/css/fixes/direct-x-button-fix.css
+
+Size: 3.87 KB
+
+```
+/**
+ * Direct X Button Fix
+ * This file contains targeted CSS to remove X buttons from the Weight Increment section
+ * while preserving necessary buttons
+ */
+
+/* Only target X buttons in the Weight Increment label */
+.exercise-options-menu-label .weight-increment-label button,
+.exercise-options-menu-label .weight-increment-container button,
+.exercise-options-menu-label .weight-increment-text button {
+```
+
+## public/css/consistent-nutrition-styling.css
+
+Size: 3.81 KB
+
+```
+/**
+ * Consistent Nutrition Styling
+ * Ensures consistent styling between the detailed nutrition panel and edit ingredient form
+ */
+
+/* Ensure consistent styling for both panels */
+.detailed-nutrition-panel,
+.edit-ingredient-form .detailed-nutrition-panel {
+    margin-top: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+```
+
+## public/js/workouts/update-bottom-nav-animation.js
+
+Size: 3.80 KB
+
+```
+/**
+ * Update Bottom Navigation Animation for Workouts Page
+ * This script ensures the workouts page has the same bottom navigation styling as other pages
+ */
+
+// Function to update the bottom navigation
+function updateWorkoutsBottomNav() {
+    console.log('Updating workouts bottom navigation...');
+    
+    // First, remove any existing bottom navigation
+```
+
+## public/js/workouts/x-button-html-fix.js
+
+Size: 3.74 KB
+
+```
+/**
+ * X Button HTML Fix
+ * This script directly modifies the HTML of the delete button to ensure the X character is displayed correctly
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initXButtonFix);
+    } else {
+```
+
+## public/css/base/variables.css
+
+Size: 3.73 KB
+
+```
+/**
+ * CSS Variables
+ * This file contains all the CSS variables used throughout the application.
+ * Futuristic Dark Theme
+ */
+
+:root {
+  /* Color Palette */
+
+  /* Primary Colors - Electric Green */
+```
+
+## public/js/food/direct-basic-info-styling.js
+
+Size: 3.72 KB
+
+```
+/**
+ * Direct Basic Info Styling
+ * Directly applies the exact same styling to the Basic Information section as the other sections
+ */
+
+(function() {
+    // Function to directly style the Basic Information section
+    function directBasicInfoStyling() {
+        // Find all edit forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+```
+
+## public/css/base/base.css
+
+Size: 3.71 KB
+
+```
+/**
+ * Base Styles
+ * Imports all base styles and defines global styles
+ * Futuristic Dark Theme
+ */
+
+/* Import base stylesheets */
+@import 'variables.css';
+@import 'reset.css';
+@import 'typography.css';
+```
+
+## public/css/direct-basic-info-fix.css
+
+Size: 3.70 KB
+
+```
+/**
+ * Direct Basic Info Fix
+ * Directly targets and styles the Basic Information section in the edit form
+ */
+
+/* Target the Basic Information section directly */
+.edit-ingredient-form .basic-information,
+.edit-ingredient-form form > div:first-of-type,
+.edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]),
+.edit-ingredient-form form > div:has(> #edit-ingredient-name),
+```
+
+## public/css/edit-button-basic-info-fix.css
+
+Size: 3.70 KB
+
+```
+/**
+ * Edit Button Basic Info Fix
+ * Specifically targets and fixes the Basic Information section when editing an existing ingredient
+ */
+
+/* Target the Basic Information section in edit forms */
+.edit-ingredient-form form > div:first-of-type,
+.edit-ingredient-form .form-group-row,
+.edit-ingredient-form .basic-information {
+    margin-bottom: 8px !important;
+```
+
+## public/js/workouts/x-button-position-fix.js
+
+Size: 3.66 KB
+
+```
+/**
+ * X Button Position Fix
+ * This script ensures the X button is positioned at the bottom right next to the pencil icon
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPositionFix);
+    } else {
+```
+
+## public/css/pages/simplified-nutrition-scan.css
+
+Size: 3.64 KB
+
+```
+/* Simplified Nutrition Scan Styles */
+
+/* Field Highlighting */
+.nutrition-field.correct {
+    background-color: #d4edda !important;
+    border-color: #c3e6cb !important;
+}
+
+.nutrition-field.override {
+    background-color: #fff3cd !important;
+```
+
+## public/js/food/specific-button-fix.js
+
+Size: 3.61 KB
+
+```
+/**
+ * Specific Button Fix
+ * Directly targets the Show Detailed Nutrition button by its position in the DOM
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to fix the specific button
+    function fixSpecificButton() {
+        // Find the first button in the page (which should be the Show Detailed Nutrition button)
+        const firstButton = document.querySelector('.nutrition-controls button') || 
+                           document.querySelector('button:first-of-type');
+```
+
+## public/js/workouts/exact-icon-replacement.js
+
+Size: 3.46 KB
+
+```
+/**
+ * Exact Icon Replacement
+ * This script replaces the workouts icon with the exact same icon used in the other pages
+ */
+
+// Function to replace the workouts icon
+function replaceWorkoutsIcon() {
+    console.log('Replacing workouts icon with exact match...');
+    
+    // Find the workouts tab
+```
+
+## public/js/components/overdue-badge-redesign.js
+
+Size: 3.40 KB
+
+```
+/**
+ * Date Badge Redesign
+ * Removes the calendar icon from date indicators (Overdue, Due Today) and styles them like the Weekly badge
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update date indicators
+    function updateDateIndicators() {
+        // Find all date indicators (overdue and due today)
+        const dateIndicators = document.querySelectorAll('.due-date-indicator.overdue, .due-date-indicator.due-soon, .next-occurrence-indicator.overdue, .next-occurrence-indicator.due-soon');
+```
+
+## public/js/tasks/overdue-badge-redesign.js
+
+Size: 3.40 KB
+
+```
+/**
+ * Date Badge Redesign
+ * Removes the calendar icon from date indicators (Overdue, Due Today) and styles them like the Weekly badge
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update date indicators
+    function updateDateIndicators() {
+        // Find all date indicators (overdue and due today)
+        const dateIndicators = document.querySelectorAll('.due-date-indicator.overdue, .due-date-indicator.due-soon, .next-occurrence-indicator.overdue, .next-occurrence-indicator.due-soon');
+```
+
+## public/css/cronometer-dark-theme.css
+
+Size: 3.40 KB
+
+```
+/**
+ * Cronometer Nutrition Dark Theme
+ * Applies dark theme styling to the Cronometer Nutrition page
+ * Matches the styling of the Tasks page
+ */
+
+/* Body and container */
+body {
+    background-color: #0a0a0a !important;
+    color: #e0e0e0 !important;
+```
+
+## public/js/food/direct-nutrition-toggle.js
+
+Size: 3.39 KB
+
+```
+/**
+ * Direct Nutrition Toggle
+ * A simple, direct solution for the Show Detailed Nutrition button
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to set up the toggle button
+    function setupToggleButton() {
+        // Find the Show Detailed Nutrition button
+        const toggleButton = document.querySelector('button.toggle-detailed-nutrition') || 
+                            document.querySelector('button#show-detailed-nutrition-btn') ||
+```
+
+## public/css/extreme-basic-info-fix.css
+
+Size: 3.39 KB
+
+```
+/**
+ * Extreme Basic Info Fix
+ * Directly targets and styles the Basic Information section in the edit form
+ */
+
+/* Target the Basic Information section directly */
+.edit-ingredient-form .basic-information,
+.edit-ingredient-form form > div:first-of-type,
+.edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]),
+.edit-ingredient-form form > div:has(> #edit-ingredient-name),
+```
+
+## public/css/themes/chart-dark-theme.css
+
+Size: 3.37 KB
+
+```
+/**
+ * Chart.js Dark Theme
+ * Applies dark theme styling to Chart.js charts
+ */
+
+/* Override Chart.js default styles */
+.chartjs-render-monitor {
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border-radius: 4px !important;
+}
+```
+
+## public/js/workouts/fix-weight-increment-x.js
+
+Size: 3.33 KB
+
+```
+/**
+ * Fix Weight Increment X
+ * This script specifically targets and fixes the Weight Increment X issue
+ */
+
+(function() {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFixWeightIncrementX);
+    } else {
+```
+
+## public/css/horizontal-edit-fields.css
+
+Size: 3.33 KB
+
+```
+/**
+ * Horizontal Edit Fields
+ * Places the name, amount, package amount, and package price fields horizontally
+ */
+
+/* Target the edit ingredient form directly */
+.edit-ingredient-form {
+    padding: 8px !important;
+}
+
+```
+
+## public/css/horizontal-ingredient-edit.css
+
+Size: 3.31 KB
+
+```
+/**
+ * Horizontal Ingredient Edit Form
+ * Reorganizes the edit ingredient form to place fields horizontally
+ */
+
+/* Main edit form container */
+.edit-ingredient-form {
+    margin-top: 5px !important;
+    padding: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+```
+
+## public/css/fixes/weight-increment-fix.css
+
+Size: 3.28 KB
+
+```
+/**
+ * Weight Increment Fix
+ * This file contains styles to fix the duplicate X button issue in the Weight Increment section
+ */
+
+/* Reset all styling for the weight increment label */
+.weight-increment-label {
+    background-color: transparent !important;
+    border: none !important;
+    color: #bbb !important;
+```
+
+## public/css/weight-increment-fix.css
+
+Size: 3.28 KB
+
+```
+/**
+ * Weight Increment Fix
+ * This file contains styles to fix the duplicate X button issue in the Weight Increment section
+ */
+
+/* Reset all styling for the weight increment label */
+.weight-increment-label {
+    background-color: transparent !important;
+    border: none !important;
+    color: #bbb !important;
+```
+
+## public/css/components/habit-checkbox-fix.css
+
+Size: 3.21 KB
+
+```
+/**
+ * Habit Checkbox Fix
+ * Removes green glow from habit checkboxes and replaces with white styling
+ */
+
+/* Base styling for habit checkboxes */
+.habit-checkbox,
+html body .habit-item .habit-checkbox {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+```
+
+## public/js/food/emergency-button-fix.js
+
+Size: 3.13 KB
+
+```
+/**
+ * Emergency Button Fix
+ * Last resort fix for duplicate buttons
+ */
+
+(function() {
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+```
+
+## public/css/force-basic-info-styling.css
+
+Size: 3.09 KB
+
+```
+/**
+ * Force Basic Information Styling
+ * Directly styles the Basic Information section to match other sections
+ */
+
+/* Target the first div in the form */
+.edit-ingredient-form form > div:first-of-type {
+    background-color: #1e1e1e !important;
+    border-radius: 5px !important;
+    padding: 15px !important;
+```
+
+## public/css/components/ingredient-buttons-dark.css
+
+Size: 3.08 KB
+
+```
+/* Dark theme styling for ingredient section buttons */
+
+/* Make the Ingredients heading white */
+#recipe-creation-section h3,
+#recipes-display-section h2 {
+    color: #ffffff !important;
+    font-weight: 500;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+```
+
+## public/css/components/custom-form-elements.css
+
+Size: 3.08 KB
+
+```
+/* Custom Form Elements Styling */
+
+/* ===== Custom File Input ===== */
+.custom-file-input {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.custom-file-input input[type="file"] {
+```
+
+## public/css/components/template-exercise-simplified.css
+
+Size: 3.07 KB
+
+```
+/* CSS to simplify exercise items in template editor */
+
+/* Hide set numbers, weight boxes, reps input boxes, and set buttons in template editor */
+.template-editor-list .sets-container,
+.template-editor-list .set-actions-container,
+.template-editor-list .column-headers {
+    display: none !important;
+}
+
+/* Make template exercise items more compact and visually appealing */
+```
+
+## public/js/food/ensure-buttons-visible.js
+
+Size: 3.07 KB
+
+```
+/**
+ * Ensure buttons are visible in the Edit Ingredient form
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to ensure buttons are visible
+    function ensureButtonsVisible() {
+        // Find all edit ingredient forms
+        document.querySelectorAll('.edit-ingredient-form').forEach(form => {
+            // Find the form element
+            const formElement = form.querySelector('form');
+```
+
+## public/js/food/toggle-nutrition-panel.js
+
+Size: 3.06 KB
+
+```
+/**
+ * Toggle Nutrition Panel
+ * Handles showing and hiding the detailed nutrition panel
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to handle toggling the detailed nutrition panel
+    function setupToggleButtons() {
+        // Find all toggle buttons
+        document.querySelectorAll('.toggle-detailed-nutrition').forEach(button => {
+            // Skip if already processed
+```
+
+## public/css/form-group-row-fix.css
+
+Size: 2.93 KB
+
+```
+/**
+ * Form Group Row Fix
+ * Specifically targets and fixes the form-group-row structure that appears when editing an existing ingredient
+ */
+
+/* Target the form-group-row structure */
+.edit-ingredient-form .form-group-row {
+    margin-bottom: 8px !important;
+    padding: 8px !important;
+    background-color: rgba(25, 25, 25, 0.7) !important;
+```
+
+## public/css/force-basic-info-format.css
+
+Size: 2.93 KB
+
+```
+/**
+ * Force Basic Info Format
+ * Forces the Basic Information section to have the correct format in all cases
+ */
+
+/* Hide any original Basic Information sections or form-group-rows */
+.edit-ingredient-form form > div:first-of-type:not(.nutrition-section),
+.edit-ingredient-form .form-group-row:not(.nutrition-section),
+.edit-ingredient-form .basic-information:not(.nutrition-section) {
+    display: none !important;
+```
+
+## public/css/components/action-buttons-uniform.css
+
+Size: 2.91 KB
+
+```
+/**
+ * Action Buttons Uniform
+ * Makes habit and task edit/delete buttons have consistent styling
+ */
+
+/* Unified styling for both task and habit action buttons */
+html body .task-actions .icon-btn,
+html body .habit-actions .icon-btn,
+html body .habit-actions .edit-habit-icon-btn,
+html body .habit-actions .delete-habit-icon-btn {
+```
+
+## public/js/food/fix-toggle-button-final.js
+
+Size: 2.91 KB
+
+```
+/**
+ * Fix Toggle Button Final
+ * A direct solution to fix the Show Detailed Nutrition button
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to fix the toggle button
+    function fixToggleButton() {
+        // Find the button with class toggle-detailed-nutrition
+        const toggleButton = document.querySelector('.toggle-detailed-nutrition');
+        
+```
+
+## public/css/fixes/task-action-hover-fix.css
+
+Size: 2.89 KB
+
+```
+/**
+ * Task Action Hover Fix
+ * Makes task edit and delete buttons only appear on hover
+ */
+
+/* Hide task actions by default with high specificity */
+html body .task-item .task-actions {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.2s ease, visibility 0.2s ease !important;
+```
+
+## public/css/themes/calendar-dark-theme.css
+
+Size: 2.88 KB
+
+```
+/**
+ * Calendar Dark Theme
+ * Applies dark theme styling to the calendar grid and controls
+ */
+
+/* Calendar Controls */
+.calendar-controls {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+```
+
+## public/css/components/dramatic-checkbox.css
+
+Size: 2.82 KB
+
+```
+/* Futuristic Checkbox Styling - v1.7 */
+
+/* Force task items to use row layout */
+.task-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+}
+
+/* Modern futuristic checkbox with sleek design */
+```
+
+## public/css/dramatic-checkbox.css
+
+Size: 2.82 KB
+
+```
+/* Futuristic Checkbox Styling - v1.7 */
+
+/* Force task items to use row layout */
+.task-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+}
+
+/* Modern futuristic checkbox with sleek design */
+```
+
+## public/css/fixes/habit-fix.css
+
+Size: 2.81 KB
+
+```
+/* CSS to ensure completed habits stay visually completed */
+
+/* Style for the habit item to indicate completion */
+.habit-item[data-completed="true"] {
+    background-color: rgba(0, 230, 118, 0.05) !important;
+    border-left: 4px solid rgba(0, 230, 118, 0.8) !important;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.1) !important;
+}
+
+/* Ensure the control container has proper positioning for the checkmark */
+```
+
+## public/css/habit-fix.css
+
+Size: 2.81 KB
+
+```
+/* CSS to ensure completed habits stay visually completed */
+
+/* Style for the habit item to indicate completion */
+.habit-item[data-completed="true"] {
+    background-color: rgba(0, 230, 118, 0.05) !important;
+    border-left: 4px solid rgba(0, 230, 118, 0.8) !important;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.1) !important;
+}
+
+/* Ensure the control container has proper positioning for the checkmark */
+```
+
+## public/js/utils/dashboard-stats.js
+
+Size: 2.79 KB
+
+```
+/**
+ * Dashboard Stats
+ * Updates the dashboard statistics cards with real-time data
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard stats
+    updateDashboardStats();
+    
+    // Update stats when tasks or habits change
+```
+
+## public/css/fixes/delete-button-fix.css
+
+Size: 2.76 KB
+
+```
+/* Delete Button Fix CSS */
+
+/* Override the display:none for delete buttons */
+.btn-delete-exercise,
+.btn-delete-exercise-direct {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    z-index: 1000 !important;
+```
+
+## public/css/components/header-dropdown-fix.css
+
+Size: 2.71 KB
+
+```
+/**
+ * Header Dropdown Fix
+ * Makes the "My Tasks" text white and reduces dropdown padding
+ */
+
+/* Make the "My Tasks" text white instead of gradient */
+.container h1.gradient-text {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+```
+
+## public/css/complete-basic-info-replacement.css
+
+Size: 2.71 KB
+
+```
+/**
+ * Complete Basic Info Replacement
+ * Ensures the styling for the completely replaced Basic Information section
+ */
+
+/* Hide any original Basic Information sections or form-group-rows */
+.edit-ingredient-form form > div:first-of-type:not(.nutrition-section),
+.edit-ingredient-form .form-group-row:not(.nutrition-section) {
+    display: none !important;
+}
+```
+
+## public/js/food/disable-other-basic-info-scripts.js
+
+Size: 2.68 KB
+
+```
+/**
+ * Disable Other Basic Info Scripts
+ * This script disables other scripts that try to modify the Basic Information section
+ * when our integrated approach in show-nutrition-panel.js is active
+ */
+
+(function() {
+    // Function to disable other Basic Info scripts
+    function disableOtherBasicInfoScripts() {
+        // Find all edit ingredient forms
+```
+
+## public/css/fixes/goal-checkmark-alignment-fix.css
+
+Size: 2.67 KB
+
+```
+/**
+ * Goal Checkmark Alignment Fix
+ * This CSS aligns the checkmark in the GOAL column with the checkboxes
+ */
+
+/* Align the checkmark in the GOAL column with the checkboxes */
+.column-headers span:nth-child(6) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+```
+
+## public/css/smaller-nutrition-inputs.css
+
+Size: 2.64 KB
+
+```
+/**
+ * Smaller Nutrition Inputs
+ * Makes the number input boxes smaller in the ingredient edit form
+ */
+
+/* Target all input fields in the detailed nutrition panel */
+.detailed-nutrition-panel .nutrition-item input,
+.detailed-nutrition-panel .nutrition-item input[type="number"] {
+    width: 50px !important; /* Reduce width */
+    padding: 1px 3px !important; /* Smaller padding */
+```
+
+## public/css/ensure-all-buttons-visible.css
+
+Size: 2.64 KB
+
+```
+/**
+ * Ensure all buttons are visible in all forms
+ */
+
+/* Make sure all form action buttons are visible */
+.form-actions,
+form .form-actions,
+.edit-ingredient-form .form-actions,
+.create-recipe-form .form-actions {
+    display: flex !important;
+```
+
+## public/css/basic-info-grid-format.css
+
+Size: 2.63 KB
+
+```
+/**
+ * Basic Info Grid Format
+ * Formats the Basic Information section to use the same grid layout as other sections
+ */
+
+/* Style the Basic Information section like other sections */
+.edit-ingredient-form .basic-information {
+    margin-bottom: 8px !important;
+    padding: 8px !important;
+    background-color: rgba(25, 25, 25, 0.7) !important;
+```
+
+## public/js/workouts/fix-workouts-icon.js
+
+Size: 2.60 KB
+
+```
+/**
+ * Fix Workouts Icon
+ * This script specifically fixes the workouts icon in the bottom navigation
+ */
+
+// Wait for the page to fully load
+window.addEventListener('load', function() {
+    // Function to fix the workouts icon
+    function fixWorkoutsIcon() {
+        console.log('Fixing workouts icon...');
+```
+
+## public/css/complete-basic-info-fix.css
+
+Size: 2.59 KB
+
+```
+/**
+ * Complete Basic Information Fix
+ * Completely fixes the Basic Information section styling
+ */
+
+/* Make Basic Information section match other sections */
+.edit-ingredient-form form > div:first-of-type,
+.edit-ingredient-form .form-group-row,
+.edit-ingredient-form div:has(> label[for="edit-ingredient-name"]),
+.edit-ingredient-form .basic-information {
+```
+
+## public/css/top-fields-dark-fix.css
+
+Size: 2.57 KB
+
+```
+/**
+ * Top Fields Dark Fix
+ * Makes the top fields (Name, Amount, Package Amount, Package Price) match the styling of the rest of the form
+ */
+
+/* Hide any extra form-group-column elements */
+.edit-ingredient-form > form > .form-group-column:not(.nutrition-grid):not(.basic-info-grid) {
+    display: none !important;
+}
+
+```
+
+## public/css/fixes/force-gray-workouts-icon.css
+
+Size: 2.57 KB
+
+```
+/**
+ * Workouts Icon Styling
+ * This CSS file ensures the workouts icon has the same styling as other pages
+ */
+
+/* Make the active item white, just like other pages */
+.bottom-nav .nav-item.active {
+    color: #FFFFFF !important; /* White color for active item */
+}
+
+```
+
+## public/css/final-button-fix.css
+
+Size: 2.53 KB
+
+```
+/**
+ * Final Button Fix
+ * CSS to ensure only one set of buttons is displayed in edit forms
+ */
+
+/* Hide all form-actions except the last one */
+.edit-ingredient-form .form-actions:not(:last-of-type) {
+    display: none !important;
+}
+
+```
+
+## public/css/layout/sidebar-fix.css
+
+Size: 2.51 KB
+
+```
+/*
+ * Sidebar Fix
+ * Fixes issues with the sidebar and overlay
+ */
+
+/* Fix z-index issues */
+.sidebar {
+    z-index: 1060 !important; /* Higher than modal backdrop */
+    position: fixed !important;
+    top: 0 !important;
+```
+
+## public/js/calendar/calendar-refresh.js
+
+Size: 2.51 KB
+
+```
+// Script to refresh the calendar when habits are completed
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Calendar refresh script loaded');
+
+    // Function to refresh the calendar for habit events only
+    // Note: Task events are handled by calendar-refresh-fix.js
+    window.refreshCalendarForHabits = async function() {
+        console.log('Refreshing calendar for habits...');
+
+        // Check if we're on the calendar page
+```
+
+## public/js/pages/calendar/calendar-refresh.js
+
+Size: 2.51 KB
+
+```
+// Script to refresh the calendar when habits are completed
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Calendar refresh script loaded');
+
+    // Function to refresh the calendar for habit events only
+    // Note: Task events are handled by calendar-refresh-fix.js
+    window.refreshCalendarForHabits = async function() {
+        console.log('Refreshing calendar for habits...');
+
+        // Check if we're on the calendar page
+```
+
+## public/js/food/simple-nutrition-toggle.js
+
+Size: 2.45 KB
+
+```
+/**
+ * Simple Nutrition Toggle
+ * A direct solution to toggle the detailed nutrition sections
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to handle the toggle button click
+    function handleToggleClick(button) {
+        // Find all sections except General
+        const sections = document.querySelectorAll('.carbohydrates, .lipids, .protein, .vitamins, .minerals');
+
+```
+
+## public/css/days-since.css
+
+Size: 2.38 KB
+
+```
+/* Days Since specific styles */
+.days-since-input-section,
+.days-since-list-section {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dde5eb;
+    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+}
+```
+
+## public/css/basic-info-complete-replacement.css
+
+Size: 2.37 KB
+
+```
+/**
+ * Basic Info Complete Replacement
+ * Styles the completely replaced Basic Information section
+ */
+
+/* Style the Basic Information section */
+.edit-ingredient-form .nutrition-section.basic-information {
+    background-color: rgba(25, 25, 25, 0.7) !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+```
+
+## public/css/fixes/calendar-day-highlight-fix.css
+
+Size: 2.36 KB
+
+```
+/**
+ * Calendar Day Highlight Fix
+ * Changes the selected day highlight to white and redesigns scrollbars
+ */
+
+/* Selected day highlight */
+.calendar-day.selected {
+    background-color: rgba(255, 255, 255, 0.15) !important; /* Subtle white highlight */
+    border: 1px solid rgba(255, 255, 255, 0.5) !important; /* Brighter white border */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important; /* White glow */
+```
+
+## public/css/fix-basic-info.css
+
+Size: 2.35 KB
+
+```
+/**
+ * Fix Basic Info
+ * Simple CSS to ensure the Basic Information section has the correct styling
+ */
+
+/* Style the Basic Information section */
+.edit-ingredient-form form .nutrition-section.basic-information {
+    margin-bottom: 8px !important;
+    padding: 8px !important;
+    background-color: rgba(25, 25, 25, 0.7) !important;
+```
+
+## public/css/base/reset.css
+
+Size: 2.31 KB
+
+```
+/**
+ * Reset CSS
+ * A minimal CSS reset to ensure consistent styling across browsers
+ */
+
+/* Box sizing for all elements */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+```
+
+## public/css/pages/workout-history-popup.css
+
+Size: 2.31 KB
+
+```
+/* Workout History Popup Styles */
+.history-popup-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+```
+
+## public/css/forms/cronometer-text-parser-dark.css
+
+Size: 2.29 KB
+
+```
+/* Cronometer Text Parser Dark Theme Styles */
+
+.cronometer-text-paste-container {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    background-color: rgba(30, 30, 30, 0.7);
+    width: 100%;
+    box-sizing: border-box;
+```
+
+## public/css/detailed-nutrition-toggle-fix.css
+
+Size: 2.28 KB
+
+```
+/**
+ * Fix for the Show Detailed Nutrition button
+ * Ensures proper styling when toggling sections
+ */
+
+/* Style for the toggle button */
+button.toggle-detailed-nutrition,
+#show-detailed-nutrition-btn,
+button.show-detailed-nutrition {
+    background-color: #ffffff !important;
+```
+
+## public/css/fixes/weight-increment-bottom-right-fix.css
+
+Size: 2.25 KB
+
+```
+/*
+ * Weight Increment Top Right Fix
+ * This file specifically positions the X button in the top right corner of the Weight Increment section
+ */
+
+/* Target the X button in the Weight Increment section */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"],
+.weight-increment-container .weight-increment-x-button {
+```
+
+## public/css/weight-increment-bottom-right-fix.css
+
+Size: 2.25 KB
+
+```
+/*
+ * Weight Increment Top Right Fix
+ * This file specifically positions the X button in the top right corner of the Weight Increment section
+ */
+
+/* Target the X button in the Weight Increment section */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"],
+.weight-increment-container .weight-increment-x-button {
+```
+
+## public/js/food/disable-conflicting-scripts.js
+
+Size: 2.23 KB
+
+```
+/**
+ * Disable Conflicting Scripts
+ * Disables all the conflicting scripts that try to modify the Basic Information section
+ */
+
+(function() {
+    // List of script IDs to disable
+    const scriptsToDisable = [
+        'edit-button-basic-info-fix',
+        'fix-basic-info-on-load',
+```
+
+## public/css/components/calendar-dropdown-arrow-fix.css
+
+Size: 2.23 KB
+
+```
+/**
+ * Calendar Dropdown Arrow Fix
+ * Applies the same dropdown arrow styling to the calendar filter
+ * Arrows point left (←) when closed and down when open
+ */
+
+/* Remove default dropdown arrow */
+.calendar-filter select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+```
+
+## public/js/common/unified-bottom-nav.js
+
+Size: 2.23 KB
+
+```
+/**
+ * Unified Bottom Navigation
+ * Ensures consistent bottom navigation with Font Awesome icons across all pages
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Define the standard navigation items with Font Awesome icons
+    const standardNavItems = [
+        { href: '/index.html', icon: 'fas fa-check', text: 'Tasks', dataPage: 'home-page' },
+        { href: '/pages/goals.html', icon: 'fas fa-star', text: 'Goals', dataPage: 'goal-page' },
+```
+
+## public/css/unified-basic-info-style.css
+
+Size: 2.16 KB
+
+```
+/**
+ * Unified Basic Info Style
+ * Consistent styling for the Basic Information section
+ */
+
+/* Style the Basic Information section */
+.edit-ingredient-form .nutrition-section.basic-information {
+    margin-bottom: 8px !important;
+    padding: 8px !important;
+    background-color: rgba(25, 25, 25, 0.7) !important;
+```
+
+## public/js/food/clean-toggle-fix.js
+
+Size: 2.15 KB
+
+```
+/**
+ * Clean Toggle Fix
+ * A minimal solution to fix the Show Detailed Nutrition button
+ */
+(function() {
+    // Run once when the DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Remove any existing button at the top of the page
+        const topButton = document.querySelector('body > button.toggle-detailed-nutrition, body > button#show-detailed-nutrition-btn');
+        if (topButton) {
+```
+
+## public/css/layout/goals-bottom-nav-override.css
+
+Size: 2.10 KB
+
+```
+/**
+ * Goals Bottom Navigation Override
+ * Overrides the goals-specific bottom navigation styling to match the Tasks page
+ */
+
+/* Override the goals-specific bottom navigation styling */
+.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+```
+
+## public/js/workouts/workouts-bottom-nav-fix.js
+
+Size: 2.09 KB
+
+```
+/**
+ * Workouts Bottom Navigation Fix
+ * Special fix for the workouts page bottom navigation
+ */
+
+// Function to fix the bottom navigation on the workouts page
+function fixWorkoutsBottomNav() {
+    console.log('Fixing workouts bottom navigation...');
+
+    // First, remove any existing bottom navigation
+```
+
+## public/js/food/ensure-edit-form-display.js
+
+Size: 2.09 KB
+
+```
+/**
+ * Ensure Edit Form Display
+ * Ensures the edit form is properly displayed when clicking the Edit button
+ */
+
+(function() {
+    // Function to ensure the edit form is displayed
+    function ensureEditFormDisplay() {
+        // Use event delegation to handle all Edit button clicks in the ingredient table
+        document.body.addEventListener('click', function(event) {
+```
+
+## public/css/components/habit-action-buttons-fix.css
+
+Size: 2.08 KB
+
+```
+/*
+ * Habit Action Buttons Fix
+ * Fixes the issue where edit/delete buttons overlap with the level indicator
+ */
+
+/* Fix the habit item layout to accommodate action buttons */
+.habit-item {
+    position: relative !important;
+    overflow: visible !important;
+}
+```
+
+## public/css/overdue-badge-redesign.css
+
+Size: 2.06 KB
+
+```
+/**
+ * Date Badge Redesign
+ * Redesigns the date indicators (Overdue, Due Today) to match the Weekly badge style
+ */
+
+/* Hide the calendar icon in date indicators */
+.due-date-indicator.overdue i,
+.due-date-indicator.due-soon i,
+.next-occurrence-indicator.overdue i,
+.next-occurrence-indicator.due-soon i {
+```
+
+## public/css/utilities/overdue-badge-redesign.css
+
+Size: 2.06 KB
+
+```
+/**
+ * Date Badge Redesign
+ * Redesigns the date indicators (Overdue, Due Today) to match the Weekly badge style
+ */
+
+/* Hide the calendar icon in date indicators */
+.due-date-indicator.overdue i,
+.due-date-indicator.due-soon i,
+.next-occurrence-indicator.overdue i,
+.next-occurrence-indicator.due-soon i {
+```
+
+## public/css/utilities/date-badge-redesign.css
+
+Size: 2.05 KB
+
+```
+/**
+ * Date Badge Redesign
+ * Redesigns all date indicators (Overdue, Due Today, Next) to match the Weekly badge style
+ */
+
+/* Hide the calendar icon in date indicators */
+.due-date-indicator.overdue i,
+.due-date-indicator.due-soon i,
+.next-occurrence-indicator i,
+.next-occurrence-indicator.overdue i,
+```
+
+## public/css/components/dropdown-arrow-fix.css
+
+Size: 1.91 KB
+
+```
+/**
+ * Dropdown Arrow Fix
+ * Removes duplicate dropdown arrows and ensures only one arrow is displayed
+ */
+
+/* Remove all default dropdown arrows */
+select,
+.form-control,
+#taskFilter,
+.task-filter,
+```
+
+## public/js/food/identify-toggle-button.js
+
+Size: 1.88 KB
+
+```
+/**
+ * Identify Toggle Button
+ * Finds and marks the Show Detailed Nutrition button
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to identify the toggle button
+    function identifyToggleButton() {
+        // Find the button by text content
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const toggleButton = buttons.find(btn => 
+```
+
+## public/css/basic-info-styling-fix.css
+
+Size: 1.85 KB
+
+```
+/**
+ * Basic Information Styling Fix
+ * Makes the Basic Information section match the styling of other sections
+ */
+
+/* Style the Basic Information section to match other sections */
+.edit-ingredient-form .basic-information,
+.edit-ingredient-form div:has(> h4:contains("Basic Information")),
+.edit-ingredient-form div:has(> .basic-information) {
+    background-color: #1e1e1e !important;
+```
+
+## public/css/forms/cronometer-text-parser.css
+
+Size: 1.82 KB
+
+```
+/* Cronometer Text Parser Styles */
+
+.cronometer-text-paste-container {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    width: 100%;
+    box-sizing: border-box;
+```
+
+## public/css/themes/detailed-nutrition-dark.css
+
+Size: 1.76 KB
+
+```
+/* Dark theme styling for detailed nutrition panel */
+
+/* Panel container */
+.detailed-nutrition-panel {
+    margin-top: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: rgba(25, 25, 25, 0.7) !important;
+    color: #e0e0e0 !important;
+```
+
+## public/css/habit-icons-fix.css
+
+Size: 1.74 KB
+
+```
+/*
+ * Habit Icons Fix
+ * Makes habit edit and delete buttons match the task list's hover icons
+ */
+
+/* Style the edit and delete buttons */
+.habit-item .edit-habit-btn,
+.habit-item .delete-habit-btn {
+    background: none;
+    border: none;
+```
+
+## public/css/utilities/habit-icons-fix.css
+
+Size: 1.74 KB
+
+```
+/*
+ * Habit Icons Fix
+ * Makes habit edit and delete buttons match the task list's hover icons
+ */
+
+/* Style the edit and delete buttons */
+.habit-item .edit-habit-btn,
+.habit-item .delete-habit-btn {
+    background: none;
+    border: none;
+```
+
+## public/css/components/template-card-button-fix.css
+
+Size: 1.69 KB
+
+```
+/**
+ * Template Card Button Fix
+ * This file contains styles to align the edit and delete buttons in the top right corner
+ * while being perfectly aligned with the template name text
+ */
+
+/* Position the edit and delete buttons in the top right corner */
+.card-corner-actions {
+    position: absolute !important;
+    top: 23px !important; /* Fixed position to align with template name */
+```
+
+## public/css/actions/remove-top-x-button.css
+
+Size: 1.66 KB
+
+```
+/* 
+ * Remove Top X Button
+ * This file specifically removes the X button in the top right corner of the Weight Increment section
+ */
+
+/* Target the X button in the top right corner */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"],
+.weight-increment-container .weight-increment-x-button {
+```
+
+## public/css/remove-top-x-button.css
+
+Size: 1.66 KB
+
+```
+/* 
+ * Remove Top X Button
+ * This file specifically removes the X button in the top right corner of the Weight Increment section
+ */
+
+/* Target the X button in the top right corner */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"],
+.weight-increment-container .weight-increment-x-button {
+```
+
+## public/js/utils/dropdown-arrow-toggle.js
+
+Size: 1.66 KB
+
+```
+/**
+ * Dropdown Arrow Toggle
+ * Changes the dropdown arrow direction based on open/closed state
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the task filter dropdown
+    const taskFilter = document.getElementById('taskFilter');
+    
+    if (!taskFilter) return;
+```
+
+## public/css/fixes/calendar-button-fix.css
+
+Size: 1.63 KB
+
+```
+/**
+ * Calendar Button Fix
+ * Makes the close, next, and prev buttons white
+ */
+
+/* Next and Prev buttons in calendar controls */
+.calendar-controls button {
+    background-color: transparent !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+```
+
+## public/css/ultra-compact-nutrition.css
+
+Size: 1.63 KB
+
+```
+/**
+ * Ultra Compact Nutrition Display
+ * Makes the nutrition display extremely compact
+ */
+
+/* Override any existing spacing */
+.detailed-nutrition-panel {
+    padding: 6px !important;
+    margin-top: 6px !important;
+}
+```
+
+## public/css/utilities/habit-glow-fix.css
+
+Size: 1.63 KB
+
+```
+/**
+ * Habit Glow Fix
+ * Removes green glow from habit items and fixes frequency text display
+ */
+
+/* Remove green glow from habit items */
+.habit-item {
+    box-shadow: none !important;
+}
+
+```
+
+## public/css/components/habit-checkbox-alignment.css
+
+Size: 1.61 KB
+
+```
+/**
+ * Habit Checkbox Alignment
+ * Adjusts the position of habit checkboxes to be better aligned with task checkboxes
+ */
+
+/* Adjust the habit item layout to move checkboxes to the right */
+.habit-item {
+    padding-left: 20px !important; /* Add padding to the left */
+}
+
+```
+
+## public/css/layout/header-text-fix.css
+
+Size: 1.59 KB
+
+```
+/*
+ * Header Text Fix
+ * Centers the "My Tasks" text and removes the gray section
+ */
+
+/* Fix the header text positioning */
+.container h1.gradient-text {
+    text-align: center !important;
+    margin: 0 auto !important;
+    padding: 15px 0 20px 0 !important;
+```
+
+## public/css/layout/sticky-workout-header.css
+
+Size: 1.58 KB
+
+```
+/**
+ * Sticky Workout Header
+ * This CSS makes the workout header (with title and timer) stay fixed at the top of the screen when scrolling
+ */
+
+/* Make the workout header sticky */
+.workout-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+```
+
+## public/css/utilities/calendar-task-glow-fix.css
+
+Size: 1.57 KB
+
+```
+/**
+ * Calendar Task Glow Fix
+ * Removes green glow from tasks in the selected date view
+ */
+
+/* Remove green glow from tasks in the selected date view */
+#selectedTaskList li {
+    box-shadow: none !important;
+    border-left: 4px solid rgba(255, 255, 255, 0.2) !important;
+}
+```
+
+## public/js/food/direct-cancel-button-fix.js
+
+Size: 1.55 KB
+
+```
+/**
+ * Direct Cancel Button Fix
+ * A simple, direct fix for the cancel button not working on existing recipes
+ * when editing an ingredient.
+ */
+
+(function() {
+    // Use event delegation to catch all cancel button clicks
+    document.addEventListener('click', function(event) {
+        // Check if the clicked element is a cancel button
+```
+
+## public/css/fixes/habit-text-fix.css
+
+Size: 1.55 KB
+
+```
+/* 
+ * Habit Text Fix
+ * Fixes issues with truncated text in habit items
+ */
+
+/* Ensure habit item has enough height for content */
+.habit-item {
+    min-height: 60px !important;
+    height: auto !important;
+}
+```
+
+## public/js/workouts/remove-bottom-x-button.js
+
+Size: 1.54 KB
+
+```
+/**
+ * Remove Bottom X Button
+ * This script specifically removes the X button in the bottom of the Weight Increment section
+ */
+
+(function() {
+    // Run immediately
+    removeBottomXButton();
+    
+    // Also run after DOM is loaded
+```
+
+## public/js/workouts/weight-increment-x-remover.js
+
+Size: 1.51 KB
+
+```
+/**
+ * Weight Increment X Remover
+ * This script specifically targets and removes the X button in the Weight Increment section
+ */
+
+(function() {
+    // Run immediately
+    removeWeightIncrementXButton();
+    
+    // Also run after DOM is loaded
+```
+
+## public/css/actions/css-x-button.css
+
+Size: 1.51 KB
+
+```
+/**
+ * CSS X Button
+ * This CSS file creates a simple X using CSS
+ */
+
+/* Style the delete button */
+.exercise-options-menu .button-group-right .btn-delete-exercise {
+    position: relative !important;
+    width: 24px !important;
+    height: 24px !important;
+```
+
+## public/css/css-x-button.css
+
+Size: 1.51 KB
+
+```
+/**
+ * CSS X Button
+ * This CSS file creates a simple X using CSS
+ */
+
+/* Style the delete button */
+.exercise-options-menu .button-group-right .btn-delete-exercise {
+    position: relative !important;
+    width: 24px !important;
+    height: 24px !important;
+```
+
+## public/css/components/progress-badge-fix.css
+
+Size: 1.48 KB
+
+```
+/**
+ * Progress Badge Fix
+ * Removes the double outline around progress badges
+ */
+
+/* Reset all styling for progress containers and elements */
+.habit-progress-container,
+.habit-progress,
+.habit-item .habit-progress-container {
+    background: none !important;
+```
+
+## public/css/utilities/progress-badge-fix.css
+
+Size: 1.48 KB
+
+```
+/**
+ * Progress Badge Fix
+ * Removes the double outline around progress badges
+ */
+
+/* Reset all styling for progress containers and elements */
+.habit-progress-container,
+.habit-progress,
+.habit-item .habit-progress-container {
+    background: none !important;
+```
+
+## public/css/fixes/notification-status-fix.css
+
+Size: 1.46 KB
+
+```
+/**
+ * Notification Status Fix
+ * This CSS file ensures the notification status is displayed correctly
+ */
+
+.notifications-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+```
+
+## public/css/direct-basic-info-styling.css
+
+Size: 1.46 KB
+
+```
+/**
+ * Direct Basic Info Styling
+ * Directly applies the exact same styling to the Basic Information section as the other sections
+ */
+
+/* Style the Basic Information section */
+.edit-ingredient-form .basic-information {
+    background-color: rgba(25, 25, 25, 0.7) !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+```
+
+## public/css/fixes/x-button-svg-fix.css
+
+Size: 1.45 KB
+
+```
+/**
+ * X Button Text Fix
+ * This CSS file provides a simple text-based approach for the delete button
+ */
+
+/* Style the delete button with text */
+.exercise-options-menu .button-group-right .btn-delete-exercise {
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    font-family: Arial, sans-serif !important;
+```
+
+## public/css/x-button-svg-fix.css
+
+Size: 1.45 KB
+
+```
+/**
+ * X Button Text Fix
+ * This CSS file provides a simple text-based approach for the delete button
+ */
+
+/* Style the delete button with text */
+.exercise-options-menu .button-group-right .btn-delete-exercise {
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    font-family: Arial, sans-serif !important;
+```
+
+## public/css/fixes/weight-increment-container-fix.css
+
+Size: 1.42 KB
+
+```
+/**
+ * Weight Increment Container Fix
+ * This file contains styles for the new weight increment container
+ */
+
+/* Style the weight increment container */
+.weight-increment-container {
+    display: inline-block;
+    background: none;
+    border: none;
+```
+
+## public/css/weight-increment-container-fix.css
+
+Size: 1.42 KB
+
+```
+/**
+ * Weight Increment Container Fix
+ * This file contains styles for the new weight increment container
+ */
+
+/* Style the weight increment container */
+.weight-increment-container {
+    display: inline-block;
+    background: none;
+    border: none;
+```
+
+## public/css/layout/header-area-fix.css
+
+Size: 1.41 KB
+
+```
+/* 
+ * Header Area Fix
+ * Improves the header area styling and removes the gray section
+ */
+
+/* Create a clean header area */
+.container {
+    position: relative !important;
+    padding-top: 0 !important;
+}
+```
+
+## public/css/actions/hide-bottom-x-button.css
+
+Size: 1.38 KB
+
+```
+/* 
+ * Hide Bottom X Button
+ * This file specifically hides the X button in the bottom of the Weight Increment section
+ */
+
+/* Hide any buttons in the view exercise row */
+.view-exercise-row .btn-delete-exercise,
+.view-exercise-row [class*="btn-delete"],
+.view-exercise-row [class*="btn-remove"],
+.view-exercise-row button {
+```
+
+## public/css/hide-bottom-x-button.css
+
+Size: 1.38 KB
+
+```
+/* 
+ * Hide Bottom X Button
+ * This file specifically hides the X button in the bottom of the Weight Increment section
+ */
+
+/* Hide any buttons in the view exercise row */
+.view-exercise-row .btn-delete-exercise,
+.view-exercise-row [class*="btn-delete"],
+.view-exercise-row [class*="btn-remove"],
+.view-exercise-row button {
+```
+
+## public/css/fixes/habit-card-fix.css
+
+Size: 1.36 KB
+
+```
+/*
+ * Habit Card Fix
+ * Adjusts the habit card layout to ensure proper alignment
+ */
+
+/* Adjust the card content padding */
+.card__content {
+    padding: 0 !important;
+}
+
+```
+
+## public/css/fixes/x-button-position-fix.css
+
+Size: 1.34 KB
+
+```
+/* X Button Position Fix CSS */
+
+/* Position the X button at the bottom right next to the pencil icon */
+.exercise-options-menu .btn-delete-exercise {
+    position: absolute !important;
+    bottom: 10px !important;
+    right: 45px !important; /* Position to the left of the pencil icon */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+```
+
+## public/css/bottom-right-x-fix.css
+
+Size: 1.30 KB
+
+```
+/* 
+ * Bottom Right X Fix
+ * This file specifically positions the X button in the bottom right corner of the Weight Increment section
+ */
+
+/* Target the specific X button in the Weight Increment section */
+.weight-increment-container button.btn-delete-exercise,
+.weight-increment-container button[class*="delete"],
+.weight-increment-container button[class*="remove"] {
+    position: absolute !important;
+```
+
+## public/css/fixes/bottom-right-x-fix.css
+
+Size: 1.30 KB
+
+```
+/* 
+ * Bottom Right X Fix
+ * This file specifically positions the X button in the bottom right corner of the Weight Increment section
+ */
+
+/* Target the specific X button in the Weight Increment section */
+.weight-increment-container button.btn-delete-exercise,
+.weight-increment-container button[class*="delete"],
+.weight-increment-container button[class*="remove"] {
+    position: absolute !important;
+```
+
+## public/css/nutrition-sections-toggle.css
+
+Size: 1.28 KB
+
+```
+/**
+ * Nutrition Sections Toggle
+ * Controls the visibility of nutrition sections
+ */
+
+/* Initially hide all sections except General */
+.carbohydrates,
+.lipids,
+.protein,
+.vitamins,
+```
+
+## public/css/components/photo-buttons-uniform.css
+
+Size: 1.25 KB
+
+```
+/**
+ * Photo Buttons Uniform
+ * Makes all photo action buttons have consistent styling
+ */
+
+/* Center the header buttons container */
+.progress-section-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+```
+
+## public/js/pages/workouts/sticky-workout-header.js
+
+Size: 1.24 KB
+
+```
+/**
+ * Sticky Workout Header
+ * This script adds functionality to make the workout header sticky when scrolling
+ */
+
+(function() {
+    // Function to handle scroll events
+    function handleScroll() {
+        const workoutHeader = document.querySelector('.workout-header');
+        if (!workoutHeader) return;
+```
+
+## public/css/components/habit-increment.css
+
+Size: 1.21 KB
+
+```
+/* Styling for habit increment buttons */
+
+/* Base style for the increment button */
+.habit-increment-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+```
+
+## public/css/habit-increment.css
+
+Size: 1.21 KB
+
+```
+/* Styling for habit increment buttons */
+
+/* Base style for the increment button */
+.habit-increment-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+```
+
+## public/css/components/youtube-modal.css
+
+Size: 1.17 KB
+
+```
+/* YouTube URL Modal Specific Styles */
+#youtube-url-modal {
+    z-index: 10000 !important; /* Ensure it's above everything else */
+}
+
+#youtube-url-modal .modal-content {
+    background-color: #2a2a2a !important;
+    border: 2px solid #03dac6 !important;
+    box-shadow: 0 0 20px rgba(3, 218, 198, 0.3) !important;
+}
+```
+
+## public/css/actions/edit-pencil-white-hover.css
+
+Size: 1.15 KB
+
+```
+/**
+ * Edit Pencil White Hover
+ * Changes the edit pencil icon hover color from blue to white
+ */
+
+/* Target the edit template button hover color */
+.btn-edit-template:focus,
+.btn-edit-template:hover,
+.btn-edit-exercise:focus,
+.btn-edit-exercise:hover {
+```
+
+## public/css/fixes/habit-ui-fix.css
+
+Size: 1.15 KB
+
+```
+/**
+ * Habit UI Fix
+ * Makes the "+ New Habit" button text white and improves progress badges
+ */
+
+/* Make the "+ New Habit" button text white */
+#addHabitBtn,
+.btn--primary {
+    color: white !important;
+}
+```
+
+## public/css/layout/bottom-nav-highlight-position-fix.css
+
+Size: 1.12 KB
+
+```
+/**
+ * Bottom Navigation Highlight Position Fix
+ * Ensures the highlight line is consistently at the bottom for all pages
+ */
+
+/* Force the highlight line to be at the bottom of the nav item */
+.bottom-nav .nav-item::before {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+```
+
+## public/css/single-button-fix.css
+
+Size: 1.12 KB
+
+```
+/**
+ * Single Button Fix
+ * Ensures there's only one Show Detailed Nutrition button with proper styling
+ */
+
+/* Hide all sections except General by default */
+.carbohydrates,
+.lipids,
+.protein,
+.vitamins,
+```
+
+## public/css/direct-button-fix.css
+
+Size: 1.11 KB
+
+```
+/**
+ * Direct Button Fix
+ * Directly styles the Show Detailed Nutrition button
+ */
+
+/* Target the Show Detailed Nutrition button specifically */
+button.toggle-detailed-nutrition,
+button#show-detailed-nutrition-btn,
+button:first-of-type {
+    background-color: #ffffff !important;
+```
+
+## public/css/fixes/calendar-button-outline-fix.css
+
+Size: 1.05 KB
+
+```
+/**
+ * Calendar Button Outline Fix
+ * Changes the edit and delete button outlines to grey
+ */
+
+/* Edit button styling */
+#selectedTaskList .edit-task-btn {
+    background-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+```
+
+## public/css/fixes/workout-button-color-fix.css
+
+Size: 1.05 KB
+
+```
+/**
+ * Workout Button Color Fix
+ * Changes the accent color from teal to white and removes the green corner effect
+ */
+
+/* Change slider navigation buttons from teal to white */
+.slider-nav-btn {
+    background-color: rgba(255, 255, 255, 0.8) !important; /* White with slight transparency */
+    color: #121212 !important; /* Dark text for contrast */
+    box-shadow: 0 3px 8px rgba(255, 255, 255, 0.3) !important;
+```
+
+## public/css/bottom-nav-hover-animation.css
+
+Size: 1.04 KB
+
+```
+/**
+ * Bottom Navigation Hover Animation
+ * Adds a loading line animation effect when hovering over bottom navigation items
+ */
+
+/* Add position relative to nav items for the animation positioning */
+.bottom-nav .nav-item {
+    position: relative;
+    overflow: hidden;
+}
+```
+
+## public/css/layout/status-bar-fix.css
+
+Size: 1019 bytes
+
+```
+/* 
+ * Status Bar Fix
+ * Removes the empty status bar and improves spacing
+ */
+
+/* Hide empty status bar */
+#status.status:empty {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+```
+
+## public/css/utilities/remove-recurrence-indicators.css
+
+Size: 963 bytes
+
+```
+/**
+ * Remove Recurrence Indicators
+ * This CSS file removes the recurrence label above tasks and the green dot for future recurring tasks
+ */
+
+/* Remove the recurrence label (Weekly, Daily, etc.) that appears above the task name */
+.task-title.recurring::after {
+    display: none !important;
+}
+
+```
+
+## public/css/fixes/overdue-fix.css
+
+Size: 952 bytes
+
+```
+/* CSS to ensure overdue tasks have a red background */
+
+/* Force overdue tasks to have a red background */
+.task-item.overdue,
+.task-item[data-overdue="true"] {
+    background-color: rgba(255, 61, 0, 0.05) !important;
+    border-left: 4px solid #FF3D00 !important;
+    box-shadow: 0 2px 10px rgba(255, 61, 0, 0.1) !important;
+}
+
+```
+
+## public/css/overdue-fix.css
+
+Size: 952 bytes
+
+```
+/* CSS to ensure overdue tasks have a red background */
+
+/* Force overdue tasks to have a red background */
+.task-item.overdue,
+.task-item[data-overdue="true"] {
+    background-color: rgba(255, 61, 0, 0.05) !important;
+    border-left: 4px solid #FF3D00 !important;
+    box-shadow: 0 2px 10px rgba(255, 61, 0, 0.1) !important;
+}
+
+```
+
+## public/css/utilities/calendar-count-indicator-fix.css
+
+Size: 933 bytes
+
+```
+/**
+ * Calendar Count Indicator Fix
+ * Changes the task and habit count indicators to grey
+ */
+
+/* Task count indicator */
+.task-count-indicator {
+    background-color: rgba(255, 255, 255, 0.2) !important; /* Grey background */
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+```
+
+## public/css/clean-toggle-fix.css
+
+Size: 905 bytes
+
+```
+/**
+ * Clean Toggle Fix CSS
+ * Minimal styling for the Show Detailed Nutrition button
+ */
+
+/* Style for the toggle button */
+.toggle-detailed-nutrition {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+```
+
+## public/css/actions/hide-top-x-button.css
+
+Size: 888 bytes
+
+```
+/* 
+ * Hide Top X Button
+ * This file specifically hides the X button in the top right corner of the Weight Increment section
+ */
+
+/* Target the X button in the top right corner */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"],
+.weight-increment-container .weight-increment-x-button {
+```
+
+## public/css/fixes/calendar-heading-fix.css
+
+Size: 854 bytes
+
+```
+/**
+ * Calendar Heading Fix
+ * Makes the "Tasks" and "Habits" headings more vibrant
+ */
+
+/* Style for the Tasks heading */
+#selectedTaskList h4:first-of-type {
+    color: #00E676 !important; /* Bright green */
+    font-size: 1.2rem !important;
+    font-weight: 500 !important;
+```
+
+## public/js/food/remove-top-button.js
+
+Size: 823 bytes
+
+```
+/**
+ * Remove Top Button
+ * Specifically removes the button at the top of the page
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to remove the top button
+    function removeTopButton() {
+        // Find the button at the top of the page
+        const topButton = document.querySelector('body > button:first-of-type');
+        
+```
+
+## public/css/fixes/habit-button-fix.css
+
+Size: 820 bytes
+
+```
+/**
+ * Habit Button Fix
+ * Changes the +1 button color to white to match the rest of the UI
+ */
+
+/* Style the +1 button with white color */
+.habit-increment-btn {
+    background-color: rgba(33, 33, 33, 0.3) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+```
+
+## public/css/layout/bottom-nav-scrollbar-fix.css
+
+Size: 819 bytes
+
+```
+/**
+ * Bottom Navigation Scrollbar Fix
+ * Prevents the scrollbar from covering the bottom navigation icons
+ */
+
+/* Adjust the bottom navigation bar to account for scrollbar */
+.bottom-nav {
+    width: calc(100% - 15px) !important; /* Reduce width to account for scrollbar */
+    left: 0 !important;
+    right: 15px !important; /* Leave space for scrollbar */
+```
+
+## public/css/fixes/font-awesome-dumbbell.css
+
+Size: 779 bytes
+
+```
+/**
+ * Font Awesome Dumbbell CSS
+ * This CSS file ensures the dumbbell icon is displayed correctly using Font Awesome
+ */
+
+/* Force the workouts icon to use Font Awesome */
+.bottom-nav .nav-item[href*="workouts.html"] .nav-icon i {
+    font-family: "Font Awesome 6 Free", "FontAwesome", sans-serif !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+```
+
+## public/css/fixes/weight-increment-x-position-fix.css
+
+Size: 759 bytes
+
+```
+/* Weight Increment X Position Fix CSS */
+
+/* Hide the original X button in the Weight Increment section */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+```
+
+## public/css/weight-increment-x-position-fix.css
+
+Size: 759 bytes
+
+```
+/* Weight Increment X Position Fix CSS */
+
+/* Hide the original X button in the Weight Increment section */
+.weight-increment-container button,
+.weight-increment-container .btn-delete-exercise,
+.weight-increment-container [class*="btn-"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+```
+
+## public/css/toggle-button-final.css
+
+Size: 751 bytes
+
+```
+/**
+ * Toggle Button Final
+ * Final styling for the Show Detailed Nutrition button
+ */
+
+/* Style for the toggle button */
+.toggle-detailed-nutrition {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+```
+
+## public/css/components/progress-photo-fix.css
+
+Size: 734 bytes
+
+```
+/**
+ * Special fix for Progress Photo task
+ * Removes the Weekly indicator and green dot from the Progress Photo task
+ */
+
+/* Hide the green dot for Progress Photo task */
+.progress-photo-task .task-title-container::after {
+    display: none !important;
+}
+
+```
+
+## public/css/gray-nav-icons.css
+
+Size: 656 bytes
+
+```
+/**
+ * Gray Navigation Icons
+ * Makes all bottom navigation icons gray instead of green when active
+ */
+
+/* Override the active item styling */
+.nav-item.active {
+    color: #9E9E9E !important;
+}
+
+```
+
+## public/css/utilities/gray-nav-icons.css
+
+Size: 656 bytes
+
+```
+/**
+ * Gray Navigation Icons
+ * Makes all bottom navigation icons gray instead of green when active
+ */
+
+/* Override the active item styling */
+.nav-item.active {
+    color: #9E9E9E !important;
+}
+
+```
+
+## public/css/components/ghost-template-fix.css
+
+Size: 619 bytes
+
+```
+/**
+ * Direct fix for the Ghost of the Goon template
+ */
+
+/* Target all template cards */
+.workout-template-card {
+    position: relative;
+}
+
+/* Ensure all badges have high z-index */
+```
+
+## public/js/habits/habit-level-calculator.js
+
+Size: 489 bytes
+
+```
+/**
+ * Habit Level Calculator
+ * This script provides functions to calculate the correct habit level
+ * based on completions per day and total completions.
+ */
+
+// Calculate the correct level for a habit
+function calculateCorrectLevel(totalCompletions) {
+    // The level is simply the total completions
+    return totalCompletions;
+```
+
+## public/js/pages/habits/habit-level-calculator.js
+
+Size: 489 bytes
+
+```
+/**
+ * Habit Level Calculator
+ * This script provides functions to calculate the correct habit level
+ * based on completions per day and total completions.
+ */
+
+// Calculate the correct level for a habit
+function calculateCorrectLevel(totalCompletions) {
+    // The level is simply the total completions
+    return totalCompletions;
+```
+
+## public/css/habit-header-fix.css
+
+Size: 378 bytes
+
+```
+/* Habit header row styling */
+.habit-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.habit-header-row h2 {
+    margin: 0;
+```
+
+## public/css/layout/habit-header-fix.css
+
+Size: 378 bytes
+
+```
+/* Habit header row styling */
+.habit-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.habit-header-row h2 {
+    margin: 0;
+```
+
+## public/css/fixes/workout-timer-color-fix.css
+
+Size: 317 bytes
+
+```
+/**
+ * Workout Timer Color Fix
+ * Changes the timer color from teal/green to white
+ */
+
+/* Change the timer color to white */
+#workout-timer {
+    color: #FFFFFF !important; /* White color with !important to override other styles */
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3); /* Add a subtle glow effect */
+}
+```
+

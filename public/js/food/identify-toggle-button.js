@@ -3,9 +3,9 @@
  * Finds and marks the Show Detailed Nutrition button
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to identify the toggle button
+
     function identifyToggleButton() {
-        // Find the button by text content
+
         const buttons = Array.from(document.querySelectorAll('button'));
         const toggleButton = buttons.find(btn => 
             btn.textContent.trim() === 'Show Detailed Nutrition' || 
@@ -13,11 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
         );
         
         if (toggleButton) {
-            // Add classes to help identify the button
+
             toggleButton.classList.add('toggle-detailed-nutrition');
             toggleButton.id = 'show-detailed-nutrition-btn';
-            
-            // Style the button directly
+
             toggleButton.style.backgroundColor = '#ffffff';
             toggleButton.style.color = '#121212';
             toggleButton.style.border = 'none';
@@ -37,13 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Toggle button not found');
         }
     }
-    
-    // Try to identify the button immediately
+
     setTimeout(identifyToggleButton, 100);
-    
-    // Try again after a short delay
+
     setTimeout(identifyToggleButton, 500);
-    
-    // And one more time after a longer delay
+
     setTimeout(identifyToggleButton, 1000);
 });

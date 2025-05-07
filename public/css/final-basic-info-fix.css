@@ -3,7 +3,7 @@
  * The most aggressive approach to styling the Basic Information section
  */
 
-/* Target all possible Basic Information sections */
+
 .edit-ingredient-form .basic-information,
 .edit-ingredient-form form > div:first-of-type,
 .edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]),
@@ -28,7 +28,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     opacity: 1 !important;
 }
 
-/* Style all headers in the Basic Information section */
+
 .edit-ingredient-form .basic-information h4,
 .edit-ingredient-form form > div:first-of-type h4,
 .edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]) h4,
@@ -47,7 +47,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     font-size: 0.85em !important;
 }
 
-/* Style all labels in the Basic Information section */
+
 .edit-ingredient-form .basic-information label,
 .edit-ingredient-form form > div:first-of-type label,
 .edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]) label,
@@ -66,7 +66,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     text-overflow: ellipsis !important;
 }
 
-/* Style all inputs in the Basic Information section */
+
 .edit-ingredient-form .basic-information input,
 .edit-ingredient-form form > div:first-of-type input,
 .edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]) input,
@@ -85,7 +85,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     border-radius: 3px !important;
 }
 
-/* Style all form groups in the Basic Information section */
+
 .edit-ingredient-form .basic-information .form-group,
 .edit-ingredient-form form > div:first-of-type .form-group,
 .edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]) .form-group,
@@ -100,7 +100,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     margin-right: 10px !important;
 }
 
-/* Add a header if it doesn't exist */
+
 .edit-ingredient-form form > div:first-of-type:not(:has(> h4)):before {
     content: "Basic Information";
     display: block;
@@ -113,7 +113,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     font-size: 0.85em;
 }
 
-/* Ensure the Basic Information section is visible */
+
 .edit-ingredient-form .basic-information,
 .edit-ingredient-form form > div:first-of-type,
 .edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]),
@@ -128,7 +128,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     opacity: 1 !important;
 }
 
-/* Target the specific edit form that appears when clicking the Edit button in the ingredient table */
+
 .ingredient-details .edit-ingredient-form .basic-information,
 .ingredient-details .edit-ingredient-form form > div:first-of-type,
 .ingredient-details .edit-ingredient-form form > div:has(> label[for="edit-ingredient-name"]),
@@ -146,7 +146,7 @@ div[id^="recipe-"] .ingredient-details .edit-ingredient-form .basic-information 
     color: #e0e0e0 !important;
 }
 
-/* Force all inputs to have the correct styling */
+
 .edit-ingredient-form input[id*="ingredient-name"],
 .edit-ingredient-form input[id*="ingredient-amount"],
 .edit-ingredient-form input[id*="ingredient-package-amount"],

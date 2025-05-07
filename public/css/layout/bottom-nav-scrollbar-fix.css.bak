@@ -1,0 +1,30 @@
+/**
+ * Bottom Navigation Scrollbar Fix
+ * Prevents the scrollbar from covering the bottom navigation icons
+ */
+
+/* Adjust the bottom navigation bar to account for scrollbar */
+.bottom-nav {
+    width: calc(100% - 15px) !important; /* Reduce width to account for scrollbar */
+    left: 0 !important;
+    right: 15px !important; /* Leave space for scrollbar */
+}
+
+/* Ensure the nav items are evenly spaced */
+.bottom-nav .nav-item {
+    flex: 1 !important;
+    text-align: center !important;
+    justify-content: center !important;
+}
+
+/* Make sure the icons and text are centered */
+.bottom-nav .nav-icon {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Ensure content doesn't get hidden behind the scrollbar */
+body {
+    overflow-x: hidden !important;
+}

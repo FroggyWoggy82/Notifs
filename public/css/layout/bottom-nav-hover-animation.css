@@ -3,13 +3,13 @@
  * Adds a loading line animation effect when hovering over bottom navigation items
  */
 
-/* Add position relative to nav items for the animation positioning */
+
 .bottom-nav .nav-item {
     position: relative;
     overflow: hidden;
 }
 
-/* Create the loading line animation using pseudo-element */
+
 .bottom-nav .nav-item::before {
     content: '';
     position: absolute;
@@ -23,19 +23,19 @@
     opacity: 0;
 }
 
-/* Show the loading line on hover */
+
 .bottom-nav .nav-item:hover::before {
     transform: translateX(0);
     opacity: 1;
 }
 
-/* Make the active item's loading line always visible */
+
 .bottom-nav .nav-item.active::before {
     transform: translateX(0);
     opacity: 1;
 }
 
-/* Add a subtle glow effect to the loading line */
+
 .bottom-nav .nav-item:hover::before,
 .bottom-nav .nav-item.active::before {
     box-shadow: 0 0 8px var(--color-primary, #00E676);

@@ -1,0 +1,2261 @@
+# Unused Functions
+
+Found 123 unused functions.
+
+## public\js\calendar\calendar-overflow-fix.js
+
+### checkCalendarDaysOverflow
+
+Line: 8
+
+```javascript
+function checkCalendarDaysOverflow() {
+        console.log('Checking calendar days for overflow');
+        
+        // Find all calendar-tasks and calendar-habits elements
+        const taskContainers = document.querySelectorAll('.calendar-tasks');
+        const habitContainers = document.querySelectorAll('.calendar-habits');
+        
+        // Check tasks containers for overflow
+        taskContainers.forEach(container => {
+            if (container.scrollHeight > container.clientHeight) {
+// ... (truncated)
+```
+
+## public\js\common\client-compression.js
+
+### handleClientCompression
+
+Line: 2
+
+```javascript
+async function handleClientCompression(event) {
+    event.preventDefault();
+    console.log('[Client Compression] Starting client-side compression');
+    
+    // Get form elements
+    const form = event.target;
+    const dateInput = form.querySelector('input[name="date"]');
+    const fileInput = form.querySelector('input[type="file"]');
+    const statusElement = document.getElementById('upload-status');
+    const submitButton = form.querySelector('button[type="submit"]');
+// ... (truncated)
+```
+
+## public\js\exercise-history\exercise-history.js
+
+### handleHistoryCategoryFilterChange
+
+Line: 301
+
+```javascript
+function handleHistoryCategoryFilterChange(event) {
+        currentHistoryCategoryFilter = event.target.value;
+        console.log(`Category filter changed to: ${currentHistoryCategoryFilter}`);
+
+        // If there's an active search, re-trigger it with the new filter
+        if (historyExerciseSearchInput.value.trim().length > 0) {
+            handleHistorySearchInput({ target: historyExerciseSearchInput });
+        }
+    }
+```
+
+### handleHistoryEditFormSubmit
+
+Line: 358
+
+```javascript
+async function handleHistoryEditFormSubmit(event) {
+        event.preventDefault();
+
+        const submitButton = historyEditForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+
+        // Gather form data
+        const exerciseId = parseInt(historyEditExerciseIdInput.value);
+        const datePerformed = historyEditDateInput.value;
+// ... (truncated)
+```
+
+### showHistoryEditModal
+
+Line: 1039
+
+```javascript
+function showHistoryEditModal() {
+        if (!currentHistoryExerciseId || !currentHistoryExerciseName) {
+            alert('Please select an exercise from the search first.');
+            return;
+        }
+
+        // Pre-fill modal add section
+        historyEditExerciseNameEl.textContent = currentHistoryExerciseName;
+        historyEditExerciseIdInput.value = currentHistoryExerciseId;
+        historyEditForm.reset(); // Clear previous add form entries
+// ... (truncated)
+```
+
+## public\js\field-updater.js
+
+### updateAllFields
+
+Line: 138
+
+```javascript
+async function updateAllFields(recipeId, ingredientId, formData) {
+    console.log('Updating all fields for ingredient', ingredientId);
+    console.log('Form data:', formData);
+
+    // Create a single update object with all fields
+    const updateData = {};
+
+    // Process each field in the form data
+    for (const [formId, value] of Object.entries(formData)) {
+        // Skip empty values
+// ... (truncated)
+```
+
+### updateOmegaValues
+
+Line: 253
+
+```javascript
+async function updateOmegaValues(recipeId, ingredientId, omega3Value, omega6Value) {
+    console.log(`Directly updating omega values for ingredient ${ingredientId}: omega3=${omega3Value}, omega6=${omega6Value}`);
+
+    try {
+        // Use safeFetch if available, otherwise fall back to regular fetch
+        const fetchFunction = window.safeFetch || fetch;
+
+        // Create an update object with just the omega fields
+        const updateData = {};
+
+// ... (truncated)
+```
+
+## public\js\food\basic-info-alignment-fix.js
+
+### fixBasicInfoAlignment
+
+Line: 6
+
+```javascript
+function fixBasicInfoAlignment() {
+        // Find all edit ingredient forms
+        document.querySelectorAll('.edit-ingredient-form').forEach(form => {
+            // Check if we've already processed this form
+            if (form.dataset.basicInfoFixed === 'true') {
+                return;
+            }
+
+            // Find the form element
+            const formElement = form.querySelector('form');
+// ... (truncated)
+```
+
+## public\js\food\basic-info-structure-fix.js
+
+### fixBasicInfoStructure
+
+Line: 10
+
+```javascript
+function fixBasicInfoStructure() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+        
+        editForms.forEach(form => {
+            // Skip if already fixed
+            if (form.dataset.basicInfoFixed === 'true') return;
+            
+            // Find the Basic Information section
+            const basicInfoSection = form.querySelector('div:first-of-type:not(.edit-ingredient-form-header)');
+// ... (truncated)
+```
+
+## public\js\food\chart-controls-fix.js
+
+### fixChartControls
+
+Line: 8
+
+```javascript
+function fixChartControls() {
+        console.log('[Chart Controls Fix] Fixing chart controls...');
+
+        // Get the chart controls and axis controls
+        const chartControls = document.querySelector('.chart-controls');
+        const axisControls = document.querySelector('.axis-controls');
+
+        if (!chartControls || !axisControls) {
+            console.log('[Chart Controls Fix] Chart controls or axis controls not found');
+            return;
+// ... (truncated)
+```
+
+## public\js\food\cronometer-data-fix.js
+
+### handleFormSubmit
+
+Line: 106
+
+```javascript
+function handleFormSubmit(event) {
+        // Don't prevent default here, as we want the original handler to run
+        console.log('[Cronometer Data Fix] Form submitted');
+
+        // Get all ingredient items
+        const ingredientItems = document.querySelectorAll('.ingredient-item');
+
+        // Ensure micronutrient data is saved for each ingredient
+        ingredientItems.forEach(ingredientItem => {
+            ensureMicronutrientDataIsSaved(ingredientItem);
+// ... (truncated)
+```
+
+## public\js\food\custom-goal-weights.js
+
+### initCustomGoalWeights
+
+Line: 8
+
+```javascript
+function initCustomGoalWeights() {
+    // Add event listeners
+    document.getElementById('edit-goal-weights-btn').addEventListener('click', toggleEditMode);
+    document.getElementById('save-custom-weights-btn').addEventListener('click', saveCustomWeights);
+    document.getElementById('cancel-custom-weights-btn').addEventListener('click', cancelCustomWeights);
+    document.getElementById('reset-custom-weights-btn').addEventListener('click', resetCustomWeights);
+
+    // Add debug button event listener if it exists
+    const debugBtn = document.getElementById('debug-points-btn');
+    if (debugBtn) {
+// ... (truncated)
+```
+
+### debugPoints
+
+Line: 62
+
+```javascript
+function debugPoints() {
+    console.log('Debugging chart points...');
+
+    // Get the chart instance
+    if (!window.weightGoalChart) {
+        console.error('Weight goal chart instance not found');
+        alert('Chart not fully initialized. Please try refreshing the page.');
+        return;
+    }
+
+// ... (truncated)
+```
+
+### saveCustomWeights
+
+Line: 1232
+
+```javascript
+async function saveCustomWeights() {
+    if (selectedWeeks.length === 0) {
+        alert('Please select at least one week to adjust');
+        return;
+    }
+
+    const weightInput = document.getElementById('custom-weight-input');
+    const weight = parseFloat(weightInput.value);
+
+    if (isNaN(weight) || weight <= 0) {
+// ... (truncated)
+```
+
+### cancelCustomWeights
+
+Line: 1351
+
+```javascript
+function cancelCustomWeights() {
+    // Clear selection
+    selectedWeeks = [];
+    updateSelectedWeeksUI();
+
+    // Reset UI
+    document.getElementById('custom-weight-input').value = '';
+
+    // Exit edit mode
+    toggleEditMode();
+// ... (truncated)
+```
+
+### resetCustomWeights
+
+Line: 1364
+
+```javascript
+async function resetCustomWeights() {
+    if (!confirm('Are you sure you want to reset all custom goal weights? This will revert to the calculated linear progression.')) {
+        return;
+    }
+
+    try {
+        // Get the user ID from the user selector if available, otherwise default to 1
+        const userSelector = document.getElementById('user-selector');
+        const userId = userSelector ? userSelector.value : 1;
+
+// ... (truncated)
+```
+
+### addWeekNumbersToPoints
+
+Line: 1402
+
+```javascript
+function addWeekNumbersToPoints() {
+    // This function will be called after the chart is rendered
+    // It will add week numbers to the goal weight points for selection
+    if (window.weightGoalChart) {
+        const chart = window.weightGoalChart;
+        const canvas = chart.canvas;
+
+        // Wait for chart animation to complete
+        setTimeout(() => {
+            // Find all goal weight points
+// ... (truncated)
+```
+
+## public\js\food\custom-tooltip.js
+
+### handleMouseMove
+
+Line: 344
+
+```javascript
+function handleMouseMove(event) {
+            // First check if mouse is over the goal line
+            const goalLineCheck = isOverGoalLine(event, chart);
+
+            if (goalLineCheck.isOver) {
+                // Mouse is over the goal line, show goal weight tooltip
+                isHoveringGoalLine = true;
+
+                // Show tooltip with goal information
+                showWeightTooltip(event, chart, goalLineCheck.pointIndex, true, goalLineCheck.goalValue);
+// ... (truncated)
+```
+
+### handleMouseOut
+
+Line: 393
+
+```javascript
+function handleMouseOut() {
+            hideWeightTooltip();
+        }
+```
+
+## public\js\food\debug-cronometer-parser.js
+
+### testCronometerParser
+
+Line: 48
+
+```javascript
+function testCronometerParser() {
+        console.log('[Debug Cronometer Parser] Testing Cronometer parser...');
+
+        // Sample Cronometer data
+        const sampleData = `Energy 100 kcal
+Protein 10 g
+Fat 5 g
+Carbs 15 g
+Fiber 2 g
+Sugars 3 g
+// ... (truncated)
+```
+
+## public\js\food\direct-basic-info-replacement.js
+
+### directBasicInfoReplacement
+
+Line: 10
+
+```javascript
+function directBasicInfoReplacement() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+
+        editForms.forEach(form => {
+            // Skip if already processed
+            if (form.dataset.directBasicInfoReplaced === 'true') return;
+
+            // Find the form element
+            const formElement = form.querySelector('form');
+// ... (truncated)
+```
+
+## public\js\food\direct-nutrition-toggle.js
+
+### setupToggleButton
+
+Line: 7
+
+```javascript
+function setupToggleButton() {
+        // Find the Show Detailed Nutrition button
+        const toggleButton = document.querySelector('button.toggle-detailed-nutrition') || 
+                            document.querySelector('button#show-detailed-nutrition-btn') ||
+                            Array.from(document.querySelectorAll('button')).find(btn => 
+                                btn.textContent.trim() === 'Show Detailed Nutrition');
+        
+        if (!toggleButton) {
+            console.log('Toggle button not found, will try again later');
+            return;
+// ... (truncated)
+```
+
+## public\js\food\disable-other-basic-info-scripts.js
+
+### disableOtherBasicInfoScripts
+
+Line: 9
+
+```javascript
+function disableOtherBasicInfoScripts() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+        
+        editForms.forEach(form => {
+            // Skip if already processed
+            if (form.dataset.otherScriptsDisabled === 'true') return;
+            
+            console.log('Disabling other Basic Info scripts for this form');
+            
+// ... (truncated)
+```
+
+## public\js\food\ensure-all-buttons-visible.js
+
+### ensureAllButtonsVisible
+
+Line: 6
+
+```javascript
+function ensureAllButtonsVisible() {
+        // Fix for Edit Ingredient form
+        document.querySelectorAll('.edit-ingredient-form').forEach(form => {
+            const formElement = form.querySelector('form');
+            if (!formElement) return;
+
+            // Find the form actions (buttons container)
+            let formActions = formElement.querySelector('.form-actions');
+            
+            // If no form actions found, create them
+// ... (truncated)
+```
+
+## public\js\food\ensure-buttons-visible.js
+
+### ensureButtonsVisible
+
+Line: 6
+
+```javascript
+function ensureButtonsVisible() {
+        // Find all edit ingredient forms
+        document.querySelectorAll('.edit-ingredient-form').forEach(form => {
+            // Find the form element
+            const formElement = form.querySelector('form');
+            if (!formElement) return;
+
+            // Find the form actions (buttons container)
+            const formActions = formElement.querySelector('.form-actions');
+            if (!formActions) {
+// ... (truncated)
+```
+
+## public\js\food\ensure-single-button.js
+
+### ensureSingleButton
+
+Line: 7
+
+```javascript
+function ensureSingleButton() {
+        // Find all buttons with "Detailed Nutrition" text
+        const buttons = Array.from(document.querySelectorAll('button')).filter(btn => 
+            btn.textContent.includes('Detailed Nutrition')
+        );
+        
+        // If we have more than one button, keep only the one next to Add Ingredient
+        if (buttons.length > 1) {
+            console.log(`Found ${buttons.length} nutrition toggle buttons, keeping only one`);
+            
+// ... (truncated)
+```
+
+## public\js\food\exact-button-match.js
+
+### matchButtonSizes
+
+Line: 7
+
+```javascript
+function matchButtonSizes() {
+        // Get all ingredient forms
+        const forms = document.querySelectorAll('.ingredient-form');
+        
+        forms.forEach(form => {
+            // Find the buttons
+            const addButton = form.querySelector('button[onclick*="addIngredient"], button:contains("Add Ingredient")');
+            const removeButton = form.querySelector('button[onclick*="remove"], button:contains("Remove")');
+            const toggleButton = form.querySelector('.toggle-detailed-nutrition');
+            
+// ... (truncated)
+```
+
+## public\js\food\exact-position-match.js
+
+### matchButtonPositions
+
+Line: 7
+
+```javascript
+function matchButtonPositions() {
+        // Find all toggle buttons
+        const toggleButtons = document.querySelectorAll('.toggle-detailed-nutrition');
+        
+        toggleButtons.forEach(button => {
+            // Skip if already processed
+            if (button.dataset.positionMatched === 'true') return;
+            
+            // Find the other buttons in the same row
+            const parentRow = button.parentNode;
+// ... (truncated)
+```
+
+## public\js\food\final-button-fix.js
+
+### runPeriodically
+
+Line: 203
+
+```javascript
+function runPeriodically() {
+        // Check for visible edit forms
+        const visibleForms = document.querySelectorAll('.edit-ingredient-form[style*="display: block"]');
+        if (visibleForms.length > 0) {
+            console.log('[Final Button Fix] Found visible forms, replacing buttons');
+            replaceFormActions();
+        }
+    }
+```
+
+## public\js\food\fix-button-text-display.js
+
+### fixButtonTextDisplay
+
+Line: 7
+
+```javascript
+function fixButtonTextDisplay() {
+        // Find all toggle buttons
+        const toggleButtons = document.querySelectorAll('.toggle-detailed-nutrition');
+
+        toggleButtons.forEach(button => {
+            // Skip if already processed
+            if (button.dataset.textFixed === 'true') return;
+
+            // Mark as processed
+            button.dataset.textFixed = 'true';
+// ... (truncated)
+```
+
+## public\js\food\fix-detailed-nutrition-toggle.js
+
+### fixDetailedNutritionToggle
+
+Line: 7
+
+```javascript
+function fixDetailedNutritionToggle() {
+        // Find all Show Detailed Nutrition buttons
+        document.querySelectorAll('button.toggle-detailed-nutrition, button.show-detailed-nutrition').forEach(button => {
+            // Skip if already processed
+            if (button.dataset.toggleFixed === 'true') return;
+
+            // Remove any existing click handlers by cloning the button
+            const newButton = button.cloneNode(true);
+            if (button.parentNode) {
+                button.parentNode.replaceChild(newButton, button);
+// ... (truncated)
+```
+
+## public\js\food\fix-duplicate-buttons.js
+
+### fixDuplicateButtons
+
+Line: 7
+
+```javascript
+function fixDuplicateButtons() {
+        // Find all Show Detailed Nutrition buttons
+        const buttons = Array.from(document.querySelectorAll('button')).filter(btn => 
+            btn.textContent.includes('Detailed Nutrition')
+        );
+        
+        // If we have more than one button, remove all but the first one
+        if (buttons.length > 1) {
+            console.log(`Found ${buttons.length} nutrition toggle buttons, removing duplicates`);
+            
+// ... (truncated)
+```
+
+## public\js\food\fix-edit-form-display.js
+
+### hideEditForms
+
+Line: 10
+
+```javascript
+function hideEditForms() {
+        console.log('[Fix Edit Form Display] Hiding edit forms...');
+
+        // Find all edit forms that don't have the show-edit-form class
+        const editForms = document.querySelectorAll('.edit-ingredient-form:not(.show-edit-form)');
+        editForms.forEach(form => {
+            // Hide the form
+            form.style.display = 'none';
+            // Add a data attribute to mark it as processed
+            form.setAttribute('data-edit-form-fixed', 'true');
+// ... (truncated)
+```
+
+### patchEditIngredientClick
+
+Line: 259
+
+```javascript
+function patchEditIngredientClick() {
+        // Check if the original function exists
+        if (window.handleEditIngredientClick) {
+            console.log('[Fix Edit Form Display] Patching handleEditIngredientClick function');
+
+            // Store the original function
+            const originalFunction = window.handleEditIngredientClick;
+
+            // Replace with our patched version
+            window.handleEditIngredientClick = function(event) {
+// ... (truncated)
+```
+
+### patchFetchAndDisplayIngredients
+
+Line: 313
+
+```javascript
+function patchFetchAndDisplayIngredients() {
+        // Check if the original function exists
+        if (window.fetchAndDisplayIngredients) {
+            console.log('[Fix Edit Form Display] Patching fetchAndDisplayIngredients function');
+
+            // Store the original function
+            const originalFunction = window.fetchAndDisplayIngredients;
+
+            // Replace with our patched version
+            window.fetchAndDisplayIngredients = async function(recipeId, detailsDiv, viewButton) {
+// ... (truncated)
+```
+
+## public\js\food\fix-toggle-button-final.js
+
+### fixToggleButton
+
+Line: 7
+
+```javascript
+function fixToggleButton() {
+        // Find the button with class toggle-detailed-nutrition
+        const toggleButton = document.querySelector('.toggle-detailed-nutrition');
+        
+        if (!toggleButton) {
+            console.log('Toggle button not found, will try again later');
+            return;
+        }
+        
+        console.log('Found toggle button:', toggleButton);
+// ... (truncated)
+```
+
+## public\js\food\fix-vertical-alignment.js
+
+### fixVerticalAlignment
+
+Line: 7
+
+```javascript
+function fixVerticalAlignment() {
+        // Find all toggle buttons
+        const toggleButtons = document.querySelectorAll('.toggle-detailed-nutrition');
+        
+        toggleButtons.forEach(button => {
+            // Skip if already processed
+            if (button.dataset.verticalFixed === 'true') return;
+            
+            // Mark as processed
+            button.dataset.verticalFixed = 'true';
+// ... (truncated)
+```
+
+## public\js\food\food.js
+
+### saveWeightGoal
+
+Line: 860
+
+```javascript
+async function saveWeightGoal(event) {
+        event.preventDefault();
+        const targetWeight = parseFloat(targetWeightInput.value);
+        const weeklyGain = parseFloat(weeklyGainGoalInput.value);
+
+        if (isNaN(targetWeight) || targetWeight <= 0 || isNaN(weeklyGain) || weeklyGain === 0) {
+            showStatus(weightGoalStatus, 'Please enter a valid positive number for target weight and a non-zero value for weekly goal.', 'error');
+            return;
+        }
+
+// ... (truncated)
+```
+
+### parseFloatOrNull
+
+Line: 3631
+
+```javascript
+function parseFloatOrNull(value) {
+        if (value === undefined || value === null || value === '') {
+            return null;
+        }
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? null : parsed;
+    }
+```
+
+### handleEditIngredientSubmit
+
+Line: 3640
+
+```javascript
+async function handleEditIngredientSubmit(event) {
+        event.preventDefault();
+
+        console.log('=== handleEditIngredientSubmit called ===');
+
+        // Check if the field updater is available
+        if (!window.fieldUpdater) {
+            console.warn('Field updater not available. Some fields may not be saved correctly.');
+        }
+
+// ... (truncated)
+```
+
+### saveCalorieTarget
+
+Line: 5293
+
+```javascript
+async function saveCalorieTarget() {
+        const userId = calorieUserSelector.value;
+        const calorieTarget = parseInt(calorieTargetInput.value);
+
+        if (isNaN(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
+            showStatus(calorieTargetStatus, 'Please enter a valid calorie target between 500 and 10000.', 'error');
+            return;
+        }
+
+        showStatus(calorieTargetStatus, 'Saving calorie target...', 'info');
+// ... (truncated)
+```
+
+### fixTooltips
+
+Line: 5475
+
+```javascript
+function fixTooltips() {
+        if (!weightGoalChart || !weightGoalChartCanvas) return;
+
+        // Re-attach custom tooltip events
+        if (window.attachWeightChartTooltipEvents) {
+            window.attachWeightChartTooltipEvents(weightGoalChart);
+            console.log('Re-attached custom tooltip events to chart');
+        } else {
+            console.error('Custom tooltip functions not available');
+        }
+// ... (truncated)
+```
+
+## public\js\food\force-basic-info-structure.js
+
+### forceBasicInfoStructure
+
+Line: 10
+
+```javascript
+function forceBasicInfoStructure() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+        
+        editForms.forEach(form => {
+            // Skip if already fixed
+            if (form.dataset.forceBasicInfoFixed === 'true') return;
+            
+            // Log the current structure for debugging
+            console.log('[Force Basic Info Structure] Current form structure:', form.innerHTML);
+// ... (truncated)
+```
+
+## public\js\food\grocery-list.js
+
+### addSelectedRecipes
+
+Line: 139
+
+```javascript
+function addSelectedRecipes() {
+        const selectedElements = document.querySelectorAll('#available-recipes .recipe-item.selected');
+        
+        selectedElements.forEach(element => {
+            const recipeId = element.dataset.id;
+            const recipe = allRecipes.find(r => r.id === recipeId);
+            
+            if (recipe && !selectedRecipes.some(r => r.id === recipeId)) {
+                selectedRecipes.push(recipe);
+            }
+// ... (truncated)
+```
+
+### removeSelectedRecipes
+
+Line: 158
+
+```javascript
+function removeSelectedRecipes() {
+        const selectedElements = document.querySelectorAll('#selected-recipes .recipe-item.selected');
+        
+        selectedElements.forEach(element => {
+            const recipeId = element.dataset.id;
+            selectedRecipes = selectedRecipes.filter(r => r.id !== recipeId);
+        });
+        
+        renderAvailableRecipes();
+        renderSelectedRecipes();
+// ... (truncated)
+```
+
+### generateGroceryList
+
+Line: 306
+
+```javascript
+function generateGroceryList() {
+        if (adjustedRecipes.length === 0) {
+            showStatus('Please select at least one recipe.', 'error');
+            return;
+        }
+        
+        showStatus('Generating grocery list...', 'info');
+        
+        // Fetch full recipe details for each adjusted recipe
+        Promise.all(adjustedRecipes.map(recipe => 
+// ... (truncated)
+```
+
+### printGroceryList
+
+Line: 507
+
+```javascript
+function printGroceryList() {
+        if (!groceryList || groceryList.length === 0) {
+            showStatus('No grocery list to print.', 'error');
+            return;
+        }
+        
+        // Create a printable version of the grocery list
+        const printWindow = window.open('', '_blank');
+        
+        if (!printWindow) {
+// ... (truncated)
+```
+
+### saveGroceryList
+
+Line: 620
+
+```javascript
+function saveGroceryList() {
+        if (!groceryList || groceryList.length === 0) {
+            showStatus('No grocery list to save.', 'error');
+            return;
+        }
+        
+        // Create a CSV file
+        let csvContent = 'Ingredient,Amount (g),Package Size (g),Packages Needed,Package Price,Total Cost,Used In\n';
+        
+        groceryList.forEach(ingredient => {
+// ... (truncated)
+```
+
+## public\js\food\horizontal-edit-fields.js
+
+### restructureEditFields
+
+Line: 8
+
+```javascript
+function restructureEditFields() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+
+        editForms.forEach(form => {
+            // Skip if already processed
+            if (form.dataset.fieldsRestructured === 'true') return;
+
+            // Get the form element
+            const formElement = form.querySelector('form');
+// ... (truncated)
+```
+
+## public\js\food\identify-toggle-button.js
+
+### identifyToggleButton
+
+Line: 7
+
+```javascript
+function identifyToggleButton() {
+        // Find the button by text content
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const toggleButton = buttons.find(btn => 
+            btn.textContent.trim() === 'Show Detailed Nutrition' || 
+            btn.textContent.trim() === 'Hide Detailed Nutrition'
+        );
+        
+        if (toggleButton) {
+            // Add classes to help identify the button
+// ... (truncated)
+```
+
+## public\js\food\ingredient-autofill.js
+
+### handleIngredientNameChange
+
+Line: 219
+
+```javascript
+async function handleIngredientNameChange(event) {
+    const ingredientName = event.target.value.trim();
+    if (!ingredientName) return;
+
+    console.log(`Ingredient name changed to: ${ingredientName}`);
+
+    // Fetch ingredient details
+    const ingredientData = await fetchIngredientDetails(ingredientName);
+
+    // Fill in the fields if data was found
+// ... (truncated)
+```
+
+## public\js\food\local-storage-manager.js
+
+### savePackageAmount
+
+Line: 17
+
+```javascript
+function savePackageAmount(ingredientId, packageAmount) {
+        try {
+            // Get existing package amounts from local storage
+            const packageAmounts = getPackageAmounts();
+            
+            // Update the package amount for this ingredient
+            packageAmounts[ingredientId] = packageAmount;
+            
+            // Save back to local storage
+            localStorage.setItem(PACKAGE_AMOUNTS_KEY, JSON.stringify(packageAmounts));
+// ... (truncated)
+```
+
+### getPackageAmount
+
+Line: 41
+
+```javascript
+function getPackageAmount(ingredientId) {
+        try {
+            // Get existing package amounts from local storage
+            const packageAmounts = getPackageAmounts();
+            
+            // Return the package amount for this ingredient, or null if not found
+            return packageAmounts[ingredientId] || null;
+        } catch (error) {
+            console.error('Error getting package amount from local storage:', error);
+            return null;
+// ... (truncated)
+```
+
+### clearPackageAmounts
+
+Line: 74
+
+```javascript
+function clearPackageAmounts() {
+        try {
+            localStorage.removeItem(PACKAGE_AMOUNTS_KEY);
+            console.log('Cleared all package amounts from local storage');
+            return true;
+        } catch (error) {
+            console.error('Error clearing package amounts from local storage:', error);
+            return false;
+        }
+    }
+```
+
+## public\js\food\nutrition-display-redesign.js
+
+### redesignNutritionDisplay
+
+Line: 8
+
+```javascript
+function redesignNutritionDisplay() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+
+        editForms.forEach(form => {
+            // Skip if already processed
+            if (form.dataset.nutritionDisplayRedesigned === 'true') return;
+
+            // Get the form element
+            const formElement = form.querySelector('form');
+// ... (truncated)
+```
+
+### syncInputValues
+
+Line: 285
+
+```javascript
+function syncInputValues() {
+        document.querySelectorAll('.edit-ingredient-form').forEach(form => {
+            if (form.dataset.nutritionDisplayRedesigned === 'true') {
+                const formElement = form.querySelector('form');
+                if (!formElement) return;
+
+                const detailedNutritionPanel = formElement.querySelector('.detailed-nutrition-panel');
+                if (!detailedNutritionPanel) return;
+
+                // Find all inputs in the redesigned display
+// ... (truncated)
+```
+
+## public\js\food\nutrition-edit-buttons.js
+
+### addNutritionEditButtons
+
+Line: 6
+
+```javascript
+function addNutritionEditButtons() {
+        // Find all detailed nutrition panels
+        document.querySelectorAll('.detailed-nutrition-panel').forEach(panel => {
+            // Check if we've already processed this panel
+            if (panel.dataset.nutritionButtonsAdded === 'true') {
+                return;
+            }
+
+            // Create a container for the buttons
+            const buttonsContainer = document.createElement('div');
+// ... (truncated)
+```
+
+## public\js\food\nutrition-field-mapper.js
+
+### toDbFormat
+
+Line: 107
+
+```javascript
+function toDbFormat(data) {
+        console.log('[NutritionFieldMapper] Converting to DB format:', data);
+        const result = {};
+
+        for (const [key, value] of Object.entries(data)) {
+            // Skip null or undefined values
+            if (value === null || value === undefined) {
+                console.log(`[NutritionFieldMapper] Skipping null/undefined value for key: ${key}`);
+                continue;
+            }
+// ... (truncated)
+```
+
+### fromDbFormat
+
+Line: 153
+
+```javascript
+function fromDbFormat(dbData) {
+        const result = {};
+
+        // Create a reverse mapping (database column name to JavaScript property name)
+        const reverseMapping = {};
+        for (const [jsKey, dbKey] of Object.entries(fieldMappings)) {
+            // Skip aliases (keys that map to the same database column)
+            if (!reverseMapping[dbKey] || jsKey.length < reverseMapping[dbKey].length) {
+                reverseMapping[dbKey] = jsKey;
+            }
+// ... (truncated)
+```
+
+### getFieldMappings
+
+Line: 185
+
+```javascript
+function getFieldMappings() {
+        return { ...fieldMappings };
+    }
+```
+
+## public\js\food\omega-storage.js
+
+### saveOmegaValues
+
+Line: 19
+
+```javascript
+function saveOmegaValues(ingredientId, omega3Value, omega6Value) {
+        try {
+            if (!window.localStorage) {
+                console.error('localStorage not available');
+                return false;
+            }
+
+            // Skip if both values are undefined
+            if (omega3Value === undefined && omega6Value === undefined) {
+                console.log('No omega values to save');
+// ... (truncated)
+```
+
+### applyOmegaValuesToAll
+
+Line: 142
+
+```javascript
+function applyOmegaValuesToAll(ingredients) {
+        if (!ingredients || !Array.isArray(ingredients)) {
+            return ingredients;
+        }
+
+        return ingredients.map(ingredient => applyOmegaValues(ingredient));
+    }
+```
+
+### clearAllOmegaValues
+
+Line: 154
+
+```javascript
+function clearAllOmegaValues() {
+        try {
+            if (!window.localStorage) {
+                console.error('localStorage not available');
+                return false;
+            }
+
+            // Get all keys
+            const keys = [];
+            for (let i = 0; i < window.localStorage.length; i++) {
+// ... (truncated)
+```
+
+## public\js\food\remove-duplicate-fields.js
+
+### removeDuplicateFields
+
+Line: 8
+
+```javascript
+function removeDuplicateFields() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+
+        editForms.forEach(form => {
+            // Skip if already processed
+            if (form.dataset.duplicatesRemoved === 'true') return;
+
+            // Find the dark area below the Basic Information section
+            const darkArea = form.querySelector('.basic-info-section + div:not(.nutrition-section)');
+// ... (truncated)
+```
+
+## public\js\food\remove-top-button.js
+
+### removeTopButton
+
+Line: 7
+
+```javascript
+function removeTopButton() {
+        // Find the button at the top of the page
+        const topButton = document.querySelector('body > button:first-of-type');
+        
+        if (topButton && topButton.textContent.includes('Detailed Nutrition')) {
+            console.log('Removing top button');
+            topButton.parentNode.removeChild(topButton);
+        }
+    }
+```
+
+## public\js\food\remove-top-buttons.js
+
+### removeTopButtons
+
+Line: 13
+
+```javascript
+function removeTopButtons() {
+        if (DEBUG) console.log('Removing top buttons...');
+
+        // Find all edit-ingredient-form-top-buttons containers
+        const topButtonsContainers = document.querySelectorAll('.edit-ingredient-form-top-buttons');
+
+        // Remove them
+        topButtonsContainers.forEach(container => {
+            if (DEBUG) console.log('Removing top buttons container');
+            if (container.parentNode) {
+// ... (truncated)
+```
+
+### removeButtonsByText
+
+Line: 116
+
+```javascript
+function removeButtonsByText() {
+        // Find all buttons in the document
+        const allButtons = document.querySelectorAll('button');
+
+        // Filter for Save Changes and Cancel buttons that are not in the form-actions
+        allButtons.forEach(button => {
+            const text = button.textContent.trim();
+            if ((text === 'Save Changes' || text === 'Cancel') &&
+                !button.closest('.form-actions') &&
+                button.closest('.edit-ingredient-form')) {
+// ... (truncated)
+```
+
+## public\js\food\replace-basic-info.js
+
+### replaceBasicInfo
+
+Line: 10
+
+```javascript
+function replaceBasicInfo() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+        
+        editForms.forEach(form => {
+            // Skip if already replaced
+            if (form.dataset.basicInfoReplaced === 'true') return;
+            
+            // Find the form element
+            const formElement = form.querySelector('form');
+// ... (truncated)
+```
+
+## public\js\food\server-check.js
+
+### safeFetch
+
+Line: 36
+
+```javascript
+async function safeFetch(url, options = {}) {
+    // If the server is not available, return a fake successful response
+    if (!window._serverAvailable) {
+        console.log(`Server unavailable - simulating response for: ${url}`);
+        return new Response(JSON.stringify({
+            success: true,
+            simulated: true,
+            message: "This is a simulated response because the server is unavailable"
+        }), {
+            status: 200,
+// ... (truncated)
+```
+
+## public\js\food\shorter-button-text.js
+
+### useShorterButtonText
+
+Line: 7
+
+```javascript
+function useShorterButtonText() {
+        // Find all toggle buttons
+        const toggleButtons = document.querySelectorAll('.toggle-detailed-nutrition');
+        
+        toggleButtons.forEach(button => {
+            // Skip if already processed
+            if (button.dataset.shorterText === 'true') return;
+            
+            // Mark as processed
+            button.dataset.shorterText = 'true';
+// ... (truncated)
+```
+
+## public\js\food\show-nutrition-panel.js
+
+### showNutritionPanel
+
+Line: 8
+
+```javascript
+function showNutritionPanel() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+
+        editForms.forEach(form => {
+            // Skip if already processed
+            if (form.dataset.nutritionPanelFixed === 'true') return;
+
+            // Get the form element
+            const formElement = form.querySelector('form');
+// ... (truncated)
+```
+
+## public\js\food\simplified-nutrition-scan.js
+
+### initializePasteArea
+
+Line: 29
+
+```javascript
+function initializePasteArea(pasteArea) {
+    setupPasteEventListeners(pasteArea);
+}
+```
+
+## public\js\food\specific-button-fix.js
+
+### fixSpecificButton
+
+Line: 7
+
+```javascript
+function fixSpecificButton() {
+        // Find the first button in the page (which should be the Show Detailed Nutrition button)
+        const firstButton = document.querySelector('.nutrition-controls button') || 
+                           document.querySelector('button:first-of-type');
+        
+        if (firstButton) {
+            // Set the button text
+            firstButton.textContent = 'Show Detailed Nutrition';
+            
+            // Add classes and ID
+// ... (truncated)
+```
+
+## public\js\food\toggle-nutrition-panel.js
+
+### setupToggleButtons
+
+Line: 7
+
+```javascript
+function setupToggleButtons() {
+        // Find all toggle buttons
+        document.querySelectorAll('.toggle-detailed-nutrition').forEach(button => {
+            // Skip if already processed
+            if (button.dataset.toggleHandlerAdded === 'true') return;
+            
+            // Add click event listener
+            button.addEventListener('click', function() {
+                // Find the detailed nutrition panel
+                const panel = this.closest('.nutrition-summary').nextElementSibling;
+// ... (truncated)
+```
+
+## public\js\food\top-fields-dark-fix.js
+
+### applyTopFieldsDarkFix
+
+Line: 8
+
+```javascript
+function applyTopFieldsDarkFix() {
+        // Find all edit ingredient forms
+        const editForms = document.querySelectorAll('.edit-ingredient-form');
+
+        editForms.forEach(form => {
+            // Skip if already processed
+            if (form.dataset.topFieldsFixed === 'true') return;
+
+            // Get the form element
+            const formElement = form.querySelector('form');
+// ... (truncated)
+```
+
+## public\js\goals\goals.js
+
+### handleSetMainGoal
+
+Line: 206
+
+```javascript
+async function handleSetMainGoal() {
+        const goalName = mainGoalInput.value.trim();
+        if (goalName) {
+            console.log('Attempting to POST main goal:', goalName);
+            try {
+                const response = await fetch('/api/goals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: goalName, parentId: null })
+                });
+// ... (truncated)
+```
+
+### handleAddSubGoal
+
+Line: 232
+
+```javascript
+async function handleAddSubGoal(event) {
+        event.stopPropagation();
+        const parentGoalNode = this.closest('.goal-node');
+        const parentId = parentGoalNode.getAttribute('data-id');
+        if (!parentId) { console.error('Could not find parent goal ID for adding child'); return; }
+        const subGoalName = prompt("Enter sub-goal (child) name:");
+        if (subGoalName && subGoalName.trim()) {
+             console.log(`Attempting to add child to parent ${parentId} with text: ${subGoalName.trim()}`);
+            try {
+                const response = await fetch('/api/goals', {
+// ... (truncated)
+```
+
+### handleInsertParent
+
+Line: 266
+
+```javascript
+async function handleInsertParent(event) {
+        event.stopPropagation();
+        const currentGoalNode = this.closest('.goal-node');
+        const currentGoalId = currentGoalNode.getAttribute('data-id');
+        if (!currentGoalId) { console.error('Could not find current goal ID for insertion'); return; }
+        const newGoalText = prompt("Enter text for the NEW parent goal (to insert above current):");
+        if (newGoalText && newGoalText.trim()) {
+             console.log(`Attempting to insert parent above node ${currentGoalId} with text: ${newGoalText.trim()}`);
+            try {
+                const response = await fetch('/api/goals/insert-between', {
+// ... (truncated)
+```
+
+### handleDeleteGoal
+
+Line: 305
+
+```javascript
+async function handleDeleteGoal(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalId = goalNode.getAttribute('data-id');
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalName = goalBox ? goalBox.textContent.split('+')[0].trim() : 'this goal';
+
+        if (!goalId) { console.error('Could not find goal ID to delete (cascade)'); return; }
+        console.log(`Attempting to delete goal CASCADE with ID: ${goalId}`);
+
+// ... (truncated)
+```
+
+### handleDeleteAndPromote
+
+Line: 354
+
+```javascript
+async function handleDeleteAndPromote(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalId = goalNode.getAttribute('data-id');
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalName = goalBox ? goalBox.textContent.split('+')[0].trim() : 'this goal';
+
+        if (!goalId) {
+            console.error('Could not find goal ID to delete/promote');
+            return;
+// ... (truncated)
+```
+
+### handleEditGoal
+
+Line: 410
+
+```javascript
+function handleEditGoal(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalTextSpan = goalNode.querySelector('.goal-text');
+        const goalEditInput = goalNode.querySelector('.goal-edit-input');
+        const goalActions = goalNode.querySelector('.goal-actions');
+
+        // Store original text in case of cancel
+        goalEditInput.setAttribute('data-original-text', goalTextSpan.textContent);
+// ... (truncated)
+```
+
+### handleSaveGoal
+
+Line: 442
+
+```javascript
+async function handleSaveGoal(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalBox = goalNode.querySelector('.goal-box');
+        const goalId = goalNode.getAttribute('data-id');
+        const goalEditInput = goalNode.querySelector('.goal-edit-input');
+        const newText = goalEditInput.value.trim();
+
+        if (!goalId) { console.error('Could not find goal ID to save'); return; }
+        if (newText === '') { alert('Goal text cannot be empty.'); return; }
+// ... (truncated)
+```
+
+### handleCancelEdit
+
+Line: 481
+
+```javascript
+function handleCancelEdit(event) {
+        event.stopPropagation();
+        const goalNode = this.closest('.goal-node');
+        const goalEditInput = goalNode.querySelector('.goal-edit-input');
+        const originalText = goalEditInput.getAttribute('data-original-text'); // Get original text
+
+        console.log(`Canceling edit for goal ${goalNode.getAttribute('data-id')}`);
+        switchToViewMode(goalNode, originalText); // Revert to original text
+    }
+```
+
+## public\js\habits\habit-icons-fix.js
+
+### handleHabitTouch
+
+Line: 120
+
+```javascript
+function handleHabitTouch(event) {
+        // Get the habit item
+        const habitItem = event.currentTarget;
+
+        // Toggle the show-actions class
+        habitItem.classList.toggle('show-actions');
+
+        // Remove the class after 3 seconds
+        setTimeout(() => {
+            habitItem.classList.remove('show-actions');
+// ... (truncated)
+```
+
+## public\js\habits\habit-level-fix.js
+
+### updateHabitLevelDisplays
+
+Line: 61
+
+```javascript
+function updateHabitLevelDisplays() {
+        const habitLevels = document.querySelectorAll('.habit-level');
+
+        habitLevels.forEach(levelEl => {
+            // Get the parent habit element
+            const habitElement = levelEl.closest('.habit-item');
+            if (!habitElement) return;
+
+            // Check if this is the 10g Creatine habit
+            const titleEl = habitElement.querySelector('.habit-title');
+// ... (truncated)
+```
+
+## public\js\habits\habit-reset.js
+
+### resetHabitCompletions
+
+Line: 9
+
+```javascript
+async function resetHabitCompletions() {
+    try {
+        console.log('Resetting habit completions via API...');
+
+        // Call the reset API endpoint - use relative URL to work in all environments
+        const baseUrl = window.location.origin;
+        const apiUrl = `${baseUrl}/api/habit-reset`;
+        console.log(`Calling reset API at: ${apiUrl}`);
+
+        const response = await fetch(apiUrl, {
+// ... (truncated)
+```
+
+## public\js\lib\confetti.min.js
+
+### c
+
+Line: 5
+
+```javascript
+function(t,e,i){this.x=t,this.y=e,this.color=i,this.rotation=Math.random()*360,this.speed=3+Math.random()*5,this.velocity=Math.random(),this.size=10+Math.random()*10,this.shape=Math.floor(Math.random()*2)}
+```
+
+## public\js\pages\calendar\calendar.js
+
+### handleDayClick
+
+Line: 854
+
+```javascript
+function handleDayClick(event) {
+        const dayEl = event.currentTarget;
+        const dateKey = dayEl.getAttribute('data-date');
+        if (!dateKey) return;
+
+        const date = new Date(dateKey + 'T00:00:00'); // Ensure parsing as local date
+        showTasksForDate(date, allTasks); // Show tasks for this date
+
+        // Optional: Highlight selected day
+        document.querySelectorAll('.calendar-day.selected').forEach(d => d.classList.remove('selected'));
+// ... (truncated)
+```
+
+### handleDeleteSelectedTasks
+
+Line: 1550
+
+```javascript
+async function handleDeleteSelectedTasks() {
+        const selectedCheckboxes = document.querySelectorAll('.task-select-checkbox:checked');
+        if (selectedCheckboxes.length === 0) return;
+
+        // Get the task IDs and check if any are recurring
+        const taskIds = [];
+        let hasRecurringTasks = false;
+
+        // Check each selected task
+        for (const checkbox of selectedCheckboxes) {
+// ... (truncated)
+```
+
+## public\js\pages\journal\journal.js
+
+### saveEntry
+
+Line: 41
+
+```javascript
+async function saveEntry() {
+        const date = journalDateInput.value;
+        const content = journalContentTextarea.value.trim();
+
+        if (!content) {
+            showStatus('Please write something in your journal entry.', 'error');
+            return;
+        }
+
+        try {
+// ... (truncated)
+```
+
+### analyzeEntry
+
+Line: 80
+
+```javascript
+async function analyzeEntry() {
+        const content = journalContentTextarea.value.trim();
+        const date = journalDateInput.value;
+
+        if (!content) {
+            showStatus('Please write something to analyze.', 'error');
+            return;
+        }
+
+        try {
+// ... (truncated)
+```
+
+### loadEntryForDate
+
+Line: 374
+
+```javascript
+async function loadEntryForDate() {
+        const selectedDate = journalDateInput.value;
+
+        try {
+            const response = await fetch(`/api/journal/date/${selectedDate}`);
+
+            if (response.status === 404) {
+                // No entry for this date, clear the textarea
+                journalContentTextarea.value = '';
+                // Update word count
+// ... (truncated)
+```
+
+### testOllama
+
+Line: 456
+
+```javascript
+async function testOllama() {
+        try {
+            showStatus('Testing Ollama connection...', 'info');
+            analysisContentElement.innerHTML = '<p>Testing Ollama connection...</p>';
+
+            // First, check if Ollama is running
+            try {
+                const response = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: {
+// ... (truncated)
+```
+
+## public\js\tasks\overdue-recurrence-adjuster.js
+
+### initOverdueRecurrenceAdjuster
+
+Line: 14
+
+```javascript
+function initOverdueRecurrenceAdjuster() {
+        console.log('[Overdue Recurrence Adjuster] Initializing...');
+
+        // Dump all task items for debugging
+        scanForOverdueRecurringTasks();
+
+        // Set up a periodic scan to detect overdue recurring tasks
+        setInterval(scanForOverdueRecurringTasks, 5000);
+
+        // Find the task list container
+// ... (truncated)
+```
+
+### showRecurrenceAdjustmentModal
+
+Line: 270
+
+```javascript
+async function showRecurrenceAdjustmentModal(taskTitle) {
+        return new Promise((resolve) => {
+            // Create modal elements
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'overdue-recurrence-modal-overlay';
+            modalOverlay.className = 'modal-overlay';
+            modalOverlay.style.position = 'fixed';
+            modalOverlay.style.top = '0';
+            modalOverlay.style.left = '0';
+            modalOverlay.style.width = '100%';
+// ... (truncated)
+```
+
+## public\js\tasks\script.js
+
+### ensureOverdueStyling
+
+Line: 302
+
+```javascript
+function ensureOverdueStyling() {
+             // Find all overdue tasks
+             const overdueTasks = document.querySelectorAll('.task-item.overdue, .task-item[data-overdue="true"]');
+
+             // Apply styling directly
+             overdueTasks.forEach(task => {
+                 task.style.backgroundColor = '#ffebee';
+                 task.style.borderLeft = '4px solid #f44336';
+                 task.style.borderColor = '#ef9a9a';
+             });
+// ... (truncated)
+```
+
+### handleToggleComplete
+
+Line: 1539
+
+```javascript
+async function handleToggleComplete(event) {
+        const checkbox = event.target;
+        const taskItem = checkbox.closest('.task-item');
+        const taskId = taskItem.getAttribute('data-task-id');
+        const isComplete = checkbox.checked;
+
+        // Check if this is a recurring task with an overdue next occurrence
+        const isRecurringOverdue = taskItem.hasAttribute('data-recurring-overdue');
+
+        console.log(`Toggling task ${taskId} to complete=${isComplete} (isRecurringOverdue=${isRecurringOverdue})`);
+// ... (truncated)
+```
+
+### handleTaskTouch
+
+Line: 1932
+
+```javascript
+function handleTaskTouch(event) {
+        // Get the task item
+        const taskItem = event.currentTarget;
+
+        // Toggle the show-actions class
+        taskItem.classList.toggle('show-actions');
+
+        // Remove the class after 3 seconds
+        setTimeout(() => {
+            taskItem.classList.remove('show-actions');
+// ... (truncated)
+```
+
+### addHabit
+
+Line: 2573
+
+```javascript
+async function addHabit(event) {
+        event.preventDefault(); // Prevent default form submission
+        const statusDiv = document.getElementById('addHabitStatus');
+        statusDiv.textContent = 'Adding habit...';
+        statusDiv.className = 'status';
+
+        const title = document.getElementById('habitTitle').value;
+        const frequency = document.getElementById('habitRecurrenceType').value;
+        const completionsPerDay = document.getElementById('habitCompletionsPerDay').value;
+
+// ... (truncated)
+```
+
+### handleEditHabitSubmit
+
+Line: 3775
+
+```javascript
+async function handleEditHabitSubmit(event) {
+        event.preventDefault();
+        const habitId = editHabitIdInput.value;
+        editHabitStatusDiv.textContent = 'Saving changes...';
+        editHabitStatusDiv.className = 'status';
+
+        const title = editHabitTitleInput.value;
+        const frequency = editHabitRecurrenceTypeInput.value;
+        const completionsPerDay = editHabitCompletionsPerDayInput.value;
+
+// ... (truncated)
+```
+
+## public\js\workouts\auto-save.js
+
+### initAutoSave
+
+Line: 40
+
+```javascript
+function initAutoSave() {
+    console.log('[Auto-Save] Initializing auto-save functionality');
+    
+    // Set the save function based on availability
+    AUTO_SAVE.saveFunction = typeof saveWorkoutData === 'function' ? saveWorkoutData : saveInputValues;
+    
+    // Load the last save timestamp
+    const lastSaveStr = localStorage.getItem(AUTO_SAVE.LAST_SAVE_KEY);
+    if (lastSaveStr) {
+        AUTO_SAVE.lastSave = parseInt(lastSaveStr, 10);
+// ... (truncated)
+```
+
+### handleInputChange
+
+Line: 104
+
+```javascript
+function handleInputChange(event) {
+    // Only process if the target is an input, textarea, or select
+    if (event.target.tagName === 'INPUT' || 
+        event.target.tagName === 'TEXTAREA' || 
+        event.target.tagName === 'SELECT') {
+        
+        // Mark as changed and schedule a save
+        AUTO_SAVE.changedInputs.add(event.target);
+        scheduleAutoSave();
+    }
+// ... (truncated)
+```
+
+## public\js\workouts\icon-diagnostic.js
+
+### diagnoseIcons
+
+Line: 7
+
+```javascript
+function diagnoseIcons() {
+    console.log('Running icon diagnostic...');
+
+    // Find all navigation items
+    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+    console.log('Found', navItems.length, 'navigation items');
+
+    // Loop through each navigation item
+    navItems.forEach((navItem, index) => {
+        // Get the href attribute
+// ... (truncated)
+```
+
+## public\js\workouts\nav-diagnostic.js
+
+### logNavigationInfo
+
+Line: 7
+
+```javascript
+function logNavigationInfo() {
+    console.log('=== NAVIGATION DIAGNOSTIC ===');
+    
+    // Check if bottom nav exists
+    const bottomNav = document.querySelector('.bottom-nav');
+    if (!bottomNav) {
+        console.log('Bottom navigation bar not found!');
+        return;
+    }
+    
+// ... (truncated)
+```
+
+## public\js\workouts\photo-date-input-fix.js
+
+### setupPhotoDateInput
+
+Line: 8
+
+```javascript
+function setupPhotoDateInput() {
+        const dateInput = document.getElementById('modal-photo-date');
+        if (!dateInput) return;
+
+        // Create a wrapper for our custom implementation
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-date-wrapper';
+
+        // Get the current value or set today's date
+        const currentValue = dateInput.value || new Date().toISOString().split('T')[0];
+// ... (truncated)
+```
+
+## public\js\workouts\workout-persistence.js
+
+### initWorkoutPersistence
+
+Line: 11
+
+```javascript
+function initWorkoutPersistence() {
+    // Add event listeners to save data when inputs change
+    addInputChangeListeners();
+
+    // Add event listeners to save data when navigating away
+    addNavigationListeners();
+
+    // Restore data when the page loads
+    setTimeout(restoreWorkoutData, 500);
+
+// ... (truncated)
+```
+
+## public\js\workouts\workouts.js
+
+### later
+
+Line: 31
+
+```javascript
+() => {
+                console.log(`[Debounce ${debounceId} | ${functionName}] -------> EXECUTING <-------`); // Clearer execution log
+                timeout = null; // Reset timeout ID *before* executing
+                func.apply(context, args); // Use apply to preserve context and arguments
+            }
+```
+
+### handleFilterChange
+
+Line: 1664
+
+```javascript
+function handleFilterChange() {
+        const searchTerm = exerciseSearchInput.value;
+        const category = exerciseCategoryFilter.value;
+        renderAvailableExercises(searchTerm, category);
+    }
+```
+
+### startEmptyWorkout
+
+Line: 2425
+
+```javascript
+function startEmptyWorkout() {
+        console.log('Starting empty workout');
+        // Clear any existing saved workout
+        clearWorkoutState();
+
+        // Initialize currentWorkout as an array with exercises property
+        window.currentWorkout = {
+            name: 'New Workout',
+            exercises: []
+        };
+// ... (truncated)
+```
+
+### makeTemplateExerciseListSortable
+
+Line: 3594
+
+```javascript
+function makeTemplateExerciseListSortable() {
+        console.log('[Template Editor] Setting up drag and drop functionality');
+        const templateExerciseListEl = document.getElementById('template-exercise-list');
+
+        if (!templateExerciseListEl) {
+            console.error('[Template Editor] Cannot set up drag and drop: template-exercise-list element not found');
+            return;
+        }
+
+        // Add the template-editor-list class to enable specific CSS styling
+// ... (truncated)
+```
+
+### handleSaveNewExercise
+
+Line: 4032
+
+```javascript
+async function handleSaveNewExercise() {
+        const name = newExerciseNameInput.value.trim();
+        const category = newExerciseCategorySelect.value;
+
+        if (!name) {
+            alert('Please enter an exercise name.');
+            newExerciseNameInput.focus();
+            return;
+        }
+        if (!category) {
+// ... (truncated)
+```
+
+### updatePreviousLogSpans
+
+Line: 4089
+
+```javascript
+function updatePreviousLogSpans(exerciseItemElement, lastLogData, isError = false) {
+         const setRows = exerciseItemElement.querySelectorAll('.sets-container .set-row');
+         let prevRepsArray = [];
+         let prevWeightsArray = [];
+         let prevUnit = 'lbs';
+
+         console.log('[DEBUG] updatePreviousLogSpans called with lastLogData:', lastLogData);
+         console.log('[DEBUG] Found', setRows.length, 'set rows in exerciseItemElement');
+
+         if (lastLogData && lastLogData.reps_completed && lastLogData.weight_used) {
+// ... (truncated)
+```
+
+### handlePhotoUpload
+
+Line: 5266
+
+```javascript
+async function handlePhotoUpload(event) {
+        event.preventDefault();
+        console.log('[Photo Upload Client] handlePhotoUpload triggered.');
+
+        const form = event.target;
+        // --- REVERTED: Use FormData directly from the form ---
+        const formData = new FormData(form);
+        // --- Removed manual construction and appending ---
+
+        const statusElement = document.getElementById('upload-status');
+// ... (truncated)
+```
+
+### togglePhotoComparison
+
+Line: 5467
+
+```javascript
+function togglePhotoComparison() {
+        if (photoComparisonSection) {
+            const isCurrentlyVisible = photoComparisonSection.style.display !== 'none';
+
+            // Toggle comparison section visibility
+            photoComparisonSection.style.display = isCurrentlyVisible ? 'none' : 'block';
+
+            // Toggle carousel visibility (opposite of comparison section)
+            const gallerySection = document.querySelector('.gallery-section');
+            if (gallerySection) {
+// ... (truncated)
+```
+
+### openPhotoUploadModal
+
+Line: 5529
+
+```javascript
+function openPhotoUploadModal() {
+        if (photoUploadModal) {
+            // Reset form and status message on open
+            const form = photoUploadModal.querySelector('#progress-photo-form');
+            const statusEl = photoUploadModal.querySelector('#upload-status');
+            // Changed IDs for modal inputs
+            const modalDateInput = photoUploadModal.querySelector('#modal-photo-date');
+            const modalFileInput = photoUploadModal.querySelector('#modal-photo-upload');
+
+            if(form) form.reset();
+// ... (truncated)
+```
+
+### handleDeletePhoto
+
+Line: 5953
+
+```javascript
+async function handleDeletePhoto() {
+        if (!deletePhotoBtn || deletePhotoBtn.disabled) return;
+        if (progressPhotosData.length === 0 || currentPhotoIndex < 0 || currentPhotoIndex >= progressPhotosData.length) {
+            console.error('No photo selected or invalid index for deletion.');
+            return;
+        }
+
+        const photoToDelete = progressPhotosData[currentPhotoIndex];
+        const photoId = photoToDelete.photo_id;
+        const photoDate = new Date(photoToDelete.date_taken);
+// ... (truncated)
+```
+
+### handleHistoryResultClick
+
+Line: 6515
+
+```javascript
+function handleHistoryResultClick(event) {
+            const target = event.target;
+            if (target.classList.contains('history-search-item')) {
+                const exerciseId = parseInt(target.dataset.exerciseId, 10);
+                const exerciseName = target.dataset.exerciseName;
+
+                if (!isNaN(exerciseId)) {
+                    currentHistoryExerciseId = exerciseId;
+                    currentHistoryExerciseName = exerciseName;
+
+// ... (truncated)
+```
+
+### handleSaveManualLog
+
+Line: 6669
+
+```javascript
+function handleSaveManualLog(event) {
+            event.preventDefault();
+            console.log('Save manual log function called');
+            // This is a placeholder - the actual implementation would save the log data
+            hideHistoryEditModal();
+        }
+```
+
+### handleAddManualSetRow
+
+Line: 6677
+
+```javascript
+function handleAddManualSetRow() {
+            console.log('Add manual set row function called');
+            // This is a placeholder - the actual implementation would add a new set row
+        }
+```
+
+### handleRemoveManualSetRow
+
+Line: 6683
+
+```javascript
+function handleRemoveManualSetRow() {
+            console.log('Remove manual set row function called');
+            // This is a placeholder - the actual implementation would remove a set row
+        }
+```
+
+### handleAddSelectedExercises
+
+Line: 6771
+
+```javascript
+async function handleAddSelectedExercises() {
+        const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
+
+        // Log all checked exercises for debugging
+        console.log('Current checked exercises:');
+        checkedExercises.forEach(id => {
+            console.log(`- Exercise ID: ${id}`);
+        });
+
+        // Get all selected exercises from the checkedExercises Set
+// ... (truncated)
+```
+
+### handleCancelWorkout
+
+Line: 6819
+
+```javascript
+function handleCancelWorkout() {
+        // Save input values before canceling? Maybe not necessary if clearing state.
+        // Optional: Consider saving input values first via saveInputValues() or saveWorkoutData()
+        console.log('Cancel workout requested.');
+
+        // Stop timer immediately to prevent further updates while confirming
+        stopTimer();
+
+        if (confirm('Are you sure you want to cancel this workout? All current progress for this session will be lost.')) {
+            console.log('Workout cancelled by user.');
+// ... (truncated)
+```
+
+### toggleExerciseHistory
+
+Line: 7155
+
+```javascript
+function toggleExerciseHistory() {
+    const historySection = document.getElementById('exercise-history-section');
+    const toggleButton = document.getElementById('toggle-history-btn');
+
+    if (historySection.style.display === 'none') {
+        historySection.style.display = 'block';
+        toggleButton.textContent = 'Hide Exercise History';
+    } else {
+        historySection.style.display = 'none';
+        toggleButton.textContent = 'Show Exercise History';
+// ... (truncated)
+```
+

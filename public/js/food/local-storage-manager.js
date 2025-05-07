@@ -6,7 +6,7 @@
  */
 
 (function() {
-    // Key for storing package amounts in local storage
+
     const PACKAGE_AMOUNTS_KEY = 'recipe_ingredient_package_amounts';
     
     /**
@@ -16,13 +16,11 @@
      */
     function savePackageAmount(ingredientId, packageAmount) {
         try {
-            // Get existing package amounts from local storage
+
             const packageAmounts = getPackageAmounts();
-            
-            // Update the package amount for this ingredient
+
             packageAmounts[ingredientId] = packageAmount;
-            
-            // Save back to local storage
+
             localStorage.setItem(PACKAGE_AMOUNTS_KEY, JSON.stringify(packageAmounts));
             
             console.log(`Saved package amount ${packageAmount} for ingredient ${ingredientId} to local storage`);
@@ -40,10 +38,9 @@
      */
     function getPackageAmount(ingredientId) {
         try {
-            // Get existing package amounts from local storage
+
             const packageAmounts = getPackageAmounts();
-            
-            // Return the package amount for this ingredient, or null if not found
+
             return packageAmounts[ingredientId] || null;
         } catch (error) {
             console.error('Error getting package amount from local storage:', error);
@@ -57,10 +54,9 @@
      */
     function getPackageAmounts() {
         try {
-            // Get existing package amounts from local storage
+
             const packageAmountsJson = localStorage.getItem(PACKAGE_AMOUNTS_KEY);
-            
-            // Parse the JSON, or return an empty object if not found
+
             return packageAmountsJson ? JSON.parse(packageAmountsJson) : {};
         } catch (error) {
             console.error('Error getting package amounts from local storage:', error);
@@ -81,8 +77,7 @@
             return false;
         }
     }
-    
-    // Expose functions globally
+
     window.localStorageManager = {
         savePackageAmount,
         getPackageAmount,

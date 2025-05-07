@@ -1,0 +1,76 @@
+/**
+ * Fix for Basic Information alignment in the Edit Ingredient form
+ */
+
+/* Ensure proper alignment of the Basic Information section */
+.edit-ingredient-form .form-group {
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 10px !important;
+}
+
+/* Align the input fields */
+.edit-ingredient-form input[type="text"],
+.edit-ingredient-form input[type="number"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 5px !important;
+    border-radius: 3px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    color: #e0e0e0 !important;
+}
+
+/* Fix the Basic Information section layout */
+.edit-ingredient-form .basic-info-section {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Ensure labels are properly aligned */
+.edit-ingredient-form label {
+    margin-bottom: 5px !important;
+    color: #aaaaaa !important;
+    font-size: 0.8em !important;
+}
+
+/* Fix the form layout */
+.edit-ingredient-form form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
+/* Ensure the form actions are properly positioned */
+.edit-ingredient-form .form-actions {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Style the buttons */
+.edit-ingredient-form .form-actions button {
+    padding: 5px 10px !important;
+    font-size: 0.8em !important;
+    height: 28px !important;
+    border-radius: 3px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Save button */
+.edit-ingredient-form .form-actions button[type="submit"],
+.edit-ingredient-form .form-actions button.save-changes {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+}
+
+/* Cancel button */
+.edit-ingredient-form .form-actions button.cancel {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+}

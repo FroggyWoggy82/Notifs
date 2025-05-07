@@ -12,13 +12,29 @@ const RecipeModel = require('../models/recipeModel');
  */
 async function getAllRecipes(req, res) {
     console.log("Received GET /api/recipes request");
+    console.log("Query parameters:", req.query);
+
     try {
+        console.log("Calling RecipeModel.getAllRecipes...");
         const recipes = await RecipeModel.getAllRecipes();
-        console.log("GET /api/recipes response:", recipes);
+        console.log(`GET /api/recipes response: ${recipes.length} recipes found`);
+
+        // Set cache control headers to prevent caching
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        // Return an empty array if recipes is null or undefined
+        if (!recipes) {
+            console.log("No recipes found, returning empty array");
+            return res.json([]);
+        }
+
         res.json(recipes);
     } catch (error) {
         console.error('Error fetching recipes:', error);
-        res.status(500).json({ error: 'Failed to fetch recipes' });
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ error: `Failed to fetch recipes: ${error.message}` });
     }
 }
 
@@ -33,6 +49,12 @@ async function getRecipeById(req, res) {
     try {
         const recipe = await RecipeModel.getRecipeById(id);
         console.log(`GET /api/recipes/${id} response:`, recipe);
+
+        // Set cache control headers to prevent caching
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
         res.json(recipe);
     } catch (error) {
         console.error(`Error fetching recipe ${id}:`, error);
@@ -57,7 +79,19 @@ async function createRecipe(req, res) {
     try {
         const recipe = await RecipeModel.createRecipe(name, ingredients);
         console.log(`Recipe '${name}' created successfully with ID: ${recipe.id}`);
-        res.status(201).json(recipe);
+
+        // Set cache control headers to prevent caching
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        // Return a more detailed response
+        res.status(201).json({
+            ...recipe,
+            message: `Recipe '${name}' created successfully`,
+            success: true,
+            timestamp: new Date().toISOString()
+        });
     } catch (error) {
         console.error('Error creating recipe:', error);
 
@@ -397,6 +431,79 @@ async function updateIngredientOmegaValues(req, res) {
     }
 }
 
+/**
+ * Add a new ingredient to an existing recipe
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function addIngredientToRecipe(req, res) {
+    const { recipeId } = req.params;
+    const ingredientData = req.body;
+
+    console.log(`Received POST /api/recipes/${recipeId}/ingredients:`, ingredientData);
+
+    // Process package_amount specifically
+    if (ingredientData.package_amount !== undefined) {
+        if (ingredientData.package_amount === null ||
+            ingredientData.package_amount === '' ||
+            ingredientData.package_amount === '0') {
+            ingredientData.package_amount = null;
+        } else {
+            // Force to number
+            ingredientData.package_amount = Number(ingredientData.package_amount);
+            // If conversion failed, set to null
+            if (isNaN(ingredientData.package_amount)) {
+                ingredientData.package_amount = null;
+            }
+        }
+    }
+
+    // Process numeric fields to ensure they're numbers
+    const numericFields = ['calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price'];
+    numericFields.forEach(field => {
+        if (ingredientData[field] !== undefined) {
+            if (typeof ingredientData[field] === 'string') {
+                ingredientData[field] = parseFloat(ingredientData[field]);
+                if (isNaN(ingredientData[field])) {
+                    ingredientData[field] = 0;
+                }
+            }
+        }
+    });
+
+    try {
+        console.log('DEBUG: About to add ingredient to recipe with data:', JSON.stringify(ingredientData, null, 2));
+        const updatedRecipe = await RecipeModel.addIngredientToRecipe(recipeId, ingredientData);
+        console.log(`Ingredient added to recipe ${recipeId} successfully`);
+        console.log('DEBUG: Updated recipe after adding ingredient:', JSON.stringify(updatedRecipe, null, 2));
+
+        // Set cache control headers to prevent caching
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        res.status(201).json({
+            ...updatedRecipe,
+            message: `Ingredient '${ingredientData.name}' added successfully to recipe`,
+            success: true,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error(`Error adding ingredient to recipe ${recipeId}:`, error);
+
+        if (error.message.includes('required') ||
+            error.message.includes('Invalid data for ingredient')) {
+            return res.status(400).json({ error: error.message });
+        }
+
+        if (error.message === 'Recipe not found') {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to add ingredient to recipe' });
+    }
+}
+
 module.exports = {
     getAllRecipes,
     getRecipeById,
@@ -406,5 +513,6 @@ module.exports = {
     updateIngredient,
     getIngredientById,
     updateIngredientPackageAmount,
-    updateIngredientOmegaValues
+    updateIngredientOmegaValues,
+    addIngredientToRecipe
 };

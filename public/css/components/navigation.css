@@ -4,7 +4,7 @@
  * Futuristic Dark Theme
  */
 
-/* ===== Sidebar ===== */
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -88,7 +88,7 @@
   color: var(--color-primary);
 }
 
-/* Hover effect for sidebar items */
+
 .sidebar-nav-item::after {
   content: '';
   position: absolute;
@@ -105,7 +105,7 @@
   transform: translateX(100%);
 }
 
-/* Overlay for when sidebar is open */
+
 .sidebar-overlay {
   position: fixed;
   top: 0;
@@ -128,7 +128,7 @@
   pointer-events: auto;
 }
 
-/* Menu button */
+
 .menu-button {
   position: absolute;
   left: var(--spacing-md);
@@ -157,7 +157,7 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* ===== Bottom Navigation ===== */
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -211,7 +211,7 @@
   color: var(--color-primary);
 }
 
-/* ===== Light Theme Navigation (if needed) ===== */
+
 .light-theme .sidebar {
   background-color: var(--color-white);
   border-right: var(--border-width-thin) solid var(--color-gray-200);
@@ -277,7 +277,7 @@
   background-color: var(--color-gray-100);
 }
 
-/* ===== Responsive Adjustments ===== */
+
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;

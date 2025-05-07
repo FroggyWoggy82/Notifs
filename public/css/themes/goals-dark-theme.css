@@ -3,7 +3,7 @@
  * Applies the futuristic dark theme to the goals page
  */
 
-/* Override base styles for dark theme */
+
 body {
     background-color: var(--color-dark-bg);
     color: var(--color-dark-text);
@@ -87,7 +87,7 @@ h1 {
     box-shadow: var(--glow-primary);
 }
 
-/* --- Goal Tree Structure --- */
+
 .goal-tree {
     flex: 1;
     display: flex;
@@ -112,7 +112,7 @@ h1 {
     margin: 0 10px;
 }
 
-/* Ensure first node is block centered */
+
 .goal-tree > .goal-node:first-child {
    display: flex;
    flex-direction: column;
@@ -122,7 +122,7 @@ h1 {
    width: fit-content;
 }
 
-/* Goal box styling */
+
 .goal-box {
     background-color: var(--color-dark-surface-2);
     border: 2px solid var(--color-primary);
@@ -143,7 +143,7 @@ h1 {
     color: var(--color-white);
 }
 
-/* Text span inside the box */
+
 .goal-text {
     display: block;
     width: 100%;
@@ -151,7 +151,7 @@ h1 {
     color: var(--color-white);
 }
 
-/* Edit input field styling */
+
 .goal-edit-input {
     display: none;
     width: calc(100% - 20px);
@@ -165,12 +165,12 @@ h1 {
     color: var(--color-white);
 }
 
-/* Style for when the box is in editing mode */
+
 .goal-box.editing {
     border-color: var(--color-warning);
 }
 
-/* Sub-goals container */
+
 .sub-goals {
     display: flex;
     justify-content: center;
@@ -178,8 +178,8 @@ h1 {
     position: relative;
 }
 
-/* --- Connecting Lines (Refined) --- */
-/* Vertical line DOWN from PARENT box (if it has children) */
+
+
 .goal-node:has(> .sub-goals:not(:empty)) > .goal-box::after {
     content: '';
     position: absolute;
@@ -192,7 +192,7 @@ h1 {
     z-index: 1;
 }
 
-/* Vertical line UP from CHILD box */
+
 .sub-goals > .goal-node > .goal-box::before {
     content: '';
     position: absolute;
@@ -205,7 +205,7 @@ h1 {
     z-index: 1;
 }
 
-/* Connect first child to horizontal line */
+
 .sub-goals > .goal-node:first-child:not(:only-child)::before {
     content: '';
     position: absolute;
@@ -217,7 +217,7 @@ h1 {
     z-index: 1;
 }
 
-/* Connect last child to horizontal line */
+
 .sub-goals > .goal-node:last-child:not(:only-child)::after {
     content: '';
     position: absolute;
@@ -229,7 +229,7 @@ h1 {
     z-index: 1;
 }
 
-/* Connect middle children to horizontal line */
+
 .sub-goals > .goal-node:not(:first-child):not(:last-child)::before {
     content: '';
     position: absolute;
@@ -241,24 +241,24 @@ h1 {
     z-index: 1;
 }
 
-/* Hide connector pieces for the single child case */
+
 .sub-goals > .goal-node:only-child::before,
 .sub-goals > .goal-node:only-child::after {
     display: none;
 }
 
-/* Hide parent's downward line if it has no children displayed */
+
 .goal-node:not(:has(.sub-goals:not(:empty))) > .goal-box::after {
     display: none;
 }
 
-/* Ensure no trailing lines for empty sub-goals containers */
+
 .sub-goals:empty {
     padding-top: 0;
     margin-top: 0;
 }
 
-/* --- Action Buttons --- */
+
 .goal-actions {
     position: absolute;
     right: 5px;
@@ -309,7 +309,7 @@ h1 {
     box-shadow: var(--glow-accent);
 }
 
-/* Styling for Edit, Save, Cancel buttons */
+
 .edit-button {
     background-color: var(--color-info-dark);
     color: var(--color-white);
@@ -360,7 +360,7 @@ h1 {
     box-shadow: 0 0 5px rgba(255, 171, 0, 0.5);
 }
 
-/* Bottom Navigation */
+
 .bottom-nav {
     position: fixed; 
     bottom: 0; 
@@ -392,7 +392,7 @@ h1 {
     margin-bottom: 2px; 
 }
 
-/* Media Queries for Responsiveness */
+
 @media screen and (max-width: 768px) {
     .container {
         padding: 10px;
@@ -421,7 +421,7 @@ h1 {
     }
 }
 
-/* For very small screens */
+
 @media screen and (max-width: 480px) {
     .goal-box {
         min-width: 150px;
@@ -434,7 +434,7 @@ h1 {
     }
 }
 
-/* For large screens */
+
 @media screen and (min-width: 1200px) {
     .container {
         padding: 30px;

@@ -1,9 +1,6 @@
-/* 
- * Status Bar Fix
- * Removes the empty status bar and improves spacing
- */
 
-/* Hide empty status bar */
+
+
 #status.status:empty {
     display: none !important;
     margin: 0 !important;
@@ -15,7 +12,7 @@
     box-shadow: none !important;
 }
 
-/* Only show status when it has actual content */
+
 #status.status:not(:empty) {
     display: block !important;
     margin: 10px 0 !important;
@@ -24,17 +21,17 @@
     background-color: rgba(30, 30, 30, 0.7) !important;
 }
 
-/* Fix spacing between elements */
+
 .container > * + * {
     margin-top: 0 !important;
 }
 
-/* Remove any extra spacing in the header area */
+
 .container h1.gradient-text + #status.status:empty + section {
     margin-top: 0 !important;
 }
 
-/* Ensure proper spacing for the first section */
+
 .task-list-section {
     margin-top: 0 !important;
     padding-top: 0 !important;

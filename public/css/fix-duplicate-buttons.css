@@ -3,12 +3,12 @@
  * Ensures only one set of form action buttons is displayed
  */
 
-/* Hide the first set of form action buttons */
+
 .edit-ingredient-form-header + form .form-actions {
     display: none !important;
 }
 
-/* Only show the last form-actions in the form */
+
 .edit-ingredient-form form .form-actions:last-of-type {
     display: flex !important;
 }

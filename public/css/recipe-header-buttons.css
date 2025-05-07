@@ -3,18 +3,18 @@
  * Styles for the recipe card buttons moved to the header
  */
 
-/* Recipe card header with buttons */
+
 .recipe-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px 15px;
     position: relative;
-    height: 60px; /* Fixed height to ensure alignment */
+    height: 60px; 
     background-color: transparent;
 }
 
-/* Title on the left */
+
 .recipe-card-title {
     margin: 0;
     text-align: left;
@@ -25,7 +25,7 @@
     max-width: 30%;
 }
 
-/* Buttons in the middle */
+
 .recipe-card-header .recipe-card-actions {
     display: flex;
     justify-content: center;
@@ -37,7 +37,7 @@
     text-align: center;
 }
 
-/* Calories on the right */
+
 .recipe-card-calories {
     margin: 0;
     text-align: right;
@@ -46,7 +46,7 @@
     width: auto;
 }
 
-/* Button styling */
+
 .recipe-card-header .recipe-card-btn {
     min-width: 80px;
     text-align: center;
@@ -64,7 +64,7 @@
     color: #ffffff;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
     .recipe-card-header {
         height: auto;
@@ -93,7 +93,7 @@
     }
 }
 
-/* Very small screens */
+
 @media (max-width: 480px) {
     .recipe-card-header {
         height: 60px;

@@ -3,7 +3,7 @@
  * This file contains styles to fix the duplicate X button issue in the Weight Increment section
  */
 
-/* Reset all styling for the weight increment label */
+
 .weight-increment-label {
     background-color: transparent !important;
     border: none !important;
@@ -24,30 +24,30 @@
     z-index: auto !important;
 }
 
-/* Ensure no pseudo-elements on the weight increment label */
+
 .weight-increment-label::before,
 .weight-increment-label::after {
     content: none !important;
     display: none !important;
 }
 
-/* Override the content of the weight increment label to ensure it's exactly "Weight Increment:" */
+
 .weight-increment-label {
     content: "Weight Increment:" !important;
 }
 
-/* Force the text content to be exactly "Weight Increment:" */
+
 .weight-increment-label::after {
     content: "" !important;
 }
 
-/* Hide any X characters that might be in the label */
+
 .weight-increment-label span,
 .weight-increment-label button {
     display: none !important;
 }
 
-/* Ensure the weight unit label has the same styling */
+
 .weight-unit-label {
     background-color: transparent !important;
     border: none !important;
@@ -68,7 +68,7 @@
     z-index: auto !important;
 }
 
-/* Make sure the X button is only on actual delete buttons */
+
 button.btn-delete-exercise,
 button.delete-template-exercise-btn {
     position: absolute !important;
@@ -88,14 +88,14 @@ button.delete-template-exercise-btn {
     z-index: 10 !important;
 }
 
-/* Direct fix for the X character in the Weight Increment label */
+
 .exercise-options-menu-label label:after,
 .exercise-options-menu-label label:before {
     content: none !important;
     display: none !important;
 }
 
-/* Hide any X characters that might be in the label text */
+
 .exercise-options-menu-label label:not(.btn):not(.button):not([class*="btn-"]):not([class*="button-"]) {
     background: none !important;
     border: none !important;
@@ -104,7 +104,7 @@ button.delete-template-exercise-btn {
     color: #bbb !important;
 }
 
-/* Ensure the text content is exactly as specified in the data-label attribute */
+
 .exercise-options-menu-label label[data-label]:after {
     content: attr(data-label) !important;
 }

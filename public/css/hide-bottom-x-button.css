@@ -1,9 +1,6 @@
-/* 
- * Hide Bottom X Button
- * This file specifically hides the X button in the bottom of the Weight Increment section
- */
 
-/* Hide any buttons in the view exercise row */
+
+
 .view-exercise-row .btn-delete-exercise,
 .view-exercise-row [class*="btn-delete"],
 .view-exercise-row [class*="btn-remove"],
@@ -19,7 +16,7 @@
     z-index: -1 !important;
 }
 
-/* Ensure the pencil icon is still visible */
+
 .view-exercise-row .btn-edit-exercise,
 .view-exercise-row .btn-exercise-options {
     display: inline-block !important;
@@ -33,7 +30,7 @@
     z-index: auto !important;
 }
 
-/* Ensure the View Exercise button is still visible */
+
 .view-exercise-row .btn-view-exercise {
     display: inline-block !important;
     visibility: visible !important;

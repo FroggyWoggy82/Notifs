@@ -1,6 +1,6 @@
-/* Delete Button Fix CSS */
 
-/* Override the display:none for delete buttons */
+
+
 .btn-delete-exercise,
 .btn-delete-exercise-direct {
     display: flex !important;
@@ -10,7 +10,7 @@
     z-index: 1000 !important;
     pointer-events: auto !important;
 
-    /* Style the button */
+    
     align-items: center !important;
     justify-content: center !important;
     background-color: #f44336 !important;
@@ -25,13 +25,13 @@
     margin-left: 5px !important;
 }
 
-/* Ensure the button is visible in the options menu */
+
 .exercise-options-menu .btn-delete-exercise,
 .exercise-options-menu .btn-delete-exercise-direct {
     display: flex !important;
 }
 
-/* Remove any existing content from the button */
+
 .btn-delete-exercise::before,
 .btn-delete-exercise::after,
 .btn-delete-exercise-direct::before,
@@ -44,20 +44,20 @@
     display: none !important;
 }
 
-/* Button hover effect */
+
 .btn-delete-exercise:hover,
 .btn-delete-exercise-direct:hover {
     background-color: #d32f2f !important;
 }
 
-/* Ensure the button group is visible */
+
 .button-group-right {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-/* Direct override for the delete button in the options menu */
+
 .exercise-options-menu-row.buttons-row .button-group-right .btn-delete-exercise {
     display: inline-flex !important;
     visibility: visible !important;
@@ -78,7 +78,7 @@
     content: "×" !important;
 }
 
-/* Set the content directly on the button, not using pseudo-elements */
+
 .exercise-options-menu-row.buttons-row .button-group-right .btn-delete-exercise {
     font-size: 1.5rem !important;
     font-weight: bold !important;
@@ -86,7 +86,7 @@
     text-align: center !important;
 }
 
-/* Override any CSS that might be hiding the button */
+
 .exercise-options-menu .btn-delete-exercise {
     display: flex !important;
     visibility: visible !important;

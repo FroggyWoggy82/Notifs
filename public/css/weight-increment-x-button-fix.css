@@ -3,7 +3,7 @@
  * This file contains a very targeted fix that only affects the X button in the Weight Increment label
  */
 
-/* Target the no-x-button class specifically */
+
 .no-x-button button,
 .no-x-button::after,
 .no-x-button::before,
@@ -21,7 +21,7 @@
     z-index: -1 !important;
 }
 
-/* Direct fix for the X button in the Weight Increment label */
+
 .exercise-options-menu .weight-increment-label button,
 .exercise-options-menu .weight-increment-label > button,
 .exercise-options-menu .weight-increment-label > span > button,
@@ -41,7 +41,7 @@
     z-index: -1 !important;
 }
 
-/* Ensure the Weight Increment label has the correct text */
+
 .exercise-options-menu .weight-increment-label.x-button-fixed {
     background: none !important;
     border: none !important;
@@ -59,7 +59,7 @@
     line-height: normal !important;
 }
 
-/* Target only the X button in the Weight Increment label */
+
 .exercise-options-menu-label .weight-increment-label button,
 .exercise-options-menu-label .weight-increment-label .btn-delete-exercise,
 .exercise-options-menu-label .weight-increment-label .delete-template-exercise-btn,
@@ -78,7 +78,7 @@
     z-index: -1 !important;
 }
 
-/* Ensure the Weight Increment label doesn't have any button styling */
+
 .exercise-options-menu-label .weight-increment-label {
     background: none !important;
     border: none !important;
@@ -96,19 +96,19 @@
     line-height: normal !important;
 }
 
-/* Force the content of the Weight Increment label to be exactly "Weight Increment:" */
+
 .weight-increment-label.no-x-button::before {
     content: "Weight Increment:" !important;
     position: static !important;
     display: inline !important;
 }
 
-/* Hide any content inside the label */
+
 .weight-increment-label.no-x-button * {
     display: none !important;
 }
 
-/* Ensure the X button is only on the actual delete button */
+
 .exercise-options-menu .btn-delete-exercise {
     position: absolute !important;
     top: 10px !important;

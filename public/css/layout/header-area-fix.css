@@ -1,15 +1,12 @@
-/* 
- * Header Area Fix
- * Improves the header area styling and removes the gray section
- */
 
-/* Create a clean header area */
+
+
 .container {
     position: relative !important;
     padding-top: 0 !important;
 }
 
-/* Style the header text */
+
 .container h1.gradient-text {
     text-align: center !important;
     margin: 0 auto !important;
@@ -27,17 +24,17 @@
     letter-spacing: 0.5px !important;
 }
 
-/* Remove any background or border from the header area */
+
 body {
     background-color: #121212 !important;
 }
 
-/* Ensure proper spacing between header and content */
+
 .task-list-section {
     margin-top: 5px !important;
 }
 
-/* Hide empty status elements */
+
 .status:empty {
     display: none !important;
     height: 0 !important;
@@ -47,7 +44,7 @@ body {
     background: transparent !important;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
     .container h1.gradient-text {
         font-size: 1.8rem !important;

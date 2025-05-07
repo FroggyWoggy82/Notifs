@@ -1,0 +1,32 @@
+/**
+ * Hide Edit Form CSS
+ * Ensures the edit form is hidden by default
+ */
+
+/* Hide edit forms by default */
+.edit-ingredient-form {
+    display: none;
+}
+
+/* Show when explicitly made visible by JS */
+.edit-ingredient-form.show-edit-form {
+    display: block !important;
+}
+
+/* Make sure all elements inside a visible form are displayed */
+.edit-ingredient-form.show-edit-form * {
+    display: inherit;
+}
+
+/* Specific overrides for form elements */
+.edit-ingredient-form.show-edit-form input,
+.edit-ingredient-form.show-edit-form button,
+.edit-ingredient-form.show-edit-form select,
+.edit-ingredient-form.show-edit-form textarea,
+.edit-ingredient-form.show-edit-form label {
+    display: inline-block;
+}
+
+.edit-ingredient-form.show-edit-form h4 {
+    display: block;
+}

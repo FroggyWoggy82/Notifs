@@ -1,15 +1,14 @@
-// Product Tracking JavaScript
+
 
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
+
     const addProductForm = document.getElementById('addProductForm');
     const productList = document.getElementById('productList');
     const categoryFilter = document.getElementById('categoryFilter');
     const trackingFrequency = document.getElementById('trackingFrequency');
     const customFrequency = document.querySelector('.custom-frequency');
     const addProductStatus = document.getElementById('addProductStatus');
-    
-    // Modal Elements
+
     const productDetailModal = document.getElementById('productDetailModal');
     const closeButton = document.querySelector('.close-button');
     const modalProductName = document.getElementById('modalProductName');
@@ -21,8 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const entryProductId = document.getElementById('entryProductId');
     const entryRating = document.getElementById('entryRating');
     const ratingValue = document.getElementById('ratingValue');
-    
-    // Sample data (would be replaced with actual API calls)
+
     let products = [
         {
             id: 1,
@@ -73,11 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ]
         }
     ];
-    
-    // Initialize
+
     loadProducts();
-    
-    // Event Listeners
+
     trackingFrequency.addEventListener('change', () => {
         if (trackingFrequency.value === 'custom') {
             customFrequency.style.display = 'block';
@@ -111,8 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         addEntry();
     });
-    
-    // Functions
+
     function loadProducts() {
         const selectedCategory = categoryFilter.value;
         let filteredProducts = products;
@@ -177,8 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             parseInt(document.getElementById('customDays').value) : null;
         const notificationType = document.getElementById('notificationType').value;
         const notes = document.getElementById('productNotes').value;
-        
-        // Validation
+
         if (!productName || !productCategory || !startDate || !frequency || !notificationType) {
             showStatus(addProductStatus, 'Please fill in all required fields.', 'error');
             return;
@@ -188,8 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus(addProductStatus, 'Please enter a valid number of days for custom frequency.', 'error');
             return;
         }
-        
-        // Create new product
+
         const newProduct = {
             id: products.length + 1,
             name: productName,
@@ -201,8 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: notes,
             entries: []
         };
-        
-        // Add initial entry if notes are provided
+
         if (notes) {
             newProduct.entries.push({
                 date: startDate,
@@ -211,20 +203,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 photoUrl: null
             });
         }
-        
-        // In a real app, you would send this to the server
-        // For now, we'll just add it to our local array
+
+
         products.push(newProduct);
-        
-        // Schedule notification (in a real app)
+
         scheduleProductNotification(newProduct);
-        
-        // Reset form and show success message
+
         addProductForm.reset();
         customFrequency.style.display = 'none';
         showStatus(addProductStatus, 'Product added successfully!', 'success');
-        
-        // Reload product list
+
         loadProducts();
     }
     
@@ -233,14 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
         modalCategory.textContent = getCategoryName(product.category);
         modalStartDate.textContent = formatDate(new Date(product.startDate));
         modalFrequency.textContent = getFrequencyText(product);
-        
-        // Load tracking entries
+
         trackingEntries.innerHTML = '';
         
         if (product.entries.length === 0) {
             trackingEntries.innerHTML = '<p>No tracking entries yet.</p>';
         } else {
-            // Sort entries by date (newest first)
+
             const sortedEntries = [...product.entries].sort((a, b) => 
                 new Date(b.date) - new Date(a.date));
             
@@ -267,19 +254,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 trackingEntries.appendChild(entryElement);
             });
         }
-        
-        // Set product ID for the entry form
+
         entryProductId.value = product.id;
-        
-        // Set today's date as default for new entry
+
         document.getElementById('entryDate').valueAsDate = new Date();
-        
-        // Reset entry form
+
         addEntryForm.reset();
         entryRating.value = 5;
         ratingValue.textContent = '5';
-        
-        // Show modal
+
         productDetailModal.style.display = 'block';
     }
     
@@ -289,38 +272,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const rating = parseInt(entryRating.value);
         const notes = document.getElementById('entryNotes').value;
         const photoInput = document.getElementById('entryPhoto');
-        
-        // Find the product
+
         const product = products.find(p => p.id === productId);
         if (!product) return;
-        
-        // In a real app, you would upload the photo and get a URL
-        // For now, we'll just check if a file was selected
+
+
         let photoUrl = null;
         if (photoInput.files.length > 0) {
-            // This would be replaced with actual file upload logic
+
             photoUrl = 'photo_url_placeholder.jpg';
         }
-        
-        // Create new entry
+
         const newEntry = {
             date: date,
             rating: rating,
             notes: notes,
             photoUrl: photoUrl
         };
-        
-        // Add entry to product
+
         product.entries.push(newEntry);
-        
-        // Refresh the modal with updated data
+
         openProductDetail(product);
-        
-        // Show success message
+
         alert('Entry added successfully!');
     }
-    
-    // Helper Functions
+
     function getNextTrackingDate(product) {
         const lastEntry = product.entries.length > 0 ? 
             product.entries[product.entries.length - 1] : null;
@@ -396,23 +372,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function showStatus(element, message, type) {
         element.textContent = message;
         element.className = `status ${type}`;
-        
-        // Hide after 5 seconds
+
         setTimeout(() => {
             element.className = 'status';
         }, 5000);
     }
     
     function scheduleProductNotification(product) {
-        // This is a placeholder for actual notification scheduling
+
         console.log(`Scheduled ${product.notificationType} notification for ${product.name} with ${getFrequencyText(product)} frequency`);
-        
-        // In a real implementation, you would:
-        // 1. Calculate the next notification date
-        // 2. Send a request to the server to schedule the notification
-        // 3. The server would store this in a database and use a job scheduler
-        
-        // For now, we'll just log it
+
+
+
+
+
         const nextDate = getNextTrackingDate(product);
         console.log(`Next notification scheduled for: ${formatDate(nextDate)}`);
     }

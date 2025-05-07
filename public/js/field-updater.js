@@ -1,5 +1,5 @@
-// field-updater.js
-// A utility module for directly updating ingredient fields
+
+
 
 /**
  * Directly update a field value for an ingredient
@@ -13,14 +13,12 @@ async function updateField(recipeId, ingredientId, fieldName, fieldValue) {
     console.log(`Updating field ${fieldName} for ingredient ${ingredientId} to ${fieldValue}`);
 
     try {
-        // Use safeFetch if available, otherwise fall back to regular fetch
+
         const fetchFunction = window.safeFetch || fetch;
 
-        // Create an update object with just the field we want to update
         const updateData = {};
         updateData[fieldName] = fieldValue;
 
-        // Use the existing ingredient update endpoint
         const response = await fetchFunction(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
             method: 'PATCH',
             headers: {
@@ -38,7 +36,6 @@ async function updateField(recipeId, ingredientId, fieldName, fieldValue) {
         const result = await response.json();
         console.log(`${fieldName} update result:`, result);
 
-        // Find the updated ingredient in the result
         const updatedIngredient = result.ingredients.find(ing => ing.id == ingredientId);
 
         return {
@@ -54,9 +51,8 @@ async function updateField(recipeId, ingredientId, fieldName, fieldValue) {
     }
 }
 
-// Field name mapping from form IDs to database column names
 const fieldMapping = {
-    // Basic fields
+
     'edit-ingredient-name': 'name',
     'edit-ingredient-calories': 'calories',
     'edit-ingredient-amount': 'amount',
@@ -66,29 +62,25 @@ const fieldMapping = {
     'edit-ingredient-price': 'price',
     'edit-ingredient-package-amount': 'package_amount',
 
-    // General section
     'edit-ingredient-alcohol': 'alcohol',
     'edit-ingredient-caffeine': 'caffeine',
     'edit-ingredient-water': 'water',
 
-    // Carbohydrates section
     'edit-ingredient-fiber': 'fiber',
     'edit-ingredient-starch': 'starch',
     'edit-ingredient-sugars': 'sugars',
     'edit-ingredient-added-sugars': 'added_sugars',
     'edit-ingredient-net-carbs': 'net_carbs',
 
-    // Lipids section
     'edit-ingredient-saturated': 'saturated',
     'edit-ingredient-monounsaturated': 'monounsaturated',
     'edit-ingredient-polyunsaturated': 'polyunsaturated',
-    // CRITICAL FIX: Map to omega3 and omega6 (without underscores) to match database column names
+
     'edit-ingredient-omega3': 'omega3',
     'edit-ingredient-omega6': 'omega6',
     'edit-ingredient-trans-fat': 'trans_fat',
     'edit-ingredient-cholesterol': 'cholesterol',
 
-    // Protein section
     'edit-ingredient-cystine': 'cystine',
     'edit-ingredient-histidine': 'histidine',
     'edit-ingredient-isoleucine': 'isoleucine',
@@ -101,7 +93,6 @@ const fieldMapping = {
     'edit-ingredient-tyrosine': 'tyrosine',
     'edit-ingredient-valine': 'valine',
 
-    // Vitamins section
     'edit-ingredient-vitamin-b1': 'thiamine',
     'edit-ingredient-vitamin-b2': 'riboflavin',
     'edit-ingredient-vitamin-b3': 'niacin',
@@ -115,7 +106,6 @@ const fieldMapping = {
     'edit-ingredient-vitamin-e': 'vitamin_e',
     'edit-ingredient-vitamin-k': 'vitamin_k',
 
-    // Minerals section
     'edit-ingredient-calcium': 'calcium',
     'edit-ingredient-copper': 'copper',
     'edit-ingredient-iron': 'iron',
@@ -139,30 +129,25 @@ async function updateAllFields(recipeId, ingredientId, formData) {
     console.log('Updating all fields for ingredient', ingredientId);
     console.log('Form data:', formData);
 
-    // Create a single update object with all fields
     const updateData = {};
 
-    // Process each field in the form data
     for (const [formId, value] of Object.entries(formData)) {
-        // Skip empty values
+
         if (value === undefined || value === null || value === '') {
             continue;
         }
 
-        // Skip fields that don't have a mapping
         const fieldName = fieldMapping[formId];
         if (!fieldName) {
             console.warn(`No field mapping found for form ID: ${formId}`);
             continue;
         }
 
-        // Special handling for numeric fields
-        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+
         if (fieldName === 'omega3' || fieldName === 'omega6' ||
             fieldName === 'omega_3' || fieldName === 'omega_6' ||
             fieldName === 'trans_fat' || fieldName === 'package_amount') {
 
-            // Map old field names to new ones
             let actualFieldName = fieldName;
             if (fieldName === 'omega_3') {
                 actualFieldName = 'omega3';
@@ -172,21 +157,20 @@ async function updateAllFields(recipeId, ingredientId, formData) {
                 console.log('Mapping omega_6 to omega6 to match database column name');
             }
 
-            // CRITICAL FIX: Ensure omega3 and omega6 are always properly handled
             if ((fieldName === 'omega3' || fieldName === 'omega6' ||
                  fieldName === 'omega_3' || fieldName === 'omega_6') &&
                 (value === '' || value === null)) {
-                // For empty omega values, set to 0
+
                 updateData[actualFieldName] = 0;
                 console.log(`Setting ${actualFieldName} to 0 (empty input)`);
             } else {
-                // Convert to number
+
                 const numValue = Number(value);
                 if (!isNaN(numValue)) {
                     updateData[actualFieldName] = numValue;
                     console.log(`Converted ${actualFieldName} to number: ${numValue}`);
                 } else {
-                    // For omega fields, default to 0 if conversion fails
+
                     if (fieldName === 'omega3' || fieldName === 'omega6' ||
                         fieldName === 'omega_3' || fieldName === 'omega_6') {
                         updateData[actualFieldName] = 0;
@@ -198,7 +182,7 @@ async function updateAllFields(recipeId, ingredientId, formData) {
                 }
             }
         } else {
-            // Add the field to the update data
+
             updateData[fieldName] = value;
         }
     }
@@ -206,10 +190,9 @@ async function updateAllFields(recipeId, ingredientId, formData) {
     console.log('Sending combined update with data:', updateData);
 
     try {
-        // Use safeFetch if available, otherwise fall back to regular fetch
+
         const fetchFunction = window.safeFetch || fetch;
 
-        // Use the existing ingredient update endpoint with all fields at once
         const response = await fetchFunction(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
             method: 'PATCH',
             headers: {
@@ -227,7 +210,6 @@ async function updateAllFields(recipeId, ingredientId, formData) {
         const result = await response.json();
         console.log(`Combined update result:`, result);
 
-        // Find the updated ingredient in the result
         const updatedIngredient = result.ingredients.find(ing => ing.id == ingredientId);
 
         return {
@@ -254,15 +236,13 @@ async function updateOmegaValues(recipeId, ingredientId, omega3Value, omega6Valu
     console.log(`Directly updating omega values for ingredient ${ingredientId}: omega3=${omega3Value}, omega6=${omega6Value}`);
 
     try {
-        // Use safeFetch if available, otherwise fall back to regular fetch
+
         const fetchFunction = window.safeFetch || fetch;
 
-        // Create an update object with just the omega fields
         const updateData = {};
 
-        // Only include defined values
         if (omega3Value !== undefined) {
-            // Convert to number or default to 0
+
             if (omega3Value === null || omega3Value === '') {
                 updateData.omega3 = 0;
             } else {
@@ -272,7 +252,7 @@ async function updateOmegaValues(recipeId, ingredientId, omega3Value, omega6Valu
         }
 
         if (omega6Value !== undefined) {
-            // Convert to number or default to 0
+
             if (omega6Value === null || omega6Value === '') {
                 updateData.omega6 = 0;
             } else {
@@ -281,7 +261,6 @@ async function updateOmegaValues(recipeId, ingredientId, omega3Value, omega6Valu
             }
         }
 
-        // Skip if no values to update
         if (Object.keys(updateData).length === 0) {
             console.log('No omega values to update');
             return { success: false, message: 'No omega values to update' };
@@ -289,7 +268,6 @@ async function updateOmegaValues(recipeId, ingredientId, omega3Value, omega6Valu
 
         console.log('Sending omega update with data:', updateData);
 
-        // Use the main ingredient update endpoint
         const response = await fetchFunction(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
             method: 'PATCH',
             headers: {
@@ -307,15 +285,12 @@ async function updateOmegaValues(recipeId, ingredientId, omega3Value, omega6Valu
         const result = await response.json();
         console.log(`Omega values update result:`, result);
 
-        // Find the updated ingredient in the result
         const updatedIngredient = result.ingredients.find(ing => ing.id == ingredientId);
 
-        // Verify the update
         if (updatedIngredient) {
             console.log('Updated ingredient omega3:', updatedIngredient.omega3);
             console.log('Updated ingredient omega6:', updatedIngredient.omega6);
 
-            // Force the values in the ingredient object
             if (omega3Value !== undefined) {
                 updatedIngredient.omega3 = updateData.omega3;
             }
@@ -338,7 +313,6 @@ async function updateOmegaValues(recipeId, ingredientId, omega3Value, omega6Valu
     }
 }
 
-// Export the functions
 window.fieldUpdater = {
     updateField,
     updateAllFields,

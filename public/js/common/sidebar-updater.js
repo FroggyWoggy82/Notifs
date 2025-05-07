@@ -4,7 +4,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Define the standard sidebar HTML
+
     const standardSidebar = `
     <div class="sidebar-header">
         <h2>Dashboard</h2>
@@ -48,17 +48,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </a>
     </nav>`;
 
-    // Get the current page path
     const currentPath = window.location.pathname;
-    
-    // Find the sidebar element
+
     const sidebar = document.querySelector('.sidebar');
     
     if (sidebar) {
-        // Update the sidebar HTML
+
         sidebar.innerHTML = standardSidebar;
-        
-        // Set the active class based on the current page
+
         const navItems = sidebar.querySelectorAll('.sidebar-nav-item');
         
         navItems.forEach(item => {

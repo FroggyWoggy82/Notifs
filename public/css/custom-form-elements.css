@@ -1,6 +1,6 @@
-/* Custom Form Elements Styling */
 
-/* ===== Custom File Input ===== */
+
+
 .custom-file-input {
     position: relative;
     display: inline-block;
@@ -22,8 +22,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #03dac6; /* Teal accent color */
-    color: #121212; /* Dark text */
+    background-color: #03dac6; 
+    color: #121212; 
     border: none;
     border-radius: 4px;
     padding: 12px 15px;
@@ -37,11 +37,11 @@
 }
 
 .custom-file-button:hover {
-    background-color: #01c4b3; /* Slightly darker on hover */
+    background-color: #01c4b3; 
 }
 
 .custom-file-button:active {
-    transform: scale(0.98); /* Subtle press effect */
+    transform: scale(0.98); 
 }
 
 .custom-file-button i {
@@ -58,7 +58,7 @@
     white-space: nowrap;
 }
 
-/* ===== Custom Date Input ===== */
+
 .custom-date-input {
     position: relative;
     display: inline-block;
@@ -68,7 +68,7 @@
 .custom-date-input input[type="date"] {
     width: 100%;
     padding: 12px 15px;
-    border: 2px solid #03dac6; /* Teal border */
+    border: 2px solid #03dac6; 
     border-radius: 4px;
     background-color: #ffffff;
     color: #2c3e50;
@@ -76,7 +76,7 @@
     box-sizing: border-box;
     cursor: pointer;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    appearance: none; /* Remove default styling */
+    appearance: none; 
     -webkit-appearance: none;
     -moz-appearance: none;
 }
@@ -104,7 +104,7 @@
     color: #03dac6;
 }
 
-/* ===== Upload Button ===== */
+
 .upload-button {
     background-color: #03dac6;
     color: #121212;
@@ -129,7 +129,7 @@
     transform: scale(0.98);
 }
 
-/* ===== Modal Header ===== */
+
 .modal-content h2 {
     color: #03dac6;
     text-align: center;
@@ -137,7 +137,7 @@
     font-weight: 600;
 }
 
-/* ===== Form Group Spacing ===== */
+
 .form-group {
     margin-bottom: 20px;
 }
