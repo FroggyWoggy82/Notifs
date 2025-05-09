@@ -3,20 +3,9 @@
  * Styles for the ingredient name autocomplete dropdown
  */
 
-
+/* Original ingredient name autocomplete */
 .ingredient-name {
     position: relative;
-}
-
-
-input.ingredient-name::-webkit-calendar-picker-indicator {
-    display: block;
-    opacity: 0.8;
-    cursor: pointer;
-}
-
-
-.ingredient-name {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>');
     background-repeat: no-repeat;
     background-position: right 8px center;
@@ -24,12 +13,16 @@ input.ingredient-name::-webkit-calendar-picker-indicator {
     padding-right: 30px !important;
 }
 
+input.ingredient-name::-webkit-calendar-picker-indicator {
+    display: block;
+    opacity: 0.8;
+    cursor: pointer;
+}
 
 .ingredient-name:focus {
     border-color: rgba(255, 255, 255, 0.8) !important;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
 }
-
 
 datalist {
     background-color: #1e1e1e;
@@ -40,7 +33,6 @@ datalist {
     overflow-y: auto;
 }
 
-
 option {
     background-color: #1e1e1e;
     color: white;
@@ -49,4 +41,81 @@ option {
 
 option:hover {
     background-color: #333;
+}
+
+/* Enhanced ingredient search autocomplete */
+.autocomplete-dropdown {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 4px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    margin-top: 2px;
+    /* Ensure the dropdown is visible */
+    display: block;
+}
+
+.autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #fff;
+    border-bottom: 1px solid #333;
+    font-size: 14px;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active {
+    background-color: #333;
+    color: #00ff00;
+}
+
+.autocomplete-item.no-results {
+    color: #999;
+    font-style: italic;
+    cursor: default;
+}
+
+.autocomplete-item.no-results:hover {
+    background-color: #1e1e1e;
+    color: #999;
+}
+
+.existing-ingredient-selection,
+#existing-ingredient-selection {
+    position: relative;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.ingredient-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: #1e1e1e;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 4px;
+    margin-bottom: 0;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.ingredient-search-input:focus {
+    outline: none;
+    border-color: #00ff00;
+    background-color: #222;
+    color: #fff;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* Hide the old dropdown */
+.existing-ingredient-select {
+    display: none;
 }

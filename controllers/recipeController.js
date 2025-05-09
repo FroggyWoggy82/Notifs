@@ -106,7 +106,7 @@ async function createRecipe(req, res) {
 }
 
 /**
- * Update a recipe's calories
+ * Update a recipe's calories and/or name
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
@@ -116,9 +116,26 @@ async function updateRecipeCalories(req, res) {
     console.log(`Received PUT /api/recipes/${id}: name='${name}', targetCalories=${targetCalories}`);
 
     try {
-        const recipe = await RecipeModel.updateRecipeCalories(id, name, targetCalories);
-        console.log(`Recipe ${id} calories adjusted successfully to ${targetCalories}`);
-        res.json(recipe);
+        // If only updating the name (no targetCalories), get the current recipe first
+        if (name && (targetCalories === undefined || targetCalories === null)) {
+            console.log(`Only name provided, fetching current recipe to maintain calories`);
+            try {
+                const currentRecipe = await RecipeModel.getRecipeById(id);
+                const currentCalories = currentRecipe.total_calories;
+                console.log(`Using current calories: ${currentCalories}`);
+
+                const recipe = await RecipeModel.updateRecipeCalories(id, name, currentCalories);
+                console.log(`Recipe ${id} name updated to '${name}' while maintaining calories`);
+                res.json(recipe);
+            } catch (error) {
+                throw error;
+            }
+        } else {
+            // Normal update with targetCalories
+            const recipe = await RecipeModel.updateRecipeCalories(id, name, targetCalories);
+            console.log(`Recipe ${id} updated: name='${name}', calories=${targetCalories}`);
+            res.json(recipe);
+        }
     } catch (error) {
         console.error(`Error updating recipe ${id}:`, error);
 
@@ -131,7 +148,7 @@ async function updateRecipeCalories(req, res) {
             return res.status(404).json({ error: error.message });
         }
 
-        res.status(500).json({ error: 'Failed to update recipe calories' });
+        res.status(500).json({ error: 'Failed to update recipe' });
     }
 }
 

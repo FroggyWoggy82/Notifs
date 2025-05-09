@@ -39,8 +39,12 @@ async function fetchIngredientDetails(ingredientName) {
         }
 
         try {
+            // Use relative URL to ensure correct port is used
+            const baseUrl = window.location.origin;
+            const apiUrl = `${baseUrl}/api/ingredient-details/${encodedName}`;
+            console.log(`Fetching ingredient details from: ${apiUrl}`);
 
-            const response = await fetchFunction(`/api/ingredient-details/${encodedName}`);
+            const response = await fetchFunction(apiUrl);
 
             if (!response.ok) {
                 console.warn(`API endpoint not available: ${response.status}`);

@@ -245,12 +245,64 @@ router.put('/:id', async (req, res) => {
             // Price scaling might be debatable, but let's scale it too for simplicity
             const newPrice = ing.price * scalingFactor;
 
-            return client.query(
-                'UPDATE ingredients SET amount = $1, calories = $2, protein = $3, fats = $4, carbohydrates = $5, price = $6 WHERE id = $7',
-                [newAmount, newCalories, newProtein, newFats, newCarbohydrates, newPrice, ing.id]
-            );
+            // We need to scale all micronutrient values as well
+            console.log(`Scaling ingredient ${ing.id} (${ing.name}) with factor ${scalingFactor}`);
+
+            // First, get all columns from the ingredients table
+            const columnsQuery = `
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'ingredients'
+                AND column_name NOT IN ('id', 'recipe_id', 'created_at', 'updated_at')
+            `;
+
+            return client.query(columnsQuery)
+                .then(columnsResult => {
+                    const columns = columnsResult.rows.map(row => row.column_name);
+
+                    // Build a dynamic query to update all numeric columns
+                    let updateQuery = 'UPDATE ingredients SET ';
+                    const updateValues = [];
+                    let paramIndex = 1;
+
+                    columns.forEach(column => {
+                        // Skip non-numeric columns or columns that should not be scaled
+                        if (['name', 'package_amount'].includes(column)) {
+                            return;
+                        }
+
+                        // For all other columns, scale them
+                        if (paramIndex > 1) {
+                            updateQuery += ', ';
+                        }
+
+                        updateQuery += `${column} = $${paramIndex}`;
+
+                        // Scale the value if it exists and is a number
+                        const originalValue = ing[column];
+                        const newValue = (originalValue !== null && typeof originalValue === 'number')
+                            ? originalValue * scalingFactor
+                            : originalValue;
+
+                        updateValues.push(newValue);
+                        paramIndex++;
+                    });
+
+                    updateQuery += ` WHERE id = $${paramIndex}`;
+                    updateValues.push(ing.id);
+
+                    console.log(`Executing dynamic update query for ingredient ${ing.id}`);
+                    return client.query(updateQuery, updateValues);
+                });
         });
-        await Promise.all(updatePromises);
+
+        try {
+            await Promise.all(updatePromises);
+            console.log('All ingredient updates completed successfully');
+        } catch (error) {
+            console.error('Error updating ingredients:', error);
+            throw error; // Re-throw to be caught by the outer try/catch
+        }
 
         await client.query('COMMIT');
 

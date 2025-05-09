@@ -1,0 +1,53 @@
+/**
+ * Recipe Title Pencil Fix
+ * Adjusts the placement of the pencil icon to be at the end of the recipe title
+ */
+
+/* Adjust the recipe title container to better position the title and icon */
+.recipe-title-container {
+    display: flex;
+    align-items: center;
+    gap: 0; /* Remove gap between title and icon */
+    flex: 1;
+    max-width: 50%; /* Reduced from 60% to leave more space for buttons */
+    overflow: visible; /* Changed from hidden to allow icon to be visible */
+    position: relative; /* Add position relative for absolute positioning of icon */
+}
+
+/* Make the title take up all available space */
+.recipe-card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1; /* Take up all available space */
+    padding-right: 0; /* Remove padding as we'll position the icon differently */
+}
+
+/* Position the edit icon next to the title text */
+.edit-recipe-name-icon {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    position: static; /* Changed from absolute to static */
+    margin-left: 8px; /* Add margin to separate from title */
+    display: inline-block;
+}
+
+.edit-recipe-name-icon:hover {
+    color: #ffffff;
+    opacity: 1;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+    .recipe-title-container {
+        max-width: 100%;
+        margin-bottom: 4px;
+    }
+}

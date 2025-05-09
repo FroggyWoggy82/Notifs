@@ -1,0 +1,59 @@
+/**
+ * Recipe Title Pencil Fix Override
+ * Ensures the pencil icon for editing recipe names is visible and properly positioned
+ */
+
+/* Force the recipe title container to have position relative */
+.recipe-title-container {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    flex: 1 !important;
+    max-width: 60% !important;
+    overflow: hidden !important;
+}
+
+/* Force the recipe title to have padding for the icon */
+.recipe-card-title {
+    padding-right: 24px !important;
+    flex: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Force the edit icon to be absolutely positioned and visible */
+.edit-recipe-name-icon {
+    position: absolute !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.9rem !important;
+    cursor: pointer !important;
+    opacity: 0.7 !important;
+    transition: all 0.2s ease !important;
+    margin-left: 0 !important;
+    display: block !important;
+    visibility: visible !important;
+    z-index: 10 !important;
+}
+
+/* Force hover styles */
+.edit-recipe-name-icon:hover {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+    .recipe-title-container {
+        max-width: 100% !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .recipe-card-title {
+        padding-right: 24px !important;
+    }
+}

@@ -26,7 +26,17 @@ class CalorieTargetController {
                 return res.status(404).json({ error: 'No calorie target found for this user.' });
             }
 
-            res.json(target);
+            // Explicitly include the protein_target field in the response
+            const response = {
+                id: target.id,
+                user_id: target.user_id,
+                daily_target: target.daily_target,
+                protein_target: target.protein_target,
+                created_at: target.created_at,
+                updated_at: target.updated_at
+            };
+
+            res.json(response);
         } catch (err) {
             console.error('Error fetching calorie target:', err);
             res.status(500).json({ error: `Failed to fetch calorie target: ${err.message}` });
@@ -40,8 +50,8 @@ class CalorieTargetController {
      */
     static async saveCalorieTarget(req, res) {
         try {
-            const { user_id, daily_target } = req.body;
-            console.log(`Received POST /api/calorie-targets: user_id=${user_id}, daily_target=${daily_target}`);
+            const { user_id, daily_target, protein_target } = req.body;
+            console.log(`Received POST /api/calorie-targets: user_id=${user_id}, daily_target=${daily_target}, protein_target=${protein_target}`);
 
             // Ensure user_id is a number
             const userIdNum = parseInt(user_id, 10);
@@ -55,7 +65,21 @@ class CalorieTargetController {
                 return res.status(400).json({ error: 'Invalid daily target. Must be a number between 500 and 10000.' });
             }
 
-            const savedTarget = await CalorieTarget.saveCalorieTarget(userIdNum, dailyTargetNum);
+            // Ensure protein_target is a number if provided
+            let proteinTargetNum = null;
+            if (protein_target !== undefined && protein_target !== null && protein_target !== '') {
+                proteinTargetNum = parseInt(protein_target, 10);
+                if (isNaN(proteinTargetNum) || proteinTargetNum < 20 || proteinTargetNum > 500) {
+                    return res.status(400).json({ error: 'Invalid protein_target parameter. Must be a number between 20 and 500.' });
+                }
+                console.log(`Using provided protein target: ${proteinTargetNum}`);
+            } else {
+                // Default protein target to 15% of daily calories (assuming 4 calories per gram of protein)
+                proteinTargetNum = Math.round((dailyTargetNum * 0.15) / 4);
+                console.log(`Using calculated default protein target: ${proteinTargetNum}`);
+            }
+
+            const savedTarget = await CalorieTarget.saveCalorieTarget(userIdNum, dailyTargetNum, proteinTargetNum);
             res.status(201).json(savedTarget);
         } catch (err) {
             console.error('Error saving calorie target:', err);

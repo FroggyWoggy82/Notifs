@@ -1,0 +1,216 @@
+/**
+ * Edit Ingredient Form Fix
+ * Applies styling to match the "Create New Recipe" section's styling
+ * while leaving the original styling intact
+ */
+
+/* Target only the edit ingredient form */
+.edit-ingredient-form {
+    margin-top: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    padding: 8px !important;
+    background-color: rgba(20, 20, 20, 0.95) !important;
+    color: #e0e0e0 !important;
+    max-width: 100% !important;
+}
+
+/* Form headers in edit ingredient form */
+.edit-ingredient-form h4 {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    font-size: 0.85em !important;
+    font-weight: 500 !important;
+    color: #e0e0e0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 5px !important;
+}
+
+/* Basic information section in edit ingredient form */
+.edit-ingredient-form .basic-information {
+    margin-bottom: 15px !important;
+    padding: 10px !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 4px !important;
+}
+
+/* Basic information labels */
+.edit-ingredient-form .basic-information label,
+.edit-ingredient-form label {
+    font-size: 0.75em !important;
+    margin-bottom: 2px !important;
+    color: #aaa !important;
+    display: block !important;
+    font-weight: normal !important;
+}
+
+/* Basic information inputs */
+.edit-ingredient-form .basic-information input,
+.edit-ingredient-form .basic-information input[type="number"],
+.edit-ingredient-form .basic-information input[type="text"],
+.edit-ingredient-form input,
+.edit-ingredient-form input[type="number"],
+.edit-ingredient-form input[type="text"] {
+    width: 100% !important;
+    padding: 1px 3px !important;
+    height: 20px !important;
+    font-size: 0.75em !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 4px !important;
+}
+
+/* Special width for name field */
+.edit-ingredient-form input#edit-ingredient-name {
+    width: 140px !important;
+}
+
+/* Nutrition sections in edit ingredient form */
+.edit-ingredient-form .nutrition-section {
+    margin-bottom: 15px !important;
+}
+
+/* Section headers in edit ingredient form */
+.edit-ingredient-form .nutrition-section h4 {
+    margin-top: 0 !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 5px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    font-weight: 500 !important;
+    font-size: 0.85em !important;
+}
+
+/* Nutrition grids in edit ingredient form */
+.edit-ingredient-form .nutrition-grid,
+.edit-ingredient-form .form-group-column {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+    gap: 6px !important;
+}
+
+/* Nutrition items in edit ingredient form */
+.edit-ingredient-form .nutrition-item,
+.edit-ingredient-form .form-group {
+    margin-bottom: 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: auto !important;
+}
+
+/* Labels in edit ingredient form */
+.edit-ingredient-form .nutrition-item label,
+.edit-ingredient-form .form-group label {
+    font-size: 0.75em !important;
+    margin-bottom: 2px !important;
+    color: #aaa !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-weight: normal !important;
+}
+
+/* Input fields in edit ingredient form */
+.edit-ingredient-form .nutrition-item input,
+.edit-ingredient-form .nutrition-item input[type="number"],
+.edit-ingredient-form .nutrition-item input[type="text"],
+.edit-ingredient-form .form-group input,
+.edit-ingredient-form .form-group input[type="number"],
+.edit-ingredient-form .form-group input[type="text"] {
+    width: 50px !important;
+    padding: 1px 3px !important;
+    height: 20px !important;
+    font-size: 0.75em !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 4px !important;
+}
+
+/* Form actions in edit ingredient form */
+.edit-ingredient-form .form-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+}
+
+/* Buttons in edit ingredient form */
+.edit-ingredient-form button,
+.edit-ingredient-form .save-ingredient-btn,
+.edit-ingredient-form .cancel-edit-btn,
+.edit-ingredient-form .form-actions button {
+    padding: 4px 8px !important;
+    font-size: 0.8em !important;
+    border-radius: 4px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: 0.2s !important;
+}
+
+/* Save button in edit ingredient form */
+.edit-ingredient-form button[type="submit"],
+.edit-ingredient-form .save-ingredient-btn,
+.edit-ingredient-form .form-actions .save-changes-btn {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+}
+
+/* Button hover in edit ingredient form */
+.edit-ingredient-form button:hover,
+.edit-ingredient-form .save-ingredient-btn:hover,
+.edit-ingredient-form .form-actions button:hover {
+    opacity: 0.9 !important;
+}
+
+/* Cancel button in edit ingredient form */
+.edit-ingredient-form .cancel-edit-btn,
+.edit-ingredient-form .form-actions .cancel-edit-btn {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Cancel button hover in edit ingredient form */
+.edit-ingredient-form .cancel-edit-btn:hover,
+.edit-ingredient-form .form-actions .cancel-edit-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix for B vitamin fields that might be empty */
+.edit-ingredient-form input[name="b1"],
+.edit-ingredient-form input[name="b2"],
+.edit-ingredient-form input[name="b3"],
+.edit-ingredient-form input[name="b5"],
+.edit-ingredient-form input[name="transFat"] {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+}
+
+/* Ensure all B vitamin fields display properly */
+.edit-ingredient-form input[name="b1"]:empty,
+.edit-ingredient-form input[name="b2"]:empty,
+.edit-ingredient-form input[name="b3"]:empty,
+.edit-ingredient-form input[name="b5"]:empty,
+.edit-ingredient-form input[name="transFat"]:empty {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+}
+
+/* Ensure compact layout */
+.edit-ingredient-form .form-group-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+}
+
+/* Ensure consistent styling for all form elements */
+.edit-ingredient-form input:focus,
+.edit-ingredient-form input[type="number"]:focus,
+.edit-ingredient-form input[type="text"]:focus {
+    background-color: rgba(40, 40, 40, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    outline: none !important;
+}

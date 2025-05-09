@@ -118,10 +118,8 @@ async function createRecipe(name, ingredients) {
     let calculatedTotalCalories = 0;
     for (const ing of ingredients) {
         console.log(`Processing ingredient: ${ing.name}, calories: ${ing.calories}`);
-        if (typeof ing.calories !== 'number' || ing.calories < 0) {
-            console.error(`Invalid calorie data for ingredient: ${ing.name}, value: ${ing.calories}, type: ${typeof ing.calories}`);
-            throw new Error('Invalid calorie data for ingredient: ' + ing.name);
-        }
+        // Ensure calories is a number (default to 0 if missing or invalid)
+        ing.calories = typeof ing.calories === 'number' && ing.calories >= 0 ? ing.calories : 0;
         calculatedTotalCalories += ing.calories;
     }
     console.log(`Total calculated calories: ${calculatedTotalCalories}`);
@@ -150,12 +148,16 @@ async function createRecipe(name, ingredients) {
 
         // Insert ingredients
         const ingredientInsertPromises = ingredients.map(async ing => {
-            // Validate required ingredient fields
-            if (!ing.name || typeof ing.calories !== 'number' || typeof ing.amount !== 'number' ||
-                typeof ing.protein !== 'number' || typeof ing.fats !== 'number' ||
-                typeof ing.carbohydrates !== 'number' || typeof ing.price !== 'number' || ing.amount <= 0) {
-                 throw new Error('Invalid data for ingredient: ' + (ing.name || '[Missing Name]'));
+            // Validate required ingredient fields (only name, amount, and price are required)
+            if (!ing.name || typeof ing.amount !== 'number' || typeof ing.price !== 'number' || ing.amount <= 0) {
+                throw new Error('Invalid data for ingredient: ' + (ing.name || '[Missing Name]'));
             }
+
+            // Ensure nutritional values are numbers (default to 0 if missing)
+            ing.calories = typeof ing.calories === 'number' ? ing.calories : 0;
+            ing.protein = typeof ing.protein === 'number' ? ing.protein : 0;
+            ing.fats = typeof ing.fats === 'number' ? ing.fats : 0;
+            ing.carbohydrates = typeof ing.carbohydrates === 'number' ? ing.carbohydrates : 0;
 
             // Log the ingredient data being inserted
             console.log('Inserting ingredient with package_amount:', ing.package_amount);

@@ -1,0 +1,176 @@
+/**
+ * Micronutrient Percentage Display Styles
+ */
+
+.micronutrient-percentage-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background-color: #111;
+    padding: 15px;
+    border-bottom: 2px solid #00ff00;
+}
+
+.micronutrient-percentage-container h3 {
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.micronutrient-message {
+    background-color: #222;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #fcc419;
+}
+
+.micronutrient-message p {
+    margin: 5px 0;
+    color: #fff;
+    font-size: 14px;
+}
+
+.micronutrient-percentage-container h4 {
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.micronutrient-percentage-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.micronutrient-category {
+    flex: 1;
+    min-width: 300px;
+}
+
+.micronutrient-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.micronutrient-table th {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+    background-color: #222;
+}
+
+.micronutrient-table th:last-child {
+    text-align: right;
+}
+
+.micronutrient-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+
+.micronutrient-table td:nth-child(2),
+.micronutrient-table td:nth-child(3),
+.micronutrient-table td:nth-child(4) {
+    text-align: right;
+}
+
+.micronutrient-progress {
+    width: 100%;
+    height: 8px;
+    background-color: #333;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.micronutrient-progress-bar {
+    height: 100%;
+    background-color: #00ff00;
+    border-radius: 4px;
+}
+
+.micronutrient-progress-bar.low {
+    background-color: #ff9900;
+}
+
+.micronutrient-progress-bar.high {
+    background-color: #ff3300;
+}
+
+.micronutrient-percentage {
+    font-weight: bold;
+}
+
+.micronutrient-percentage.low {
+    color: #ff9900;
+}
+
+.micronutrient-percentage.high {
+    color: #ff3300;
+}
+
+.micronutrient-percentage.good {
+    color: #00ff00;
+}
+
+.micronutrient-percentage.na {
+    color: #999;
+}
+
+@media print {
+    .micronutrient-percentage-container {
+        background-color: #fff;
+        color: #000;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+
+    .micronutrient-percentage-container h3,
+    .micronutrient-percentage-container h4 {
+        color: #000;
+    }
+
+    .micronutrient-table {
+        color: #000;
+    }
+
+    .micronutrient-table th {
+        background-color: #f2f2f2;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .micronutrient-table td {
+        border-bottom: 1px solid #ddd;
+    }
+
+    .micronutrient-progress {
+        background-color: #eee;
+    }
+
+    .micronutrient-progress-bar {
+        background-color: #5cb85c;
+    }
+
+    .micronutrient-progress-bar.low {
+        background-color: #f0ad4e;
+    }
+
+    .micronutrient-progress-bar.high {
+        background-color: #d9534f;
+    }
+
+    .micronutrient-percentage.low {
+        color: #f0ad4e;
+    }
+
+    .micronutrient-percentage.high {
+        color: #d9534f;
+    }
+
+    .micronutrient-percentage.good {
+        color: #5cb85c;
+    }
+}

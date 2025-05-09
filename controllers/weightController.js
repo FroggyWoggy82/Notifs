@@ -196,8 +196,8 @@ class WeightController {
      */
     static async saveCalorieTarget(req, res) {
         try {
-            const { user_id, daily_target } = req.body;
-            console.log(`Received POST /api/weight/calorie-targets: user_id=${user_id}, daily_target=${daily_target}`);
+            const { user_id, daily_target, protein_target } = req.body;
+            console.log(`Received POST /api/weight/calorie-targets: user_id=${user_id}, daily_target=${daily_target}, protein_target=${protein_target}`);
 
             // Ensure userId is a number
             const userIdNum = parseInt(user_id, 10);
@@ -211,11 +211,23 @@ class WeightController {
                 return res.status(400).json({ error: 'Invalid daily_target parameter. Must be a positive number.' });
             }
 
+            // Ensure protein_target is a number if provided
+            let proteinTargetNum = null;
+            if (protein_target !== undefined && protein_target !== null && protein_target !== '') {
+                proteinTargetNum = parseInt(protein_target, 10);
+                if (isNaN(proteinTargetNum) || proteinTargetNum < 20 || proteinTargetNum > 500) {
+                    return res.status(400).json({ error: 'Invalid protein_target parameter. Must be a number between 20 and 500.' });
+                }
+            } else {
+                // Default protein target to 15% of daily calories (assuming 4 calories per gram of protein)
+                proteinTargetNum = Math.round((dailyTargetNum * 0.15) / 4);
+            }
+
             // Forward the request to the CalorieTarget controller
             const CalorieTarget = require('../models/calorieTargetModel');
-            const savedTarget = await CalorieTarget.saveCalorieTarget(userIdNum, dailyTargetNum);
+            const savedTarget = await CalorieTarget.saveCalorieTarget(userIdNum, dailyTargetNum, proteinTargetNum);
 
-            console.log('Calorie target saved:', savedTarget);
+            console.log('Calorie and protein targets saved:', savedTarget);
             res.status(201).json(savedTarget);
         } catch (err) {
             console.error('Error saving calorie target:', err);

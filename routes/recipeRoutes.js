@@ -104,7 +104,7 @@ router.post('/', RecipeController.createRecipe);
  * @swagger
  * /api/recipes/{id}:
  *   put:
- *     summary: Update a recipe's calories and scale ingredients
+ *     summary: Update a recipe's name and/or calories
  *     tags: [Recipes]
  *     parameters:
  *       - in: path
@@ -119,15 +119,13 @@ router.post('/', RecipeController.createRecipe);
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - targetCalories
  *             properties:
  *               name:
  *                 type: string
- *                 description: The updated recipe name (optional)
+ *                 description: The updated recipe name
  *               targetCalories:
  *                 type: number
- *                 description: The target total calories
+ *                 description: The target total calories (if changing calories)
  *     responses:
  *       200:
  *         description: Recipe updated successfully

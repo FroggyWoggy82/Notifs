@@ -1,18 +1,12 @@
 /**
- * Reset Habits Now
- * This script manually resets all habit completions immediately
+ * Wrapper script for reset-habits-now.js
+ * 
+ * This script has been moved to scripts/data-updates/reset-habits-now.js
+ * This wrapper is provided for backward compatibility.
  */
 
-const resetHabitCompletions = require('./utils/reset-habit-completions');
+console.log('This script has been moved to scripts/data-updates/reset-habits-now.js');
+console.log('Running from new location...\n');
 
-console.log('Starting manual habit reset...');
-
-resetHabitCompletions()
-    .then(() => {
-        console.log('Manual habit reset completed successfully');
-        process.exit(0);
-    })
-    .catch(error => {
-        console.error('Error in manual habit reset:', error);
-        process.exit(1);
-    });
+// Run the script from its new location
+require('./scripts/data-updates/reset-habits-now.js');

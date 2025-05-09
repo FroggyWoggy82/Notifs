@@ -14,6 +14,7 @@ class CalorieTarget {
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 daily_target INTEGER NOT NULL,
+                protein_target INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(user_id)
@@ -23,6 +24,35 @@ class CalorieTarget {
         try {
             await db.query(createTableQuery);
             console.log('Calorie targets table initialized successfully');
+
+            // Check if protein_target column exists, add it if it doesn't
+            const checkColumnQuery = `
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'calorie_targets' AND column_name = 'protein_target'
+            `;
+
+            const result = await db.query(checkColumnQuery);
+
+            if (result.rows.length === 0) {
+                console.log('Adding protein_target column to calorie_targets table');
+                const addColumnQuery = `
+                    ALTER TABLE calorie_targets
+                    ADD COLUMN protein_target INTEGER
+                `;
+                await db.query(addColumnQuery);
+                console.log('Added protein_target column to calorie_targets table');
+            } else {
+                console.log('protein_target column already exists in calorie_targets table');
+            }
+
+            // Force update of existing rows to ensure protein_target is properly initialized
+            const updateExistingRowsQuery = `
+                UPDATE calorie_targets
+                SET protein_target = COALESCE(protein_target, NULL)
+            `;
+            await db.query(updateExistingRowsQuery);
+            console.log('Updated existing rows to ensure protein_target is properly initialized');
         } catch (error) {
             console.error('Error initializing calorie targets table:', error);
             throw error;
@@ -54,9 +84,10 @@ class CalorieTarget {
      * Save calorie target for a user
      * @param {number} userId - User ID
      * @param {number} dailyTarget - Daily calorie target
+     * @param {number} proteinTarget - Daily protein target in grams
      * @returns {Object} - Saved calorie target object
      */
-    static async saveCalorieTarget(userId, dailyTarget) {
+    static async saveCalorieTarget(userId, dailyTarget, proteinTarget) {
         try {
             // Check if a record already exists for this user
             const existingTarget = await this.getCalorieTarget(userId);
@@ -68,19 +99,19 @@ class CalorieTarget {
                 // Update existing record
                 query = `
                     UPDATE calorie_targets
-                    SET daily_target = $1, updated_at = CURRENT_TIMESTAMP
-                    WHERE user_id = $2
+                    SET daily_target = $1, protein_target = $2, updated_at = CURRENT_TIMESTAMP
+                    WHERE user_id = $3
                     RETURNING *
                 `;
-                params = [dailyTarget, userId];
+                params = [dailyTarget, proteinTarget, userId];
             } else {
                 // Insert new record
                 query = `
-                    INSERT INTO calorie_targets (user_id, daily_target)
-                    VALUES ($1, $2)
+                    INSERT INTO calorie_targets (user_id, daily_target, protein_target)
+                    VALUES ($1, $2, $3)
                     RETURNING *
                 `;
-                params = [userId, dailyTarget];
+                params = [userId, dailyTarget, proteinTarget];
             }
 
             const result = await db.query(query, params);

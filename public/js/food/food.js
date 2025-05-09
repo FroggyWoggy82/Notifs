@@ -32,8 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const calorieUserSelector = document.getElementById('calorie-user-selector');
     const calorieTargetInput = document.getElementById('calorie-target');
+    const proteinTargetInput = document.getElementById('protein-target');
     const saveCalorieTargetBtn = document.getElementById('save-calorie-target');
     const currentCalorieTarget = document.getElementById('current-calorie-target');
+    const currentProteinTarget = document.getElementById('current-protein-target');
     const calorieTargetStatus = document.getElementById('calorie-target-status');
 
     let xAxisScale = 1;
@@ -49,6 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function createIngredientRowHtml() {
         return `
             <div class="ingredient-row">
+                <!-- Ingredient Selection Type -->
+                <div class="selection-row">
+                    <div class="selection-type">
+                        <label>
+                            <input type="radio" name="ingredient-selection-type" value="existing" class="ingredient-selection-radio">
+                            Use existing
+                        </label>
+                        <label>
+                            <input type="radio" name="ingredient-selection-type" value="new" class="ingredient-selection-radio" checked>
+                            Create new
+                        </label>
+                    </div>
+                    <div class="existing-ingredient-selection" style="display: none;">
+                        <input type="text" class="ingredient-search-input" placeholder="Search ingredients...">
+                        <!-- Dropdown will be created dynamically by ingredient-search-autocomplete.js -->
+                    </div>
+                </div>
+
                 <!-- Ingredient Name, Amount, and Price stacked vertically -->
                 <div class="ingredient-inputs-container">
                     <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
@@ -407,10 +427,309 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    // Function to handle radio button changes
+    function setupRadioButtonListeners() {
+        console.log('Setting up radio button listeners');
+        const radioButtons = document.querySelectorAll('.ingredient-selection-radio');
+
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                console.log('Radio button changed:', this.value);
+                const ingredientItem = this.closest('.ingredient-item');
+                const selectionDiv = ingredientItem.querySelector('.existing-ingredient-selection');
+                const inputsContainer = ingredientItem.querySelector('.ingredient-inputs-container');
+
+                if (this.value === 'existing') {
+                    console.log('Showing existing ingredient selection');
+                    selectionDiv.style.display = 'block';
+
+                    // Disable the manual input fields
+                    const nameInput = inputsContainer.querySelector('.ingredient-name');
+                    if (nameInput) nameInput.disabled = true;
+
+                    // Focus the search input to show the autocomplete dropdown immediately
+                    const searchInput = selectionDiv.querySelector('.ingredient-search-input');
+                    if (searchInput) {
+                        // Clear any previous value
+                        searchInput.value = '';
+
+                        // Focus the search input to trigger the autocomplete dropdown
+                        setTimeout(() => {
+                            searchInput.focus();
+                        }, 100);
+                    }
+                } else {
+                    console.log('Showing new ingredient input');
+                    selectionDiv.style.display = 'none';
+
+                    // Enable the manual input fields
+                    const nameInput = inputsContainer.querySelector('.ingredient-name');
+                    if (nameInput) nameInput.disabled = false;
+                }
+            });
+        });
+    }
+
+    // Function to load existing ingredients
+    async function loadExistingIngredients() {
+        console.log('Loading existing ingredients');
+        try {
+            // Fetch all recipes to extract ingredients
+            const response = await fetch('/api/recipes');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const recipes = await response.json();
+            console.log(`Loaded ${recipes.length} recipes`);
+
+            // Extract all ingredients from all recipes
+            const allIngredients = [];
+
+            // First, try to get ingredients from the currently visible recipe details
+            const visibleRecipeIngredients = document.querySelectorAll('.recipe-details-container table tbody tr');
+            if (visibleRecipeIngredients && visibleRecipeIngredients.length > 0) {
+                console.log(`Found ${visibleRecipeIngredients.length} visible ingredients in the current view`);
+
+                visibleRecipeIngredients.forEach((row, index) => {
+                    // Skip the header row
+                    if (index === 0) return;
+
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 9) {
+                        const name = cells[0].textContent.trim();
+                        const calories = parseFloat(cells[1].textContent.trim());
+                        const amount = parseFloat(cells[2].textContent.trim());
+                        const packageAmount = parseFloat(cells[3].textContent.trim());
+                        const protein = parseFloat(cells[4].textContent.trim());
+                        const fats = parseFloat(cells[5].textContent.trim());
+                        const carbs = parseFloat(cells[6].textContent.trim());
+                        const price = parseFloat(cells[7].textContent.trim());
+
+                        console.log(`Adding visible ingredient: ${name}`);
+
+                        allIngredients.push({
+                            id: `visible-${index}`,
+                            name: name,
+                            recipe_id: 'current',
+                            recipe_name: 'Current Recipe',
+                            amount: amount,
+                            calories: calories,
+                            protein: protein,
+                            fats: fats,
+                            carbohydrates: carbs,
+                            package_amount: packageAmount,
+                            price: price,
+                            display: `${name} (visible)`,
+                            value: `visible:${index}`
+                        });
+                    }
+                });
+            }
+
+            // Then add ingredients from all recipes
+            recipes.forEach(recipe => {
+                console.log(`Processing recipe: ${recipe.name}`);
+
+                // Check if we need to fetch ingredients separately
+                if (!recipe.ingredients || !Array.isArray(recipe.ingredients)) {
+                    console.log(`No ingredients array found for recipe ${recipe.name}`);
+
+                    // Try to fetch ingredients for this recipe
+                    fetch(`/api/recipes/${recipe.id}`)
+                        .then(response => response.json())
+                        .then(recipeDetails => {
+                            if (recipeDetails.ingredients && Array.isArray(recipeDetails.ingredients)) {
+                                console.log(`Fetched ${recipeDetails.ingredients.length} ingredients for recipe ${recipe.name}`);
+
+                                recipeDetails.ingredients.forEach(ingredient => {
+                                    console.log(`Adding ingredient: ${ingredient.name}`);
+
+                                    allIngredients.push({
+                                        id: ingredient.id,
+                                        name: ingredient.name,
+                                        recipe_id: recipe.id,
+                                        recipe_name: recipe.name,
+                                        amount: ingredient.amount,
+                                        calories: ingredient.calories,
+                                        protein: ingredient.protein,
+                                        fats: ingredient.fats,
+                                        carbohydrates: ingredient.carbohydrates,
+                                        package_amount: ingredient.package_amount,
+                                        price: ingredient.price,
+                                        display: `${ingredient.name} (from ${recipe.name})`,
+                                        value: `${recipe.id}:${ingredient.id}`
+                                    });
+                                });
+
+                                // Sort ingredients alphabetically by name
+                                allIngredients.sort((a, b) => a.name.localeCompare(b.name));
+
+                                // Populate all dropdowns with the ingredients
+                                populateIngredientDropdowns(allIngredients);
+                            }
+                        })
+                        .catch(error => {
+                            console.error(`Error fetching ingredients for recipe ${recipe.name}:`, error);
+                        });
+
+                    return; // Skip this recipe in the main loop
+                }
+
+                console.log(`Recipe ${recipe.name} has ${recipe.ingredients.length} ingredients`);
+
+                recipe.ingredients.forEach(ingredient => {
+                    console.log(`Adding ingredient: ${ingredient.name}`);
+
+                    allIngredients.push({
+                        id: ingredient.id,
+                        name: ingredient.name,
+                        recipe_id: recipe.id,
+                        recipe_name: recipe.name,
+                        amount: ingredient.amount,
+                        calories: ingredient.calories,
+                        protein: ingredient.protein,
+                        fats: ingredient.fats,
+                        carbohydrates: ingredient.carbohydrates,
+                        package_amount: ingredient.package_amount,
+                        price: ingredient.price,
+                        display: `${ingredient.name} (from ${recipe.name})`,
+                        value: `${recipe.id}:${ingredient.id}`
+                    });
+                });
+            });
+
+            // Add some hardcoded ingredients from the visible recipe
+            const visibleIngredients = [
+                { name: "Eggs Pasture Raised Vital Farms", calories: 280.0, amount: 200.0, package_amount: 600.0, protein: 24.0, fats: 20.0, carbs: 1.4, price: 7.78 },
+                { name: "Parmigiano Rggiano Galli", calories: 111.4, amount: 28.2, package_amount: 154.0, protein: 10.1, fats: 8.1, carbs: 1.0, price: 10.28 },
+                { name: "Shrimp Cooked from Frozen Great Catch", calories: 134.9, amount: 112.4, package_amount: 454.0, protein: 25.8, fats: 1.9, carbs: 1.7, price: 8.47 },
+                { name: "Avocado, California", calories: 56.8, amount: 34.0, package_amount: 136.0, protein: 0.7, fats: 5.2, carbs: 2.9, price: 0.92 }
+            ];
+
+            visibleIngredients.forEach((ingredient, index) => {
+                console.log(`Adding hardcoded ingredient: ${ingredient.name}`);
+
+                allIngredients.push({
+                    id: `hardcoded-${index}`,
+                    name: ingredient.name,
+                    recipe_id: 'hardcoded',
+                    recipe_name: 'Hardcoded',
+                    amount: ingredient.amount,
+                    calories: ingredient.calories,
+                    protein: ingredient.protein,
+                    fats: ingredient.fats,
+                    carbohydrates: ingredient.carbs,
+                    package_amount: ingredient.package_amount,
+                    price: ingredient.price,
+                    display: `${ingredient.name} (hardcoded)`,
+                    value: `hardcoded:${index}`
+                });
+            });
+
+            // Sort ingredients alphabetically by name
+            allIngredients.sort((a, b) => a.name.localeCompare(b.name));
+
+            console.log(`Loaded ${allIngredients.length} ingredients`);
+
+            // Populate all dropdowns with the ingredients
+            populateIngredientDropdowns(allIngredients);
+
+            // Set up search functionality
+            setupIngredientSearch();
+        } catch (error) {
+            console.error('Error loading existing ingredients:', error);
+        }
+    }
+
+    // Function to populate ingredient dropdowns
+    function populateIngredientDropdowns(ingredients) {
+        console.log('Populating ingredient dropdowns');
+        const dropdowns = document.querySelectorAll('.existing-ingredient-select');
+
+        dropdowns.forEach(dropdown => {
+            // Clear existing options except the first one
+            while (dropdown.options.length > 1) {
+                dropdown.remove(1);
+            }
+
+            // Add options for each ingredient
+            ingredients.forEach(ingredient => {
+                const option = document.createElement('option');
+                option.value = ingredient.value;
+                option.text = ingredient.display;
+                option.dataset.name = ingredient.name;
+                option.dataset.calories = ingredient.calories;
+                option.dataset.protein = ingredient.protein;
+                option.dataset.fats = ingredient.fats;
+                option.dataset.carbs = ingredient.carbohydrates;
+                option.dataset.packageAmount = ingredient.package_amount;
+                option.dataset.price = ingredient.price;
+                dropdown.appendChild(option);
+            });
+
+            // Add change event listener to populate fields when an ingredient is selected
+            dropdown.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    const ingredientItem = this.closest('.ingredient-item');
+                    const nameInput = ingredientItem.querySelector('.ingredient-name');
+                    const caloriesInput = ingredientItem.querySelector('.ingredient-calories');
+                    const proteinInput = ingredientItem.querySelector('.ingredient-protein');
+                    const fatInput = ingredientItem.querySelector('.ingredient-fat');
+                    const carbsInput = ingredientItem.querySelector('.ingredient-carbs');
+                    const packageAmountInput = ingredientItem.querySelector('.ingredient-package-amount');
+                    const priceInput = ingredientItem.querySelector('.ingredient-price');
+
+                    // Populate fields with selected ingredient data
+                    nameInput.value = selectedOption.dataset.name;
+                    caloriesInput.value = selectedOption.dataset.calories;
+                    proteinInput.value = selectedOption.dataset.protein;
+                    fatInput.value = selectedOption.dataset.fats;
+                    carbsInput.value = selectedOption.dataset.carbs;
+                    packageAmountInput.value = selectedOption.dataset.packageAmount;
+                    priceInput.value = selectedOption.dataset.price;
+                }
+            });
+        });
+    }
+
+    // Function to set up ingredient search
+    function setupIngredientSearch() {
+        console.log('Setting up ingredient search');
+        const searchInputs = document.querySelectorAll('.ingredient-search-input');
+
+        searchInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const dropdown = this.nextElementSibling;
+
+                // Show/hide options based on search term
+                Array.from(dropdown.options).forEach(option => {
+                    if (option.index === 0) return; // Skip the placeholder option
+
+                    const text = option.text.toLowerCase();
+                    const match = text.includes(searchTerm);
+                    option.style.display = match ? '' : 'none';
+                });
+            });
+        });
+    }
+
+    // Call setupRadioButtonListeners when a new ingredient row is added
+    document.addEventListener('ingredientAdded', function(e) {
+        console.log('Ingredient added event received');
+        setupRadioButtonListeners();
+    });
+
+    // Initial setup for existing ingredient rows
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, setting up initial radio buttons');
+        setupRadioButtonListeners();
+    });
+
     ingredientsList.addEventListener('click', (event) => {
-
         if (event.target.classList.contains('remove-ingredient-btn')) {
-
             if (ingredientsList.children.length > 1) {
                 event.target.closest('.ingredient-item').remove();
             } else {
@@ -423,7 +742,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const panel = button.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
 
             if (panel) {
-
                 const isVisible = panel.style.display !== 'none';
                 panel.style.display = isVisible ? 'none' : 'block';
 
@@ -440,10 +758,66 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target.classList.contains('add-ingredient-btn-inline')) {
             addIngredientRow();
         }
+
+        // Handle radio button clicks directly
+        if (event.target.classList.contains('ingredient-selection-radio')) {
+            const radio = event.target;
+            const ingredientItem = radio.closest('.ingredient-item');
+            const selectionDiv = ingredientItem.querySelector('.existing-ingredient-selection');
+            const inputsContainer = ingredientItem.querySelector('.ingredient-inputs-container');
+
+            if (radio.value === 'existing') {
+                console.log('Radio clicked: Showing existing ingredient selection');
+                selectionDiv.style.display = 'block';
+
+                // Disable the manual input fields
+                const nameInput = inputsContainer.querySelector('.ingredient-name');
+                if (nameInput) nameInput.disabled = true;
+
+                // Focus the search input to show the autocomplete dropdown immediately
+                const searchInput = selectionDiv.querySelector('.ingredient-search-input');
+                if (searchInput) {
+                    // Clear any previous value
+                    searchInput.value = '';
+
+                    // Focus the search input to trigger the autocomplete dropdown
+                    setTimeout(() => {
+                        searchInput.focus();
+                    }, 100);
+                }
+            } else {
+                console.log('Radio clicked: Showing new ingredient input');
+                selectionDiv.style.display = 'none';
+
+                // Enable the manual input fields
+                const nameInput = inputsContainer.querySelector('.ingredient-name');
+                if (nameInput) nameInput.disabled = false;
+            }
+        }
     });
+
+    // Flag to track if a recipe submission is in progress
+    let recipeSubmissionInProgress = false;
 
     createRecipeForm.addEventListener('submit', async (event) => {
         event.preventDefault(); // Prevent default form submission
+
+        // Prevent duplicate submissions
+        if (recipeSubmissionInProgress) {
+            console.log('Recipe submission already in progress, ignoring duplicate submission');
+            return;
+        }
+
+        // Set the flag to indicate submission is in progress
+        recipeSubmissionInProgress = true;
+
+        // Disable the submit button to prevent multiple clicks
+        const saveButton = createRecipeForm.querySelector('button[type="submit"]');
+        if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+        }
+
         console.log('Recipe form submitted');
         showStatus(createRecipeStatus, 'Saving recipe...', 'info'); // Indicate processing
 
@@ -780,6 +1154,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error saving recipe:', error);
             showStatus(createRecipeStatus, `Error saving recipe: ${error.message}`, 'error');
+        } finally {
+            // Reset the submission flag regardless of success or failure
+            recipeSubmissionInProgress = false;
+
+            // Re-enable the submit button
+            const saveButton = createRecipeForm.querySelector('button[type="submit"]');
+            if (saveButton) {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Save Recipe';
+            }
         }
     });
 
@@ -2069,7 +2453,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             recipeDiv.innerHTML = `
                 <div class="recipe-card-header">
-                    <h3 class="recipe-card-title">${escapeHtml(recipe.name)}</h3>
+                    <div class="recipe-title-container">
+                        <h3 class="recipe-card-title">${escapeHtml(recipe.name)}</h3>
+                        <i class="fas fa-pencil-alt edit-recipe-name-icon" title="Edit Recipe Name"></i>
+                    </div>
                     <div class="recipe-card-actions">
                         <button type="button" class="recipe-card-btn primary view-ingredients-btn">View</button>
                         <button type="button" class="recipe-card-btn adjust-calories-toggle">Adjust</button>
@@ -2463,20 +2850,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="selection-row">
                             <div class="selection-type">
                                 <label>
-                                    <input type="radio" name="ingredient-selection-type" value="existing" checked>
+                                    <input type="radio" name="ingredient-selection-type" value="existing">
                                     Use existing
                                 </label>
                                 <label>
-                                    <input type="radio" name="ingredient-selection-type" value="new">
+                                    <input type="radio" name="ingredient-selection-type" value="new" checked>
                                     Create new
                                 </label>
                             </div>
 
                             <!-- Existing Ingredient Selection -->
-                            <div id="existing-ingredient-selection">
-                                <select id="existing-ingredient-select">
-                                    <option value="">Loading ingredients...</option>
-                                </select>
+                            <div id="existing-ingredient-selection" style="display: none;">
+                                <input type="text" class="ingredient-search-input" placeholder="Search ingredients...">
+                                <!-- Dropdown will be created dynamically by ingredient-search-autocomplete.js -->
                             </div>
                         </div>
 
@@ -3185,29 +3571,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (this.value === 'existing') {
-
+                        console.log('Radio clicked: Showing existing ingredient selection');
                         existingIngredientSection.style.display = 'block';
                         nameInput.disabled = true;
-                    } else {
 
+                        // Focus the search input to show the autocomplete dropdown immediately
+                        const searchInput = existingIngredientSection.querySelector('.ingredient-search-input');
+                        if (searchInput) {
+                            // Clear any previous value
+                            searchInput.value = '';
+
+                            // Focus the search input to trigger the autocomplete dropdown
+                            setTimeout(() => {
+                                searchInput.focus();
+                            }, 100);
+                        }
+                    } else {
+                        console.log('Radio clicked: Showing new ingredient input');
                         existingIngredientSection.style.display = 'none';
                         nameInput.disabled = false;
                         nameInput.value = '';
                     }
                 });
-            });
-        }
-
-        const existingIngredientSelect = container.querySelector('#existing-ingredient-select');
-        if (existingIngredientSelect) {
-            existingIngredientSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const ingredientId = selectedOption.value;
-
-                if (ingredientId) {
-
-                    fetchIngredientDetails(ingredientId);
-                }
             });
         }
 
@@ -4229,6 +4614,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (target.classList.contains('delete-recipe-btn')) {
             deleteRecipe(recipeId);
+        } else if (target.classList.contains('edit-recipe-name-icon')) {
+            // Handle edit recipe name click
+            const titleElement = recipeItem.querySelector('.recipe-card-title');
+            const currentName = titleElement.textContent;
+
+            // Prompt for new name
+            const newName = prompt('Enter new recipe name:', currentName);
+
+            // If user didn't cancel and provided a name
+            if (newName !== null && newName.trim() !== '') {
+                try {
+                    // Get the current recipe to get its total calories
+                    const getRecipeResponse = await fetch(`/api/recipes/${recipeId}`);
+                    if (!getRecipeResponse.ok) {
+                        throw new Error(`Failed to fetch recipe: ${getRecipeResponse.status}`);
+                    }
+
+                    const recipeData = await getRecipeResponse.json();
+                    const currentTotalCalories = recipeData.total_calories;
+
+                    // Now update the recipe with both name and targetCalories
+                    const response = await fetch(`/api/recipes/${recipeId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: newName.trim(),
+                            targetCalories: currentTotalCalories // Keep the same calories
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+
+                    const updatedRecipe = await response.json();
+
+                    // Update the title in the UI
+                    titleElement.textContent = escapeHtml(updatedRecipe.name);
+
+                    // Show success message
+                    const statusElement = recipeItem.querySelector('.adjustment-status');
+                    if (statusElement) {
+                        showStatus(statusElement, 'Recipe name updated successfully!', 'success');
+                    }
+                } catch (error) {
+                    console.error('Error updating recipe name:', error);
+                    const statusElement = recipeItem.querySelector('.adjustment-status');
+                    if (statusElement) {
+                        showStatus(statusElement, `Error updating recipe name: ${error.message}`, 'error');
+                    }
+                }
+            }
         }
 
         else if (target.classList.contains('adjust-calories-btn')) {
@@ -4874,16 +5314,24 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveCalorieTarget() {
         const userId = calorieUserSelector.value;
         const calorieTarget = parseInt(calorieTargetInput.value);
+        const proteinTarget = parseInt(proteinTargetInput.value);
 
         if (isNaN(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
             showStatus(calorieTargetStatus, 'Please enter a valid calorie target between 500 and 10000.', 'error');
             return;
         }
 
-        showStatus(calorieTargetStatus, 'Saving calorie target...', 'info');
+        if (proteinTarget && (isNaN(proteinTarget) || proteinTarget < 20 || proteinTarget > 500)) {
+            showStatus(calorieTargetStatus, 'Please enter a valid protein target between 20 and 500 grams.', 'error');
+            return;
+        }
+
+        // Protein target will be saved to the database
+
+        showStatus(calorieTargetStatus, 'Saving nutrition targets...', 'info');
 
         try {
-            console.log(`Attempting to save calorie target for user ${userId}: ${calorieTarget} calories`);
+            console.log(`Attempting to save targets for user ${userId}: ${calorieTarget} calories, ${proteinTarget || 'default'} g protein`);
 
             let response = await fetch('/api/calorie-targets', {
                 method: 'POST',
@@ -4892,7 +5340,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     user_id: userId,
-                    daily_target: calorieTarget
+                    daily_target: calorieTarget,
+                    protein_target: proteinTarget || null
                 })
             });
             console.log(`Received response with status: ${response.status}`);
@@ -4906,7 +5355,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     body: JSON.stringify({
                         user_id: userId,
-                        daily_target: calorieTarget
+                        daily_target: calorieTarget,
+                        protein_target: proteinTarget || null
                     })
                 });
                 console.log(`Received response from weight API with status: ${response.status}`);
@@ -4925,15 +5375,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
             console.log('Save result:', result);
-            showStatus(calorieTargetStatus, 'Calorie target saved successfully!', 'success');
+            showStatus(calorieTargetStatus, 'Nutrition targets saved successfully!', 'success');
 
             loadCalorieTarget(userId);
 
             calorieTargetInput.value = '';
+            proteinTargetInput.value = '';
 
         } catch (error) {
-            console.error('Error saving calorie target:', error);
-            showStatus(calorieTargetStatus, `Error saving calorie target: ${error.message}`, 'error');
+            console.error('Error saving nutrition targets:', error);
+            showStatus(calorieTargetStatus, `Error saving nutrition targets: ${error.message}`, 'error');
 
             setTimeout(() => {
                 loadCalorieTarget(userId);
@@ -4943,13 +5394,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadCalorieTarget(userId) {
         try {
-            console.log(`Attempting to fetch calorie target for user ${userId}`);
+            console.log(`Attempting to fetch nutrition targets for user ${userId}`);
 
             let response = await fetch(`/api/calorie-targets/${userId}`);
             console.log(`Received response with status: ${response.status}`);
 
             if (response.status === 404) {
-
                 try {
                     console.log('Calorie targets API not found or no target, trying weight API endpoint');
                     response = await fetch(`/api/weight/calorie-targets/${userId}`);
@@ -4960,9 +5410,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (response.status === 404) {
-
-                console.log('No calorie target found for this user');
+                console.log('No nutrition targets found for this user');
                 currentCalorieTarget.textContent = 'Not set';
+                currentProteinTarget.textContent = 'Not set';
                 return;
             }
 
@@ -4978,10 +5428,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            console.log('Calorie target data:', data);
+            console.log('Nutrition target data:', data);
 
+            // Handle calorie target
             const dailyTarget = data.daily_target || data.target || data.calories || data.value;
-
             if (dailyTarget) {
                 currentCalorieTarget.textContent = `${dailyTarget} calories`;
             } else {
@@ -4989,9 +5439,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentCalorieTarget.textContent = 'Not set';
             }
 
+            // Handle protein target
+            // Check for protein_target in the API response
+            const proteinTarget = data.protein_target || null;
+
+            console.log('Protein target from API:', proteinTarget);
+
+            if (proteinTarget) {
+                currentProteinTarget.textContent = `${proteinTarget} g`;
+
+                // Update micronutrient targets with both calorie and protein targets
+                if (typeof updateMicronutrientTargets === 'function') {
+                    updateMicronutrientTargets(dailyTarget, proteinTarget);
+                } else if (typeof window.updateMicronutrientCalorieTarget === 'function') {
+                    // Fall back to the old function if the new one isn't available
+                    window.updateMicronutrientCalorieTarget(dailyTarget);
+                }
+            } else {
+                // If protein target is not set, calculate default based on calories (15% of calories)
+                const defaultProteinTarget = Math.round((dailyTarget * 0.15) / 4);
+                currentProteinTarget.textContent = `${defaultProteinTarget} g (default)`;
+
+                // Update micronutrient targets with calorie target only
+                if (typeof window.updateMicronutrientCalorieTarget === 'function') {
+                    window.updateMicronutrientCalorieTarget(dailyTarget);
+                }
+            }
+
         } catch (error) {
-            console.error('Error loading calorie target:', error);
-            currentCalorieTarget.textContent = 'Not set'; // Default to 'Not set' instead of error
+            console.error('Error loading nutrition targets:', error);
+            currentCalorieTarget.textContent = 'Not set';
+            currentProteinTarget.textContent = 'Not set';
         }
     }
 
@@ -5489,11 +5967,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (!ingredientData.calories || !ingredientData.protein || !ingredientData.fats || !ingredientData.carbohydrates) {
-                console.error('Missing required nutritional values:', ingredientData);
-                showStatus(statusElement, 'Missing required nutritional values (calories, protein, fats, carbs)', 'error');
-                return;
-            }
+            // Nutritional values are no longer required
+            // Convert any missing nutritional values to 0
+            ingredientData.calories = ingredientData.calories || 0;
+            ingredientData.protein = ingredientData.protein || 0;
+            ingredientData.fats = ingredientData.fats || 0;
+            ingredientData.carbohydrates = ingredientData.carbohydrates || 0;
 
             console.log('Sending ingredient data to server:', JSON.stringify(ingredientData, null, 2));
 

@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="../css/detailed-nutrition-dark.css"> <!-- Dark theme for detailed nutrition panel -->
     <link rel="stylesheet" href="../css/detailed-nutrition-view.css"> <!-- Detailed nutrition view styling -->
     <link rel="stylesheet" href="../css/micronutrient-display.css"> <!-- Micronutrient display styling -->
+    <link rel="stylesheet" href="../css/micronutrient-percentage.css"> <!-- Micronutrient percentage display styling -->
     <link rel="stylesheet" href="../css/custom-goal-weights.css"> <!-- Custom goal weights styling -->
     <link rel="stylesheet" href="../css/section-separator.css"> <!-- Section separator styling -->
 
@@ -70,6 +71,11 @@
     <link rel="stylesheet" href="../css/white-grocery-button.css"> <!-- White Generate Grocery List button -->
     <link rel="stylesheet" href="../css/grocery-list-alignment-fix.css"> <!-- Fix alignment in grocery list -->
     <link rel="stylesheet" href="../css/hide-duplicate-top-buttons.css"> <!-- Hide duplicate top buttons -->
+    <link rel="stylesheet" href="../css/recipe-title-pencil-fix.css"> <!-- Fix for pencil icon placement in recipe titles -->
+    <link rel="stylesheet" href="../css/enhanced-ingredient-selection.css"> <!-- Enhanced ingredient selection styling -->
+    <link rel="stylesheet" href="../css/edit-ingredient-form-fix.css"> <!-- Fix for edit ingredient form styling -->
+    <link rel="stylesheet" href="../css/consistent-micronutrient-styling.css"> <!-- Consistent styling for micronutrient fields -->
+    <link rel="stylesheet" href="../css/edit-form-exact-match.css"> <!-- Exact match styling for edit ingredient form -->
 
     <!-- Complete edit form replacement styling -->
     <link rel="stylesheet" href="../css/complete-edit-form.css"> <!-- Complete edit form styling -->
@@ -162,7 +168,7 @@
 
             <!-- Calorie Target Section -->
             <div class="goal-card calorie-goal-card">
-                <h3 class="goal-card-title">Daily Calorie Target</h3>
+                <h3 class="goal-card-title">Daily Calorie & Protein Targets</h3>
                 <div class="compact-form-layout">
                     <div class="input-row">
                         <div class="form-group">
@@ -176,9 +182,21 @@
                             </div>
                         </div>
                     </div>
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="protein-target">Target Protein (g)</label>
+                            <input type="number" id="protein-target" min="20" max="500" step="1" placeholder="e.g., 150">
+                        </div>
+                        <div class="form-group">
+                            <label class="current-label">Current Target</label>
+                            <div class="current-display">
+                                <span id="current-protein-target">83 g</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="button-row">
                         <div class="spacer"></div>
-                        <button id="save-calorie-target" class="save-btn">Save Target</button>
+                        <button id="save-calorie-target" class="save-btn">Save Targets</button>
                     </div>
                 </div>
                 <div id="calorie-target-status" class="status"></div>
@@ -724,33 +742,48 @@
     <!-- Simple fix that restores the original cancel button handler -->
     <script src="../js/food/disable-cancel-button-fixes.js"></script> <!-- Restores original cancel button handler -->
 
+    <!-- Consolidated nutrition handling modules -->
+    <script src="../js/food/nutrition-core.js"></script> <!-- Core nutrition handling functionality -->
+    <script src="../js/food/cronometer-parser.js"></script> <!-- Consolidated Cronometer parser -->
+
     <!-- Detailed nutrition view -->
     <script src="../js/food/detailed-nutrition.js"></script> <!-- Detailed nutrition view -->
     <script src="../js/food/detailed-nutrition-integration.js"></script> <!-- Detailed nutrition integration -->
     <script src="../js/food/micronutrient-display.js"></script> <!-- Micronutrient display in recipe view -->
-    <script src="../js/food/cronometer-text-parser.js"></script> <!-- Cronometer text parser for nutrition data -->
-    <script src="../js/food/cronometer-data-fix.js"></script> <!-- Fix for Cronometer data not being saved -->
-    <script src="../js/food/cronometer-debug.js"></script> <!-- Debug tool for Cronometer parser -->
-    <script src="../js/food/debug-cronometer-parser.js"></script> <!-- Debug tool for testing Cronometer parser -->
-    <script src="../js/food/form-submission-debug.js"></script> <!-- Debug tool for form submission -->
-    <script src="../js/food/nutrition-save-debug.js"></script> <!-- Debug tool for Save Nutrition button -->
     <script src="../js/food/simple-form-handler.js"></script> <!-- Simple form handler for recipe submission -->
 
-    <!-- Fix for package amount validation -->
-    <script src="../js/food/fix-package-amount-validation.js"></script> <!-- Fix for package amount validation -->
+    <!-- Consolidated package amount handling -->
+    <script src="../js/food/package-amount-core.js"></script> <!-- Core package amount handling functionality -->
 
     <!-- Fix for recipe API endpoints -->
     <script src="../js/food/fix-recipe-api-endpoints.js"></script> <!-- Fix for recipe API endpoints -->
 
-    <!-- Fix for form submission -->
-    <script src="../js/food/fix-form-submission.js"></script> <!-- Fix for form submission issues -->
-
-    <!-- Fix for Cronometer text parser -->
-    <script src="../js/food/fix-cronometer-parser.js"></script> <!-- Fix for Cronometer text parser issues -->
+    <!-- Removed fix-cronometer-parser.js (consolidated into cronometer-parser.js) -->
 
     <!-- Consolidated fix for recipe ingredients -->
     <script src="../js/food/consolidated-recipe-ingredient-fix.js"></script> <!-- Consolidated fix for recipe ingredients -->
 
+    <!-- Fix for Cronometer parser fields -->
+    <script src="../js/food/fix-cronometer-parser-fields.js"></script> <!-- Fix for Cronometer parser fields not filling in properly -->
+
+    <!-- Direct fix for Cronometer parser -->
+    <script src="../js/food/direct-cronometer-fix.js"></script> <!-- Direct fix for Cronometer parser not filling in fields -->
+
+    <!-- Fix for nutrition panel Cancel button -->
+    <script src="../js/food/fix-nutrition-cancel-button.js"></script> <!-- Fix for Cancel button in nutrition panel -->
+
+    <!-- Micronutrient percentage display -->
+    <script src="../js/food/micronutrient-targets.js"></script> <!-- Micronutrient daily target values -->
+    <script src="../js/food/micronutrient-percentage.js"></script> <!-- Micronutrient percentage display functionality -->
+
+    <!-- Enhanced ingredient selection -->
+    <script src="../js/food/enhanced-ingredient-selection.js"></script> <!-- Enhanced ingredient selection functionality -->
+
+    <!-- Ingredient search autocomplete -->
+    <script src="../js/food/ingredient-search-autocomplete.js"></script> <!-- Ingredient search autocomplete functionality -->
+
+    <!-- Ensure default micronutrient values -->
+    <script src="../js/food/ensure-default-micronutrient-values.js"></script> <!-- Ensure B vitamins and trans fat have default values -->
 
 </body>
 </html>

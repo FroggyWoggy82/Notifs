@@ -9,21 +9,21 @@
 
         document.body.addEventListener('click', function(event) {
 
-            if (event.target.tagName === 'BUTTON' && 
-                event.target.textContent === 'Edit' && 
-                event.target.closest('tr') && 
+            if (event.target.tagName === 'BUTTON' &&
+                event.target.textContent === 'Edit' &&
+                event.target.closest('tr') &&
                 event.target.closest('.ingredient-details')) {
-                
+
                 console.log('Edit button clicked in ingredient table, fixing Basic Information section');
 
                 setTimeout(function() {
 
                     const row = event.target.closest('tr');
                     if (!row) return;
-                    
+
                     const container = row.closest('.ingredient-details');
                     if (!container) return;
-                    
+
                     const editForm = container.querySelector('.edit-ingredient-form');
                     if (!editForm) return;
 
@@ -36,7 +36,7 @@
                     const amountInput = formElement.querySelector('#edit-ingredient-amount');
                     const packageAmountInput = formElement.querySelector('#edit-ingredient-package-amount');
                     const priceInput = formElement.querySelector('#edit-ingredient-price');
-                    
+
                     if (!nameInput || !amountInput) return;
 
                     const nameValue = nameInput.value || '';
@@ -94,7 +94,7 @@
                         const newAmountInput = newBasicInfoSection.querySelector('#new-edit-ingredient-amount');
                         const newPackageAmountInput = newBasicInfoSection.querySelector('#new-edit-ingredient-package-amount');
                         const newPriceInput = newBasicInfoSection.querySelector('#new-edit-ingredient-price');
-                        
+
                         if (newNameInput && nameInput) {
                             newNameInput.addEventListener('input', function() {
                                 nameInput.value = this.value;
@@ -102,12 +102,12 @@
                                 const event = new Event('change', { bubbles: true });
                                 nameInput.dispatchEvent(event);
                             });
-                            
+
                             nameInput.addEventListener('input', function() {
                                 newNameInput.value = this.value;
                             });
                         }
-                        
+
                         if (newAmountInput && amountInput) {
                             newAmountInput.addEventListener('input', function() {
                                 amountInput.value = this.value;
@@ -115,12 +115,12 @@
                                 const event = new Event('change', { bubbles: true });
                                 amountInput.dispatchEvent(event);
                             });
-                            
+
                             amountInput.addEventListener('input', function() {
                                 newAmountInput.value = this.value;
                             });
                         }
-                        
+
                         if (newPackageAmountInput && packageAmountInput) {
                             newPackageAmountInput.addEventListener('input', function() {
                                 packageAmountInput.value = this.value;
@@ -128,12 +128,12 @@
                                 const event = new Event('change', { bubbles: true });
                                 packageAmountInput.dispatchEvent(event);
                             });
-                            
+
                             packageAmountInput.addEventListener('input', function() {
                                 newPackageAmountInput.value = this.value;
                             });
                         }
-                        
+
                         if (newPriceInput && priceInput) {
                             newPriceInput.addEventListener('input', function() {
                                 priceInput.value = this.value;
@@ -141,7 +141,7 @@
                                 const event = new Event('change', { bubbles: true });
                                 priceInput.dispatchEvent(event);
                             });
-                            
+
                             priceInput.addEventListener('input', function() {
                                 newPriceInput.value = this.value;
                             });
@@ -151,7 +151,7 @@
                         if (amountInput) amountInput.style.display = 'none';
                         if (packageAmountInput) packageAmountInput.style.display = 'none';
                         if (priceInput) priceInput.style.display = 'none';
-                        
+
                         console.log('Basic Information section fixed for existing ingredient edit');
                     }
                 }, 100);
@@ -165,6 +165,23 @@
                             if (basicInfoSection) {
                                 basicInfoSection.style.display = 'flex';
                             }
+
+                            // Ensure B vitamin fields and trans fat field have default values
+                            const criticalFields = [
+                                { name: 'Trans Fat', id: 'edit-ingredient-trans-fat' },
+                                { name: 'B1 (Thiamine)', id: 'edit-ingredient-vitamin-b1' },
+                                { name: 'B2 (Riboflavin)', id: 'edit-ingredient-vitamin-b2' },
+                                { name: 'B3 (Niacin)', id: 'edit-ingredient-vitamin-b3' },
+                                { name: 'B5 (Pantothenic Acid)', id: 'edit-ingredient-vitamin-b5' }
+                            ];
+
+                            criticalFields.forEach(field => {
+                                const input = form.querySelector(`#${field.id}`);
+                                if (input && (input.value === '' || input.value === null || input.value === undefined)) {
+                                    input.value = '0';
+                                    console.log(`Set default zero value for ${field.name} field (ID: ${field.id})`);
+                                }
+                            });
                         }
                     });
                 }, 500);

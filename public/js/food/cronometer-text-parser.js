@@ -248,27 +248,44 @@ function initializeIngredientItem(ingredientItem) {
  */
 function processCronometerText(text, ingredientItem, statusElement) {
     try {
-
+        console.log('Processing Cronometer text with ingredientItem:', ingredientItem);
         showParseStatus(statusElement, 'Processing Cronometer data...', 'loading');
 
+        // Ensure ingredientItem is a valid element
         if (!ingredientItem || (ingredientItem.tagName !== 'FORM' && !ingredientItem.classList.contains('ingredient-item'))) {
             console.log('ingredientItem is not a form or ingredient-item, trying to find the closest form');
 
+            // Try to find the form from the status element
             if (statusElement) {
-                const closestForm = statusElement.closest('form');
-                if (closestForm) {
-                    ingredientItem = closestForm;
-                    console.log('Found form from statusElement:', ingredientItem);
+                // First try to find the closest ingredient-item
+                const closestIngredientItem = statusElement.closest('.ingredient-item');
+                if (closestIngredientItem) {
+                    ingredientItem = closestIngredientItem;
+                    console.log('Found ingredient-item from statusElement:', ingredientItem);
                 } else {
-
-                    const addForm = document.getElementById('add-ingredient-form');
-                    if (addForm) {
-                        ingredientItem = addForm;
-                        console.log('Using add-ingredient-form:', ingredientItem);
+                    // Then try to find the closest form
+                    const closestForm = statusElement.closest('form');
+                    if (closestForm) {
+                        ingredientItem = closestForm;
+                        console.log('Found form from statusElement:', ingredientItem);
                     } else {
-                        console.error('Could not find a valid form to update');
-                        showParseStatus(statusElement, 'Error: Could not find a valid form to update', 'error');
-                        return;
+                        // Try to find the add ingredient form
+                        const addForm = document.getElementById('add-ingredient-form');
+                        if (addForm) {
+                            ingredientItem = addForm;
+                            console.log('Using add-ingredient-form:', ingredientItem);
+                        } else {
+                            // Try to find any form on the page
+                            const anyForm = document.querySelector('form.ingredient-item');
+                            if (anyForm) {
+                                ingredientItem = anyForm;
+                                console.log('Using first form with ingredient-item class:', ingredientItem);
+                            } else {
+                                console.error('Could not find a valid form to update');
+                                showParseStatus(statusElement, 'Error: Could not find a valid form to update', 'error');
+                                return;
+                            }
+                        }
                     }
                 }
             }
@@ -392,16 +409,42 @@ function processCronometerText(text, ingredientItem, statusElement) {
  * @param {HTMLElement} ingredientItem - Ingredient item element
  */
 function updateNutritionFieldsFromText(data, ingredientItem) {
-
-    const isEditForm = ingredientItem.querySelector('#edit-ingredient-form') !== null;
+    // Determine if this is an edit form or add form
+    const isEditForm = ingredientItem.querySelector('#edit-ingredient-form') !== null ||
+                      ingredientItem.id === 'edit-ingredient-form' ||
+                      ingredientItem.classList.contains('edit-ingredient-form');
     const prefix = isEditForm ? 'edit' : 'add';
 
-    console.log(`Updating nutrition fields in ${isEditForm ? 'edit' : 'add'} form`);
+    console.log(`Updating nutrition fields in ${isEditForm ? 'edit' : 'add'} form (${ingredientItem.tagName}${ingredientItem.id ? ' #' + ingredientItem.id : ''}${ingredientItem.className ? ' .' + ingredientItem.className.replace(/ /g, ' .') : ''})`);
 
+    // Try to find the detailed nutrition panel and make it visible
+    const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
+    if (detailedPanel) {
+        detailedPanel.style.display = 'block';
+        console.log('Made detailed nutrition panel visible');
+    }
+
+    // Try to update the basic fields with multiple selector patterns
     updateFieldIfExists(ingredientItem, '.ingredient-calories', data.calories);
+    updateFieldIfExists(ingredientItem, '.nutrition-energy', data.calories);
+    updateFieldIfExists(ingredientItem, '#add-ingredient-calories', data.calories);
+    updateFieldIfExists(ingredientItem, '#edit-ingredient-calories', data.calories);
+
     updateFieldIfExists(ingredientItem, '.ingredient-protein', data.protein);
+    updateFieldIfExists(ingredientItem, '.nutrition-protein', data.protein);
+    updateFieldIfExists(ingredientItem, '#add-ingredient-protein', data.protein);
+    updateFieldIfExists(ingredientItem, '#edit-ingredient-protein', data.protein);
+
     updateFieldIfExists(ingredientItem, '.ingredient-fat', data.fat);
+    updateFieldIfExists(ingredientItem, '.nutrition-fat', data.fat);
+    updateFieldIfExists(ingredientItem, '#add-ingredient-fats', data.fat);
+    updateFieldIfExists(ingredientItem, '#edit-ingredient-fats', data.fat);
+
     updateFieldIfExists(ingredientItem, '.ingredient-carbs', data.carbs);
+    updateFieldIfExists(ingredientItem, '.nutrition-carbs', data.carbs);
+    updateFieldIfExists(ingredientItem, '.nutrition-carbs-total', data.carbs);
+    updateFieldIfExists(ingredientItem, '#add-ingredient-carbs', data.carbs);
+    updateFieldIfExists(ingredientItem, '#edit-ingredient-carbs', data.carbs);
 
     updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-calories`, data.calories);
     updateFieldIfExists(ingredientItem, `#${prefix}-ingredient-alcohol`, data.alcohol);
@@ -471,13 +514,82 @@ function updateNutritionFieldsFromText(data, ingredientItem) {
 function updateFieldIfExists(container, selector, value) {
     if (value === null || value === undefined) return;
 
-    const field = container.querySelector(selector);
+    console.log(`Trying to update field: ${selector} with value: ${value}`);
+
+    // Try the original selector first
+    let field = container.querySelector(selector);
+
+    // If not found, try alternative selectors
+    if (!field) {
+        console.log(`Field not found with selector: ${selector}, trying alternatives`);
+
+        // Extract the field name from the selector
+        let fieldName = selector;
+
+        // Handle ID selectors (#add-ingredient-calories)
+        if (selector.startsWith('#')) {
+            fieldName = selector.substring(1);
+
+            // Try without the prefix
+            const parts = fieldName.split('-');
+            if (parts.length >= 3) {
+                const baseName = parts.slice(2).join('-');
+
+                // Try different variations of the selector
+                const alternatives = [
+                    `#${parts[1]}-${baseName}`,
+                    `#add-${baseName}`,
+                    `#edit-${baseName}`,
+                    `.${baseName}`,
+                    `.nutrition-${baseName}`,
+                    `[name="${baseName}"]`,
+                    `[name="ingredient-${baseName}"]`
+                ];
+
+                for (const alt of alternatives) {
+                    const altField = container.querySelector(alt);
+                    if (altField) {
+                        console.log(`Found field with alternative selector: ${alt}`);
+                        field = altField;
+                        break;
+                    }
+                }
+            }
+        }
+        // Handle class selectors (.ingredient-calories)
+        else if (selector.startsWith('.')) {
+            fieldName = selector.substring(1);
+
+            // Try different variations
+            const alternatives = [
+                `#add-${fieldName}`,
+                `#edit-${fieldName}`,
+                `#${fieldName}`,
+                `.nutrition-${fieldName.replace('ingredient-', '')}`,
+                `[name="${fieldName}"]`,
+                `[name="ingredient-${fieldName.replace('ingredient-', '')}"]`
+            ];
+
+            for (const alt of alternatives) {
+                const altField = container.querySelector(alt);
+                if (altField) {
+                    console.log(`Found field with alternative selector: ${alt}`);
+                    field = altField;
+                    break;
+                }
+            }
+        }
+    }
+
+    // If we found the field, update it
     if (field) {
         field.value = value;
         field.classList.add('cronometer-parsed');
         console.log(`Updated field ${selector} with value ${value}`);
+        return true;
     } else {
         console.warn(`Field not found: ${selector}`);
+        return false;
     }
 }
 

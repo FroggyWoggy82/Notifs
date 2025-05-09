@@ -23,7 +23,7 @@
 
         existingForm.innerHTML = `
             <h4>Edit Ingredient</h4>
-            <form id="edit-ingredient-form" style="margin: 0; padding: 0;">
+            <form id="edit-ingredient-form">
                 <input type="hidden" id="edit-ingredient-id" value="${ingredientId}">
                 <input type="hidden" id="edit-recipe-id" value="${recipeId}">
 
@@ -136,42 +136,22 @@
     function createSection(title, fields) {
         const section = document.createElement('div');
         section.className = 'nutrition-section';
-        section.style.marginBottom = '5px';
-        section.style.paddingBottom = '3px';
 
         const header = document.createElement('h4');
         header.textContent = title;
-        header.style.fontSize = '0.8em';
-        header.style.marginTop = '0';
-        header.style.marginBottom = '4px';
-        header.style.paddingBottom = '2px';
-        header.style.borderBottom = 'none';
-        header.style.color = '#e0e0e0';
-        header.style.fontWeight = '500';
         section.appendChild(header);
 
         const grid = document.createElement('div');
         grid.className = 'nutrition-grid';
-        grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(90px, 1fr))';
-        grid.style.gap = '3px';
         section.appendChild(grid);
 
         fields.forEach(field => {
             const item = document.createElement('div');
             item.className = 'nutrition-item';
-            item.style.marginBottom = '3px';
 
             const label = document.createElement('label');
             label.setAttribute('for', field.id);
             label.textContent = field.label;
-            label.style.fontSize = '0.65em';
-            label.style.marginBottom = '1px';
-            label.style.color = '#aaa';
-            label.style.display = 'block';
-            label.style.whiteSpace = 'nowrap';
-            label.style.overflow = 'hidden';
-            label.style.textOverflow = 'ellipsis';
 
             const input = document.createElement('input');
             input.type = field.type || 'number';
@@ -182,15 +162,6 @@
                 input.step = field.step || '0.1';
                 input.min = field.min || '0';
             }
-
-            input.style.width = field.id === 'edit-ingredient-name' ? '140px' : '45px';
-            input.style.padding = '0px 2px';
-            input.style.height = '18px';
-            input.style.fontSize = '0.7em';
-            input.style.backgroundColor = 'rgba(20, 20, 20, 0.8)';
-            input.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-            input.style.color = '#e0e0e0';
-            input.style.borderRadius = '2px';
 
             if (field.required) {
                 input.required = true;
@@ -337,7 +308,7 @@
             {
                 id: 'edit-ingredient-trans-fat',
                 label: 'Trans Fat (g):',
-                value: ingredient.trans_fat || ''
+                value: ingredient.trans_fat || '0'
             },
             {
                 id: 'edit-ingredient-cholesterol',
@@ -418,25 +389,25 @@
             {
                 id: 'edit-ingredient-vitamin-b1',
                 label: 'B1 (Thiamine) (mg):',
-                value: ingredient.thiamine || '',
+                value: ingredient.thiamine || '0',
                 step: '0.01'
             },
             {
                 id: 'edit-ingredient-vitamin-b2',
                 label: 'B2 (Riboflavin) (mg):',
-                value: ingredient.riboflavin || '',
+                value: ingredient.riboflavin || '0',
                 step: '0.01'
             },
             {
                 id: 'edit-ingredient-vitamin-b3',
                 label: 'B3 (Niacin) (mg):',
-                value: ingredient.niacin || '',
+                value: ingredient.niacin || '0',
                 step: '0.01'
             },
             {
                 id: 'edit-ingredient-vitamin-b5',
                 label: 'B5 (Pantothenic Acid) (mg):',
-                value: ingredient.pantothenic_acid || '',
+                value: ingredient.pantothenic_acid || '0',
                 step: '0.01'
             },
             {

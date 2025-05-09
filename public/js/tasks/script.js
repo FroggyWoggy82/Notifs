@@ -928,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-                        dueDateText.textContent = 'Overdue';
+                        dueDateText.textContent = `Overdue: ${formattedDate}`;
                         dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
                         dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
 
@@ -989,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (dueDateMidnight.getTime() === todayMidnight.getTime()) {
                             dueDateText.textContent = 'Due Today';
                         } else if (dueDateMidnight < todayMidnight) {
-                            dueDateText.textContent = 'Overdue';
+                            dueDateText.textContent = `Overdue: ${formattedDate}`;
                         } else if (dueDateMidnight.getTime() === tomorrowMidnight.getTime()) {
                             dueDateText.textContent = 'Due Tomorrow';
                         } else {
@@ -3672,7 +3672,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await loadTasks();
 
-            
+
 
             updateEditTaskStatus("Task updated successfully!", false);
             setTimeout(() => {
