@@ -40,7 +40,10 @@ class TaskController {
                 dueDate,
                 duration,
                 recurrenceType,
-                recurrenceInterval
+                recurrenceInterval,
+                parent_task_id,
+                is_subtask,
+                grocery_data
             } = req.body;
 
             console.log('Received POST /api/tasks with data:', JSON.stringify(req.body, null, 2));
@@ -77,7 +80,10 @@ class TaskController {
                 dueDate,
                 duration,
                 recurrenceType,
-                recurrenceInterval
+                recurrenceInterval,
+                parent_task_id,
+                is_subtask,
+                grocery_data
             };
 
             const newTask = await Task.createTask(taskData);
@@ -196,6 +202,44 @@ class TaskController {
         } catch (err) {
             console.error(`Error updating task:`, err);
             res.status(500).json({ error: 'Failed to update task' });
+        }
+    }
+
+    /**
+     * Get a task by ID
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getTaskById(req, res) {
+        try {
+            const { id } = req.params;
+            const task = await Task.getTaskById(id);
+
+            if (!task) {
+                return res.status(404).json({ error: 'Task not found' });
+            }
+
+            res.json(task);
+        } catch (err) {
+            console.error('Error getting task by ID:', err);
+            res.status(500).json({ error: 'Failed to get task', details: err.message });
+        }
+    }
+
+    /**
+     * Get subtasks for a parent task
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getSubtasks(req, res) {
+        try {
+            const { id } = req.params;
+            const subtasks = await Task.getSubtasks(id);
+
+            res.json(subtasks);
+        } catch (err) {
+            console.error('Error getting subtasks:', err);
+            res.status(500).json({ error: 'Failed to get subtasks', details: err.message });
         }
     }
 

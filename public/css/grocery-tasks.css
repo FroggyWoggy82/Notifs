@@ -1,0 +1,102 @@
+/* Grocery Tasks Styling */
+
+/* Grocery task item */
+.task-item.grocery-task {
+    border-left: 3px solid #8bc34a;
+    background-color: rgba(30, 40, 30, 0.8);
+}
+
+.task-item.grocery-task.expanded {
+    border-left-color: #4CAF50;
+}
+
+.task-item.grocery-task.complete {
+    border-left-color: #666;
+    background-color: rgba(20, 30, 20, 0.6);
+}
+
+/* Grocery icon */
+.grocery-icon {
+    margin-right: 8px;
+    color: #8bc34a;
+}
+
+.task-item.complete .grocery-icon {
+    color: #aaa;
+}
+
+/* Grocery cost */
+.grocery-cost {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 6px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    color: #ff9800;
+    font-size: 0.9em;
+}
+
+.grocery-cost i {
+    margin-right: 4px;
+}
+
+/* Grocery subtask */
+.subtask-item.grocery-subtask {
+    border-left-color: #8bc34a;
+    background-color: rgba(25, 35, 25, 0.8);
+}
+
+.subtask-item.grocery-subtask.complete {
+    border-left-color: #666;
+    background-color: rgba(15, 25, 15, 0.6);
+}
+
+/* Grocery info in subtasks */
+.grocery-info {
+    margin-left: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.grocery-amount,
+.grocery-packages,
+.grocery-price {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #ccc;
+}
+
+.grocery-amount {
+    color: #8bc34a;
+}
+
+.grocery-packages {
+    color: #03a9f4;
+}
+
+.grocery-price {
+    color: #ff9800;
+}
+
+/* Dark theme adjustments */
+body.dark-theme .task-item.grocery-task {
+    background-color: rgba(20, 30, 20, 0.9);
+}
+
+body.dark-theme .task-item.grocery-task.complete {
+    background-color: rgba(10, 20, 10, 0.7);
+}
+
+body.dark-theme .subtask-item.grocery-subtask {
+    background-color: rgba(15, 25, 15, 0.9);
+}
+
+body.dark-theme .subtask-item.grocery-subtask.complete {
+    background-color: rgba(5, 15, 5, 0.7);
+}
+
+body.dark-theme .grocery-info span {
+    background-color: rgba(0, 0, 0, 0.5);
+}

@@ -1,0 +1,200 @@
+/**
+ * Mobile Workout Classes
+ * This file contains CSS classes for mobile workout layout
+ * instead of using inline styles which can cause performance issues.
+ */
+
+/* Mobile-specific styles */
+@media screen and (max-width: 599px) {
+    /* Apply grid layout to exercise list and column headers */
+    #current-exercise-list .set-row.mobile-layout,
+    .column-headers.mobile-layout,
+    .mobile-workout-view #current-exercise-list .set-row,
+    .mobile-workout-view .column-headers {
+        display: grid !important;
+        grid-template-columns: 25px 65px 30px 30px 65px 25px !important;
+        align-items: center !important;
+        gap: 0 !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    /* Set row specific styles */
+    .mobile-workout-view #current-exercise-list .set-row {
+        padding: 8px 2px !important;
+        position: relative !important;
+        border-bottom: 1px solid #333 !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* Column headers specific styles */
+    .mobile-workout-view .column-headers {
+        padding: 4px 2px !important;
+        font-size: 0.65rem !important;
+        margin-bottom: 4px !important;
+        background-color: rgba(50, 50, 50, 0.3) !important;
+        border-radius: 4px !important;
+    }
+
+    /* Set number styles */
+    .mobile-workout-view .set-row .set-number {
+        width: 25px !important;
+        font-size: 0.7rem !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        grid-column: 1 !important;
+        justify-self: center !important;
+    }
+
+    /* Previous log styles */
+    .mobile-workout-view .set-row .previous-log {
+        width: 65px !important;
+        font-size: 0.7rem !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: ellipsis !important;
+        grid-column: 2 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Weight input styles */
+    .mobile-workout-view .set-row .weight-input {
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        padding: 0 !important;
+        text-align: center !important;
+        font-size: 0.7rem !important;
+        justify-self: center !important;
+        grid-column: 3 !important;
+    }
+
+    /* Reps input styles */
+    .mobile-workout-view .set-row .reps-input {
+        width: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
+        padding: 0 !important;
+        text-align: center !important;
+        font-size: 0.7rem !important;
+        justify-self: center !important;
+        grid-column: 4 !important;
+    }
+
+    /* Goal target styles */
+    .mobile-workout-view .set-row .goal-target {
+        width: 65px !important;
+        font-size: 0.7rem !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: ellipsis !important;
+        grid-column: 5 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Set complete toggle styles */
+    .mobile-workout-view .set-row .set-complete-toggle {
+        width: 25px !important;
+        height: 25px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        justify-self: center !important;
+        grid-column: 6 !important;
+    }
+
+    /* Column header styles */
+    .mobile-workout-view .column-headers span {
+        color: #ffffff !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        justify-self: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Set specific column positions for header spans */
+    .mobile-workout-view .column-headers span:nth-child(1) {
+        width: 25px !important;
+        grid-column: 1 !important;
+    }
+
+    .mobile-workout-view .column-headers span:nth-child(2) {
+        width: 65px !important;
+        grid-column: 2 !important;
+    }
+
+    .mobile-workout-view .column-headers span:nth-child(3) {
+        width: 30px !important;
+        grid-column: 3 !important;
+    }
+
+    .mobile-workout-view .column-headers span:nth-child(4) {
+        width: 30px !important;
+        grid-column: 4 !important;
+    }
+
+    .mobile-workout-view .column-headers span:nth-child(5) {
+        width: 65px !important;
+        color: #03dac6 !important;
+        grid-column: 5 !important;
+    }
+
+    .mobile-workout-view .column-headers span:nth-child(6) {
+        width: 25px !important;
+        grid-column: 6 !important;
+    }
+
+    /* Exercise container styles */
+    .mobile-workout-view #current-exercise-list {
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Exercise item styles */
+    .mobile-workout-view .exercise-item {
+        padding: 8px 2px !important;
+    }
+
+    /* Exercise header styles */
+    .mobile-workout-view .exercise-item-header {
+        margin-bottom: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    /* Exercise name styles */
+    .mobile-workout-view .exercise-item-header h4 {
+        font-size: 1rem !important;
+    }
+
+    /* Add/remove set button styles */
+    .mobile-workout-view .btn-add-set,
+    .mobile-workout-view .btn-remove-set {
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Exercise options button styles */
+    .mobile-workout-view .exercise-options-btn {
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+        background-color: rgba(3, 218, 198, 0.2) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}

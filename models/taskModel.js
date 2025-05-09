@@ -11,7 +11,20 @@ class Task {
      */
     static async getAllTasks() {
         const result = await db.query(
-            'SELECT * FROM tasks ORDER BY is_complete ASC, assigned_date ASC, created_at DESC'
+            'SELECT * FROM tasks WHERE is_subtask = FALSE OR is_subtask IS NULL ORDER BY is_complete ASC, assigned_date ASC, created_at DESC'
+        );
+        return result.rows;
+    }
+
+    /**
+     * Get all subtasks for a parent task
+     * @param {number} parentTaskId - The parent task ID
+     * @returns {Promise<Array>} Array of subtask objects
+     */
+    static async getSubtasks(parentTaskId) {
+        const result = await db.query(
+            'SELECT * FROM tasks WHERE parent_task_id = $1 ORDER BY is_complete ASC, created_at ASC',
+            [parentTaskId]
         );
         return result.rows;
     }
@@ -32,7 +45,10 @@ class Task {
             dueDate,
             duration, // Add support for duration
             recurrenceType,
-            recurrenceInterval
+            recurrenceInterval,
+            parent_task_id, // Support for subtasks
+            is_subtask, // Flag to identify subtasks
+            grocery_data // Support for grocery list data
         } = taskData;
 
         console.log('Task data received:', taskData);
@@ -127,6 +143,31 @@ class Task {
         if (duration !== undefined) {
             fields.push('duration');
             values.push(duration);
+            valuePlaceholders.push(`$${placeholderIndex++}`);
+        }
+
+        // Add support for parent_task_id field
+        if (parent_task_id !== undefined) {
+            fields.push('parent_task_id');
+            values.push(parent_task_id);
+            valuePlaceholders.push(`$${placeholderIndex++}`);
+        }
+
+        // Add support for is_subtask field
+        if (is_subtask !== undefined) {
+            fields.push('is_subtask');
+            values.push(is_subtask);
+            valuePlaceholders.push(`$${placeholderIndex++}`);
+        }
+
+        // Add support for grocery_data field
+        if (grocery_data !== undefined) {
+            fields.push('grocery_data');
+            // Ensure grocery_data is stored as JSONB
+            const groceryDataJson = typeof grocery_data === 'string'
+                ? grocery_data
+                : JSON.stringify(grocery_data);
+            values.push(groceryDataJson);
             valuePlaceholders.push(`$${placeholderIndex++}`);
         }
 

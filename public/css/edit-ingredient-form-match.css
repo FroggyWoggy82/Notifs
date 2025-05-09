@@ -1,0 +1,182 @@
+/**
+ * Edit Ingredient Form Match
+ * Makes the edit ingredient form match the styling of the Create New Recipe form
+ * Based on direct comparison of the two forms using Playwright
+ */
+
+/* Target only the edit ingredient form */
+#edit-ingredient-form {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+    padding: 5px !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* Target the edit ingredient form inputs directly */
+#edit-ingredient-form input[type="number"],
+#edit-ingredient-form input[type="text"] {
+    width: 180px !important;
+    height: 30px !important; /* Slightly reduced height while maintaining readability */
+    padding: 4px 8px !important; /* Reduced padding */
+    margin: 2px 0 !important; /* Reduced margin */
+    font-size: 1em !important; /* Maintained font size */
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+/* Special handling for name field */
+#edit-ingredient-form #edit-ingredient-name {
+    width: 300px !important;
+    max-width: 300px !important;
+    min-width: 300px !important;
+    height: 30px !important; /* Match other inputs */
+    padding: 4px 8px !important;
+    margin: 2px 0 !important;
+}
+
+/* Target the nutrition grid to ensure proper layout */
+#edit-ingredient-form .nutrition-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 8px !important; /* Slightly reduced gap */
+    margin-bottom: 5px !important; /* Reduced bottom margin */
+}
+
+/* Target the nutrition items to ensure proper spacing */
+#edit-ingredient-form .nutrition-item {
+    margin-bottom: 3px !important; /* Reduced bottom margin */
+    padding: 2px !important; /* Reduced padding */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+/* Target the labels to ensure proper styling */
+#edit-ingredient-form label {
+    font-size: 0.9em !important; /* Slightly reduced font size */
+    margin-bottom: 2px !important; /* Reduced bottom margin */
+    padding-bottom: 0 !important; /* Removed padding */
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important; /* Reduced line height */
+    /* Match Create New Recipe form label color */
+    color: #e0e0e0 !important;
+    font-weight: normal !important;
+}
+
+/* Target the section headers to ensure proper styling */
+#edit-ingredient-form .nutrition-section h4 {
+    font-size: 1.1em !important; /* Slightly reduced font size */
+    margin-top: 8px !important; /* Reduced top margin */
+    margin-bottom: 5px !important; /* Reduced bottom margin */
+    padding-bottom: 2px !important; /* Reduced padding */
+    border-bottom: none !important;
+    color: #ffffff !important; /* White color to match Create New Recipe form */
+    font-weight: normal !important;
+}
+
+/* Target the nutrition sections to ensure proper spacing */
+#edit-ingredient-form .nutrition-section {
+    margin-bottom: 5px !important; /* Reduced bottom margin */
+    padding-bottom: 3px !important; /* Reduced padding */
+    margin-top: 5px !important; /* Reduced top margin */
+}
+
+/* Target the form actions to ensure proper styling */
+#edit-ingredient-form .form-actions {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin-top: 15px !important;
+}
+
+/* Target the buttons to ensure proper styling */
+#edit-ingredient-form .form-actions button {
+    padding: 6px 12px !important;
+    font-size: 0.9em !important;
+    border-radius: 0 !important;
+    border: none !important;
+    cursor: pointer !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Target the button hover effect to ensure proper styling */
+#edit-ingredient-form .form-actions button:hover {
+    background-color: #f0f0f0 !important;
+}
+
+/* Target the basic information section to ensure proper styling */
+#edit-ingredient-form .basic-information {
+    margin-bottom: 10px !important;
+    padding: 5px !important;
+}
+
+/* Modal content styling */
+.modal-content {
+    background-color: #1a1a1a !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 10px !important;
+}
+
+/* Modal header styling */
+.modal-header {
+    background-color: #1a1a1a !important;
+    border-bottom: none !important;
+    color: #e0e0e0 !important;
+    padding: 10px !important;
+}
+
+/* Modal footer styling */
+.modal-footer {
+    background-color: #1a1a1a !important;
+    border-top: none !important;
+    padding: 10px !important;
+}
+
+/* Modal close button styling */
+.modal-header .close {
+    color: #e0e0e0 !important;
+    opacity: 1 !important;
+}
+
+/* Force all inputs in the edit ingredient form to have the same width */
+#edit-ingredient-form input[type="number"],
+#edit-ingredient-form input[type="text"] {
+    width: 180px !important;
+    max-width: 180px !important;
+    min-width: 180px !important;
+    height: 30px !important; /* Consistent height */
+    padding: 4px 8px !important; /* Consistent padding */
+    margin: 2px 0 !important; /* Consistent margin */
+}
+
+/* Force all nutrition item inputs in the edit ingredient form to have the same width */
+#edit-ingredient-form .nutrition-item input[type="number"],
+#edit-ingredient-form .nutrition-item input[type="text"] {
+    width: 180px !important;
+    max-width: 180px !important;
+    min-width: 180px !important;
+}
+
+/* Ensure proper spacing between sections - handled by JavaScript */
+
+/* Ensure proper styling for the Save Changes and Cancel buttons */
+#edit-ingredient-form button[type="submit"],
+#edit-ingredient-form button.cancel-btn {
+    padding: 6px 12px !important;
+    font-size: 0.9em !important;
+    margin-top: 10px !important;
+    width: auto !important;
+    min-width: 100px !important;
+}

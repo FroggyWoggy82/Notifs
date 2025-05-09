@@ -1,0 +1,129 @@
+/* Subtasks Styling */
+
+/* Parent task with subtasks */
+.task-item.has-subtasks {
+    position: relative;
+}
+
+/* Expand button */
+.expand-subtasks-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    transition: transform 0.3s ease;
+}
+
+.task-item.expanded .expand-subtasks-btn {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Subtask items */
+.subtask-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    margin: 0 0 0 20px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-left: 3px solid #4CAF50;
+    margin-bottom: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.subtask-item.complete {
+    background-color: rgba(20, 20, 20, 0.6);
+    border-left-color: #666;
+}
+
+.subtask-item .subtask-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.subtask-item .task-checkbox {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.subtask-item .subtask-title {
+    font-size: 0.9em;
+    color: #ffffff;
+}
+
+.subtask-item.complete .subtask-title {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+/* Grocery info */
+.grocery-info {
+    margin-left: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.grocery-amount,
+.grocery-packages,
+.grocery-price {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #ccc;
+}
+
+.grocery-amount {
+    color: #8bc34a;
+}
+
+.grocery-packages {
+    color: #03a9f4;
+}
+
+.grocery-price {
+    color: #ff9800;
+}
+
+/* Loading and error states */
+.subtask-loading,
+.subtask-error,
+.no-subtasks {
+    padding: 8px 15px;
+    margin: 0 0 0 20px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-left: 3px solid #666;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+.subtask-error {
+    border-left-color: #f44336;
+    color: #f44336;
+}
+
+/* Dark theme adjustments */
+body.dark-theme .subtask-item {
+    background-color: rgba(20, 20, 20, 0.9);
+    border-left-color: #4CAF50;
+}
+
+body.dark-theme .subtask-item.complete {
+    background-color: rgba(10, 10, 10, 0.7);
+    border-left-color: #555;
+}
+
+body.dark-theme .expand-subtasks-btn {
+    color: #ffffff;
+}
+
+body.dark-theme .grocery-info span {
+    background-color: rgba(0, 0, 0, 0.5);
+}

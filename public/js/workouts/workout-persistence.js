@@ -92,45 +92,70 @@ function setupMutationObserver() {
         return;
     }
 
+    // Use a flag to prevent multiple calls in quick succession
     let isRestoring = false;
     let restoreTimeout = null;
 
+    // Use a more efficient debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    }
+
+    // Create a debounced version of restoreWorkoutData
+    const debouncedRestore = debounce(() => {
+        if (!isRestoring) {
+            isRestoring = true;
+            restoreWorkoutData();
+            setTimeout(() => {
+                isRestoring = false;
+            }, 1000);
+        }
+    }, 500);
+
+    // Create a more efficient observer with limited scope
     const observer = new MutationObserver((mutations) => {
         let shouldRestore = false;
 
+        // Only process if we're not already restoring
         if (!isRestoring) {
-            mutations.forEach(mutation => {
+            // Check if any exercise items were added
+            for (let i = 0; i < mutations.length; i++) {
+                const mutation = mutations[i];
                 if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    for (let i = 0; i < mutation.addedNodes.length; i++) {
-                        const node = mutation.addedNodes[i];
+                    for (let j = 0; j < mutation.addedNodes.length; j++) {
+                        const node = mutation.addedNodes[j];
                         if (node.nodeType === 1 && node.classList.contains('exercise-item')) {
                             shouldRestore = true;
                             break;
                         }
                     }
+                    if (shouldRestore) break;
                 }
-            });
+            }
 
+            // If we need to restore, use the debounced function
             if (shouldRestore) {
-
-                isRestoring = true;
-
-                if (restoreTimeout) {
-                    clearTimeout(restoreTimeout);
-                }
-
-                restoreTimeout = setTimeout(() => {
-                    restoreWorkoutData();
-
-                    setTimeout(() => {
-                        isRestoring = false;
-                    }, 1000);
-                }, 500);
+                debouncedRestore();
             }
         }
     });
 
-    observer.observe(exerciseListEl, { childList: true });
+    // Observe only childList changes to reduce overhead
+    observer.observe(exerciseListEl, {
+        childList: true,
+        subtree: false
+    });
+
+    // Clean up the observer when the page is unloaded
+    window.addEventListener('beforeunload', () => {
+        observer.disconnect();
+    });
 }
 
 function saveWorkoutData() {

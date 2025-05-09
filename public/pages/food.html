@@ -73,12 +73,7 @@
     <link rel="stylesheet" href="../css/hide-duplicate-top-buttons.css"> <!-- Hide duplicate top buttons -->
     <link rel="stylesheet" href="../css/recipe-title-pencil-fix.css"> <!-- Fix for pencil icon placement in recipe titles -->
     <link rel="stylesheet" href="../css/enhanced-ingredient-selection.css"> <!-- Enhanced ingredient selection styling -->
-    <link rel="stylesheet" href="../css/edit-ingredient-form-fix.css"> <!-- Fix for edit ingredient form styling -->
-    <link rel="stylesheet" href="../css/consistent-micronutrient-styling.css"> <!-- Consistent styling for micronutrient fields -->
-    <link rel="stylesheet" href="../css/edit-form-exact-match.css"> <!-- Exact match styling for edit ingredient form -->
-
-    <!-- Complete edit form replacement styling -->
-    <link rel="stylesheet" href="../css/complete-edit-form.css"> <!-- Complete edit form styling -->
+    <link rel="stylesheet" href="../css/edit-ingredient-form-match.css"> <!-- EXACT match for edit ingredient form -->
 </head>
 <body>
     <button class="menu-button">
@@ -616,6 +611,7 @@
                 <button id="generate-list-btn" class="primary-btn" disabled>Generate Grocery List</button>
                 <button id="print-list-btn" class="secondary-btn" disabled>Print List</button>
                 <button id="save-list-btn" class="secondary-btn" disabled>Save List</button>
+                <button id="save-as-task-btn" class="secondary-btn" disabled>Save as Task</button>
             </div>
 
             <div id="grocery-list-results">
@@ -784,6 +780,12 @@
 
     <!-- Ensure default micronutrient values -->
     <script src="../js/food/ensure-default-micronutrient-values.js"></script> <!-- Ensure B vitamins and trans fat have default values -->
+
+    <!-- Make edit form match create new recipe form -->
+    <script src="../js/food/edit-ingredient-form-match.js"></script> <!-- EXACT match for edit ingredient form styling -->
+
+    <!-- Grocery list task integration -->
+    <script src="../js/food/grocery-list-task-integration.js"></script> <!-- Integration with tasks for grocery lists -->
 
 </body>
 </html>

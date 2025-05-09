@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const generateListBtn = document.getElementById('generate-list-btn');
     const printListBtn = document.getElementById('print-list-btn');
     const saveListBtn = document.getElementById('save-list-btn');
+    const saveAsTaskBtn = document.getElementById('save-as-task-btn');
     const groceryListResults = document.getElementById('grocery-list-results');
     const statusMessage = document.getElementById('grocery-status-message');
     const currentCalorieTarget = document.getElementById('current-calorie-target');
@@ -666,6 +667,21 @@ document.addEventListener('DOMContentLoaded', function() {
             printListBtn.disabled = false;
             saveListBtn.disabled = false;
 
+            // Directly enable the Save as Task button if it exists
+            const saveAsTaskBtn = document.getElementById('save-as-task-btn');
+            if (saveAsTaskBtn) {
+                saveAsTaskBtn.disabled = false;
+                console.log('Save as Task button enabled directly after grocery list generation');
+            }
+
+            // Make the grocery list available globally for other functions
+            window.groceryList = groceryList;
+
+            // Update the UI (enable/disable buttons)
+            if (typeof window.updateUI === 'function') {
+                window.updateUI();
+            }
+
             showStatus('Grocery list generated successfully!', 'success');
         })
         .catch(error => {
@@ -797,26 +813,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 proteinPercentDisplay = `
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Total Protein:</span>
-                    <span class="calorie-summary-value">${totalProtein.toFixed(1)}g</span>
+                    <span class="calorie-summary-value total-protein">${totalProtein.toFixed(1)}g</span>
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Protein Target:</span>
-                    <span class="calorie-summary-value">${dailyProteinTarget}g</span>
+                    <span class="calorie-summary-value protein-target">${dailyProteinTarget}g</span>
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Percentage of Protein Target:</span>
-                    <span class="calorie-summary-value ${proteinPercentOfTarget > 100 ? 'over-target' : ''}">${proteinPercentOfTarget}%</span>
+                    <span class="calorie-summary-value protein-percentage ${proteinPercentOfTarget > 100 ? 'over-target' : ''}">${proteinPercentOfTarget}%</span>
                 `;
             }
 
             calorieSummaryContent = `
                 <div class="calorie-summary">
                     <span class="calorie-summary-label">Total Calories:</span>
-                    <span class="calorie-summary-value">${totalCalories.toFixed(1)}</span>
+                    <span class="calorie-summary-value total-calories">${totalCalories.toFixed(1)}</span>
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Calorie Target:</span>
-                    <span class="calorie-summary-value">${dailyCalorieTarget}</span>
+                    <span class="calorie-summary-value calorie-target">${dailyCalorieTarget}</span>
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Percentage of Calorie Target:</span>
-                    <span class="calorie-summary-value ${caloriePercentOfTarget > 100 ? 'over-target' : ''}">${caloriePercentOfTarget}%</span>
+                    <span class="calorie-summary-value calorie-percentage ${caloriePercentOfTarget > 100 ? 'over-target' : ''}">${caloriePercentOfTarget}%</span>
                     ${proteinPercentDisplay}
                 </div>
             `;
@@ -1227,6 +1243,71 @@ document.addEventListener('DOMContentLoaded', function() {
         updateGenerateButton();
         printListBtn.disabled = !groceryList;
         saveListBtn.disabled = !groceryList;
+        saveAsTaskBtn.disabled = !groceryList;
+    }
+
+    function saveGroceryListAsTask() {
+        if (!groceryList || groceryList.length === 0) {
+            showStatus('No grocery list to save as task.', 'error');
+            return;
+        }
+
+        // Create a main task for the grocery list
+        const totalCalories = calculateTotalCalories();
+        const totalProtein = calculateTotalProtein();
+        const caloriePercentage = dailyCalorieTarget > 0 ? ((totalCalories / dailyCalorieTarget) * 100).toFixed(1) + '%' : 'N/A';
+        const proteinPercentage = dailyProteinTarget > 0 ? ((totalProtein / dailyProteinTarget) * 100).toFixed(1) + '%' : 'N/A';
+
+        const taskTitle = `Grocery List (${totalCalories.toFixed(0)} cal, ${caloriePercentage} of target)`;
+        const taskDescription = `Grocery list for selected recipes. Total calories: ${totalCalories.toFixed(1)} (${caloriePercentage} of daily target). Total protein: ${totalProtein.toFixed(1)}g (${proteinPercentage} of daily target).`;
+
+        // Create subtasks for each ingredient
+        const subtasks = groceryList.map(ingredient => {
+            const packageInfo = ingredient.packageCount > 0 ?
+                `${ingredient.packageCount} package(s) needed` : '';
+            const priceInfo = ingredient.price ?
+                `$${ingredient.price.toFixed(2)} per package` : '';
+            const totalCost = (ingredient.packageCount > 0 && ingredient.price) ?
+                `$${(ingredient.packageCount * ingredient.price).toFixed(2)} total` : '';
+
+            return {
+                title: ingredient.name,
+                description: `Amount: ${ingredient.amount.toFixed(1)}g. ${packageInfo} ${priceInfo} ${totalCost}`.trim(),
+                completed: false
+            };
+        });
+
+        // Create the task with subtasks
+        const taskData = {
+            title: taskTitle,
+            description: taskDescription,
+            due_date: new Date().toISOString().split('T')[0], // Today's date
+            completed: false,
+            subtasks: subtasks
+        };
+
+        // Send the task to the server
+        fetch('/api/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(taskData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            showStatus('Grocery list saved as task successfully!', 'success');
+            console.log('Task created:', data);
+        })
+        .catch(error => {
+            console.error('Error saving grocery list as task:', error);
+            showStatus('Failed to save grocery list as task. Please try again.', 'error');
+        });
     }
 
     function addEventListeners() {
@@ -1234,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', function() {
         generateListBtn.addEventListener('click', generateGroceryList);
         printListBtn.addEventListener('click', printGroceryList);
         saveListBtn.addEventListener('click', saveGroceryList);
+        saveAsTaskBtn.addEventListener('click', saveGroceryListAsTask);
 
         // Listen for changes to the daily calorie target
         if (currentCalorieTarget) {

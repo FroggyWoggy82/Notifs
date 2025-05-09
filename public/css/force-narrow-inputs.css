@@ -1,0 +1,117 @@
+/**
+ * Force Narrow Inputs
+ * Forces all inputs in the edit ingredient form to be narrow
+ * This is a last resort to ensure the styling matches exactly
+ */
+
+/* Target all inputs in the edit ingredient form */
+.modal-content input,
+.modal-content input[type="number"],
+.modal-content input[type="text"],
+#edit-ingredient-form input,
+#edit-ingredient-form input[type="number"],
+#edit-ingredient-form input[type="text"] {
+    width: 45px !important; /* EXACT width from screenshot */
+    max-width: 45px !important;
+    min-width: 45px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0.7em !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+/* Special handling for name field */
+.modal-content #edit-ingredient-name,
+#edit-ingredient-form #edit-ingredient-name {
+    width: 140px !important;
+    max-width: 140px !important;
+    min-width: 140px !important;
+}
+
+/* Target the nutrition grid to ensure proper layout */
+.modal-content .nutrition-grid,
+#edit-ingredient-form .nutrition-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 2px !important;
+    margin-bottom: 0 !important;
+}
+
+/* Target the nutrition items to ensure proper spacing */
+.modal-content .nutrition-item,
+#edit-ingredient-form .nutrition-item {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+/* Target the labels to ensure proper styling */
+.modal-content .nutrition-item label,
+#edit-ingredient-form .nutrition-item label {
+    font-size: 0.65em !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    color: #aaa !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+}
+
+/* Target the section headers to ensure proper styling */
+.modal-content .nutrition-section h4,
+#edit-ingredient-form .nutrition-section h4 {
+    font-size: 0.75em !important;
+    margin-top: 5px !important;
+    margin-bottom: 2px !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+    color: #e0e0e0 !important;
+    font-weight: normal !important;
+}
+
+/* Target the nutrition sections to ensure proper spacing */
+.modal-content .nutrition-section,
+#edit-ingredient-form .nutrition-section {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 5px !important;
+}
+
+/* Target the form to ensure proper styling */
+.modal-content form,
+#edit-ingredient-form {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+    padding: 5px !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* Target the modal content to ensure proper styling */
+.modal-content {
+    background-color: #1a1a1a !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* Force all inputs to be narrow */
+input[type="number"],
+input[type="text"] {
+    width: 45px !important; /* EXACT width from screenshot */
+    max-width: 45px !important;
+    min-width: 45px !important;
+}

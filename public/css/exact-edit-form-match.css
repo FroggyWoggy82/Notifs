@@ -1,0 +1,234 @@
+/**
+ * Exact Edit Form Match
+ * Makes the edit ingredient form EXACTLY match the styling of the Create New Recipe form
+ * Based on precise measurements from screenshots
+ */
+
+/* Target only the edit ingredient form */
+.modal-content form,
+#edit-ingredient-form {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+    padding: 5px !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* Section styling for edit form */
+.modal-content .nutrition-section,
+#edit-ingredient-form .nutrition-section {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 5px !important;
+}
+
+/* Section header styling for edit form */
+.modal-content h4,
+.modal-content .nutrition-section h4,
+#edit-ingredient-form h4,
+#edit-ingredient-form .nutrition-section h4 {
+    font-size: 0.75em !important;
+    margin-top: 5px !important;
+    margin-bottom: 2px !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+    color: #e0e0e0 !important;
+    font-weight: normal !important;
+}
+
+/* Grid layout for nutrition items in edit form */
+.modal-content .nutrition-grid,
+#edit-ingredient-form .nutrition-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 2px !important;
+    margin-bottom: 0 !important;
+}
+
+/* Nutrition item styling in edit form */
+.modal-content .nutrition-item,
+#edit-ingredient-form .nutrition-item {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+
+/* Label styling in edit form */
+.modal-content .nutrition-item label,
+#edit-ingredient-form .nutrition-item label {
+    font-size: 0.65em !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    color: #aaa !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+}
+
+/* CRITICAL: Input styling in edit form - EXACT MATCH to Create New Recipe form */
+.modal-content input[type="number"],
+.modal-content input[type="text"],
+#edit-ingredient-form input[type="number"],
+#edit-ingredient-form input[type="text"] {
+    width: 45px !important; /* EXACT width from screenshot */
+    height: 16px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0.7em !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+/* Special styling for name field in edit form */
+.modal-content #edit-ingredient-name,
+#edit-ingredient-form #edit-ingredient-name {
+    width: 140px !important;
+}
+
+/* Form actions styling in edit form */
+.modal-content .form-actions,
+#edit-ingredient-form .form-actions {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+}
+
+/* Button styling in edit form */
+.modal-content .form-actions button,
+#edit-ingredient-form .form-actions button {
+    padding: 4px 8px !important;
+    font-size: 0.8em !important;
+    border-radius: 0 !important;
+    border: none !important;
+    cursor: pointer !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Button hover effect in edit form */
+.modal-content .form-actions button:hover,
+#edit-ingredient-form .form-actions button:hover {
+    background-color: #f0f0f0 !important;
+}
+
+/* Modal content styling */
+.modal-content {
+    background-color: #1a1a1a !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* Modal header styling */
+.modal-header {
+    background-color: #1a1a1a !important;
+    border-bottom: none !important;
+    color: #e0e0e0 !important;
+}
+
+/* Modal footer styling */
+.modal-footer {
+    background-color: #1a1a1a !important;
+    border-top: none !important;
+}
+
+/* Modal close button styling */
+.modal-header .close {
+    color: #e0e0e0 !important;
+    opacity: 1 !important;
+}
+
+/* Force the exact same styling for all input fields in the edit form */
+.modal-content .nutrition-item input,
+.modal-content .nutrition-item input[type="number"],
+.modal-content .nutrition-item input[type="text"],
+#edit-ingredient-form .nutrition-item input,
+#edit-ingredient-form .nutrition-item input[type="number"],
+#edit-ingredient-form .nutrition-item input[type="text"] {
+    width: 45px !important; /* EXACT width from screenshot */
+    height: 16px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0.7em !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Specific styling for the edit ingredient form */
+#edit-ingredient-form {
+    padding: 0 !important;
+}
+
+/* Specific styling for the edit ingredient form sections */
+#edit-ingredient-form .nutrition-section {
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+}
+
+/* Specific styling for the edit ingredient form section headers */
+#edit-ingredient-form .nutrition-section h4 {
+    margin-bottom: 5px !important;
+}
+
+/* Specific styling for the edit ingredient form nutrition items */
+#edit-ingredient-form .nutrition-item {
+    margin-right: 5px !important;
+}
+
+/* Specific styling for the edit ingredient form nutrition item labels */
+#edit-ingredient-form .nutrition-item label {
+    margin-bottom: 2px !important;
+}
+
+/* Specific styling for the edit ingredient form nutrition item inputs */
+#edit-ingredient-form .nutrition-item input {
+    width: 45px !important; /* EXACT width from screenshot */
+}
+
+/* Specific styling for the edit ingredient form nutrition grid */
+#edit-ingredient-form .nutrition-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 2px !important;
+}
+
+/* Specific styling for the edit ingredient form basic information */
+#edit-ingredient-form .basic-information {
+    margin-bottom: 5px !important;
+}
+
+/* Specific styling for the edit ingredient form basic information inputs */
+#edit-ingredient-form .basic-information input {
+    width: 45px !important; /* EXACT width from screenshot */
+}
+
+/* Specific styling for the edit ingredient form name field */
+#edit-ingredient-form #edit-ingredient-name {
+    width: 140px !important;
+}
+
+/* Specific styling for the edit ingredient form package amount field */
+#edit-ingredient-form #package-amount {
+    width: 45px !important; /* EXACT width from screenshot */
+}
+
+/* Specific styling for the edit ingredient form package price field */
+#edit-ingredient-form #package-price {
+    width: 45px !important; /* EXACT width from screenshot */
+}
+
+/* Specific styling for the edit ingredient form amount field */
+#edit-ingredient-form #amount {
+    width: 45px !important; /* EXACT width from screenshot */
+}

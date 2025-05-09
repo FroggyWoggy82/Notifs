@@ -10,21 +10,10 @@ router.get('/', TaskController.getAllTasks);
 router.post('/', TaskController.createTask);
 
 // Get a specific task
-router.get('/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await db.query('SELECT * FROM tasks WHERE id = $1', [id]);
+router.get('/:id', TaskController.getTaskById);
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Task not found' });
-        }
-
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error('Error fetching task:', err);
-        res.status(500).json({ error: 'Failed to fetch task' });
-    }
-});
+// Get subtasks for a parent task
+router.get('/:id/subtasks', TaskController.getSubtasks);
 
 // Update a task
 router.put('/:id', TaskController.updateTask);
