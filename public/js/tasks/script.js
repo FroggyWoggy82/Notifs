@@ -713,6 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.borderLeft = '4px solid #f44336';
             div.style.borderColor = '#ef9a9a';
             div.setAttribute('data-overdue', 'true'); // Add a data attribute for CSS targeting
+            console.log(`Task ${task.id} (${task.title}) marked as overdue with data-overdue attribute`);
         }
 
         const checkbox = document.createElement('input');
@@ -1373,7 +1374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskItem = checkbox.closest('.task-item');
         const taskId = taskItem.getAttribute('data-task-id');
         const isComplete = checkbox.checked;
-        const isOverdue = taskItem.hasAttribute('data-overdue');
+        const isOverdue = taskItem.hasAttribute('data-overdue') || taskItem.classList.contains('overdue');
         const isRecurringOverdue = taskItem.hasAttribute('data-recurring-overdue');
 
         console.log(`Toggling task ${taskId} to complete=${isComplete} (isOverdue=${isOverdue}, isRecurringOverdue=${isRecurringOverdue})`);
