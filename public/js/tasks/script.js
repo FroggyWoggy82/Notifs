@@ -1,4 +1,3 @@
-
 let scheduledNotifications = [];
 let deferredPrompt;
 let serviceWorkerRegistration = null;
@@ -1374,14 +1373,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskItem = checkbox.closest('.task-item');
         const taskId = taskItem.getAttribute('data-task-id');
         const isComplete = checkbox.checked;
-
+        const isOverdue = taskItem.hasAttribute('data-overdue');
         const isRecurringOverdue = taskItem.hasAttribute('data-recurring-overdue');
 
-        console.log(`Toggling task ${taskId} to complete=${isComplete} (isRecurringOverdue=${isRecurringOverdue})`);
+        console.log(`Toggling task ${taskId} to complete=${isComplete} (isOverdue=${isOverdue}, isRecurringOverdue=${isRecurringOverdue})`);
         taskItem.style.opacity = '0.7'; // Optimistic UI feedback
 
         try {
-
+            // Ensure the completedTaskListDiv is visible when a task is completed
+            if (isComplete && completedTaskListDiv.style.display === 'none') {
+                completedTaskListDiv.style.display = 'block';
+                const header = document.getElementById('completedTasksHeader');
+                if (header) {
+                    header.querySelector('i').classList.remove('fa-chevron-down');
+                    header.querySelector('i').classList.add('fa-chevron-up');
+                }
+            }
 
             if (isRecurringOverdue && isComplete) {
                 console.log(`Task ${taskId} is a recurring overdue task, creating next occurrence...`);
@@ -1403,6 +1410,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const updatedTask = await completeResponse.json();
                 console.log(`Task ${taskId} marked complete:`, updatedTask);
+
+                // Remove from current list and add to completed list
+                taskItem.remove();
+                const newTaskElement = createTaskElement(updatedTask);
+                completedTaskListDiv.appendChild(newTaskElement);
+                
+                // Remove placeholder if exists
+                const placeholder = completedTaskListDiv.querySelector('p');
+                if (placeholder) placeholder.remove();
 
                 const taskCompletedEvent = new CustomEvent('taskCompleted', {
                     detail: { taskId: updatedTask.id, task: updatedTask }
@@ -1511,9 +1527,59 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error creating next occurrence:', apiError);
                 }
 
+                // Update the counts in UI
+                const completedCountToday = completedTaskListDiv.querySelectorAll('.task-item').length;
+                updateCompletedTaskHeader(completedCountToday);
 
                 allTasks = []; // Clear the task cache
                 await loadTasks(true); // Pass true to force a full reload
+                return;
+            } else if (isOverdue && isComplete) {
+                // Handle regular overdue tasks (non-recurring)
+                console.log(`Regular overdue task ${taskId} is being marked complete...`);
+                
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_complete: isComplete })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const updatedTask = await response.json();
+                console.log("Task updated:", updatedTask);
+
+                // Remove from current list
+                taskItem.remove();
+                
+                // Create new element with updated state
+                const newTaskElement = createTaskElement(updatedTask); 
+
+                // Add to completed list
+                completedTaskListDiv.appendChild(newTaskElement);
+
+                // Remove placeholder if exists
+                const placeholder = completedTaskListDiv.querySelector('p');
+                if (placeholder) placeholder.remove();
+
+                // Dispatch event
+                const taskCompletedEvent = new CustomEvent('taskCompleted', {
+                    detail: { taskId: updatedTask.id, task: updatedTask }
+                });
+                document.dispatchEvent(taskCompletedEvent);
+                console.log('Dispatched taskCompleted event for overdue task');
+                
+                // Update the counts in UI
+                const completedCountToday = completedTaskListDiv.querySelectorAll('.task-item').length;
+                updateCompletedTaskHeader(completedCountToday);
+                
+                // Add a placeholder if no tasks remain
+                if (taskListDiv.childElementCount === 0) {
+                    taskListDiv.innerHTML = '<p>No active tasks.</p>';
+                }
+                
                 return;
             }
 
@@ -1716,7 +1782,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (taskListDiv.childElementCount === 0) {
                  taskListDiv.innerHTML = '<p>No active tasks.</p>';
             }
-             if (completedTaskListDiv.childElementCount === 0) {
+            if (completedTaskListDiv.childElementCount === 0) {
                  completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>'; // Use today's message
              }
 
