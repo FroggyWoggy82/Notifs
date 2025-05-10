@@ -1,0 +1,295 @@
+/**
+ * Mobile Task Optimization
+ * Optimizes task list UI for mobile devices by reducing vertical space
+ * and creating a more compact layout
+ */
+
+/* Apply mobile optimizations only on smaller screens */
+@media (max-width: 768px) {
+  /* Task item container */
+  .task-item {
+    padding: 4px 8px !important; /* Reduced padding */
+    margin-bottom: 4px !important; /* Reduced margin between tasks */
+    min-height: 32px !important; /* Reduced minimum height */
+    border-radius: 4px !important; /* Smaller border radius */
+  }
+
+  /* Task checkbox */
+  .task-checkbox-container input[type="checkbox"] {
+    width: 20px !important; /* Smaller checkbox */
+    height: 20px !important;
+    margin-right: 8px !important;
+  }
+
+  /* Task content area */
+  .task-content {
+    gap: 0 !important; /* Remove gap between elements */
+    padding-top: 0 !important; /* Remove top padding */
+  }
+
+  /* Task title */
+  .task-title {
+    font-size: 0.95em !important; /* Slightly smaller font */
+    line-height: 1.1 !important; /* Tighter line height */
+    margin-bottom: 0 !important;
+  }
+
+  /* Task description */
+  .task-description {
+    font-size: 0.75em !important; /* Smaller description text */
+    line-height: 1.1 !important;
+    margin-top: 1px !important;
+    margin-bottom: 0 !important;
+    max-height: 2.2em !important; /* Limit height to 2 lines */
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important; /* Show max 2 lines */
+    -webkit-box-orient: vertical !important;
+  }
+
+  /* Task metadata (due dates, recurrence) */
+  .task-metadata {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2px 6px !important; /* Smaller gap between metadata items */
+    margin-top: 1px !important;
+    font-size: 0.7em !important; /* Smaller metadata text */
+    line-height: 1 !important;
+  }
+
+  /* Due date indicator */
+  .due-date-indicator,
+  .next-occurrence-indicator,
+  .recurrence-indicator {
+    font-size: 0.7em !important;
+    padding: 0px 3px !important;
+    border-radius: 2px !important;
+    line-height: 1.2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  /* Task actions */
+  .task-actions {
+    margin-left: auto !important;
+    margin-top: 0 !important;
+    gap: 1px !important; /* Smaller gap between action buttons */
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Action buttons */
+  .task-actions button {
+    padding: 1px !important;
+    font-size: 0.85em !important;
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* Recurring icon */
+  .recurring-icon {
+    font-size: 0.8em !important;
+    margin-left: 2px !important;
+  }
+
+  /* Completed tasks section */
+  #completedTaskList .task-item {
+    padding: 3px 6px !important; /* Even more compact for completed tasks */
+    margin-bottom: 3px !important;
+  }
+
+  /* Overdue badge */
+  .overdue-badge {
+    padding: 0px 3px !important;
+    font-size: 0.65em !important;
+    margin-left: 2px !important;
+    line-height: 1.2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  /* Subtasks */
+  .subtask-item {
+    padding: 2px 6px !important;
+    margin-bottom: 2px !important;
+    margin-left: 8px !important; /* Reduced indentation */
+    min-height: 28px !important; /* Even smaller height for subtasks */
+  }
+
+  /* Optimize task list container */
+  #taskList, #completedTaskList {
+    margin-top: 3px !important;
+    margin-bottom: 3px !important;
+  }
+
+  /* Optimize card headers */
+  .card__header {
+    padding: 6px 8px !important;
+    min-height: 32px !important; /* Reduced header height */
+  }
+
+  /* Optimize card bodies */
+  .card__body {
+    padding: 3px 6px !important;
+  }
+
+  /* Optimize section headers */
+  .section-header {
+    margin-bottom: 3px !important;
+    padding: 4px 6px !important;
+  }
+
+  /* Optimize task filter dropdown */
+  .task-filter-container select {
+    font-size: 0.8em !important;
+    padding: 2px 4px !important;
+    height: 28px !important;
+  }
+
+  .task-filter-container {
+    margin-bottom: 3px !important;
+  }
+
+  /* Optimize section headers */
+  .card__title {
+    font-size: 1em !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  /* Optimize completed tasks header */
+  #completedTasksHeader {
+    padding: 4px 6px !important;
+    margin-top: 3px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #completedTasksHeader h3 {
+    font-size: 0.9em !important;
+    margin: 0 !important;
+  }
+
+  /* Optimize task title container */
+  .task-title-container {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  /* Ensure action buttons are still tappable */
+  .task-actions button {
+    min-width: 24px !important;
+    min-height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+  }
+
+  /* Hide button text on mobile */
+  .task-actions button span {
+    display: none !important;
+  }
+
+  /* Only show icons */
+  .task-actions button i {
+    margin: 0 !important;
+  }
+
+  /* Ensure checkbox is still easily tappable */
+  .task-checkbox-container {
+    min-width: 22px !important;
+    min-height: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 4px !important;
+  }
+
+  /* Make checkbox more compact */
+  .task-checkbox-container input[type="checkbox"] {
+    margin: 0 !important;
+  }
+
+  /* Optimize task item layout */
+  .task-item {
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    align-items: start !important;
+    column-gap: 4px !important; /* Reduced space between columns */
+  }
+
+  /* Ensure task content takes available space */
+  .task-content {
+    width: 100% !important;
+    overflow: hidden !important; /* Prevent content from overflowing */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Optimize task content layout */
+  .task-content > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Specific optimizations for mobile-task class */
+  .mobile-task {
+    /* Even more compact for explicitly mobile tasks */
+    padding: 3px 6px !important;
+  }
+
+  /* Optimize task list container spacing */
+  .card__body {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  /* Make task title and description more compact */
+  .mobile-task .task-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: calc(100vw - 80px) !important; /* Prevent overflow */
+    font-size: 0.9em !important;
+  }
+
+  /* Optimize metadata display */
+  .mobile-task .task-metadata {
+    margin-top: 0 !important;
+    line-height: 1 !important;
+  }
+
+  /* Optimize action buttons positioning */
+  .mobile-task .task-actions {
+    position: relative !important;
+    right: 0 !important;
+    top: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Optimize add task button */
+  #addTaskBtn {
+    padding: 3px 6px !important;
+    font-size: 0.9em !important;
+    height: 28px !important;
+    margin-bottom: 3px !important;
+  }
+
+  /* Optimize habit items */
+  .habit-item {
+    padding: 3px 6px !important;
+    margin-bottom: 3px !important;
+    min-height: 32px !important;
+  }
+
+  /* Optimize habit progress */
+  .habit-progress {
+    font-size: 0.8em !important;
+  }
+
+  /* Optimize habit level */
+  .habit-level {
+    font-size: 0.7em !important;
+  }
+}

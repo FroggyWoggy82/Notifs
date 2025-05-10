@@ -1,0 +1,131 @@
+/**
+ * Expand Button Fix CSS
+ * This CSS file provides styles for the expand button in tasks with subtasks
+ */
+
+/* Position the expand button to the left of the task item */
+.task-item.has-subtasks {
+    position: relative;
+    padding-left: 40px !important; /* Make room for the expand button */
+}
+
+/* Create a container for the expand button */
+.expand-button-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Style the expand button */
+.expand-subtasks-btn {
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: relative;
+}
+
+/* Hover effect for the expand button */
+.expand-subtasks-btn:hover {
+    color: #ffffff;
+    background-color: rgba(76, 175, 80, 0.3);
+    transform: scale(1.1);
+}
+
+/* Focus effect for the expand button */
+.expand-subtasks-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+}
+
+/* Rotate the chevron icon when expanded */
+.task-item.expanded .expand-subtasks-btn i {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+/* Transition for the chevron icon */
+.expand-subtasks-btn i {
+    transition: transform 0.3s ease;
+}
+
+/* Style the subtasks container */
+.subtasks-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    margin-left: 20px;
+    border-left: 2px solid rgba(76, 175, 80, 0.3);
+    padding-left: 10px;
+}
+
+/* Expanded subtasks container */
+.subtasks-container.expanded {
+    max-height: 1000px; /* Arbitrary large value to allow expansion */
+    transition: max-height 0.5s ease;
+}
+
+/* Style for the loading indicator */
+.subtask-loading {
+    padding: 10px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Style for the "no subtasks" message */
+.no-subtasks {
+    padding: 10px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Style for subtask items */
+.subtask-item {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: rgba(76, 175, 80, 0.05);
+    border-radius: 4px;
+}
+
+/* Style for error messages */
+.subtask-error {
+    color: #f44336;
+    background-color: rgba(244, 67, 54, 0.05);
+}
+
+/* Make sure the expand button is always visible */
+.task-item.has-subtasks .expand-subtasks-btn {
+    opacity: 1;
+}
+
+/* Prevent the expand button from being hidden by other elements */
+.task-item.has-subtasks .expand-button-container {
+    pointer-events: auto;
+}
+
+/* Prevent the expand button from being affected by task hover effects */
+.task-item.has-subtasks:hover .expand-button-container {
+    opacity: 1;
+}
+
+/* Ensure the expand button is clickable */
+.expand-button-container,
+.expand-subtasks-btn {
+    cursor: pointer;
+}

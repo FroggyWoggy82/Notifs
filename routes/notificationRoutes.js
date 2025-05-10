@@ -129,4 +129,37 @@ router.delete('/:id', NotificationController.deleteNotification);
  */
 router.post('/test', NotificationController.sendTestNotification);
 
+/**
+ * @swagger
+ * /api/notifications/save-subscription:
+ *   post:
+ *     summary: Save a push notification subscription (alternative endpoint)
+ *     tags: [Notifications]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - endpoint
+ *             properties:
+ *               endpoint:
+ *                 type: string
+ *                 description: The subscription endpoint
+ *               keys:
+ *                 type: object
+ *                 properties:
+ *                   p256dh:
+ *                     type: string
+ *                   auth:
+ *                     type: string
+ *     responses:
+ *       201:
+ *         description: Subscription saved successfully
+ *       400:
+ *         description: Invalid subscription data
+ */
+router.post('/save-subscription', NotificationController.saveSubscription);
+
 module.exports = router;

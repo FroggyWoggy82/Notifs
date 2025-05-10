@@ -56,6 +56,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     document.addEventListener('click', function(event) {
+        // Check if the click is on an expand button
+        const isExpandButton = event.target.closest('[data-expand-button="true"]');
+
+        // If it's an expand button, don't open the edit modal
+        if (isExpandButton) {
+            console.log("Expand button clicked, not opening edit modal");
+            return;
+        }
 
         const editBtn = event.target.closest('.edit-task-btn');
         if (editBtn) {

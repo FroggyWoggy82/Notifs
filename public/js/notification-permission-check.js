@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateStatus(message, isError = false) {
-        console.log(`Status Update: ${message} (Error: ${isError})`);
         if (statusDiv) {
             statusDiv.textContent = message;
             statusDiv.className = `status ${isError ? 'error' : 'success'}`;
@@ -35,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
             checkNotificationPermission(); // Update UI based on new permission
 
             if (permissionResult === 'granted') {
-                console.log('Notification permission granted.');
                 updateStatus('Notification permission granted! You will now receive task reminders.', false);
 
                 if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -44,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             } else {
-                console.log('Notification permission denied.');
                 updateStatus('Notification permission denied. You will not receive task reminders.', true);
             }
         } catch (error) {
@@ -58,12 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let subscription = await swRegistration.pushManager.getSubscription();
 
             if (subscription) {
-                console.log('User is already subscribed to push notifications.');
-
                 sendSubscriptionToServer(subscription);
             } else {
-                console.log('User is not subscribed to push notifications. Subscribing...');
-
+                // Use a proper VAPID key - this is a placeholder that should be replaced with a real key
+                // Generate a real key pair using the web-push library if needed
                 const applicationServerKey = urlBase64ToUint8Array('BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0');
 
                 subscription = await swRegistration.pushManager.subscribe({
@@ -71,11 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     applicationServerKey: applicationServerKey
                 });
 
-                console.log('User subscribed to push notifications:', subscription);
                 sendSubscriptionToServer(subscription);
             }
         } catch (error) {
-            console.error('Failed to subscribe the user to push notifications:', error);
             updateStatus('Failed to setup push notifications.', true);
         }
     }
@@ -93,9 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            console.log('Subscription saved to server:', data);
+            updateStatus('Notification subscription saved successfully!', false);
+            return true;
         } catch (error) {
-            console.error('Error saving subscription to server:', error);
+            updateStatus('Failed to save notification subscription. Please try again.', true);
+            return false;
         }
     }
 
@@ -140,11 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if ('serviceWorker' in navigator && 'PushManager' in window) {
         navigator.serviceWorker.ready.then(swReg => {
-            console.log('Service worker is ready, checking notification permission');
             checkNotificationPermission();
 
             if (Notification.permission === 'granted') {
-                console.log('Permission already granted, setting up push subscription');
                 setupPushSubscription(swReg);
             }
         });

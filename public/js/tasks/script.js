@@ -7,11 +7,37 @@ let allHabitsData = []; // Store habits data globally
 function isToday(dateString) {
     if (!dateString) return false;
     try {
-        const date = new Date(dateString);
+        // Handle different date formats
+        let date;
+        if (typeof dateString === 'string') {
+            // If it's a date without time, add time to ensure proper parsing
+            if (dateString.length === 10 && dateString.includes('-')) {
+                date = new Date(`${dateString}T00:00:00`);
+            } else {
+                date = new Date(dateString);
+            }
+        } else if (dateString instanceof Date) {
+            date = dateString;
+        } else {
+            date = new Date(dateString);
+        }
+
+        // Check if the date is valid
+        if (isNaN(date.getTime())) {
+            console.warn("Invalid date format:", dateString);
+            return false;
+        }
+
         const today = new Date();
-        return date.getFullYear() === today.getFullYear() &&
-               date.getMonth() === today.getMonth() &&
-               date.getDate() === today.getDate();
+
+        // Reset time components to compare only the date part
+        const dateWithoutTime = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const todayWithoutTime = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        // Compare the dates
+        const result = dateWithoutTime.getTime() === todayWithoutTime.getTime();
+
+        return result;
     } catch (e) {
         console.error("Error parsing date:", dateString, e);
         return false;
@@ -96,9 +122,6 @@ function isDayChanged() {
 
     if (dayChanged) {
         localStorage.setItem('lastCounterResetDate', todayString);
-        console.log(`Day changed from ${lastCounterResetDate} to ${todayString}, will reset counters`);
-    } else {
-        console.log(`Same day as last reset (${todayString}), will not reset counters`);
     }
 
     localStorage.setItem('lastAccessDate', todayString);
@@ -192,26 +215,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-        console.log('Service Worker and Push is supported');
-
         navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
             .then(swReg => {
-                console.log('Service Worker is registered', swReg);
                 swRegistration = swReg;
 
-                swReg.update().then(() => {
-                    console.log('Service worker update check completed');
-                }).catch(err => {
-                    console.error('Service worker update check failed:', err);
+                swReg.update().catch(err => {
+                    console.error('Service worker update failed:', err);
                 });
 
                 loadTasks();
                 loadHabits(); // Load habits too
 
                 function ensureOverdueStyling() {
-
                     const overdueTasks = document.querySelectorAll('.task-item.overdue, .task-item[data-overdue="true"]');
-
                     overdueTasks.forEach(task => {
                         task.style.backgroundColor = '#ffebee';
                         task.style.borderLeft = '4px solid #f44336';
@@ -220,66 +236,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 setTimeout(ensureOverdueStyling, 500);
-
                 setInterval(ensureOverdueStyling, 2000);
             })
             .catch(error => {
-                console.error('Service Worker Error', error);
+                console.error('Service Worker Error:', error);
                 updateStatus('Service Worker registration failed', true);
             });
 
         navigator.serviceWorker.addEventListener('message', event => {
-            console.log('Received message from service worker:', event.data);
             if (event.data && event.data.type === 'CACHE_CLEARED') {
-                const timestamp = new Date(event.data.timestamp);
-                console.log(`Cache cleared at: ${timestamp.toLocaleTimeString()}`);
+                // Cache cleared event received
             }
         });
 
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('New service worker activated and controlling the page');
-
             setTimeout(() => {
-                console.log('Reloading page to use new service worker');
                 window.location.reload();
             }, 1000);
         });
-
-        navigator.serviceWorker.addEventListener('message', event => {
-            console.log('Received message from service worker:', event.data);
-            if (event.data && event.data.type === 'CACHE_CLEARED') {
-                console.log('Cache cleared at:', new Date(event.data.timestamp).toLocaleTimeString());
-            }
-        });
     } else {
-        console.warn('Push messaging is not supported');
         if (permissionStatusDiv) {
             permissionStatusDiv.textContent = 'Push messaging is not supported by this browser.';
             permissionStatusDiv.className = 'notifications-status permission-denied';
         }
 
-         loadTasks();
-         loadHabits(); // Load habits too
+        loadTasks();
+        loadHabits(); // Load habits too
 
-         function ensureOverdueStyling() {
+        function ensureOverdueStyling() {
+            const overdueTasks = document.querySelectorAll('.task-item.overdue, .task-item[data-overdue="true"]');
+            overdueTasks.forEach(task => {
+                task.style.backgroundColor = '#ffebee';
+                task.style.borderLeft = '4px solid #f44336';
+                task.style.borderColor = '#ef9a9a';
+            });
+        }
 
-             const overdueTasks = document.querySelectorAll('.task-item.overdue, .task-item[data-overdue="true"]');
-
-             overdueTasks.forEach(task => {
-                 task.style.backgroundColor = '#ffebee';
-                 task.style.borderLeft = '4px solid #f44336';
-                 task.style.borderColor = '#ef9a9a';
-             });
-         }
-
-         setTimeout(ensureOverdueStyling, 500);
-
-         setInterval(ensureOverdueStyling, 2000);
+        setTimeout(ensureOverdueStyling, 500);
+        setInterval(ensureOverdueStyling, 2000);
     }
 
 
     function updateStatus(message, isError = false) {
-        console.log(`Status Update: ${message} (Error: ${isError})`);
         statusDiv.textContent = message;
         statusDiv.className = `status ${isError ? 'error' : 'success'}`;
         statusDiv.style.display = 'block';
@@ -287,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateAddTaskStatus(message, isError = false) {
-        console.log(`Add Task Status: ${message} (Error: ${isError})`);
         addTaskStatusDiv.textContent = message;
         addTaskStatusDiv.className = `status ${isError ? 'error' : 'success'}`;
         addTaskStatusDiv.style.display = 'block';
@@ -295,32 +292,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateTaskListStatus(message, isError = false) {
-        console.log(`Task List Status: ${message} (Error: ${isError})`);
         taskListStatusDiv.textContent = message;
         taskListStatusDiv.className = `status ${isError ? 'error' : 'success'}`;
         taskListStatusDiv.style.display = 'block';
-
-
     }
 
 
     let allTasks = [];
 
     async function loadTasks(forceReload = false) {
-        console.log("Loading tasks..." + (forceReload ? " (Force reload)" : ""));
         updateTaskListStatus("Loading tasks...", false);
         try {
-
-            const url = forceReload ?
-                `/api/tasks?_cache=${new Date().getTime()}` :
-                '/api/tasks';
+            // Add a cache-busting parameter to ensure we get fresh data
+            const cacheBuster = new Date().getTime();
+            const url = `/api/tasks?_cache=${cacheBuster}`;
 
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             allTasks = await response.json(); // Store all tasks globally
-            console.log("Tasks loaded:", allTasks);
 
             if (forceReload) {
                 taskListDiv.innerHTML = '';
@@ -339,10 +330,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     task.style.borderColor = '#ef9a9a';
                 });
 
-                document.dispatchEvent(new CustomEvent('tasksLoaded'));
+                // Dispatch a custom event when tasks are loaded
+                const tasksLoadedEvent = new CustomEvent('tasksLoaded', {
+                    detail: { tasks: allTasks }
+                });
+                document.dispatchEvent(tasksLoadedEvent);
             }, 100);
         } catch (error) {
-            console.error('Error loading tasks:', error);
             taskListDiv.innerHTML = '<p class="error">Failed to load tasks. Please try refreshing.</p>';
             updateTaskListStatus("Error loading tasks.", true);
         }
@@ -350,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function filterAndRenderTasks() {
         const filterValue = taskFilterSelect.value;
-        console.log(`Filtering tasks by: ${filterValue}`);
 
         let filteredTasks = [];
         const now = new Date();
@@ -372,7 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dueDate = new Date(task.due_date);
 
                 if (isNaN(dueDate.getTime())) {
-                    console.warn('Invalid date format:', task.due_date);
                     return false;
                 }
 
@@ -381,49 +373,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const dueDateStr = dueDate.toISOString().split('T')[0];
                 const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-                console.log(`Comparing dates for tomorrow check: due=${dueDateStr}, tomorrow=${tomorrowStr}`);
-
                 return dueDateStr === tomorrowStr;
             } catch (e) {
-                console.error('Error checking if task is due tomorrow:', task.due_date, e);
                 return false;
             }
         }
 
         function isTaskOverdue(task) {
-            if (!task.due_date) return false;
-            try {
+            // Always return false for completed tasks
+            if (task.is_complete) return false;
 
+            // Check if task has a due date
+            if (!task.due_date) return false;
+
+            try {
                 const dueDate = new Date(task.due_date);
 
                 if (isNaN(dueDate.getTime())) {
-                    console.warn('Invalid date format:', task.due_date);
                     return false;
                 }
 
-                const dueDateStr = dueDate.toISOString().split('T')[0];
-                const todayStr = today.toISOString().split('T')[0];
+                // Reset time to start of day for accurate comparison
+                dueDate.setHours(0, 0, 0, 0);
 
-                console.log(`Comparing dates for overdue check: due=${dueDateStr}, today=${todayStr}`);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-                return dueDateStr < todayStr;
+                return dueDate < today;
             } catch (e) {
-                console.error('Error checking if task is overdue:', task.due_date, e);
                 return false;
             }
         }
 
-        console.log('All tasks:', allTasks.map(t => ({
-            id: t.id,
-            title: t.title,
-            due_date: t.due_date,
-            is_today: isTaskDueToday(t),
-            is_unassigned: isTaskUnassigned(t)
-        })));
+        // Process all tasks for filtering
 
         function isNextOccurrenceOverdue(task) {
-            if (!task.is_complete || !task.recurrence_type || task.recurrence_type === 'none') {
+            // Always return false for completed tasks - they should never appear in the active list
+            if (task.is_complete) {
+                return false;
+            }
+
+            if (!task.recurrence_type || task.recurrence_type === 'none') {
                 return false;
             }
 
@@ -433,11 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-            console.log(`Checking if next occurrence is overdue for task ${task.id} (${task.title})`);
-            console.log(`Next occurrence date: ${nextOccurrence.toISOString()}`);
-            console.log(`Today's date: ${today.toISOString()}`);
-            console.log(`Is overdue: ${nextOccurrence < today}`);
-
             return nextOccurrence < today;
         }
 
@@ -445,15 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'unassigned_today':
 
                 filteredTasks = allTasks.filter(task => {
-
+                    // Always exclude completed tasks from the active list
                     if (task.is_complete) {
-                        if (task.recurrence_type && task.recurrence_type !== 'none') {
-
-                            const isOverdue = isNextOccurrenceOverdue(task);
-                            console.log(`Task ${task.id} (${task.title}) is_complete=${task.is_complete}, recurrence_type=${task.recurrence_type}, isOverdue=${isOverdue}`);
-                            return isOverdue;
-                        }
-                        return false; // Skip other completed tasks
+                        return false;
                     }
 
                     const isUnassigned = isTaskUnassigned(task);
@@ -461,9 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isOverdue = isTaskOverdue(task);
                     const isDueTomorrow = isTaskDueTomorrow(task);
 
-                    if (task.title === 'Clean Airpods') {
-                        console.log(`Filter check for ${task.title}: unassigned=${isUnassigned}, dueToday=${isDueToday}, overdue=${isOverdue}, dueTomorrow=${isDueTomorrow}`);
-                    }
+                    // No special handling for specific tasks
 
                     return (isUnassigned || isDueToday || isOverdue) && !isDueTomorrow;
                 });
@@ -634,16 +611,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 taskElement.setAttribute('data-recurring-overdue', 'true');
             }
 
-            if (task.is_complete && !isCompletedRecurringWithOverdueNext) {
+            if (task.is_complete) {
+                // All completed tasks go to the completed section, regardless of recurrence status
+                console.log(`Checking completed task ${task.id} (${task.title}): updated_at=${task.updated_at}, completed_at=${task.completed_at}`);
 
-                if (isToday(task.updated_at)) {
+                // Try to determine if the task was completed today
+                // First check updated_at, then completed_at, and if both are missing, check if it was completed recently
+
+                // Get the current date in ISO format (YYYY-MM-DD)
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+
+                // Check if the task was completed today based on various conditions
+                const wasCompletedToday = isToday(task.updated_at) ||
+                                         isToday(task.completed_at) ||
+                                         (task.updated_at && task.updated_at.includes(todayStr)) ||
+                                         (task.completed_at && task.completed_at.includes(todayStr)) ||
+                                         (!task.updated_at && !task.completed_at && task.is_complete);
+
+                console.log(`Task ${task.id} (${task.title}) completed today check: ${wasCompletedToday}`,
+                           {updated_at: task.updated_at, completed_at: task.completed_at, today: todayStr});
+
+                if (wasCompletedToday) {
                     completedTaskListDiv.appendChild(taskElement);
                     completedTodayCount++;
+                    console.log(`Task ${task.id} (${task.title}) is complete and added to completed section`);
+                } else {
+                    console.log(`Task ${task.id} (${task.title}) is complete but not completed today, skipping`);
                 }
-
             } else {
+                // Only non-completed tasks go to the active list
                 taskListDiv.appendChild(taskElement);
                 activeTaskCount++;
+                console.log(`Task ${task.id} (${task.title}) is not complete and added to active section`);
             }
         });
 
@@ -656,6 +656,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         updateCompletedTaskHeader(completedTodayCount); // Update header count based on today
+
+        // Dispatch event that tasks have been rendered
+        const tasksRenderedEvent = new CustomEvent('tasksRendered', {
+            detail: { tasks: tasks, activeCount: activeTaskCount, completedCount: completedTodayCount }
+        });
+        document.dispatchEvent(tasksRenderedEvent);
+        console.log('Dispatched tasksRendered event with completed count:', completedTodayCount);
+
+        // Force the completed tasks section to be properly initialized
+        setTimeout(() => {
+            initializeCompletedTasksSection();
+        }, 100);
     }
 
     function createTaskElement(task) {
@@ -663,6 +675,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
 
         div.addEventListener('touchstart', handleTaskTouch);
+
+        // Add click event to the task item
+        div.addEventListener('click', (event) => {
+            // Check if the click is on an expand button, expand button container, or inside a button
+            const isExpandButton = event.target.closest('[data-expand-button="true"]');
+            const isExpandButtonContainer = event.target.closest('.expand-button-container');
+            const isButton = event.target.closest('button');
+
+            // If it's an expand button or expand button container, handle it specially
+            if (isExpandButton || isExpandButtonContainer) {
+                event.stopPropagation(); // Prevent event from bubbling
+                event.preventDefault(); // Prevent default behavior
+
+                console.log("Expand button clicked from script.js for task:", task.id);
+
+                // Get the task ID
+                const taskId = task.id;
+
+                // Call loadSubtasks with the task ID and parent element
+                if (typeof window.loadSubtasks === 'function') {
+                    window.loadSubtasks(taskId, div);
+                } else {
+                    console.error('loadSubtasks function not found');
+                }
+
+                return false; // Prevent further handling
+            }
+
+            // If it's not an expand button or another button, proceed with the default behavior
+            if (!isButton) {
+                // Default behavior for task click
+                console.log("Task clicked:", task);
+
+                // Open the edit task modal
+                openEditTaskModal(task);
+            }
+        });
+
+        // Add mobile class for additional styling hooks
+        if (window.innerWidth <= 768) {
+            div.classList.add('mobile-task');
+        }
 
         let isOverdue = false;
         if (!task.is_complete && task.due_date) {
@@ -678,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 isOverdue = dueDate < today;
             } catch (e) {
-                console.error('Error checking if task is overdue:', task.due_date, e);
+                // Error checking if task is overdue
             }
         }
 
@@ -691,29 +745,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 today.setHours(0, 0, 0, 0); // Reset time part for comparison
                 isOverdue = nextOccurrenceDate < today;
 
-                if (task.is_complete) {
-                    console.log(`Task ${task.id} (${task.title}) is a completed recurring task`);
-                    console.log(`Next occurrence date: ${nextOccurrenceDate.toISOString()}`);
-                    console.log(`Today's date: ${today.toISOString()}`);
-                    console.log(`Is next occurrence overdue: ${isOverdue}`);
-                }
-
                 if (task.isRecurringOverdue) {
-                    console.log(`Task ${task.id} (${task.title}) is a recurring overdue task`);
                     isOverdue = true;
                 }
             }
         }
 
+        // Set appropriate classes for task state
         div.className = `task-item ${task.is_complete ? 'complete' : ''} ${isOverdue ? 'overdue' : ''}`;
         div.setAttribute('data-task-id', task.id);
 
+        // Apply both data attributes and inline styles for maximum compatibility
         if (isOverdue) {
-            div.style.backgroundColor = '#ffebee';
-            div.style.borderLeft = '4px solid #f44336';
-            div.style.borderColor = '#ef9a9a';
-            div.setAttribute('data-overdue', 'true'); // Add a data attribute for CSS targeting
-            console.log(`Task ${task.id} (${task.title}) marked as overdue with data-overdue attribute`);
+            div.setAttribute('data-overdue', 'true');
+            // Apply subtle styling for all overdue tasks
+            div.style.backgroundColor = 'rgba(244, 67, 54, 0.05)';
+            div.style.borderLeft = '2px solid #f44336';
+            div.style.borderColor = 'rgba(244, 67, 54, 0.2)';
+            div.style.boxShadow = 'none';
+        }
+
+        // If this is a recurring overdue task, add the appropriate attribute
+        if (task.isRecurringOverdue) {
+            div.setAttribute('data-recurring-overdue', 'true');
+            // Apply subtle styling for recurring overdue tasks
+            div.style.backgroundColor = 'rgba(244, 67, 54, 0.05)';
+            div.style.borderLeft = '2px solid #f44336';
+            div.style.borderColor = 'rgba(244, 67, 54, 0.2)';
+            div.style.boxShadow = 'none';
         }
 
         const checkbox = document.createElement('input');
@@ -1371,23 +1430,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleToggleComplete(event) {
         const checkbox = event.target;
-        const taskItem = checkbox.closest('.task-item');
+        const taskItem = checkbox.closest('.task-item, .subtask-item');
         const taskId = taskItem.getAttribute('data-task-id');
         const isComplete = checkbox.checked;
         const isOverdue = taskItem.hasAttribute('data-overdue') || taskItem.classList.contains('overdue');
         const isRecurringOverdue = taskItem.hasAttribute('data-recurring-overdue');
+        const isSubtask = taskItem.classList.contains('subtask-item');
+        const parentId = isSubtask ? taskItem.getAttribute('data-parent-id') : null;
 
-        console.log(`Toggling task ${taskId} to complete=${isComplete} (isOverdue=${isOverdue}, isRecurringOverdue=${isRecurringOverdue})`);
-        taskItem.style.opacity = '0.7'; // Optimistic UI feedback
+        console.log(`Toggling ${isSubtask ? 'subtask' : 'task'} ${taskId} to complete=${isComplete} (isOverdue=${isOverdue}, isRecurringOverdue=${isRecurringOverdue}, parentId=${parentId})`);
+
+        // Don't process if the overdue-recurrence-adjuster.js is handling this
+        // This prevents duplicate processing of overdue recurring tasks
+        if (isRecurringOverdue && isComplete) {
+            console.log(`Recurring overdue task ${taskId} will be handled by overdue-recurrence-adjuster.js`);
+            // Let the overdue-recurrence-adjuster.js handle this
+
+            // Add the task to the completed section immediately for better UX
+            // The overdue-recurrence-adjuster.js will handle the server-side updates
+            checkbox.checked = true;
+            taskItem.classList.add('complete');
+
+            // Find the completed task list
+            const completedTaskListDiv = document.getElementById('completedTaskList');
+
+            if (completedTaskListDiv) {
+                // Make sure the completed section is visible
+                completedTaskListDiv.style.display = 'block';
+
+                // Update the completed tasks header
+                const completedTasksHeader = document.getElementById('completedTasksHeader');
+                if (completedTasksHeader) {
+                    completedTasksHeader.querySelector('i').classList.remove('fa-chevron-down');
+                    completedTasksHeader.querySelector('i').classList.add('fa-chevron-up');
+                }
+            }
+
+            return;
+        }
+
+        // Add visual feedback
+        taskItem.style.opacity = '0.7';
 
         try {
             // Ensure the completedTaskListDiv is visible when a task is completed
-            if (isComplete && completedTaskListDiv.style.display === 'none') {
+            if (isComplete) {
+                // Always make sure the completed tasks section is visible when completing a task
                 completedTaskListDiv.style.display = 'block';
                 const header = document.getElementById('completedTasksHeader');
                 if (header) {
-                    header.querySelector('i').classList.remove('fa-chevron-down');
-                    header.querySelector('i').classList.add('fa-chevron-up');
+                    const icon = header.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    }
+                }
+
+                // Remove any "No completed tasks" message if it exists
+                const noTasksMessage = completedTaskListDiv.querySelector('p');
+                if (noTasksMessage && noTasksMessage.textContent.includes('No completed tasks')) {
+                    noTasksMessage.remove();
                 }
             }
 
@@ -1416,7 +1518,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 taskItem.remove();
                 const newTaskElement = createTaskElement(updatedTask);
                 completedTaskListDiv.appendChild(newTaskElement);
-                
+
                 // Remove placeholder if exists
                 const placeholder = completedTaskListDiv.querySelector('p');
                 if (placeholder) placeholder.remove();
@@ -1538,7 +1640,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (isOverdue && isComplete) {
                 // Handle regular overdue tasks (non-recurring)
                 console.log(`Regular overdue task ${taskId} is being marked complete...`);
-                
+
                 const response = await fetch(`/api/tasks/${taskId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -1554,9 +1656,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Remove from current list
                 taskItem.remove();
-                
+
                 // Create new element with updated state
-                const newTaskElement = createTaskElement(updatedTask); 
+                const newTaskElement = createTaskElement(updatedTask);
 
                 // Add to completed list
                 completedTaskListDiv.appendChild(newTaskElement);
@@ -1571,31 +1673,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 document.dispatchEvent(taskCompletedEvent);
                 console.log('Dispatched taskCompleted event for overdue task');
-                
+
                 // Update the counts in UI
                 const completedCountToday = completedTaskListDiv.querySelectorAll('.task-item').length;
                 updateCompletedTaskHeader(completedCountToday);
-                
+
                 // Add a placeholder if no tasks remain
                 if (taskListDiv.childElementCount === 0) {
                     taskListDiv.innerHTML = '<p>No active tasks.</p>';
                 }
-                
+
                 return;
             }
 
-            const response = await fetch(`/api/tasks/${taskId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ is_complete: isComplete })
-            });
+            // Handle subtask completion differently
+            if (isSubtask && parentId) {
+                // For subtasks, we need to update the subtask and check if all subtasks are complete
+                const response = await fetch(`/api/tasks/${taskId}/toggle-completion`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_complete: isComplete })
+                });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const updatedTask = await response.json();
+                console.log("Subtask updated:", updatedTask);
+
+                // Update the subtask UI
+                taskItem.classList.toggle('complete', isComplete);
+
+                // Check if all subtasks are complete to update parent task
+                if (typeof window.checkAllSubtasksComplete === 'function') {
+                    const allComplete = await window.checkAllSubtasksComplete(parentId);
+                    console.log(`All subtasks complete for parent ${parentId}: ${allComplete}`);
+
+                    // Update parent task status if needed
+                    if (typeof window.updateParentTaskStatus === 'function') {
+                        await window.updateParentTaskStatus(parentId, allComplete);
+                    }
+                }
+
+                // Don't remove the subtask from the list, just update its appearance
+                taskItem.style.opacity = '1';
+                return;
+            } else {
+                // Regular task completion
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_complete: isComplete })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const updatedTask = await response.json(); // updated_at is now current
+                console.log("Task updated:", updatedTask);
             }
-
-            const updatedTask = await response.json(); // updated_at is now current
-            console.log("Task updated:", updatedTask);
 
             taskItem.remove(); // Remove from current list
             const newTaskElement = createTaskElement(updatedTask); // Recreate element with updated state
@@ -3508,8 +3646,14 @@ document.addEventListener('DOMContentLoaded', () => {
     editHabitRecurrenceTypeInput.addEventListener('change', handleEditHabitRecurrenceChange);
 
 
-    function openEditTaskModal(task) {
-        console.log("Opening edit modal for task:", task);
+    // Flag to track if we're currently loading subtasks
+    let isLoadingSubtasks = false;
+
+    // Store the last loaded task ID to prevent duplicate loading
+    let lastLoadedTaskId = null;
+
+    async function openEditTaskModal(task) {
+        console.log("Opening edit task modal for task:", task);
 
         if (!editTaskModal || !editTaskForm) {
             console.error("Edit task modal or form elements not found");
@@ -3524,6 +3668,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (editTaskStatus) {
             editTaskStatus.textContent = ''; // Clear any previous status
             editTaskStatus.className = 'status';
+        }
+
+        // Clear any existing subtasks first to prevent duplicates
+        const editSubtasksList = document.getElementById('editSubtasksList');
+        if (editSubtasksList) {
+            editSubtasksList.innerHTML = '';
         }
 
         if (editTaskIdInput) editTaskIdInput.value = task.id;
@@ -3605,21 +3755,185 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         console.log("Displaying edit task modal");
-
         console.log("Modal element:", editTaskModal);
         console.log("Current display style:", editTaskModal.style.display);
 
         document.body.style.overflow = 'hidden'; // Prevent background scrolling
-
         editTaskModal.style.removeProperty('display');
-
         editTaskModal.style.display = 'flex';
-
         editTaskModal.classList.add('modal-visible');
-
         void editTaskModal.offsetWidth;
-
         console.log("Display style after setting:", editTaskModal.style.display);
+
+        // We'll handle loading the subtasks directly here to prevent duplicates
+        // But we'll do it after the modal is visible to prevent race conditions
+        if (editSubtasksList && task.has_subtasks) {
+            // Check if we're already loading subtasks for this task
+            if (isLoadingSubtasks && lastLoadedTaskId === task.id) {
+                console.log(`Already loading subtasks for task ${task.id}, skipping duplicate load`);
+                return;
+            }
+
+            // Set the loading flag and last loaded task ID
+            isLoadingSubtasks = true;
+            lastLoadedTaskId = task.id;
+
+            console.log("Task has subtasks, showing loading indicator...");
+            editSubtasksList.innerHTML = '<div class="subtask-loading">Loading subtasks...</div>';
+
+            try {
+                // Fetch subtasks for this task
+                const apiBaseUrl = window.location.origin.includes('3001')
+                    ? window.location.origin
+                    : window.location.origin.replace(/:\d+/, ':3001');
+                const response = await fetch(`${apiBaseUrl}/api/tasks/${task.id}/subtasks`);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load subtasks: ${response.status} ${response.statusText}`);
+                }
+
+                const subtasks = await response.json();
+                console.log(`Fetched ${subtasks.length} subtasks for task ${task.id}`, subtasks);
+
+                // Clear the loading indicator
+                editSubtasksList.innerHTML = '';
+
+                if (subtasks.length === 0) {
+                    // No subtasks found
+                    editSubtasksList.innerHTML = '<p class="no-subtasks-message">No subtasks added yet.</p>';
+                } else {
+                    // Create a document fragment to improve performance
+                    const fragment = document.createDocumentFragment();
+
+                    // Create and append subtask elements
+                    const addedSubtaskIds = new Set(); // Track which subtasks we've already added
+
+                    // First, create a temporary array with unique subtasks
+                    const uniqueSubtasks = [];
+                    subtasks.forEach(subtask => {
+                        if (!addedSubtaskIds.has(subtask.id)) {
+                            addedSubtaskIds.add(subtask.id);
+                            uniqueSubtasks.push(subtask);
+                        } else {
+                            console.log(`Skipping duplicate subtask ${subtask.id} in data`);
+                        }
+                    });
+
+                    // Now create elements for the unique subtasks
+                    uniqueSubtasks.forEach(subtask => {
+                        // Create the subtask element
+                        const subtaskElement = createSubtaskElementForModal(subtask);
+                        if (subtaskElement) {
+                            // Set a unique ID on the element to help identify duplicates
+                            subtaskElement.id = `subtask-${subtask.id}`;
+                            fragment.appendChild(subtaskElement);
+                        }
+                    });
+
+                    // Append all subtasks at once
+                    editSubtasksList.appendChild(fragment);
+                }
+            } catch (error) {
+                console.error('Error loading subtasks:', error);
+                editSubtasksList.innerHTML = `<div class="subtask-error">Error loading subtasks: ${error.message}</div>`;
+            } finally {
+                // Reset the loading flag
+                isLoadingSubtasks = false;
+            }
+        } else if (editSubtasksList) {
+            // No subtasks
+            editSubtasksList.innerHTML = '<p class="no-subtasks-message">No subtasks added yet.</p>';
+        }
+    }
+
+    /**
+     * Create a subtask element for the modal
+     * @param {Object} subtask - The subtask data
+     * @returns {HTMLElement} The subtask element
+     */
+    function createSubtaskElementForModal(subtask) {
+        // Check if this subtask element already exists in the DOM
+        const existingElement = document.getElementById(`subtask-${subtask.id}`);
+        if (existingElement) {
+            console.log(`Subtask element for subtask ${subtask.id} already exists, skipping creation`);
+            return null;
+        }
+
+        const div = document.createElement('div');
+        div.className = `modal-subtask-item ${subtask.is_complete ? 'complete' : ''}`;
+        div.setAttribute('data-task-id', subtask.id);
+        div.setAttribute('data-parent-id', subtask.parent_task_id);
+        div.id = `subtask-${subtask.id}`; // Add a unique ID to the element
+
+        // Create checkbox for completion status
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'subtask-checkbox';
+        checkbox.checked = subtask.is_complete;
+        checkbox.disabled = true; // Read-only in the modal
+
+        // Create title element
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'subtask-title';
+        titleSpan.textContent = subtask.title;
+
+        // Create content container
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'subtask-content';
+        contentDiv.appendChild(checkbox);
+        contentDiv.appendChild(titleSpan);
+
+        // Add description if available
+        if (subtask.description) {
+            const descriptionDiv = document.createElement('div');
+            descriptionDiv.className = 'subtask-description';
+            descriptionDiv.textContent = subtask.description;
+            contentDiv.appendChild(descriptionDiv);
+        }
+
+        // Add grocery data if available
+        if (subtask.grocery_data) {
+            try {
+                const groceryData = typeof subtask.grocery_data === 'string'
+                    ? JSON.parse(subtask.grocery_data)
+                    : subtask.grocery_data;
+
+                // Create grocery info element
+                const groceryInfo = document.createElement('div');
+                groceryInfo.className = 'grocery-info';
+
+                // Add amount
+                if (groceryData.amount) {
+                    const amountSpan = document.createElement('span');
+                    amountSpan.className = 'grocery-amount';
+                    amountSpan.textContent = `${groceryData.amount.toFixed(1)}g`;
+                    groceryInfo.appendChild(amountSpan);
+                }
+
+                // Add package count
+                if (groceryData.packageCount) {
+                    const packageSpan = document.createElement('span');
+                    packageSpan.className = 'grocery-packages';
+                    packageSpan.textContent = `${groceryData.packageCount} pkg`;
+                    groceryInfo.appendChild(packageSpan);
+                }
+
+                // Add price
+                if (groceryData.totalPrice) {
+                    const priceSpan = document.createElement('span');
+                    priceSpan.className = 'grocery-price';
+                    priceSpan.textContent = `$${groceryData.totalPrice.toFixed(2)}`;
+                    groceryInfo.appendChild(priceSpan);
+                }
+
+                contentDiv.appendChild(groceryInfo);
+            } catch (error) {
+                console.error('Error parsing grocery data:', error);
+            }
+        }
+
+        div.appendChild(contentDiv);
+        return div;
     }
 
     function handleEditRecurrenceChange() {
@@ -3723,7 +4037,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Submitting PUT /api/tasks/${taskId} with data:`, updatedData);
 
         try {
-            const response = await fetch(`/api/tasks/${taskId}`, {
+            const response = await fetch(`${window.location.origin}/api/tasks/${taskId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData)
@@ -3794,11 +4108,125 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRenderTasks();
     });
 
+    // Function to initialize the completed tasks section
+    function initializeCompletedTasksSection() {
+        console.log('Initializing completed tasks section');
+
+        // First, check if we need to populate the completed tasks section from allTasks
+        if (allTasks && allTasks.length > 0) {
+            console.log('Checking allTasks for completed tasks today');
+
+            // Get today's date in ISO format
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            // Filter tasks completed today
+            const tasksCompletedToday = allTasks.filter(task => {
+                if (!task.is_complete) return false;
+
+                // Check if the task was completed today
+                return isToday(task.updated_at) ||
+                       isToday(task.completed_at) ||
+                       (task.updated_at && task.updated_at.includes(todayStr)) ||
+                       (task.completed_at && task.completed_at.includes(todayStr));
+            });
+
+            console.log(`Found ${tasksCompletedToday.length} tasks completed today in allTasks`);
+
+            // If we found tasks completed today but they're not in the completed section, add them
+            if (tasksCompletedToday.length > 0) {
+                const currentCompletedTasks = completedTaskListDiv.querySelectorAll('.task-item');
+
+                if (currentCompletedTasks.length === 0) {
+                    console.log('Adding completed tasks to the completed section');
+
+                    // Clear any "No tasks completed" message
+                    completedTaskListDiv.innerHTML = '';
+
+                    // Add each task to the completed section
+                    tasksCompletedToday.forEach(task => {
+                        const taskElement = createTaskElement(task);
+                        completedTaskListDiv.appendChild(taskElement);
+                    });
+
+                    // Make the section visible
+                    completedTaskListDiv.style.display = 'block';
+                    const icon = completedTasksHeader.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    }
+                }
+            }
+        }
+
+        // Check if there are any completed tasks in the DOM
+        const completedTasks = completedTaskListDiv.querySelectorAll('.task-item');
+        const hasCompletedTasks = completedTasks.length > 0;
+
+        console.log(`Found ${completedTasks.length} completed tasks in the DOM`);
+
+        // If there are completed tasks, make sure the section is visible
+        if (hasCompletedTasks) {
+            console.log('Making completed tasks section visible');
+            completedTaskListDiv.style.display = 'block';
+            const icon = completedTasksHeader.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+
+            // Remove any "No completed tasks" message if it exists
+            const noTasksMessage = completedTaskListDiv.querySelector('p');
+            if (noTasksMessage && noTasksMessage.textContent.includes('No completed tasks')) {
+                noTasksMessage.remove();
+            }
+        } else {
+            // If there are no completed tasks, make sure the section has the appropriate message
+            console.log('No completed tasks found, adding message');
+            completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>';
+        }
+
+        // Update the header text
+        const count = hasCompletedTasks ? completedTasks.length : 0;
+        updateCompletedTaskHeader(count);
+        console.log(`Updated completed tasks header with count: ${count}`);
+    }
+
+    // Add event listener to toggle the completed tasks section
     completedTasksHeader.addEventListener('click', () => {
         const isHidden = completedTaskListDiv.style.display === 'none';
         completedTaskListDiv.style.display = isHidden ? 'block' : 'none';
 
-        completedTasksHeader.innerHTML = isHidden ? 'Completed Tasks &#9652;' : 'Completed Tasks &#9662;';
+        // Update the icon
+        const icon = completedTasksHeader.querySelector('i');
+        if (icon) {
+            if (isHidden) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+
+        // Update the header text
+        updateCompletedTaskHeader(completedTaskListDiv.querySelectorAll('.task-item').length);
+    });
+
+    // Call the initialization function after tasks are loaded
+    document.addEventListener('tasksRendered', initializeCompletedTasksSection);
+
+    // Also initialize when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        // Wait a bit to ensure tasks have been loaded
+        setTimeout(initializeCompletedTasksSection, 500);
+    });
+
+    // Also initialize when tasks are loaded
+    document.addEventListener('tasksLoaded', () => {
+        console.log('tasksLoaded event received, initializing completed tasks section');
+        setTimeout(initializeCompletedTasksSection, 100);
     });
 
     function updateCompletedTaskHeader(count) {
@@ -3843,7 +4271,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formattedAssignedDate = nextAssignedDate.toISOString().split('T')[0];
             const formattedDueDate = nextDueDate ? nextDueDate.toISOString().split('T')[0] : null;
 
-            const response = await fetch('/api/tasks', {
+            const response = await fetch(`${window.location.origin}/api/tasks`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -3941,5 +4369,69 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Listen for the overdueRecurringTaskCompleted event from overdue-recurrence-adjuster.js
+    document.addEventListener('overdueRecurringTaskCompleted', function(event) {
+        console.log('Received overdueRecurringTaskCompleted event:', event.detail);
+
+        // Instead of reloading all tasks, just update the UI for this specific task
+        const taskId = event.detail.taskId;
+        const taskItem = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+
+        if (taskItem) {
+            console.log(`Found task item for task ${taskId}, ensuring it's properly moved to completed section`);
+
+            // Make sure the task is marked as complete
+            taskItem.classList.add('complete');
+
+            // Find the checkbox and ensure it's checked
+            const checkbox = taskItem.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+
+            // Find the completed task list
+            const completedTaskListDiv = document.getElementById('completedTaskList');
+
+            if (completedTaskListDiv) {
+                // Remove the task from its current parent if it has one and it's not already in the completed list
+                if (taskItem.parentNode && taskItem.parentNode !== completedTaskListDiv) {
+                    taskItem.parentNode.removeChild(taskItem);
+
+                    // Move the task item to the completed section
+                    completedTaskListDiv.appendChild(taskItem);
+
+                    // Make sure the completed section is visible
+                    completedTaskListDiv.style.display = 'block';
+
+                    // Update the completed tasks header count
+                    const completedCount = completedTaskListDiv.querySelectorAll('.task-item').length;
+                    updateCompletedTaskHeader(completedCount);
+
+                    // Remove any placeholder text in the completed tasks section
+                    const placeholder = completedTaskListDiv.querySelector('p');
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+                }
+            }
+        } else {
+            console.log(`Task item for task ${taskId} not found in the DOM, falling back to full reload`);
+            // If we can't find the task item, fall back to reloading all tasks
+            loadTasks(true);
+        }
+    });
+
+    // Add window resize listener to update mobile classes
+    window.addEventListener('resize', function() {
+        const isMobile = window.innerWidth <= 768;
+        document.querySelectorAll('.task-item').forEach(taskItem => {
+            if (isMobile) {
+                taskItem.classList.add('mobile-task');
+            } else {
+                taskItem.classList.remove('mobile-task');
+            }
+        });
+    });
 
 }); // End DOMContentLoaded

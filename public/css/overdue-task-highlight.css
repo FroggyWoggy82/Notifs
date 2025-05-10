@@ -1,0 +1,40 @@
+/**
+ * Overdue Task Highlighting
+ *
+ * This CSS ensures all overdue tasks are consistently highlighted with a red background
+ * and red border, matching the styling of the first task in the screenshot.
+ */
+
+/* Apply subtle red background and thin left border to all overdue tasks */
+.task-item.overdue,
+.task-item[data-overdue="true"],
+.task-item[data-recurring-overdue="true"] {
+    background-color: rgba(244, 67, 54, 0.05) !important;
+    border-left: 2px solid #f44336 !important;
+    border-color: rgba(244, 67, 54, 0.2) !important;
+    box-shadow: none !important;
+}
+
+/* Ensure hover state maintains the red theme but slightly darker */
+.task-item.overdue:hover,
+.task-item[data-overdue="true"]:hover,
+.task-item[data-recurring-overdue="true"]:hover {
+    background-color: rgba(244, 67, 54, 0.08) !important;
+}
+
+/* Style for overdue badges */
+.due-date-indicator.overdue,
+.next-occurrence-indicator.overdue {
+    color: #f44336 !important;
+    font-weight: bold !important;
+}
+
+/* Ensure completed tasks don't have the overdue styling */
+.task-item.complete.overdue,
+.task-item.complete[data-overdue="true"],
+.task-item.complete[data-recurring-overdue="true"] {
+    background-color: transparent !important;
+    border-left: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}

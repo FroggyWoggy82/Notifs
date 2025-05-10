@@ -45,6 +45,10 @@ These are harmless warnings related to how JavaScript handles large timeout valu
 
 If you see an error message saying you need an internet connection even though you're connected to the internet, it's likely due to a database connection issue. Try running the server in offline mode as described above.
 
+### Duplicate Subtasks in Edit Modal
+
+If you notice duplicate subtasks appearing in the edit task modal, this is a known issue that has been fixed in version 4 of the subtasks fix script. The fix uses a MutationObserver to detect when subtasks are added to the DOM and removes any duplicates based on their titles. If you still encounter this issue, please make sure you're using the latest version of the application.
+
 ## Handling Port Conflicts
 
 If you see an error like this:

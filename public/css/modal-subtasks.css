@@ -1,0 +1,66 @@
+/* Modal subtask styles */
+.modal-subtask-item {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: rgba(76, 175, 80, 0.05);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.modal-subtask-item.complete {
+    opacity: 0.7;
+    text-decoration: line-through;
+}
+
+.modal-subtask-item .subtask-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.modal-subtask-item .subtask-title {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.modal-subtask-item .subtask-description {
+    margin-left: 10px;
+    font-size: 0.9em;
+    color: #999;
+}
+
+.modal-subtask-item .grocery-info {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+    margin-left: 10px;
+    font-size: 0.9em;
+}
+
+.modal-subtask-item .grocery-amount,
+.modal-subtask-item .grocery-packages,
+.modal-subtask-item .grocery-price {
+    background-color: rgba(76, 175, 80, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Subtasks section in modal */
+#editSubtasksList {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+.subtask-loading,
+.subtask-error,
+.no-subtasks-message {
+    padding: 10px;
+    text-align: center;
+    color: #999;
+}
+
+.subtask-error {
+    color: #f44336;
+}

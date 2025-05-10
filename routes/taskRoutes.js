@@ -206,4 +206,26 @@ router.get('/debug-routes', (req, res) => {
     res.json(routes);
 });
 
+/**
+ * @swagger
+ * /api/tasks/{id}/subtasks:
+ *   get:
+ *     summary: Get all subtasks for a parent task
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Parent Task ID
+ *     responses:
+ *       200:
+ *         description: List of subtasks
+ *       404:
+ *         description: Parent task not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/subtasks', TaskController.getSubtasks);
+
 module.exports = router;

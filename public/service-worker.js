@@ -10,39 +10,35 @@ const urlsToCache = [
 
 // Install service worker and cache assets
 self.addEventListener('install', event => {
-  console.log(`Service Worker (${CACHE_NAME}) installing`);
   // Force the waiting service worker to become the active service worker.
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log(`(${CACHE_NAME}) Opened cache`);
         // Add essential assets needed for offline functionality
         return Promise.all(
           urlsToCache.map(url => {
             // Use { cache: 'reload' } to bypass HTTP cache when precaching
             return cache.add(new Request(url, {cache: 'reload'})).catch(error => {
-              console.error(`(${CACHE_NAME}) Failed to cache:`, url, error);
+              console.error(`Failed to cache: ${url}`, error);
             });
           })
         );
       })
       .catch(error => {
-         console.error(`(${CACHE_NAME}) Failed to open cache during install:`, error);
+         console.error('Failed to open cache during install:', error);
       })
   );
 });
 
 // Activate and clean up old caches
 self.addEventListener('activate', event => {
-  console.log(`Service Worker (${CACHE_NAME}) activating`);
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           // Delete any cache that isn't the current one
           if (cacheName !== CACHE_NAME) {
-            console.log(`(${CACHE_NAME}) Deleting old cache:`, cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -57,11 +53,10 @@ self.addEventListener('activate', event => {
       });
     }).then(() => {
       // Tell the active service worker to take control of the page immediately.
-      console.log(`(${CACHE_NAME}) Claiming clients.`);
       return self.clients.claim();
     })
     .catch(error => {
-        console.error(`(${CACHE_NAME}) Error during activation/cleanup:`, error);
+        console.error('Error during activation/cleanup:', error);
     })
   );
 });
@@ -73,8 +68,6 @@ self.addEventListener('fetch', event => {
 
   // Special handling for API requests (both GET and POST)
   if (requestUrl.pathname.startsWith('/api/')) {
-    console.log(`(${CACHE_NAME}) Handling API request: ${event.request.method} ${requestUrl.pathname}`);
-
     // Use Network Only strategy for all API requests
     event.respondWith(
       fetch(event.request, {
@@ -84,12 +77,9 @@ self.addEventListener('fetch', event => {
       })
       .then(networkResponse => {
         // Return the network response directly without caching
-        console.log(`(${CACHE_NAME}) Network fetch OK for ${requestUrl.pathname}. NOT caching response.`);
         return networkResponse;
       })
       .catch(error => {
-        // Network request failed (e.g., offline)
-        console.warn(`(${CACHE_NAME}) Network failed for ${requestUrl.pathname}`, error);
         // Return a specific offline response for API calls
         return new Response(JSON.stringify({ error: "Offline. Please try again when connected." }), {
           status: 503,
@@ -103,19 +93,14 @@ self.addEventListener('fetch', event => {
   // For non-API requests, only handle GET requests
   if (event.request.method !== 'GET') {
     // Don't intercept non-GET requests for caching purposes
-    console.log(`(${CACHE_NAME}) Ignoring non-API non-GET request: ${event.request.method} ${event.request.url}`);
     return; // Let the browser handle it normally
   }
 
-  // requestUrl is already defined above
-
   // Network Only strategy for /api/days-since endpoints
   if (requestUrl.pathname.startsWith('/api/days-since')) {
-    console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} from network (Network Only Strategy).`);
     event.respondWith(
       fetch(event.request)
         .catch(error => {
-          console.error(`(${CACHE_NAME}) Network fetch failed for ${requestUrl.pathname}:`, error);
           return new Response(JSON.stringify({ error: "Failed to fetch data. Network error." }), {
             status: 503,
             headers: { 'Content-Type': 'application/json' }
@@ -126,11 +111,9 @@ self.addEventListener('fetch', event => {
   // Network Only strategy for /api/goals
   else if (requestUrl.pathname === '/api/goals') {
     // Always fetch from the network, do not serve from cache, do not cache the response.
-    console.log(`(${CACHE_NAME}) Fetching /api/goals from network (Network Only Strategy).`);
     event.respondWith(
       fetch(event.request)
         .catch(error => {
-            console.error(`(${CACHE_NAME}) Network fetch failed for /api/goals:`, error);
             // Optional: Return a structured error response if network fails
             return new Response(JSON.stringify({ error: "Failed to fetch goals data. Network error." }), {
                 status: 503, // Service Unavailable or appropriate error
@@ -142,7 +125,6 @@ self.addEventListener('fetch', event => {
   // --- Strategy for other API calls: Network Only ---
   // Never cache API responses to ensure fresh data
   else if (requestUrl.pathname.startsWith('/api/')) {
-       console.log(`(${CACHE_NAME}) Fetching ${requestUrl.pathname} (Network Only Strategy for API).`);
        event.respondWith(
             fetch(event.request, {
                 // Add cache-busting headers to the request
@@ -155,12 +137,11 @@ self.addEventListener('fetch', event => {
             })
             .then(networkResponse => {
                 // Return the network response directly without caching
-                console.log(`(${CACHE_NAME}) Network fetch OK for ${requestUrl.pathname}. NOT caching response.`);
                 return networkResponse;
             })
             .catch(error => {
                 // Network request failed (e.g., offline)
-                console.warn(`(${CACHE_NAME}) Network failed for ${requestUrl.pathname}`, error);
+                console.warn(`Network failed for ${requestUrl.pathname}`, error);
                 // Return a specific offline response for API calls
                 return new Response(JSON.stringify({ error: "Offline. Please try again when connected." }), {
                     status: 503,
@@ -171,24 +152,20 @@ self.addEventListener('fetch', event => {
   }
     // --- Strategy for Icons: Cache First, then Network ---
   else if (requestUrl.pathname.includes('icon-') && (requestUrl.pathname.endsWith('.png') || requestUrl.pathname.endsWith('.jpg') || requestUrl.pathname.endsWith('.svg'))) {
-    console.log(`(${CACHE_NAME}) Handling fetch for icon: ${requestUrl.pathname} (Cache First Strategy).`);
     event.respondWith(
       caches.match(event.request)
         .then(response => {
           if (response) {
-            console.log(`(${CACHE_NAME}) Serving ${requestUrl.pathname} from cache.`);
             return response; // Serve from cache if found
           }
 
           // Not in cache, fetch from network
-          console.log(`(${CACHE_NAME}) Icon not in cache, fetching from network: ${requestUrl.pathname}`);
           return fetch(event.request).then(networkResponse => {
             // Clone the response to cache it
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
-                console.log(`(${CACHE_NAME}) Cached icon from network: ${requestUrl.pathname}`);
               });
 
             return networkResponse; // Return the network response
@@ -198,14 +175,12 @@ self.addEventListener('fetch', event => {
   }
   // --- Strategy for ALL other resources: Network Only ---
   else {
-    console.log(`(${CACHE_NAME}) Handling fetch for: ${requestUrl.pathname} (Network Only Strategy).`);
     event.respondWith(
       fetch(event.request)
         .then(networkResponse => {
           return networkResponse;
         })
         .catch(error => {
-          console.error(`(${CACHE_NAME}) Network fetch failed for ${requestUrl.pathname}:`, error);
           // Return a simple error message for offline resources
           return new Response('This resource requires an internet connection.', {
             status: 503,
@@ -240,19 +215,21 @@ self.addEventListener('periodicsync', event => {
 // Check for scheduled notifications
 async function checkScheduledNotifications() {
   try {
-    console.log(`(${CACHE_NAME}) Checking for scheduled notifications via API`);
     // Ensure this fetch always bypasses caches when run from SW background context
     const response = await fetch('/api/get-scheduled-notifications', {
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
 
     if (!response.ok) {
-      console.error(`(${CACHE_NAME}) Failed to fetch scheduled notifications. Status: ${response.status}`);
       throw new Error('Failed to fetch scheduled notifications');
     }
 
     const notifications = await response.json();
-    console.log(`(${CACHE_NAME}) Retrieved ${notifications.length} scheduled notifications.`);
 
     // Process any notifications that should be triggered now
     const now = Date.now();
@@ -261,7 +238,6 @@ async function checkScheduledNotifications() {
       const scheduledTime = new Date(notification.scheduledTime).getTime();
       // Check if notification is due (within a reasonable window, e.g., past minute?)
       if (scheduledTime <= now && scheduledTime > now - (60 * 1000)) { // Example: within the last minute
-        console.log(`(${CACHE_NAME}) Showing notification:`, notification.title);
         notificationsShown++;
 
         // Important: Use self.registration.showNotification
@@ -282,29 +258,24 @@ async function checkScheduledNotifications() {
 
         // For one-time notifications, trigger deletion from server
         if (notification.repeat === 'none' || !notification.repeat) {
-          console.log(`(${CACHE_NAME}) Deleting one-time notification from server:`, notification.id);
           // No need to await this, let it run in background
           fetch(`/api/delete-notification/${notification.id}`, {
             method: 'DELETE',
             cache: 'no-store' // Ensure delete is not cached
-          }).catch(delErr => console.error(`(${CACHE_NAME}) Failed to delete notification ${notification.id}:`, delErr));
+          }).catch(() => {});
         }
       } else if (scheduledTime < now - (60 * 1000)) {
          // Notification is old, maybe delete if it's one-time?
          if (notification.repeat === 'none' || !notification.repeat) {
-             console.log(`(${CACHE_NAME}) Deleting old one-time notification ${notification.id}`);
              fetch(`/api/delete-notification/${notification.id}`, { method: 'DELETE', cache: 'no-store' })
-                .catch(delErr => console.error(`(${CACHE_NAME}) Failed to delete old notification ${notification.id}:`, delErr));
+                .catch(() => {});
          }
       }
     }
-     if(notificationsShown === 0) {
-         console.log(`(${CACHE_NAME}) No notifications due at this time.`);
-     }
+     // No notifications to show at this time
 
     return true;
   } catch (error) {
-    console.error(`(${CACHE_NAME}) Error checking scheduled notifications:`, error);
     return false;
   }
 }
@@ -312,7 +283,6 @@ async function checkScheduledNotifications() {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', event => {
-  console.log('Notification clicked:', event.notification);
   event.notification.close(); // Close the notification
 
   // Example: Focus or open the relevant page
@@ -333,11 +303,9 @@ self.addEventListener('notificationclick', event => {
       }
 
       if (matchingClient) {
-          console.log('Found existing window, focusing and navigating.');
           // If found, focus it and navigate it to the target URL
           return matchingClient.focus().then(client => client.navigate(urlToOpen));
       } else {
-          console.log('No existing window found, opening new one.');
           // No window open, open a new one
           if (clients.openWindow) {
               return clients.openWindow(urlToOpen);
@@ -354,17 +322,14 @@ self.addEventListener('notificationclick', event => {
 // Handle messages from the client
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-      console.log(`(${CACHE_NAME}) Received SKIP_WAITING message.`);
       self.skipWaiting(); // Force activation
   }
   // Handle cache clearing request - Always clear all caches
   else if (event.data && (event.data.type === 'CLEAR_CACHE' || event.data.type === 'CLEAR_URL_CACHE')) {
-      console.log(`(${CACHE_NAME}) Received cache clearing message. Clearing all caches.`);
       event.waitUntil(
           caches.keys().then(cacheNames => {
               return Promise.all(
                   cacheNames.map(cacheName => {
-                      console.log(`(${CACHE_NAME}) Deleting cache: ${cacheName}`);
                       return caches.delete(cacheName);
                   })
               );
@@ -391,8 +356,6 @@ self.addEventListener('message', (event) => {
 
 // Push event listener
 self.addEventListener('push', event => {
-  console.log(`(${CACHE_NAME}) Push received:`, event);
-
   let notificationData = { // Default notification
     title: 'Push Notification',
     body: 'Something happened!',
@@ -404,7 +367,6 @@ self.addEventListener('push', event => {
   if (event.data) {
     try {
       const data = event.data.json();
-      console.log(`(${CACHE_NAME}) Push data parsed:`, data);
       // Merge data from push payload into defaults
       notificationData.title = data.title || notificationData.title;
       notificationData.body = data.body || notificationData.body;
@@ -419,15 +381,10 @@ self.addEventListener('push', event => {
       notificationData.actions = data.actions || []; // Example for notification actions
 
     } catch (e) {
-      console.error(`(${CACHE_NAME}) Error parsing push data:`, e);
       // Use default body if parsing fails but data exists
       notificationData.body = event.data.text() || 'Received unparseable push data.';
     }
-  } else {
-      console.log(`(${CACHE_NAME}) Push received with no data.`);
   }
-
-  console.log(`(${CACHE_NAME}) Showing push notification:`, notificationData);
 
   const options = {
     body: notificationData.body,

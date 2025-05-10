@@ -315,11 +315,58 @@ class Task {
      * @returns {Promise<Object>} The updated task
      */
     static async toggleCompletion(id, isComplete) {
+        // Update the task's completion status
         const result = await db.query(
             'UPDATE tasks SET is_complete = $1 WHERE id = $2 RETURNING *',
             [isComplete, id]
         );
-        return result.rows[0];
+
+        const updatedTask = result.rows[0];
+
+        // If this is a subtask, check if we need to update the parent task
+        if (updatedTask && updatedTask.parent_task_id && isComplete) {
+            await this.checkAndUpdateParentTaskStatus(updatedTask.parent_task_id);
+        }
+
+        return updatedTask;
+    }
+
+    /**
+     * Check if all subtasks of a parent task are complete and update parent status if needed
+     * @param {number} parentTaskId - The parent task ID
+     * @returns {Promise<boolean>} True if parent task was updated to complete
+     */
+    static async checkAndUpdateParentTaskStatus(parentTaskId) {
+        // Get all subtasks for the parent task
+        const subtasksResult = await db.query(
+            'SELECT id, is_complete FROM tasks WHERE parent_task_id = $1',
+            [parentTaskId]
+        );
+
+        // If no subtasks, no need to update parent
+        if (subtasksResult.rowCount === 0) {
+            return false;
+        }
+
+        // Check if all subtasks are complete
+        const allSubtasksComplete = subtasksResult.rows.every(subtask => subtask.is_complete);
+
+        if (allSubtasksComplete) {
+            // Update parent task to complete
+            await db.query(
+                'UPDATE tasks SET is_complete = TRUE WHERE id = $1',
+                [parentTaskId]
+            );
+            return true;
+        }
+
+        // If any subtask is incomplete, ensure parent task is marked as incomplete
+        await db.query(
+            'UPDATE tasks SET is_complete = FALSE WHERE id = $1 AND is_complete = TRUE',
+            [parentTaskId]
+        );
+
+        return false;
     }
 
     /**

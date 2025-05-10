@@ -35,6 +35,9 @@ try {
 // Database connection
 const db = require('./utils/db'); // Required for database connection initialization
 
+// Import models
+const NotificationModel = require('./models/notificationModel');
+
 // Import routes
 // Using a mix of old and new route files until all are converted to MVC pattern
 const goalRoutes = require('./routes/goalRoutes'); // New MVC pattern
@@ -64,6 +67,7 @@ const journalRoutes = require('./routes/journal'); // New route for journal entr
 const visionOcrRoutes = require('./routes/vision-ocr'); // Google Cloud Vision OCR implementation
 const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // Cronometer nutrition data scraper
 const habitResetRoutes = require('./routes/habitResetRoutes'); // New route for habit reset
+const socialMediaRejectionRoutes = require('./routes/socialMediaRejectionRoutes'); // NEW: Social Media Rejection habit routes
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -175,6 +179,7 @@ app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 app.use('/api/calorie-targets', calorieTargetRoutes);
 app.use('/api/journal', journalRoutes); // NEW: Journal entries route
 app.use('/api/habit-reset', habitResetRoutes); // NEW: Habit reset route
+app.use('/api', socialMediaRejectionRoutes); // NEW: Social Media Rejection habit routes
 console.log('Registering Google Cloud Vision OCR routes...');
 app.use('/api/vision-ocr', visionOcrRoutes); // Google Cloud Vision OCR implementation
 console.log('Google Cloud Vision OCR routes registered successfully!');
@@ -182,6 +187,53 @@ console.log('Google Cloud Vision OCR routes registered successfully!');
 console.log('Registering Cronometer Nutrition routes...');
 app.use('/api/cronometer', cronometerNutritionRoutes); // Cronometer nutrition data scraper
 console.log('Cronometer Nutrition routes registered successfully!');
+
+// Simple endpoint to handle push notification subscriptions
+app.post('/api/save-subscription', (req, res) => {
+    try {
+        // Use the notification model to save the subscription
+        const subscription = req.body;
+        if (!subscription || !subscription.endpoint) {
+            throw new Error('Invalid subscription data: missing endpoint');
+        }
+
+        const result = NotificationModel.saveSubscription(subscription);
+        console.log('Saved push notification subscription:', subscription.endpoint);
+        res.status(200).json({ success: true, message: 'Subscription received and saved' });
+    } catch (error) {
+        console.error('Error saving subscription:', error);
+        res.status(400).json({ success: false, message: error.message || 'Invalid subscription data' });
+    }
+});
+
+// Add endpoint for service worker to get scheduled notifications
+app.get('/api/get-scheduled-notifications', (req, res) => {
+    try {
+        const notifications = NotificationModel.getScheduledNotifications();
+        console.log(`Returning ${notifications.length} scheduled notifications`);
+        res.json(notifications);
+    } catch (error) {
+        console.error('Error getting scheduled notifications:', error);
+        res.status(500).json({ success: false, message: 'Server error getting notifications' });
+    }
+});
+
+// Add endpoint for service worker to delete a notification
+app.delete('/api/delete-notification/:id', (req, res) => {
+    try {
+        const id = req.params.id;
+        console.log(`Deleting notification with ID: ${id}`);
+        const result = NotificationModel.deleteNotification(id);
+        res.json({ success: true, message: 'Notification deleted' });
+    } catch (error) {
+        console.error(`Error deleting notification ${req.params.id}:`, error);
+        if (error.message === 'Notification not found') {
+            res.status(404).json({ success: false, message: 'Notification not found' });
+        } else {
+            res.status(500).json({ success: false, message: 'Server error deleting notification' });
+        }
+    }
+});
 
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
@@ -203,7 +255,6 @@ webpush.setVapidDetails(
 );
 
 // Initialize notification model
-const NotificationModel = require('./models/notificationModel');
 NotificationModel.initialize();
 
 // Setup daily notification check

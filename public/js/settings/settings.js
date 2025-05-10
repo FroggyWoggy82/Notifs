@@ -3,48 +3,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const notifyBtn = document.getElementById('notifyBtn');
     const statusDiv = document.getElementById('status');
     const permissionStatusDiv = document.getElementById('permissionStatus');
-    
+
     let swRegistration = null;
 
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-        console.log('Service Worker and Push is supported');
-
         navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
             .then(swReg => {
-                console.log('Service Worker is registered', swReg);
                 swRegistration = swReg;
 
-                swReg.update().then(() => {
-                    console.log('Service worker update check completed');
-                }).catch(err => {
-                    console.error('Service worker update check failed:', err);
+                swReg.update().catch(err => {
+                    // Service worker update failed
                 });
 
                 checkNotificationPermission(true); // Check permission silently first
             })
             .catch(error => {
-                console.error('Service Worker Error', error);
                 updateStatus('Service Worker registration failed', true);
             });
 
         navigator.serviceWorker.addEventListener('message', event => {
-            console.log('Received message from service worker:', event.data);
-            if (event.data && event.data.type === 'CACHE_CLEARED') {
-                const timestamp = new Date(event.data.timestamp);
-                console.log(`Cache cleared at: ${timestamp.toLocaleTimeString()}`);
-            }
+            // Handle messages from service worker
         });
 
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('New service worker activated and controlling the page');
-
             setTimeout(() => {
-                console.log('Reloading page to use new service worker');
                 window.location.reload();
             }, 1000);
         });
     } else {
-        console.warn('Push messaging is not supported');
         notifyBtn.textContent = 'Push Not Supported';
         notifyBtn.disabled = true;
         permissionStatusDiv.textContent = 'Push messaging is not supported by this browser.';
@@ -53,14 +39,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     notifyBtn.addEventListener('click', () => {
         if (Notification.permission === 'granted') {
-            console.log('Permission already granted, checking subscription...');
-            setupPushSubscription(); // Re-check/setup subscription
+            setupPushSubscription() // Re-check/setup subscription
+                .then(success => {
+                    if (success) {
+                        // Send a test notification after successful subscription
+                        sendTestNotification();
+                    }
+                });
         } else if (Notification.permission === 'denied') {
             updateStatus('Notification permission was previously denied. Please enable it in browser settings.', true);
         } else {
             requestNotificationPermission();
         }
     });
+
+    // Add a test notification button
+    const testNotifyBtn = document.createElement('button');
+    testNotifyBtn.textContent = 'Send Test Notification';
+    testNotifyBtn.className = 'btn btn--secondary';
+    testNotifyBtn.style.marginLeft = '10px';
+    testNotifyBtn.addEventListener('click', sendTestNotification);
+
+    // Insert the test button after the main notification button
+    if (notifyBtn && notifyBtn.parentNode) {
+        notifyBtn.parentNode.insertBefore(testNotifyBtn, notifyBtn.nextSibling);
+    }
 
     function checkNotificationPermission(silent = false) {
         if (!('Notification' in window)) {
@@ -101,54 +104,64 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const permissionResult = await Notification.requestPermission();
             checkNotificationPermission(); // Update UI based on new permission
-            if (permissionResult === 'granted') {
-                console.log('Notification permission granted.');
 
+            if (permissionResult === 'granted') {
                 permissionStatusDiv.style.display = 'none';
                 updateStatus('Permission granted! Setting up background sync...', false);
-                await setupPushSubscription();
-                updateStatus('Background reminders enabled!', false);
+                const success = await setupPushSubscription();
+
+                if (success) {
+                    updateStatus('Background reminders enabled!', false);
+                    // Send a test notification to confirm everything works
+                    setTimeout(() => sendTestNotification(), 1000);
+                    return true;
+                } else {
+                    updateStatus('Permission granted but subscription setup failed.', true);
+                    return false;
+                }
             } else {
-                console.log('Notification permission denied.');
                 updateStatus('Permission denied. Reminders will not work in the background.', true);
+                return false;
             }
         } catch (error) {
-            console.error('Error requesting notification permission:', error);
             updateStatus('Error requesting permission.', true);
+            return false;
         }
     }
 
     async function setupPushSubscription() {
         if (!swRegistration) {
-            console.error('Service worker registration not found.');
             updateStatus('Service Worker not ready.', true);
-            return;
+            return false;
         }
 
         try {
             let subscription = await swRegistration.pushManager.getSubscription();
             if (subscription) {
-                console.log('User IS already subscribed.');
-
+                // Send the subscription to the server to ensure it's up to date
+                const success = await sendSubscriptionToServer(subscription);
 
                 updateStatus('Already subscribed for background reminders.', false);
                 notifyBtn.disabled = true;
                 notifyBtn.textContent = 'Reminders Enabled';
+                return success;
             } else {
-                console.log('User is NOT subscribed. Subscribing...');
+                // Use a proper VAPID key - this is a placeholder that should be replaced with a real key
+                // Generate a real key pair using the web-push library if needed
                 const applicationServerKey = urlBase64ToUint8Array('BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0'); // Your public VAPID key
                 subscription = await swRegistration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: applicationServerKey
                 });
-                console.log('User subscribed:', subscription);
-                await sendSubscriptionToServer(subscription);
-                updateStatus('Successfully subscribed for background reminders!', false);
-                notifyBtn.disabled = true;
-                notifyBtn.textContent = 'Reminders Enabled';
+                const success = await sendSubscriptionToServer(subscription);
+                if (success) {
+                    updateStatus('Successfully subscribed for background reminders!', false);
+                    notifyBtn.disabled = true;
+                    notifyBtn.textContent = 'Reminders Enabled';
+                }
+                return success;
             }
         } catch (err) {
-            console.error('Failed to subscribe the user: ', err);
             if (Notification.permission === 'denied') {
                 updateStatus('Subscription failed: Permission denied.', true);
             } else {
@@ -156,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             notifyBtn.disabled = false; // Allow retry
             notifyBtn.textContent = 'Enable Background Reminders';
+            return false;
         }
     }
 
@@ -173,22 +187,58 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/save-subscription', {
                 method: 'POST',
                 body: JSON.stringify(subscription),
-                headers: { 'Content-Type': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
             });
-            if (!response.ok) { throw new Error(`Server error: ${response.status}`); }
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
             const data = await response.json();
-            console.log('Subscription save response:', data);
+            return true;
         } catch (error) {
-            console.error('Error sending subscription to server:', error);
             updateStatus('Failed to save subscription state.', true);
+            return false;
         }
     }
 
     function updateStatus(message, isError = false) {
-        console.log(`Status Update: ${message} (Error: ${isError})`);
         statusDiv.textContent = message;
         statusDiv.className = `status ${isError ? 'error' : 'success'}`;
         statusDiv.style.display = 'block';
         setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+    }
+
+    async function sendTestNotification() {
+        if (Notification.permission !== 'granted') {
+            updateStatus('Notification permission not granted. Cannot send test notification.', true);
+            return;
+        }
+
+        try {
+            updateStatus('Sending test notification...', false);
+
+            const response = await fetch('/api/notifications/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
+            const result = await response.json();
+            updateStatus('Test notification sent successfully!', false);
+        } catch (error) {
+            updateStatus('Failed to send test notification: ' + error.message, true);
+        }
     }
 });

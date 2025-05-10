@@ -5,23 +5,176 @@
     position: relative;
 }
 
+/* Expand button container */
+.expand-button-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
 /* Expand button */
 .expand-subtasks-btn {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
     background: none;
     border: none;
-    color: #ffffff;
+    color: #4CAF50;
     font-size: 16px;
     cursor: pointer;
     padding: 5px;
+    transition: all 0.3s ease;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: relative;
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.expand-subtasks-btn:hover {
+    color: #ffffff;
+    background-color: rgba(76, 175, 80, 0.3);
+    transform: scale(1.1);
+}
+
+.expand-subtasks-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+}
+
+.task-item.expanded .expand-subtasks-btn i {
+    transform: rotate(180deg);
     transition: transform 0.3s ease;
 }
 
-.task-item.expanded .expand-subtasks-btn {
-    transform: translateY(-50%) rotate(180deg);
+/* Subtask indicator */
+.subtask-indicator {
+    display: inline-block;
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+/* Make expand button more visible */
+.has-subtasks {
+    position: relative;
+    padding-left: 40px !important; /* Make room for the expand button */
+}
+
+.has-subtasks .expand-subtasks-btn i {
+    transition: transform 0.3s ease;
+}
+
+/* Position the expand button in the task actions container */
+.task-actions .expand-subtasks-btn {
+    order: -1; /* Make it appear first */
+    margin-right: 10px;
+}
+
+/* Subtasks in modal forms */
+.subtasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.subtasks-list {
+    background-color: rgba(20, 20, 20, 0.5);
+    border-radius: 4px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.subtask-form-item {
+    display: flex;
+    align-items: center;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-left: 3px solid #4CAF50;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.subtask-form-item input {
+    flex: 1;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 5px;
+    margin-right: 10px;
+}
+
+.subtask-form-item input:focus {
+    outline: none;
+    border-bottom-color: #4CAF50;
+}
+
+.subtask-form-item .subtask-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.subtask-form-item .subtask-actions button {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 3px;
+    font-size: 14px;
+}
+
+.subtask-form-item .subtask-actions button:hover {
+    color: #fff;
+}
+
+.subtask-form-item .remove-subtask-btn:hover {
+    color: #f44336;
+}
+
+.no-subtasks-message {
+    color: #888;
+    text-align: center;
+    padding: 10px;
+    font-style: italic;
+}
+
+/* Subtasks container */
+.subtasks-container {
+    overflow: hidden;
+    max-height: 0;
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+    margin-left: 20px;
+    border-left: 2px solid rgba(76, 175, 80, 0.5);
+    padding-left: 10px;
+    background-color: rgba(76, 175, 80, 0.05);
+    border-radius: 0 0 4px 4px;
+}
+
+.subtasks-container.expanded {
+    max-height: 1000px; /* Large enough to accommodate all subtasks */
+    opacity: 1;
+    transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Subtask items */
@@ -29,11 +182,12 @@
     display: flex;
     align-items: center;
     padding: 8px 15px;
-    margin: 0 0 0 20px;
+    margin: 0 0 5px 0;
     background-color: rgba(30, 30, 30, 0.8);
     border-left: 3px solid #4CAF50;
-    margin-bottom: 5px;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    transform-origin: top;
+    animation: subtaskFadeIn 0.3s ease forwards;
 }
 
 .subtask-item.complete {
@@ -126,4 +280,33 @@ body.dark-theme .expand-subtasks-btn {
 
 body.dark-theme .grocery-info span {
     background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Animations */
+@keyframes subtaskFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+/* Pulse animation for parent task when all subtasks complete */
+.task-item.has-subtasks.all-subtasks-complete {
+    animation: pulse 1.5s ease-out;
 }

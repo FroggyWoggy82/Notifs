@@ -42,6 +42,10 @@
     <link rel="stylesheet" href="css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <link rel="stylesheet" href="css/subtasks.css"> <!-- Subtasks styling -->
     <link rel="stylesheet" href="css/grocery-tasks.css"> <!-- Grocery tasks styling -->
+    <link rel="stylesheet" href="css/task-overdue-styling.css"> <!-- Consistent styling for overdue tasks -->
+    <link rel="stylesheet" href="css/overdue-task-highlight.css"> <!-- Enhanced overdue task highlighting -->
+    <link rel="stylesheet" href="css/mobile-task-optimization.css"> <!-- Mobile optimization for task list -->
+    <link rel="stylesheet" href="css/modal-subtasks.css"> <!-- Modal subtasks styling -->
 
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -277,6 +281,21 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Subtasks Section -->
+                <div class="form-group">
+                    <div class="subtasks-header">
+                        <label class="form-label">Subtasks:</label>
+                        <button type="button" id="addSubtaskBtn" class="btn btn--sm btn--secondary">
+                            <i class="fas fa-plus"></i> Add Subtask
+                        </button>
+                    </div>
+                    <div id="subtasksList" class="subtasks-list">
+                        <!-- Subtasks will be added here dynamically -->
+                        <p class="no-subtasks-message">No subtasks added yet.</p>
+                    </div>
+                </div>
+
                 <button type="submit" id="addTaskBtn" class="btn btn--primary">
                     <i class="fas fa-plus-circle"></i> Add Task
                 </button>
@@ -362,6 +381,23 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Subtasks Section -->
+                <div class="form-group">
+                    <div class="subtasks-header">
+                        <label class="form-label">Subtasks:</label>
+                        <button type="button" id="editAddSubtaskBtn" class="btn btn--sm btn--secondary">
+                            <i class="fas fa-plus"></i> Add Subtask
+                        </button>
+                    </div>
+                    <div id="editSubtasksList" class="subtasks-list">
+                        <!-- Subtasks will be added here dynamically -->
+                        <!-- We'll clear this completely before adding new subtasks -->
+                    </div>
+                </div>
+
+                <!-- Subtasks fix is now handled by subtasks-fix.js -->
+
                 <button type="submit" id="saveTaskBtn" style="background-color: #00e676; color: #121212; padding: 12px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px;">Save Changes</button>
             </form>
             <div id="editTaskStatus" class="status"></div>
@@ -479,17 +515,24 @@
     <script src="js/habits/habit-reset.js"></script>
     <script src="js/habits/habit-modal-fix.js"></script>
     <script src="js/habits/habit-redesign.js"></script>
+    <script src="js/habits/social-media-rejection-fix.js"></script>
 
     <!-- Calendar integration -->
     <script src="js/calendar/calendar-refresh-fix.js"></script>
 
     <!-- Subtasks support -->
     <script src="js/tasks/subtasks-support.js"></script>
+    <script src="js/tasks/subtask-form-handler.js"></script>
+    <script src="js/tasks/expand-button-fix.js"></script>
+    <script src="js/tasks/subtasks-fix-v4.js"></script>
 
     <!-- Grocery task display -->
     <script src="js/tasks/grocery-task-display.js"></script>
 
     <!-- Overdue recurrence adjuster - must be loaded last -->
     <script src="js/tasks/overdue-recurrence-adjuster.js"></script>
+
+    <!-- Overdue task highlighter - ensures consistent styling for all overdue tasks -->
+    <script src="js/tasks/overdue-task-highlighter.js"></script>
 </body>
 </html>

@@ -1,0 +1,43 @@
+/**
+ * Task Overdue Styling
+ * Minimal CSS to support the inline styles already applied in script.js
+ * This file is kept minimal to avoid conflicts with existing styling
+ */
+
+/* Only apply these styles when inline styles are missing */
+.task-item.overdue:not([style*="background-color"]),
+.task-item[data-overdue="true"]:not([style*="background-color"]),
+.task-item[data-recurring-overdue="true"]:not([style*="background-color"]) {
+    background-color: #ffebee;
+    border-left: 4px solid #f44336;
+    border-color: #ef9a9a;
+}
+
+/* Overdue badge styling */
+.overdue-badge {
+    display: inline-block;
+    background-color: #f44336;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-left: 8px;
+    font-weight: bold;
+}
+
+/* Ensure overdue styling is not applied to completed tasks */
+.task-item.complete.overdue,
+.task-item.complete[data-overdue="true"],
+.task-item.complete[data-recurring-overdue="true"] {
+    /* Reset to default styling for completed tasks */
+    background-color: transparent !important;
+    border-left: none !important;
+    border-color: transparent !important;
+}
+
+/* Remove inline styles from completed tasks */
+.task-item.complete {
+    background-color: transparent !important;
+    border-left: none !important;
+    border-color: transparent !important;
+}
