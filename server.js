@@ -58,11 +58,13 @@ const directUpdateRoutes = require('./routes/directUpdateRoutes'); // DIRECT: Ro
 const packageAmountRoutes = require('./routes/packageAmountRoutes'); // PACKAGE: Routes for package amount
 const directTransFatUpdate = require('./routes/directTransFatUpdate'); // DIRECT: Routes for trans fat updates
 const weightRoutes = require('./routes/weight'); // Main weight routes file
+const weightFieldRoutes = require('./routes/weightFieldRoutes'); // Weight field routes for independent saving
 const customGoalWeightRoutes = require('./routes/customGoalWeightRoutes'); // Custom goal weight routes
 const taskRoutes = require('./routes/taskRoutes'); // Using MVC pattern
 const notificationRoutes = require('./routes/notificationRoutes'); // New MVC pattern
 const exercisePreferencesRoutes = require('./routes/exercisePreferences'); // New route for exercise preferences
 const calorieTargetRoutes = require('./routes/calorieTarget'); // New route for calorie targets
+const calorieFieldRoutes = require('./routes/calorieFieldRoutes'); // Calorie field routes for independent saving
 const journalRoutes = require('./routes/journal'); // New route for journal entries
 const visionOcrRoutes = require('./routes/vision-ocr'); // Google Cloud Vision OCR implementation
 const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // Cronometer nutrition data scraper
@@ -190,11 +192,13 @@ app.use('/api/direct-update', directUpdateRoutes); // DIRECT: Routes for direct 
 app.use('/api/package-amount', packageAmountRoutes); // PACKAGE: Routes for package amount
 app.use('/api/direct', directTransFatUpdate); // DIRECT: Routes for trans fat updates
 app.use('/api/weight', weightRoutes);
+app.use('/api/weight', weightFieldRoutes); // NEW: Weight field routes for independent saving
 app.use('/api/custom-goal-weights', customGoalWeightRoutes); // NEW: Custom goal weights route
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/exercise-preferences', exercisePreferencesRoutes);
 app.use('/api/calorie-targets', calorieTargetRoutes);
+app.use('/api/calorie-targets', calorieFieldRoutes); // NEW: Calorie field routes for independent saving
 app.use('/api/journal', journalRoutes); // NEW: Journal entries route
 app.use('/api/habit-reset', habitResetRoutes); // NEW: Habit reset route
 app.use('/api', socialMediaRejectionRoutes); // NEW: Social Media Rejection habit routes

@@ -1439,15 +1439,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             console.log('Sending task data to server:', taskData);
-            const response = await fetch('/api/tasks', {
+
+            // Add a timestamp to prevent caching
+            const timestamp = new Date().getTime();
+            const url = `/api/tasks?_=${timestamp}`;
+
+            const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                },
                 body: JSON.stringify(taskData)
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Server error adding task' }));
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (parseError) {
+                    console.error('Error parsing error response:', parseError);
+                    errorData = { error: 'Server error adding task', details: `Status: ${response.status} ${response.statusText}` };
+                }
+
+                // Log detailed error information
+                console.error('Server error details:', errorData);
+                console.error('Response status:', response.status);
+                console.error('Response text:', await response.text().catch(() => 'Could not read response text'));
+
+                throw new Error(errorData.details || errorData.error || `HTTP error! status: ${response.status}`);
             }
 
             const newTask = await response.json();

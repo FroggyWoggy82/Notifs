@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Cronometer text parser not available on page load');
     }
 
-    const weightGoalForm = document.getElementById('weight-goal-form');
     const targetWeightInput = document.getElementById('targetWeight');
     const weeklyGainGoalInput = document.getElementById('weeklyGainGoal');
+    const saveAllWeightGoalsBtn = document.getElementById('save-all-weight-goals-btn');
     const weightGoalStatus = document.getElementById('weight-goal-status');
     const weightGoalChartCanvas = document.getElementById('weight-goal-chart');
     const weightChartMessage = document.getElementById('weight-chart-message');
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const calorieUserSelector = document.getElementById('calorie-user-selector');
     const calorieTargetInput = document.getElementById('calorie-target');
     const proteinTargetInput = document.getElementById('protein-target');
-    const saveCalorieTargetBtn = document.getElementById('save-calorie-target');
+    const saveAllTargetsBtn = document.getElementById('save-all-targets-btn');
     const currentCalorieTarget = document.getElementById('current-calorie-target');
     const currentProteinTarget = document.getElementById('current-protein-target');
     const calorieTargetStatus = document.getElementById('calorie-target-status');
@@ -1188,19 +1188,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function saveWeightGoal(event) {
-        event.preventDefault();
-        const targetWeight = parseFloat(targetWeightInput.value);
-        const weeklyGain = parseFloat(weeklyGainGoalInput.value);
-
-        if (isNaN(targetWeight) || targetWeight <= 0 || isNaN(weeklyGain) || weeklyGain === 0) {
-            showStatus(weightGoalStatus, 'Please enter a valid positive number for target weight and a non-zero value for weekly goal.', 'error');
-            return;
-        }
-
-        showStatus(weightGoalStatus, 'Saving goal...', 'info');
+    // Function to get start weight and date, prioritizing saved goal data
+    async function getStartWeightAndDate(targetWeight) {
         try {
+            // First, try to get the goal data to check if start_weight and start_date are already set
+            const goalResponse = await fetch(`/api/weight/goal?user_id=${currentUserId}`);
+            if (goalResponse.ok) {
+                const goalData = await goalResponse.json();
 
+                // If goal data has start_weight and start_date, use those values
+                if (goalData.start_weight && goalData.start_date) {
+                    console.log(`Using existing goal start data: ${goalData.start_weight} lbs on ${goalData.start_date}`);
+                    return {
+                        startWeight: goalData.start_weight,
+                        startDate: goalData.start_date
+                    };
+                }
+            }
+
+            // If goal data doesn't have start values, fall back to weight logs
             const logsResponse = await fetch(`/api/weight/logs?user_id=${currentUserId}`);
             if (!logsResponse.ok) {
                 throw new Error('Failed to fetch weight logs');
@@ -1211,26 +1217,79 @@ document.addEventListener('DOMContentLoaded', () => {
             let startDate = null;
 
             if (logs && logs.length > 0) {
-
                 logs.sort((a, b) => new Date(b.log_date || b.date) - new Date(a.log_date || a.date));
                 startWeight = logs[0].weight;
                 startDate = logs[0].log_date || logs[0].date;
-                console.log(`Using most recent weight log: ${startWeight} lbs on ${startDate}`);
+                console.log(`No goal start data available, using most recent weight log: ${startWeight} lbs on ${startDate}`);
             } else {
-
-                startWeight = targetWeight;
-
+                startWeight = targetWeight || 0;
                 const today = new Date();
                 startDate = today.toISOString().split('T')[0];
                 console.log(`No weight logs found, using target weight (${startWeight} lbs) and today's date (${startDate})`);
             }
 
+            return { startWeight, startDate };
+        } catch (error) {
+            console.error('Error getting start weight and date:', error);
+            // Return defaults if there's an error
+            const today = new Date();
+            return {
+                startWeight: targetWeight || 0,
+                startDate: today.toISOString().split('T')[0]
+            };
+        }
+    }
+
+
+
+    // Function to save weight goals with partial updates
+    async function saveAllWeightGoals() {
+        const targetWeightStr = targetWeightInput.value.trim();
+        const weeklyGainStr = weeklyGainGoalInput.value.trim();
+
+        // Check if both fields are empty
+        if (targetWeightStr === '' && weeklyGainStr === '') {
+            showStatus(weightGoalStatus, 'Please enter at least one value to save.', 'error');
+            return;
+        }
+
+        // Parse values if provided
+        const targetWeight = targetWeightStr !== '' ? parseFloat(targetWeightStr) : null;
+        const weeklyGain = weeklyGainStr !== '' ? parseFloat(weeklyGainStr) : null;
+
+        // Validate provided values
+        if (targetWeight !== null && (isNaN(targetWeight) || targetWeight <= 0)) {
+            showStatus(weightGoalStatus, 'Please enter a valid positive number for target weight.', 'error');
+            return;
+        }
+
+        if (weeklyGain !== null && (isNaN(weeklyGain) || weeklyGain === 0)) {
+            showStatus(weightGoalStatus, 'Please enter a non-zero value for weekly goal.', 'error');
+            return;
+        }
+
+        showStatus(weightGoalStatus, 'Saving weight goals...', 'info');
+        try {
+            // Get current values from the server for any empty fields
+            const currentGoalResponse = await fetch(`/api/weight/goal?user_id=${currentUserId}`);
+            if (!currentGoalResponse.ok) {
+                throw new Error('Failed to fetch current goal');
+            }
+            const currentGoalData = await currentGoalResponse.json();
+
+            // Use provided values or current values if not provided
+            const finalTargetWeight = targetWeight !== null ? targetWeight : (currentGoalData.target_weight || 0);
+            const finalWeeklyGain = weeklyGain !== null ? weeklyGain : (currentGoalData.weekly_gain_goal || 0);
+
+            // Get start weight and date
+            const { startWeight, startDate } = await getStartWeightAndDate(finalTargetWeight);
+
             const response = await fetch('/api/weight/goal', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    targetWeight: targetWeight,
-                    weeklyGain: weeklyGain,
+                    targetWeight: finalTargetWeight,
+                    weeklyGain: finalWeeklyGain,
                     startWeight: startWeight,
                     startDate: startDate,
                     user_id: currentUserId
@@ -1239,22 +1298,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                  const errorData = await response.json();
-                 throw new Error(errorData.error || 'Failed to save goal');
+                 throw new Error(errorData.error || 'Failed to save goals');
             }
 
             const result = await response.json();
-            console.log("Goal saved:", result);
+            console.log("Goals saved:", result);
 
+            // Update the input fields with the saved values
             targetWeightInput.value = result.target_weight || '';
             weeklyGainGoalInput.value = result.weekly_gain_goal || '';
 
-            showStatus(weightGoalStatus, 'Weight goal saved successfully!', 'success');
+            // Show success message
+            let successMessage = 'Weight goals saved successfully!';
+            if (targetWeight !== null && weeklyGain === null) {
+                successMessage = 'Target weight saved successfully!';
+            } else if (targetWeight === null && weeklyGain !== null) {
+                successMessage = 'Weekly goal saved successfully!';
+            }
+            showStatus(weightGoalStatus, successMessage, 'success');
 
+            // Update the chart
             loadAndRenderWeightChart();
 
         } catch (error) {
-            console.error('Error saving weight goal:', error);
-            showStatus(weightGoalStatus, `Error saving goal: ${error.message}`, 'error');
+            console.error('Error saving weight goals:', error);
+            showStatus(weightGoalStatus, `Error saving weight goals: ${error.message}`, 'error');
         }
     }
 
@@ -1327,7 +1395,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Added today's date (${todayFormatted}) to the chart at position ${insertIndex}`);
             }
 
-            const histLabels = weightLogs.map(log => new Date(log.log_date + 'T00:00:00Z').toLocaleDateString()); // Use UTC date for consistency
+            const histLabels = weightLogs.map(log => {
+                // Ensure proper date formatting for consistency
+                try {
+                    // First try with the log_date directly
+                    let date = new Date(log.log_date);
+
+                    // If that fails, try with T00:00:00Z appended
+                    if (isNaN(date.getTime())) {
+                        date = new Date(log.log_date + 'T00:00:00Z');
+                    }
+
+                    // If that still fails, try parsing MM/DD/YYYY format
+                    if (isNaN(date.getTime()) && log.log_date.includes('/')) {
+                        const parts = log.log_date.split('/');
+                        if (parts.length === 3) {
+                            date = new Date(parts[2], parts[0] - 1, parts[1]);
+                        }
+                    }
+
+                    if (!isNaN(date.getTime())) {
+                        console.log(`Formatted date for weight log: ${log.log_date} -> ${date.toLocaleDateString()}`);
+                        return date.toLocaleDateString();
+                    } else {
+                        console.warn(`Could not parse date: ${log.log_date}, using as-is`);
+                        return log.log_date;
+                    }
+                } catch (e) {
+                    console.error(`Error formatting date: ${log.log_date}`, e);
+                    return log.log_date;
+                }
+            }); // Use consistent date formatting
             const actualWeightData = weightLogs.map(log => log.weight);
 
             const futureLabels = [];
@@ -1384,11 +1482,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 futureLabels.push(futureDate.toLocaleDateString());
 
-                window.weeklyIncrementDates.push({
+                // Store the date in multiple formats to ensure compatibility
+                const dateObj = {
                     date: futureDate.toLocaleDateString(),
+                    isoDate: futureDate.toISOString().split('T')[0], // YYYY-MM-DD format
+                    fullDate: futureDate.toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }),
                     index: histLabels.length + futureLabels.length - 1, // Index in the combined labels array
                     week: i
-                });
+                };
+
+                console.log(`Weekly increment date for week ${i}: ${dateObj.date} (${dateObj.fullDate})`);
+                window.weeklyIncrementDates.push(dateObj);
 
                 console.log(`Added future date: ${futureDate.toLocaleDateString()} (week ${i})`);
             }
@@ -1403,14 +1511,14 @@ document.addEventListener('DOMContentLoaded', () => {
             let startDate;
             let startWeight;
 
+            // Always use the goal's start date and start weight if available
             if (goalData.start_date && goalData.start_weight) {
-
                 startDate = new Date(goalData.start_date);
                 startWeight = goalData.start_weight;
                 console.log(`Using goal start date: ${goalData.start_date} and start weight: ${startWeight} lbs`);
             } else {
-
-
+                // Fallback to most recent log only if goal data is not available
+                // This is a fallback mechanism, but the primary source should be the goal data
                 let mostRecentLog = null;
                 for (let i = weightLogs.length - 1; i >= 0; i--) {
                     if (weightLogs[i].weight !== null) {
@@ -1422,12 +1530,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (mostRecentLog) {
                     startDate = new Date(mostRecentLog.log_date);
                     startWeight = mostRecentLog.weight;
-                    console.log(`Using most recent weight log as start: ${startWeight} lbs on ${mostRecentLog.log_date}`);
+                    console.log(`No goal start data available, using most recent weight log as fallback: ${startWeight} lbs on ${mostRecentLog.log_date}`);
                 } else {
-
+                    // Last resort fallback
                     startDate = new Date();
                     startWeight = goalData.target_weight;
-                    console.log(`No start data available, using today and target weight: ${startWeight} lbs`);
+                    console.log(`No start data available at all, using today and target weight as fallback: ${startWeight} lbs`);
                 }
             }
 
@@ -1449,15 +1557,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 const filterDate = new Date(startDate);
                 filterDate.setHours(0, 0, 0, 0);
 
+                // First, identify all the weekly target dates
+                const weeklyTargetDates = [];
+                const weeklyTargetWeights = [];
+
+                // Initialize with start date and weight
+                let currentTargetDate = new Date(startDate);
+                let currentTargetWeight = startWeight;
+                let weekCounter = 0;
+
+                // Initialize weekly goal weights array
+                window.weeklyGoalWeights = [];
+                window.weeklyIncrementDates = [];
+
+                // Calculate weekly targets for the entire projection period
+                while (weekCounter < WEEKS_TO_PROJECT + 1) { // +1 to include the start week
+                    weeklyTargetDates.push(new Date(currentTargetDate));
+                    weeklyTargetWeights.push(currentTargetWeight);
+
+                    // Store each weekly target in the weeklyGoalWeights array
+                    // This ensures we have all weekly targets, even past ones
+                    window.weeklyIncrementDates[weekCounter] = currentTargetDate.toISOString().split('T')[0];
+
+                    // Move to next week
+                    currentTargetDate = new Date(currentTargetDate);
+                    currentTargetDate.setDate(currentTargetDate.getDate() + 7);
+
+                    // Calculate next week's target weight by adding the weekly goal amount
+                    if (weeklyGain > 0) {
+                        // For weight gain, cap at target weight
+                        currentTargetWeight = Math.min(currentTargetWeight + weeklyGain, targetWeight);
+                    } else {
+                        // For weight loss, cap at target weight
+                        currentTargetWeight = Math.max(currentTargetWeight + weeklyGain, targetWeight);
+                    }
+
+                    weekCounter++;
+                }
+
+                console.log("Weekly target dates and weights calculated:",
+                    weeklyTargetDates.map((date, i) =>
+                        `Week ${i}: ${date.toLocaleDateString()} - ${weeklyTargetWeights[i].toFixed(2)} lbs`
+                    ).join('\n')
+                );
+
+                // Now process each label date and find the appropriate target weight
                 labels.forEach((labelStr, index) => {
-
-
                     let currentDate;
 
                     if (labelStr.includes('/')) {
                         const parts = labelStr.split('/');
                         if (parts.length === 3) {
-
                             currentDate = new Date(parts[2], parts[0] - 1, parts[1]);
                         }
                     }
@@ -1481,44 +1631,91 @@ document.addEventListener('DOMContentLoaded', () => {
                         return; // Skip to next iteration
                     }
 
+                    // Find the closest weekly target date that is not after the current date
+                    let closestWeekIndex = -1;
+                    let nextWeekIndex = -1;
 
-                    const msDiff = currentDate.getTime() - startDate.getTime();
-                    const daysDiff = msDiff / (1000 * 60 * 60 * 24);
-                    const weeksDiff = daysDiff / 7;
-
-                    if (weeksDiff >= 0) {
-
-                        const projectedWeight = startWeight + (weeksDiff * weeklyGain);
-                        console.log(`Date: ${labelStr}, Weeks from start: ${weeksDiff.toFixed(2)}, Projected: ${projectedWeight.toFixed(2)} lbs`);
-                        let goalWeight;
-
-                        if (weeklyGain > 0) {
-
-                            goalWeight = Math.min(projectedWeight, targetWeight);
-                            targetWeightLine.push(goalWeight);
+                    for (let i = 0; i < weeklyTargetDates.length; i++) {
+                        if (weeklyTargetDates[i] <= currentDate) {
+                            closestWeekIndex = i;
                         } else {
-
-                            goalWeight = Math.max(projectedWeight, targetWeight);
-                            targetWeightLine.push(goalWeight);
+                            nextWeekIndex = i;
+                            break;
                         }
+                    }
 
+                    let goalWeight;
 
-                        const weeklyPoint = window.weeklyIncrementDates.find(w => w.index === index);
-                        if (weeklyPoint) {
+                    if (closestWeekIndex >= 0) {
+                        // If we're exactly on a weekly target date, use that weight
+                        if (weeklyTargetDates[closestWeekIndex].getTime() === currentDate.getTime()) {
+                            goalWeight = weeklyTargetWeights[closestWeekIndex];
+                        }
+                        // If we're between weekly targets, interpolate
+                        else if (nextWeekIndex >= 0) {
+                            const prevDate = weeklyTargetDates[closestWeekIndex];
+                            const nextDate = weeklyTargetDates[nextWeekIndex];
+                            const prevWeight = weeklyTargetWeights[closestWeekIndex];
+                            const nextWeight = weeklyTargetWeights[nextWeekIndex];
+
+                            // Calculate fraction of the week we've progressed
+                            const totalDays = (nextDate - prevDate) / (1000 * 60 * 60 * 24);
+                            const daysPassed = (currentDate - prevDate) / (1000 * 60 * 60 * 24);
+                            const fraction = daysPassed / totalDays;
+
+                            // Interpolate weight
+                            goalWeight = prevWeight + fraction * (nextWeight - prevWeight);
+                        }
+                        // If we're after the last weekly target but before the target date
+                        else {
+                            goalWeight = weeklyTargetWeights[closestWeekIndex];
+                        }
+                    } else {
+                        // This shouldn't happen if dates are properly filtered
+                        goalWeight = startWeight;
+                    }
+
+                    // Cap at target weight
+                    if (weeklyGain > 0) {
+                        goalWeight = Math.min(goalWeight, targetWeight);
+                    } else {
+                        goalWeight = Math.max(goalWeight, targetWeight);
+                    }
+
+                    console.log(`Date: ${labelStr}, Goal weight: ${goalWeight.toFixed(2)} lbs`);
+                    targetWeightLine.push(goalWeight);
+
+                    // Check if this date matches one of our weekly target dates
+                    for (let weekNum = 0; weekNum < weeklyTargetDates.length; weekNum++) {
+                        const weeklyTargetDate = weeklyTargetDates[weekNum];
+
+                        // Check if this date is the same as the weekly target date (within the same day)
+                        if (Math.abs(currentDate.getTime() - weeklyTargetDate.getTime()) < 24 * 60 * 60 * 1000) {
+                            // This is a weekly target point
+                            // Create a more comprehensive date object for the weekly goal weight
+                            const weeklyDate = new Date(labelStr);
                             const weeklyGoalWeight = {
                                 index: index,
                                 date: labelStr,
+                                isoDate: weeklyDate.toISOString ? weeklyDate.toISOString().split('T')[0] : labelStr,
+                                fullDate: !isNaN(weeklyDate.getTime()) ? weeklyDate.toLocaleDateString('en-US', {
+                                    month: 'long',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                }) : labelStr,
                                 weight: goalWeight,
-                                week: weeklyPoint.week
+                                week: weekNum
                             };
-                            window.weeklyGoalWeights.push(weeklyGoalWeight);
-                            console.log(`Added weekly goal weight: ${labelStr}, ${goalWeight.toFixed(2)} lbs (week ${weeklyPoint.week})`);
 
-                            window.weeklyIncrementDates[weeklyPoint.week] = labelStr;
+                            // Add to weeklyGoalWeights if not already there
+                            const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekNum);
+                            if (!existingWeek) {
+                                window.weeklyGoalWeights.push(weeklyGoalWeight);
+                                console.log(`Added weekly goal weight: ${labelStr}, ${goalWeight.toFixed(2)} lbs (week ${weekNum})`);
+                            }
+
+                            break; // Found the matching week, no need to continue checking
                         }
-                    } else {
-
-                        targetWeightLine.push(null);
                     }
                 });
             } else {
@@ -1529,8 +1726,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             renderWeightChart(labels, paddedActualWeightData, targetWeightLine, parseFloat(goalData.target_weight));
-            weightChartMessage.style.display = 'none'; // Hide message
-            weightGoalChartCanvas.style.display = 'block'; // Show canvas
+
+            // Ensure chart is visible
+            if (weightChartMessage) {
+                weightChartMessage.style.display = 'none'; // Hide message
+            }
+
+            if (weightGoalChartCanvas) {
+                weightGoalChartCanvas.style.display = 'block'; // Show canvas
+                weightGoalChartCanvas.style.height = '400px';
+                weightGoalChartCanvas.style.width = '100%';
+
+                // Make sure parent container is also visible
+                const chartContainer = document.querySelector('.chart-container');
+                if (chartContainer) {
+                    chartContainer.style.display = 'block';
+                    chartContainer.style.height = '450px';
+                    chartContainer.style.visibility = 'visible';
+                }
+            }
 
             if (window.customGoalWeights && typeof window.customGoalWeights.init === 'function') {
                 window.customGoalWeights.init();
@@ -1542,19 +1756,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Error loading data for weight chart:", error);
-            weightChartMessage.textContent = `Error loading chart data: ${error.message}`;
-            weightChartMessage.style.color = 'red';
-            weightChartMessage.style.display = 'block';
-            weightGoalChartCanvas.style.display = 'none';
 
+            if (weightChartMessage) {
+                weightChartMessage.textContent = `Error loading chart data: ${error.message}`;
+                weightChartMessage.style.color = 'red';
+                weightChartMessage.style.display = 'block';
+                weightChartMessage.style.padding = '10px';
+                weightChartMessage.style.backgroundColor = 'rgba(30, 30, 30, 0.7)';
+                weightChartMessage.style.borderRadius = '4px';
+                weightChartMessage.style.margin = '10px 0';
+            }
+
+            if (weightGoalChartCanvas) {
+                weightGoalChartCanvas.style.display = 'none';
+            }
+
+            // Make sure parent container is still visible
+            const chartContainer = document.querySelector('.chart-container');
+            if (chartContainer) {
+                chartContainer.style.display = 'block';
+                chartContainer.style.height = 'auto';
+                chartContainer.style.minHeight = '100px';
+                chartContainer.style.visibility = 'visible';
+            }
         }
     }
 
     function renderWeightChart(labels, actualData, targetData, targetWeight) {
-        if (!weightGoalChartCanvas) return;
+        if (!weightGoalChartCanvas) {
+            console.error('Weight goal chart canvas not found');
+            return;
+        }
+
+        console.log('Rendering weight chart with canvas:', weightGoalChartCanvas);
+
+        // Make sure the canvas is visible
+        weightGoalChartCanvas.style.display = 'block';
+        weightGoalChartCanvas.style.height = '400px';
+        weightGoalChartCanvas.style.width = '100%';
+        weightGoalChartCanvas.style.backgroundColor = 'rgba(20, 20, 20, 0.8)';
+        weightGoalChartCanvas.style.borderRadius = '4px';
+
+        // Make sure parent container is also visible
+        const chartContainer = document.querySelector('.chart-container');
+        if (chartContainer) {
+            chartContainer.style.display = 'block';
+            chartContainer.style.height = '450px';
+            chartContainer.style.visibility = 'visible';
+            chartContainer.style.backgroundColor = 'rgba(20, 20, 20, 0.8)';
+            chartContainer.style.borderRadius = '4px';
+            chartContainer.style.padding = '10px';
+            chartContainer.style.marginTop = '20px';
+            chartContainer.style.marginBottom = '20px';
+        }
+
         const ctx = weightGoalChartCanvas.getContext('2d');
 
         if (weightGoalChart) {
+            console.log('Destroying previous chart instance');
             weightGoalChart.destroy(); // Destroy previous instance
         }
 
@@ -1615,7 +1874,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 hitRadius: 15, // Increase hit detection radius for easier interaction
                 spanGaps: true, // Connect points across gaps (null values)
 
-                pointRadius: 5, // Fixed point size
+                pointRadius: function(context) {
+                    // Show points only where we have actual weight data
+                    return actualData[context.dataIndex] !== null ? 5 : 0;
+                }, // Fixed point size
 
                 z: 10, // Higher z-index to keep points on top
 
@@ -1650,30 +1912,66 @@ document.addEventListener('DOMContentLoaded', () => {
                  tension: 0, // Set to 0 for straight lines
                  fill: false,
 
+                 // Make all weekly goal points visible
                  pointRadius: function(context) {
-
+                     // Check if this is a weekly goal point
                      if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
                          const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
-                         return isWeeklyPoint ? 3 : 0; // 3px radius for weekly points, 0 for others
+                         if (isWeeklyPoint) {
+                             return 6; // Larger radius for weekly points
+                         }
                      }
-                     return 0;
+
+                     // Check if this is a weekly point (every 7th point from the start)
+                     let startIndex = -1;
+
+                     // Use the global function if available
+                     if (window.customGoalWeights && typeof window.customGoalWeights.findGoalStartIndex === 'function') {
+                         startIndex = window.customGoalWeights.findGoalStartIndex(this);
+                     } else {
+                         // Fallback to local implementation
+                         if (this.data) {
+                             for (let i = 0; i < this.data.length; i++) {
+                                 if (this.data[i] && this.data[i].y !== null && this.data[i].y !== undefined) {
+                                     startIndex = i;
+                                     break;
+                                 }
+                             }
+                         }
+                     }
+
+                     if (startIndex !== -1 && (context.dataIndex - startIndex) % 7 === 0) {
+                         return 6; // Larger radius for weekly points
+                     }
+
+                     return 0; // Hide other points
                  },
+
+                 // Override the default point style
+                 pointStyle: 'circle',
 
                  pointShadowBlur: 2,
                  pointShadowColor: 'rgba(0, 0, 0, 0.2)',
                  pointBackgroundColor: function(context) {
-
+                     // Color weekly points based on whether they're in the past or future
                      if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
-                         const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
-                         return isWeeklyPoint ? '#e74c3c' : 'transparent'; // Red for weekly points
+                         const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === context.dataIndex);
+                         if (weeklyPoint) {
+                             const pointDate = new Date(weeklyPoint.date);
+                             const today = new Date();
+                             today.setHours(0, 0, 0, 0);
+
+                             // Past points are teal, future points are red
+                             return pointDate < today ? '#1abc9c' : '#e74c3c';
+                         }
                      }
                      return 'transparent';
                  },
                  pointBorderColor: function(context) {
-
+                     // Always show white border for weekly points
                      if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
                          const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
-                         return isWeeklyPoint ? '#fff' : 'transparent'; // White border for weekly points
+                         return isWeeklyPoint ? '#fff' : 'transparent';
                      }
                      return 'transparent';
                  },
@@ -1928,32 +2226,55 @@ document.addEventListener('DOMContentLoaded', () => {
             }, {
                 id: 'customGoalWeightPoints',
                 afterDraw: function(chart) {
+                    try {
+                        if (chart.getDatasetMeta(1) && chart.getDatasetMeta(1).data) {
+                            const goalPoints = chart.getDatasetMeta(1).data;
+                            const ctx = chart.ctx;
 
-                    if (chart.getDatasetMeta(1) && chart.getDatasetMeta(1).data) {
-                        const goalPoints = chart.getDatasetMeta(1).data;
-
-                        window.weeklyIncrementDates = [];
-
-                        goalPoints.forEach((point, index) => {
-
-                            if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
-                                const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === index);
-
-                                if (weeklyPoint) {
-
-                                    if (point.element) {
-                                        point.element.classList.add('goal-weight-point');
-                                        point.element.dataset.weekNumber = weeklyPoint.week;
-                                    }
-
-                                    window.weeklyIncrementDates[weeklyPoint.week] = weeklyPoint.date;
-                                }
+                            // Initialize weeklyIncrementDates if not already defined
+                            if (!window.weeklyIncrementDates) {
+                                window.weeklyIncrementDates = [];
                             }
-                        });
 
-                        if (window.customGoalWeights && typeof window.customGoalWeights.addWeekNumbers === 'function') {
-                            window.customGoalWeights.addWeekNumbers();
+                            // Process each goal point
+                            goalPoints.forEach((point, index) => {
+                                // Check if this is a weekly goal point
+                                if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                                    const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === index);
+
+                                    if (weeklyPoint) {
+                                        // Store the date for tooltips
+                                        window.weeklyIncrementDates[weeklyPoint.week] = weeklyPoint.date;
+
+                                        // Draw a larger point with custom styling
+                                        ctx.save();
+                                        ctx.beginPath();
+                                        ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+                                        ctx.fillStyle = '#e74c3c'; // Red color
+                                        ctx.fill();
+                                        ctx.strokeStyle = '#ffffff'; // White border
+                                        ctx.lineWidth = 2;
+                                        ctx.stroke();
+                                        ctx.restore();
+
+                                        // Add data attributes to the point element if it exists
+                                        if (point.element) {
+                                            point.element.classList.add('goal-weight-point');
+                                            point.element.dataset.weekNumber = weeklyPoint.week;
+                                        }
+
+                                        console.log(`Enhanced weekly goal point at index ${index} (week ${weeklyPoint.week})`);
+                                    }
+                                }
+                            });
+
+                            // Call the custom goal weights function if available
+                            if (window.customGoalWeights && typeof window.customGoalWeights.addWeekNumbers === 'function') {
+                                window.customGoalWeights.addWeekNumbers();
+                            }
                         }
+                    } catch (error) {
+                        console.error('Error in customGoalWeightPoints plugin:', error);
                     }
                 }
             }],
@@ -2213,13 +2534,56 @@ document.addEventListener('DOMContentLoaded', () => {
         chartConfig.options.targetWeight = parseFloat(targetWeight);
         console.log('Setting target weight in chart options:', chartConfig.options.targetWeight);
 
-        weightGoalChart = new Chart(ctx, chartConfig);
-        weightGoalChart._initialScaleApplied = false; // Mark as needing initial scale
+        try {
+            console.log('Creating new Chart.js instance');
+            weightGoalChart = new Chart(ctx, chartConfig);
+            weightGoalChart._initialScaleApplied = false; // Mark as needing initial scale
 
-        if (window.attachWeightChartTooltipEvents) {
-            window.attachWeightChartTooltipEvents(weightGoalChart);
-        } else {
-            console.error('Custom tooltip functions not available');
+            // Store the chart in the window object for access by other scripts
+            window.weightGoalChart = weightGoalChart;
+
+            console.log('Weight goal chart created and stored in window.weightGoalChart');
+
+            // Use our new tooltip fix function if available
+            if (window.fixWeightChartTooltips && typeof window.fixWeightChartTooltips === 'function') {
+                console.log('Using tooltip fix function');
+                setTimeout(() => {
+                    window.fixWeightChartTooltips(weightGoalChart);
+                }, 100);
+            } else {
+                console.warn('Tooltip fix function not available, will try again');
+
+                // Try again after a delay to allow scripts to load
+                setTimeout(() => {
+                    if (window.fixWeightChartTooltips && typeof window.fixWeightChartTooltips === 'function') {
+                        console.log('Tooltip fix function now available');
+                        window.fixWeightChartTooltips(weightGoalChart);
+                    } else {
+                        console.warn('Tooltip fix function still not available');
+                    }
+                }, 500);
+            }
+
+            // Force a resize to ensure the chart is properly rendered
+            setTimeout(() => {
+                if (weightGoalChart) {
+                    console.log('Forcing chart resize');
+                    weightGoalChart.resize();
+                }
+            }, 500);
+        } catch (error) {
+            console.error('Error creating chart:', error);
+
+            // Show error message
+            if (weightChartMessage) {
+                weightChartMessage.textContent = `Error creating chart: ${error.message}`;
+                weightChartMessage.style.color = 'red';
+                weightChartMessage.style.display = 'block';
+                weightChartMessage.style.padding = '10px';
+                weightChartMessage.style.backgroundColor = 'rgba(30, 30, 30, 0.7)';
+                weightChartMessage.style.borderRadius = '4px';
+                weightChartMessage.style.margin = '10px 0';
+            }
         }
 
 
@@ -4705,10 +5069,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    if (weightGoalForm) { // Ensure the form exists before adding listener
-        weightGoalForm.addEventListener('submit', saveWeightGoal);
+    // Add event listener for weight goal save button
+    if (saveAllWeightGoalsBtn) {
+        saveAllWeightGoalsBtn.addEventListener('click', saveAllWeightGoals);
+        console.log("Added event listener to save weight goals button");
     } else {
-        console.error("Could not find weight goal form element (#weight-goal-form) to attach listener.");
+        console.error("Could not find save weight goals button (#save-all-weight-goals-btn) to attach listener.");
     }
 
     if (userSelector) {
@@ -5311,27 +5677,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    async function saveCalorieTarget() {
-        const userId = calorieUserSelector.value;
-        const calorieTarget = parseInt(calorieTargetInput.value);
-        const proteinTarget = parseInt(proteinTargetInput.value);
 
-        if (isNaN(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
+
+    // Function to save calorie and protein targets with partial updates
+    async function saveAllTargets() {
+        const userId = calorieUserSelector.value;
+        const calorieTargetStr = calorieTargetInput.value.trim();
+        const proteinTargetStr = proteinTargetInput.value.trim();
+
+        // Check if both fields are empty
+        if (calorieTargetStr === '' && proteinTargetStr === '') {
+            showStatus(calorieTargetStatus, 'Please enter at least one value to save.', 'error');
+            return;
+        }
+
+        // Parse values if provided
+        const calorieTarget = calorieTargetStr !== '' ? parseInt(calorieTargetStr) : null;
+        const proteinTarget = proteinTargetStr !== '' ? parseInt(proteinTargetStr) : null;
+
+        // Validate provided values
+        if (calorieTarget !== null && (isNaN(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000)) {
             showStatus(calorieTargetStatus, 'Please enter a valid calorie target between 500 and 10000.', 'error');
             return;
         }
 
-        if (proteinTarget && (isNaN(proteinTarget) || proteinTarget < 20 || proteinTarget > 500)) {
+        if (proteinTarget !== null && (isNaN(proteinTarget) || proteinTarget < 20 || proteinTarget > 500)) {
             showStatus(calorieTargetStatus, 'Please enter a valid protein target between 20 and 500 grams.', 'error');
             return;
         }
 
-        // Protein target will be saved to the database
-
         showStatus(calorieTargetStatus, 'Saving nutrition targets...', 'info');
 
         try {
-            console.log(`Attempting to save targets for user ${userId}: ${calorieTarget} calories, ${proteinTarget || 'default'} g protein`);
+            // Get current values from the server for any empty fields
+            let currentCalorieTarget = 2000; // Default if not found
+            let currentProteinTarget = null;
+
+            try {
+                const currentTargetsResponse = await fetch(`/api/calorie-targets/${userId}`);
+                if (currentTargetsResponse.ok) {
+                    const currentTargetsData = await currentTargetsResponse.json();
+                    currentCalorieTarget = currentTargetsData.daily_target || 2000;
+                    currentProteinTarget = currentTargetsData.protein_target || null;
+                }
+            } catch (error) {
+                console.warn('Failed to fetch current targets:', error);
+            }
+
+            // Use provided values or current values if not provided
+            const finalCalorieTarget = calorieTarget !== null ? calorieTarget : currentCalorieTarget;
+            const finalProteinTarget = proteinTarget !== null ? proteinTarget : currentProteinTarget;
+
+            console.log(`Attempting to save targets for user ${userId}: ${finalCalorieTarget} calories, ${finalProteinTarget || 'default'} g protein`);
 
             let response = await fetch('/api/calorie-targets', {
                 method: 'POST',
@@ -5340,8 +5737,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     user_id: userId,
-                    daily_target: calorieTarget,
-                    protein_target: proteinTarget || null
+                    daily_target: finalCalorieTarget,
+                    protein_target: finalProteinTarget
                 })
             });
             console.log(`Received response with status: ${response.status}`);
@@ -5355,8 +5752,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     body: JSON.stringify({
                         user_id: userId,
-                        daily_target: calorieTarget,
-                        protein_target: proteinTarget || null
+                        daily_target: finalCalorieTarget,
+                        protein_target: finalProteinTarget
                     })
                 });
                 console.log(`Received response from weight API with status: ${response.status}`);
@@ -5375,10 +5772,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
             console.log('Save result:', result);
-            showStatus(calorieTargetStatus, 'Nutrition targets saved successfully!', 'success');
 
+            // Show appropriate success message based on which fields were updated
+            let successMessage = 'Nutrition targets saved successfully!';
+            if (calorieTarget !== null && proteinTarget === null) {
+                successMessage = 'Calorie target saved successfully!';
+            } else if (calorieTarget === null && proteinTarget !== null) {
+                successMessage = 'Protein target saved successfully!';
+            }
+            showStatus(calorieTargetStatus, successMessage, 'success');
+
+            // Update the displayed values
             loadCalorieTarget(userId);
 
+            // Clear the input fields
             calorieTargetInput.value = '';
             proteinTargetInput.value = '';
 
@@ -5473,8 +5880,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (saveCalorieTargetBtn) {
-        saveCalorieTargetBtn.addEventListener('click', saveCalorieTarget);
+    // Add event listener for the save button
+    if (saveAllTargetsBtn) {
+        saveAllTargetsBtn.addEventListener('click', saveAllTargets);
+        console.log("Added event listener to save targets button");
+    } else {
+        console.error("Could not find save targets button (#save-all-targets-btn) to attach listener.");
     }
 
     if (calorieUserSelector) {

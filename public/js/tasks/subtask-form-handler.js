@@ -153,6 +153,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
+                // Show loading indicator
+                const submitBtn = addTaskForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = 'Creating...';
+                    submitBtn.disabled = true;
+
+                    // Restore button state after 10 seconds in case of network issues
+                    setTimeout(() => {
+                        if (submitBtn.disabled) {
+                            submitBtn.innerHTML = originalBtnText;
+                            submitBtn.disabled = false;
+                        }
+                    }, 10000);
+                }
+
                 // Submit the task using relative URL to ensure it works in all environments
                 const response = await fetch(`/api/tasks`, {
                     method: 'POST',
@@ -162,8 +178,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify(taskData)
                 });
 
+                // Reset button state
+                if (submitBtn) {
+                    submitBtn.innerHTML = 'Add Task';
+                    submitBtn.disabled = false;
+                }
+
                 if (!response.ok) {
-                    throw new Error(`Failed to create task: ${response.status} ${response.statusText}`);
+                    const errorData = await response.json().catch(() => ({
+                        error: 'Unknown error',
+                        details: `Server returned ${response.status} ${response.statusText}`
+                    }));
+
+                    throw new Error(errorData.details || errorData.error || `Failed to create task: ${response.status} ${response.statusText}`);
                 }
 
                 const newTask = await response.json();
@@ -212,11 +239,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Error creating task with subtasks:', error);
+
+                // Show a more detailed error message
+                let errorMessage = 'Error: ';
+
+                if (error.message.includes('database') || error.message.includes('Database')) {
+                    errorMessage += 'There was a database error. Please try again later or contact support.';
+                } else if (error.message.includes('parent task')) {
+                    errorMessage += 'The parent task specified does not exist.';
+                } else if (error.message.includes('Duplicate')) {
+                    errorMessage += 'A similar task already exists.';
+                } else {
+                    errorMessage += error.message || 'Failed to create task. Please try again.';
+                }
+
                 // Show error message
                 const statusDiv = document.getElementById('addTaskStatus');
                 if (statusDiv) {
-                    statusDiv.textContent = `Error: ${error.message}`;
+                    statusDiv.textContent = errorMessage;
                     statusDiv.className = 'status error';
+
+                    // Make sure the error is visible
+                    statusDiv.style.display = 'block';
+
+                    // Scroll to the error message
+                    statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Auto-hide after 10 seconds
+                    setTimeout(() => {
+                        statusDiv.style.opacity = '0';
+                        setTimeout(() => {
+                            statusDiv.style.display = 'none';
+                            statusDiv.style.opacity = '1';
+                        }, 500);
+                    }, 10000);
+                } else {
+                    // Fallback to alert if status div doesn't exist
+                    alert(errorMessage);
+                }
+
+                // Re-enable the form
+                const submitBtn = addTaskForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Add Task';
                 }
             }
         };

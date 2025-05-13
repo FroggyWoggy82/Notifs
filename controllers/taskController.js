@@ -61,42 +61,93 @@ class TaskController {
                 recurrenceInterval: typeof recurrenceInterval
             });
 
-            // Ensure reminderTimes is a string if it exists
-            if (reminderTimes && typeof reminderTimes !== 'string') {
-                reminderTimes = JSON.stringify(reminderTimes);
-            }
-
+            // Validate required fields
             if (!title || title.trim() === '') {
                 return res.status(400).json({ error: 'Task title cannot be empty' });
             }
 
+            // Ensure reminderTimes is a string if it exists
+            let processedReminderTimes = reminderTimes;
+            if (reminderTimes && typeof reminderTimes !== 'string') {
+                processedReminderTimes = JSON.stringify(reminderTimes);
+            }
+
+            // Process grocery_data if it exists
+            let processedGroceryData = grocery_data;
+            if (grocery_data && typeof grocery_data !== 'string') {
+                try {
+                    processedGroceryData = JSON.stringify(grocery_data);
+                } catch (jsonError) {
+                    console.error('Error stringifying grocery_data:', jsonError);
+                    // Continue without grocery data rather than failing
+                    processedGroceryData = null;
+                }
+            }
+
             // Pass all fields to the model
             const taskData = {
-                title,
-                description,
+                title: title.trim(),
+                description: description ? description.trim() : null,
                 reminderTime,
                 reminderType,
-                reminderTimes,
+                reminderTimes: processedReminderTimes,
                 assignedDate,
                 dueDate,
-                duration,
-                recurrenceType,
-                recurrenceInterval,
-                parent_task_id,
-                is_subtask,
-                grocery_data,
-                has_subtasks
+                duration: duration || 1, // Default to 1 if not provided
+                recurrenceType: recurrenceType || 'none', // Default to 'none' if not provided
+                recurrenceInterval: recurrenceInterval || null,
+                parent_task_id: parent_task_id || null,
+                is_subtask: is_subtask === true, // Ensure boolean
+                grocery_data: processedGroceryData,
+                has_subtasks: has_subtasks === true // Ensure boolean
             };
 
-            const newTask = await Task.createTask(taskData);
-            console.log(`Task created successfully with ID: ${newTask.id}`);
-            res.status(201).json(newTask);
+            // Attempt to create the task
+            try {
+                const newTask = await Task.createTask(taskData);
+                console.log(`Task created successfully with ID: ${newTask.id}`);
+                return res.status(201).json(newTask);
+            } catch (dbError) {
+                console.error('Database error creating task:', dbError);
+
+                // Check for specific error messages and return appropriate status codes
+                if (dbError.message.includes('does not exist') ||
+                    dbError.message.includes('schema mismatch')) {
+                    return res.status(500).json({
+                        error: 'Database configuration error',
+                        details: dbError.message
+                    });
+                }
+
+                if (dbError.message.includes('already exists')) {
+                    return res.status(409).json({
+                        error: 'Duplicate task',
+                        details: dbError.message
+                    });
+                }
+
+                if (dbError.message.includes('parent task does not exist')) {
+                    return res.status(400).json({
+                        error: 'Invalid parent task',
+                        details: 'The specified parent task does not exist'
+                    });
+                }
+
+                // Generic database error
+                throw dbError; // Re-throw to be caught by outer catch
+            }
         } catch (err) {
             console.error('Error creating task:', err);
             // Log the full error details for debugging
             console.error('Error details:', err.stack);
             console.error('Request body:', req.body);
-            res.status(500).json({ error: 'Failed to create task', details: err.message });
+
+            // Send a more detailed error response
+            res.status(500).json({
+                error: 'Failed to create task',
+                details: err.message,
+                timestamp: new Date().toISOString()
+            });
         }
     }
 

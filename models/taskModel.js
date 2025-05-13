@@ -35,22 +35,23 @@ class Task {
      * @returns {Promise<Object>} The created task
      */
     static async createTask(taskData) {
-        const {
-            title,
-            description,
-            reminderTime,
-            reminderType,
-            reminderTimes, // Add support for new fields
-            assignedDate,
-            dueDate,
-            duration, // Add support for duration
-            recurrenceType,
-            recurrenceInterval,
-            parent_task_id, // Support for subtasks
-            is_subtask, // Flag to identify subtasks
-            grocery_data, // Support for grocery list data
-            has_subtasks // Flag to indicate task has subtasks
-        } = taskData;
+        try {
+            const {
+                title,
+                description,
+                reminderTime,
+                reminderType,
+                reminderTimes, // Add support for new fields
+                assignedDate,
+                dueDate,
+                duration, // Add support for duration
+                recurrenceType,
+                recurrenceInterval,
+                parent_task_id, // Support for subtasks
+                is_subtask, // Flag to identify subtasks
+                grocery_data, // Support for grocery list data
+                has_subtasks // Flag to indicate task has subtasks
+            } = taskData;
 
         console.log('Task data received:', taskData);
 
@@ -191,8 +192,29 @@ class Task {
             return result.rows[0];
         } catch (error) {
             console.error('Error in createTask:', error);
-            throw error;
+
+            // Check for specific database errors
+            if (error.code === '23505') {
+                // Unique violation
+                throw new Error('A task with this information already exists');
+            } else if (error.code === '23503') {
+                // Foreign key violation
+                throw new Error('Referenced parent task does not exist');
+            } else if (error.code === '42P01') {
+                // Undefined table
+                throw new Error('Database table does not exist. Please run migrations');
+            } else if (error.code === '42703') {
+                // Undefined column
+                throw new Error('Database schema mismatch. Please run migrations');
+            }
+
+            // Re-throw the original error with more context
+            throw new Error(`Database error creating task: ${error.message}`);
         }
+    } catch (outerError) {
+        console.error('Outer error in createTask:', outerError);
+        throw outerError;
+    }
     }
 
     /**

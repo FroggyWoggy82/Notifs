@@ -1,0 +1,44 @@
+/* Styles for independent field saving */
+.input-with-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.input-with-button input {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-with-button button {
+    white-space: nowrap;
+    padding: 6px 12px;
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.input-with-button button:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.save-field-btn {
+    min-width: 60px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .input-with-button {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .input-with-button button {
+        width: 100%;
+    }
+}

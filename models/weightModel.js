@@ -40,14 +40,47 @@ class WeightGoal {
      * @param {number} targetWeight - The target weight
      * @param {number} weeklyGain - The weekly gain/loss goal
      * @param {number} userId - The user ID
+     * @param {number} startWeight - The starting weight (optional)
+     * @param {string} startDate - The starting date (optional)
      * @returns {Promise<Object>} The saved weight goal
      */
     static async saveGoal(targetWeight, weeklyGain, userId, startWeight = null, startDate = null) {
         await db.query('BEGIN');
         try {
-            // If startWeight is not provided, get the most recent weight log
             let finalStartWeight = startWeight;
-            let finalStartDate = startDate || new Date().toISOString().split('T')[0]; // Default to today
+            let finalStartDate = startDate;
+
+            // If startWeight or startDate is not provided, get the most recent weight log
+            if (finalStartWeight === null || finalStartDate === null) {
+                console.log('Start weight or date not provided, getting most recent weight log');
+                const logResult = await db.query(
+                    'SELECT weight, log_date FROM weight_logs WHERE user_id = $1 ORDER BY log_date DESC LIMIT 1',
+                    [userId]
+                );
+
+                if (logResult.rows.length > 0) {
+                    if (finalStartWeight === null) {
+                        finalStartWeight = parseFloat(logResult.rows[0].weight);
+                        console.log(`Using most recent weight log for start weight: ${finalStartWeight} lbs`);
+                    }
+
+                    if (finalStartDate === null) {
+                        finalStartDate = logResult.rows[0].log_date.toISOString().split('T')[0];
+                        console.log(`Using most recent weight log date for start date: ${finalStartDate}`);
+                    }
+                }
+            }
+
+            // If still null after trying to get from logs, use defaults
+            if (finalStartWeight === null) {
+                finalStartWeight = targetWeight; // Default to target weight if no logs exist
+                console.log(`No weight logs found, using target weight as start weight: ${finalStartWeight} lbs`);
+            }
+
+            if (finalStartDate === null) {
+                finalStartDate = new Date().toISOString().split('T')[0]; // Default to today
+                console.log(`No weight logs found, using today as start date: ${finalStartDate}`);
+            }
 
             if (finalStartWeight === null) {
                 // Get the most recent weight log for this user
