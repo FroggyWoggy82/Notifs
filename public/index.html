@@ -41,11 +41,20 @@
     <link rel="stylesheet" href="css/remove-recurrence-indicators.css"> <!-- Remove recurrence indicators -->
     <link rel="stylesheet" href="css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <link rel="stylesheet" href="css/subtasks.css"> <!-- Subtasks styling -->
+    <link rel="stylesheet" href="css/expand-button-fix.css"> <!-- Expand button fix styling -->
     <link rel="stylesheet" href="css/grocery-tasks.css"> <!-- Grocery tasks styling -->
+    <link rel="stylesheet" href="css/expand-button.css"> <!-- New expand button styling -->
     <link rel="stylesheet" href="css/task-overdue-styling.css"> <!-- Consistent styling for overdue tasks -->
     <link rel="stylesheet" href="css/overdue-task-highlight.css"> <!-- Enhanced overdue task highlighting -->
     <link rel="stylesheet" href="css/mobile-task-optimization.css"> <!-- Mobile optimization for task list -->
     <link rel="stylesheet" href="css/modal-subtasks.css"> <!-- Modal subtasks styling -->
+    <link rel="stylesheet" href="css/checkbox-interaction-fix.css"> <!-- Checkbox interaction fix styling -->
+    <link rel="stylesheet" href="css/modal-dark-theme-fix.css"> <!-- Modal dark theme styling -->
+    <link rel="stylesheet" href="css/subtask-form-fix.css"> <!-- Subtask form fix styling -->
+    <link rel="stylesheet" href="css/subtask-fix.css"> <!-- Subtask fix styling -->
+    <link rel="stylesheet" href="css/grocery-subtasks-unified.css"> <!-- Unified grocery subtasks styling -->
+    <link rel="stylesheet" href="css/grocery-subtasks-improved.css"> <!-- Improved grocery subtasks styling with better contrast -->
+    <link rel="stylesheet" href="css/subtask-dropdown-fix.css"> <!-- Improved subtask dropdown styling -->
 
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -205,7 +214,7 @@
     <!-- ===== Add Task Modal ===== -->
     <div id="addTaskModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" style="position: absolute; top: 10px; right: 15px;"><i class="fas fa-times"></i></span>
+            <span class="close-button"><i class="fas fa-times"></i></span>
             <div class="modal-header">
                 <h2>Add New Task</h2>
                 <div class="modal-controls">
@@ -286,9 +295,7 @@
                 <div class="form-group">
                     <div class="subtasks-header">
                         <label class="form-label">Subtasks:</label>
-                        <button type="button" id="addSubtaskBtn" class="btn btn--sm btn--secondary">
-                            <i class="fas fa-plus"></i> Add Subtask
-                        </button>
+                        <button type="button" id="addSubtaskBtn">Add Subtask</button>
                     </div>
                     <div id="subtasksList" class="subtasks-list">
                         <!-- Subtasks will be added here dynamically -->
@@ -296,9 +303,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="addTaskBtn" class="btn btn--primary">
-                    <i class="fas fa-plus-circle"></i> Add Task
-                </button>
+                <button type="submit" id="addTaskBtn">Add Task</button>
             </form>
             <div id="addTaskStatus" class="status"></div>
         </div>
@@ -311,8 +316,8 @@
     </button>
 
     <!-- ===== Edit Task Modal ===== -->
-    <div id="editTaskModal" class="modal" style="z-index: 10000;">
-        <div class="modal-content" style="background-color: #121212; color: #e0e0e0;">
+    <div id="editTaskModal" class="modal">
+        <div class="modal-content">
             <span class="close-button"><i class="fas fa-times"></i></span>
             <div class="modal-header">
                 <h2>Edit Task</h2>
@@ -386,9 +391,7 @@
                 <div class="form-group">
                     <div class="subtasks-header">
                         <label class="form-label">Subtasks:</label>
-                        <button type="button" id="editAddSubtaskBtn" class="btn btn--sm btn--secondary">
-                            <i class="fas fa-plus"></i> Add Subtask
-                        </button>
+                        <button type="button" id="editAddSubtaskBtn">Add Subtask</button>
                     </div>
                     <div id="editSubtasksList" class="subtasks-list">
                         <!-- Subtasks will be added here dynamically -->
@@ -398,7 +401,7 @@
 
                 <!-- Subtasks fix is now handled by subtasks-fix.js -->
 
-                <button type="submit" id="saveTaskBtn" style="background-color: #00e676; color: #121212; padding: 12px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px;">Save Changes</button>
+                <button type="submit" id="saveTaskBtn">Save Changes</button>
             </form>
             <div id="editTaskStatus" class="status"></div>
         </div>
@@ -500,6 +503,8 @@
     <script src="js/tasks/edit-modal-fix.js"></script>
     <script src="js/tasks/add-task-modal-fix.js"></script>
     <script src="js/tasks/task-action-hover-fix.js"></script>
+    <script src="js/tasks/subtasks-support.js"></script>
+    <script src="js/tasks/expand-button-fix.js"></script>
     <script src="js/tasks/task-icons-fix.js"></script>
     <script src="js/tasks/checkbox-redesign.js"></script>
     <script src="js/tasks/recurrence-indicator-redesign.js"></script>
@@ -521,18 +526,34 @@
     <script src="js/calendar/calendar-refresh-fix.js"></script>
 
     <!-- Subtasks support -->
-    <script src="js/tasks/subtasks-support.js"></script>
     <script src="js/tasks/subtask-form-handler.js"></script>
-    <script src="js/tasks/expand-button-fix.js"></script>
     <script src="js/tasks/subtasks-fix-v4.js"></script>
+    <script src="js/tasks/subtask-checkbox-fix.js"></script>
+    <script src="js/tasks/subtask-button-fix.js"></script>
 
     <!-- Grocery task display -->
     <script src="js/tasks/grocery-task-display.js"></script>
+    <script src="js/tasks/grocery-subtasks-unified.js"></script>
 
     <!-- Overdue recurrence adjuster - must be loaded last -->
     <script src="js/tasks/overdue-recurrence-adjuster.js"></script>
 
     <!-- Overdue task highlighter - ensures consistent styling for all overdue tasks -->
     <script src="js/tasks/overdue-task-highlighter.js"></script>
+
+    <!-- Checkbox click fix - prevents checkbox clicks from opening the task details modal and moves tasks to completed section immediately -->
+    <script src="js/tasks/checkbox-click-fix.js"></script>
+
+    <!-- Form field fix - adds proper ID and name attributes to all form fields -->
+    <script src="js/food/form-field-fix.js"></script>
+
+    <!-- Subtask display fix - fixes issues with subtask display -->
+    <script src="js/tasks/subtask-display-fix.js"></script>
+
+    <!-- Subtask debug script - helps diagnose and fix subtask display issues -->
+    <script src="js/tasks/subtask-debug.js"></script>
+
+    <!-- Subtask dropdown fix - improves responsiveness of subtask dropdowns -->
+    <script src="js/tasks/subtask-dropdown-fix.js"></script>
 </body>
 </html>

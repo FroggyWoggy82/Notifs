@@ -1,0 +1,223 @@
+/* Grocery Subtasks Fix */
+
+/* Ensure subtasks container is properly displayed */
+.subtasks-container {
+    width: 100%;
+    overflow: visible !important; /* Allow content to be visible */
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    margin-left: 20px;
+    border-left: 2px solid rgba(76, 175, 80, 0.5);
+    padding-left: 10px;
+    background-color: rgba(76, 175, 80, 0.05);
+    border-radius: 0 0 4px 4px;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 5;
+}
+
+/* Initially hidden but will be shown when expanded */
+.subtasks-container:not(.expanded) {
+    display: none;
+}
+
+/* When expanded, make sure it's visible */
+.subtasks-container.expanded {
+    display: block !important;
+    max-height: none !important; /* Override max-height restriction */
+    height: auto !important;
+    opacity: 1 !important;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    visibility: visible !important;
+    position: relative !important;
+    z-index: 100 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    clip: auto !important;
+    clip-path: none !important;
+}
+
+/* Ensure grocery subtasks are properly styled - match regular subtasks */
+.subtask-item.grocery-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    margin: 0 0 5px 0;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-left: 3px solid #4CAF50;
+    transition: all 0.3s ease;
+    transform-origin: top;
+    animation: subtaskFadeIn 0.3s ease forwards;
+    border-radius: 4px;
+}
+
+.subtask-item.grocery-item.complete {
+    background-color: rgba(20, 20, 20, 0.6);
+    border-left-color: #666;
+}
+
+.subtask-item .subtask-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.subtask-item .task-checkbox {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.subtask-item .subtask-title {
+    font-size: 0.9em;
+    color: #ffffff;
+    margin-right: 10px;
+    flex: 1;
+}
+
+.subtask-item.complete .subtask-title {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+/* Loading and error states */
+.loading-subtasks,
+.subtask-loading,
+.no-subtasks {
+    padding: 8px 15px;
+    margin: 5px 0;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-left: 3px solid #666;
+    font-size: 0.9em;
+    color: #aaa;
+    border-radius: 4px;
+}
+
+/* Fix for expand button */
+.expand-subtasks-btn {
+    position: relative;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+/* Fix for expand button container */
+.expand-button-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+/* Fix for task item with subtasks */
+.task-item.has-subtasks {
+    padding-left: 30px;
+    position: relative;
+}
+
+/* Animation for subtasks */
+@keyframes subtaskFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fix for animating subtasks container */
+.subtasks-container.animating-down {
+    animation: expandDown 0.3s ease-in-out forwards;
+    display: block !important;
+}
+
+.subtasks-container.animating-up {
+    animation: collapseUp 0.3s ease-in-out forwards;
+    display: block !important;
+}
+
+@keyframes expandDown {
+    from {
+        max-height: 0;
+        opacity: 0;
+    }
+    to {
+        max-height: 1000px;
+        opacity: 1;
+    }
+}
+
+@keyframes collapseUp {
+    from {
+        max-height: 1000px;
+        opacity: 1;
+    }
+    to {
+        max-height: 0;
+        opacity: 0;
+    }
+}
+
+/* Fix for subtask checkbox */
+.subtask-checkbox {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+/* Grocery info styling to match regular subtasks */
+.grocery-amount,
+.grocery-package,
+.grocery-packages,
+.grocery-price {
+    font-size: 15px !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    font-weight: 700 !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 1) !important;
+    letter-spacing: 0.5px !important;
+    color: #ffffff !important;
+    margin: 2px !important;
+}
+
+.grocery-amount {
+    background-color: rgba(76, 175, 80, 0.8) !important;
+    border: 1px solid rgba(76, 175, 80, 1) !important;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.7) !important;
+}
+
+.grocery-package,
+.grocery-packages {
+    background-color: rgba(33, 150, 243, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 5px rgba(33, 150, 243, 0.9) !important;
+}
+
+.grocery-price {
+    background-color: rgba(255, 152, 0, 0.8) !important;
+    border: 1px solid rgba(255, 152, 0, 1) !important;
+    box-shadow: 0 0 4px rgba(255, 152, 0, 0.7) !important;
+}

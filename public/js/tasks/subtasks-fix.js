@@ -85,11 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
         editSubtasksList.innerHTML = '<div class="subtask-loading">Loading subtasks...</div>';
 
         try {
-            // Fetch subtasks for this task
-            const apiBaseUrl = window.location.origin.includes('3001')
-                ? window.location.origin
-                : window.location.origin.replace(/:\d+/, ':3001');
-            const response = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/subtasks`);
+            // Fetch subtasks for this task using relative URL to ensure it works in all environments
+            const response = await fetch(`/api/tasks/${taskId}/subtasks`);
 
             if (!response.ok) {
                 throw new Error(`Failed to load subtasks: ${response.status} ${response.statusText}`);

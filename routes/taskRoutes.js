@@ -208,6 +208,28 @@ router.get('/debug-routes', (req, res) => {
 
 /**
  * @swagger
+ * /api/tasks/{id}:
+ *   get:
+ *     summary: Get a task by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Task ID
+ *     responses:
+ *       200:
+ *         description: Task details
+ *       404:
+ *         description: Task not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id', TaskController.getTaskById);
+
+/**
+ * @swagger
  * /api/tasks/{id}/subtasks:
  *   get:
  *     summary: Get all subtasks for a parent task

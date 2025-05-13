@@ -43,7 +43,8 @@ class TaskController {
                 recurrenceInterval,
                 parent_task_id,
                 is_subtask,
-                grocery_data
+                grocery_data,
+                has_subtasks
             } = req.body;
 
             console.log('Received POST /api/tasks with data:', JSON.stringify(req.body, null, 2));
@@ -83,7 +84,8 @@ class TaskController {
                 recurrenceInterval,
                 parent_task_id,
                 is_subtask,
-                grocery_data
+                grocery_data,
+                has_subtasks
             };
 
             const newTask = await Task.createTask(taskData);
@@ -106,7 +108,7 @@ class TaskController {
     static async updateTask(req, res) {
         try {
             const { id } = req.params;
-            const { title, description, reminderTime, is_complete, assignedDate, dueDate, recurrenceType, recurrenceInterval, create_next_occurrence, nextOccurrenceDate } = req.body;
+            const { title, description, reminderTime, is_complete, assignedDate, dueDate, recurrenceType, recurrenceInterval, create_next_occurrence, nextOccurrenceDate, has_subtasks } = req.body;
 
             console.log(`Received PUT /api/tasks/${id}:`, req.body);
             console.log('nextOccurrenceDate:', nextOccurrenceDate);
@@ -137,6 +139,55 @@ class TaskController {
                 }
             }
 
+            // Check if we're adding a due date to a recurring task that didn't have one
+            if (dueDate !== undefined) {
+                try {
+                    // Get the current task to check if it's a recurring task without a due date
+                    const currentTask = await Task.getTaskById(id);
+
+                    if (currentTask &&
+                        currentTask.recurrence_type &&
+                        currentTask.recurrence_type !== 'none' &&
+                        !currentTask.due_date) {
+                        console.log(`Adding due date ${dueDate} to recurring task ${id} that previously had no due date`);
+
+                        // Check for duplicate tasks with the same title and recurrence type
+                        const duplicatesQuery = `
+                            SELECT id FROM tasks
+                            WHERE title = $1
+                            AND recurrence_type = $2
+                            AND id != $3
+                        `;
+
+                        const duplicatesResult = await db.query(duplicatesQuery, [
+                            currentTask.title,
+                            currentTask.recurrence_type,
+                            id
+                        ]);
+
+                        if (duplicatesResult.rows.length > 0) {
+                            console.log(`Found ${duplicatesResult.rows.length} duplicate tasks with the same title and recurrence type`);
+
+                            // Delete the duplicates
+                            const duplicateIds = duplicatesResult.rows.map(row => row.id);
+                            console.log(`Deleting duplicate task IDs: ${duplicateIds.join(', ')}`);
+
+                            const deleteQuery = `
+                                DELETE FROM tasks
+                                WHERE id = ANY($1::int[])
+                                RETURNING id
+                            `;
+
+                            const deleteResult = await db.query(deleteQuery, [duplicateIds]);
+                            console.log(`Deleted ${deleteResult.rowCount} duplicate tasks`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking for duplicate tasks:', error);
+                    // Continue with the update even if this check fails
+                }
+            }
+
             // Only include fields that are actually provided
             const taskData = {};
             if (title !== undefined) taskData.title = title;
@@ -147,6 +198,7 @@ class TaskController {
             if (dueDate !== undefined) taskData.dueDate = dueDate;
             if (recurrenceType !== undefined) taskData.recurrenceType = recurrenceType;
             if (recurrenceInterval !== undefined) taskData.recurrenceInterval = recurrenceInterval;
+            if (has_subtasks !== undefined) taskData.has_subtasks = has_subtasks;
 
             console.log('Task data to update:', taskData);
 
@@ -244,6 +296,56 @@ class TaskController {
     }
 
     /**
+     * Create a subtask for a parent task
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async createSubtask(req, res) {
+        try {
+            const { id } = req.params; // Parent task ID
+            const { title, description, is_complete, grocery_data } = req.body;
+
+            console.log(`Creating subtask for parent task ${id}:`, req.body);
+
+            // Validate required fields
+            if (!title || title.trim() === '') {
+                return res.status(400).json({ error: 'Subtask title is required' });
+            }
+
+            // Create the subtask data
+            const subtaskData = {
+                title,
+                description: description || '',
+                parent_task_id: id,
+                is_subtask: true,
+                is_complete: is_complete || false
+            };
+
+            // Add grocery_data if provided
+            if (grocery_data) {
+                console.log(`Adding grocery_data to subtask:`, grocery_data);
+                subtaskData.grocery_data = grocery_data;
+            }
+
+            // Create the subtask
+            const newSubtask = await Task.createTask(subtaskData);
+
+            console.log(`Created subtask with ID ${newSubtask.id} for parent task ${id}`);
+
+            // Update the parent task to indicate it has subtasks
+            await db.query(
+                'UPDATE tasks SET has_subtasks = TRUE WHERE id = $1',
+                [id]
+            );
+
+            res.status(201).json(newSubtask);
+        } catch (err) {
+            console.error('Error creating subtask:', err);
+            res.status(500).json({ error: 'Failed to create subtask', details: err.message });
+        }
+    }
+
+    /**
      * Delete a task
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object
@@ -295,7 +397,7 @@ class TaskController {
     static async toggleCompletion(req, res) {
         try {
             const { id } = req.params;
-            const { is_complete } = req.body;
+            const { is_complete, has_subtasks } = req.body;
 
             console.log(`Received PATCH /api/tasks/${id}/toggle-completion:`, req.body);
 
@@ -309,11 +411,26 @@ class TaskController {
                 return res.status(400).json({ error: 'is_complete must be a boolean' });
             }
 
-            const updatedTask = await Task.toggleCompletion(id, is_complete);
+            // Create a task data object with the completion status
+            const taskData = { is_complete };
+
+            // Add has_subtasks if provided
+            if (has_subtasks !== undefined) {
+                console.log(`Including has_subtasks=${has_subtasks} in toggle completion update`);
+                taskData.has_subtasks = has_subtasks;
+            }
+
+            // Use updateTask instead of toggleCompletion to handle both fields
+            const updatedTask = await Task.updateTask(id, taskData);
 
             if (!updatedTask) {
                 console.log(`Toggle Completion: Task ${id} not found.`);
                 return res.status(404).json({ error: 'Task not found' });
+            }
+
+            // If this is a subtask, check if we need to update the parent task
+            if (updatedTask.parent_task_id && is_complete) {
+                await Task.checkAndUpdateParentTaskStatus(updatedTask.parent_task_id);
             }
 
             console.log(`Task ${id} completion toggled to ${is_complete}.`);

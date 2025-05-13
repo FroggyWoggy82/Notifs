@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery Subtasks Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .task-item {
+            background-color: #1e1e1e;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .task-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .task-description {
+            font-size: 14px;
+            color: #aaaaaa;
+            margin-bottom: 10px;
+        }
+        
+        .task-meta {
+            font-size: 12px;
+            color: #888888;
+        }
+        
+        .expand-button-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .expand-subtasks-btn {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .subtasks-container {
+            width: calc(100% - 20px);
+            margin-left: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            border-left: 3px solid #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .grocery-subtasks-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4CAF50;
+            padding: 5px;
+        }
+        
+        .grocery-subtask-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            background-color: rgba(25, 35, 25, 0.8);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .grocery-subtask-checkbox {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .grocery-subtask-title {
+            color: #ffffff;
+            flex: 1;
+        }
+        
+        .grocery-subtask-item.completed {
+            background-color: rgba(15, 25, 15, 0.6);
+            text-decoration: line-through;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grocery Subtasks Demo</h1>
+        
+        <div class="task-item" data-task-id="1">
+            <div class="expand-button-container">
+                <button class="expand-subtasks-btn" title="Show/hide grocery items">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="task-title">Grocery List (775 cal, 31.0% of target)</div>
+            <div class="task-description">Grocery list for selected recipes. Total calories: 774.5 (31.0% of daily target). Total protein: 29.0g (24.2% of daily target).</div>
+            <div class="task-meta">Has subtasks</div>
+        </div>
+        
+        <div class="subtasks-container" data-parent-id="1">
+            <div class="grocery-subtasks-header">Grocery Items</div>
+            <div class="grocery-subtask-item">
+                <input type="checkbox" class="grocery-subtask-checkbox">
+                <span class="grocery-subtask-title">Chicken Breast - 200g - 1 package - $5.99</span>
+            </div>
+            <div class="grocery-subtask-item">
+                <input type="checkbox" class="grocery-subtask-checkbox">
+                <span class="grocery-subtask-title">Brown Rice - 150g - 1 package - $2.49</span>
+            </div>
+            <div class="grocery-subtask-item">
+                <input type="checkbox" class="grocery-subtask-checkbox">
+                <span class="grocery-subtask-title">Broccoli - 100g - 1 package - $1.99</span>
+            </div>
+            <div class="grocery-subtask-item">
+                <input type="checkbox" class="grocery-subtask-checkbox">
+                <span class="grocery-subtask-title">Olive Oil - 15g - 1 package - $8.99</span>
+            </div>
+            <div class="grocery-subtask-item">
+                <input type="checkbox" class="grocery-subtask-checkbox">
+                <span class="grocery-subtask-title">Spinach - 50g - 1 package - $3.49</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add click event listener to expand button
+            const expandButton = document.querySelector('.expand-subtasks-btn');
+            const subtasksContainer = document.querySelector('.subtasks-container');
+            
+            expandButton.addEventListener('click', () => {
+                // Toggle subtasks visibility
+                const isVisible = subtasksContainer.style.display === 'block';
+                
+                if (isVisible) {
+                    subtasksContainer.style.display = 'none';
+                    expandButton.querySelector('i').className = 'fas fa-chevron-down';
+                } else {
+                    subtasksContainer.style.display = 'block';
+                    expandButton.querySelector('i').className = 'fas fa-chevron-up';
+                }
+            });
+            
+            // Add click event listeners to checkboxes
+            const checkboxes = document.querySelectorAll('.grocery-subtask-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', (event) => {
+                    const subtaskItem = event.target.closest('.grocery-subtask-item');
+                    
+                    if (event.target.checked) {
+                        subtaskItem.classList.add('completed');
+                    } else {
+                        subtaskItem.classList.remove('completed');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

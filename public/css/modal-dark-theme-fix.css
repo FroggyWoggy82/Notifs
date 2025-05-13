@@ -1,0 +1,242 @@
+/**
+ * Modal Dark Theme Fix
+ * Updates the styling of task modals to match the futuristic dark theme
+ */
+
+/* Modal background and positioning */
+#editTaskModal,
+#addTaskModal {
+    display: none;
+    position: fixed !important;
+    z-index: 10000 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: auto !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#editTaskModal.visible,
+#editTaskModal[style*="display: flex"],
+#addTaskModal.visible,
+#addTaskModal[style*="display: flex"] {
+    display: flex !important;
+}
+
+/* Modal content */
+#editTaskModal .modal-content,
+#addTaskModal .modal-content {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    width: 80% !important;
+    max-width: 500px !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #333 !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+}
+
+/* Modal header */
+#editTaskModal .modal-header,
+#addTaskModal .modal-header {
+    border-bottom: 1px solid #333 !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 15px !important;
+}
+
+#editTaskModal .modal-header h2,
+#addTaskModal .modal-header h2 {
+    color: #ffffff !important;
+    margin: 0 !important;
+    font-size: 1.5rem !important;
+    text-align: center !important;
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+    -webkit-text-fill-color: white !important;
+}
+
+/* Close button */
+#editTaskModal .close-button,
+#addTaskModal .close-button {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    cursor: pointer !important;
+    font-size: 20px !important;
+    color: #ffffff !important;
+    transition: color 0.2s !important;
+}
+
+#editTaskModal .close-button:hover,
+#addTaskModal .close-button:hover {
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+}
+
+/* Form layout */
+#editTaskModal form,
+#addTaskModal form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important; /* Reduced from 15px for more compact layout */
+}
+
+/* Form labels */
+#editTaskModal .form-label,
+#addTaskModal .form-label {
+    font-weight: 500 !important;
+    margin-bottom: 3px !important; /* Reduced from 5px */
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.9rem !important;
+}
+
+/* Form inputs */
+#editTaskModal input,
+#editTaskModal textarea,
+#editTaskModal select,
+#addTaskModal input,
+#addTaskModal textarea,
+#addTaskModal select {
+    padding: 10px !important;
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Input focus state */
+#editTaskModal input:focus,
+#editTaskModal textarea:focus,
+#editTaskModal select:focus,
+#addTaskModal input:focus,
+#addTaskModal textarea:focus,
+#addTaskModal select:focus {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border-color: #ffffff !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Checkbox styling */
+#editTaskModal input[type="checkbox"],
+#addTaskModal input[type="checkbox"] {
+    margin-right: 8px !important;
+}
+
+/* Button styling - standardized white buttons */
+#editTaskModal button,
+#addTaskModal button {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 10px 15px !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    font-size: 0.9rem !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+    margin: 5px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    min-width: 120px !important;
+}
+
+/* Button hover state */
+#editTaskModal button:hover,
+#addTaskModal button:hover {
+    background-color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Button active state */
+#editTaskModal button:active,
+#addTaskModal button:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Disabled button state */
+#editTaskModal button:disabled,
+#addTaskModal button:disabled {
+    background-color: #555555 !important;
+    color: #aaaaaa !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 0.7 !important;
+}
+
+/* Remove plus icons from buttons */
+#editTaskModal button i.fa-plus,
+#editTaskModal button i.fa-plus-circle,
+#addTaskModal button i.fa-plus,
+#addTaskModal button i.fa-plus-circle {
+    display: none !important;
+}
+
+/* Add Subtask button specific styling */
+#editAddSubtaskBtn,
+#addSubtaskBtn {
+    align-self: center !important;
+    margin: 10px auto !important;
+}
+
+/* Save Changes button specific styling */
+#editTaskForm button[type="submit"],
+#addTaskForm button[type="submit"] {
+    margin-top: 15px !important;
+    align-self: center !important;
+    min-width: 150px !important;
+}
+
+/* Form group spacing */
+#editTaskModal .form-group,
+#addTaskModal .form-group {
+    margin-bottom: 10px !important;
+}
+
+/* Subtasks section */
+#editTaskModal .subtasks-header,
+#addTaskModal .subtasks-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 5px !important;
+}
+
+#editTaskModal .subtasks-list,
+#addTaskModal .subtasks-list {
+    background-color: rgba(30, 30, 30, 0.5) !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
+
+/* No subtasks message */
+#editTaskModal .no-subtasks-message,
+#addTaskModal .no-subtasks-message {
+    color: #888888 !important;
+    text-align: center !important;
+    padding: 10px !important;
+    font-style: italic !important;
+}

@@ -52,23 +52,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function setupPushSubscription(swRegistration) {
         try {
+            // Check for existing subscription
             let subscription = await swRegistration.pushManager.getSubscription();
 
+            // If there's an existing subscription, unsubscribe first
+            // This is necessary when VAPID keys have changed
             if (subscription) {
-                sendSubscriptionToServer(subscription);
-            } else {
-                // Use a proper VAPID key - this is a placeholder that should be replaced with a real key
-                // Generate a real key pair using the web-push library if needed
-                const applicationServerKey = urlBase64ToUint8Array('BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0');
-
-                subscription = await swRegistration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: applicationServerKey
-                });
-
-                sendSubscriptionToServer(subscription);
+                updateStatus('Updating subscription with new security keys...', false);
+                await subscription.unsubscribe();
             }
+
+            // Create a new subscription with the current VAPID key
+            // Using properly generated VAPID key on the P-256 curve
+            const applicationServerKey = urlBase64ToUint8Array('BIErgrKRpDGw2XoFq1vhgowolKyleAgJxC_DcZlyIUASuTUHi0SlWZQ-e2p2ctskva52qii0a36uS5CqTprMxRE');
+
+            subscription = await swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: applicationServerKey
+            });
+
+            sendSubscriptionToServer(subscription);
         } catch (error) {
+            console.error('Failed to setup push subscription:', error);
             updateStatus('Failed to setup push notifications.', true);
         }
     }

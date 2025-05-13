@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const taskId = taskItem.getAttribute('data-task-id');
                 console.log("Task ID:", taskId);
 
+                // Get the task data
                 fetch(`/api/tasks/${taskId}`)
                     .then(response => {
                         if (!response.ok) {

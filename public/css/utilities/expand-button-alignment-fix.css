@@ -1,0 +1,98 @@
+/**
+ * Expand Button Alignment Fix
+ * This CSS file fixes the alignment of expand buttons with task checkboxes
+ */
+
+/* Adjust the expand button container to be vertically centered */
+.expand-button-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    display: flex !important;
+    align-items: center !important; /* Ensure vertical centering */
+    justify-content: center !important;
+    z-index: 10;
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: 100% !important; /* Ensure full height */
+}
+
+/* Adjust the expand button to be properly aligned with checkboxes */
+.expand-subtasks-btn {
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    z-index: 20;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 24px !important; /* Match checkbox size */
+    height: 24px !important; /* Match checkbox size */
+    border-radius: 50%;
+    position: relative;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin: 0 !important;
+    transform: translateY(0) !important; /* Reset any transforms */
+}
+
+/* Ensure the expand button is centered in its container */
+.expand-button-container .expand-subtasks-btn {
+    margin: auto !important;
+}
+
+/* Ensure the task item with subtasks has proper positioning */
+.task-item.has-subtasks {
+    position: relative !important;
+    padding-left: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 48px !important;
+}
+
+/* Ensure the task checkbox container is properly aligned */
+.task-item.has-subtasks .task-checkbox-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 12px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+}
+
+/* Ensure the task content is properly aligned */
+.task-item.has-subtasks .task-content {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    flex: 1 !important;
+    min-height: 24px !important;
+}
+
+/* Ensure the expand button doesn't interfere with the checkbox */
+.task-item.has-subtasks .task-checkbox {
+    margin-left: 0 !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .task-item.has-subtasks {
+        padding-left: 35px !important;
+    }
+
+    .expand-button-container {
+        width: 35px !important;
+    }
+
+    .expand-subtasks-btn {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 14px !important;
+    }
+}

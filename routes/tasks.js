@@ -15,8 +15,14 @@ router.get('/:id', TaskController.getTaskById);
 // Get subtasks for a parent task
 router.get('/:id/subtasks', TaskController.getSubtasks);
 
+// Create a subtask for a parent task
+router.post('/:id/subtasks', TaskController.createSubtask);
+
 // Update a task
 router.put('/:id', TaskController.updateTask);
+
+// Update a task (PATCH)
+router.patch('/:id', TaskController.updateTask);
 
 // Delete a task
 router.delete('/:id', TaskController.deleteTask);

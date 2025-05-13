@@ -1,0 +1,74 @@
+/**
+ * Checkbox Interaction Fix
+ *
+ * This CSS enhances the visual distinction of the checkbox area to make it clear
+ * that it's a separate interactive element from the rest of the task item.
+ */
+
+/* Make the checkbox container more distinct */
+.task-checkbox-container {
+    position: relative;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    z-index: 5; /* Ensure it's above other elements */
+    margin-right: 8px; /* Add some space between checkbox and content */
+}
+
+/* Add a subtle highlight effect on hover */
+.task-checkbox-container:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* Add a subtle highlight effect when active (being clicked) */
+.task-checkbox-container:active {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: scale(0.95); /* Slight scale effect when clicked */
+}
+
+/* Make sure the checkbox itself has a pointer cursor */
+.task-checkbox-container input[type="checkbox"] {
+    cursor: pointer;
+    position: relative;
+    z-index: 6; /* Even higher z-index to ensure it's clickable */
+}
+
+/* Add a subtle transition effect to the checkbox */
+.task-checkbox-container input[type="checkbox"] {
+    transition: all 0.2s ease;
+}
+
+/* Ensure the task content has a pointer cursor to indicate it opens the modal */
+.task-content {
+    cursor: pointer;
+    flex: 1; /* Take up remaining space */
+}
+
+/* Make sure the checkbox container doesn't affect the layout */
+.task-item {
+    align-items: center !important;
+    display: flex !important;
+    position: relative;
+}
+
+/* Add a subtle visual separator between checkbox and content */
+.task-checkbox-container::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    height: 70%;
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.05);
+    transform: translateY(-50%);
+}
+
+/* Ensure the checkbox container is properly sized and positioned */
+@media (max-width: 768px) {
+    .task-checkbox-container {
+        padding: 5px;
+        margin-right: 6px;
+    }
+}

@@ -1,12 +1,19 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v14'; // <-- Bumped version number to force refresh
+const CACHE_NAME = 'notification-pwa-v15'; // <-- Bumped version number to force refresh
 
-// Disable caching for all resources except icons
+// Cache essential static assets
 const urlsToCache = [
   '/icon-192x192.png',
   '/icon-512x512.png',
-  // No other resources will be cached
+  '/manifest.json'
 ];
+
+// Cache duration in seconds
+const CACHE_DURATION = {
+  ICONS: 7 * 24 * 60 * 60, // 7 days for icons
+  STATIC: 24 * 60 * 60,    // 1 day for other static assets
+  DEFAULT: 60 * 60         // 1 hour default
+};
 
 // Install service worker and cache assets
 self.addEventListener('install', event => {
@@ -19,9 +26,25 @@ self.addEventListener('install', event => {
         return Promise.all(
           urlsToCache.map(url => {
             // Use { cache: 'reload' } to bypass HTTP cache when precaching
-            return cache.add(new Request(url, {cache: 'reload'})).catch(error => {
-              console.error(`Failed to cache: ${url}`, error);
-            });
+            return fetch(new Request(url, {cache: 'reload'}))
+              .then(response => {
+                // Create a new response with cache timestamp header
+                const headers = new Headers(response.headers);
+                headers.append('sw-cache-timestamp', Date.now().toString());
+
+                // Create a modified response with the timestamp header
+                const cachedResponse = new Response(response.body, {
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: headers
+                });
+
+                // Store in cache
+                return cache.put(url, cachedResponse);
+              })
+              .catch(error => {
+                console.error(`Failed to cache: ${url}`, error);
+              });
           })
         );
       })
@@ -150,25 +173,63 @@ self.addEventListener('fetch', event => {
             })
        );
   }
-    // --- Strategy for Icons: Cache First, then Network ---
+    // --- Strategy for Icons: Cache First with long expiration, then Network ---
   else if (requestUrl.pathname.includes('icon-') && (requestUrl.pathname.endsWith('.png') || requestUrl.pathname.endsWith('.jpg') || requestUrl.pathname.endsWith('.svg'))) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
+          // Check if we have a valid cached response
           if (response) {
-            return response; // Serve from cache if found
+            // Get the cache timestamp from the response headers
+            const cachedTime = response.headers.get('sw-cache-timestamp');
+            if (cachedTime) {
+              const cacheAge = (Date.now() - parseInt(cachedTime)) / 1000; // Age in seconds
+
+              // If the cache is still valid (less than CACHE_DURATION.ICONS seconds old)
+              if (cacheAge < CACHE_DURATION.ICONS) {
+                return response; // Serve from cache if valid
+              }
+            } else {
+              // If no timestamp, assume it's still valid (backward compatibility)
+              return response;
+            }
           }
 
-          // Not in cache, fetch from network
+          // Not in cache or cache expired, fetch from network
           return fetch(event.request).then(networkResponse => {
             // Clone the response to cache it
             const responseToCache = networkResponse.clone();
+
+            // Create a new response with cache timestamp header
+            const headers = new Headers(responseToCache.headers);
+            headers.append('sw-cache-timestamp', Date.now().toString());
+
+            // Create a modified response with the timestamp header
+            const cachedResponse = new Response(responseToCache.body, {
+              status: responseToCache.status,
+              statusText: responseToCache.statusText,
+              headers: headers
+            });
+
+            // Store in cache
             caches.open(CACHE_NAME)
               .then(cache => {
-                cache.put(event.request, responseToCache);
+                cache.put(event.request, cachedResponse);
+              })
+              .catch(error => {
+                console.error('Failed to cache icon:', error);
               });
 
-            return networkResponse; // Return the network response
+            return networkResponse; // Return the original network response
+          })
+          .catch(error => {
+            console.error('Failed to fetch icon:', error);
+            // If we have any cached response, return it even if expired
+            if (response) {
+              return response;
+            }
+            // Otherwise, let the error propagate
+            throw error;
           });
         })
     );

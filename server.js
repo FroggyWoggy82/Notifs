@@ -108,11 +108,24 @@ app.use(express.urlencoded({ extended: true, limit: MAX_URLENCODED_SIZE }));
 app.use((req, res, next) => {
     // Generate a unique request ID
     req.requestId = Date.now() + Math.random().toString(36).substring(2, 15);
-    console.log(`Request ${req.method} ${req.path} started with ID: ${req.requestId}`);
+
+    // Skip logging for static files and icons
+    const isStaticFile = req.path.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i);
+    const isIconRequest = req.path.includes('icon-');
+    const shouldLog = !isStaticFile && !isIconRequest;
+
+    // Store logging preference on the request object
+    req.shouldLog = shouldLog;
+
+    if (shouldLog) {
+        console.log(`Request ${req.method} ${req.path} started with ID: ${req.requestId}`);
+    }
 
     // Clear any existing database connections at the start of each request
     if (global._pgClient) {
-        console.log(`Cleaning up existing database client at request start`);
+        if (shouldLog) {
+            console.log(`Cleaning up existing database client at request start`);
+        }
         try {
             global._pgClient.release();
         } catch (e) {
@@ -123,10 +136,15 @@ app.use((req, res, next) => {
 
     // Add a listener for when the response is finished
     res.on('finish', () => {
-        console.log(`Request ${req.method} ${req.path} (${req.requestId}) completed with status: ${res.statusCode}`);
+        if (shouldLog) {
+            console.log(`Request ${req.method} ${req.path} (${req.requestId}) completed with status: ${res.statusCode}`);
+        }
+
         // Ensure any database connections are released
         if (global._pgClient) {
-            console.log(`Cleaning up database client for request ${req.requestId}`);
+            if (shouldLog) {
+                console.log(`Cleaning up database client for request ${req.requestId}`);
+            }
             try {
                 global._pgClient.release();
             } catch (e) {
@@ -235,6 +253,87 @@ app.delete('/api/delete-notification/:id', (req, res) => {
     }
 });
 
+// Add endpoint to validate subscriptions
+app.post('/api/validate-subscriptions', async (req, res) => {
+    try {
+        console.log('Manual subscription validation requested');
+        const result = await NotificationModel.validateSubscriptions();
+        res.json({
+            success: true,
+            message: 'Subscription validation complete',
+            result: result
+        });
+    } catch (error) {
+        console.error('Error validating subscriptions:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error validating subscriptions',
+            error: error.message
+        });
+    }
+});
+
+// Add endpoint to clean invalid subscriptions
+app.post('/api/clean-subscriptions', (req, res) => {
+    try {
+        console.log('Manual subscription cleanup requested');
+        const result = NotificationModel.cleanInvalidSubscriptions();
+        res.json({
+            success: true,
+            message: 'Subscription cleanup complete',
+            result: result
+        });
+    } catch (error) {
+        console.error('Error cleaning subscriptions:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error cleaning subscriptions',
+            error: error.message
+        });
+    }
+});
+
+// Add endpoint to clear all subscriptions
+app.post('/api/clear-all-subscriptions', (req, res) => {
+    try {
+        console.log('Manual clear all subscriptions requested');
+        const result = NotificationModel.clearAllSubscriptions();
+        res.json({
+            success: true,
+            message: 'All subscriptions cleared',
+            result: result
+        });
+    } catch (error) {
+        console.error('Error clearing all subscriptions:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error clearing all subscriptions',
+            error: error.message
+        });
+    }
+});
+
+// Add endpoint to get subscription count
+app.get('/api/subscription-count', (req, res) => {
+    try {
+        const count = NotificationModel.getSubscriptionCount ?
+            NotificationModel.getSubscriptionCount() :
+            { count: NotificationModel.getSubscriptions ? NotificationModel.getSubscriptions().length : 0 };
+
+        res.json({
+            success: true,
+            count: count
+        });
+    } catch (error) {
+        console.error('Error getting subscription count:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error getting subscription count',
+            error: error.message
+        });
+    }
+});
+
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
     res.status(404).json({ error: `API endpoint not found: ${req.originalUrl}` });
@@ -244,8 +343,8 @@ app.use('/api/*', (req, res) => {
 swaggerDocs(app);
 
 // Web Push Configuration
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BLBz5FpXXWgDjQJMDYZ-VENKh-qX1FhL-YhJ3keyGlBSGEQQYfwwucepKWzT2JbIQcUHduvWj5klFuT1UlqxvHQ';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'Qs0OSR2VsBf3t0x0fpTpiBgMGAOegt60NX0F3cYvYpU';
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BIErgrKRpDGw2XoFq1vhgowolKyleAgJxC_DcZlyIUASuTUHi0SlWZQ-e2p2ctskva52qii0a36uS5CqTprMxRE';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '04yytQWVRtCPhiQ9WGg7f5IctiLqYwxCfzCVQFQ0kyw';
 
 // Configure web push
 webpush.setVapidDetails(
@@ -350,6 +449,10 @@ app.get('/cronometer-nutrition', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'cronometer-nutrition.html'));
 });
 
+app.get('/subscription-manager', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'subscription-manager.html'));
+});
+
 // Fallback Routes
 app.get('/pages/goals.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'goals.html'));
@@ -367,6 +470,8 @@ const JournalModel = require('./models/journalModel');
 const initializeAndStart = async () => {
   // Check if offline mode is enabled
   const offlineMode = process.env.OFFLINE_MODE === 'true';
+  // Check if we should skip the database connection test
+  const skipDbTest = process.env.SKIP_DB_TEST === 'true';
 
   if (offlineMode) {
     console.log('OFFLINE MODE ENABLED: Skipping database connection test');
@@ -374,21 +479,22 @@ const initializeAndStart = async () => {
     return;
   }
 
+  if (skipDbTest) {
+    console.log('SKIP_DB_TEST ENABLED: Starting server without database connection test');
+    startServer(true);
+    return;
+  }
+
   try {
     // Test database connection before starting the server
     console.log('Testing database connection...');
 
-    // Create a timeout promise
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database connection test timed out after 10 seconds')), 10000);
-    });
+    // Use the improved testDbConnection function with retry logic
+    const dbConnected = await db.testDbConnection(3, 20000); // 3 retries, 20 second timeout
 
-    // Create the query promise
-    const queryPromise = db.query('SELECT NOW()');
-
-    // Race the query against the timeout
-    const result = await Promise.race([queryPromise, timeoutPromise]);
-    console.log('Database connection successful:', result.rows[0]);
+    if (!dbConnected) {
+      throw new Error('Database connection failed after multiple attempts');
+    }
 
     // Initialize models
     try {

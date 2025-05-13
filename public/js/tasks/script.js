@@ -683,6 +683,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const isExpandButtonContainer = event.target.closest('.expand-button-container');
             const isButton = event.target.closest('button');
 
+            // Check if this is a grocery list task
+            const taskTitle = task.title || '';
+            const isGroceryList = taskTitle && (
+                taskTitle.startsWith('Grocery List -') ||
+                taskTitle.startsWith('Grocery List (') ||
+                taskTitle.includes('Grocery List')
+            );
+
+            // If this is a grocery list task, add the data-grocery-list attribute
+            if (isGroceryList && !div.hasAttribute('data-grocery-list')) {
+                div.setAttribute('data-grocery-list', 'true');
+                console.log(`Added data-grocery-list attribute to task ${task.id}`);
+            }
+
             // If it's an expand button or expand button container, handle it specially
             if (isExpandButton || isExpandButtonContainer) {
                 event.stopPropagation(); // Prevent event from bubbling
@@ -693,14 +707,90 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Get the task ID
                 const taskId = task.id;
 
-                // Call loadSubtasks with the task ID and parent element
-                if (typeof window.loadSubtasks === 'function') {
+                // Check if this is a grocery list task and use the appropriate function
+                if (isGroceryList && typeof window.toggleGrocerySubtasks === 'function') {
+                    console.log(`Task ${taskId} is a grocery list task, using toggleGrocerySubtasks`);
+
+                    // Make sure the expand button has the data-grocery-list attribute
+                    if (isExpandButton && !event.target.hasAttribute('data-grocery-list')) {
+                        event.target.setAttribute('data-grocery-list', 'true');
+                    }
+
+                    // Call the toggleGrocerySubtasks function
+                    window.toggleGrocerySubtasks(parseInt(taskId), div, event);
+                } else if (typeof window.loadSubtasks === 'function') {
+                    console.log(`Task ${taskId} is a regular task, using loadSubtasks`);
                     window.loadSubtasks(taskId, div);
                 } else {
-                    console.error('loadSubtasks function not found');
+                    console.error('Neither toggleGrocerySubtasks nor loadSubtasks function found');
                 }
 
                 return false; // Prevent further handling
+            }
+
+            // If the task has subtasks and the click is not on a button, check if we should expand/collapse
+            if (task.has_subtasks && !isButton) {
+                // Check if the click is near the left edge of the task item (where the expand button should be)
+                const rect = div.getBoundingClientRect();
+                const leftEdgeWidth = 40; // Width of the area where the expand button should be
+
+                if (event.clientX - rect.left < leftEdgeWidth) {
+                    console.log("Left edge clicked for task with subtasks:", task.id);
+                    event.stopPropagation(); // Prevent event bubbling
+                    event.preventDefault(); // Prevent default behavior
+
+                    // Check if this is a grocery list task and use the appropriate function
+                    const taskTitle = task.title || '';
+                    const isGroceryList = taskTitle && (
+                        taskTitle.startsWith('Grocery List -') ||
+                        taskTitle.startsWith('Grocery List (') ||
+                        taskTitle.includes('Grocery List')
+                    );
+
+                    // If this is a grocery list task, add the data-grocery-list attribute
+                    if (isGroceryList && !div.hasAttribute('data-grocery-list')) {
+                        div.setAttribute('data-grocery-list', 'true');
+                        console.log(`Added data-grocery-list attribute to task ${task.id} (left edge click)`);
+                    }
+
+                    if (isGroceryList && typeof window.toggleGrocerySubtasks === 'function') {
+                        console.log(`Left edge click: Task ${task.id} is a grocery list task, using toggleGrocerySubtasks`);
+
+                        // Create a fake expand button if one doesn't exist
+                        let expandButton = div.querySelector('.expand-subtasks-btn');
+                        if (!expandButton) {
+                            expandButton = document.createElement('button');
+                            expandButton.className = 'expand-subtasks-btn';
+                            expandButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                            expandButton.setAttribute('data-task-id', task.id);
+                            expandButton.setAttribute('data-expand-button', 'true');
+                            expandButton.setAttribute('data-grocery-list', 'true');
+
+                            // Create a container for the expand button if it doesn't exist
+                            let expandButtonContainer = div.querySelector('.expand-button-container');
+                            if (!expandButtonContainer) {
+                                expandButtonContainer = document.createElement('div');
+                                expandButtonContainer.className = 'expand-button-container';
+                                expandButtonContainer.setAttribute('data-grocery-list', 'true');
+                                expandButtonContainer.appendChild(expandButton);
+
+                                // Insert the expand button container at the beginning of the task
+                                div.insertBefore(expandButtonContainer, div.firstChild);
+                            }
+
+                            console.log(`Created expand button for grocery task ${task.id} (left edge click)`);
+                        }
+
+                        window.toggleGrocerySubtasks(parseInt(task.id), div, event);
+                    } else if (typeof window.loadSubtasks === 'function') {
+                        console.log(`Left edge click: Task ${task.id} is a regular task, using loadSubtasks`);
+                        window.loadSubtasks(task.id, div);
+                    } else {
+                        console.error('Neither toggleGrocerySubtasks nor loadSubtasks function found');
+                    }
+
+                    return false; // Prevent further handling
+                }
             }
 
             // If it's not an expand button or another button, proceed with the default behavior
@@ -754,6 +844,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set appropriate classes for task state
         div.className = `task-item ${task.is_complete ? 'complete' : ''} ${isOverdue ? 'overdue' : ''}`;
         div.setAttribute('data-task-id', task.id);
+
+        // Add has-subtasks class if the task has subtasks
+        if (task.has_subtasks) {
+            div.classList.add('has-subtasks');
+            console.log(`Task ${task.id} (${task.title}) has subtasks, adding has-subtasks class`);
+        }
 
         // Apply both data attributes and inline styles for maximum compatibility
         if (isOverdue) {
@@ -1497,8 +1593,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Task ${taskId} is a recurring overdue task, creating next occurrence...`);
 
                 console.log(`Sending request to mark task ${taskId} complete...`);
-                const completeResponse = await fetch(`/api/tasks/${taskId}`, {
-                    method: 'PUT',
+                const completeResponse = await fetch(`/api/tasks/${taskId}/toggle-completion`, {
+                    method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         is_complete: true
@@ -1641,8 +1737,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Handle regular overdue tasks (non-recurring)
                 console.log(`Regular overdue task ${taskId} is being marked complete...`);
 
-                const response = await fetch(`/api/tasks/${taskId}`, {
-                    method: 'PUT',
+                const response = await fetch(`/api/tasks/${taskId}/toggle-completion`, {
+                    method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ is_complete: isComplete })
                 });
@@ -1721,8 +1817,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             } else {
                 // Regular task completion
-                const response = await fetch(`/api/tasks/${taskId}`, {
-                    method: 'PUT',
+                const response = await fetch(`/api/tasks/${taskId}/toggle-completion`, {
+                    method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ is_complete: isComplete })
                 });
@@ -1733,207 +1829,210 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const updatedTask = await response.json(); // updated_at is now current
                 console.log("Task updated:", updatedTask);
-            }
 
-            taskItem.remove(); // Remove from current list
-            const newTaskElement = createTaskElement(updatedTask); // Recreate element with updated state
+                // Process the updated task
+                taskItem.remove(); // Remove from current list
+                const newTaskElement = createTaskElement(updatedTask); // Recreate element with updated state
 
-            if (updatedTask.is_complete) {
+                if (updatedTask.is_complete) {
+                    // Make sure the completed section is visible
+                    completedTaskListDiv.style.display = 'block';
 
-                completedTaskListDiv.appendChild(newTaskElement);
+                    // Update the completed tasks header to show expanded state
+                    const completedTasksHeader = document.getElementById('completedTasksHeader');
+                    if (completedTasksHeader) {
+                        const icon = completedTasksHeader.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-chevron-down');
+                            icon.classList.add('fa-chevron-up');
+                        }
+                    }
 
-                const placeholder = completedTaskListDiv.querySelector('p');
-                if (placeholder) placeholder.remove();
+                    // Add the task to the completed section
+                    completedTaskListDiv.appendChild(newTaskElement);
 
-                const taskCompletedEvent = new CustomEvent('taskCompleted', {
-                    detail: { taskId: updatedTask.id, task: updatedTask }
-                });
-                document.dispatchEvent(taskCompletedEvent);
-                console.log('Dispatched taskCompleted event');
+                    // Remove any "No completed tasks" message
+                    const placeholder = completedTaskListDiv.querySelector('p');
+                    if (placeholder) placeholder.remove();
 
-                if (updatedTask.recurrence_type && updatedTask.recurrence_type !== 'none') {
-                    console.log(`Task ${updatedTask.id} is recurring (${updatedTask.recurrence_type}). Creating next occurrence...`);
+                    const taskCompletedEvent = new CustomEvent('taskCompleted', {
+                        detail: { taskId: updatedTask.id, task: updatedTask }
+                    });
+                    document.dispatchEvent(taskCompletedEvent);
+                    console.log('Dispatched taskCompleted event');
 
-                    try {
-
-                        let nextOccurrenceData;
+                    if (updatedTask.recurrence_type && updatedTask.recurrence_type !== 'none') {
+                        console.log(`Task ${updatedTask.id} is recurring (${updatedTask.recurrence_type}). Creating next occurrence...`);
 
                         try {
+                            let nextOccurrenceData;
 
-                            if (updatedTask.recurrence_type === 'daily') {
+                            try {
+                                if (updatedTask.recurrence_type === 'daily') {
+                                    const today = new Date();
+                                    const tomorrow = new Date(today);
+                                    tomorrow.setDate(tomorrow.getDate() + 1);
+                                    const formattedTomorrow = tomorrow.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 
-                                const today = new Date();
-                                const tomorrow = new Date(today);
-                                tomorrow.setDate(tomorrow.getDate() + 1);
-                                const formattedTomorrow = tomorrow.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-
-                                const createResponse = await fetch('/api/tasks', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        title: updatedTask.title,
-                                        description: updatedTask.description,
-                                        assignedDate: formattedTomorrow, // Set assigned date to ensure it appears on calendar
-                                        dueDate: formattedTomorrow,
-                                        recurrenceType: updatedTask.recurrence_type,
-                                        recurrenceInterval: updatedTask.recurrence_interval
-                                    })
-                                });
-
-                                if (createResponse.ok) {
-                                    nextOccurrenceData = await createResponse.json();
-                                    console.log(`Next occurrence created manually: ${nextOccurrenceData.id} with due date ${formattedTomorrow}`);
-
-                                    const taskUpdatedEvent = new CustomEvent('taskUpdated', {
-                                        detail: { taskId: nextOccurrenceData.id, task: nextOccurrenceData }
+                                    const createResponse = await fetch('/api/tasks', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            title: updatedTask.title,
+                                            description: updatedTask.description,
+                                            assignedDate: formattedTomorrow, // Set assigned date to ensure it appears on calendar
+                                            dueDate: formattedTomorrow,
+                                            recurrenceType: updatedTask.recurrence_type,
+                                            recurrenceInterval: updatedTask.recurrence_interval
+                                        })
                                     });
-                                    document.dispatchEvent(taskUpdatedEvent);
-                                    console.log('Dispatched taskUpdated event for manually created next occurrence');
 
-                                    try {
-                                        console.log(`Updating task ${updatedTask.id} with next occurrence date ${formattedTomorrow}`);
-                                        const updateData = { nextOccurrenceDate: formattedTomorrow };
-                                        console.log('Update data:', updateData);
+                                    if (createResponse.ok) {
+                                        nextOccurrenceData = await createResponse.json();
+                                        console.log(`Next occurrence created manually: ${nextOccurrenceData.id} with due date ${formattedTomorrow}`);
 
-                                        const updateResponse = await fetch(`/api/tasks/${updatedTask.id}`, {
-                                            method: 'PUT',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify(updateData)
+                                        const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                                            detail: { taskId: nextOccurrenceData.id, task: nextOccurrenceData }
                                         });
+                                        document.dispatchEvent(taskUpdatedEvent);
+                                        console.log('Dispatched taskUpdated event for manually created next occurrence');
 
-                                        if (updateResponse.ok) {
-                                            console.log(`Updated task ${updatedTask.id} with next occurrence date ${formattedTomorrow}`);
-                                        } else {
-                                            console.error(`Failed to update task ${updatedTask.id} with next occurrence date: ${updateResponse.status}`);
+                                        try {
+                                            console.log(`Updating task ${updatedTask.id} with next occurrence date ${formattedTomorrow}`);
+                                            const updateData = { nextOccurrenceDate: formattedTomorrow };
+                                            console.log('Update data:', updateData);
+
+                                            const updateResponse = await fetch(`/api/tasks/${updatedTask.id}`, {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(updateData)
+                                            });
+
+                                            if (updateResponse.ok) {
+                                                console.log(`Updated task ${updatedTask.id} with next occurrence date ${formattedTomorrow}`);
+                                            } else {
+                                                console.error(`Failed to update task ${updatedTask.id} with next occurrence date: ${updateResponse.status}`);
+                                            }
+                                        } catch (updateError) {
+                                            console.error('Error updating task with next occurrence date:', updateError);
                                         }
-                                    } catch (updateError) {
-                                        console.error('Error updating task with next occurrence date:', updateError);
+                                    } else {
+                                        console.error(`Failed to create next occurrence manually: ${createResponse.status}`);
+
+                                        nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
                                     }
                                 } else {
-                                    console.error(`Failed to create next occurrence manually: ${createResponse.status}`);
-
-                                    nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
-                                }
-                            } else {
-
-                                const nextOccurrenceResponse = await fetch(`/api/tasks/${updatedTask.id}/next-occurrence`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' }
-                                });
-
-                                if (nextOccurrenceResponse.ok) {
-                                    nextOccurrenceData = await nextOccurrenceResponse.json();
-                                    console.log('Next occurrence created via API:', nextOccurrenceData);
-
-                                    const taskUpdatedEvent = new CustomEvent('taskUpdated', {
-                                        detail: { taskId: nextOccurrenceData.id, task: nextOccurrenceData }
+                                    const nextOccurrenceResponse = await fetch(`/api/tasks/${updatedTask.id}/next-occurrence`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' }
                                     });
-                                    document.dispatchEvent(taskUpdatedEvent);
-                                    console.log('Dispatched taskUpdated event for next occurrence');
+
+                                    if (nextOccurrenceResponse.ok) {
+                                        nextOccurrenceData = await nextOccurrenceResponse.json();
+                                        console.log('Next occurrence created via API:', nextOccurrenceData);
+
+                                        const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                                            detail: { taskId: nextOccurrenceData.id, task: nextOccurrenceData }
+                                        });
+                                        document.dispatchEvent(taskUpdatedEvent);
+                                        console.log('Dispatched taskUpdated event for next occurrence');
+                                    } else {
+                                        console.warn('API endpoint failed, calculating next occurrence manually');
+
+                                        nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                                    }
+                                }
+                            } catch (apiError) {
+                                console.error('Error creating next occurrence:', apiError);
+
+                                nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                            }
+
+                            if (nextOccurrenceData) {
+                                console.log('Next occurrence created:', nextOccurrenceData);
+
+                                const notification = document.createElement('div');
+                                notification.className = 'status success';
+
+                                let recurrenceText = '';
+                                const interval = updatedTask.recurrence_interval || 1;
+
+                                if (interval === 1) {
+                                    recurrenceText = updatedTask.recurrence_type;
                                 } else {
-
-                                    console.warn('API endpoint failed, calculating next occurrence manually');
-
-                                    nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
+                                    switch(updatedTask.recurrence_type) {
+                                        case 'daily':
+                                            recurrenceText = `every ${interval} days`;
+                                            break;
+                                        case 'weekly':
+                                            recurrenceText = `every ${interval} weeks`;
+                                            break;
+                                        case 'monthly':
+                                            recurrenceText = `every ${interval} months`;
+                                            break;
+                                        case 'yearly':
+                                            recurrenceText = `every ${interval} years`;
+                                            break;
+                                        default:
+                                            recurrenceText = updatedTask.recurrence_type;
+                                    }
                                 }
-                            }
-                        } catch (apiError) {
-                            console.error('Error creating next occurrence:', apiError);
 
+                                const nextDate = nextOccurrenceData.due_date || nextOccurrenceData.assigned_date || new Date().toISOString();
+                                notification.textContent = `Recurring task "${updatedTask.title}" (repeats ${recurrenceText}) will appear on the calendar on ${new Date(nextDate).toLocaleDateString()}.`;
+                                notification.style.marginTop = '10px';
+                                notification.style.marginBottom = '10px';
 
-                            nextOccurrenceData = await createNextOccurrenceManually(updatedTask);
-                        }
+                                const calendarLink = document.createElement('a');
+                                calendarLink.href = '/pages/calendar.html';
+                                calendarLink.textContent = ' View Calendar';
+                                calendarLink.style.marginLeft = '5px';
+                                calendarLink.style.fontWeight = 'bold';
+                                calendarLink.style.color = '#4db6ac';
+                                notification.appendChild(calendarLink);
 
-                        if (nextOccurrenceData) {
-                            console.log('Next occurrence created:', nextOccurrenceData);
+                                taskListDiv.insertBefore(notification, taskListDiv.firstChild);
 
-                            const notification = document.createElement('div');
-                            notification.className = 'status success';
-
-                            let recurrenceText = '';
-                            const interval = updatedTask.recurrence_interval || 1;
-
-                            if (interval === 1) {
-                                recurrenceText = updatedTask.recurrence_type;
+                                setTimeout(() => {
+                                    notification.style.opacity = '0';
+                                    notification.style.transition = 'opacity 0.5s ease';
+                                    setTimeout(() => notification.remove(), 500);
+                                }, 5000);
                             } else {
-                                switch(updatedTask.recurrence_type) {
-                                    case 'daily':
-                                        recurrenceText = `every ${interval} days`;
-                                        break;
-                                    case 'weekly':
-                                        recurrenceText = `every ${interval} weeks`;
-                                        break;
-                                    case 'monthly':
-                                        recurrenceText = `every ${interval} months`;
-                                        break;
-                                    case 'yearly':
-                                        recurrenceText = `every ${interval} years`;
-                                        break;
-                                    default:
-                                        recurrenceText = updatedTask.recurrence_type;
-                                }
+                                console.error('Failed to create next occurrence:', await nextOccurrenceResponse.text());
                             }
-
-                            const nextDate = nextOccurrenceData.due_date || nextOccurrenceData.assigned_date || new Date().toISOString();
-                            notification.textContent = `Recurring task "${updatedTask.title}" (repeats ${recurrenceText}) will appear on the calendar on ${new Date(nextDate).toLocaleDateString()}.`;
-                            notification.style.marginTop = '10px';
-                            notification.style.marginBottom = '10px';
-
-                            const calendarLink = document.createElement('a');
-                            calendarLink.href = '/pages/calendar.html';
-                            calendarLink.textContent = ' View Calendar';
-                            calendarLink.style.marginLeft = '5px';
-                            calendarLink.style.fontWeight = 'bold';
-                            calendarLink.style.color = '#4db6ac';
-                            notification.appendChild(calendarLink);
-
-                            taskListDiv.insertBefore(notification, taskListDiv.firstChild);
-
-                            setTimeout(() => {
-                                notification.style.opacity = '0';
-                                notification.style.transition = 'opacity 0.5s ease';
-                                setTimeout(() => notification.remove(), 500);
-                            }, 5000);
-                        } else {
-                            console.error('Failed to create next occurrence:', await nextOccurrenceResponse.text());
+                        } catch (error) {
+                            console.error('Error creating next occurrence:', error);
                         }
-                    } catch (error) {
-                        console.error('Error creating next occurrence:', error);
                     }
+                } else {
+                    taskListDiv.appendChild(newTaskElement);
+
+                    const placeholder = taskListDiv.querySelector('p');
+                    if (placeholder) placeholder.remove();
+
+                    const taskUpdatedEvent = new CustomEvent('taskUpdated', {
+                        detail: { taskId: updatedTask.id, task: updatedTask }
+                    });
+                    document.dispatchEvent(taskUpdatedEvent);
+                    console.log('Dispatched taskUpdated event');
                 }
-            } else {
 
-                taskListDiv.appendChild(newTaskElement);
+                const completedCountToday = completedTaskListDiv.querySelectorAll('.task-item').length;
+                updateCompletedTaskHeader(completedCountToday);
 
-                const placeholder = taskListDiv.querySelector('p');
-                if (placeholder) placeholder.remove();
-
-                const taskUpdatedEvent = new CustomEvent('taskUpdated', {
-                    detail: { taskId: updatedTask.id, task: updatedTask }
-                });
-                document.dispatchEvent(taskUpdatedEvent);
-                console.log('Dispatched taskUpdated event');
+                if (taskListDiv.childElementCount === 0) {
+                    taskListDiv.innerHTML = '<p>No active tasks.</p>';
+                }
+                if (completedTaskListDiv.childElementCount === 0) {
+                    completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>'; // Use today's message
+                }
             }
-
-            const completedCountToday = completedTaskListDiv.querySelectorAll('.task-item').length;
-            updateCompletedTaskHeader(completedCountToday);
-
-            if (taskListDiv.childElementCount === 0) {
-                 taskListDiv.innerHTML = '<p>No active tasks.</p>';
-            }
-            if (completedTaskListDiv.childElementCount === 0) {
-                 completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>'; // Use today's message
-             }
-
-
         } catch (error) {
             console.error('Error updating task completion:', error);
             updateTaskListStatus("Error updating task status.", true);
-
-
-
         } finally {
-             taskItem.style.opacity = '1';
+            taskItem.style.opacity = '1';
         }
     }
 
@@ -2028,10 +2127,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             taskTitleInput.value = '';
             taskDescriptionInput.value = '';
-            taskReminderTypeInput.value = 'none';
-            taskReminderTimeInput.value = '';
-            customReminderGroup.style.display = 'none';
-            taskRecurrenceTypeInput.value = 'none';
+            if (taskReminderTypeInput) taskReminderTypeInput.value = 'none';
+            if (taskReminderTimeInput) taskReminderTimeInput.value = '';
+            if (customReminderGroup) customReminderGroup.style.display = 'none';
+            if (taskRecurrenceTypeInput) taskRecurrenceTypeInput.value = 'none';
 
             recurrenceIntervalGroup.style.display = 'none';
         }
@@ -3782,11 +3881,8 @@ document.addEventListener('DOMContentLoaded', () => {
             editSubtasksList.innerHTML = '<div class="subtask-loading">Loading subtasks...</div>';
 
             try {
-                // Fetch subtasks for this task
-                const apiBaseUrl = window.location.origin.includes('3001')
-                    ? window.location.origin
-                    : window.location.origin.replace(/:\d+/, ':3001');
-                const response = await fetch(`${apiBaseUrl}/api/tasks/${task.id}/subtasks`);
+                // Fetch subtasks for this task using relative URL to ensure it works in all environments
+                const response = await fetch(`/api/tasks/${task.id}/subtasks`);
 
                 if (!response.ok) {
                     throw new Error(`Failed to load subtasks: ${response.status} ${response.statusText}`);
@@ -4148,14 +4244,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const taskElement = createTaskElement(task);
                         completedTaskListDiv.appendChild(taskElement);
                     });
-
-                    // Make the section visible
-                    completedTaskListDiv.style.display = 'block';
-                    const icon = completedTasksHeader.querySelector('i');
-                    if (icon) {
-                        icon.classList.remove('fa-chevron-down');
-                        icon.classList.add('fa-chevron-up');
-                    }
                 }
             }
         }
@@ -4168,8 +4256,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // If there are completed tasks, make sure the section is visible
         if (hasCompletedTasks) {
-            console.log('Making completed tasks section visible');
+            // Make the completed section visible
             completedTaskListDiv.style.display = 'block';
+
+            // Update the icon to show expanded state
             const icon = completedTasksHeader.querySelector('i');
             if (icon) {
                 icon.classList.remove('fa-chevron-down');
@@ -4182,6 +4272,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 noTasksMessage.remove();
             }
         } else {
+            // If there are no completed tasks, collapse the section
+            completedTaskListDiv.style.display = 'none';
+
+            // Update the icon to show collapsed state
+            const icon = completedTasksHeader.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+
             // If there are no completed tasks, make sure the section has the appropriate message
             console.log('No completed tasks found, adding message');
             completedTaskListDiv.innerHTML = '<p>No tasks completed today.</p>';

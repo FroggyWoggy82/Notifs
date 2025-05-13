@@ -55,25 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function setupPushSubscription(swRegistration) {
         try {
+            // Check for existing subscription
             let subscription = await swRegistration.pushManager.getSubscription();
 
+            // If there's an existing subscription, unsubscribe first
+            // This is necessary when VAPID keys have changed
             if (subscription) {
-                console.log('User is already subscribed to push notifications.');
-
-                sendSubscriptionToServer(subscription);
-            } else {
-                console.log('User is not subscribed to push notifications. Subscribing...');
-
-                const applicationServerKey = urlBase64ToUint8Array('BM29P5O99J9F-DUOyqNwGyurNl5a3ZSkBa0ZlOLR9AylchmgPwHbCeZaFGlEcKoAUOaZvNk5aXa0dHSDS_RT2v0');
-
-                subscription = await swRegistration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: applicationServerKey
-                });
-
-                console.log('User subscribed to push notifications:', subscription);
-                sendSubscriptionToServer(subscription);
+                console.log('User is already subscribed. Unsubscribing to update with new keys...');
+                await subscription.unsubscribe();
+                console.log('Successfully unsubscribed from existing push notification');
             }
+
+            console.log('Creating new subscription with updated VAPID keys...');
+
+            // Create a new subscription with the current VAPID key
+            const applicationServerKey = urlBase64ToUint8Array('BIErgrKRpDGw2XoFq1vhgowolKyleAgJxC_DcZlyIUASuTUHi0SlWZQ-e2p2ctskva52qii0a36uS5CqTprMxRE');
+
+            subscription = await swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: applicationServerKey
+            });
+
+            console.log('User subscribed to push notifications with new keys:', subscription);
+            sendSubscriptionToServer(subscription);
         } catch (error) {
             console.error('Failed to subscribe the user to push notifications:', error);
             updateStatus('Failed to setup push notifications.', true);

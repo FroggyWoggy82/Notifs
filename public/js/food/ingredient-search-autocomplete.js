@@ -244,10 +244,31 @@ function createAutocompleteDropdown(searchInput) {
         return existingDropdown;
     }
 
+    // Ensure the search input has an ID and name
+    if (!searchInput.id) {
+        // Generate a unique ID based on timestamp
+        searchInput.id = `ingredient-search-${Date.now()}`;
+        console.log(`Added ID "${searchInput.id}" to search input`);
+    }
+
+    if (!searchInput.name) {
+        // Use the ID as the name, but remove any timestamp suffix
+        searchInput.name = searchInput.id.replace(/-\d+$/, '');
+        console.log(`Added name "${searchInput.name}" to search input`);
+    }
+
     // Create dropdown container
     const dropdownContainer = document.createElement('div');
     dropdownContainer.className = 'autocomplete-dropdown';
     dropdownContainer.style.display = 'none';
+
+    // Add an ID to the dropdown container for accessibility
+    dropdownContainer.id = `${searchInput.id}-dropdown`;
+
+    // Add ARIA attributes for accessibility
+    searchInput.setAttribute('aria-autocomplete', 'list');
+    searchInput.setAttribute('aria-controls', dropdownContainer.id);
+    searchInput.setAttribute('aria-expanded', 'false');
 
     // Set inline styles to ensure the dropdown is visible and properly positioned
     dropdownContainer.style.position = 'absolute';
@@ -280,23 +301,51 @@ function createAutocompleteDropdown(searchInput) {
 function updateAutocompleteDropdown(dropdown, results) {
     console.log(`Updating dropdown with ${results ? results.length : 0} results`);
 
+    // Get the associated search input
+    const searchInput = dropdown.previousElementSibling;
+    if (searchInput && searchInput.hasAttribute('aria-expanded')) {
+        searchInput.setAttribute('aria-expanded', 'true');
+    }
+
     // Clear the dropdown
     dropdown.innerHTML = '';
 
+    // Create a proper list for accessibility
+    const list = document.createElement('ul');
+    list.className = 'autocomplete-list';
+    list.setAttribute('role', 'listbox');
+
+    // Add ID to the list for accessibility
+    if (dropdown.id) {
+        list.id = `${dropdown.id}-list`;
+    } else {
+        list.id = `autocomplete-list-${Date.now()}`;
+    }
+
+    // Update the search input's aria-controls attribute
+    if (searchInput) {
+        searchInput.setAttribute('aria-controls', list.id);
+    }
+
     if (!results || results.length === 0) {
         // If no results, show a "No results found" message
-        const noResults = document.createElement('div');
+        const noResults = document.createElement('li');
         noResults.className = 'autocomplete-item no-results';
         noResults.textContent = 'No ingredients found';
-        dropdown.appendChild(noResults);
+        noResults.setAttribute('role', 'option');
+        noResults.setAttribute('aria-selected', 'false');
+        list.appendChild(noResults);
 
         console.log('No results found, showing message');
     } else {
         // Create a list item for each result
-        results.forEach(ingredient => {
-            const item = document.createElement('div');
+        results.forEach((ingredient, index) => {
+            const item = document.createElement('li');
             item.className = 'autocomplete-item';
             item.textContent = ingredient.name;
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', 'false');
+            item.setAttribute('id', `autocomplete-item-${index}`);
             item.dataset.id = ingredient.id;
             item.dataset.recipeId = ingredient.recipe_id;
 
@@ -326,11 +375,14 @@ function updateAutocompleteDropdown(dropdown, results) {
                 selectIngredient(ingredient);
             });
 
-            dropdown.appendChild(item);
+            list.appendChild(item);
         });
 
         console.log(`Added ${results.length} items to dropdown`);
     }
+
+    // Add the list to the dropdown
+    dropdown.appendChild(list);
 
     // Force the dropdown to be visible with !important
     dropdown.style.cssText += 'display: block !important;';
@@ -634,9 +686,14 @@ function selectIngredient(ingredient) {
     activeSearchInput.value = ingredient.name;
     console.log('Set search input value:', activeSearchInput.value);
 
-    // Hide the dropdown
+    // Hide the dropdown and update ARIA attributes
     if (activeDropdown) {
         activeDropdown.style.display = 'none';
+
+        // Update ARIA attributes on the search input
+        if (activeSearchInput) {
+            activeSearchInput.setAttribute('aria-expanded', 'false');
+        }
     }
 }
 

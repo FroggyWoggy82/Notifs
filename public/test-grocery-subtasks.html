@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Grocery Subtasks</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="css/grocery-tasks.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1, h2 {
+            color: #ffffff;
+        }
+        
+        .task-item {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .task-item.has-subtasks {
+            padding-left: 40px;
+        }
+        
+        .task-content {
+            flex: 1;
+            margin-left: 10px;
+        }
+        
+        .task-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .task-description {
+            font-size: 14px;
+            color: #cccccc;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        
+        .subtasks-container {
+            margin-left: 30px;
+            border-left: 2px solid #4CAF50;
+            padding-left: 10px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+        
+        .subtasks-container.expanded {
+            max-height: 1000px;
+        }
+        
+        .subtask-item {
+            padding: 8px 10px;
+            margin: 5px 0;
+            background-color: #1e1e1e;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .subtask-item .subtask-checkbox {
+            margin-right: 10px;
+        }
+        
+        .subtask-item .subtask-title {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .subtask-item.completed .subtask-title {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        
+        .loading-subtasks, .no-subtasks, .subtasks-error {
+            padding: 10px;
+            text-align: center;
+            color: #cccccc;
+        }
+        
+        button {
+            background-color: #333333;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #444444;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Grocery Subtasks</h1>
+    
+    <div id="taskList">
+        <div class="task-item has-subtasks" data-task-id="1">
+            <input type="checkbox" class="task-checkbox">
+            <div class="task-content">
+                <span class="task-title">Grocery List (775 cal, 31.0% of target)</span>
+                <span class="task-description">Grocery list for selected recipes. Total calories: 774.5 (31.0% of daily target). Total protein: 29.0g (24.2% of daily target).</span>
+                <div class="task-metadata">
+                    <span class="subtask-indicator">Has subtasks</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button id="enhanceButton">Enhance Grocery List Task</button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const enhanceButton = document.getElementById('enhanceButton');
+            enhanceButton.addEventListener('click', () => {
+                enhanceGroceryListTask();
+            });
+        });
+        
+        function enhanceGroceryListTask() {
+            const taskElement = document.querySelector('.task-item');
+            const taskId = taskElement.getAttribute('data-task-id');
+            
+            // Add has-subtasks class
+            taskElement.classList.add('has-subtasks');
+            
+            // Check if the expand button already exists
+            let expandButton = taskElement.querySelector('.expand-subtasks-btn');
+            let expandButtonContainer = taskElement.querySelector('.expand-button-container');
+            
+            // If the expand button doesn't exist, create it
+            if (!expandButton) {
+                // Create expand button
+                expandButton = document.createElement('button');
+                expandButton.className = 'expand-subtasks-btn';
+                expandButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                expandButton.title = 'Show/hide subtasks';
+                expandButton.setAttribute('data-task-id', taskId);
+                expandButton.setAttribute('data-expand-button', 'true');
+                
+                // Create a separate container for the expand button
+                expandButtonContainer = document.createElement('div');
+                expandButtonContainer.className = 'expand-button-container';
+                expandButtonContainer.appendChild(expandButton);
+                
+                // Insert the expand button container at the beginning of the task element
+                if (taskElement.firstChild) {
+                    taskElement.insertBefore(expandButtonContainer, taskElement.firstChild);
+                } else {
+                    taskElement.appendChild(expandButtonContainer);
+                }
+                
+                console.log(`Added expand button to grocery list task ${taskId}`);
+            }
+            
+            // Add click event to the expand button
+            expandButton.addEventListener('click', (event) => {
+                console.log(`Expand button clicked for grocery list task ${taskId}`);
+                event.stopPropagation();
+                event.preventDefault();
+                
+                // Toggle subtasks
+                toggleSubtasks(taskId, taskElement);
+                
+                return false;
+            });
+        }
+        
+        function toggleSubtasks(taskId, parentElement) {
+            console.log(`Toggling subtasks for task ${taskId}`);
+            
+            // Find or create the subtasks container
+            let subtasksContainer = parentElement.querySelector('.subtasks-container');
+            if (!subtasksContainer) {
+                subtasksContainer = document.createElement('div');
+                subtasksContainer.className = 'subtasks-container';
+                subtasksContainer.setAttribute('data-parent-task-id', taskId);
+                parentElement.appendChild(subtasksContainer);
+            }
+            
+            // Toggle the expanded state
+            const isExpanded = subtasksContainer.classList.contains('expanded');
+            const expandButton = parentElement.querySelector('.expand-subtasks-btn');
+            
+            if (isExpanded) {
+                // Collapse the subtasks
+                subtasksContainer.classList.remove('expanded');
+                if (expandButton) {
+                    expandButton.classList.remove('expanded');
+                }
+                
+                return;
+            }
+            
+            // Expand the subtasks
+            if (expandButton) {
+                expandButton.classList.add('expanded');
+            }
+            
+            // Show loading indicator
+            subtasksContainer.innerHTML = '<div class="loading-subtasks">Loading subtasks...</div>';
+            subtasksContainer.classList.add('expanded');
+            
+            // Simulate loading subtasks
+            setTimeout(() => {
+                // Clear the loading indicator
+                subtasksContainer.innerHTML = '';
+                
+                // Create sample subtasks
+                const subtasks = [
+                    { id: 1, title: 'Eggs Pasture Raised Vital Farms - 200.0g - 1 package - $7.78', is_complete: false },
+                    { id: 2, title: 'Fresh Bunch of Bananas - 101.0g - 1 package - $1.34', is_complete: false },
+                    { id: 3, title: 'Fresh Kiwi Fruit - 138.0g - 3 packages - $1.80', is_complete: false },
+                    { id: 4, title: 'H‑E‑B Original Thick Cut Bacon - 36.0g - 1 package - $4.99', is_complete: false },
+                    { id: 5, title: 'Parmigiano Rggiano Galli - 28.2g - 1 package - $10.28', is_complete: false }
+                ];
+                
+                // Render each subtask
+                subtasks.forEach(subtask => {
+                    const subtaskElement = createSubtaskElement(subtask, taskId);
+                    subtasksContainer.appendChild(subtaskElement);
+                });
+            }, 500);
+        }
+        
+        function createSubtaskElement(subtask, parentTaskId) {
+            const subtaskElement = document.createElement('div');
+            subtaskElement.className = 'subtask-item grocery-subtask';
+            subtaskElement.setAttribute('data-subtask-id', subtask.id);
+            subtaskElement.setAttribute('data-parent-task-id', parentTaskId);
+            
+            if (subtask.is_complete) {
+                subtaskElement.classList.add('completed');
+            }
+            
+            // Create checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'subtask-checkbox';
+            checkbox.checked = subtask.is_complete;
+            checkbox.setAttribute('data-subtask-id', subtask.id);
+            checkbox.setAttribute('data-parent-task-id', parentTaskId);
+            
+            // Add event listener to the checkbox
+            checkbox.addEventListener('change', (event) => {
+                event.stopPropagation();
+                
+                const isComplete = event.target.checked;
+                
+                // Update the UI
+                if (isComplete) {
+                    subtaskElement.classList.add('completed');
+                } else {
+                    subtaskElement.classList.remove('completed');
+                }
+            });
+            
+            // Create title
+            const title = document.createElement('span');
+            title.className = 'subtask-title';
+            title.textContent = subtask.title;
+            
+            // Add elements to the subtask element
+            subtaskElement.appendChild(checkbox);
+            subtaskElement.appendChild(title);
+            
+            return subtaskElement;
+        }
+    </script>
+</body>
+</html>

@@ -48,7 +48,8 @@ class Task {
             recurrenceInterval,
             parent_task_id, // Support for subtasks
             is_subtask, // Flag to identify subtasks
-            grocery_data // Support for grocery list data
+            grocery_data, // Support for grocery list data
+            has_subtasks // Flag to indicate task has subtasks
         } = taskData;
 
         console.log('Task data received:', taskData);
@@ -220,6 +221,12 @@ class Task {
             if (value !== undefined) {
                 // Convert camelCase to snake_case for database column names
                 const columnName = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+
+                // Special handling for has_subtasks to ensure it's properly set
+                if (key === 'has_subtasks') {
+                    console.log(`Setting has_subtasks to ${value} for task ${id}`);
+                }
+
                 setClauses.push(`${columnName} = $${queryIndex}`);
                 values.push(value);
                 queryIndex++;

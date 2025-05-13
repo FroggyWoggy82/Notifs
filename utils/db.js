@@ -24,10 +24,13 @@ const poolConfig = {
         rejectUnauthorized: false
     },
     // Add connection timeout to prevent hanging
-    connectionTimeoutMillis: 15000, // 15 seconds
+    connectionTimeoutMillis: 30000, // 30 seconds (increased from 15)
     idleTimeoutMillis: 60000, // 60 seconds
-    max: 20, // Maximum number of clients in the pool
-    statement_timeout: 30000 // 30 seconds statement timeout
+    max: 10, // Maximum number of clients in the pool (reduced from 20 to conserve resources)
+    statement_timeout: 30000, // 30 seconds statement timeout
+    // Add retry logic
+    max_retries: 3, // Retry connection up to 3 times
+    retry_delay: 1000 // Wait 1 second between retries
 };
 
 console.log('Database connection config:', {
@@ -49,31 +52,51 @@ pool.on('error', (err) => {
     // process.exit(-1);
 });
 
-// Test the database connection with a timeout
-const testDbConnection = async () => {
-    try {
-        // Set a timeout for the query
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Database connection test timed out after 10 seconds')), 10000);
-        });
+// Test the database connection with a timeout and retry logic
+const testDbConnection = async (maxRetries = 3, timeout = 20000) => {
+    let retries = 0;
 
-        // Run the query
-        const queryPromise = pool.query('SELECT NOW()');
+    while (retries <= maxRetries) {
+        try {
+            console.log(`Database connection test attempt ${retries + 1}/${maxRetries + 1}...`);
 
-        // Race the query against the timeout
-        const res = await Promise.race([queryPromise, timeoutPromise]);
-        console.log('Database connection test successful:', res.rows[0]);
-        return true;
-    } catch (err) {
-        console.error('Database connection test failed:', err);
-        return false;
+            // Set a timeout for the query
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error(`Database connection test timed out after ${timeout/1000} seconds`)), timeout);
+            });
+
+            // Run the query
+            const queryPromise = pool.query('SELECT NOW()');
+
+            // Race the query against the timeout
+            const res = await Promise.race([queryPromise, timeoutPromise]);
+            console.log('Database connection test successful:', res.rows[0]);
+            return true;
+        } catch (err) {
+            retries++;
+            console.error(`Database connection test attempt ${retries}/${maxRetries + 1} failed:`, err.message);
+
+            if (retries <= maxRetries) {
+                // Wait before retrying
+                const retryDelay = 2000 * retries; // Exponential backoff
+                console.log(`Retrying in ${retryDelay/1000} seconds...`);
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+            } else {
+                console.error('All database connection attempts failed.');
+                return false;
+            }
+        }
     }
+
+    return false;
 };
 
-// Run the test
-testDbConnection();
+// Check if we should run the test immediately
+// We'll let server.js handle the actual test to avoid duplication
+// testDbConnection();
 
 module.exports = {
+    testDbConnection, // Export the test function
     query: (text, params) => {
         // Ensure params is always an array
         const safeParams = Array.isArray(params) ? params : (params ? [params] : []);

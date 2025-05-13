@@ -1,0 +1,186 @@
+/**
+ * Improved Grocery Subtasks Styling
+ * This file provides enhanced styling for grocery list subtasks with better contrast and readability
+ */
+
+/* Grocery subtask container */
+.subtasks-container {
+    overflow: hidden;
+    max-height: 0;
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+    margin-left: 20px;
+    border-left: 2px solid rgba(76, 175, 80, 0.5);
+    padding-left: 10px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-radius: 0 0 4px 4px;
+    width: calc(100% - 30px);
+    margin-bottom: 0;
+    position: relative;
+    z-index: 5;
+}
+
+.subtasks-container.expanded {
+    max-height: 1000px; /* Large enough to accommodate all subtasks */
+    opacity: 1;
+    transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Grocery subtask item */
+.subtask-item.grocery-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    margin: 5px 0;
+    background-color: rgba(30, 30, 30, 0.9);
+    border-radius: 4px;
+    border-left: 3px solid #4CAF50;
+    transition: background-color 0.2s ease;
+}
+
+.subtask-item.grocery-item:hover {
+    background-color: rgba(40, 40, 40, 0.9);
+}
+
+/* Grocery subtask content */
+.subtask-item.grocery-item .subtask-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+/* Grocery subtask title */
+.subtask-item.grocery-item .subtask-title {
+    color: #ffffff;
+    margin-right: 10px;
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Grocery subtask checkbox */
+.subtask-item.grocery-item .task-checkbox {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Completed grocery subtask */
+.subtask-item.grocery-item.complete {
+    background-color: rgba(20, 20, 20, 0.8);
+    border-left-color: #666;
+}
+
+.subtask-item.grocery-item.complete .subtask-title {
+    text-decoration: line-through;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Grocery info row and styling */
+.grocery-info-row {
+    width: 100%;
+    margin-top: 8px !important;
+    margin-left: 28px !important; /* Align with the text, accounting for checkbox width */
+    padding: 4px 0 !important;
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.grocery-info {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 2px 4px !important;
+}
+
+/* Common styles for grocery info elements - using very specific selectors */
+.subtasks-container .subtask-item.grocery-item .grocery-amount,
+.subtasks-container .subtask-item.grocery-item .grocery-packages,
+.subtasks-container .subtask-item.grocery-item .grocery-price,
+.grocery-amount,
+.grocery-packages,
+.grocery-price {
+    font-size: 15px !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    font-weight: 700 !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.9) !important;
+    letter-spacing: 0.5px !important;
+    color: #ffffff !important;
+    margin: 2px !important;
+}
+
+/* Specific styles for each info type with more specific selectors */
+.subtasks-container .subtask-item.grocery-item .grocery-amount,
+.grocery-amount {
+    background-color: rgba(76, 175, 80, 0.8) !important;
+    border: 1px solid rgba(76, 175, 80, 1) !important;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.7) !important;
+}
+
+.subtasks-container .subtask-item.grocery-item .grocery-packages,
+.grocery-packages {
+    background-color: rgba(33, 150, 243, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 5px rgba(33, 150, 243, 0.9) !important;
+    color: #ffffff !important;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 1) !important;
+    font-weight: 700 !important;
+}
+
+.subtasks-container .subtask-item.grocery-item .grocery-price,
+.grocery-price {
+    background-color: rgba(255, 152, 0, 0.8) !important;
+    border: 1px solid rgba(255, 152, 0, 1) !important;
+    box-shadow: 0 0 4px rgba(255, 152, 0, 0.7) !important;
+}
+
+/* Animations */
+@keyframes subtaskFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subtask-fade-in {
+    animation: subtaskFadeIn 0.3s ease forwards;
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    .subtasks-container {
+        margin-left: 15px;
+        padding-left: 5px;
+    }
+
+    .subtask-item.grocery-item {
+        padding: 6px 8px;
+    }
+
+    .subtask-item.grocery-item .subtask-title {
+        font-size: 14px;
+    }
+
+    .grocery-amount,
+    .grocery-packages,
+    .grocery-price {
+        font-size: 13px;
+        padding: 2px 6px;
+    }
+}

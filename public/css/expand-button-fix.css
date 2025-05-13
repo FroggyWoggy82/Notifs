@@ -7,6 +7,7 @@
 .task-item.has-subtasks {
     position: relative;
     padding-left: 40px !important; /* Make room for the expand button */
+    border-left: 3px solid #4CAF50 !important; /* Add a subtle highlight to tasks with subtasks */
 }
 
 /* Create a container for the expand button */
@@ -16,10 +17,12 @@
     top: 0;
     bottom: 0;
     width: 40px;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     z-index: 10;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* Style the expand button */
@@ -32,13 +35,15 @@
     padding: 5px;
     transition: all 0.3s ease;
     z-index: 20;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     width: 30px;
     height: 30px;
     border-radius: 50%;
     position: relative;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* Hover effect for the expand button */
@@ -63,6 +68,45 @@
 /* Transition for the chevron icon */
 .expand-subtasks-btn i {
     transition: transform 0.3s ease;
+}
+
+/* Add a pulsing animation to the expand button to make it more noticeable */
+@keyframes expandButtonPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.task-item.has-subtasks .expand-subtasks-btn {
+    animation: expandButtonPulse 2s infinite;
+}
+
+/* Ensure the expand button doesn't interfere with the checkbox */
+.task-item.has-subtasks .task-checkbox {
+    margin-left: 5px;
+}
+
+/* Ensure the expand button is properly positioned on mobile */
+@media (max-width: 768px) {
+    .task-item.has-subtasks {
+        padding-left: 35px !important;
+    }
+
+    .expand-button-container {
+        width: 35px;
+    }
+
+    .expand-subtasks-btn {
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+    }
 }
 
 /* Style the subtasks container */

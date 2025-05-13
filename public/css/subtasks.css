@@ -3,6 +3,8 @@
 /* Parent task with subtasks */
 .task-item.has-subtasks {
     position: relative;
+    padding-left: 40px !important; /* Make room for the expand button */
+    border-left: 3px solid #4CAF50 !important; /* Add a subtle highlight to tasks with subtasks */
 }
 
 /* Expand button container */
@@ -12,47 +14,68 @@
     top: 0;
     bottom: 0;
     width: 40px;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     z-index: 10;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* Expand button */
 .expand-subtasks-btn {
-    background: none;
-    border: none;
+    background-color: rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(76, 175, 80, 0.5);
     color: #4CAF50;
     font-size: 16px;
     cursor: pointer;
     padding: 5px;
     transition: all 0.3s ease;
-    z-index: 2;
-    display: flex;
+    z-index: 20;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     width: 30px;
     height: 30px;
     border-radius: 50%;
     position: relative;
-    background-color: rgba(76, 175, 80, 0.1);
-    border: 1px solid rgba(76, 175, 80, 0.3);
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .expand-subtasks-btn:hover {
     color: #ffffff;
-    background-color: rgba(76, 175, 80, 0.3);
+    background-color: rgba(76, 175, 80, 0.5);
     transform: scale(1.1);
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
 }
 
 .expand-subtasks-btn:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.5);
 }
 
 .task-item.expanded .expand-subtasks-btn i {
     transform: rotate(180deg);
     transition: transform 0.3s ease;
+}
+
+/* Add a pulsing animation to make the expand button more noticeable */
+@keyframes expandButtonPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.task-item.has-subtasks .expand-subtasks-btn {
+    animation: expandButtonPulse 2s infinite;
 }
 
 /* Subtask indicator */
@@ -67,12 +90,7 @@
     margin-right: 8px;
 }
 
-/* Make expand button more visible */
-.has-subtasks {
-    position: relative;
-    padding-left: 40px !important; /* Make room for the expand button */
-}
-
+/* Additional styling for expand button */
 .has-subtasks .expand-subtasks-btn i {
     transition: transform 0.3s ease;
 }
@@ -164,6 +182,10 @@
     padding-left: 10px;
     background-color: rgba(76, 175, 80, 0.05);
     border-radius: 0 0 4px 4px;
+    width: calc(100% - 30px);
+    margin-bottom: 0;
+    position: relative;
+    z-index: 5;
 }
 
 .subtasks-container.expanded {
@@ -188,6 +210,7 @@
     transition: all 0.3s ease;
     transform-origin: top;
     animation: subtaskFadeIn 0.3s ease forwards;
+    border-radius: 4px;
 }
 
 .subtask-item.complete {
@@ -199,16 +222,22 @@
     display: flex;
     align-items: center;
     flex: 1;
+    flex-wrap: wrap;
 }
 
-.subtask-item .task-checkbox {
+.subtask-item .subtask-checkbox {
     margin-right: 10px;
     cursor: pointer;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
 }
 
 .subtask-item .subtask-title {
     font-size: 0.9em;
     color: #ffffff;
+    margin-right: 10px;
+    flex: 1;
 }
 
 .subtask-item.complete .subtask-title {

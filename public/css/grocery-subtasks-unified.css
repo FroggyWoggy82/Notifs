@@ -1,0 +1,207 @@
+/**
+ * Unified Grocery Subtasks Styling
+ * This file provides consistent styling for grocery list subtasks
+ */
+
+/* Grocery subtask container */
+.subtasks-container {
+    overflow: hidden;
+    max-height: 0;
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+    margin-left: 20px;
+    border-left: 2px solid rgba(76, 175, 80, 0.5);
+    padding-left: 10px;
+    background-color: rgba(76, 175, 80, 0.05);
+    border-radius: 0 0 4px 4px;
+    width: calc(100% - 30px);
+    margin-bottom: 0;
+    position: relative;
+    z-index: 5;
+}
+
+.subtasks-container.expanded {
+    max-height: 1000px; /* Large enough to accommodate all subtasks */
+    opacity: 1;
+    transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Grocery subtask item */
+.subtask-item.grocery-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    margin: 5px 0;
+    background-color: rgba(76, 175, 80, 0.05);
+    border-radius: 4px;
+    border-left: 3px solid rgba(76, 175, 80, 0.3);
+    transition: background-color 0.2s ease;
+}
+
+.subtask-item.grocery-item:hover {
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Grocery subtask content */
+.subtask-item.grocery-item .subtask-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+/* Grocery subtask title */
+.subtask-item.grocery-item .subtask-title {
+    color: #ffffff;
+    margin-left: 10px;
+    flex: 1;
+    font-size: 14px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Grocery subtask checkbox */
+.subtask-item.grocery-item .task-checkbox {
+    margin-right: 10px;
+}
+
+/* Completed grocery subtask */
+.subtask-item.grocery-item.complete {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-left-color: rgba(76, 175, 80, 0.5);
+}
+
+.subtask-item.grocery-item.complete .subtask-title {
+    text-decoration: line-through;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Loading indicator */
+.subtask-loading {
+    padding: 10px;
+    color: #999;
+    font-style: italic;
+    text-align: center;
+}
+
+/* No subtasks message */
+.subtask-item.no-subtasks {
+    padding: 10px;
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    background-color: transparent;
+    border-left: none;
+}
+
+/* Error message */
+.subtask-error {
+    padding: 10px;
+    color: #ff6b6b;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Expand button for grocery list tasks */
+.task-item[data-grocery-list="true"] .expand-subtasks-btn {
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    z-index: 20;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: relative;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Hover effect for the expand button */
+.task-item[data-grocery-list="true"] .expand-subtasks-btn:hover {
+    color: #ffffff;
+    background-color: rgba(76, 175, 80, 0.3);
+    transform: scale(1.1);
+}
+
+/* Focus effect for the expand button */
+.task-item[data-grocery-list="true"] .expand-subtasks-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+}
+
+/* Rotate the chevron icon when expanded */
+.task-item[data-grocery-list="true"].expanded .expand-subtasks-btn i {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+/* Transition for the chevron icon */
+.task-item[data-grocery-list="true"] .expand-subtasks-btn i {
+    transition: transform 0.3s ease;
+}
+
+/* Add a pulsing animation to the expand button to make it more noticeable */
+@keyframes groceryExpandButtonPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.task-item[data-grocery-list="true"] .expand-subtasks-btn {
+    animation: groceryExpandButtonPulse 2s infinite;
+}
+
+/* Animations */
+@keyframes subtaskFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subtask-fade-in {
+    animation: subtaskFadeIn 0.3s ease forwards;
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    .subtasks-container {
+        margin-left: 20px;
+        padding-left: 5px;
+    }
+
+    .subtask-item.grocery-item {
+        padding: 6px 8px;
+    }
+
+    .subtask-item.grocery-item .subtask-title {
+        font-size: 13px;
+    }
+
+    .task-item[data-grocery-list="true"] .expand-subtasks-btn {
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+    }
+}

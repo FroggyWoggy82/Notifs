@@ -80,6 +80,65 @@
     color: #ff9800;
 }
 
+/* Subtask indicator for grocery lists */
+.subtask-indicator {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 12px;
+    color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Task metadata container */
+.task-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+/* Ensure the expand button is vertically centered */
+.task-item.has-subtasks .expand-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    z-index: 2;
+}
+
+/* Expand button styling */
+.expand-subtasks-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+/* Rotate the chevron when expanded */
+.expand-subtasks-btn.expanded i {
+    transform: rotate(180deg);
+}
+
+/* Adjust task item with subtasks */
+.task-item.has-subtasks {
+    padding-left: 30px;
+    position: relative;
+}
+
 /* Dark theme adjustments */
 body.dark-theme .task-item.grocery-task {
     background-color: rgba(20, 30, 20, 0.9);
