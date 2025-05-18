@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="css/recurrence-indicator-redesign.css">
     <link rel="stylesheet" href="css/progress-photo-fix.css">
     <link rel="stylesheet" href="css/date-badge-redesign.css">
+    <link rel="stylesheet" href="css/specific-task-badges.css"> <!-- Specific task badges -->
     <link rel="stylesheet" href="css/habit-button-fix.css">
     <link rel="stylesheet" href="css/habit-ui-fix.css">
     <link rel="stylesheet" href="css/habit-glow-fix.css">
@@ -55,6 +56,11 @@
     <link rel="stylesheet" href="css/grocery-subtasks-unified.css"> <!-- Unified grocery subtasks styling -->
     <link rel="stylesheet" href="css/grocery-subtasks-improved.css"> <!-- Improved grocery subtasks styling with better contrast -->
     <link rel="stylesheet" href="css/subtask-dropdown-fix.css"> <!-- Improved subtask dropdown styling -->
+    <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date.css"> <!-- Fix for Yuvi's Bday overdue date -->
+    <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date-final.css"> <!-- Final fix for Yuvi's Bday overdue date -->
+    <link rel="stylesheet" href="css/fix-yuvi-bday-duplicate-text.css"> <!-- Fix for Yuvi's Bday duplicate text -->
+    <link rel="stylesheet" href="css/fix-yuvi-bday-final.css"> <!-- Final fix for Yuvi's Bday dates -->
+    <link rel="stylesheet" href="css/fix-yuvi-bday-important.css"> <!-- Final fix for Yuvi's Bday dates with !important -->
 
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -66,6 +72,8 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
     <link rel="stylesheet" href="css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
     <link rel="stylesheet" href="css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
+    <link rel="stylesheet" href="css/modal-improvements.css"> <!-- UI improvements for modals and forms -->
+    <link rel="stylesheet" href="css/edit-button-white-hover.css"> <!-- Edit button white hover -->
 </head>
 <body>
     <button class="menu-button">
@@ -486,6 +494,21 @@
     </div>
     <!-- ===== End Edit Habit Modal ===== -->
 
+    <!-- UI Improvement Systems -->
+    <script src="js/notification-system.js?v=1.0.1"></script> <!-- Notification system for success messages -->
+    <script src="js/modal-system.js?v=1.0.1"></script> <!-- Improved modal system -->
+    <script src="js/form-improvements.js?v=1.0.1"></script> <!-- Form layout and save confirmation improvements -->
+    <script src="js/tasks/direct-fix.js?v=1.0.2"></script> <!-- Direct fix for duplicate task creation -->
+
+    <!-- Unified fix for Yuvi's Bday date issue -->
+    <script src="js/yuvi-bday-fix-unified.js"></script>
+
+    <!-- Previous fix scripts - all commented out to avoid conflicts -->
+    <!-- <script src="js/yuvi-fix-final.js"></script> -->
+    <!-- <script src="js/fix-yuvi-overdue-format.js"></script> -->
+    <!-- <script src="js/fix-yuvi-date-format-final.js"></script> -->
+    <!-- <script src="js/fix-yuvi-bday-dates.js"></script> -->
+
     <!-- Common utilities -->
     <script src="js/common/sidebar.js"></script>
     <script src="js/common/status-bar.js"></script>
@@ -510,6 +533,9 @@
     <script src="js/tasks/recurrence-indicator-redesign.js"></script>
     <script src="js/tasks/progress-photo-fix.js"></script>
     <script src="js/tasks/date-badge-redesign.js"></script>
+    <script src="js/components/next-date-prefix.js"></script>
+    <script src="js/components/badge-format-fix.js"></script>
+    <!-- <script src="js/components/yuvi-bday-fix.js"></script> -->
     <script src="js/dropdown-arrow-toggle.js"></script>
 
     <!-- Habit functionality -->

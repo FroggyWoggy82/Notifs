@@ -152,8 +152,9 @@
 }
 
 .word-count {
-    color: var(--text-tertiary);
+    color: var(--text-primary);
     font-size: 14px;
+    font-weight: bold;
 }
 
 .mood-selector {

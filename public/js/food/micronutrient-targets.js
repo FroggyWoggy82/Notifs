@@ -11,6 +11,7 @@
 // Default values that will be updated dynamically
 let userCalorieTarget = 2200; // Default to 2200 kcal, will be updated from user settings
 let userProteinTarget = null; // Will be set from user settings or calculated based on calories
+let userFatTarget = null; // Will be set from user settings or calculated based on calories
 
 const MICRONUTRIENT_TARGETS = {
     // General
@@ -200,11 +201,12 @@ function updateMicronutrientCalorieTarget(calorieTarget) {
 }
 
 /**
- * Update both calorie and protein targets
+ * Update calorie, protein, and fat targets
  * @param {number} calorieTarget - The user's daily calorie target
  * @param {number} proteinTarget - The user's daily protein target in grams
+ * @param {number} fatTarget - The user's daily fat target in grams
  */
-function updateMicronutrientTargets(calorieTarget, proteinTarget) {
+function updateMicronutrientTargets(calorieTarget, proteinTarget, fatTarget) {
     // First update the calorie target and related macros
     updateMicronutrientCalorieTarget(calorieTarget);
 
@@ -225,6 +227,27 @@ function updateMicronutrientTargets(calorieTarget, proteinTarget) {
         console.log(`Reset to default protein target: ${defaultProteinTarget}g (calculated from calories)`);
     } else {
         console.warn(`Invalid protein target: ${proteinTarget}. Using calculated value.`);
+    }
+
+    // Update the fat target if provided
+    if (fatTarget && !isNaN(fatTarget) && fatTarget > 0) {
+        // Update the global variable
+        userFatTarget = fatTarget;
+
+        // Update the fat target in the MICRONUTRIENT_TARGETS object
+        MICRONUTRIENT_TARGETS.fats = fatTarget;
+        MICRONUTRIENT_TARGETS.fat = fatTarget;
+
+        console.log(`Updated fat target to ${fatTarget}g (user-defined)`);
+    } else if (fatTarget === null) {
+        // Reset to default calculation based on calories
+        userFatTarget = null;
+        const defaultFatTarget = Math.round((calorieTarget * 0.30) / 9);
+        MICRONUTRIENT_TARGETS.fats = defaultFatTarget;
+        MICRONUTRIENT_TARGETS.fat = defaultFatTarget;
+        console.log(`Reset to default fat target: ${defaultFatTarget}g (calculated from calories)`);
+    } else {
+        console.warn(`Invalid fat target: ${fatTarget}. Using calculated value.`);
     }
 }
 

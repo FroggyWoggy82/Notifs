@@ -26,12 +26,13 @@ class CalorieTargetController {
                 return res.status(404).json({ error: 'No calorie target found for this user.' });
             }
 
-            // Explicitly include the protein_target field in the response
+            // Explicitly include the protein_target and fat_target fields in the response
             const response = {
                 id: target.id,
                 user_id: target.user_id,
                 daily_target: target.daily_target,
                 protein_target: target.protein_target,
+                fat_target: target.fat_target,
                 created_at: target.created_at,
                 updated_at: target.updated_at
             };
@@ -50,8 +51,8 @@ class CalorieTargetController {
      */
     static async saveCalorieTarget(req, res) {
         try {
-            const { user_id, daily_target, protein_target } = req.body;
-            console.log(`Received POST /api/calorie-targets: user_id=${user_id}, daily_target=${daily_target}, protein_target=${protein_target}`);
+            const { user_id, daily_target, protein_target, fat_target } = req.body;
+            console.log(`Received POST /api/calorie-targets: user_id=${user_id}, daily_target=${daily_target}, protein_target=${protein_target}, fat_target=${fat_target}`);
 
             // Ensure user_id is a number
             const userIdNum = parseInt(user_id, 10);
@@ -79,7 +80,21 @@ class CalorieTargetController {
                 console.log(`Using calculated default protein target: ${proteinTargetNum}`);
             }
 
-            const savedTarget = await CalorieTarget.saveCalorieTarget(userIdNum, dailyTargetNum, proteinTargetNum);
+            // Ensure fat_target is a number if provided
+            let fatTargetNum = null;
+            if (fat_target !== undefined && fat_target !== null && fat_target !== '') {
+                fatTargetNum = parseInt(fat_target, 10);
+                if (isNaN(fatTargetNum) || fatTargetNum < 20 || fatTargetNum > 300) {
+                    return res.status(400).json({ error: 'Invalid fat_target parameter. Must be a number between 20 and 300.' });
+                }
+                console.log(`Using provided fat target: ${fatTargetNum}`);
+            } else {
+                // Default fat target to 30% of daily calories (assuming 9 calories per gram of fat)
+                fatTargetNum = Math.round((dailyTargetNum * 0.30) / 9);
+                console.log(`Using calculated default fat target: ${fatTargetNum}`);
+            }
+
+            const savedTarget = await CalorieTarget.saveCalorieTarget(userIdNum, dailyTargetNum, proteinTargetNum, fatTargetNum);
             res.status(201).json(savedTarget);
         } catch (err) {
             console.error('Error saving calorie target:', err);

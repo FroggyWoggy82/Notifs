@@ -128,11 +128,80 @@ router.post('/protein', async (req, res) => {
             user_id: result.rows[0].user_id,
             daily_target: result.rows[0].daily_target,
             protein_target: result.rows[0].protein_target,
+            fat_target: result.rows[0].fat_target,
             updated_at: result.rows[0].updated_at
         });
     } catch (error) {
         console.error('Error saving protein target:', error);
         res.status(500).json({ error: 'Server error saving protein target' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/calorie-targets/fat:
+ *   post:
+ *     summary: Save fat target only
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *               daily_target:
+ *                 type: integer
+ *               fat_target:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Fat target saved
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.post('/fat', async (req, res) => {
+    try {
+        const { user_id, daily_target, fat_target } = req.body;
+        console.log(`Received POST /api/calorie-targets/fat: user_id=${user_id}, daily_target=${daily_target}, fat_target=${fat_target}`);
+
+        // Validate inputs
+        if (!user_id || !fat_target) {
+            return res.status(400).json({ error: 'User ID and fat target are required' });
+        }
+
+        const userIdNum = parseInt(user_id, 10);
+        const dailyTargetNum = daily_target ? parseInt(daily_target, 10) : 2000; // Default to 2000 if not provided
+        const fatTargetNum = parseInt(fat_target, 10);
+
+        if (isNaN(userIdNum) || isNaN(fatTargetNum) || fatTargetNum < 20 || fatTargetNum > 300) {
+            return res.status(400).json({ error: 'Invalid user ID or fat target' });
+        }
+
+        if (isNaN(dailyTargetNum) || dailyTargetNum < 500 || dailyTargetNum > 10000) {
+            return res.status(400).json({ error: 'Invalid daily target' });
+        }
+
+        // Insert the new fat target
+        const result = await db.query(
+            'INSERT INTO calorie_targets (user_id, daily_target, fat_target, updated_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
+            [userIdNum, dailyTargetNum, fatTargetNum]
+        );
+
+        res.status(201).json({
+            id: result.rows[0].id,
+            user_id: result.rows[0].user_id,
+            daily_target: result.rows[0].daily_target,
+            protein_target: result.rows[0].protein_target,
+            fat_target: result.rows[0].fat_target,
+            updated_at: result.rows[0].updated_at
+        });
+    } catch (error) {
+        console.error('Error saving fat target:', error);
+        res.status(500).json({ error: 'Server error saving fat target' });
     }
 });
 

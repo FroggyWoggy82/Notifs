@@ -10,7 +10,8 @@
 #recipes-display-section,
 #calorie-target-section,
 #create-new-recipe-section,
-.calorie-target-section {
+.calorie-target-section,
+.full-width-grocery-results {
     background-color: rgba(18, 18, 18, 0.95) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
@@ -23,7 +24,8 @@
 #recipes-display-section h2,
 #calorie-target-section h2,
 #create-new-recipe-section h2,
-.calorie-target-section h3 {
+.calorie-target-section h3,
+.full-width-grocery-results h3 {
     color: #e0e0e0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
@@ -95,11 +97,11 @@ label {
 .recipe-card {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: none !important;
 }
 
 .recipe-card-header {
-    background-color: rgba(20, 20, 20, 0.8) !important;
+    background-color: transparent !important;
     background-image: none !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
@@ -109,9 +111,7 @@ label {
 }
 
 .recipe-card-calories {
-    background-color: rgba(0, 0, 0, 0.3) !important;
     color: #00E676 !important;
-    border: 1px solid rgba(0, 230, 118, 0.3) !important;
 }
 
 
@@ -249,7 +249,7 @@ canvas {
 }
 
 .scale-value {
-    color: #e0e0e0 !important; 
+    color: #e0e0e0 !important;
 }
 
 

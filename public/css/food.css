@@ -542,6 +542,32 @@
     font-size: 1.2rem;
 }
 
+/* Two-column layout styles */
+.two-column-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.two-column-layout .column-section {
+    flex: 1;
+    min-width: 300px;
+    margin-top: 0;
+}
+
+/* Responsive behavior for mobile devices */
+@media (max-width: 768px) {
+    .two-column-layout {
+        flex-direction: column;
+    }
+
+    .two-column-layout .column-section {
+        width: 100%;
+    }
+}
+
 #recipe-creation-section h3 {
     margin-top: 30px;
     margin-bottom: 15px;
@@ -823,6 +849,18 @@
     border-color: #c3e6cb;
 }
 
+/* Grocery list results expanded styles */
+#grocery-list-results.expanded-results {
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    margin-top: 15px;
+}
+
+#grocery-list-results.expanded-results table {
+    width: 100%;
+}
+
 
 @media (max-width: 768px) {
     .nutrition-grid {
@@ -917,27 +955,27 @@
 
 
 .recipe-card {
-    background-color: transparent;
-    border-radius: 6px;
+    background-color: rgba(30, 30, 30, 0.7);
+    border-radius: 4px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     position: relative;
 }
 
 .recipe-card-header {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    gap: 8px;
+    padding: 6px 10px;
+    gap: 6px;
 }
 
 .recipe-title-container {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex: 1;
     max-width: 60%;
     overflow: hidden;
@@ -979,7 +1017,7 @@
 }
 
 .recipe-card-body {
-    padding: 15px;
+    padding: 8px 10px;
     background-color: transparent;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: block !important;
@@ -987,7 +1025,7 @@
 
 .recipe-card-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     justify-content: center;
     margin-bottom: 0;
     flex-shrink: 0;
@@ -1073,16 +1111,17 @@
     background-color: rgba(255, 255, 255, 0.15);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    padding: 0 8px;
-    font-size: 0.8rem;
+    border-radius: 3px;
+    padding: 0 6px;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    height: 24px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex: 1;
+    min-width: 40px;
 }
 
 .recipe-card-btn:hover {
@@ -1098,34 +1137,32 @@
 }
 
 .ingredient-details {
-    margin-top: 8px;
-    font-size: 0.85rem;
+    margin-top: 4px;
+    font-size: 0.8rem;
     width: 100%;
     overflow: visible;
 }
 
-
 .responsive-table-container {
     width: 100%;
     overflow-x: visible;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     background-color: transparent;
-    border-radius: 4px;
+    border-radius: 3px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 
 .ingredient-details table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 0;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     table-layout: fixed;
 }
 
 .ingredient-details th, .ingredient-details td {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 4px 6px;
+    padding: 3px 4px;
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1136,7 +1173,7 @@
     background-color: rgba(30, 30, 30, 0.4);
     font-weight: 500;
     color: #ffffff;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
 }
 
 .ingredient-details td {
@@ -1675,6 +1712,98 @@
     background-color: rgba(30, 30, 30, 0.4);
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Protein Optimization Section Styles */
+.protein-optimization-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(20, 20, 20, 0.4);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.protein-optimization-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.protein-optimization-info {
+    margin-bottom: 15px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.protein-optimization-info ul {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 20px;
+}
+
+.protein-optimization-info li {
+    margin-bottom: 5px;
+}
+
+.protein-optimization-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.protein-optimization-table th,
+.protein-optimization-table td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    text-align: left;
+}
+
+.protein-optimization-table th {
+    background-color: rgba(30, 30, 30, 0.4);
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.protein-optimization-table td {
+    color: #e0e0e0;
+}
+
+.protein-optimization-table .summary-row {
+    background-color: rgba(30, 30, 30, 0.2);
+    font-weight: 500;
+}
+
+.protein-optimization-summary {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: rgba(30, 30, 30, 0.2);
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.apply-optimization-btn {
+    display: block;
+    margin: 15px auto 0;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.apply-optimization-btn:hover {
+    background-color: rgba(255, 255, 255, 0.25);
 }
 
 .nutrition-section {

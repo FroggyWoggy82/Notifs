@@ -8,6 +8,7 @@ const path = require('path');
 const cron = require('node-cron');
 const sharp = require('sharp');
 const fs = require('fs');
+const v8 = require('v8');
 
 // Ensure upload directories exist
 const isProduction = process.env.NODE_ENV === 'production';

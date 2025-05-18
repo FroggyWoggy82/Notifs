@@ -1,0 +1,88 @@
+/**
+ * Bottom Navigation Alignment Fix
+ * Improves the alignment of icons and text in the bottom navigation bar
+ */
+
+/* Fix the overall bottom nav layout */
+.bottom-nav {
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    height: 60px !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Fix the nav items to ensure proper vertical alignment */
+.bottom-nav .nav-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+    padding: 8px 0 !important; /* Increased padding for better spacing */
+    text-align: center !important;
+    width: 20% !important; /* Equal width for all items */
+    box-sizing: border-box !important;
+}
+
+/* Fix the icon container */
+.bottom-nav .nav-icon {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 24px !important; /* Fixed height for icon container */
+    margin-bottom: 4px !important; /* Consistent spacing between icon and text */
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Fix the icon itself */
+.bottom-nav .nav-icon i {
+    display: block !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    width: 100% !important;
+}
+
+/* Fix the text label */
+.bottom-nav .nav-item span {
+    display: block !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Force proper vertical centering */
+.bottom-nav .nav-item {
+    position: relative !important;
+}
+
+.bottom-nav .nav-item::before {
+    height: 2px !important; /* Ensure the hover/active indicator is thin */
+    bottom: 0 !important; /* Position at the bottom */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .bottom-nav {
+        height: 56px !important;
+    }
+
+    .bottom-nav .nav-icon {
+        height: 22px !important;
+        margin-bottom: 3px !important;
+    }
+
+    .bottom-nav .nav-icon i {
+        font-size: 16px !important;
+    }
+
+    .bottom-nav .nav-item span {
+        font-size: 10px !important;
+    }
+}

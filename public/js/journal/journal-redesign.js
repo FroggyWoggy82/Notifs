@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sentimentIndicator = document.getElementById('sentiment-indicator');
     const saveInsightsButton = document.getElementById('save-insights');
     const themeToggleButton = document.getElementById('theme-toggle');
+    const testOllamaButton = document.getElementById('test-ollama');
 
     // Set today's date as default
     const today = new Date();
@@ -27,18 +28,71 @@ document.addEventListener('DOMContentLoaded', function() {
     const day = String(today.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
     journalDateInput.value = formattedDate;
+    console.log('Setting journal date to local date:', formattedDate);
 
     // Initialize
     loadEntries();
     loadMemoryEntries();
-    generatePromptSuggestions();
     initializeAnimations();
+
+    // Make sure word count is initialized
+    console.log('Initializing word count');
+    if (journalContentTextarea && wordCountElement) {
+        const text = journalContentTextarea.value;
+
+        // Count words properly - handle non-empty strings with proper word counting
+        let wordCount = 0;
+        if (text && text.trim().length > 0) {
+            // Split by whitespace and filter out empty strings
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            wordCount = words.length;
+        }
+
+        console.log('Initial text content:', text);
+        console.log('Initial word count calculated:', wordCount);
+
+        wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+    } else {
+        console.error('Could not initialize word count - missing elements');
+    }
 
     // Event Listeners
     saveEntryButton.addEventListener('click', saveEntry);
     analyzeEntryButton.addEventListener('click', analyzeEntry);
     journalDateInput.addEventListener('change', loadEntryForDate);
-    journalContentTextarea.addEventListener('input', handleTextareaInput);
+
+    // Make sure the textarea input event is properly connected for word count
+    if (journalContentTextarea) {
+        // Add input event listener
+        journalContentTextarea.addEventListener('input', handleTextareaInput);
+        console.log('Added input event listener to journal content textarea');
+
+        // Add change event listener as well
+        journalContentTextarea.addEventListener('change', handleTextareaInput);
+
+        // Add keyup event listener for good measure
+        journalContentTextarea.addEventListener('keyup', handleTextareaInput);
+
+        // Add a MutationObserver to monitor changes to the textarea
+        const observer = new MutationObserver((mutations) => {
+            handleTextareaInput();
+        });
+
+        observer.observe(journalContentTextarea, {
+            attributes: true,
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
+
+        // Trigger the input handler once to ensure word count is updated
+        handleTextareaInput();
+
+        // Force an update after a short delay to ensure content is loaded
+        setTimeout(handleTextareaInput, 500);
+    } else {
+        console.error('Journal content textarea not found');
+    }
 
     if (voiceToTextButton) {
         voiceToTextButton.addEventListener('click', toggleVoiceToText);
@@ -52,20 +106,37 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggleButton.addEventListener('click', toggleTheme);
     }
 
-    // Initialize word count
-    updateWordCount();
+    if (testOllamaButton) {
+        testOllamaButton.addEventListener('click', testOllama);
+    }
 
     /**
      * Handles input in the textarea
      * Triggers word count update and real-time analysis
      */
     function handleTextareaInput() {
-        updateWordCount();
+        // Update word count immediately
+        const text = journalContentTextarea.value;
+
+        // Count words properly - handle non-empty strings with proper word counting
+        let wordCount = 0;
+        if (text && text.trim().length > 0) {
+            // Split by whitespace and filter out empty strings
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            wordCount = words.length;
+        }
+
+        console.log('Text content:', text);
+        console.log('Word count calculated:', wordCount);
+
+        wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+
+        // Update sentiment indicator in real-time
+        const content = text;
 
         // Debounce real-time analysis
         clearTimeout(window.journalAnalysisTimeout);
         window.journalAnalysisTimeout = setTimeout(() => {
-            const content = journalContentTextarea.value.trim();
             if (content.length > 50) {
                 performRealTimeAnalysis(content);
             }
@@ -265,9 +336,30 @@ document.addEventListener('DOMContentLoaded', function() {
      * Updates the word count display
      */
     function updateWordCount() {
-        const text = journalContentTextarea.value.trim();
-        const wordCount = text ? text.split(/\s+/).length : 0;
+        if (!journalContentTextarea || !wordCountElement) {
+            console.error('Missing required elements for word count update');
+            return;
+        }
+
+        const text = journalContentTextarea.value;
+
+        // Count words properly - handle non-empty strings with proper word counting
+        let wordCount = 0;
+        if (text && text.trim().length > 0) {
+            // Split by whitespace and filter out empty strings
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            wordCount = words.length;
+        }
+
+        console.log('Text content for word count:', text);
+        console.log(`Updating word count: ${wordCount} words`);
+
+        // Update the word count display with the calculated value
         wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+
+        // Force the word count to be visible
+        wordCountElement.style.color = 'white';
+        wordCountElement.style.fontWeight = 'bold';
     }
 
     /**
@@ -325,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function analyzeEntry() {
         const content = journalContentTextarea.value.trim();
         const date = journalDateInput.value;
+        const mood = moodSelector ? moodSelector.value : 'neutral';
 
         if (!content) {
             showStatus('Please write something to analyze.', 'error');
@@ -365,12 +458,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 minute: '2-digit'
             });
 
+            function getSpecificMemoryContext(entries, text) {
+                return '';
+            }
+
+            const specificContext = getSpecificMemoryContext(memoryEntries, content);
+
             // Enhanced prompt for the AI assistant
             const prompt = `
             You are an empathetic AI assistant having a conversation with someone about their journal entry.
 
             Here are recent entries from this person's journal (READ THESE CAREFULLY - they contain important context):
-            ${themes}
+            ${themes}${specificContext}
 
             Today's journal entry:
             "${content}"
@@ -387,74 +486,131 @@ document.addEventListener('DOMContentLoaded', function() {
             At the very end, include a one-sentence summary of this entry prefixed with [SUMMARY:] that I can use to track themes (this will be hidden from the user).
             `;
 
-            const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'mistral',
-                    prompt: prompt,
-                    stream: false
-                })
-            });
-
-            if (!ollamaResponse.ok) {
-                const errorText = await ollamaResponse.text();
-                throw new Error(`Ollama error! status: ${ollamaResponse.status}, message: ${errorText}`);
-            }
-
-            const ollamaResult = await ollamaResponse.json();
-            const aiResponse = ollamaResult.response;
-
-            // Extract summary, questions, and insights
-            const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)\]/i);
-            const summary = summaryMatch ? summaryMatch[1].trim() : 'No summary generated';
-
-            const questions = [];
-            const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
-            let questionMatch;
-            while ((questionMatch = questionRegex.exec(aiResponse)) !== null) {
-                questions.push({
-                    number: parseInt(questionMatch[1]),
-                    text: questionMatch[2].trim()
-                });
-            }
-
-            const insights = [];
-            const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
-            let insightMatch;
-            while ((insightMatch = insightRegex.exec(aiResponse)) !== null) {
-                insights.push({
-                    text: insightMatch[1].trim()
-                });
-            }
-
-            // Save to memory
             try {
-                await fetch('/api/journal/memory', {
+                const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        date: new Date().toISOString(),
-                        text: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
-                        summary: summary
+                        model: 'mistral',
+                        prompt: prompt,
+                        stream: false
                     })
                 });
-            } catch (memoryError) {
-                console.error('Error saving to memory:', memoryError);
+
+                if (!ollamaResponse.ok) {
+                    const errorText = await ollamaResponse.text();
+                    throw new Error(`Ollama error! status: ${ollamaResponse.status}, message: ${errorText}`);
+                }
+
+                const ollamaResult = await ollamaResponse.json();
+                const aiResponse = ollamaResult.response;
+
+                // Extract summary, questions, and insights
+                const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)\]/i);
+                const summary = summaryMatch ? summaryMatch[1].trim() : 'No summary generated';
+
+                const questions = [];
+                const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
+                let questionMatch;
+                while ((questionMatch = questionRegex.exec(aiResponse)) !== null) {
+                    questions.push({
+                        number: parseInt(questionMatch[1]),
+                        text: questionMatch[2].trim()
+                    });
+                }
+
+                const insights = [];
+                const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
+                let insightMatch;
+                while ((insightMatch = insightRegex.exec(aiResponse)) !== null) {
+                    insights.push({
+                        text: insightMatch[1].trim()
+                    });
+                }
+
+                // Save to memory
+                try {
+                    await fetch('/api/journal/memory', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            date: new Date().toISOString(),
+                            text: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
+                            summary: summary
+                        })
+                    });
+                } catch (memoryError) {
+                    console.error('Error saving to memory:', memoryError);
+                }
+
+                // Format and display the analysis
+                const formattedAnalysis = formatAIAnalysis(aiResponse, questions, insights);
+                analysisContentElement.classList.remove('loading');
+                analysisContentElement.innerHTML = formattedAnalysis;
+
+                showStatus('AI analysis complete!', 'success');
+
+                // Save the entry with analysis
+                if (date) {
+                    try {
+                        await fetch('/api/journal', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                date: date,
+                                content: content,
+                                analysis: aiResponse,
+                                mood: mood
+                            })
+                        });
+                    } catch (saveError) {
+                        console.error('Error saving analysis with entry:', saveError);
+                    }
+                }
+            } catch (ollamaError) {
+                console.error('Error with Ollama:', ollamaError);
+                analysisContentElement.classList.remove('loading');
+                analysisContentElement.innerHTML = `
+                    <div class="ai-analysis-conversation error-message">
+                        <p><strong>AI Analysis Error</strong></p>
+                        <p>There was an error communicating with the Ollama AI server: ${ollamaError.message}</p>
+                        <p>Your journal entry has been saved without AI analysis.</p>
+                    </div>`;
+
+                // Save the entry without analysis
+                if (date) {
+                    try {
+                        await fetch('/api/journal', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                date: date,
+                                content: content,
+                                mood: mood
+                            })
+                        });
+                        showStatus('Journal entry saved (without AI analysis).', 'success');
+                    } catch (saveError) {
+                        console.error('Error saving entry:', saveError);
+                        showStatus('Error saving entry.', 'error');
+                    }
+                }
             }
-
-            // Format and display the analysis
-            const formattedAnalysis = formatAIAnalysis(aiResponse, questions, insights);
+        } catch (error) {
+            console.error('Error analyzing journal entry:', error);
+            showStatus(`Error analyzing journal entry: ${error.message}`, 'error');
             analysisContentElement.classList.remove('loading');
-            analysisContentElement.innerHTML = formattedAnalysis;
+            analysisContentElement.innerHTML = '<p class="placeholder">Failed to analyze entry. Please try again.</p>';
 
-            showStatus('AI analysis complete!', 'success');
-
-            // Save the entry with analysis
+            // Try to save the entry without analysis
             if (date) {
                 try {
                     await fetch('/api/journal', {
@@ -465,19 +621,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         body: JSON.stringify({
                             date: date,
                             content: content,
-                            analysis: aiResponse,
-                            mood: moodSelector ? moodSelector.value : 'neutral'
+                            mood: mood
                         })
                     });
+                    showStatus('Journal entry saved (without AI analysis).', 'success');
                 } catch (saveError) {
-                    console.error('Error saving analysis with entry:', saveError);
+                    console.error('Error saving entry:', saveError);
                 }
             }
-        } catch (error) {
-            console.error('Error analyzing journal entry:', error);
-            showStatus(`Error analyzing journal entry: ${error.message}`, 'error');
-            analysisContentElement.classList.remove('loading');
-            analysisContentElement.innerHTML = '<p class="placeholder">Failed to analyze entry. Please try again.</p>';
         }
     }
 
@@ -500,6 +651,9 @@ document.addEventListener('DOMContentLoaded', function() {
         formatted = formatted.replace(/\[QUESTION\s+\d+:\s*.+?(?:\]|\n|$)/gi, '');
         formatted = formatted.replace(/\[INSIGHT:\s*.+?(?:\]|\n|$)/gi, '');
         formatted = formatted.replace(/\n/g, '<br>');
+
+        // Add additional formatting for readability
+        formatted = formatted.replace(/^([A-Za-z\s]+:)/gm, '$1');
 
         // Format insights section
         let insightsHTML = '';
@@ -650,6 +804,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.status === 404) {
                 // No entry for this date
                 journalContentTextarea.value = '';
+                if (moodSelector) {
+                    moodSelector.value = 'neutral';
+                }
                 updateWordCount();
                 analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
                 return;
@@ -665,13 +822,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (moodSelector && entry.mood) {
                 moodSelector.value = entry.mood;
+            } else if (moodSelector) {
+                moodSelector.value = 'neutral';
             }
 
             updateWordCount();
 
             // If the entry has an analysis, display it
             if (entry.analysis) {
-                const formattedAnalysis = formatAIAnalysis(entry.analysis);
+                // Extract questions and insights for proper formatting
+                const questions = [];
+                const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
+                let questionMatch;
+                while ((questionMatch = questionRegex.exec(entry.analysis)) !== null) {
+                    questions.push({
+                        number: parseInt(questionMatch[1]),
+                        text: questionMatch[2].trim()
+                    });
+                }
+
+                const insights = [];
+                const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
+                let insightMatch;
+                while ((insightMatch = insightRegex.exec(entry.analysis)) !== null) {
+                    insights.push({
+                        text: insightMatch[1].trim()
+                    });
+                }
+
+                const formattedAnalysis = formatAIAnalysis(entry.analysis, questions, insights);
                 analysisContentElement.innerHTML = formattedAnalysis;
             } else {
                 analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
@@ -770,6 +949,67 @@ document.addEventListener('DOMContentLoaded', function() {
                     statusMessage.className = 'status';
                 }
             }, 5000);
+        }
+    }
+
+    /**
+     * Tests the Ollama connection
+     */
+    async function testOllama() {
+        try {
+            showStatus('Testing Ollama connection...', 'info');
+            analysisContentElement.innerHTML = '<p>Testing Ollama connection...</p>';
+
+            try {
+                const response = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'mistral',
+                        prompt: 'Hello, how are you?',
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+
+                const result = await response.json();
+                analysisContentElement.innerHTML = `
+                    <div class="ai-analysis-conversation">
+                        <p><strong>Ollama is running correctly!</strong></p>
+                        <p>The Mistral model responded with: "${result.response.substring(0, 100)}..."</p>
+                        <p>You can now use the "Analyze" button to analyze your journal entries.</p>
+                    </div>`;
+                showStatus('Ollama test successful!', 'success');
+            } catch (error) {
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    throw new Error('Ollama is not running. Please start Ollama in your terminal with the command: ollama serve');
+                } else if (error.message.includes('model not found')) {
+                    throw new Error('The Mistral model is not installed. Please run this command in your terminal: ollama pull mistral');
+                } else {
+                    throw error;
+                }
+            }
+        } catch (error) {
+            console.error('Error testing Ollama:', error);
+            showStatus(`Error testing Ollama: ${error.message}`, 'error');
+            analysisContentElement.innerHTML = `
+                <div class="ai-analysis-conversation error-message">
+                    <p><strong>Failed to connect to Ollama</strong></p>
+                    <p>${error.message}</p>
+                    <p>To use the AI assistant feature, you need to:</p>
+                    <ol>
+                        <li>Open a terminal window</li>
+                        <li>Run the command: <code>ollama serve</code></li>
+                        <li>If you haven't installed the Mistral model yet, run: <code>ollama pull mistral</code></li>
+                        <li>Once Ollama is running, try this test again</li>
+                    </ol>
+                </div>`;
         }
     }
 });

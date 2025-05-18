@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadRecipes() {
         try {
             showStatus('Loading recipes...', 'info');
-            
+
             const response = await fetch('/api/recipes');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             allRecipes = await response.json();
 
             availableRecipesContainer.innerHTML = '';
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 renderAvailableRecipes();
             }
-            
+
             showStatus('Recipes loaded successfully!', 'success');
             setTimeout(() => clearStatus(), 2000);
         } catch (error) {
@@ -63,17 +63,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderAvailableRecipes() {
         availableRecipesContainer.innerHTML = '';
-        
+
         allRecipes.forEach(recipe => {
 
             if (selectedRecipes.some(r => r.id === recipe.id)) {
                 return;
             }
-            
+
             const recipeElement = createRecipeElement(recipe);
             availableRecipesContainer.appendChild(recipeElement);
         });
-        
+
         if (availableRecipesContainer.children.length === 0) {
             availableRecipesContainer.innerHTML = '<p class="empty-message">All recipes selected</p>';
         }
@@ -81,12 +81,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderSelectedRecipes() {
         selectedRecipesContainer.innerHTML = '';
-        
+
         if (selectedRecipes.length === 0) {
             selectedRecipesContainer.innerHTML = '<p class="empty-message">No recipes selected</p>';
             return;
         }
-        
+
         selectedRecipes.forEach(recipe => {
             const recipeElement = createRecipeElement(recipe);
             selectedRecipesContainer.appendChild(recipeElement);
@@ -97,22 +97,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const recipeElement = document.createElement('div');
         recipeElement.className = 'recipe-item';
         recipeElement.dataset.id = recipe.id;
-        
+
         const nameElement = document.createElement('div');
         nameElement.className = 'recipe-item-name';
         nameElement.textContent = recipe.name;
-        
+
         const caloriesElement = document.createElement('div');
         caloriesElement.className = 'recipe-item-calories';
-        caloriesElement.textContent = `${recipe.total_calories.toFixed(1)} calories`;
-        
+        caloriesElement.textContent = `${recipe.total_calories.toFixed(2)} calories`;
+
         recipeElement.appendChild(nameElement);
         recipeElement.appendChild(caloriesElement);
-        
+
         recipeElement.addEventListener('click', function() {
             toggleRecipeSelection(recipeElement);
         });
-        
+
         return recipeElement;
     }
 
@@ -124,23 +124,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSelectionButtons() {
         const availableSelected = document.querySelectorAll('#available-recipes .recipe-item.selected').length > 0;
         const selectedSelected = document.querySelectorAll('#selected-recipes .recipe-item.selected').length > 0;
-        
+
         addRecipeBtn.disabled = !availableSelected;
         removeRecipeBtn.disabled = !selectedSelected;
     }
 
     function addSelectedRecipes() {
         const selectedElements = document.querySelectorAll('#available-recipes .recipe-item.selected');
-        
+
         selectedElements.forEach(element => {
             const recipeId = element.dataset.id;
             const recipe = allRecipes.find(r => r.id === recipeId);
-            
+
             if (recipe && !selectedRecipes.some(r => r.id === recipeId)) {
                 selectedRecipes.push(recipe);
             }
         });
-        
+
         renderAvailableRecipes();
         renderSelectedRecipes();
         updateCalorieAdjustment();
@@ -150,12 +150,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function removeSelectedRecipes() {
         const selectedElements = document.querySelectorAll('#selected-recipes .recipe-item.selected');
-        
+
         selectedElements.forEach(element => {
             const recipeId = element.dataset.id;
             selectedRecipes = selectedRecipes.filter(r => r.id !== recipeId);
         });
-        
+
         renderAvailableRecipes();
         renderSelectedRecipes();
         updateCalorieAdjustment();
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateCalorieAdjustment() {
         calorieAdjustmentContainer.innerHTML = '';
-        
+
         if (selectedRecipes.length === 0) {
             calorieAdjustmentContainer.innerHTML = '<p class="empty-message">Select recipes to adjust calories</p>';
             return;
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            adjustedRecipes = adjustedRecipes.filter(recipe => 
+            adjustedRecipes = adjustedRecipes.filter(recipe =>
                 selectedRecipes.some(r => r.id === recipe.id)
             );
         }
@@ -201,32 +201,32 @@ document.addEventListener('DOMContentLoaded', function() {
             const adjustmentItem = document.createElement('div');
             adjustmentItem.className = 'calorie-adjustment-item';
             adjustmentItem.dataset.id = recipe.id;
-            
+
             const header = document.createElement('div');
             header.className = 'calorie-adjustment-header';
-            
+
             const nameElement = document.createElement('div');
             nameElement.className = 'calorie-adjustment-name';
             nameElement.textContent = recipe.name;
-            
+
             const controlsElement = document.createElement('div');
             controlsElement.className = 'calorie-adjustment-controls';
 
             const calorieInput = document.createElement('input');
             calorieInput.type = 'number';
             calorieInput.className = 'calorie-adjustment-input';
-            calorieInput.value = recipe.adjustedCalories.toFixed(1);
+            calorieInput.value = recipe.adjustedCalories.toFixed(2);
             calorieInput.min = '1';
             calorieInput.step = '1';
 
             const decreaseBtn = document.createElement('button');
             decreaseBtn.className = 'adjustment-btn';
             decreaseBtn.textContent = '-10%';
-            
+
             const increaseBtn = document.createElement('button');
             increaseBtn.className = 'adjustment-btn';
             increaseBtn.textContent = '+10%';
-            
+
             const resetBtn = document.createElement('button');
             resetBtn.className = 'adjustment-btn';
             resetBtn.textContent = 'Reset';
@@ -234,46 +234,46 @@ document.addEventListener('DOMContentLoaded', function() {
             calorieInput.addEventListener('change', function() {
                 updateRecipeCalories(recipe.id, parseFloat(this.value));
             });
-            
+
             decreaseBtn.addEventListener('click', function() {
                 const newCalories = recipe.adjustedCalories * 0.9;
                 updateRecipeCalories(recipe.id, newCalories);
-                calorieInput.value = newCalories.toFixed(1);
+                calorieInput.value = newCalories.toFixed(2);
             });
-            
+
             increaseBtn.addEventListener('click', function() {
                 const newCalories = recipe.adjustedCalories * 1.1;
                 updateRecipeCalories(recipe.id, newCalories);
-                calorieInput.value = newCalories.toFixed(1);
+                calorieInput.value = newCalories.toFixed(2);
             });
-            
+
             resetBtn.addEventListener('click', function() {
                 updateRecipeCalories(recipe.id, recipe.originalCalories);
-                calorieInput.value = recipe.originalCalories.toFixed(1);
+                calorieInput.value = recipe.originalCalories.toFixed(2);
             });
 
             controlsElement.appendChild(decreaseBtn);
             controlsElement.appendChild(calorieInput);
             controlsElement.appendChild(increaseBtn);
             controlsElement.appendChild(resetBtn);
-            
+
             header.appendChild(nameElement);
             header.appendChild(controlsElement);
 
             const infoElement = document.createElement('div');
             infoElement.className = 'calorie-adjustment-info';
-            infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(1)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x`;
+            infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(2)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x`;
 
             adjustmentItem.appendChild(header);
             adjustmentItem.appendChild(infoElement);
-            
+
             calorieAdjustmentContainer.appendChild(adjustmentItem);
         });
     }
 
     function updateRecipeCalories(recipeId, newCalories) {
         const recipe = adjustedRecipes.find(r => r.id === recipeId);
-        
+
         if (recipe) {
             recipe.adjustedCalories = newCalories;
             recipe.scaleFactor = newCalories / recipe.originalCalories;
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const adjustmentItem = document.querySelector(`.calorie-adjustment-item[data-id="${recipeId}"]`);
             if (adjustmentItem) {
                 const infoElement = adjustmentItem.querySelector('.calorie-adjustment-info');
-                infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(1)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x`;
+                infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(2)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x`;
             }
         }
     }
@@ -291,10 +291,10 @@ document.addEventListener('DOMContentLoaded', function() {
             showStatus('Please select at least one recipe.', 'error');
             return;
         }
-        
+
         showStatus('Generating grocery list...', 'info');
 
-        Promise.all(adjustedRecipes.map(recipe => 
+        Promise.all(adjustedRecipes.map(recipe =>
             fetch(`/api/recipes/${recipe.id}`)
                 .then(response => {
                     if (!response.ok) {
@@ -306,13 +306,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(fullRecipes => {
 
             const combinedIngredients = {};
-            
+
             fullRecipes.forEach((fullRecipe, index) => {
                 const scaleFactor = adjustedRecipes[index].scaleFactor;
-                
+
                 fullRecipe.ingredients.forEach(ingredient => {
                     const key = ingredient.name.toLowerCase();
-                    
+
                     if (!combinedIngredients[key]) {
                         combinedIngredients[key] = {
                             name: ingredient.name,
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     const scaledAmount = ingredient.amount * scaleFactor;
-                    
+
                     combinedIngredients[key].amount += scaledAmount;
                     combinedIngredients[key].recipes.push({
                         name: fullRecipe.name,
@@ -335,12 +335,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             groceryList = Object.values(combinedIngredients).map(ingredient => {
                 let packageCount = 0;
-                
+
                 if (ingredient.package_amount && ingredient.package_amount > 0) {
 
                     packageCount = Math.ceil(ingredient.amount / ingredient.package_amount);
                 }
-                
+
                 return {
                     ...ingredient,
                     packageCount
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             printListBtn.disabled = false;
             saveListBtn.disabled = false;
-            
+
             showStatus('Grocery list generated successfully!', 'success');
         })
         .catch(error => {
@@ -373,20 +373,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        
+
         const headers = ['Ingredient', 'Amount (g)', 'Package Size (g)', 'Packages Needed', 'Package Price', 'Total Cost', 'Used In'];
-        
+
         headers.forEach(headerText => {
             const th = document.createElement('th');
             th.textContent = headerText;
             headerRow.appendChild(th);
         });
-        
+
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        
+
         groceryList.forEach(ingredient => {
             const row = document.createElement('tr');
 
@@ -395,11 +395,11 @@ document.addEventListener('DOMContentLoaded', function() {
             row.appendChild(nameCell);
 
             const amountCell = document.createElement('td');
-            amountCell.textContent = ingredient.amount.toFixed(1);
+            amountCell.textContent = ingredient.amount.toFixed(2);
             row.appendChild(amountCell);
 
             const packageSizeCell = document.createElement('td');
-            packageSizeCell.textContent = ingredient.package_amount ? ingredient.package_amount.toFixed(1) : '-';
+            packageSizeCell.textContent = ingredient.package_amount ? ingredient.package_amount.toFixed(2) : '-';
             row.appendChild(packageSizeCell);
 
             const packagesCell = document.createElement('td');
@@ -426,15 +426,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const usedInCell = document.createElement('td');
             usedInCell.textContent = ingredient.recipes.map(r => r.name).join(', ');
             row.appendChild(usedInCell);
-            
+
             tbody.appendChild(row);
         });
-        
+
         table.appendChild(tbody);
 
         const totalRow = document.createElement('tr');
         totalRow.style.fontWeight = 'bold';
-        
+
         const totalLabelCell = document.createElement('td');
         totalLabelCell.textContent = 'TOTAL';
         totalRow.appendChild(totalLabelCell);
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
         totalRow.appendChild(totalCostCell);
 
         totalRow.appendChild(document.createElement('td'));
-        
+
         tbody.appendChild(totalRow);
 
         groceryListContainer.innerHTML = '';
@@ -471,12 +471,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const printWindow = window.open('', '_blank');
-        
+
         if (!printWindow) {
             showStatus('Please allow pop-ups to print the grocery list.', 'error');
             return;
         }
-        
+
         printWindow.document.write(`
             <html>
             <head>
@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </thead>
                     <tbody>
         `);
-        
+
         groceryList.forEach(ingredient => {
             printWindow.document.write(`
                 <tr>
@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const totalPackages = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0), 0);
         const totalCost = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0) * (ingredient.price || 0), 0);
-        
+
         printWindow.document.write(`
                 <tr class="total-row">
                     <td>TOTAL</td>
@@ -571,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </body>
         </html>
         `);
-        
+
         printWindow.document.close();
     }
 
@@ -582,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let csvContent = 'Ingredient,Amount (g),Package Size (g),Packages Needed,Package Price,Total Cost,Used In\n';
-        
+
         groceryList.forEach(ingredient => {
             const row = [
                 `"${ingredient.name}"`,
@@ -593,23 +593,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 ingredient.packageCount > 0 && ingredient.price ? (ingredient.packageCount * ingredient.price).toFixed(2) : '',
                 `"${ingredient.recipes.map(r => r.name).join(', ')}"`
             ];
-            
+
             csvContent += row.join(',') + '\n';
         });
 
         const totalPackages = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0), 0);
         const totalCost = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0) * (ingredient.price || 0), 0);
-        
+
         csvContent += `"TOTAL",,,"${totalPackages}",,"${totalCost.toFixed(2)}",\n`;
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        
+
         link.setAttribute('href', url);
         link.setAttribute('download', 'grocery_list.csv');
         link.style.visibility = 'hidden';
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

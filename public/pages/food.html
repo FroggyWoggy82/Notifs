@@ -9,6 +9,7 @@
     <!-- Console log suppressor - load this first to suppress console logs -->
     <script src="../js/console-log-suppressor.js"></script>
     <script src="../js/console-log-helper.js"></script>
+    <script src="../js/log-throttle.js"></script> <!-- Throttle repeated log messages -->
 
     <link rel="stylesheet" href="../css/index.css"> <!-- Global styles -->
     <link rel="stylesheet" href="../css/food.css">   <!-- Food specific styles -->
@@ -18,6 +19,12 @@
     <link rel="stylesheet" href="../css/cronometer-text-parser-dark.css"> <!-- Dark theme for Cronometer text parser -->
     <link rel="stylesheet" href="../css/compact-recipes.css"> <!-- Compact recipe cards styles -->
     <link rel="stylesheet" href="../css/bottom-nav-fix.css">
+    <link rel="stylesheet" href="../css/modal-improvements.css"> <!-- UI improvements for modals and forms -->
+    <link rel="stylesheet" href="../css/fullscreen-edit-form.css"> <!-- Fullscreen edit ingredient form -->
+    <link rel="stylesheet" href="../css/fix-recipe-name-position.css"> <!-- Fix for recipe name position -->
+    <link rel="stylesheet" href="../css/remove-recipe-dividers.css"> <!-- Remove unwanted dividers in recipe section -->
+    <link rel="stylesheet" href="../css/remove-recipe-header-line.css"> <!-- Remove the line between Create New Recipe and Recipe Name -->
+    <link rel="stylesheet" href="../css/force-remove-recipe-header-line.css"> <!-- Force remove the line between Create New Recipe and Recipe Name -->
     <link rel="stylesheet" href="../css/food-dark-theme.css"> <!-- Dark theme for Food page -->
     <link rel="stylesheet" href="../css/chart-dark-theme.css"> <!-- Dark theme for Chart.js -->
     <link rel="stylesheet" href="../css/ingredient-buttons-dark.css"> <!-- Dark theme for ingredient buttons -->
@@ -48,6 +55,7 @@
     <link rel="stylesheet" href="../css/recipe-adjust-buttons-fix.css"> <!-- Fix for recipe adjust buttons -->
     <link rel="stylesheet" href="../css/package-amount-field.css"> <!-- Styling for package amount field -->
     <link rel="stylesheet" href="../css/grocery-list-inline.css"> <!-- Styling for grocery list section -->
+    <link rel="stylesheet" href="../css/protein-optimization.css"> <!-- Styling for protein optimization feature -->
     <link rel="stylesheet" href="../css/ingredient-autocomplete.css"> <!-- Styling for ingredient autocomplete -->
     <link rel="stylesheet" href="../css/recipe-header-buttons.css"> <!-- Styling for recipe header buttons -->
 
@@ -75,6 +83,8 @@
     <link rel="stylesheet" href="../css/enhanced-ingredient-selection.css"> <!-- Enhanced ingredient selection styling -->
     <link rel="stylesheet" href="../css/edit-ingredient-form-match.css"> <!-- EXACT match for edit ingredient form -->
     <link rel="stylesheet" href="../css/independent-field-save.css"> <!-- Styles for independent field saving -->
+    <link rel="stylesheet" href="../css/grocery-list-fullwidth.css"> <!-- Full width grocery list results styling -->
+    <link rel="stylesheet" href="../css/add-ingredient-form-dark.css"> <!-- Dark theme styling for Add Ingredient form -->
 </head>
 <body>
     <button class="menu-button">
@@ -162,7 +172,7 @@
 
             <!-- Calorie Target Section -->
             <div class="goal-card calorie-goal-card">
-                <h3 class="goal-card-title">Daily Calorie & Protein Targets</h3>
+                <h3 class="goal-card-title">Daily Calorie, Protein & Fat Targets</h3>
                 <div class="compact-form-layout">
                     <div class="input-row">
                         <div class="form-group">
@@ -185,6 +195,18 @@
                             <label class="current-label">Current Target</label>
                             <div class="current-display">
                                 <span id="current-protein-target">83 g</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="fat-target">Target Fat (g)</label>
+                            <input type="number" id="fat-target" min="20" max="300" step="1" placeholder="e.g., 70">
+                        </div>
+                        <div class="form-group">
+                            <label class="current-label">Current Target</label>
+                            <div class="current-display">
+                                <span id="current-fat-target">73 g</span>
                             </div>
                         </div>
                     </div>
@@ -566,7 +588,6 @@
                     <div class="raw-ocr-container" style="display: none;">
                         <h4>Raw OCR Text</h4>
                         <div class="raw-ocr-text"></div>
-                        <button class="raw-ocr-toggle">Hide Raw OCR Text</button>
                     </div>
                 </div>
             </div>
@@ -575,52 +596,53 @@
         <div id="create-recipe-status" class="status"></div>
     </section>
 
-    <!-- Existing Recipes Section -->
-    <section id="recipes-display-section">
-        <h2 class="compact-section-heading">Your Recipes</h2>
-        <div id="recipe-list">
-            <!-- Recipes will be loaded here -->
-            <p>Loading recipes...</p>
-        </div>
-        <div id="recipes-display-status" class="status"></div>
-    </section>
+    <!-- Two-column layout container for Recipes and Grocery List -->
+    <div class="two-column-layout">
+        <!-- Existing Recipes Section -->
+        <section id="recipes-display-section" class="column-section">
+            <h2 class="compact-section-heading">Your Recipes</h2>
+            <div id="recipe-list">
+                <!-- Recipes will be loaded here -->
+                <p>Loading recipes...</p>
+            </div>
+            <div id="recipes-display-status" class="status"></div>
+        </section>
 
-    <!-- Grocery List Section -->
-    <section id="grocery-list-section">
-        <h2>Grocery List Generator</h2>
+        <!-- Grocery List Section -->
+        <section id="grocery-list-section" class="column-section">
+            <h2>Grocery List Generator</h2>
 
-        <div class="grocery-list-container">
-            <div class="recipe-selection-area">
-                <h3>Select Recipes</h3>
-                <div id="grocery-recipe-selection" class="recipe-checkbox-list">
-                    <!-- Recipe checkboxes will be loaded here -->
-                    <p class="loading-message">Loading recipes...</p>
+            <div class="grocery-list-container">
+                <div class="recipe-selection-area">
+                    <h3>Select Recipes</h3>
+                    <div id="grocery-recipe-selection" class="recipe-checkbox-list">
+                        <!-- Recipe checkboxes will be loaded here -->
+                        <p class="loading-message">Loading recipes...</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="calorie-adjustment-area">
-                <h3>Adjust Calories</h3>
-                <div id="calorie-adjustment-container">
-                    <!-- Calorie adjustment controls will be added here -->
-                    <p class="empty-message">Select recipes to adjust calories</p>
+                <div class="calorie-adjustment-area">
+                    <h3>Adjust Calories</h3>
+                    <div id="calorie-adjustment-container">
+                        <!-- Calorie adjustment controls will be added here -->
+                        <p class="empty-message">Select recipes to adjust calories</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="grocery-list-controls">
-                <button id="generate-list-btn" class="primary-btn" disabled>Generate Grocery List</button>
-                <button id="print-list-btn" class="secondary-btn" disabled>Print List</button>
-                <button id="save-list-btn" class="secondary-btn" disabled>Save List</button>
-                <button id="save-as-task-btn" class="secondary-btn" disabled>Save as Task</button>
-            </div>
+                <div class="grocery-list-controls">
+                    <button id="generate-list-btn" class="primary-btn" disabled>Generate Grocery List</button>
+                    <button id="save-as-task-btn" class="secondary-btn" disabled>Save as Task</button>
+                </div>
 
-            <div id="grocery-list-results">
-                <!-- Grocery list will be generated here -->
-                <p class="empty-message">Generate a list to see ingredients</p>
-            </div>
+                <div id="grocery-list-results">
+                    <!-- Grocery list will be generated here -->
+                    <p class="empty-message">Generate a list to see ingredients</p>
+                </div>
 
-            <div id="grocery-status-message" class="status"></div>
-        </div>
-    </section>
+                <div id="grocery-status-message" class="status"></div>
+            </div>
+        </section>
+    </div>
 
     <!-- Bottom Navigation Bar -->
     <!-- Bottom Navigation will be added by bottom-nav-fix.js -->
@@ -690,6 +712,11 @@
     <script src="../js/common/chart-config.js"></script>
     <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
 
+    <!-- UI Improvement Systems -->
+    <script src="../js/notification-system.js"></script> <!-- Notification system for success messages -->
+    <script src="../js/modal-system.js"></script> <!-- Improved modal system -->
+    <script src="../js/form-improvements.js"></script> <!-- Form layout and save confirmation improvements -->
+
     <!-- Food functionality -->
     <script src="../js/food/custom-tooltip.js"></script> <!-- Custom tooltip implementation -->
     <script src="../js/food/tooltip-fix.js"></script> <!-- Tooltip fix implementation -->
@@ -748,7 +775,10 @@
     <script src="../js/food/detailed-nutrition.js"></script> <!-- Detailed nutrition view -->
     <script src="../js/food/detailed-nutrition-integration.js"></script> <!-- Detailed nutrition integration -->
     <script src="../js/food/micronutrient-display.js"></script> <!-- Micronutrient display in recipe view -->
-    <script src="../js/food/simple-form-handler.js"></script> <!-- Simple form handler for recipe submission -->
+
+    <!-- Prevent duplicate form submissions -->
+    <script src="../js/food/prevent-duplicate-form-submission.js"></script> <!-- Prevents duplicate form submissions -->
+    <script src="../js/food/form-submission-test.js"></script> <!-- Tests form submission process -->
 
     <!-- Consolidated package amount handling -->
     <script src="../js/food/package-amount-core.js"></script> <!-- Core package amount handling functionality -->
@@ -789,8 +819,50 @@
     <!-- Grocery list task integration -->
     <script src="../js/food/grocery-list-task-integration.js"></script> <!-- Integration with tasks for grocery lists -->
 
+    <!-- Protein optimization for grocery list -->
+    <script src="../js/food/protein-optimization.js"></script> <!-- Protein optimization functionality -->
+
     <!-- Form field fix - adds proper ID and name attributes to all form fields -->
     <script src="../js/food/form-field-fix.js"></script>
+
+    <!-- Grocery list full width functionality -->
+    <script src="../js/food/grocery-list-fullwidth.js"></script> <!-- Makes grocery list take full width when displayed -->
+
+    <!-- Compact recipe cards -->
+    <script src="../js/food/compact-recipe-cards.js"></script> <!-- Makes recipe cards more compact -->
+
+    <!-- Fix Add Ingredient button -->
+    <script src="../js/food/fix-add-ingredient-button.js"></script> <!-- Fixes Add Ingredient button functionality -->
+
+    <!-- Remove OCR Toggle button -->
+    <script src="../js/food/remove-ocr-toggle.js"></script> <!-- Removes OCR toggle button -->
+
+    <!-- Fix Add Ingredient Click -->
+    <script src="../js/food/fix-add-ingredient-click.js"></script> <!-- Fixes Add Ingredient button clicks -->
+
+    <!-- Fix Add Ingredient Inline -->
+    <script src="../js/food/fix-add-ingredient-inline.js"></script> <!-- Fixes Add Ingredient button in Create New Recipe section -->
+
+    <!-- Fix Recipe Name Position -->
+    <script src="../js/food/fix-recipe-name-position.js"></script> <!-- Fixes recipe name position in Create New Recipe section -->
+
+    <!-- Direct Add Ingredient Fix -->
+    <script src="../js/food/direct-add-ingredient-fix.js"></script> <!-- Direct fix for Add Ingredient button in Create New Recipe section -->
+
+    <!-- Fix Add Ingredient Button Direct -->
+    <script src="../js/food/fix-add-ingredient-button-direct.js"></script> <!-- Direct fix for Add Ingredient button functionality -->
+
+    <!-- Remove Recipe Header Line -->
+    <script src="../js/food/remove-recipe-header-line.js"></script> <!-- Removes the line between Create New Recipe and Recipe Name -->
+
+    <!-- Force Remove Recipe Header Line -->
+    <script src="../js/food/force-remove-recipe-header-line.js"></script> <!-- Forces removal of the line between Create New Recipe and Recipe Name -->
+
+    <!-- Final fix for Add Ingredient button - load this last to override any conflicts -->
+    <script src="../js/food/fix-add-ingredient-final.js"></script> <!-- Final fix for Add Ingredient button -->
+
+    <!-- Dedicated Add Ingredient Button Fix - loads absolutely last to ensure it works -->
+    <script src="../js/food/add-ingredient-button-fix.js"></script> <!-- Dedicated fix for Add Ingredient button -->
 
 </body>
 </html>

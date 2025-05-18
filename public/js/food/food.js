@@ -33,9 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const calorieUserSelector = document.getElementById('calorie-user-selector');
     const calorieTargetInput = document.getElementById('calorie-target');
     const proteinTargetInput = document.getElementById('protein-target');
+    const fatTargetInput = document.getElementById('fat-target');
     const saveAllTargetsBtn = document.getElementById('save-all-targets-btn');
     const currentCalorieTarget = document.getElementById('current-calorie-target');
     const currentProteinTarget = document.getElementById('current-protein-target');
+    const currentFatTarget = document.getElementById('current-fat-target');
     const calorieTargetStatus = document.getElementById('calorie-target-status');
 
     let xAxisScale = 1;
@@ -3166,7 +3168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (packageAmountNum !== null && packageAmountNum !== undefined) {
                 if (!isNaN(packageAmountNum)) {
-                    packageAmountDisplay = packageAmountNum.toFixed(1);
+                    packageAmountDisplay = packageAmountNum.toFixed(2);
                     console.log(`Formatted package amount for ${ing.name}:`, packageAmountDisplay);
 
                     ing.package_amount = packageAmountNum;
@@ -3182,15 +3184,15 @@ document.addEventListener('DOMContentLoaded', () => {
             tableHtml += `
                 <tr data-ingredient-id="${ing.id}" data-recipe-id="${ing.recipe_id}">
                     <td title="${escapeHtml(ing.name)}">${escapeHtml(ing.name)}</td>
-                    <td title="Calories: ${ing.calories.toFixed(1)}">${ing.calories.toFixed(1)}</td>
-                    <td title="Amount: ${ing.amount.toFixed(1)}g">${ing.amount.toFixed(1)}</td>
+                    <td title="Calories: ${ing.calories.toFixed(2)}">${ing.calories.toFixed(2)}</td>
+                    <td title="Amount: ${ing.amount.toFixed(2)}g">${ing.amount.toFixed(2)}</td>
                     <td title="Package: ${packageAmountDisplay}g" data-refresh="${refreshTimestamp}">
                         ${packageAmountDisplay}
                         <span class="refresh-timestamp" style="display:none;">${refreshTimestamp}</span>
                     </td>
-                    <td title="Protein: ${ing.protein.toFixed(1)}g">${ing.protein.toFixed(1)}</td>
-                    <td title="Fat: ${ing.fats.toFixed(1)}g">${ing.fats.toFixed(1)}</td>
-                    <td title="Carbs: ${ing.carbohydrates.toFixed(1)}g">${ing.carbohydrates.toFixed(1)}</td>
+                    <td title="Protein: ${ing.protein.toFixed(2)}g">${ing.protein.toFixed(2)}</td>
+                    <td title="Fat: ${ing.fats.toFixed(2)}g">${ing.fats.toFixed(2)}</td>
+                    <td title="Carbs: ${ing.carbohydrates.toFixed(2)}g">${ing.carbohydrates.toFixed(2)}</td>
                     <td title="Package Price: $${ing.price.toFixed(2)}">${ing.price.toFixed(2)}</td>
                     <td title="Price per gram: ${pricePerGram}">${pricePerGram}</td>
                     <td>
@@ -4957,11 +4959,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 caloriesSpan.textContent = updatedRecipe.total_calories.toFixed(1);
             }
 
-            showStatus(statusElement, 'Ingredient updated successfully!', 'success');
+            // Show success notification
+            if (window.NotificationSystem) {
+                window.NotificationSystem.showSuccess('Ingredient updated successfully!');
+            } else {
+                showStatus(statusElement, 'Ingredient updated successfully!', 'success');
+            }
 
         } catch (error) {
             console.debug('Error updating ingredient - UI update will still be applied');
-            showStatus(statusElement, `Ingredient updated in UI (server update may have failed)`, 'info');
+
+            // Show error notification
+            if (window.NotificationSystem) {
+                window.NotificationSystem.showInfo('Ingredient updated in UI (server update may have failed)');
+            } else {
+                showStatus(statusElement, `Ingredient updated in UI (server update may have failed)`, 'info');
+            }
         }
     }
 
@@ -5679,14 +5692,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // Function to save calorie and protein targets with partial updates
+    // Function to save calorie, protein, and fat targets with partial updates
     async function saveAllTargets() {
         const userId = calorieUserSelector.value;
         const calorieTargetStr = calorieTargetInput.value.trim();
         const proteinTargetStr = proteinTargetInput.value.trim();
+        const fatTargetStr = fatTargetInput.value.trim();
 
-        // Check if both fields are empty
-        if (calorieTargetStr === '' && proteinTargetStr === '') {
+        // Check if all fields are empty
+        if (calorieTargetStr === '' && proteinTargetStr === '' && fatTargetStr === '') {
             showStatus(calorieTargetStatus, 'Please enter at least one value to save.', 'error');
             return;
         }
@@ -5694,6 +5708,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Parse values if provided
         const calorieTarget = calorieTargetStr !== '' ? parseInt(calorieTargetStr) : null;
         const proteinTarget = proteinTargetStr !== '' ? parseInt(proteinTargetStr) : null;
+        const fatTarget = fatTargetStr !== '' ? parseInt(fatTargetStr) : null;
 
         // Validate provided values
         if (calorieTarget !== null && (isNaN(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000)) {
@@ -5706,12 +5721,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (fatTarget !== null && (isNaN(fatTarget) || fatTarget < 20 || fatTarget > 300)) {
+            showStatus(calorieTargetStatus, 'Please enter a valid fat target between 20 and 300 grams.', 'error');
+            return;
+        }
+
         showStatus(calorieTargetStatus, 'Saving nutrition targets...', 'info');
 
         try {
             // Get current values from the server for any empty fields
             let currentCalorieTarget = 2000; // Default if not found
             let currentProteinTarget = null;
+            let currentFatTarget = null;
 
             try {
                 const currentTargetsResponse = await fetch(`/api/calorie-targets/${userId}`);
@@ -5719,6 +5740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const currentTargetsData = await currentTargetsResponse.json();
                     currentCalorieTarget = currentTargetsData.daily_target || 2000;
                     currentProteinTarget = currentTargetsData.protein_target || null;
+                    currentFatTarget = currentTargetsData.fat_target || null;
                 }
             } catch (error) {
                 console.warn('Failed to fetch current targets:', error);
@@ -5727,8 +5749,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Use provided values or current values if not provided
             const finalCalorieTarget = calorieTarget !== null ? calorieTarget : currentCalorieTarget;
             const finalProteinTarget = proteinTarget !== null ? proteinTarget : currentProteinTarget;
+            const finalFatTarget = fatTarget !== null ? fatTarget : currentFatTarget;
 
-            console.log(`Attempting to save targets for user ${userId}: ${finalCalorieTarget} calories, ${finalProteinTarget || 'default'} g protein`);
+            console.log(`Attempting to save targets for user ${userId}: ${finalCalorieTarget} calories, ${finalProteinTarget || 'default'} g protein, ${finalFatTarget || 'default'} g fat`);
 
             let response = await fetch('/api/calorie-targets', {
                 method: 'POST',
@@ -5738,7 +5761,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     user_id: userId,
                     daily_target: finalCalorieTarget,
-                    protein_target: finalProteinTarget
+                    protein_target: finalProteinTarget,
+                    fat_target: finalFatTarget
                 })
             });
             console.log(`Received response with status: ${response.status}`);
@@ -5753,7 +5777,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({
                         user_id: userId,
                         daily_target: finalCalorieTarget,
-                        protein_target: finalProteinTarget
+                        protein_target: finalProteinTarget,
+                        fat_target: finalFatTarget
                     })
                 });
                 console.log(`Received response from weight API with status: ${response.status}`);
@@ -5775,10 +5800,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show appropriate success message based on which fields were updated
             let successMessage = 'Nutrition targets saved successfully!';
-            if (calorieTarget !== null && proteinTarget === null) {
+            if (calorieTarget !== null && proteinTarget === null && fatTarget === null) {
                 successMessage = 'Calorie target saved successfully!';
-            } else if (calorieTarget === null && proteinTarget !== null) {
+            } else if (calorieTarget === null && proteinTarget !== null && fatTarget === null) {
                 successMessage = 'Protein target saved successfully!';
+            } else if (calorieTarget === null && proteinTarget === null && fatTarget !== null) {
+                successMessage = 'Fat target saved successfully!';
             }
             showStatus(calorieTargetStatus, successMessage, 'success');
 
@@ -5788,6 +5815,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear the input fields
             calorieTargetInput.value = '';
             proteinTargetInput.value = '';
+            fatTargetInput.value = '';
 
         } catch (error) {
             console.error('Error saving nutrition targets:', error);
@@ -5820,6 +5848,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('No nutrition targets found for this user');
                 currentCalorieTarget.textContent = 'Not set';
                 currentProteinTarget.textContent = 'Not set';
+                currentFatTarget.textContent = 'Not set';
                 return;
             }
 
@@ -5849,34 +5878,46 @@ document.addEventListener('DOMContentLoaded', () => {
             // Handle protein target
             // Check for protein_target in the API response
             const proteinTarget = data.protein_target || null;
-
             console.log('Protein target from API:', proteinTarget);
 
+            // Handle fat target
+            // Check for fat_target in the API response
+            const fatTarget = data.fat_target || null;
+            console.log('Fat target from API:', fatTarget);
+
+            // Calculate default values if not set
+            const defaultProteinTarget = Math.round((dailyTarget * 0.15) / 4); // 15% of calories
+            const defaultFatTarget = Math.round((dailyTarget * 0.30) / 9); // 30% of calories
+
+            // Update protein target display
             if (proteinTarget) {
                 currentProteinTarget.textContent = `${proteinTarget} g`;
-
-                // Update micronutrient targets with both calorie and protein targets
-                if (typeof updateMicronutrientTargets === 'function') {
-                    updateMicronutrientTargets(dailyTarget, proteinTarget);
-                } else if (typeof window.updateMicronutrientCalorieTarget === 'function') {
-                    // Fall back to the old function if the new one isn't available
-                    window.updateMicronutrientCalorieTarget(dailyTarget);
-                }
             } else {
-                // If protein target is not set, calculate default based on calories (15% of calories)
-                const defaultProteinTarget = Math.round((dailyTarget * 0.15) / 4);
                 currentProteinTarget.textContent = `${defaultProteinTarget} g (default)`;
+            }
 
-                // Update micronutrient targets with calorie target only
-                if (typeof window.updateMicronutrientCalorieTarget === 'function') {
-                    window.updateMicronutrientCalorieTarget(dailyTarget);
-                }
+            // Update fat target display
+            if (fatTarget) {
+                currentFatTarget.textContent = `${fatTarget} g`;
+            } else {
+                currentFatTarget.textContent = `${defaultFatTarget} g (default)`;
+            }
+
+            // Update micronutrient targets with calorie, protein, and fat targets
+            if (typeof updateMicronutrientTargets === 'function') {
+                updateMicronutrientTargets(dailyTarget, proteinTarget, fatTarget);
+            } else if (typeof window.updateMicronutrientTargets === 'function') {
+                window.updateMicronutrientTargets(dailyTarget, proteinTarget, fatTarget);
+            } else if (typeof window.updateMicronutrientCalorieTarget === 'function') {
+                // Fall back to the old function if the new one isn't available
+                window.updateMicronutrientCalorieTarget(dailyTarget);
             }
 
         } catch (error) {
             console.error('Error loading nutrition targets:', error);
             currentCalorieTarget.textContent = 'Not set';
             currentProteinTarget.textContent = 'Not set';
+            currentFatTarget.textContent = 'Not set';
         }
     }
 
@@ -6435,7 +6476,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            showStatus(statusElement, 'Ingredient added successfully!', 'success');
+            // Show success notification
+            if (window.NotificationSystem) {
+                window.NotificationSystem.showSuccess('Ingredient added successfully!');
+            } else {
+                showStatus(statusElement, 'Ingredient added successfully!', 'success');
+            }
 
             setTimeout(() => {
                 const addIngredientForm = document.querySelector('.add-ingredient-form');
@@ -6477,7 +6523,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error adding ingredient:', error);
-            showStatus(statusElement, `Error adding ingredient: ${error.message}`, 'error');
+
+            // Show error notification
+            if (window.NotificationSystem) {
+                window.NotificationSystem.showError(`Error adding ingredient: ${error.message}`);
+            } else {
+                showStatus(statusElement, `Error adding ingredient: ${error.message}`, 'error');
+            }
         }
     }
 

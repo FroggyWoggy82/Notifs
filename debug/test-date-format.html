@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Date Format</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #333;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 4px;
+        }
+        h1, h2 {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Date Format</h1>
+        
+        <h2>Original formatDate Function</h2>
+        <div class="result" id="original-result"></div>
+        
+        <h2>Fixed formatDate Function</h2>
+        <div class="result" id="fixed-result"></div>
+        
+        <h2>Test Cases</h2>
+        <table id="test-cases">
+            <thead>
+                <tr>
+                    <th>Date String</th>
+                    <th>Original Format</th>
+                    <th>Fixed Format</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Will be filled by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Original formatDate function
+        function originalFormatDate(date) {
+            if (!date) return '';
+
+            // Create a new date object
+            const dateObj = new Date(date);
+
+            // Get the date parts
+            const month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
+            const day = dateObj.getDate();
+            const year = dateObj.getFullYear();
+
+            // Format as MM/DD/YYYY
+            return `${month}/${day}/${year}`;
+        }
+
+        // Fixed formatDate function
+        function fixedFormatDate(date) {
+            if (!date) return '';
+
+            // Create a new date object
+            const dateObj = new Date(date);
+            
+            // Add one day to fix timezone issues with yearly recurring tasks
+            dateObj.setDate(dateObj.getDate() + 1);
+
+            // Get the date parts
+            const month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
+            const day = dateObj.getDate();
+            const year = dateObj.getFullYear();
+
+            // Format as MM/DD/YYYY
+            return `${month}/${day}/${year}`;
+        }
+
+        // Test cases
+        const testCases = [
+            "2026-05-15T00:00:00.000Z",
+            "2026-05-15T05:00:00.000Z",
+            "2026-04-29T00:00:00.000Z",
+            "2026-04-29T05:00:00.000Z",
+            "2026-05-10T00:00:00.000Z",
+            "2026-05-10T05:00:00.000Z"
+        ];
+
+        // Display results
+        document.getElementById('original-result').textContent = 
+            `Original formatDate("2026-05-15T00:00:00.000Z") = ${originalFormatDate("2026-05-15T00:00:00.000Z")}`;
+        
+        document.getElementById('fixed-result').textContent = 
+            `Fixed formatDate("2026-05-15T00:00:00.000Z") = ${fixedFormatDate("2026-05-15T00:00:00.000Z")}`;
+
+        // Fill test cases table
+        const tbody = document.querySelector('#test-cases tbody');
+        testCases.forEach(dateStr => {
+            const row = document.createElement('tr');
+            
+            const dateCell = document.createElement('td');
+            dateCell.textContent = dateStr;
+            
+            const originalCell = document.createElement('td');
+            originalCell.textContent = originalFormatDate(dateStr);
+            
+            const fixedCell = document.createElement('td');
+            fixedCell.textContent = fixedFormatDate(dateStr);
+            
+            row.appendChild(dateCell);
+            row.appendChild(originalCell);
+            row.appendChild(fixedCell);
+            
+            tbody.appendChild(row);
+        });
+    </script>
+</body>
+</html>

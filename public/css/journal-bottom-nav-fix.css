@@ -1,0 +1,95 @@
+/**
+ * Journal Bottom Navigation Fix
+ * Specific fixes for the journal-redesign page bottom navigation
+ */
+
+/* Force proper alignment and spacing for bottom nav items */
+.bottom-nav {
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    height: 60px !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background-color: rgba(18, 18, 18, 0.95) !important;
+    z-index: 1000 !important;
+}
+
+/* Fix each nav item to ensure proper vertical alignment */
+.bottom-nav .nav-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+    width: 20% !important; /* Equal width for all items */
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    text-decoration: none !important;
+    color: #9E9E9E !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Fix the icon container */
+.bottom-nav .nav-item .nav-icon {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 24px !important;
+    width: 100% !important;
+    margin: 0 auto 4px auto !important;
+    text-align: center !important;
+}
+
+/* Fix the icon itself */
+.bottom-nav .nav-item .nav-icon i {
+    display: block !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    text-align: center !important;
+}
+
+/* Fix the text label */
+.bottom-nav .nav-item span {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Active state */
+.bottom-nav .nav-item.active {
+    color: #FFFFFF !important;
+}
+
+/* Hover state */
+.bottom-nav .nav-item:hover {
+    color: #FFFFFF !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .bottom-nav {
+        height: 56px !important;
+    }
+    
+    .bottom-nav .nav-item .nav-icon {
+        height: 22px !important;
+        margin-bottom: 3px !important;
+    }
+    
+    .bottom-nav .nav-item .nav-icon i {
+        font-size: 16px !important;
+    }
+    
+    .bottom-nav .nav-item span {
+        font-size: 10px !important;
+    }
+}

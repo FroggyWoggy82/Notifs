@@ -10,8 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const recipeSelectionContainer = document.getElementById('grocery-recipe-selection');
     const calorieAdjustmentContainer = document.getElementById('calorie-adjustment-container');
     const generateListBtn = document.getElementById('generate-list-btn');
-    const printListBtn = document.getElementById('print-list-btn');
-    const saveListBtn = document.getElementById('save-list-btn');
     const saveAsTaskBtn = document.getElementById('save-as-task-btn');
     const groceryListResults = document.getElementById('grocery-list-results');
     const statusMessage = document.getElementById('grocery-status-message');
@@ -392,20 +390,20 @@ document.addEventListener('DOMContentLoaded', function() {
             decreaseBtn.addEventListener('click', function() {
                 const newCalories = recipe.adjustedCalories * 0.9;
                 updateRecipeCalories(recipe.id, newCalories);
-                calorieInput.value = newCalories.toFixed(1);
+                calorieInput.value = newCalories.toFixed(2);
                 percentInput.value = (newCalories / recipe.originalCalories * 100).toFixed(0);
             });
 
             increaseBtn.addEventListener('click', function() {
                 const newCalories = recipe.adjustedCalories * 1.1;
                 updateRecipeCalories(recipe.id, newCalories);
-                calorieInput.value = newCalories.toFixed(1);
+                calorieInput.value = newCalories.toFixed(2);
                 percentInput.value = (newCalories / recipe.originalCalories * 100).toFixed(0);
             });
 
             resetBtn.addEventListener('click', function() {
                 updateRecipeCalories(recipe.id, recipe.originalCalories);
-                calorieInput.value = recipe.originalCalories.toFixed(1);
+                calorieInput.value = recipe.originalCalories.toFixed(2);
                 percentInput.value = '100';
             });
 
@@ -476,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const infoElement = document.createElement('div');
             infoElement.className = 'calorie-adjustment-info';
             const percentage = (recipe.scaleFactor * 100).toFixed(0);
-            infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(1)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x | ${percentage}% of original`;
+            infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(2)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x | ${percentage}% of original`;
 
             adjustmentItem.appendChild(header);
             adjustmentItem.appendChild(infoElement);
@@ -504,12 +502,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const adjustmentItem = document.querySelector(`.calorie-adjustment-item[data-id="${recipeId}"]`);
             if (adjustmentItem) {
                 const infoElement = adjustmentItem.querySelector('.calorie-adjustment-info');
-                infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(1)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x | ${percentage}% of original`;
+                infoElement.textContent = `Original: ${recipe.originalCalories.toFixed(2)} calories | Scale Factor: ${recipe.scaleFactor.toFixed(2)}x | ${percentage}% of original`;
 
                 // Update input fields if they exist
                 const calorieInput = adjustmentItem.querySelector('.calorie-adjustment-input');
                 if (calorieInput) {
-                    calorieInput.value = recipe.adjustedCalories.toFixed(1);
+                    calorieInput.value = recipe.adjustedCalories.toFixed(2);
                 }
 
                 const percentInput = adjustmentItem.querySelector('.percent-adjustment-input');
@@ -535,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             calorieSummaryContent = `
                                 <div class="calorie-summary">
                                     <span class="calorie-summary-label">Total Calories:</span>
-                                    <span class="calorie-summary-value">${totalCalories.toFixed(1)}</span>
+                                    <span class="calorie-summary-value">${totalCalories.toFixed(2)}</span>
                                     <span class="calorie-summary-separator">|</span>
                                     <span class="calorie-summary-label">Daily Target:</span>
                                     <span class="calorie-summary-value">${dailyCalorieTarget}</span>
@@ -548,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             calorieSummaryContent = `
                                 <div class="calorie-summary">
                                     <span class="calorie-summary-label">Total Calories:</span>
-                                    <span class="calorie-summary-value">${totalCalories.toFixed(1)}</span>
+                                    <span class="calorie-summary-value">${totalCalories.toFixed(2)}</span>
                                     <span class="calorie-summary-note">(Set a daily calorie target to see percentage)</span>
                                 </div>
                             `;
@@ -567,6 +565,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         showStatus('Generating grocery list...', 'info');
+
+        // Make sure the function is available globally
+        window.generateGroceryList = generateGroceryList;
 
         Promise.all(adjustedRecipes.map(recipe =>
             fetch(`/api/recipes/${recipe.id}`)
@@ -664,9 +665,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             renderGroceryList();
 
-            printListBtn.disabled = false;
-            saveListBtn.disabled = false;
-
             // Directly enable the Save as Task button if it exists
             const saveAsTaskBtn = document.getElementById('save-as-task-btn');
             if (saveAsTaskBtn) {
@@ -682,6 +680,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.updateUI();
             }
 
+            // Dispatch a custom event for the protein optimization feature
+            const groceryListGeneratedEvent = new CustomEvent('groceryListGenerated', {
+                detail: {
+                    groceryList: groceryList,
+                    recipes: fullRecipeData,
+                    adjustedRecipesData: adjustedRecipes,
+                    calorieTarget: dailyCalorieTarget,
+                    proteinTarget: dailyProteinTarget
+                }
+            });
+            document.dispatchEvent(groceryListGeneratedEvent);
+
             showStatus('Grocery list generated successfully!', 'success');
         })
         .catch(error => {
@@ -691,6 +701,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderGroceryList() {
+        // Make sure the function is available globally
+        window.renderGroceryList = renderGroceryList;
+
         if (!groceryList || groceryList.length === 0) {
             groceryListResults.innerHTML = '<p class="empty-message">No ingredients to display</p>';
             return;
@@ -723,11 +736,11 @@ document.addEventListener('DOMContentLoaded', function() {
             row.appendChild(nameCell);
 
             const amountCell = document.createElement('td');
-            amountCell.textContent = ingredient.amount.toFixed(1);
+            amountCell.textContent = ingredient.amount.toFixed(2);
             row.appendChild(amountCell);
 
             const packageSizeCell = document.createElement('td');
-            packageSizeCell.textContent = ingredient.package_amount ? ingredient.package_amount.toFixed(1) : '-';
+            packageSizeCell.textContent = ingredient.package_amount ? ingredient.package_amount.toFixed(2) : '-';
             row.appendChild(packageSizeCell);
 
             const packagesCell = document.createElement('td');
@@ -813,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 proteinPercentDisplay = `
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Total Protein:</span>
-                    <span class="calorie-summary-value total-protein">${totalProtein.toFixed(1)}g</span>
+                    <span class="calorie-summary-value total-protein">${totalProtein.toFixed(2)}g</span>
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Protein Target:</span>
                     <span class="calorie-summary-value protein-target">${dailyProteinTarget}g</span>
@@ -826,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
             calorieSummaryContent = `
                 <div class="calorie-summary">
                     <span class="calorie-summary-label">Total Calories:</span>
-                    <span class="calorie-summary-value total-calories">${totalCalories.toFixed(1)}</span>
+                    <span class="calorie-summary-value total-calories">${totalCalories.toFixed(2)}</span>
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Calorie Target:</span>
                     <span class="calorie-summary-value calorie-target">${dailyCalorieTarget}</span>
@@ -840,7 +853,7 @@ document.addEventListener('DOMContentLoaded', function() {
             calorieSummaryContent = `
                 <div class="calorie-summary">
                     <span class="calorie-summary-label">Total Calories:</span>
-                    <span class="calorie-summary-value">${totalCalories.toFixed(1)}</span>
+                    <span class="calorie-summary-value">${totalCalories.toFixed(2)}</span>
                     <span class="calorie-summary-note">(Set a daily calorie target to see percentage)</span>
                 </div>
             `;
@@ -852,6 +865,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         groceryListResults.innerHTML = '';
         groceryListResults.appendChild(table);
+
+        // Create a placeholder for the protein optimization section
+        const proteinOptimizationSection = document.createElement('div');
+        proteinOptimizationSection.id = 'protein-optimization-section';
+        proteinOptimizationSection.className = 'protein-optimization-section';
+        proteinOptimizationSection.style.display = 'none'; // Hide initially
+        groceryListResults.appendChild(proteinOptimizationSection);
 
         // Add micronutrient percentage display if we have full recipe data
         if (fullRecipeData && fullRecipeData.length > 0 && typeof MicronutrientPercentage !== 'undefined') {
@@ -890,299 +910,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function printGroceryList() {
-        if (!groceryList || groceryList.length === 0) {
-            showStatus('No grocery list to print.', 'error');
-            return;
-        }
 
-        const printWindow = window.open('', '_blank');
-
-        if (!printWindow) {
-            showStatus('Please allow pop-ups to print the grocery list.', 'error');
-            return;
-        }
-
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>Grocery List</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        margin: 20px;
-                    }
-                    h1 {
-                        text-align: center;
-                        margin-bottom: 20px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                    }
-                    th, td {
-                        padding: 8px;
-                        text-align: left;
-                        border-bottom: 1px solid #ddd;
-                    }
-                    th {
-                        background-color: #f2f2f2;
-                    }
-                    .package-count {
-                        font-weight: bold;
-                    }
-                    .recipe-list {
-                        font-size: 0.9em;
-                        color: #666;
-                    }
-                    .total-row {
-                        font-weight: bold;
-                    }
-                    @media print {
-                        button {
-                            display: none;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <h1>Grocery List</h1>
-                <button onclick="window.print()">Print</button>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ingredient</th>
-                            <th>Amount (g)</th>
-                            <th>Package Size (g)</th>
-                            <th>Packages</th>
-                            <th>Price</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `);
-
-        groceryList.forEach(ingredient => {
-            printWindow.document.write(`
-                <tr>
-                    <td>${ingredient.name}</td>
-                    <td>${ingredient.amount.toFixed(1)}</td>
-                    <td>${ingredient.package_amount ? ingredient.package_amount.toFixed(1) : '-'}</td>
-                    <td>${ingredient.packageCount > 0 ? `<span class="package-count">${ingredient.packageCount}</span>` : '-'}</td>
-                    <td>${ingredient.price ? `$${ingredient.price.toFixed(2)}` : '-'}</td>
-                    <td>${ingredient.packageCount > 0 && ingredient.price ? `$${(ingredient.packageCount * ingredient.price).toFixed(2)}` : '-'}</td>
-                </tr>
-                <tr>
-                    <td colspan="6" class="recipe-list">
-                        <small>Used in: ${ingredient.recipes.map(r => `${r.name} (${r.amount.toFixed(1)}g)`).join(', ')}</small>
-                    </td>
-                </tr>
-            `);
-        });
-
-        const totalPackages = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0), 0);
-        const totalCost = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0) * (ingredient.price || 0), 0);
-
-        // Calculate total calories and protein for print
-        const totalCalories = calculateTotalCalories();
-        const totalProtein = calculateTotalProtein();
-
-        printWindow.document.write(`
-                <tr class="total-row">
-                    <td>TOTAL</td>
-                    <td></td>
-                    <td></td>
-                    <td><span class="package-count">${totalPackages}</span></td>
-                    <td></td>
-                    <td>$${totalCost.toFixed(2)}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div style="margin-top: 20px; padding: 10px; background-color: #f8f8f8; border-radius: 4px;">
-        `);
-
-        // Add calorie and protein summary to print
-        if (dailyCalorieTarget > 0) {
-            const caloriePercentOfTarget = ((totalCalories / dailyCalorieTarget) * 100).toFixed(1);
-
-            // Protein percentage calculation
-            let proteinSummary = '';
-            if (dailyProteinTarget > 0) {
-                const proteinPercentOfTarget = ((totalProtein / dailyProteinTarget) * 100).toFixed(1);
-                proteinSummary = `
-                    <div style="font-size: 1.1em; margin-top: 10px;">
-                        <strong>Total Protein:</strong> ${totalProtein.toFixed(1)}g |
-                        <strong>Protein Target:</strong> ${dailyProteinTarget}g |
-                        <strong>Percentage of Protein Target:</strong>
-                        <span style="color: ${proteinPercentOfTarget > 100 ? '#d9534f' : '#5cb85c'}; font-weight: bold;">
-                            ${proteinPercentOfTarget}%
-                        </span>
-                    </div>
-                `;
-            }
-
-            printWindow.document.write(`
-                <div style="font-size: 1.1em; margin-bottom: 10px;">
-                    <strong>Total Calories:</strong> ${totalCalories.toFixed(1)} |
-                    <strong>Calorie Target:</strong> ${dailyCalorieTarget} |
-                    <strong>Percentage of Calorie Target:</strong>
-                    <span style="color: ${caloriePercentOfTarget > 100 ? '#d9534f' : '#5cb85c'}; font-weight: bold;">
-                        ${caloriePercentOfTarget}%
-                    </span>
-                </div>
-                ${proteinSummary}
-            `);
-        } else {
-            printWindow.document.write(`
-                <div style="font-size: 1.1em; margin-bottom: 10px;">
-                    <strong>Total Calories:</strong> ${totalCalories.toFixed(1)}
-                    <em>(Set a daily calorie target to see percentage)</em>
-                </div>
-            `);
-        }
-
-        printWindow.document.write(`
-        </div>
-        `);
-
-        // Add micronutrient percentage display to print if available
-        if (fullRecipeData && fullRecipeData.length > 0 && typeof MicronutrientPercentage !== 'undefined') {
-            try {
-                // Ensure micronutrient targets are updated with the current daily targets
-                if (typeof updateMicronutrientTargets === 'function' && dailyCalorieTarget > 0) {
-                    updateMicronutrientTargets(dailyCalorieTarget, dailyProteinTarget);
-                    console.log(`Updated micronutrient targets with calorie target: ${dailyCalorieTarget} and protein target: ${dailyProteinTarget}g before calculating percentages for print`);
-                } else if (typeof updateMicronutrientCalorieTarget === 'function' && dailyCalorieTarget > 0) {
-                    // Fall back to the old function if the new one isn't available
-                    updateMicronutrientCalorieTarget(dailyCalorieTarget);
-                    console.log(`Updated micronutrient targets with calorie target only: ${dailyCalorieTarget} before calculating percentages for print`);
-                }
-
-                // Calculate micronutrient totals and percentages
-                const micronutrientTotals = MicronutrientPercentage.calculateTotals(fullRecipeData, adjustedRecipes);
-                const micronutrientPercentages = MicronutrientPercentage.calculatePercentages(micronutrientTotals);
-
-                // Create the micronutrient percentage HTML with print-friendly styling
-                const micronutrientHTML = MicronutrientPercentage.createHTML(micronutrientTotals, micronutrientPercentages);
-
-                printWindow.document.write(`
-                    <div style="margin-top: 30px; page-break-before: always;">
-                        ${micronutrientHTML}
-                    </div>
-                `);
-            } catch (error) {
-                console.error('Error displaying micronutrient percentages for print:', error);
-                printWindow.document.write(`
-                    <div style="margin-top: 30px; page-break-before: always; color: red; padding: 20px; border: 1px solid red;">
-                        <h3>Unable to display micronutrient data</h3>
-                        <p>Please refresh the page and try again.</p>
-                        <p>Error: ${error.message}</p>
-                    </div>
-                `);
-            }
-        }
-
-        printWindow.document.write(`
-        </body>
-        </html>
-        `);
-
-        printWindow.document.close();
-    }
-
-    function saveGroceryList() {
-        if (!groceryList || groceryList.length === 0) {
-            showStatus('No grocery list to save.', 'error');
-            return;
-        }
-
-        let csvContent = 'Ingredient,Amount (g),Package Size (g),Packages Needed,Package Price,Total Cost,Used In\n';
-
-        groceryList.forEach(ingredient => {
-            const row = [
-                `"${ingredient.name}"`,
-                ingredient.amount.toFixed(1),
-                ingredient.package_amount ? ingredient.package_amount.toFixed(1) : '',
-                ingredient.packageCount > 0 ? ingredient.packageCount : '',
-                ingredient.price ? ingredient.price.toFixed(2) : '',
-                ingredient.packageCount > 0 && ingredient.price ? (ingredient.packageCount * ingredient.price).toFixed(2) : '',
-                `"${ingredient.recipes.map(r => `${r.name} (${r.amount.toFixed(1)}g)`).join(', ')}"`
-            ];
-
-            csvContent += row.join(',') + '\n';
-        });
-
-        const totalPackages = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0), 0);
-        const totalCost = groceryList.reduce((sum, ingredient) => sum + (ingredient.packageCount || 0) * (ingredient.price || 0), 0);
-
-        // Calculate total calories for CSV
-        const totalCalories = calculateTotalCalories();
-
-        csvContent += `"TOTAL",,,"${totalPackages}",,"${totalCost.toFixed(2)}",\n`;
-
-        // Add calorie summary to CSV
-        csvContent += `\n"Calorie Summary",,,,,,,\n`;
-        csvContent += `"Total Calories","${totalCalories.toFixed(1)}",,,,,\n`;
-
-        if (dailyCalorieTarget > 0) {
-            const percentOfTarget = ((totalCalories / dailyCalorieTarget) * 100).toFixed(1);
-            csvContent += `"Daily Target","${dailyCalorieTarget}",,,,,\n`;
-            csvContent += `"Percentage of Daily Target","${percentOfTarget}%",,,,,\n`;
-        }
-
-        // Add micronutrient percentage data to CSV if available
-        if (fullRecipeData && fullRecipeData.length > 0 && typeof MicronutrientPercentage !== 'undefined') {
-            try {
-                // Ensure micronutrient targets are updated with the current daily calorie target
-                if (typeof updateMicronutrientCalorieTarget === 'function' && dailyCalorieTarget > 0) {
-                    updateMicronutrientCalorieTarget(dailyCalorieTarget);
-                    console.log(`Updated micronutrient targets with calorie target: ${dailyCalorieTarget} before calculating percentages for CSV export`);
-                }
-
-                // Calculate micronutrient totals and percentages
-                const micronutrientTotals = MicronutrientPercentage.calculateTotals(fullRecipeData, adjustedRecipes);
-                const micronutrientPercentages = MicronutrientPercentage.calculatePercentages(micronutrientTotals);
-
-                // Add section headers and data for each category
-                csvContent += `\n"Micronutrient Target Coverage",,,,,,,\n`;
-
-                for (const category in MICRONUTRIENT_CATEGORIES) {
-                    const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
-                    csvContent += `\n"${categoryTitle}",,,,,,,\n`;
-                    csvContent += `"Nutrient","Amount","Target","Percentage",,,\n`;
-
-                    MICRONUTRIENT_CATEGORIES[category].forEach(nutrient => {
-                        const total = micronutrientTotals[nutrient.key];
-                        const percentage = micronutrientPercentages[nutrient.key];
-                        const target = MICRONUTRIENT_TARGETS[nutrient.key];
-
-                        // Skip if no data
-                        if (total === undefined || total === 0) {
-                            return;
-                        }
-
-                        csvContent += `"${nutrient.label}","${total.toFixed(1)} ${nutrient.unit}","${target ? target + ' ' + nutrient.unit : 'N/A'}","${percentage !== null ? percentage.toFixed(0) + '%' : 'N/A'}",,,,\n`;
-                    });
-                }
-            } catch (error) {
-                console.error('Error adding micronutrient data to CSV:', error);
-                csvContent += `\n"Error generating micronutrient data: ${error.message}",,,,,,,\n`;
-            }
-        }
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'grocery_list.csv');
-        link.style.visibility = 'hidden';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
 
     function showStatus(message, type) {
         if (statusMessage) {
@@ -1241,8 +969,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateUI() {
         updateGenerateButton();
-        printListBtn.disabled = !groceryList;
-        saveListBtn.disabled = !groceryList;
         saveAsTaskBtn.disabled = !groceryList;
     }
 
@@ -1313,8 +1039,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function addEventListeners() {
         // Main buttons
         generateListBtn.addEventListener('click', generateGroceryList);
-        printListBtn.addEventListener('click', printGroceryList);
-        saveListBtn.addEventListener('click', saveGroceryList);
         saveAsTaskBtn.addEventListener('click', saveGroceryListAsTask);
 
         // Listen for changes to the daily calorie target
@@ -1374,4 +1098,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+
+    // Make the generateGroceryList function available globally for the protein optimization feature
+    window.generateGroceryList = generateGroceryList;
 });

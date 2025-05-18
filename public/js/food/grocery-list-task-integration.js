@@ -97,7 +97,7 @@ Selected Recipes: ${selectedRecipes.join(', ') || 'None'}`;
 
             // Add amount
             if (ingredient.amount) {
-                subtaskTitle += ` - ${ingredient.amount.toFixed(1)}g`;
+                subtaskTitle += ` - ${ingredient.amount.toFixed(2)}g`;
             }
 
             // Add package count
@@ -111,8 +111,8 @@ Selected Recipes: ${selectedRecipes.join(', ') || 'None'}`;
             }
 
             // Create a description with detailed information
-            const description = `Amount: ${ingredient.amount.toFixed(1)}g\n` +
-                `Package Size: ${ingredient.package_amount ? ingredient.package_amount.toFixed(1) : 'N/A'}g\n` +
+            const description = `Amount: ${ingredient.amount.toFixed(2)}g\n` +
+                `Package Size: ${ingredient.package_amount ? ingredient.package_amount.toFixed(2) : 'N/A'}g\n` +
                 `Packages to Buy: ${ingredient.packageCount > 0 ? ingredient.packageCount : 'N/A'}\n` +
                 `Price per Package: ${ingredient.price ? `$${ingredient.price.toFixed(2)}` : 'N/A'}\n` +
                 `Total Cost: ${totalPrice !== 'N/A' ? `$${totalPrice}` : 'N/A'}\n` +

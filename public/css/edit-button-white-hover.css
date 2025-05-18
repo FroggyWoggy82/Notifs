@@ -1,0 +1,36 @@
+/**
+ * Edit Button White Hover
+ * Changes the edit button hover color from green to white
+ */
+
+/* Task edit button hover color */
+html body .task-actions .edit-task-btn:hover .pencil-icon {
+    color: white !important;
+}
+
+html body .task-actions .edit-task-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1) !important;
+}
+
+/* Habit edit button hover color */
+html body .habit-actions .edit-habit-btn:hover .pencil-icon,
+html body .habit-actions .edit-habit-icon-btn:hover .pencil-icon {
+    color: white !important;
+}
+
+html body .habit-actions .edit-habit-btn:hover,
+html body .habit-actions .edit-habit-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1) !important;
+}
+
+/* Calendar edit button hover color */
+html body #selectedTaskList .edit-task-btn:hover .pencil-icon {
+    color: white !important;
+}
+
+html body #selectedTaskList .edit-task-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1) !important;
+}

@@ -1,0 +1,182 @@
+/* Add Ingredient Form Dark Theme Styling */
+
+/* Form container */
+.add-ingredient-form {
+    background-color: #121212;
+    color: white;
+    padding: 20px;
+    border-radius: 4px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.add-ingredient-form h4 {
+    color: white;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+/* Form inputs */
+.add-ingredient-form input[type="text"],
+.add-ingredient-form input[type="number"],
+.add-ingredient-form textarea {
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #333;
+    padding: 8px 12px;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.add-ingredient-form input[type="text"]:focus,
+.add-ingredient-form input[type="number"]:focus,
+.add-ingredient-form textarea:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+/* Radio buttons */
+.add-ingredient-form .selection-type {
+    margin-bottom: 15px;
+}
+
+.add-ingredient-form .selection-type label {
+    margin-right: 15px;
+    color: white;
+}
+
+/* Buttons */
+.add-ingredient-form button {
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #333;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.add-ingredient-form button:hover {
+    background-color: #333;
+    border-color: #4CAF50;
+}
+
+.add-ingredient-form .save-ingredient-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+}
+
+.add-ingredient-form .save-ingredient-btn:hover {
+    background-color: #45a049;
+}
+
+/* Form actions */
+.add-ingredient-form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Status messages */
+.add-ingredient-form .status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.add-ingredient-form .status.error {
+    background-color: rgba(255, 0, 0, 0.2);
+    color: #ff6b6b;
+}
+
+.add-ingredient-form .status.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+.add-ingredient-form .status.info {
+    background-color: rgba(33, 150, 243, 0.2);
+    color: #42a5f5;
+}
+
+/* Cronometer text parser */
+.add-ingredient-form .cronometer-text-paste-container {
+    margin-bottom: 15px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #1a1a1a;
+}
+
+.add-ingredient-form .cronometer-header {
+    color: white;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.add-ingredient-form .cronometer-parse-status {
+    margin-top: 10px;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.add-ingredient-form .cronometer-parse-status.error {
+    background-color: rgba(255, 0, 0, 0.2);
+    color: #ff6b6b;
+}
+
+.add-ingredient-form .cronometer-parse-status.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+/* Detailed nutrition panel */
+.add-ingredient-form .detailed-nutrition-panel {
+    margin-top: 15px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: #1a1a1a;
+}
+
+.add-ingredient-form .nutrition-section h4 {
+    color: white;
+    margin-top: 0;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.add-ingredient-form .nutrition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.add-ingredient-form .nutrition-item label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc;
+}
+
+.add-ingredient-form .nutrition-item input {
+    width: 100%;
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #333;
+    padding: 5px 8px;
+    border-radius: 4px;
+}
+
+.add-ingredient-form .nutrition-item input:focus {
+    border-color: #4CAF50;
+    outline: none;
+}

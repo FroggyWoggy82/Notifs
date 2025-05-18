@@ -1,0 +1,99 @@
+/**
+ * Remove Recipe Header Line
+ * Specifically targets and removes the dark line between "Create New Recipe" and "Recipe Name"
+ */
+
+/* Target the specific section header to remove any background or border */
+#recipe-creation-section .section-header-compact {
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove any background or border from the recipe creation section */
+#recipe-creation-section {
+    background-color: #121212 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Remove any dividers or separators between the header and form */
+#recipe-creation-section::after,
+#recipe-creation-section::before,
+#recipe-creation-section .section-header-compact::after,
+#recipe-creation-section .section-header-compact::before {
+    display: none !important;
+    content: none !important;
+    border: none !important;
+    background: none !important;
+}
+
+/* Ensure the form has proper spacing from the header */
+#create-recipe-form {
+    margin-top: 20px !important;
+    background-color: #121212 !important;
+    border: none !important;
+}
+
+/* Remove any background from the form group */
+#create-recipe-form .form-group {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-top: 0 !important;
+}
+
+/* Ensure the recipe name label is properly styled */
+#create-recipe-form .form-group label {
+    color: white !important;
+    margin-bottom: 5px !important;
+}
+
+/* Ensure the recipe name input is properly styled */
+#create-recipe-form .form-group input[type="text"] {
+    background-color: rgba(40, 40, 40, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+/* Remove any dividers between the recipe name and ingredients */
+#create-recipe-form h3 {
+    margin-top: 20px !important;
+    border: none !important;
+    background: none !important;
+}
+
+/* Force the section background to match the page background */
+#recipe-creation-section {
+    background-color: #121212 !important;
+}
+
+/* Remove any section dividers */
+.section-separator,
+.section-divider,
+.divider,
+hr {
+    display: none !important;
+}
+
+/* Ensure consistent background color throughout the form */
+#create-recipe-form,
+#create-recipe-form .form-group,
+#create-recipe-form .ingredient-item {
+    background-color: #121212 !important;
+}
+
+/* Remove any borders from the ingredient items */
+#create-recipe-form .ingredient-item {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
+}
+
+/* Ensure the section header text is properly styled */
+#recipe-creation-section .section-header-compact h2 {
+    color: white !important;
+    border: none !important;
+    padding-bottom: 0 !important;
+}

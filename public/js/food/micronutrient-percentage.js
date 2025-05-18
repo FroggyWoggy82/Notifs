@@ -97,6 +97,17 @@
                         // Add scaled value to total
                         const scaledValue = ingredient[key] * scaleFactor;
 
+                        // Special handling for fats field - map to fat for display
+                        if (key === 'fats') {
+                            // Initialize fat if not already
+                            if (micronutrientTotals.fat === undefined) {
+                                micronutrientTotals.fat = 0;
+                            }
+                            // Add the scaled value to the fat total
+                            micronutrientTotals.fat += scaledValue;
+                            console.log(`FAT FIX (initial): Adding ${scaledValue}g fat from ${ingredient.name} (original: ${ingredient[key]}g from fats field, scale: ${scaleFactor})`);
+                        }
+
                         // Debug log for all micronutrients
                         if (scaledValue > 0 && !['calories', 'protein', 'fats', 'carbohydrates', 'amount', 'price',
                                                'calories_per_gram', 'protein_per_gram', 'fats_per_gram',
@@ -128,23 +139,7 @@
             });
         });
 
-        // Debug: Log the micronutrient totals
-        console.log('Micronutrient totals:', micronutrientTotals);
-
-        // Log specific micronutrient totals for debugging
-        console.log('Calcium total:', micronutrientTotals.calcium);
-        console.log('Omega3 total:', micronutrientTotals.omega3);
-        console.log('Omega_3 total:', micronutrientTotals.omega_3);
-        console.log('Omega6 total:', micronutrientTotals.omega6);
-        console.log('Omega_6 total:', micronutrientTotals.omega_6);
-
-        // Log all non-zero micronutrient totals
-        console.log('All non-zero micronutrient totals:');
-        for (const key in micronutrientTotals) {
-            if (micronutrientTotals[key] > 0) {
-                console.log(`  ${key}: ${micronutrientTotals[key]}`);
-            }
-        }
+        // No debug logging
 
         // Ensure all micronutrients defined in MICRONUTRIENT_CATEGORIES are included
         for (const category in MICRONUTRIENT_CATEGORIES) {
@@ -178,7 +173,7 @@
             'copper', 'manganese', 'selenium', 'vitamin_a', 'vitamin_c', 'vitamin_d',
             'vitamin_e', 'vitamin_k', 'vitamin_b1', 'vitamin_b2', 'vitamin_b3', 'vitamin_b5',
             'vitamin_b6', 'vitamin_b12', 'folate', 'fiber', 'sugars', 'saturated',
-            'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'cholesterol'
+            'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'cholesterol', 'fat'
         ];
 
         // Reset all micronutrient totals to 0
@@ -212,8 +207,23 @@
                         }
                     }
 
+                    // Special handling for fats field - map to fat for display
+                    if (ingredient.fats !== undefined && ingredient.fats !== null) {
+                        const fatsValue = parseFloat(ingredient.fats);
+                        if (!isNaN(fatsValue)) {
+                            const scaledValue = fatsValue * scaleFactor;
+                            micronutrientTotals.fat = (micronutrientTotals.fat || 0) + scaledValue;
+                            console.log(`FAT FIX: Adding ${scaledValue}g fat from ${ingredient.name} (original: ${fatsValue}g from fats field, scale: ${scaleFactor})`);
+                        }
+                    }
+
                     // Process each micronutrient
                     micronutrientsToProcess.forEach(nutrient => {
+                        // Skip fat since we handled it specially above
+                        if (nutrient === 'fat') {
+                            return;
+                        }
+
                         // Try both with and without underscore
                         let value = null;
                         let propertyName = null;
@@ -359,17 +369,7 @@
             }
         }
 
-        // Log the final calcium value to verify it's correct
-        console.log('Final calcium total before returning:', micronutrientTotals.calcium);
-
-        // EMERGENCY FIX: Debug amino acid values after calculation
-        console.log('AMINO ACID DEBUG: Final amino acid values after calculation:');
-        const aminoAcids = ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine',
-                           'phenylalanine', 'threonine', 'tryptophan', 'valine', 'cystine'];
-
-        aminoAcids.forEach(aa => {
-            console.log(`  ${aa}: ${micronutrientTotals[aa] || 0}`);
-        });
+        // No debug logging for calcium or amino acids
 
         // Verify all micronutrient values are properly set
         for (const category in MICRONUTRIENT_CATEGORIES) {
@@ -398,14 +398,9 @@
     function calculateMicronutrientPercentages(micronutrientTotals) {
         const percentages = {};
 
-        // EMERGENCY FIX: Debug protein and amino acid values before calculating percentages
-        console.log('PERCENTAGE DEBUG: Protein value before calculating percentages:', micronutrientTotals.protein);
+        // Define amino acids for calculations
         const aminoAcids = ['histidine', 'isoleucine', 'leucine', 'lysine', 'methionine',
                            'phenylalanine', 'threonine', 'tryptophan', 'valine', 'cystine'];
-
-        aminoAcids.forEach(aa => {
-            console.log(`  ${aa} before percentage calculation: ${micronutrientTotals[aa] || 0}`);
-        });
 
         for (const key in micronutrientTotals) {
             // Make sure the total is a valid number
@@ -416,10 +411,8 @@
                 continue;
             }
 
-            // EMERGENCY FIX: Special handling for amino acids
+            // Special handling for amino acids
             if (aminoAcids.includes(key) && total === 0 && micronutrientTotals.protein > 0) {
-                console.log(`PERCENTAGE FIX: Calculating ${key} value based on protein for percentage calculation`);
-
                 // Standard amino acid distribution as percentage of total protein
                 const aminoAcidDistribution = {
                     'histidine': 0.027, // 2.7% of total protein
@@ -437,7 +430,7 @@
                 if (aminoAcidDistribution[key]) {
                     const calculatedValue = micronutrientTotals.protein * aminoAcidDistribution[key];
                     micronutrientTotals[key] = calculatedValue;
-                    console.log(`  Set ${key} to ${calculatedValue.toFixed(1)}g for percentage calculation`);
+
                 }
             }
 
@@ -445,10 +438,7 @@
             if (MICRONUTRIENT_TARGETS[key]) {
                 percentages[key] = (total / MICRONUTRIENT_TARGETS[key]) * 100;
 
-                // Log calcium percentage calculation
-                if (key === 'calcium') {
-                    console.log(`CALCIUM: Calculating percentage: ${total} / ${MICRONUTRIENT_TARGETS[key]} * 100 = ${percentages[key]}%`);
-                }
+                // No calcium debug logging
             } else {
                 percentages[key] = null; // No target available
             }
@@ -474,13 +464,7 @@
      * @returns {string} - HTML string
      */
     function createMicronutrientPercentageHTML(micronutrientTotals, micronutrientPercentages) {
-        // Debug: Log the totals and percentages
-        console.log('Micronutrient totals:', micronutrientTotals);
-        console.log('Micronutrient percentages:', micronutrientPercentages);
-
-        // Log specific micronutrient values for debugging
-        console.log('CALCIUM: Final total for display:', micronutrientTotals.calcium);
-        console.log('CALCIUM: Final percentage for display:', micronutrientPercentages.calcium);
+        // No debug logging
 
         // Count how many categories have data
         let categoriesWithData = 0;
@@ -494,21 +478,7 @@
                 <h3>Micronutrient Target Coverage</h3>
         `;
 
-        // Add an informational message about micronutrient data
-        html += `
-            <div class="micronutrient-message">
-                <p>Showing all micronutrients and their target percentages. Zero values indicate no data or no amount in the selected recipes.</p>
-                <p>To add micronutrient data to your ingredients, use the Cronometer text parser when adding or editing ingredients.</p>
-            </div>
-        `;
-
-        // Debug: Add a message about the calcium value
-        html += `
-            <div class="debug-message" style="display: block; background-color: #333; padding: 10px; margin: 10px 0; border-left: 3px solid #0f0;">
-                <p>Debug: Calcium total = ${micronutrientTotals.calcium} mg (${micronutrientPercentages.calcium}% of daily target)</p>
-                <p>Debug: All micronutrient totals: ${Object.keys(micronutrientTotals).filter(k => micronutrientTotals[k] > 0).map(k => `${k}: ${micronutrientTotals[k]}`).join(', ')}</p>
-            </div>
-        `;
+        // No informational or debug messages
 
         html += `<div class="micronutrient-percentage-grid">`;
 
@@ -597,12 +567,10 @@
                 return;
             }
 
-            // EMERGENCY FIX: Special handling for protein category
+            // Special handling for protein category
             if (title === 'Protein' && nutrient.key !== 'protein') {
                 // For amino acids, ensure we have a value if protein is present
                 if (totals.protein > 0 && (!totals[nutrient.key] || totals[nutrient.key] === 0)) {
-                    console.log(`PROTEIN ROW FIX: Calculating ${nutrient.key} value based on protein`);
-
                     // Standard amino acid distribution as percentage of total protein
                     const aminoAcidDistribution = {
                         'histidine': 0.027, // 2.7% of total protein
@@ -619,7 +587,7 @@
 
                     if (aminoAcidDistribution[nutrient.key]) {
                         totals[nutrient.key] = totals.protein * aminoAcidDistribution[nutrient.key];
-                        console.log(`  Set ${nutrient.key} to ${totals[nutrient.key].toFixed(1)}g`);
+
                     }
                 }
             }
@@ -716,17 +684,13 @@
             }
         }
 
-        // Special handling for calcium to debug
+        // No special handling for calcium
         let debugClass = '';
-        if (nutrient.key === 'calcium') {
-            debugClass = 'calcium-row';
-            console.log(`Creating calcium row with total: ${total}, percentage: ${percentage}`);
-        }
 
         // Format the total value appropriately
-        let formattedTotal = '0.0';
+        let formattedTotal = '0.00';
         try {
-            formattedTotal = total.toFixed(1);
+            formattedTotal = total.toFixed(2);
         } catch (e) {
             console.error(`Error formatting total for ${nutrient.label}:`, e);
         }

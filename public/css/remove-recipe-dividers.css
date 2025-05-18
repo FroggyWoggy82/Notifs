@@ -1,0 +1,133 @@
+/**
+ * Remove Recipe Dividers
+ * Removes unwanted horizontal lines/dividers in the Create New Recipe section
+ */
+
+/* Remove border from section header */
+.section-header-compact {
+    border-bottom: none !important;
+}
+
+/* Remove border from recipe creation section */
+#recipe-creation-section {
+    border-top: none !important;
+}
+
+/* Improve spacing between heading and recipe name field */
+#create-recipe-form {
+    margin-top: 15px !important;
+}
+
+/* Remove any borders from the recipe name form group */
+#create-recipe-form .form-group {
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+/* Remove any borders from the recipe creation section heading */
+#recipe-creation-section h2 {
+    border-bottom: none !important;
+}
+
+/* Remove any borders from the ingredients heading */
+#create-recipe-form h3 {
+    border-bottom: none !important;
+}
+
+/* Ensure proper spacing between elements */
+#create-recipe-form > * {
+    margin-bottom: 15px !important;
+}
+
+/* Ensure the recipe name field is properly visible */
+#recipeName {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure the form group is properly visible */
+#create-recipe-form .form-group {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure the recipe name label is properly visible */
+#create-recipe-form .form-group label {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin-bottom: 5px !important;
+}
+
+/* Ensure the recipe name input is properly styled */
+#create-recipe-form .form-group input[type="text"] {
+    width: 100% !important;
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+    background-color: rgba(40, 40, 40, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 4px !important;
+    height: 40px !important;
+}
+
+/* Ensure the ingredients heading is properly styled */
+#create-recipe-form h3 {
+    margin-top: 20px !important;
+    margin-bottom: 15px !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 500 !important;
+}
+
+/* Ensure the ingredients list has proper spacing */
+#ingredients-list {
+    margin-top: 15px !important;
+}
+
+/* Ensure the ingredient items have proper styling */
+.ingredient-item {
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Ensure the buttons have proper styling */
+.buttons-row button {
+    background-color: white !important;
+    color: #121212 !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: background-color 0.2s !important;
+    margin-right: 10px !important;
+}
+
+.buttons-row button:hover {
+    background-color: #e0e0e0 !important;
+}
+
+/* Ensure the Save Recipe button has proper styling */
+#create-recipe-form > button[type="submit"] {
+    background-color: white !important;
+    color: #121212 !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    transition: background-color 0.2s !important;
+    display: block !important;
+    margin: 20px auto !important;
+}
+
+#create-recipe-form > button[type="submit"]:hover {
+    background-color: #e0e0e0 !important;
+}

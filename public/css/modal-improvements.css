@@ -1,0 +1,224 @@
+/**
+ * Modal Improvements
+ * Enhances modals to be centered and properly styled
+ */
+
+/* Modal backdrop */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+}
+
+/* Modal container */
+.modal-container {
+    background-color: #121212;
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    max-width: 90%;
+    width: auto;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-backdrop.show .modal-container {
+    transform: translateY(0);
+}
+
+/* Modal header */
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: white;
+}
+
+/* Modal body */
+.modal-body {
+    padding: 20px;
+}
+
+/* Modal footer */
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Modal buttons */
+.modal-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.modal-btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    background-color: #3d8b40;
+}
+
+.modal-btn-secondary {
+    background-color: #333;
+    color: white;
+}
+
+.modal-btn-secondary:hover {
+    background-color: #444;
+}
+
+/* Dropdown positioning */
+.dropdown-menu {
+    position: absolute;
+    background-color: #121212;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 150px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 5px 0;
+}
+
+.dropdown-item {
+    padding: 8px 15px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Form improvements */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: white;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-container {
+        width: 95%;
+    }
+}
+
+/* Status messages */
+.status {
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.status.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    border-left: 4px solid #4CAF50;
+    color: white;
+}
+
+.status.error {
+    background-color: rgba(244, 67, 54, 0.2);
+    border-left: 4px solid #F44336;
+    color: white;
+}
+
+.status.info {
+    background-color: rgba(33, 150, 243, 0.2);
+    border-left: 4px solid #2196F3;
+    color: white;
+}
+
+.status.warning {
+    background-color: rgba(255, 152, 0, 0.2);
+    border-left: 4px solid #FF9800;
+    color: white;
+}

@@ -1,0 +1,93 @@
+/**
+ * Fix Recipe Name Position
+ * Ensures the recipe name field is properly positioned at the top of the form
+ */
+
+/* Style the recipe name form group */
+#create-recipe-form .form-group {
+    margin-bottom: 20px !important;
+    padding: 15px !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    border-radius: 5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Style the recipe name label */
+#create-recipe-form .form-group label {
+    display: block !important;
+    margin-bottom: 8px !important;
+    font-size: 16px !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+/* Style the recipe name input */
+#create-recipe-form .form-group input[type="text"] {
+    width: 100% !important;
+    padding: 10px 12px !important;
+    font-size: 16px !important;
+    background-color: rgba(40, 40, 40, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 4px !important;
+    height: 40px !important;
+}
+
+/* Ensure the recipe name input is visible and properly positioned */
+#create-recipe-form #recipeName {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+/* Add spacing after the recipe name field */
+#create-recipe-form h3 {
+    margin-top: 25px !important;
+    margin-bottom: 15px !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: 500 !important;
+}
+
+/* Ensure the ingredients list has proper spacing */
+#ingredients-list {
+    margin-top: 15px !important;
+}
+
+/* Fix for the selection type radio buttons */
+.selection-row {
+    margin-bottom: 15px !important;
+    padding: 10px !important;
+    background-color: rgba(40, 40, 40, 0.5) !important;
+    border-radius: 4px !important;
+}
+
+/* Style the selection type labels */
+.selection-type label {
+    margin-right: 15px !important;
+    color: white !important;
+    font-size: 14px !important;
+}
+
+/* Style the radio buttons */
+.selection-type input[type="radio"] {
+    margin-right: 5px !important;
+}
+
+/* Style the Add Ingredient button */
+.add-ingredient-btn-inline {
+    background-color: white !important;
+    color: #121212 !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: background-color 0.2s !important;
+}
+
+.add-ingredient-btn-inline:hover {
+    background-color: #e0e0e0 !important;
+}

@@ -15,7 +15,8 @@
 
 .due-date-indicator,
 .next-occurrence-indicator,
-.recurrence-indicator {
+.recurrence-indicator,
+.next-occurrence-date {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -27,6 +28,7 @@
     box-shadow: none !important;
     font-weight: 500 !important;
     margin-left: 4px !important;
+    margin-right: 5px !important;
 }
 
 
@@ -34,19 +36,22 @@
 .next-occurrence-indicator.overdue {
     color: #FF3D00 !important;
     border: 1px solid rgba(255, 61, 0, 0.3) !important;
+    background-color: rgba(255, 61, 0, 0.1) !important;
 }
 
 
 .due-date-indicator.due-soon,
 .next-occurrence-indicator.due-soon {
-    color: #FFC107 !important; 
+    color: #FFC107 !important;
     border: 1px solid rgba(255, 193, 7, 0.3) !important;
 }
 
 
-.next-occurrence-indicator {
-    color: #66BB6A !important; 
+.next-occurrence-indicator,
+.next-occurrence-date {
+    color: #66BB6A !important;
     border: 1px solid rgba(102, 187, 106, 0.3) !important;
+    background-color: rgba(102, 187, 106, 0.1) !important;
 }
 
 
@@ -60,6 +65,38 @@
 .next-occurrence-overdue {
     color: #FF3D00 !important;
     border: 1px solid rgba(255, 61, 0, 0.3) !important;
+}
+
+/* Ensure all next occurrence indicators have the "Next:" prefix */
+.next-occurrence-indicator:not(.overdue) span:not(:contains("Next:")),
+.next-occurrence-date:not(:contains("Next:")) {
+    visibility: hidden;
+    position: relative;
+}
+
+.next-occurrence-indicator:not(.overdue) span:not(:contains("Next:"))::before,
+.next-occurrence-date:not(:contains("Next:"))::before {
+    content: "Next: " attr(data-date);
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+/* Ensure all overdue indicators have the "Overdue:" prefix */
+.due-date-indicator.overdue span:not(:contains("Overdue:")),
+.next-occurrence-indicator.overdue span:not(:contains("Overdue:")) {
+    visibility: hidden;
+    position: relative;
+}
+
+.due-date-indicator.overdue span:not(:contains("Overdue:"))::before,
+.next-occurrence-indicator.overdue span:not(:contains("Overdue:"))::before {
+    content: "Overdue: " attr(data-date);
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
 }
 
 

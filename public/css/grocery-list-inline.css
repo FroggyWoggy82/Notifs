@@ -2,12 +2,11 @@
 
 
 #grocery-list-section {
-    margin-top: 40px;
-    padding: 25px;
+    padding: 15px;
     background-color: rgba(25, 25, 25, 0.7);
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #grocery-list-section h2 {
@@ -416,5 +415,19 @@
 
     .calorie-summary-separator {
         display: none;
+    }
+
+    /* Adjust recipe selection area for mobile */
+    .recipe-checkbox-list {
+        max-height: 250px;
+    }
+
+    /* Reduce padding for mobile */
+    #grocery-list-section {
+        padding: 10px;
+    }
+
+    .grocery-list-container {
+        gap: 15px;
     }
 }

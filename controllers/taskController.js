@@ -1,6 +1,20 @@
 const Task = require('../models/taskModel');
 const db = require('../utils/db');
 
+// Store recent task creation requests to prevent duplicates
+const recentTaskRequests = new Map();
+
+// Clean up old requests every 5 minutes
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamp] of recentTaskRequests.entries()) {
+        // Remove entries older than 1 minute
+        if (now - timestamp > 60000) {
+            recentTaskRequests.delete(key);
+        }
+    }
+}, 300000); // 5 minutes
+
 /**
  * Task Controller
  * Handles request processing for task-related endpoints
@@ -46,6 +60,63 @@ class TaskController {
                 grocery_data,
                 has_subtasks
             } = req.body;
+
+            // DIRECT DUPLICATE PREVENTION
+            // This is a direct implementation in the controller to ensure it works
+
+            // Check for duplicate request using request ID
+            const requestId = req.headers['x-request-id'] || req.query.requestId;
+            console.log(`Checking request ID: ${requestId}`);
+
+            // Use a static Map directly in the controller
+            if (!TaskController.recentRequests) {
+                TaskController.recentRequests = new Map();
+            }
+
+            if (requestId && TaskController.recentRequests.has(requestId)) {
+                console.log(`DUPLICATE REQUEST DETECTED with ID: ${requestId}`);
+                return res.status(409).json({
+                    error: 'Duplicate request',
+                    message: 'This appears to be a duplicate request that was already processed'
+                });
+            }
+
+            // Create a task signature for duplicate detection
+            const taskSignature = `${title}|${description || ''}|${dueDate || ''}`;
+            console.log(`Task signature: ${taskSignature}`);
+
+            // Check if we've seen this exact task recently (within 5 seconds)
+            if (TaskController.recentRequests.has(taskSignature)) {
+                const timestamp = TaskController.recentRequests.get(taskSignature);
+                const now = Date.now();
+                const timeDiff = now - timestamp;
+
+                console.log(`Found existing task signature, time diff: ${timeDiff}ms`);
+
+                if (timeDiff < 5000) {
+                    console.log(`DUPLICATE TASK DETECTED: ${taskSignature}`);
+                    return res.status(409).json({
+                        error: 'Duplicate task',
+                        message: 'A task with the same details was created within the last 5 seconds'
+                    });
+                }
+            }
+
+            // Store the request ID and task signature
+            if (requestId) {
+                TaskController.recentRequests.set(requestId, Date.now());
+            }
+            TaskController.recentRequests.set(taskSignature, Date.now());
+
+            // Clean up old entries if the map gets too large
+            if (TaskController.recentRequests.size > 100) {
+                const now = Date.now();
+                for (const [key, timestamp] of TaskController.recentRequests.entries()) {
+                    if (now - timestamp > 60000) { // Remove entries older than 1 minute
+                        TaskController.recentRequests.delete(key);
+                    }
+                }
+            }
 
             console.log('Received POST /api/tasks with data:', JSON.stringify(req.body, null, 2));
             console.log('Data types:', {

@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="../css/utilities/recurrence-indicator-redesign.css">
     <link rel="stylesheet" href="../css/layout/bottom-nav-hover-animation.css">
     <link rel="stylesheet" href="../css/layout/bottom-nav-white-highlight.css">
+    <link rel="stylesheet" href="../css/layout/bottom-nav-alignment-fix.css"> <!-- Fix for bottom nav alignment -->
+    <link rel="stylesheet" href="../css/journal-bottom-nav-fix.css"> <!-- Custom fix for journal page bottom nav -->
     <link rel="stylesheet" href="../css/sidebar-style-fix.css">
     <link rel="manifest" href="../manifest.json">
     <link rel="icon" type="image/png" href="../icon-192x192.png">
@@ -94,7 +96,10 @@
                         <i class="fas fa-save"></i> Save Entry
                     </button>
                     <button id="analyze-entry" class="secondary-button">
-                        <i class="fas fa-brain"></i> Analyze
+                        <i class="fas fa-brain"></i> Talk to AI Therapist
+                    </button>
+                    <button id="test-ollama" class="secondary-button">
+                        <i class="fas fa-server"></i> Test Ollama
                     </button>
                     <a href="/pages/journal.html" class="secondary-button" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
                         <i class="fas fa-undo"></i> Classic View
@@ -114,7 +119,7 @@
                 </div>
                 <textarea id="journal-content" placeholder="Start writing your thoughts here..." spellcheck="false"></textarea>
                 <div class="editor-footer">
-                    <div class="word-count" id="word-count">0 words</div>
+                    <div class="word-count" id="word-count" style="color: white; font-weight: bold;">0 words</div>
                     <div class="mood-selector">
                         <label for="mood-selector">Mood:</label>
                         <select id="mood-selector">
@@ -201,8 +206,47 @@
     <!-- Journal functionality -->
     <script src="../js/journal/journal-redesign.js"></script>
     <script src="../js/common/bottom-nav-fix.js"></script>
+    <script src="../js/common/bottom-nav-center-fix.js"></script> <!-- Added for proper bottom nav alignment -->
     <script src="../js/tasks/task-icons-fix.js"></script>
     <script src="../js/tasks/checkbox-redesign.js"></script>
     <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
+
+    <!-- Force word count update on page load -->
+    <script>
+        window.addEventListener('load', function() {
+            // Word count functionality
+            const wordCountElement = document.getElementById('word-count');
+            const journalContentTextarea = document.getElementById('journal-content');
+
+            if (wordCountElement && journalContentTextarea) {
+                const text = journalContentTextarea.value;
+                let wordCount = 0;
+
+                if (text && text.trim().length > 0) {
+                    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+                    wordCount = words.length;
+                }
+
+                wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+                wordCountElement.style.color = 'white';
+                wordCountElement.style.fontWeight = 'bold';
+
+                // Add event listener for input events
+                journalContentTextarea.addEventListener('input', function() {
+                    const text = journalContentTextarea.value;
+                    let wordCount = 0;
+
+                    if (text && text.trim().length > 0) {
+                        const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+                        wordCount = words.length;
+                    }
+
+                    wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+                });
+            }
+
+            // Bottom navigation is now handled by bottom-nav-center-fix.js
+        });
+    </script>
 </body>
 </html>

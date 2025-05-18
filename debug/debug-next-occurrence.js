@@ -4,41 +4,41 @@ const db = require('../utils/db');
 async function debugNextOccurrence() {
     try {
         console.log('Debugging next occurrence creation...');
-        
+
         // Get the shave task
         const taskResult = await db.query(`
             SELECT * FROM tasks
             WHERE title = 'shave'
         `);
-        
+
         if (taskResult.rows.length === 0) {
             console.log('Shave task not found');
             return;
         }
-        
+
         const task = taskResult.rows[0];
         console.log('Task:', task);
-        
+
         // Try to create the next occurrence
         console.log('Attempting to create next occurrence...');
-        
+
         // 1. Check if this is a recurring task
         if (!task.recurrence_type || task.recurrence_type === 'none') {
             console.log('Task is not recurring');
             return;
         }
-        
+
         // 2. Calculate the next occurrence date
         if (!task.due_date) {
             console.log('Task has no due date');
             return;
         }
-        
+
         const dueDate = new Date(task.due_date);
         const interval = task.recurrence_interval || 1;
-        
+
         let nextDueDate = new Date(dueDate);
-        
+
         // Calculate the next occurrence based on recurrence type
         switch (task.recurrence_type) {
             case 'daily':
@@ -51,15 +51,25 @@ async function debugNextOccurrence() {
                 nextDueDate.setMonth(nextDueDate.getMonth() + interval);
                 break;
             case 'yearly':
-                nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
+                // For yearly recurrences, we need to be careful with the date
+                // Get the original month and day
+                const originalMonth = dueDate.getMonth();
+                const originalDay = dueDate.getDate();
+
+                // Set the new year
+                nextDueDate.setFullYear(dueDate.getFullYear() + interval);
+
+                // Ensure the month and day remain the same
+                nextDueDate.setMonth(originalMonth);
+                nextDueDate.setDate(originalDay);
                 break;
             default:
                 console.log('Invalid recurrence type');
                 return;
         }
-        
+
         console.log('Next due date:', nextDueDate.toISOString());
-        
+
         // 3. Create a new task for the next occurrence
         try {
             const result = await db.query(
@@ -74,12 +84,12 @@ async function debugNextOccurrence() {
                     task.recurrence_interval
                 ]
             );
-            
+
             console.log('Created next occurrence:', result.rows[0]);
         } catch (err) {
             console.error('Error creating next occurrence:', err);
         }
-        
+
     } catch (err) {
         console.error('Error debugging next occurrence:', err);
     } finally {

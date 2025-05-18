@@ -176,10 +176,16 @@
             const input = document.createElement('input');
             input.type = field.type || 'number';
             input.id = field.id;
-            input.value = field.value || '';
+
+            // Format numeric values with 2 decimal places for display
+            if (input.type !== 'text' && field.value !== '' && !isNaN(parseFloat(field.value))) {
+                input.value = parseFloat(field.value).toFixed(2);
+            } else {
+                input.value = field.value || '';
+            }
 
             if (input.type === 'number') {
-                input.step = field.step || '0.1';
+                input.step = field.step || '0.01'; // Default to 0.01 for 2 decimal places
                 input.min = field.min || '0';
             }
 
