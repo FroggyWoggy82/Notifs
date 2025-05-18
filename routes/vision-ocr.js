@@ -21,24 +21,57 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-// Mock OCR endpoint for development
+// Mock OCR implementation for nutrition labels
+router.post('/nutrition', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image file provided' });
+        }
+
+        // Simulate processing delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Return mock nutrition data
+        res.json({
+            success: true,
+            rawText: "Mock nutrition label text. This would normally be the raw text extracted from the image.",
+            calories: 190.9,
+            protein: 8.5,
+            fat: 12.1,
+            carbs: 12.6,
+            fiber: 0.5,
+            sugars: 12.0,
+            sodium: 132.2,
+            calcium: 308.4,
+            iron: 0.0,
+            potassium: 405.3,
+            vitaminA: 0.0,
+            vitaminC: 0.0,
+            vitaminD: 0.0,
+            confidence: 0.95,
+            imageUrl: `/uploads/ocr/${path.basename(req.file.path)}`
+        });
+    } catch (error) {
+        console.error('Error in OCR processing:', error);
+        res.status(500).json({ error: 'Failed to process image' });
+    }
+});
+
+// Mock OCR endpoint for general text analysis
 router.post('/analyze', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
         }
 
-        // In a real implementation, this would call the Google Cloud Vision API
-        // For now, we'll return a mock response
-        
         // Simulate processing delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Return mock OCR results
         res.json({
             success: true,

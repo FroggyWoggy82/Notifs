@@ -54,19 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            checkbox.addEventListener('mouseenter', function() {
-                if (!this.checked) {
-                    this.style.borderColor = 'rgba(255, 255, 255, 0.7)';
-                    this.style.boxShadow = '0 0 12px rgba(255, 255, 255, 0.2)';
-                }
-            });
-
-            checkbox.addEventListener('mouseleave', function() {
-                if (!this.checked) {
-                    this.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-                    this.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.1)';
-                }
-            });
+            // Hover effects are now handled by CSS in checkbox-hover-fix.css
+            // to prevent white flashing when hovering
         });
     }
 
@@ -117,19 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            checkbox.addEventListener('mouseenter', function() {
-                if (!this.checked) {
-                    this.style.borderColor = 'rgba(255, 255, 255, 0.7)';
-                    this.style.boxShadow = '0 0 12px rgba(255, 255, 255, 0.2)';
-                }
-            });
-
-            checkbox.addEventListener('mouseleave', function() {
-                if (!this.checked) {
-                    this.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-                    this.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.1)';
-                }
-            });
+            // Hover effects are now handled by CSS in checkbox-hover-fix.css
+            // to prevent white flashing when hovering
         });
     }
 

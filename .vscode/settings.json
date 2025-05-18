@@ -1,0 +1,10 @@
+{
+    "augment.workspaceRoot": "${workspaceFolder}",
+    "augment.projectPath": "${workspaceFolder}",
+    "augment.remote.workspaceRoot": "/mnt/persist/workspace",
+    "augment.remote.projectPath": "/mnt/persist/workspace",
+    "augment.remote.filePathResolution": {
+        "strategy": "absolute",
+        "basePath": "/mnt/persist/workspace"
+    }
+}

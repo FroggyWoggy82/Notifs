@@ -1,0 +1,12 @@
+{
+  "projectRoot": "/mnt/persist/workspace",
+  "workspaceRoot": "/mnt/persist/workspace",
+  "sourceRoot": "/mnt/persist/workspace",
+  "filePathResolution": {
+    "strategy": "absolute",
+    "basePath": "/mnt/persist/workspace"
+  },
+  "agent": {
+    "workingDirectory": "/mnt/persist/workspace"
+  }
+}

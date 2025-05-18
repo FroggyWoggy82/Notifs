@@ -453,17 +453,7 @@ class Task {
                 nextDueDate.setMonth(nextDueDate.getMonth() + interval);
                 break;
             case 'yearly':
-                // For yearly recurrences, we need to be careful with the date
-                // Get the original month and day
-                const originalMonth = startDate.getMonth();
-                const originalDay = startDate.getDate();
-
-                // Set the new year
-                nextDueDate.setFullYear(startDate.getFullYear() + interval);
-
-                // Ensure the month and day remain the same
-                nextDueDate.setMonth(originalMonth);
-                nextDueDate.setDate(originalDay);
+                nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
                 break;
             default:
                 throw new Error('Invalid recurrence type');

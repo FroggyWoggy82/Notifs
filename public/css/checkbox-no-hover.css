@@ -1,0 +1,193 @@
+/**
+ * Checkbox No Hover Fix
+ * 
+ * This CSS completely removes all hover effects and animations from checkboxes
+ * to eliminate any possibility of flickering.
+ */
+
+/* 
+ * Global style to disable all animations and transitions
+ */
+* {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+}
+
+/* 
+ * Task Checkboxes - Base Styling with no hover effects
+ */
+html body .task-item input[type="checkbox"],
+html body .task-item input[type="checkbox"]:hover,
+html body .task-item input[type="checkbox"]:focus,
+html body .task-item input[type="checkbox"]:active {
+    /* Fixed size */
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    
+    /* Appearance */
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background-color: #121212 !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 50% !important;
+    
+    /* Positioning */
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    
+    /* Disable all transitions and animations */
+    transition: none !important;
+    -webkit-transition: none !important;
+    animation: none !important;
+    -webkit-animation: none !important;
+    
+    /* Prevent any transforms */
+    transform: none !important;
+    -webkit-transform: none !important;
+    
+    /* Ensure functionality */
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    
+    /* Box model */
+    box-sizing: border-box !important;
+    
+    /* No hover effects */
+    box-shadow: none !important;
+}
+
+/* 
+ * Task Checkboxes - Checked State
+ */
+html body .task-item input[type="checkbox"]:checked {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 
+ * Remove all pseudo-elements
+ */
+html body .task-item input[type="checkbox"]::before,
+html body .task-item input[type="checkbox"]:checked::before,
+html body .task-item input[type="checkbox"]::after,
+html body .task-item input[type="checkbox"]:checked::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* 
+ * Habit Checkboxes - Base Styling with no hover effects
+ */
+html body .habit-item .habit-checkbox,
+html body .habit-item .habit-checkbox:hover,
+html body .habit-item .habit-checkbox:focus,
+html body .habit-item .habit-checkbox:active {
+    /* Fixed size */
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    
+    /* Appearance */
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background-color: #121212 !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 50% !important;
+    
+    /* Positioning */
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    
+    /* Disable all transitions and animations */
+    transition: none !important;
+    -webkit-transition: none !important;
+    animation: none !important;
+    -webkit-animation: none !important;
+    
+    /* Prevent any transforms */
+    transform: none !important;
+    -webkit-transform: none !important;
+    
+    /* Ensure functionality */
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    
+    /* Box model */
+    box-sizing: border-box !important;
+    
+    /* No hover effects */
+    box-shadow: none !important;
+}
+
+/* 
+ * Habit Checkboxes - Checked State
+ */
+html body .habit-item .habit-checkbox:checked {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 
+ * Remove all pseudo-elements
+ */
+html body .habit-item .habit-checkbox::before,
+html body .habit-item .habit-checkbox:checked::before,
+html body .habit-item .habit-checkbox::after,
+html body .habit-item .habit-checkbox:checked::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* 
+ * Completely disable all animations by redefining them
+ */
+@keyframes checkbox-fill {
+    from, to { opacity: 0 !important; }
+}
+
+@keyframes checkbox-pulse {
+    from, to { opacity: 0 !important; }
+}
+
+/* 
+ * Ensure checkbox containers don't interfere
+ */
+html body .task-checkbox-container,
+html body .habit-checkbox-container {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+/* 
+ * Override any hover styles from other CSS files
+ */
+html body .task-item input[type="checkbox"]:hover,
+html body .habit-item .habit-checkbox:hover {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: none !important;
+    transform: none !important;
+    background-color: #121212 !important;
+}
+
+/* 
+ * Override any hover styles for checked checkboxes
+ */
+html body .task-item input[type="checkbox"]:checked:hover,
+html body .habit-item .habit-checkbox:checked:hover {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}

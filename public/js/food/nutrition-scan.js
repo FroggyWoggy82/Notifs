@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupPaddleOCRToggle() {
 
-        console.log('OCR toggle setup - using Google Cloud Vision by default');
+        console.log('OCR toggle setup - using Mock OCR by default');
     }
 
     function setupClipboardPaste() {
@@ -177,8 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let endpoints = [];
 
-            console.log('OCR engine set to: Google Cloud Vision');
-            scanStatus.textContent = 'Processing image with Google Cloud Vision...';
+            console.log('OCR engine set to: Mock OCR');
+            scanStatus.textContent = 'Processing image with OCR...';
             endpoints = [
                 '/api/vision-ocr/nutrition'
             ];

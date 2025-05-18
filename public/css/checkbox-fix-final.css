@@ -1,0 +1,147 @@
+/**
+ * Checkbox Fix - Final Solution
+ * This CSS fixes the checkbox styling to prevent any flashing
+ */
+
+/* Force consistent size and appearance for all checkboxes */
+html body .task-item input[type="checkbox"] {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    border-radius: 50% !important;
+    background-color: rgba(18, 18, 18, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Force consistent size and appearance for all habit checkboxes */
+html body .habit-item .habit-checkbox {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    border-radius: 50% !important;
+    background-color: rgba(18, 18, 18, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Only target the hover state to prevent white flashing */
+html body .task-item input[type="checkbox"]:hover {
+    /* Prevent background color flashing */
+    background-color: rgba(18, 18, 18, 0.9) !important;
+
+    /* Add a subtle glow effect */
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+
+    /* Prevent size changes */
+    transform: none !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* Only target the hover state for habit checkboxes */
+html body .habit-item .habit-checkbox:hover {
+    /* Prevent background color flashing */
+    background-color: rgba(18, 18, 18, 0.9) !important;
+
+    /* Add a subtle glow effect */
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+
+    /* Prevent size changes */
+    transform: none !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* Task checkboxes - inner circle when checked */
+html body .task-item input[type="checkbox"]::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 50% !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    transform: translate(-50%, -50%) !important;
+
+    /* Disable all transitions and animations */
+    transition: none !important;
+    animation: none !important;
+
+    /* Prevent any background color flashing */
+    background-image: none !important;
+    opacity: 0 !important;
+}
+
+/* Task checkboxes - inner circle when checked */
+html body .task-item input[type="checkbox"]:checked::before {
+    opacity: 1 !important;
+
+    /* Disable all transitions and animations */
+    transition: none !important;
+    animation: none !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+/* Disable all animations from white-checkbox-fill.css */
+@keyframes checkbox-fill {
+    0%, 50%, 100% {
+        width: 70% !important;
+        height: 70% !important;
+        opacity: 1 !important;
+        box-shadow: none !important;
+    }
+}
+
+@keyframes checkbox-pulse {
+    0%, 50%, 100% {
+        box-shadow: none !important;
+        transform: translate(-50%, -50%) !important;
+    }
+}
+
+/* Override the checkbox-container hover effect */
+.task-checkbox-container:hover {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Override the checkbox-container active effect */
+.task-checkbox-container:active {
+    background-color: transparent !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}

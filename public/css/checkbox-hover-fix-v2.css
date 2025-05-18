@@ -1,0 +1,111 @@
+/**
+ * Checkbox Hover Fix v3
+ * Fixes the white flashing issue and size changes when hovering over checkboxes
+ * while preserving checkbox functionality
+ */
+
+/* Force consistent size and appearance for all checkboxes */
+html body .task-item input[type="checkbox"] {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    border-radius: 50% !important;
+    background-color: rgba(18, 18, 18, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    transform: none !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    animation: none !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Only target the hover state to prevent white flashing */
+html body .task-item input[type="checkbox"]:hover {
+    /* Prevent background color flashing */
+    background-color: rgba(18, 18, 18, 0.9) !important;
+
+    /* Add a subtle glow effect */
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+
+    /* Prevent size changes */
+    transform: none !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* Force consistent size and appearance for all habit checkboxes */
+html body .habit-item .habit-checkbox {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    border-radius: 50% !important;
+    background-color: rgba(18, 18, 18, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    transform: none !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    animation: none !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Only target the hover state for habit checkboxes */
+html body .habit-item .habit-checkbox:hover {
+    /* Prevent background color flashing */
+    background-color: rgba(18, 18, 18, 0.9) !important;
+
+    /* Add a subtle glow effect */
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+
+    /* Prevent size changes */
+    transform: none !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* Override any animations that might cause flashing */
+@keyframes checkbox-fill {
+    0%, 50%, 100% {
+        width: 70% !important;
+        height: 70% !important;
+        opacity: 1 !important;
+        box-shadow: none !important;
+    }
+}
+
+@keyframes checkbox-pulse {
+    0%, 50%, 100% {
+        box-shadow: none !important;
+        transform: translate(-50%, -50%) !important;
+    }
+}
+
+/* Override the checkbox-container hover effect */
+.task-checkbox-container:hover {
+    background-color: transparent !important;
+}
+
+/* Ensure the checkbox is clickable */
+html body .task-item input[type="checkbox"],
+html body .habit-item .habit-checkbox {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Ensure the checkbox container is clickable */
+.task-checkbox-container,
+.habit-checkbox-container {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}

@@ -156,7 +156,7 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
 
     const apiUrl = `${window.location.origin}/api/vision-ocr/nutrition`;
 
-    showStatus(statusElement, 'Processing image with Google Cloud Vision...', 'loading');
+    showStatus(statusElement, 'Processing image with OCR...', 'loading');
 
     console.log(`Sending OCR request to: ${apiUrl}`);
 

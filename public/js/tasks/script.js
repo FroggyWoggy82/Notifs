@@ -4,29 +4,6 @@ let serviceWorkerRegistration = null;
 let lastAccessDate = localStorage.getItem('lastAccessDate') || null;
 let allHabitsData = []; // Store habits data globally
 
-/**
- * Format a date for display
- * @param {Date} date - The date to format
- * @returns {string} - The formatted date
- */
-function formatDate(date) {
-    if (!date) return '';
-
-    // Create a new date object
-    const dateObj = new Date(date);
-
-    // Add one day to fix timezone issues with yearly recurring tasks
-    dateObj.setDate(dateObj.getDate() + 1);
-
-    // Get the date parts
-    const month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
-    const day = dateObj.getDate();
-    const year = dateObj.getFullYear();
-
-    // Format as MM/DD/YYYY
-    return `${month}/${day}/${year}`;
-}
-
 function isToday(dateString) {
     if (!dateString) return false;
     try {
@@ -101,7 +78,6 @@ function calculateNextOccurrence(task) {
 
     const interval = task.recurrence_interval || 1;
 
-    // Create a new date object to avoid modifying the original
     const nextDate = new Date(dueDate);
 
     switch (task.recurrence_type) {
@@ -115,17 +91,7 @@ function calculateNextOccurrence(task) {
             nextDate.setMonth(nextDate.getMonth() + interval);
             break;
         case 'yearly':
-            // For yearly recurrences, we need to be careful with the date
-            // Get the original month and day
-            const originalMonth = dueDate.getMonth();
-            const originalDay = dueDate.getDate();
-
-            // Set the new year
-            nextDate.setFullYear(dueDate.getFullYear() + interval);
-
-            // Ensure the month and day remain the same
-            nextDate.setMonth(originalMonth);
-            nextDate.setDate(originalDay);
+            nextDate.setFullYear(nextDate.getFullYear() + interval);
             break;
         default:
             return null;
@@ -164,45 +130,7 @@ function isDayChanged() {
     return dayChanged;
 }
 
-// Create a global namespace for task management
-window.TaskManager = window.TaskManager || {};
-
-// Store submission state in the global namespace to persist across page refreshes
-window.TaskManager.isSubmittingTask = false;
-window.TaskManager.lastTaskSubmission = 0;
-
-// Add a function to prevent duplicate task submissions
-window.TaskManager.preventDuplicateSubmission = function() {
-    // Check if a submission is already in progress
-    if (window.TaskManager.isSubmittingTask) {
-        console.log('Task submission already in progress, ignoring duplicate submission');
-        return true; // Submission should be prevented
-    }
-
-    // Check if this is a duplicate submission (within 3 seconds)
-    const now = Date.now();
-    if (now - window.TaskManager.lastTaskSubmission < 3000) {
-        console.log('Duplicate task submission detected (too soon after previous submission)');
-        return true; // Submission should be prevented
-    }
-
-    // Update the submission timestamp
-    window.TaskManager.lastTaskSubmission = now;
-
-    // Set the flag to indicate a submission is in progress
-    window.TaskManager.isSubmittingTask = true;
-
-    // Schedule the flag to be reset after 5 seconds (safety measure)
-    setTimeout(() => {
-        window.TaskManager.isSubmittingTask = false;
-    }, 5000);
-
-    return false; // Submission can proceed
-};
-
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded - Initializing task management with duplicate prevention');
-
     const statusDiv = document.getElementById('status');
     const permissionStatusDiv = document.getElementById('permissionStatus');
 
@@ -1036,52 +964,23 @@ document.addEventListener('DOMContentLoaded', () => {
         metadataDiv.className = 'task-metadata';
 
         if (task.recurrence_type && task.recurrence_type !== 'none' && nextOccurrenceDate) {
-            // Special handling for Yuvi's Bday task
-            if (task.title && task.title.includes("Yuvi")) {
-                // Create a completely new element with proper styling
-                const nextDateElement = document.createElement('span');
-                nextDateElement.className = 'next-occurrence-date';
-                nextDateElement.textContent = 'Next: 5/15/2026';
-                nextDateElement.style.display = 'inline-block';
-                nextDateElement.style.marginRight = '5px';
-                nextDateElement.style.backgroundColor = '#4CAF50';
-                nextDateElement.style.color = 'white';
-                nextDateElement.style.padding = '2px 5px';
-                nextDateElement.style.borderRadius = '3px';
+            const nextOccurrenceIndicator = document.createElement('div');
+            nextOccurrenceIndicator.className = 'next-occurrence-indicator';
 
-                // Add the element directly to the metadata container
-                const metadataContainer = div.querySelector('.task-metadata');
-                if (metadataContainer) {
-                    // Insert at the beginning
-                    if (metadataContainer.firstChild) {
-                        metadataContainer.insertBefore(nextDateElement, metadataContainer.firstChild);
-                    } else {
-                        metadataContainer.appendChild(nextDateElement);
-                    }
-                }
+            const nextOccurrenceText = document.createElement('span');
+            nextOccurrenceText.textContent = nextOccurrenceDate.toLocaleDateString();
+            nextOccurrenceIndicator.appendChild(nextOccurrenceText);
 
-                console.log('[Fix Yuvi Bday] Created styled next date element for task:', task.title);
-            } else {
-                // Standard handling for other tasks
-                const nextOccurrenceIndicator = document.createElement('div');
-                nextOccurrenceIndicator.className = 'next-occurrence-indicator';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
+            const isNextOverdue = nextOccurrenceDate < today;
 
-                const nextOccurrenceText = document.createElement('span');
-                // Use our custom formatDate function for other tasks
-                nextOccurrenceText.textContent = formatDate(nextOccurrenceDate);
-                nextOccurrenceIndicator.appendChild(nextOccurrenceText);
-
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Reset time to start of day
-                const isNextOverdue = nextOccurrenceDate < today;
-
-                if (isNextOverdue) {
-                    nextOccurrenceIndicator.classList.add('overdue');
-                    console.log(`Task ${task.id} (${task.title}) next occurrence is overdue: ${nextOccurrenceDate.toISOString()}`);
-                }
-                // Only append the nextOccurrenceIndicator for non-Yuvi tasks
-                metadataDiv.appendChild(nextOccurrenceIndicator);
+            if (isNextOverdue) {
+                nextOccurrenceIndicator.classList.add('overdue');
+                console.log(`Task ${task.id} (${task.title}) next occurrence is overdue: ${nextOccurrenceDate.toISOString()}`);
             }
+
+            metadataDiv.appendChild(nextOccurrenceIndicator);
         }
 
         if (task.due_date) {
@@ -1142,8 +1041,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     nextWeek.setDate(nextWeek.getDate() + 7);
 
 
-                    // Format the date using our custom formatDate function
-                    const formattedDate = formatDate(dueDate);
+                    const formattedDate = dueDate.toLocaleDateString('default', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: today.getFullYear() !== dueDate.getFullYear() ? 'numeric' : undefined
+                    });
 
                     const dueDateIndicator = document.createElement('div');
                     dueDateIndicator.className = 'due-date-indicator';
@@ -1178,32 +1080,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dueDateText = document.createElement('span');
 
                     if (task.isOverdueNextOccurrence && task.nextOccurrenceDate) {
-                        // Special handling for Yuvi's Bday task
-                        if (task.title && task.title.includes("Yuvi")) {
-                            // Create a completely new element with proper styling
-                            const overdueElement = document.createElement('span');
-                            overdueElement.className = 'due-date-indicator overdue';
-                            overdueElement.textContent = 'Overdue: 5/15/2025';
-                            overdueElement.style.display = 'inline-block';
-                            overdueElement.style.marginRight = '5px';
-                            overdueElement.style.backgroundColor = '#ff5555';
-                            overdueElement.style.color = 'white';
-                            overdueElement.style.padding = '2px 5px';
-                            overdueElement.style.borderRadius = '3px';
 
-                            // Replace the entire dueDateIndicator with our new element
-                            if (dueDateIndicator.parentNode) {
-                                dueDateIndicator.parentNode.replaceChild(overdueElement, dueDateIndicator);
-                                dueDateIndicator = overdueElement; // Update the reference
-                            }
 
-                            console.log('[Fix Yuvi Bday] Completely replaced overdue date element for task:', task.title);
-                        } else {
-                            dueDateText.textContent = `Overdue: ${formatDate(task.due_date)}`;
-                            dueDateIndicator.appendChild(dueDateText);
-                            dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
-                            dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
-                        }
+
+                        dueDateText.textContent = `Overdue: ${formattedDate}`;
+                        dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
+                        dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
 
                         div.setAttribute('data-recurring-overdue', 'true');
 
@@ -1215,28 +1097,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         let nextDateText;
 
                         if (task.next_occurrence_date) {
-                            // Use the stored next occurrence date if available
+
                             nextDate = new Date(task.next_occurrence_date);
-
-                            // Use our custom formatDate function
-                            nextDateText = formatDate(nextDate);
-
+                            nextDateText = nextDate.toLocaleDateString();
                             console.log(`Using database next occurrence date for task ${task.id}: ${nextDateText}`);
                         } else {
-                            // Calculate the next occurrence date based on the recurrence type
+
                             const today = new Date();
 
-                            // For daily tasks, the next occurrence should be tomorrow
                             if (task.recurrence_type === 'daily') {
                                 const tomorrow = new Date(today);
                                 tomorrow.setDate(tomorrow.getDate() + 1);
-
-                                // Use our custom formatDate function
-                                nextDateText = formatDate(tomorrow);
+                                nextDateText = tomorrow.toLocaleDateString();
                             } else {
-                                // For other recurrence types, use today's date as a fallback
-                                // Use our custom formatDate function
-                                nextDateText = formatDate(today);
+
+                                nextDateText = today.toLocaleDateString();
                             }
                         }
 
@@ -1248,24 +1123,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (task.recurrence_type && task.recurrence_type !== 'none' && task.is_complete) {
 
                         if (task.next_occurrence_date) {
-                            // Use the stored next occurrence date if available
+
                             const nextDate = new Date(task.next_occurrence_date);
-
-                            // Use our custom formatDate function
-                            const formattedNextDate = formatDate(nextDate);
-
+                            const formattedNextDate = nextDate.toLocaleDateString();
                             dueDateText.textContent = `Next: ${formattedNextDate}`;
                             console.log(`Using database next occurrence date for completed task ${task.id}: ${formattedNextDate}`);
                         } else {
-                            // If no stored next occurrence date, calculate it
+
                             const nextOccurrence = calculateNextOccurrence(task);
                             if (nextOccurrence) {
-                                // Use our custom formatDate function
-                                const formattedNextDate = formatDate(nextOccurrence);
-
+                                const formattedNextDate = nextOccurrence.toLocaleDateString();
                                 dueDateText.textContent = `Next: ${formattedNextDate}`;
                             } else {
-                                // Fallback if we can't calculate the next occurrence
+
                                 dueDateText.textContent = `Due: ${formattedDate}`;
                             }
                         }
@@ -1460,127 +1330,119 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Use our global duplicate prevention system
     addTaskForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-
-        // Check if this is a duplicate submission
-        if (window.TaskManager.preventDuplicateSubmission()) {
-            console.log('Duplicate submission prevented by TaskManager');
-            return false;
-        }
-
-        // Log the submission
-        console.log('Task submission proceeding with timestamp:', window.TaskManager.lastTaskSubmission);
-
-        // Disable the button and show loading state
         addTaskBtn.disabled = true;
         addTaskBtn.textContent = 'Adding...';
         updateAddTaskStatus("Adding task...", false);
 
-        try {
-            const title = taskTitleInput.value.trim();
-            const description = taskDescriptionInput.value.trim();
+        const title = taskTitleInput.value.trim();
+        const description = taskDescriptionInput.value.trim();
 
-            const reminderTypes = [];
-            document.querySelectorAll('.reminder-checkbox:checked').forEach(checkbox => {
-                reminderTypes.push(checkbox.value);
-            });
+        const reminderTypes = [];
+        document.querySelectorAll('.reminder-checkbox:checked').forEach(checkbox => {
+            reminderTypes.push(checkbox.value);
+        });
 
-            let dueDate = taskDueDateInput.value;
+        let dueDate = taskDueDateInput.value;
 
-            const reminderTimes = [];
-            let customReminderTime = null;
 
-            for (const reminderType of reminderTypes) {
-                if (reminderType === 'custom') {
-                    customReminderTime = taskReminderTimeInput.value;
-                    if (!customReminderTime) {
-                        updateAddTaskStatus("Please set a custom reminder time or uncheck the custom reminder option.", true);
-                        addTaskBtn.disabled = false;
-                        addTaskBtn.textContent = 'Add Task';
-                        isSubmittingTask = false;
-                        return;
-                    }
+        const reminderTimes = [];
+        let customReminderTime = null;
+
+        for (const reminderType of reminderTypes) {
+            if (reminderType === 'custom') {
+
+                customReminderTime = taskReminderTimeInput.value;
+                if (!customReminderTime) {
+                    updateAddTaskStatus("Please set a custom reminder time or uncheck the custom reminder option.", true);
+                    addTaskBtn.disabled = false;
+                    addTaskBtn.textContent = 'Add Task';
+                    return;
+                }
+                reminderTimes.push({
+                    type: 'custom',
+                    time: customReminderTime
+                });
+            } else {
+
+                const dueDateTime = new Date(dueDate);
+
+                if (reminderType === 'same-day') {
+
+                    const reminderDate = new Date(dueDateTime);
+                    reminderDate.setHours(9, 0, 0, 0);
                     reminderTimes.push({
-                        type: 'custom',
-                        time: customReminderTime
+                        type: 'same-day',
+                        time: reminderDate.toISOString().slice(0, 16)
                     });
-                } else {
-                    const dueDateTime = new Date(dueDate);
+                } else if (reminderType === 'day-before') {
 
-                    if (reminderType === 'same-day') {
-                        const reminderDate = new Date(dueDateTime);
-                        reminderDate.setHours(9, 0, 0, 0);
-                        reminderTimes.push({
-                            type: 'same-day',
-                            time: reminderDate.toISOString().slice(0, 16)
-                        });
-                    } else if (reminderType === 'day-before') {
-                        const reminderDate = new Date(dueDateTime);
-                        reminderDate.setDate(reminderDate.getDate() - 1);
-                        reminderDate.setHours(9, 0, 0, 0);
-                        reminderTimes.push({
-                            type: 'day-before',
-                            time: reminderDate.toISOString().slice(0, 16)
-                        });
-                    } else if (reminderType === 'week-before') {
-                        const reminderDate = new Date(dueDateTime);
-                        reminderDate.setDate(reminderDate.getDate() - 7);
-                        reminderDate.setHours(9, 0, 0, 0);
-                        reminderTimes.push({
-                            type: 'week-before',
-                            time: reminderDate.toISOString().slice(0, 16)
-                        });
-                    }
+                    const reminderDate = new Date(dueDateTime);
+                    reminderDate.setDate(reminderDate.getDate() - 1);
+                    reminderDate.setHours(9, 0, 0, 0);
+                    reminderTimes.push({
+                        type: 'day-before',
+                        time: reminderDate.toISOString().slice(0, 16)
+                    });
+                } else if (reminderType === 'week-before') {
+
+                    const reminderDate = new Date(dueDateTime);
+                    reminderDate.setDate(reminderDate.getDate() - 7);
+                    reminderDate.setHours(9, 0, 0, 0);
+                    reminderTimes.push({
+                        type: 'week-before',
+                        time: reminderDate.toISOString().slice(0, 16)
+                    });
                 }
             }
+        }
 
-            const duration = parseInt(taskDurationInput.value, 10) || 1;
-            const recurrenceType = taskRecurrenceTypeInput.value;
-            const recurrenceInterval = taskRecurrenceIntervalInput.value;
+        const duration = parseInt(taskDurationInput.value, 10) || 1;
+        const recurrenceType = taskRecurrenceTypeInput.value;
+        const recurrenceInterval = taskRecurrenceIntervalInput.value;
 
-            if (!title) {
-                updateAddTaskStatus("Task title cannot be empty.", true);
-                addTaskBtn.disabled = false;
-                addTaskBtn.textContent = 'Add Task';
-                isSubmittingTask = false;
-                return;
+        if (!title) {
+            updateAddTaskStatus("Task title cannot be empty.", true);
+            addTaskBtn.disabled = false;
+            addTaskBtn.textContent = 'Add Task';
+            return;
+        }
+
+        const primaryReminderTime = reminderTimes.length > 0 ? reminderTimes[0].time : null;
+
+        let reminderTimesString = null;
+        if (reminderTimes.length > 0) {
+            try {
+                reminderTimesString = JSON.stringify(reminderTimes);
+                console.log('Converted reminderTimes to string:', reminderTimesString);
+            } catch (e) {
+                console.error('Error stringifying reminderTimes:', e);
+                reminderTimesString = null;
             }
+        }
 
-            const primaryReminderTime = reminderTimes.length > 0 ? reminderTimes[0].time : null;
+        const taskData = {
+            title: title,
+            description: description || null, // Send null if empty
+            reminderTime: primaryReminderTime, // Use the first reminder time as the primary one
+            reminderType: reminderTypes.length > 0 ? reminderTypes.join(',') : 'none', // Store all reminder types as comma-separated string
+            reminderTimes: reminderTimesString, // Store all reminder times as JSON string
 
-            let reminderTimesString = null;
-            if (reminderTimes.length > 0) {
-                try {
-                    reminderTimesString = JSON.stringify(reminderTimes);
-                    console.log('Converted reminderTimes to string:', reminderTimesString);
-                } catch (e) {
-                    console.error('Error stringifying reminderTimes:', e);
-                    reminderTimesString = null;
-                }
-            }
+            dueDate: dueDate,
+            duration: duration,
+            recurrenceType: recurrenceType,
+            recurrenceInterval: recurrenceType !== 'none' ? parseInt(recurrenceInterval, 10) : null // Send interval only if recurrence is set
+        };
 
-            const taskData = {
-                title: title,
-                description: description || null, // Send null if empty
-                reminderTime: primaryReminderTime, // Use the first reminder time as the primary one
-                reminderType: reminderTypes.length > 0 ? reminderTypes.join(',') : 'none', // Store all reminder types as comma-separated string
-                reminderTimes: reminderTimesString, // Store all reminder times as JSON string
-                dueDate: dueDate,
-                duration: duration,
-                recurrenceType: recurrenceType,
-                recurrenceInterval: recurrenceType !== 'none' ? parseInt(recurrenceInterval, 10) : null // Send interval only if recurrence is set
-            };
+        console.log('Prepared task data:', taskData);
 
-            console.log('Prepared task data:', taskData);
-
-            // Create a unique request ID
-            const requestId = `task-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        try {
+            console.log('Sending task data to server:', taskData);
 
             // Add a timestamp to prevent caching
-            const timestamp = Date.now();
-            const url = `/api/tasks?_=${timestamp}&requestId=${requestId}`;
+            const timestamp = new Date().getTime();
+            const url = `/api/tasks?_=${timestamp}`;
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -1588,8 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
                     'Pragma': 'no-cache',
-                    'Expires': '0',
-                    'X-Request-ID': requestId
+                    'Expires': '0'
                 },
                 body: JSON.stringify(taskData)
             });
@@ -1614,8 +1475,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const newTask = await response.json();
             console.log("Task added:", newTask);
 
-            // Reload tasks instead of manually adding to DOM
-            loadTasks(true);
+
+            const taskElement = createTaskElement(newTask);
+
+            const firstCompleted = taskListDiv.querySelector('.task-item.complete');
+            taskListDiv.insertBefore(taskElement, firstCompleted); // If firstCompleted is null, it appends to end
+
+            if (taskListDiv.querySelector('p')) { // Remove 'No tasks yet' message if present
+                 taskListDiv.querySelector('p').remove();
+            }
+
+
 
             saveCurrentInputs();
 
@@ -1627,13 +1497,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 useLastInputsToggle.checked = true;
                 loadLastInputs();
             } else {
+
                 recurrenceIntervalGroup.style.display = 'none';
             }
 
             updateAddTaskStatus("Task added successfully!", false);
-
-            // Close the modal
-            addTaskModal.style.display = 'none';
 
         } catch (error) {
             console.error('Error adding task:', error);
@@ -1641,12 +1509,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             addTaskBtn.disabled = false;
             addTaskBtn.textContent = 'Add Task';
-
-            // Reset the global submission flag
-            window.TaskManager.isSubmittingTask = false;
-
-            // Log the reset
-            console.log('Task submission flag reset, ready for next submission');
         }
     });
 
@@ -1875,8 +1737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         notification.className = 'status success';
 
                         const nextDate = nextOccurrence.due_date || nextOccurrence.assigned_date || new Date().toISOString();
-                        // Use our custom formatDate function
-                        notification.textContent = `Next occurrence of "${updatedTask.title}" created for ${formatDate(new Date(nextDate))}`;
+                        notification.textContent = `Next occurrence of "${updatedTask.title}" created for ${new Date(nextDate).toLocaleDateString()}`;
                         document.body.appendChild(notification);
 
                         setTimeout(() => {
@@ -2140,8 +2001,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
 
                                 const nextDate = nextOccurrenceData.due_date || nextOccurrenceData.assigned_date || new Date().toISOString();
-                                // Use our custom formatDate function
-                                notification.textContent = `Recurring task "${updatedTask.title}" (repeats ${recurrenceText}) will appear on the calendar on ${formatDate(new Date(nextDate))}.`;
+                                notification.textContent = `Recurring task "${updatedTask.title}" (repeats ${recurrenceText}) will appear on the calendar on ${new Date(nextDate).toLocaleDateString()}.`;
                                 notification.style.marginTop = '10px';
                                 notification.style.marginBottom = '10px';
 

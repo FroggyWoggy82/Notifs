@@ -1,0 +1,87 @@
+/**
+ * Standardized Date Indicators
+ * This CSS ensures consistent styling for all date indicators across the application
+ */
+
+/* Base styling for all date indicators */
+.next-occurrence-indicator,
+.due-date-indicator,
+.next-occurrence-date {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+/* Next date styling - consistent green for all */
+.next-occurrence-indicator:not(.overdue):not(.due-soon),
+.next-occurrence-date {
+    color: #66BB6A;
+    border: 1px solid rgba(102, 187, 106, 0.5);
+    box-shadow: 0 0 8px rgba(102, 187, 106, 0.2);
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Overdue styling */
+.next-occurrence-indicator.overdue,
+.due-date-indicator.overdue {
+    color: #FF3D00;
+    border-color: rgba(255, 61, 0, 0.5);
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(255, 61, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Due soon styling */
+.next-occurrence-indicator.due-soon,
+.due-date-indicator.due-soon {
+    color: #FFC107;
+    border-color: rgba(255, 193, 7, 0.5);
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.2);
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Remove any inline background styling that might be applied */
+.next-occurrence-date[style*="background"],
+.next-occurrence-indicator[style*="background"],
+.due-date-indicator[style*="background"] {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Ensure text is white for all indicators */
+.next-occurrence-date,
+.next-occurrence-indicator,
+.due-date-indicator {
+    color: white !important;
+}
+
+/* Specific color overrides based on state */
+.next-occurrence-indicator:not(.overdue):not(.due-soon) span,
+.next-occurrence-date:not(.overdue):not(.due-soon) {
+    color: #66BB6A !important;
+}
+
+.next-occurrence-indicator.overdue span,
+.due-date-indicator.overdue span,
+.next-occurrence-date.overdue {
+    color: #FF3D00 !important;
+}
+
+.next-occurrence-indicator.due-soon span,
+.due-date-indicator.due-soon span,
+.next-occurrence-date.due-soon {
+    color: #FFC107 !important;
+}
+
+/* Remove any animations that might be applied */
+.next-occurrence-date,
+.next-occurrence-indicator,
+.due-date-indicator {
+    animation: none !important;
+    transition: none !important;
+}

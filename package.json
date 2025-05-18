@@ -25,7 +25,6 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@google-cloud/vision": "^4.0.1",
     "acorn": "^8.14.1",
     "acorn-walk": "^8.3.4",
     "axios": "^1.8.4",

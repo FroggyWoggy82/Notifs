@@ -26,7 +26,6 @@
     <link rel="stylesheet" href="css/recurrence-indicator-redesign.css">
     <link rel="stylesheet" href="css/progress-photo-fix.css">
     <link rel="stylesheet" href="css/date-badge-redesign.css">
-    <link rel="stylesheet" href="css/specific-task-badges.css"> <!-- Specific task badges -->
     <link rel="stylesheet" href="css/habit-button-fix.css">
     <link rel="stylesheet" href="css/habit-ui-fix.css">
     <link rel="stylesheet" href="css/habit-glow-fix.css">
@@ -42,6 +41,7 @@
     <link rel="stylesheet" href="css/remove-recurrence-indicators.css"> <!-- Remove recurrence indicators -->
     <link rel="stylesheet" href="css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
     <link rel="stylesheet" href="css/subtasks.css"> <!-- Subtasks styling -->
+    <link rel="stylesheet" href="css/checkbox-minimal-fix.css"> <!-- Minimal fix for checkbox flashing issue -->
     <link rel="stylesheet" href="css/expand-button-fix.css"> <!-- Expand button fix styling -->
     <link rel="stylesheet" href="css/grocery-tasks.css"> <!-- Grocery tasks styling -->
     <link rel="stylesheet" href="css/expand-button.css"> <!-- New expand button styling -->
@@ -56,11 +56,12 @@
     <link rel="stylesheet" href="css/grocery-subtasks-unified.css"> <!-- Unified grocery subtasks styling -->
     <link rel="stylesheet" href="css/grocery-subtasks-improved.css"> <!-- Improved grocery subtasks styling with better contrast -->
     <link rel="stylesheet" href="css/subtask-dropdown-fix.css"> <!-- Improved subtask dropdown styling -->
-    <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date.css"> <!-- Fix for Yuvi's Bday overdue date -->
-    <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date-final.css"> <!-- Final fix for Yuvi's Bday overdue date -->
-    <link rel="stylesheet" href="css/fix-yuvi-bday-duplicate-text.css"> <!-- Fix for Yuvi's Bday duplicate text -->
-    <link rel="stylesheet" href="css/fix-yuvi-bday-final.css"> <!-- Final fix for Yuvi's Bday dates -->
-    <link rel="stylesheet" href="css/fix-yuvi-bday-important.css"> <!-- Final fix for Yuvi's Bday dates with !important -->
+    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date.css"> --> <!-- Fix for Yuvi's Bday overdue date -->
+    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date-final.css"> --> <!-- Final fix for Yuvi's Bday overdue date -->
+    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-duplicate-text.css"> --> <!-- Fix for Yuvi's Bday duplicate text -->
+    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-final.css"> --> <!-- Final fix for Yuvi's Bday dates -->
+    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-important.css"> --> <!-- Final fix for Yuvi's Bday dates with !important -->
+    <link rel="stylesheet" href="css/standardized-date-indicators.css"> <!-- Standardized date indicators styling -->
 
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -73,7 +74,6 @@
     <link rel="stylesheet" href="css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
     <link rel="stylesheet" href="css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
     <link rel="stylesheet" href="css/modal-improvements.css"> <!-- UI improvements for modals and forms -->
-    <link rel="stylesheet" href="css/edit-button-white-hover.css"> <!-- Edit button white hover -->
 </head>
 <body>
     <button class="menu-button">
@@ -495,18 +495,16 @@
     <!-- ===== End Edit Habit Modal ===== -->
 
     <!-- UI Improvement Systems -->
-    <script src="js/notification-system.js?v=1.0.1"></script> <!-- Notification system for success messages -->
-    <script src="js/modal-system.js?v=1.0.1"></script> <!-- Improved modal system -->
-    <script src="js/form-improvements.js?v=1.0.1"></script> <!-- Form layout and save confirmation improvements -->
-    <script src="js/tasks/direct-fix.js?v=1.0.2"></script> <!-- Direct fix for duplicate task creation -->
+    <script src="js/notification-system.js"></script> <!-- Notification system for success messages -->
+    <script src="js/modal-system.js"></script> <!-- Improved modal system -->
+    <script src="js/form-improvements.js"></script> <!-- Form layout and save confirmation improvements -->
 
-    <!-- Unified fix for Yuvi's Bday date issue -->
-    <script src="js/yuvi-bday-fix-unified.js"></script>
-
-    <!-- Previous fix scripts - all commented out to avoid conflicts -->
+    <!-- All Yuvi's Bday fix scripts are now disabled and replaced by standardized-date-indicators.js -->
     <!-- <script src="js/yuvi-fix-final.js"></script> -->
     <!-- <script src="js/fix-yuvi-overdue-format.js"></script> -->
     <!-- <script src="js/fix-yuvi-date-format-final.js"></script> -->
+
+    <!-- Load external script to fix Yuvi's Bday dates - disabled and replaced by standardized-date-indicators.js -->
     <!-- <script src="js/fix-yuvi-bday-dates.js"></script> -->
 
     <!-- Common utilities -->
@@ -534,8 +532,7 @@
     <script src="js/tasks/progress-photo-fix.js"></script>
     <script src="js/tasks/date-badge-redesign.js"></script>
     <script src="js/components/next-date-prefix.js"></script>
-    <script src="js/components/badge-format-fix.js"></script>
-    <!-- <script src="js/components/yuvi-bday-fix.js"></script> -->
+    <!-- <script src="js/components/yuvi-bday-fix.js"></script> --> <!-- Disabled and replaced by standardized-date-indicators.js -->
     <script src="js/dropdown-arrow-toggle.js"></script>
 
     <!-- Habit functionality -->
@@ -566,6 +563,11 @@
 
     <!-- Overdue task highlighter - ensures consistent styling for all overdue tasks -->
     <script src="js/tasks/overdue-task-highlighter.js"></script>
+
+    <!-- Standardized date indicators - fixes inconsistent styling and flashing -->
+    <script src="js/standardized-date-indicators.js"></script>
+
+    <!-- No JavaScript fix needed for checkbox flashing -->
 
     <!-- Checkbox click fix - prevents checkbox clicks from opening the task details modal and moves tasks to completed section immediately -->
     <script src="js/tasks/checkbox-click-fix.js"></script>

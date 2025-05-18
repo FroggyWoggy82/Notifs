@@ -3,69 +3,6 @@ const TaskController = require('../controllers/taskController');
 
 const router = express.Router();
 
-// Store recent task creation requests to prevent duplicates
-const recentTaskRequests = new Map();
-
-// Clean up old requests every 5 minutes
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, timestamp] of recentTaskRequests.entries()) {
-        // Remove entries older than 1 minute
-        if (now - timestamp > 60000) {
-            recentTaskRequests.delete(key);
-        }
-    }
-}, 300000); // 5 minutes
-
-// Apply duplicate task prevention middleware directly
-router.use((req, res, next) => {
-    // Only apply to POST requests
-    if (req.method === 'POST' && req.path === '/') {
-        console.log('Checking for duplicate task creation request');
-
-        // Get request data
-        const { title, description, dueDate } = req.body;
-
-        // Check for request ID in headers or query params
-        const requestId = req.headers['x-request-id'] || req.query.requestId;
-
-        // If we have a request ID, check if we've seen it before
-        if (requestId && recentTaskRequests.has(requestId)) {
-            console.log(`Duplicate request detected with ID: ${requestId}`);
-            return res.status(409).json({
-                error: 'Duplicate request',
-                message: 'This appears to be a duplicate request that was already processed'
-            });
-        }
-
-        // Create a key based on the task data
-        const taskKey = `${title}|${description || ''}|${dueDate || ''}`;
-
-        // Check if we've seen this task recently
-        if (recentTaskRequests.has(taskKey)) {
-            const timestamp = recentTaskRequests.get(taskKey);
-            const now = Date.now();
-
-            // If the same task was created in the last 5 seconds, reject it as a duplicate
-            if (now - timestamp < 5000) {
-                console.log(`Duplicate task detected: ${taskKey}`);
-                return res.status(409).json({
-                    error: 'Duplicate task',
-                    message: 'A task with the same title and description was created within the last 5 seconds'
-                });
-            }
-        }
-
-        // Store the task key and request ID
-        recentTaskRequests.set(taskKey, Date.now());
-        if (requestId) {
-            recentTaskRequests.set(requestId, Date.now());
-        }
-    }
-
-    next();
-});
-
 /**
  * @swagger
  * /api/tasks:

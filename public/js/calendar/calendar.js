@@ -121,17 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 nextDate.setMonth(nextDate.getMonth() + interval);
                 break;
             case 'yearly':
-                // For yearly recurrences, we need to be careful with the date
-                // Get the original month and day
-                const originalMonth = assignedDate.getMonth();
-                const originalDay = assignedDate.getDate();
-
-                // Set the new year
-                nextDate.setFullYear(assignedDate.getFullYear() + interval);
-
-                // Ensure the month and day remain the same
-                nextDate.setMonth(originalMonth);
-                nextDate.setDate(originalDay);
+                nextDate.setFullYear(nextDate.getFullYear() + interval);
                 break;
             default:
                 return null;

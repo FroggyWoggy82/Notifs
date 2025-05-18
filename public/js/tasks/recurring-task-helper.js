@@ -55,17 +55,7 @@ window.createNextOccurrence = async function(taskId) {
                     nextDueDate.setMonth(nextDueDate.getMonth() + interval);
                     break;
                 case 'yearly':
-                    // For yearly recurrences, we need to be careful with the date
-                    // Get the original month and day
-                    const originalMonth = dueDate.getMonth();
-                    const originalDay = dueDate.getDate();
-
-                    // Set the new year
-                    nextDueDate.setFullYear(dueDate.getFullYear() + interval);
-
-                    // Ensure the month and day remain the same
-                    nextDueDate.setMonth(originalMonth);
-                    nextDueDate.setDate(originalDay);
+                    nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
                     break;
             }
 

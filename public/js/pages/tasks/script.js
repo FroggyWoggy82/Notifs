@@ -5,29 +5,6 @@ let serviceWorkerRegistration = null;
 let lastAccessDate = localStorage.getItem('lastAccessDate') || null;
 let allHabitsData = []; // Store habits data globally
 
-/**
- * Format a date for display
- * @param {Date} date - The date to format
- * @returns {string} - The formatted date
- */
-function formatDate(date) {
-    if (!date) return '';
-
-    // Create a new date object
-    const dateObj = new Date(date);
-
-    // Add one day to fix timezone issues with yearly recurring tasks
-    dateObj.setDate(dateObj.getDate() + 1);
-
-    // Get the date parts
-    const month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
-    const day = dateObj.getDate();
-    const year = dateObj.getFullYear();
-
-    // Format as MM/DD/YYYY
-    return `${month}/${day}/${year}`;
-}
-
 function isToday(dateString) {
     if (!dateString) return false;
     try {
@@ -76,7 +53,6 @@ function calculateNextOccurrence(task) {
 
     const interval = task.recurrence_interval || 1;
 
-    // Create a new date object to avoid modifying the original
     const nextDate = new Date(dueDate);
 
     switch (task.recurrence_type) {
@@ -90,17 +66,7 @@ function calculateNextOccurrence(task) {
             nextDate.setMonth(nextDate.getMonth() + interval);
             break;
         case 'yearly':
-            // For yearly recurrences, we need to be careful with the date
-            // Get the original month and day
-            const originalMonth = dueDate.getMonth();
-            const originalDay = dueDate.getDate();
-
-            // Set the new year
-            nextDate.setFullYear(dueDate.getFullYear() + interval);
-
-            // Ensure the month and day remain the same
-            nextDate.setMonth(originalMonth);
-            nextDate.setDate(originalDay);
+            nextDate.setFullYear(nextDate.getFullYear() + interval);
             break;
         default:
             return null;
@@ -843,53 +809,23 @@ document.addEventListener('DOMContentLoaded', () => {
         metadataDiv.className = 'task-metadata';
 
         if (task.recurrence_type && task.recurrence_type !== 'none' && nextOccurrenceDate) {
-            // Special handling for Yuvi's Bday task
-            if (task.title && task.title.includes("Yuvi")) {
-                // Create a completely new element with proper styling
-                const nextDateElement = document.createElement('span');
-                nextDateElement.className = 'next-occurrence-date';
-                nextDateElement.textContent = 'Next: 5/15/2026';
-                nextDateElement.style.display = 'inline-block';
-                nextDateElement.style.marginRight = '5px';
-                nextDateElement.style.backgroundColor = '#4CAF50';
-                nextDateElement.style.color = 'white';
-                nextDateElement.style.padding = '2px 5px';
-                nextDateElement.style.borderRadius = '3px';
+            const nextOccurrenceIndicator = document.createElement('div');
+            nextOccurrenceIndicator.className = 'next-occurrence-indicator';
 
-                // Add the element directly to the metadata container
-                const metadataContainer = div.querySelector('.task-metadata');
-                if (metadataContainer) {
-                    // Insert at the beginning
-                    if (metadataContainer.firstChild) {
-                        metadataContainer.insertBefore(nextDateElement, metadataContainer.firstChild);
-                    } else {
-                        metadataContainer.appendChild(nextDateElement);
-                    }
-                }
+            const nextOccurrenceText = document.createElement('span');
+            nextOccurrenceText.textContent = nextOccurrenceDate.toLocaleDateString();
+            nextOccurrenceIndicator.appendChild(nextOccurrenceText);
 
-                console.log('[Fix Yuvi Bday] Created styled next date element for task:', task.title);
-            } else {
-                // Standard handling for other tasks
-                const nextOccurrenceIndicator = document.createElement('div');
-                nextOccurrenceIndicator.className = 'next-occurrence-indicator';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
+            const isNextOverdue = nextOccurrenceDate < today;
 
-                const nextOccurrenceText = document.createElement('span');
-                // Use our custom formatDate function for other tasks
-                nextOccurrenceText.textContent = formatDate(nextOccurrenceDate);
-                nextOccurrenceIndicator.appendChild(nextOccurrenceText);
-
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Reset time to start of day
-                const isNextOverdue = nextOccurrenceDate < today;
-
-                if (isNextOverdue) {
-                    nextOccurrenceIndicator.classList.add('overdue');
-                    console.log(`Task ${task.id} (${task.title}) next occurrence is overdue: ${nextOccurrenceDate.toISOString()}`);
-                }
-
-                // Only append the nextOccurrenceIndicator for non-Yuvi tasks
-                metadataDiv.appendChild(nextOccurrenceIndicator);
+            if (isNextOverdue) {
+                nextOccurrenceIndicator.classList.add('overdue');
+                console.log(`Task ${task.id} (${task.title}) next occurrence is overdue: ${nextOccurrenceDate.toISOString()}`);
             }
+
+            metadataDiv.appendChild(nextOccurrenceIndicator);
         }
 
         if (task.due_date) {
@@ -950,8 +886,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     nextWeek.setDate(nextWeek.getDate() + 7);
 
 
-                    // Format the date using our custom formatDate function
-                    const formattedDate = formatDate(dueDate);
+                    const formattedDate = dueDate.toLocaleDateString('default', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: today.getFullYear() !== dueDate.getFullYear() ? 'numeric' : undefined
+                    });
 
                     const dueDateIndicator = document.createElement('div');
                     dueDateIndicator.className = 'due-date-indicator';
@@ -986,32 +925,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dueDateText = document.createElement('span');
 
                     if (task.isOverdueNextOccurrence && task.nextOccurrenceDate) {
-                        // Special handling for Yuvi's Bday task
-                        if (task.title && task.title.includes("Yuvi")) {
-                            // Create a completely new element with proper styling
-                            const overdueElement = document.createElement('span');
-                            overdueElement.className = 'due-date-indicator overdue';
-                            overdueElement.textContent = 'Overdue: 5/15/2025';
-                            overdueElement.style.display = 'inline-block';
-                            overdueElement.style.marginRight = '5px';
-                            overdueElement.style.backgroundColor = '#ff5555';
-                            overdueElement.style.color = 'white';
-                            overdueElement.style.padding = '2px 5px';
-                            overdueElement.style.borderRadius = '3px';
 
-                            // Replace the entire dueDateIndicator with our new element
-                            if (dueDateIndicator.parentNode) {
-                                dueDateIndicator.parentNode.replaceChild(overdueElement, dueDateIndicator);
-                                dueDateIndicator = overdueElement; // Update the reference
-                            }
 
-                            console.log('[Fix Yuvi Bday] Completely replaced overdue date element for task:', task.title);
-                        } else {
-                            dueDateText.textContent = `Overdue: ${formatDate(task.due_date)}`;
-                            dueDateIndicator.appendChild(dueDateText);
-                            dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
-                            dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
-                        }
+
+                        dueDateText.textContent = `Overdue: ${formattedDate}`;
+                        dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
+                        dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
 
                         div.setAttribute('data-recurring-overdue', 'true');
 
@@ -1023,28 +942,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         let nextDateText;
 
                         if (task.next_occurrence_date) {
-                            // Use the stored next occurrence date if available
+
                             nextDate = new Date(task.next_occurrence_date);
-
-                            // Use our custom formatDate function
-                            nextDateText = formatDate(nextDate);
-
+                            nextDateText = nextDate.toLocaleDateString();
                             console.log(`Using database next occurrence date for task ${task.id}: ${nextDateText}`);
                         } else {
-                            // Calculate the next occurrence date based on the recurrence type
+
                             const today = new Date();
 
-                            // For daily tasks, the next occurrence should be tomorrow
                             if (task.recurrence_type === 'daily') {
                                 const tomorrow = new Date(today);
                                 tomorrow.setDate(tomorrow.getDate() + 1);
-
-                                // Use our custom formatDate function
-                                nextDateText = formatDate(tomorrow);
+                                nextDateText = tomorrow.toLocaleDateString();
                             } else {
-                                // For other recurrence types, use today's date as a fallback
-                                // Use our custom formatDate function
-                                nextDateText = formatDate(today);
+
+                                nextDateText = today.toLocaleDateString();
                             }
                         }
 
@@ -1056,24 +968,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (task.recurrence_type && task.recurrence_type !== 'none' && task.is_complete) {
 
                         if (task.next_occurrence_date) {
-                            // Use the stored next occurrence date if available
+
                             const nextDate = new Date(task.next_occurrence_date);
-
-                            // Use our custom formatDate function
-                            const formattedNextDate = formatDate(nextDate);
-
+                            const formattedNextDate = nextDate.toLocaleDateString();
                             dueDateText.textContent = `Next: ${formattedNextDate}`;
                             console.log(`Using database next occurrence date for completed task ${task.id}: ${formattedNextDate}`);
                         } else {
-                            // If no stored next occurrence date, calculate it
+
                             const nextOccurrence = calculateNextOccurrence(task);
                             if (nextOccurrence) {
-                                // Use our custom formatDate function
-                                const formattedNextDate = formatDate(nextOccurrence);
-
+                                const formattedNextDate = nextOccurrence.toLocaleDateString();
                                 dueDateText.textContent = `Next: ${formattedNextDate}`;
                             } else {
-                                // Fallback if we can't calculate the next occurrence
+
                                 dueDateText.textContent = `Due: ${formattedDate}`;
                             }
                         }
@@ -1593,8 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         notification.className = 'status success';
 
                         const nextDate = nextOccurrence.due_date || nextOccurrence.assigned_date || new Date().toISOString();
-                        // Use our custom formatDate function
-                        notification.textContent = `Next occurrence of "${updatedTask.title}" created for ${formatDate(new Date(nextDate))}`;
+                        notification.textContent = `Next occurrence of "${updatedTask.title}" created for ${new Date(nextDate).toLocaleDateString()}`;
                         document.body.appendChild(notification);
 
                         setTimeout(() => {
