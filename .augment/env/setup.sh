@@ -12,10 +12,40 @@ cat > "$PROJECT_ROOT/.augment-config" << EOL
 {
   "projectRoot": "$PROJECT_ROOT",
   "workspaceRoot": "$PROJECT_ROOT",
-  "sourceRoot": "$PROJECT_ROOT"
+  "sourceRoot": "$PROJECT_ROOT",
+  "filePathResolution": {
+    "strategy": "relative",
+    "basePath": "$PROJECT_ROOT",
+    "pathMappings": [
+      {
+        "remote": "$PROJECT_ROOT/",
+        "local": "./"
+      },
+      {
+        "remote": "$PROJECT_ROOT/routes/",
+        "local": "./routes/"
+      },
+      {
+        "remote": "$PROJECT_ROOT/public/",
+        "local": "./public/"
+      },
+      {
+        "remote": "$PROJECT_ROOT/public/js/",
+        "local": "./public/js/"
+      },
+      {
+        "remote": "$PROJECT_ROOT/public/js/food/",
+        "local": "./public/js/food/"
+      }
+    ]
+  },
+  "agent": {
+    "workingDirectory": "$PROJECT_ROOT"
+  },
+  "localProjectRoot": "."
 }
 EOL
-echo "Created .augment-config file at project root"
+echo "Created .augment-config file at project root with explicit path mappings"
 
 # Create a symbolic link to ensure file paths are resolved correctly
 if [ ! -L "$PROJECT_ROOT/.augment/workspace" ]; then

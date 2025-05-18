@@ -4,7 +4,30 @@
     "augment.remote.workspaceRoot": "/mnt/persist/workspace",
     "augment.remote.projectPath": "/mnt/persist/workspace",
     "augment.remote.filePathResolution": {
-        "strategy": "absolute",
-        "basePath": "/mnt/persist/workspace"
-    }
+        "strategy": "relative",
+        "basePath": "/mnt/persist/workspace",
+        "pathMappings": [
+            {
+                "remote": "/mnt/persist/workspace/",
+                "local": "${workspaceFolder}/"
+            },
+            {
+                "remote": "/mnt/persist/workspace/routes/",
+                "local": "${workspaceFolder}/routes/"
+            },
+            {
+                "remote": "/mnt/persist/workspace/public/",
+                "local": "${workspaceFolder}/public/"
+            },
+            {
+                "remote": "/mnt/persist/workspace/public/js/",
+                "local": "${workspaceFolder}/public/js/"
+            },
+            {
+                "remote": "/mnt/persist/workspace/public/js/food/",
+                "local": "${workspaceFolder}/public/js/food/"
+            }
+        ]
+    },
+    "augment.localProjectRoot": "${workspaceFolder}"
 }
