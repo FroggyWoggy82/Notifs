@@ -1,11 +1,31 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v15'; // <-- Bumped version number to force refresh
+const CACHE_NAME = 'notification-pwa-v20'; // <-- Bumped version number to force refresh
 
-// Cache essential static assets
+// Cache essential static assets - expanded for better mobile support
 const urlsToCache = [
+  '/',
+  '/index.html',
   '/icon-192x192.png',
   '/icon-512x512.png',
-  '/manifest.json'
+  '/manifest.json',
+  '/css/main.css',
+  '/css/base/variables.css',
+  '/css/base/reset.css',
+  '/css/base/typography.css',
+  '/css/base/base.css',
+  '/css/base/index.css',
+  '/js/immediate-notification-fix.js',
+  '/js/notification-system.js',
+  '/js/modal-system.js',
+  '/js/form-improvements.js',
+  '/js/common/sidebar.js',
+  '/js/common/status-bar.js',
+  '/js/common/clear-cache.js',
+  '/js/common/bottom-nav-fix.js',
+  '/js/common/bottom-nav-center-fix.js',
+  '/js/notification-permission-check.js',
+  '/js/dashboard-stats.js',
+  '/js/tasks/script.js'
 ];
 
 // Cache duration in seconds
@@ -28,19 +48,47 @@ self.addEventListener('install', event => {
             // Use { cache: 'reload' } to bypass HTTP cache when precaching
             return fetch(new Request(url, {cache: 'reload'}))
               .then(response => {
-                // Create a new response with cache timestamp header
-                const headers = new Headers(response.headers);
-                headers.append('sw-cache-timestamp', Date.now().toString());
+                // Check if the response is valid JavaScript/CSS/HTML
+                // This helps prevent the "Unexpected token '<'" error
+                if (url.endsWith('.js')) {
+                  return response.text().then(text => {
+                    // Check if the response starts with HTML (error page)
+                    if (text.trim().startsWith('<!DOCTYPE html>') || text.trim().startsWith('<html')) {
+                      console.warn(`Received HTML instead of JavaScript for ${url}, skipping cache`);
+                      return Promise.resolve(); // Skip caching this file
+                    }
 
-                // Create a modified response with the timestamp header
-                const cachedResponse = new Response(response.body, {
-                  status: response.status,
-                  statusText: response.statusText,
-                  headers: headers
-                });
+                    // Create a new response with cache timestamp header
+                    const headers = new Headers(response.headers);
+                    headers.append('sw-cache-timestamp', Date.now().toString());
+                    headers.append('Content-Type', 'application/javascript');
 
-                // Store in cache
-                return cache.put(url, cachedResponse);
+                    // Create a modified response with the timestamp header
+                    const cachedResponse = new Response(text, {
+                      status: response.status,
+                      statusText: response.statusText,
+                      headers: headers
+                    });
+
+                    // Store in cache
+                    return cache.put(url, cachedResponse);
+                  });
+                } else {
+                  // For non-JS files, cache as normal
+                  // Create a new response with cache timestamp header
+                  const headers = new Headers(response.headers);
+                  headers.append('sw-cache-timestamp', Date.now().toString());
+
+                  // Create a modified response with the timestamp header
+                  const cachedResponse = new Response(response.body, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: headers
+                  });
+
+                  // Store in cache
+                  return cache.put(url, cachedResponse);
+                }
               })
               .catch(error => {
                 console.error(`Failed to cache: ${url}`, error);
@@ -67,12 +115,11 @@ self.addEventListener('activate', event => {
         })
       );
     }).then(() => {
-      // Force clients to reload to get fresh content
+      // Don't force clients to reload as this can cause issues
       return self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          // Navigate to the current URL to force a refresh
-          client.navigate(client.url);
-        });
+        // Instead of forcing navigation, just claim the clients
+        // This avoids potential infinite reload loops
+        console.log('Service worker activated, claiming clients without forcing refresh');
       });
     }).then(() => {
       // Tell the active service worker to take control of the page immediately.
@@ -88,6 +135,11 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Get the request URL
   const requestUrl = new URL(event.request.url);
+
+  // Skip handling chrome-extension, file, and other non-http(s) URLs completely
+  if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
+    return; // Let the browser handle it normally
+  }
 
   // Special handling for API requests (both GET and POST)
   if (requestUrl.pathname.startsWith('/api/')) {
@@ -175,6 +227,10 @@ self.addEventListener('fetch', event => {
   }
     // --- Strategy for Icons: Cache First with long expiration, then Network ---
   else if (requestUrl.pathname.includes('icon-') && (requestUrl.pathname.endsWith('.png') || requestUrl.pathname.endsWith('.jpg') || requestUrl.pathname.endsWith('.svg'))) {
+    // Skip non-http(s) URLs
+    if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
+      return;
+    }
     event.respondWith(
       caches.match(event.request)
         .then(response => {
@@ -231,6 +287,127 @@ self.addEventListener('fetch', event => {
             // Otherwise, let the error propagate
             throw error;
           });
+        })
+    );
+  }
+  // --- Strategy for critical resources: Cache First, then Network ---
+  else if (requestUrl.pathname === '/' ||
+           requestUrl.pathname === '/index.html' ||
+           requestUrl.pathname.endsWith('.css') ||
+           requestUrl.pathname.endsWith('.js')) {
+    // Skip non-http(s) URLs
+    if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
+      return;
+    }
+
+    event.respondWith(
+      caches.match(event.request)
+        .then(cachedResponse => {
+          if (cachedResponse) {
+            // Return cached response immediately
+            console.log(`Serving ${requestUrl.pathname} from cache`);
+
+            // Fetch from network in the background to update cache
+            fetch(event.request)
+              .then(networkResponse => {
+                if (networkResponse.ok) {
+                  // Skip caching chrome-extension URLs
+                  if (new URL(event.request.url).protocol !== 'chrome-extension:') {
+                    caches.open(CACHE_NAME)
+                      .then(cache => {
+                        cache.put(event.request, networkResponse.clone());
+                        console.log(`Updated cache for ${requestUrl.pathname}`);
+                      });
+                  }
+                }
+              })
+              .catch(error => {
+                console.warn(`Background fetch failed for ${requestUrl.pathname}:`, error);
+              });
+
+            return cachedResponse;
+          }
+
+          // Not in cache, try network
+          return fetch(event.request)
+            .then(networkResponse => {
+              // Skip caching chrome-extension URLs
+              if (new URL(event.request.url).protocol !== 'chrome-extension:') {
+                // Cache the response for future use
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME)
+                  .then(cache => {
+                    cache.put(event.request, responseToCache);
+                    console.log(`Cached ${requestUrl.pathname} from network`);
+                  });
+              }
+
+              return networkResponse;
+            })
+            .catch(error => {
+              console.error(`Failed to fetch ${requestUrl.pathname}:`, error);
+
+              // For HTML requests, return a fallback HTML that works offline
+              if (requestUrl.pathname === '/' || requestUrl.pathname === '/index.html') {
+                return new Response(
+                  `<!DOCTYPE html>
+                  <html lang="en">
+                  <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Offline Mode</title>
+                    <style>
+                      body {
+                        background-color: #121212;
+                        color: #ffffff;
+                        font-family: sans-serif;
+                        text-align: center;
+                        padding: 20px;
+                        margin: 0;
+                      }
+                      .container {
+                        max-width: 500px;
+                        margin: 50px auto;
+                        padding: 20px;
+                        background-color: #1e1e1e;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                      }
+                      h1 { color: #00E676; }
+                      button {
+                        background-color: #00E676;
+                        color: #121212;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 4px;
+                        font-weight: bold;
+                        margin-top: 20px;
+                        cursor: pointer;
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <h1>You're Offline</h1>
+                      <p>It looks like you don't have an internet connection right now.</p>
+                      <p>Please check your connection and try again.</p>
+                      <button onclick="window.location.reload()">Retry</button>
+                    </div>
+                  </body>
+                  </html>`,
+                  {
+                    status: 200,
+                    headers: { 'Content-Type': 'text/html' }
+                  }
+                );
+              }
+
+              // For other resources, return a simple error
+              return new Response('This resource requires an internet connection.', {
+                status: 503,
+                headers: { 'Content-Type': 'text/plain' }
+              });
+            });
         })
     );
   }

@@ -108,8 +108,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add the cloned task to the completed section
             completedTaskListDiv.appendChild(taskItemClone);
 
-            // Make sure the completed section is visible
-            completedTaskListDiv.style.display = 'block';
+            // Keep the completed section hidden by default
+            // completedTaskListDiv.style.display = 'block';
 
             // Update the completed tasks count in the header
             const completedCount = completedTaskListDiv.querySelectorAll('.task-item').length;

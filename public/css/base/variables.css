@@ -5,26 +5,26 @@
  */
 
 :root {
-  
 
-  
+
+
   --color-primary: #00E676;
   --color-primary-light: #69F0AE;
   --color-primary-dark: #00C853;
   --color-primary-darker: #00B04A;
   --color-primary-darkest: #009940;
 
-  
+
   --color-secondary: #18FFFF;
   --color-secondary-light: #84FFFF;
   --color-secondary-dark: #00E5FF;
 
-  
+
   --color-accent: #FF3D00;
   --color-accent-light: #FF6E40;
   --color-accent-dark: #DD2C00;
 
-  
+
   --color-dark-bg: #0a0a0a;
   --color-dark-surface: #121212;
   --color-dark-surface-2: #181818;
@@ -33,7 +33,7 @@
   --color-dark-text: #E0E0E0;
   --color-dark-text-secondary: #AAAAAA;
 
-  
+
   --color-white: #FFFFFF;
   --color-gray-100: #F5F5F5;
   --color-gray-200: #EEEEEE;
@@ -46,7 +46,7 @@
   --color-gray-900: #212121;
   --color-black: #000000;
 
-  
+
   --color-success: #00E676;
   --color-success-light: #69F0AE;
   --color-success-dark: #00C853;
@@ -63,17 +63,17 @@
   --color-info-light: #80D8FF;
   --color-info-dark: #0091EA;
 
-  
+
   --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  --font-size-xs: 0.75rem;   
-  --font-size-sm: 0.875rem;  
-  --font-size-base: 1rem;    
-  --font-size-md: 1.125rem;  
-  --font-size-lg: 1.25rem;   
-  --font-size-xl: 1.5rem;    
-  --font-size-2xl: 1.875rem; 
-  --font-size-3xl: 2.25rem;  
-  --font-size-4xl: 3rem;     
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-md: 1.125rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 1.875rem;
+  --font-size-3xl: 2.25rem;
+  --font-size-4xl: 3rem;
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -84,15 +84,15 @@
   --line-height-base: 1.6;
   --line-height-loose: 2;
 
-  
-  --spacing-xs: 0.25rem;  
-  --spacing-sm: 0.5rem;   
-  --spacing-md: 1rem;     
-  --spacing-lg: 1.5rem;   
-  --spacing-xl: 2rem;     
-  --spacing-2xl: 3rem;    
 
-  
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+
   --border-radius-sm: 4px;
   --border-radius-md: 8px;
   --border-radius-lg: 16px;
@@ -102,18 +102,18 @@
   --border-width-thin: 1px;
   --border-width-thick: 2px;
 
-  
+
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
   --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.2);
 
-  
+
   --glow-primary: 0 0 10px rgba(0, 230, 118, 0.5);
   --glow-secondary: 0 0 10px rgba(24, 255, 255, 0.5);
   --glow-accent: 0 0 10px rgba(255, 61, 0, 0.5);
 
-  
+
   --z-index-dropdown: 1000;
   --z-index-sticky: 1020;
   --z-index-fixed: 1030;
@@ -122,23 +122,23 @@
   --z-index-popover: 1060;
   --z-index-tooltip: 1070;
 
-  
+
   --transition-fast: 0.1s ease;
   --transition-base: 0.2s ease;
   --transition-slow: 0.3s ease;
 
-  
-  --container-max-width: 1200px;
+
+  --container-max-width: 2000px; /* Significantly increased from 1200px to maximize horizontal space */
   --sidebar-width: 280px;
   --bottom-nav-height: 60px;
 
-  
+
   --breakpoint-sm: 576px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
 
-  
+
   --blur-sm: 4px;
   --blur-md: 8px;
   --blur-lg: 16px;

@@ -1573,14 +1573,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const completedTaskListDiv = document.getElementById('completedTaskList');
 
             if (completedTaskListDiv) {
-                // Make sure the completed section is visible
-                completedTaskListDiv.style.display = 'block';
+                // Keep the completed section hidden by default
+                // completedTaskListDiv.style.display = 'block';
 
                 // Update the completed tasks header
                 const completedTasksHeader = document.getElementById('completedTasksHeader');
                 if (completedTasksHeader) {
-                    completedTasksHeader.querySelector('i').classList.remove('fa-chevron-down');
-                    completedTasksHeader.querySelector('i').classList.add('fa-chevron-up');
+                    completedTasksHeader.querySelector('i').classList.remove('fa-chevron-up');
+                    completedTasksHeader.querySelector('i').classList.add('fa-chevron-down');
                 }
             }
 
@@ -1593,14 +1593,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Ensure the completedTaskListDiv is visible when a task is completed
             if (isComplete) {
-                // Always make sure the completed tasks section is visible when completing a task
-                completedTaskListDiv.style.display = 'block';
+                // Keep the completed tasks section hidden by default even when completing a task
+                // completedTaskListDiv.style.display = 'block';
                 const header = document.getElementById('completedTasksHeader');
                 if (header) {
                     const icon = header.querySelector('i');
                     if (icon) {
-                        icon.classList.remove('fa-chevron-down');
-                        icon.classList.add('fa-chevron-up');
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
                     }
                 }
 
@@ -1857,16 +1857,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newTaskElement = createTaskElement(updatedTask); // Recreate element with updated state
 
                 if (updatedTask.is_complete) {
-                    // Make sure the completed section is visible
-                    completedTaskListDiv.style.display = 'block';
+                    // Keep the completed section hidden by default
+                    // completedTaskListDiv.style.display = 'block';
 
                     // Update the completed tasks header to show expanded state
                     const completedTasksHeader = document.getElementById('completedTasksHeader');
                     if (completedTasksHeader) {
                         const icon = completedTasksHeader.querySelector('i');
                         if (icon) {
-                            icon.classList.remove('fa-chevron-down');
-                            icon.classList.add('fa-chevron-up');
+                            icon.classList.remove('fa-chevron-up');
+                            icon.classList.add('fa-chevron-down');
                         }
                     }
 
@@ -4276,16 +4276,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`Found ${completedTasks.length} completed tasks in the DOM`);
 
-        // If there are completed tasks, make sure the section is visible
+        // If there are completed tasks, still keep the section hidden by default
         if (hasCompletedTasks) {
-            // Make the completed section visible
-            completedTaskListDiv.style.display = 'block';
+            // Keep the completed section hidden by default
+            completedTaskListDiv.style.display = 'none';
 
-            // Update the icon to show expanded state
+            // Update the icon to show collapsed state
             const icon = completedTasksHeader.querySelector('i');
             if (icon) {
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
             }
 
             // Remove any "No completed tasks" message if it exists
@@ -4523,8 +4523,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Move the task item to the completed section
                     completedTaskListDiv.appendChild(taskItem);
 
-                    // Make sure the completed section is visible
-                    completedTaskListDiv.style.display = 'block';
+                    // Keep the completed section hidden by default
+                    // completedTaskListDiv.style.display = 'block';
 
                     // Update the completed tasks header count
                     const completedCount = completedTaskListDiv.querySelectorAll('.task-item').length;

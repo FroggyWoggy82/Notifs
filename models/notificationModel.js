@@ -43,6 +43,31 @@ async function initialize() {
         if (fs.existsSync(SUBSCRIPTIONS_FILE)) {
             subscriptions = JSON.parse(fs.readFileSync(SUBSCRIPTIONS_FILE, 'utf8'));
             console.log(`Loaded ${subscriptions.length} subscriptions from file.`);
+
+            // Clean invalid subscriptions immediately on startup
+            // This prevents errors from occurring when the server tries to use invalid endpoints
+            const initialCount = subscriptions.length;
+
+            // Filter out subscriptions with invalid endpoints
+            // Only the /wp/ format is valid, /fcm/send/ is no longer valid
+            subscriptions = subscriptions.filter(sub => {
+                // Check if the endpoint format is valid - ONLY /wp/ format is valid now
+                const isValidEndpoint = sub.endpoint &&
+                    sub.endpoint.includes('https://fcm.googleapis.com/wp/');
+
+                // Check if the subscription has the required keys
+                const hasRequiredKeys = sub.keys &&
+                    sub.keys.p256dh &&
+                    sub.keys.auth;
+
+                return isValidEndpoint && hasRequiredKeys;
+            });
+
+            const removedCount = initialCount - subscriptions.length;
+            if (removedCount > 0) {
+                console.log(`Removed ${removedCount} invalid subscriptions during startup`);
+                saveSubscriptionsToFile();
+            }
         }
     } catch (error) {
         console.error('Error loading subscriptions from file:', error);
@@ -231,6 +256,41 @@ async function validateSubscriptions() {
         return { success: true, validCount: 0, invalidCount: 0 };
     }
 
+    // Pre-filter subscriptions to only validate those with the correct format
+    // This prevents unnecessary validation attempts on subscriptions we know are invalid
+    const initialCount = subscriptions.length;
+    const validFormatSubscriptions = subscriptions.filter(sub => {
+        // Check if the endpoint format is valid - ONLY /wp/ format is valid now
+        const isValidEndpoint = sub.endpoint &&
+            sub.endpoint.includes('https://fcm.googleapis.com/wp/');
+
+        // Check if the subscription has the required keys
+        const hasRequiredKeys = sub.keys &&
+            sub.keys.p256dh &&
+            sub.keys.auth;
+
+        return isValidEndpoint && hasRequiredKeys;
+    });
+
+    // If we filtered out any subscriptions, update the main list
+    const preFilteredCount = initialCount - validFormatSubscriptions.length;
+    if (preFilteredCount > 0) {
+        console.log(`Pre-filtered ${preFilteredCount} subscriptions with invalid format`);
+        subscriptions = validFormatSubscriptions;
+        saveSubscriptionsToFile();
+
+        // If no valid subscriptions remain, return early
+        if (validFormatSubscriptions.length === 0) {
+            console.log('No valid format subscriptions to validate');
+            return {
+                success: true,
+                validCount: 0,
+                invalidCount: preFilteredCount,
+                errorCount: 0
+            };
+        }
+    }
+
     // Create a minimal payload for validation
     const validationPayload = JSON.stringify({
         title: 'Subscription Validation',
@@ -298,9 +358,9 @@ async function validateSubscriptions() {
 
     let invalidCount = 0;
     if (invalidEndpoints.length > 0) {
-        const initialCount = subscriptions.length;
+        const initialValidationCount = subscriptions.length;
         subscriptions = subscriptions.filter(sub => !invalidEndpoints.includes(sub.endpoint));
-        invalidCount = initialCount - subscriptions.length;
+        invalidCount = initialValidationCount - subscriptions.length;
         saveSubscriptionsToFile();
         console.log(`Removed ${invalidCount} invalid subscriptions during validation`);
     }
@@ -308,7 +368,7 @@ async function validateSubscriptions() {
     return {
         success: true,
         validCount: validEndpoints.length,
-        invalidCount: invalidCount,
+        invalidCount: invalidCount + preFilteredCount,
         errorCount: results.filter(r => r && r.error).length
     };
 }
@@ -323,6 +383,39 @@ async function sendToAllSubscriptions(notification) {
     if (subscriptions.length === 0) {
         console.log('No subscriptions available to send notifications');
         return { success: true, expiredCount: 0, invalidCount: 0 };
+    }
+
+    // Pre-filter subscriptions to only use valid ones
+    // This is a safety check in case any invalid ones slipped through
+    const validSubscriptions = subscriptions.filter(sub => {
+        const isValidEndpoint = sub.endpoint &&
+            sub.endpoint.includes('https://fcm.googleapis.com/wp/');
+
+        const hasRequiredKeys = sub.keys &&
+            sub.keys.p256dh &&
+            sub.keys.auth;
+
+        return isValidEndpoint && hasRequiredKeys;
+    });
+
+    // If we filtered out any subscriptions, update the main list
+    if (validSubscriptions.length < subscriptions.length) {
+        const removedCount = subscriptions.length - validSubscriptions.length;
+        console.log(`Filtered out ${removedCount} invalid subscriptions before sending`);
+        subscriptions = validSubscriptions;
+        saveSubscriptionsToFile();
+
+        // If no valid subscriptions remain, return early
+        if (validSubscriptions.length === 0) {
+            console.log('No valid subscriptions available to send notifications');
+            return {
+                success: true,
+                invalidCount: removedCount,
+                successCount: 0,
+                errors: [],
+                totalAttempted: removedCount
+            };
+        }
     }
 
     const payload = JSON.stringify({

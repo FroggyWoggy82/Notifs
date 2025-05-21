@@ -1,0 +1,26 @@
+/**
+ * Goal Highlight White
+ * Changes the goal highlight color from teal/blue to white
+ */
+
+/* Target the goal highlight in exercise templates */
+.goal-target,
+.goal-target.highlighted,
+.goal-target.achieved,
+.goal-target.active,
+.set-row .goal-target,
+.exercise-item .goal-target {
+    color: #FFFFFF !important; /* White color */
+    background: none !important; /* Remove any background */
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3) !important; /* Add a subtle glow effect */
+    border-color: rgba(255, 255, 255, 0.5) !important; /* If there's a border, make it white */
+}
+
+/* Target any SVG or icon within the goal target */
+.goal-target svg,
+.goal-target i,
+.goal-target span,
+.goal-target * {
+    color: #FFFFFF !important; /* White color */
+    fill: #FFFFFF !important; /* For SVG elements */
+}

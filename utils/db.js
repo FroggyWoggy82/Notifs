@@ -24,12 +24,12 @@ const poolConfig = {
         rejectUnauthorized: false
     },
     // Add connection timeout to prevent hanging
-    connectionTimeoutMillis: 30000, // 30 seconds (increased from 15)
-    idleTimeoutMillis: 60000, // 60 seconds
-    max: 10, // Maximum number of clients in the pool (reduced from 20 to conserve resources)
-    statement_timeout: 30000, // 30 seconds statement timeout
+    connectionTimeoutMillis: 10000, // 10 seconds (reduced from 30 to fail faster)
+    idleTimeoutMillis: 30000, // 30 seconds (reduced from 60)
+    max: 5, // Maximum number of clients in the pool (reduced from 10 to conserve resources)
+    statement_timeout: 15000, // 15 seconds statement timeout (reduced from 30)
     // Add retry logic
-    max_retries: 3, // Retry connection up to 3 times
+    max_retries: 2, // Retry connection up to 2 times (reduced from 3)
     retry_delay: 1000 // Wait 1 second between retries
 };
 

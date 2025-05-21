@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minimal App Version</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #00E676;
+            margin-top: 0;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #00E676;
+            color: #121212;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            border: none;
+        }
+        .btn:hover {
+            background-color: #00C853;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #2d2d2d;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Minimal App Version</h1>
+        <p>This is a minimal version of the application for troubleshooting purposes.</p>
+        
+        <div class="actions">
+            <button class="btn" id="checkHealthBtn">Check Server Health</button>
+            <button class="btn" id="testApiBtn">Test API Connection</button>
+            <button class="btn" id="clearCacheBtn">Clear Cache</button>
+            <a href="/" class="btn">Go to Full App</a>
+        </div>
+        
+        <div class="status" id="statusOutput">Status will appear here...</div>
+    </div>
+
+    <script>
+        document.getElementById('checkHealthBtn').addEventListener('click', async function() {
+            const statusOutput = document.getElementById('statusOutput');
+            statusOutput.textContent = 'Checking server health...';
+            
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                statusOutput.textContent = 'Health Check Result:\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                statusOutput.textContent = 'Health Check Error:\n' + error.message;
+            }
+        });
+        
+        document.getElementById('testApiBtn').addEventListener('click', async function() {
+            const statusOutput = document.getElementById('statusOutput');
+            statusOutput.textContent = 'Testing API connection...';
+            
+            try {
+                const response = await fetch('/api/subscription-count');
+                const data = await response.json();
+                statusOutput.textContent = 'API Test Result:\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                statusOutput.textContent = 'API Test Error:\n' + error.message;
+            }
+        });
+        
+        document.getElementById('clearCacheBtn').addEventListener('click', async function() {
+            const statusOutput = document.getElementById('statusOutput');
+            statusOutput.textContent = 'Clearing cache...';
+            
+            try {
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    statusOutput.textContent = 'Cache cleared successfully.\nCleared caches: ' + cacheNames.join(', ');
+                } else {
+                    statusOutput.textContent = 'Cache API not available in this browser.';
+                }
+            } catch (error) {
+                statusOutput.textContent = 'Cache Clear Error:\n' + error.message;
+            }
+        });
+        
+        // Display browser info on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusOutput = document.getElementById('statusOutput');
+            statusOutput.textContent = `Browser: ${navigator.userAgent}\nTime: ${new Date().toISOString()}\nService Worker Supported: ${'serviceWorker' in navigator}\nCache API Supported: ${'caches' in window}`;
+        });
+    </script>
+</body>
+</html>

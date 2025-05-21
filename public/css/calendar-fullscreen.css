@@ -1,0 +1,137 @@
+/**
+ * Calendar Fullscreen
+ * Makes the calendar take up more of the screen by reducing margins
+ */
+
+/* Reduce body padding */
+body {
+    padding: 5px 5px 60px 5px !important; /* Reduced from 15px to 5px */
+}
+
+/* Make container take up more space */
+.container {
+    max-width: 100% !important;
+    padding: 0 !important;
+}
+
+/* Reduce page title size */
+.container h1 {
+    margin-bottom: 10px !important; /* Reduced from 20px */
+    font-size: 1.6em !important; /* Smaller title */
+    padding-top: 5px !important;
+}
+
+/* Make controls more compact and side by side */
+.calendar-controls-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Style the controls and filter to be more compact */
+.calendar-controls {
+    margin-bottom: 0 !important; /* Removed margin */
+    padding: 5px !important; /* Reduced from 10px */
+    flex: 1 !important;
+}
+
+.calendar-filter {
+    margin-bottom: 0 !important; /* Removed margin */
+    padding: 5px !important; /* Reduced from 8px 10px */
+    flex: 1 !important;
+    max-width: 200px !important;
+}
+
+/* Reduce calendar grid padding */
+.calendar-grid {
+    padding: 5px !important; /* Reduced from 15px */
+    gap: 3px !important; /* Reduced from 5px */
+    border-radius: 4px !important;
+}
+
+/* Make calendar headers more compact */
+.calendar-header {
+    padding: 4px 0 !important; /* Reduced from 8px 0 */
+    font-size: 0.8em !important; /* Smaller font */
+}
+
+/* Reduce calendar day padding */
+.calendar-day {
+    padding: 5px !important; /* Reduced from 8px */
+    height: 130px !important; /* Increased from 120px */
+}
+
+/* Make day number smaller and more compact */
+.day-number {
+    font-size: 0.9em !important;
+    margin-bottom: 3px !important; /* Reduced from 5px */
+}
+
+/* Increase max-height of task containers */
+.calendar-tasks,
+.calendar-habits {
+    max-height: 95px !important; /* Increased from 85px */
+}
+
+/* Make task items more compact */
+.calendar-task-item,
+.calendar-habit-item {
+    padding: 2px 4px !important; /* Reduced from 3px 6px */
+    margin-bottom: 3px !important; /* Reduced from 4px */
+    font-size: 0.75em !important; /* Smaller font */
+}
+
+/* Make the calendar grid take up more vertical space on larger screens */
+@media (min-height: 700px) {
+    .calendar-grid {
+        grid-auto-rows: minmax(150px, auto) !important;
+    }
+
+    .calendar-day {
+        height: 150px !important;
+    }
+
+    .calendar-tasks,
+    .calendar-habits {
+        max-height: 115px !important;
+    }
+}
+
+/* Make the calendar grid take up even more vertical space on larger screens */
+@media (min-height: 900px) {
+    .calendar-grid {
+        grid-auto-rows: minmax(180px, auto) !important;
+    }
+
+    .calendar-day {
+        height: 180px !important;
+    }
+
+    .calendar-tasks,
+    .calendar-habits {
+        max-height: 145px !important;
+    }
+}
+
+/* Adjust for mobile screens */
+@media (max-width: 600px) {
+    .calendar-controls-container {
+        flex-direction: column !important;
+        gap: 5px !important;
+    }
+
+    .calendar-filter {
+        max-width: 100% !important;
+    }
+
+    .calendar-day {
+        height: 110px !important;
+    }
+
+    .calendar-tasks,
+    .calendar-habits {
+        max-height: 75px !important;
+    }
+}

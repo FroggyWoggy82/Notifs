@@ -4,14 +4,17 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Safely get elements - prevent errors if they don't exist
     const permissionStatusDiv = document.getElementById('permissionStatus');
     const statusDiv = document.getElementById('status');
 
+    // Handle case where permissionStatusDiv doesn't exist
     if (!permissionStatusDiv) {
         console.warn('Permission status div not found');
         return;
     }
 
+    // Check if Notifications are supported
     if (!('Notification' in window)) {
         permissionStatusDiv.style.display = 'block';
         permissionStatusDiv.textContent = 'Notifications not supported in this browser.';
@@ -19,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    function updateStatus(message, isError = false) {
+    function updateStatus(message, isError = false, duration = 5000) {
         if (statusDiv) {
             statusDiv.textContent = message;
             statusDiv.className = `status ${isError ? 'error' : 'success'}`;
             statusDiv.style.display = 'block';
-            setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+            setTimeout(() => { statusDiv.style.display = 'none'; }, duration);
         }
     }
 
@@ -52,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function setupPushSubscription(swRegistration) {
         try {
+            if (!swRegistration) {
+                console.error('Service worker registration is null or undefined');
+                updateStatus('Service worker not ready. Please reload the page.', true);
+                return;
+            }
+
             // Check for existing subscription
             let subscription = await swRegistration.pushManager.getSubscription();
 
@@ -60,18 +69,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (subscription) {
                 updateStatus('Updating subscription with new security keys...', false);
                 await subscription.unsubscribe();
+                console.log('Unsubscribed from existing push subscription');
             }
 
             // Create a new subscription with the current VAPID key
             // Using properly generated VAPID key on the P-256 curve
             const applicationServerKey = urlBase64ToUint8Array('BIErgrKRpDGw2XoFq1vhgowolKyleAgJxC_DcZlyIUASuTUHi0SlWZQ-e2p2ctskva52qii0a36uS5CqTprMxRE');
 
-            subscription = await swRegistration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: applicationServerKey
-            });
+            try {
+                subscription = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey
+                });
 
-            sendSubscriptionToServer(subscription);
+                console.log('Successfully created new push subscription');
+                sendSubscriptionToServer(subscription);
+            } catch (subscribeError) {
+                console.error('Error subscribing to push:', subscribeError);
+                updateStatus('Failed to subscribe to push notifications. Please check your browser settings.', true);
+            }
         } catch (error) {
             console.error('Failed to setup push subscription:', error);
             updateStatus('Failed to setup push notifications.', true);
@@ -79,11 +95,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function sendSubscriptionToServer(subscription) {
+        if (!subscription) {
+            console.error('Cannot send null subscription to server');
+            updateStatus('Invalid subscription object', true);
+            return false;
+        }
+
         try {
+            console.log('Sending subscription to server:', subscription.endpoint);
+
             const response = await fetch('/api/save-subscription', {
                 method: 'POST',
                 body: JSON.stringify(subscription),
-                headers: { 'Content-Type': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
             });
 
             if (!response.ok) {
@@ -91,9 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            updateStatus('Notification subscription saved successfully!', false);
+            console.log('Subscription saved successfully:', data);
+            updateStatus('Notification subscription saved successfully!', false, 15000);
             return true;
         } catch (error) {
+            console.error('Error saving subscription to server:', error);
             updateStatus('Failed to save notification subscription. Please try again.', true);
             return false;
         }
@@ -136,15 +167,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Initial permission check
     checkNotificationPermission();
 
+    // Initialize service worker and push subscription
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-        navigator.serviceWorker.ready.then(swReg => {
-            checkNotificationPermission();
+        // First check if service worker is already registered
+        navigator.serviceWorker.getRegistration().then(registration => {
+            if (registration) {
+                console.log('Service worker already registered:', registration);
 
-            if (Notification.permission === 'granted') {
-                setupPushSubscription(swReg);
+                // Wait for service worker to be ready
+                navigator.serviceWorker.ready.then(swReg => {
+                    console.log('Service worker is ready');
+                    checkNotificationPermission();
+
+                    if (Notification.permission === 'granted') {
+                        setupPushSubscription(swReg);
+                    }
+                }).catch(error => {
+                    console.error('Error waiting for service worker to be ready:', error);
+                });
+            } else {
+                console.log('No service worker registration found');
+
+                // Register service worker if not already registered
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(swReg => {
+                        console.log('Service worker registered successfully');
+
+                        // Wait for service worker to be ready
+                        return navigator.serviceWorker.ready;
+                    })
+                    .then(swReg => {
+                        console.log('Service worker is ready');
+                        checkNotificationPermission();
+
+                        if (Notification.permission === 'granted') {
+                            setupPushSubscription(swReg);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error registering service worker:', error);
+                    });
             }
+        }).catch(error => {
+            console.error('Error checking service worker registration:', error);
         });
     }
 });

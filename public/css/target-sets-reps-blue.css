@@ -1,0 +1,11 @@
+/**
+ * Target Sets×Reps Blue
+ * Changes the "Target Sets×Reps: 3×12" element to electric blue
+ */
+
+/* Target the element with the target-sets-reps class */
+.target-sets-reps {
+    color: #00BFFF !important; /* Electric blue color */
+    font-weight: bold !important; /* Make it bold for better visibility */
+    text-shadow: 0 0 5px rgba(0, 191, 255, 0.5) !important; /* Add a subtle glow effect */
+}

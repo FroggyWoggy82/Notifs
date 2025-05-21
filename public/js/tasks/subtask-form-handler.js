@@ -127,165 +127,111 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modify the Add Task form submission to include subtasks
     if (addTaskForm) {
-        const originalSubmit = addTaskForm.onsubmit;
+        // Instead of overriding the onsubmit handler, use addEventListener
+        // This ensures we don't interfere with other submit handlers
+        addTaskForm.addEventListener('submit', async function(event) {
+            // Don't prevent default here - let the main handler do that
+            // We're just enhancing the form data
 
-        addTaskForm.onsubmit = async function(event) {
-            event.preventDefault();
+            // Get the form data directly from the form elements
+            const taskTitleInput = document.getElementById('taskTitle');
+            const taskDescriptionInput = document.getElementById('taskDescription');
 
-            // Get the form data
-            const formData = new FormData(addTaskForm);
+            // Only proceed if we have valid inputs
+            if (!taskTitleInput || !taskDescriptionInput) {
+                console.error('Required form elements not found');
+                return;
+            }
+
+            // Get the task data from the form elements
             const taskData = {
-                title: formData.get('taskTitle'),
-                description: formData.get('taskDescription'),
-                // Add all required fields
-                reminderTime: formData.get('taskReminderTime') || null,
-                reminderType: formData.get('taskReminderType') || 'none',
-                dueDate: formData.get('taskDueDate') || null,
-                duration: formData.get('taskDuration') || 1,
-                recurrenceType: formData.get('taskRecurrenceType') || 'none',
-                recurrenceInterval: formData.get('taskRecurrenceType') !== 'none' ?
-                    parseInt(formData.get('taskRecurrenceInterval'), 10) || 1 : null
+                title: taskTitleInput.value.trim(),
+                description: taskDescriptionInput.value.trim()
             };
+
+            console.log('Subtask handler - task data:', taskData);
 
             // Set the has_subtasks flag if there are subtasks
             if (subtasks.length > 0) {
-                taskData.has_subtasks = true;
+                // Add the has_subtasks property to the form data
+                const hasSubtasksInput = document.createElement('input');
+                hasSubtasksInput.type = 'hidden';
+                hasSubtasksInput.name = 'has_subtasks';
+                hasSubtasksInput.value = 'true';
+                addTaskForm.appendChild(hasSubtasksInput);
+
+                console.log('Added has_subtasks flag to form');
             }
 
-            try {
-                // Show loading indicator
-                const submitBtn = addTaskForm.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    const originalBtnText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = 'Creating...';
-                    submitBtn.disabled = true;
+            // We don't need to submit the form here anymore
+            // The main form handler in script.js will handle the submission
+            // We'll just let the form submission continue normally
 
-                    // Restore button state after 10 seconds in case of network issues
-                    setTimeout(() => {
-                        if (submitBtn.disabled) {
-                            submitBtn.innerHTML = originalBtnText;
-                            submitBtn.disabled = false;
-                        }
-                    }, 10000);
-                }
+            // We'll listen for the tasksLoaded event to know when the task has been created
+            document.addEventListener('tasksLoaded', async function handleTasksLoaded(event) {
+                // Remove this event listener to avoid multiple executions
+                document.removeEventListener('tasksLoaded', handleTasksLoaded);
 
-                // Submit the task using relative URL to ensure it works in all environments
-                const response = await fetch(`/api/tasks`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(taskData)
-                });
+                try {
+                    // Get the newly created task (should be the first one in the list)
+                    const tasks = event.detail.tasks;
+                    if (!tasks || tasks.length === 0) {
+                        console.error('No tasks found after task creation');
+                        return;
+                    }
 
-                // Reset button state
-                if (submitBtn) {
-                    submitBtn.innerHTML = 'Add Task';
-                    submitBtn.disabled = false;
-                }
+                    // Find the most recently created task (should be the one we just added)
+                    const newTask = tasks.sort((a, b) => {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    })[0];
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({
-                        error: 'Unknown error',
-                        details: `Server returned ${response.status} ${response.statusText}`
-                    }));
+                    console.log('Most recent task:', newTask);
 
-                    throw new Error(errorData.details || errorData.error || `Failed to create task: ${response.status} ${response.statusText}`);
-                }
+                    // Create subtasks if there are any
+                    if (subtasks.length > 0 && newTask) {
+                        console.log(`Creating ${subtasks.length} subtasks for task ${newTask.id}`);
 
-                const newTask = await response.json();
+                        // Create each subtask
+                        for (const subtask of subtasks) {
+                            try {
+                                // Use the direct API endpoint
+                                const response = await fetch(`/api/tasks/${newTask.id}/subtasks`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        title: subtask.title,
+                                        description: subtask.description || '',
+                                        is_complete: subtask.is_complete || false
+                                    })
+                                });
 
-                // Create subtasks if any
-                if (subtasks.length > 0) {
-                    console.log(`Creating ${subtasks.length} subtasks for task ${newTask.id}`);
+                                if (!response.ok) {
+                                    throw new Error(`Failed to create subtask: ${response.status} ${response.statusText}`);
+                                }
 
-                    // Create all subtasks sequentially to avoid race conditions
-                    for (const subtask of subtasks) {
-                        console.log(`Creating subtask "${subtask.title}" for task ${newTask.id}`);
-
-                        try {
-                            // Use the direct API endpoint instead of the createSubtask function
-                            const response = await fetch(`/api/tasks/${newTask.id}/subtasks`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    title: subtask.title,
-                                    description: subtask.description || '',
-                                    is_complete: subtask.is_complete || false
-                                })
-                            });
-
-                            if (!response.ok) {
-                                throw new Error(`Failed to create subtask: ${response.status} ${response.statusText}`);
+                                const newSubtask = await response.json();
+                                console.log(`Created subtask for task ${newTask.id}:`, newSubtask);
+                            } catch (error) {
+                                console.error(`Failed to create subtask "${subtask.title}" for task ${newTask.id}:`, error);
                             }
+                        }
 
-                            const newSubtask = await response.json();
-                            console.log(`Created subtask for task ${newTask.id}:`, newSubtask);
-                        } catch (error) {
-                            console.error(`Failed to create subtask "${subtask.title}" for task ${newTask.id}:`, error);
+                        // Clear the subtasks array
+                        subtasks = [];
+                        renderSubtasks(subtasksList, subtasks);
+
+                        // Reload the tasks to show the subtasks
+                        if (typeof window.loadTasks === 'function') {
+                            window.loadTasks(true); // Force a complete reload
                         }
                     }
+                } catch (error) {
+                    console.error('Error creating subtasks:', error);
                 }
-
-                // Clear subtasks
-                subtasks = [];
-                renderSubtasks(subtasksList, subtasks);
-
-                // Call the original submit handler if it exists
-                if (typeof originalSubmit === 'function') {
-                    return originalSubmit.call(this, event);
-                }
-            } catch (error) {
-                console.error('Error creating task with subtasks:', error);
-
-                // Show a more detailed error message
-                let errorMessage = 'Error: ';
-
-                if (error.message.includes('database') || error.message.includes('Database')) {
-                    errorMessage += 'There was a database error. Please try again later or contact support.';
-                } else if (error.message.includes('parent task')) {
-                    errorMessage += 'The parent task specified does not exist.';
-                } else if (error.message.includes('Duplicate')) {
-                    errorMessage += 'A similar task already exists.';
-                } else {
-                    errorMessage += error.message || 'Failed to create task. Please try again.';
-                }
-
-                // Show error message
-                const statusDiv = document.getElementById('addTaskStatus');
-                if (statusDiv) {
-                    statusDiv.textContent = errorMessage;
-                    statusDiv.className = 'status error';
-
-                    // Make sure the error is visible
-                    statusDiv.style.display = 'block';
-
-                    // Scroll to the error message
-                    statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // Auto-hide after 10 seconds
-                    setTimeout(() => {
-                        statusDiv.style.opacity = '0';
-                        setTimeout(() => {
-                            statusDiv.style.display = 'none';
-                            statusDiv.style.opacity = '1';
-                        }, 500);
-                    }, 10000);
-                } else {
-                    // Fallback to alert if status div doesn't exist
-                    alert(errorMessage);
-                }
-
-                // Re-enable the form
-                const submitBtn = addTaskForm.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = 'Add Task';
-                }
-            }
-        };
+            });
+        });
     }
 
     // Function to load subtasks for a task

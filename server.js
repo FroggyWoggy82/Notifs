@@ -174,6 +174,19 @@ app.use('/uploads/progress_photos', (req, res, next) => {
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  const healthData = {
+    status: 'UP',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    environment: process.env.NODE_ENV || 'development',
+    database: global._pgClient ? 'CONNECTED' : 'NOT_CONNECTED'
+  };
+  res.json(healthData);
+});
+
 // API Routes
 app.use('/api/goals', goalRoutes);
 app.use('/api/days-since', daysSinceRouter);
@@ -463,9 +476,25 @@ app.get('/pages/goals.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'goals.html'));
 });
 
+// Fallback route for service worker bypass
+app.get('/bypass', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'fallback.html'));
+});
+
+// Minimal version of the app for troubleshooting
+app.get('/minimal', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'minimal.html'));
+});
+
 // Fallback for other routes (e.g., for SPAs)
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get('*', (req, res) => {
+  // Check if the request has a bypass parameter
+  if (req.query.bypass) {
+    console.log('Bypass parameter detected, serving fallback page');
+    res.sendFile(path.join(__dirname, 'public', 'fallback.html'));
+  } else {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
 });
 
 // Import models that need initialization
@@ -478,14 +507,22 @@ const initializeAndStart = async () => {
   // Check if we should skip the database connection test
   const skipDbTest = process.env.SKIP_DB_TEST === 'true';
 
+  // Set a global timeout to ensure server starts even if DB connection hangs
+  const serverStartTimeout = setTimeout(() => {
+    console.log('WARNING: Server start timeout reached. Starting server without waiting for database.');
+    startServer(false);
+  }, 30000); // 30 second timeout
+
   if (offlineMode) {
     console.log('OFFLINE MODE ENABLED: Skipping database connection test');
+    clearTimeout(serverStartTimeout);
     startServer(false);
     return;
   }
 
   if (skipDbTest) {
     console.log('SKIP_DB_TEST ENABLED: Starting server without database connection test');
+    clearTimeout(serverStartTimeout);
     startServer(true);
     return;
   }
@@ -495,7 +532,8 @@ const initializeAndStart = async () => {
     console.log('Testing database connection...');
 
     // Use the improved testDbConnection function with retry logic
-    const dbConnected = await db.testDbConnection(3, 20000); // 3 retries, 20 second timeout
+    // Reduced retries and timeout to fail faster
+    const dbConnected = await db.testDbConnection(2, 10000); // 2 retries, 10 second timeout
 
     if (!dbConnected) {
       throw new Error('Database connection failed after multiple attempts');
@@ -518,11 +556,17 @@ const initializeAndStart = async () => {
       console.error('Error initializing models:', modelError);
     }
 
+    // Clear the timeout since we're starting the server now
+    clearTimeout(serverStartTimeout);
+
     // Start the server with database connection
     startServer(true);
   } catch (error) {
     console.error('Failed to connect to database:', error);
     console.log('Server will start anyway, but database features may not work');
+
+    // Clear the timeout since we're starting the server now
+    clearTimeout(serverStartTimeout);
 
     // Start the server without database connection
     startServer(false);

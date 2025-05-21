@@ -56,12 +56,19 @@
     <link rel="stylesheet" href="css/grocery-subtasks-unified.css"> <!-- Unified grocery subtasks styling -->
     <link rel="stylesheet" href="css/grocery-subtasks-improved.css"> <!-- Improved grocery subtasks styling with better contrast -->
     <link rel="stylesheet" href="css/subtask-dropdown-fix.css"> <!-- Improved subtask dropdown styling -->
+    <link rel="stylesheet" href="css/close-button-fix.css"> <!-- Fix for close button background color -->
+    <link rel="stylesheet" href="css/task-buttons-fix.css"> <!-- Fix for Add Task button styling -->
+    <link rel="stylesheet" href="css/add-task-button-override.css"> <!-- Direct override for Add Task button -->
     <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date.css"> --> <!-- Fix for Yuvi's Bday overdue date -->
     <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date-final.css"> --> <!-- Final fix for Yuvi's Bday overdue date -->
     <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-duplicate-text.css"> --> <!-- Fix for Yuvi's Bday duplicate text -->
     <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-final.css"> --> <!-- Final fix for Yuvi's Bday dates -->
     <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-important.css"> --> <!-- Final fix for Yuvi's Bday dates with !important -->
     <link rel="stylesheet" href="css/standardized-date-indicators.css"> <!-- Standardized date indicators styling -->
+    <link rel="stylesheet" href="css/horizontal-task-layout.css"> <!-- Horizontal task layout for better space utilization -->
+    <link rel="stylesheet" href="css/notification-fix.css"> <!-- Fix for notification display and auto-dismissal -->
+    <link rel="stylesheet" href="css/section-headers-fix.css"> <!-- Makes Task List and Habit List headers smaller and consistent -->
+    <link rel="stylesheet" href="css/completed-tasks-toggle-fix.css"> <!-- Makes completed tasks header more clickable -->
 
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -76,6 +83,144 @@
     <link rel="stylesheet" href="css/modal-improvements.css"> <!-- UI improvements for modals and forms -->
 </head>
 <body>
+    <!-- Error handling script - runs before anything else -->
+    <script>
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            console.error('Global error caught:', event.error || event.message);
+
+            // Skip "Unexpected token '<'" errors which are usually from service worker issues
+            // These are handled by the immediate-notification-fix.js script
+            const errorMessage = event.error ? event.error.message : event.message;
+            if (errorMessage && errorMessage.includes("Unexpected token '<'")) {
+                console.warn("Ignoring 'Unexpected token <' error - likely a service worker issue that will be handled by immediate-notification-fix.js");
+                return false;
+            }
+
+            // Log error to a visible element if the page is stuck
+            const errorDiv = document.createElement('div');
+            errorDiv.style.position = 'fixed';
+            errorDiv.style.top = '10px';
+            errorDiv.style.left = '10px';
+            errorDiv.style.right = '10px';
+            errorDiv.style.padding = '10px';
+            errorDiv.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
+            errorDiv.style.color = 'white';
+            errorDiv.style.zIndex = '9999';
+            errorDiv.style.borderRadius = '5px';
+            errorDiv.textContent = 'Error: ' + errorMessage;
+            document.body.appendChild(errorDiv);
+
+            // Add buttons to handle service worker issues
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.style.marginTop = '10px';
+            buttonsDiv.style.display = 'flex';
+            buttonsDiv.style.gap = '10px';
+
+            // Button to unregister service worker
+            const unregisterButton = document.createElement('button');
+            unregisterButton.textContent = 'Unregister Service Worker';
+            unregisterButton.style.padding = '5px 10px';
+            unregisterButton.style.backgroundColor = '#ff5722';
+            unregisterButton.style.border = 'none';
+            unregisterButton.style.borderRadius = '4px';
+            unregisterButton.style.color = 'white';
+            unregisterButton.style.cursor = 'pointer';
+            unregisterButton.onclick = function() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for(let registration of registrations) {
+                            registration.unregister();
+                        }
+                        errorDiv.textContent = 'Service Worker unregistered. Reloading...';
+                        setTimeout(() => window.location.reload(true), 1000);
+                    });
+                } else {
+                    errorDiv.textContent = 'Service Worker API not available in this browser.';
+                    setTimeout(() => window.location.reload(true), 1000);
+                }
+            };
+
+            // Button to clear cache
+            const clearCacheButton = document.createElement('button');
+            clearCacheButton.textContent = 'Clear Cache';
+            clearCacheButton.style.padding = '5px 10px';
+            clearCacheButton.style.backgroundColor = '#2196f3';
+            clearCacheButton.style.border = 'none';
+            clearCacheButton.style.borderRadius = '4px';
+            clearCacheButton.style.color = 'white';
+            clearCacheButton.style.cursor = 'pointer';
+            clearCacheButton.onclick = function() {
+                if ('caches' in window) {
+                    caches.keys().then(function(cacheNames) {
+                        return Promise.all(
+                            cacheNames.map(function(cacheName) {
+                                return caches.delete(cacheName);
+                            })
+                        );
+                    }).then(function() {
+                        errorDiv.textContent = 'Cache cleared. Reloading...';
+                        setTimeout(() => window.location.reload(true), 1000);
+                    });
+                } else {
+                    errorDiv.textContent = 'Cache API not available in this browser.';
+                    setTimeout(() => window.location.reload(true), 1000);
+                }
+            };
+
+            // Button to bypass service worker
+            const bypassButton = document.createElement('button');
+            bypassButton.textContent = 'Bypass Service Worker';
+            bypassButton.style.padding = '5px 10px';
+            bypassButton.style.backgroundColor = '#4caf50';
+            bypassButton.style.border = 'none';
+            bypassButton.style.borderRadius = '4px';
+            bypassButton.style.color = 'white';
+            bypassButton.style.cursor = 'pointer';
+            bypassButton.onclick = function() {
+                window.location.href = '/?bypass=' + Date.now();
+            };
+
+            buttonsDiv.appendChild(unregisterButton);
+            buttonsDiv.appendChild(clearCacheButton);
+            buttonsDiv.appendChild(bypassButton);
+            errorDiv.appendChild(document.createElement('br'));
+            errorDiv.appendChild(buttonsDiv);
+
+            return false;
+        });
+
+        // Set a timeout to detect if the page is stuck loading
+        window.pageLoadTimeout = setTimeout(function() {
+            // If this executes, the page has loaded but might be stuck
+            if (document.readyState !== 'complete') {
+                console.warn('Page load timeout reached but page is not complete');
+                // Create a visible message
+                const timeoutDiv = document.createElement('div');
+                timeoutDiv.style.position = 'fixed';
+                timeoutDiv.style.top = '10px';
+                timeoutDiv.style.left = '10px';
+                timeoutDiv.style.right = '10px';
+                timeoutDiv.style.padding = '10px';
+                timeoutDiv.style.backgroundColor = 'rgba(255, 165, 0, 0.8)';
+                timeoutDiv.style.color = 'white';
+                timeoutDiv.style.zIndex = '9999';
+                timeoutDiv.style.borderRadius = '5px';
+                timeoutDiv.innerHTML = 'Page is taking too long to load. <a href="/bypass" style="color:white;text-decoration:underline;">Click here to bypass service worker</a>';
+                document.body.appendChild(timeoutDiv);
+            }
+        }, 10000); // 10 second timeout
+
+        // Clear the timeout when the page finishes loading
+        window.addEventListener('load', function() {
+            clearTimeout(window.pageLoadTimeout);
+            console.log('Page fully loaded');
+        });
+    </script>
+
+    <!-- Immediate fix for stuck notifications - runs before anything else -->
+    <script src="js/immediate-notification-fix.js"></script>
+
     <button class="menu-button">
         <i class="fas fa-bars"></i>
     </button>
@@ -130,7 +275,8 @@
             <i class="fas fa-bell"></i> Checking notification permission...
         </div>
 
-        <div id="status" class="status"></div>
+        <!-- Status element with no inline styles -->
+        <div id="status" class="status" data-auto-dismiss="true"></div>
 
         <!-- Dashboard section removed for a more compact UI -->
 
@@ -161,11 +307,11 @@
     <section class="completed-tasks-section">
         <div class="card">
             <div class="card__header">
-                <h3 class="card__title collapsible-header" id="completedTasksHeader" style="margin-bottom: 0;">
+                <h3 class="card__title collapsible-header" id="completedTasksHeader" style="margin-bottom: 0; cursor: pointer;">
                     Completed Tasks <i class="fas fa-chevron-down"></i>
                 </h3>
             </div>
-            <div class="card__body collapsible-content" id="completedTaskList" style="display: none; padding-top: 0;">
+            <div class="card__body collapsible-content" id="completedTaskList" style="display: none !important; padding-top: 0;">
                 <!-- Completed tasks will be dynamically added here -->
                 <p>No completed tasks yet.</p>
             </div>
@@ -311,7 +457,9 @@
                     </div>
                 </div>
 
-                <button type="submit" id="addTaskBtn">Add Task</button>
+                <div class="button-container">
+                    <button type="submit" id="addTaskBtn" style="background-color: #ffffff !important; color: #121212 !important; min-width: 120px !important;">Add Task</button>
+                </div>
             </form>
             <div id="addTaskStatus" class="status"></div>
         </div>
@@ -583,5 +731,20 @@
 
     <!-- Subtask dropdown fix - improves responsiveness of subtask dropdowns -->
     <script src="js/tasks/subtask-dropdown-fix.js"></script>
+
+    <!-- Task buttons fix - makes Add Task button white and matches size with Add Subtask button -->
+    <script src="js/tasks/task-buttons-fix.js"></script>
+
+    <!-- Final fix for Add Task button to ensure it's white -->
+    <script src="js/tasks/add-task-button-final-fix.js"></script>
+
+    <!-- Auto dismiss notifications after 15 seconds -->
+    <script src="js/auto-dismiss-notifications.js"></script>
+
+    <!-- Force remove notifications that might be stuck -->
+    <script src="js/force-remove-notifications.js"></script>
+
+    <!-- Simple toggle for completed tasks section -->
+    <script src="js/tasks/completed-tasks-simple-toggle.js"></script>
 </body>
 </html>

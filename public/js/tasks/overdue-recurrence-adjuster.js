@@ -511,8 +511,8 @@
                     // Move the task item to the completed section
                     completedTaskListDiv.appendChild(taskItem);
 
-                    // Make sure the completed section is visible
-                    completedTaskListDiv.style.display = 'block';
+                    // Keep the completed section hidden by default
+                    // completedTaskListDiv.style.display = 'block';
 
                     // Update the completed tasks header count if it exists
                     const completedTasksHeader = document.getElementById('completedTasksHeader') ||
@@ -523,7 +523,7 @@
                         if (match) {
                             const currentCount = parseInt(match[1], 10);
                             const newCount = currentCount + 1;
-                            const arrow = completedTaskListDiv.style.display === 'none' ? '▼' : '▲';
+                            const arrow = '▼'; // Always use down arrow since section is closed by default
                             completedTasksHeader.innerHTML = `Completed Tasks (${newCount}) ${arrow}`;
                         }
                     }

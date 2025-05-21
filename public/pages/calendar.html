@@ -32,6 +32,8 @@
     <link rel="stylesheet" href="../css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
     <link rel="stylesheet" href="../css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
     <link rel="stylesheet" href="../css/calendar-bottom-nav-fix.css"> <!-- Fix for calendar bottom nav alignment -->
+    <link rel="stylesheet" href="../css/section-headers-fix.css"> <!-- Makes section headers smaller and consistent -->
+    <link rel="stylesheet" href="../css/calendar-fullscreen.css"> <!-- Makes calendar take up more screen space -->
 </head>
 <body>
     <button class="menu-button">
@@ -78,19 +80,21 @@
     <div class="container">
         <h1>Task Calendar</h1>
 
-        <div class="calendar-controls">
-            <button id="prevMonthBtn">&lt; Prev</button>
-            <h2 id="currentMonthYear">Loading...</h2>
-            <button id="nextMonthBtn">Next &gt;</button>
-        </div>
+        <div class="calendar-controls-container">
+            <div class="calendar-controls">
+                <button id="prevMonthBtn">&lt; Prev</button>
+                <h2 id="currentMonthYear">Loading...</h2>
+                <button id="nextMonthBtn">Next &gt;</button>
+            </div>
 
-        <div class="calendar-filter">
-            <label>Show: </label>
-            <select id="calendarFilter">
-                <option value="both" selected>Tasks & Habits</option>
-                <option value="tasks">Tasks Only</option>
-                <option value="habits">Habits Only</option>
-            </select>
+            <div class="calendar-filter">
+                <label>Show: </label>
+                <select id="calendarFilter">
+                    <option value="both" selected>Tasks & Habits</option>
+                    <option value="tasks">Tasks Only</option>
+                    <option value="habits">Habits Only</option>
+                </select>
+            </div>
         </div>
 
         <div class="calendar-grid" id="calendar-grid">
