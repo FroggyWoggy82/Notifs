@@ -1,6 +1,7 @@
 /**
  * Modal Improvements
  * Enhances modals to be centered and properly styled
+ * Includes fixes for close button background and scrollbar styling
  */
 
 /* Modal backdrop */
@@ -186,10 +187,81 @@
     .form-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-container {
         width: 95%;
     }
+}
+
+/* Modal close button styling - dark grey background */
+#addTaskModal .close-button,
+#editTaskModal .close-button,
+#addHabitModal .close-button,
+#editHabitModal .close-button {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    cursor: pointer !important;
+    font-size: 20px !important;
+    color: #e0e0e0 !important;
+    background-color: #333333 !important; /* Dark grey background */
+    border-radius: 50% !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.2s, color 0.2s !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#addTaskModal .close-button:hover,
+#editTaskModal .close-button:hover,
+#addHabitModal .close-button:hover,
+#editHabitModal .close-button:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+}
+
+/* Custom scrollbar styling for modals */
+#addTaskModal .modal-content::-webkit-scrollbar,
+#editTaskModal .modal-content::-webkit-scrollbar,
+#addHabitModal .modal-content::-webkit-scrollbar,
+#editHabitModal .modal-content::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+#addTaskModal .modal-content::-webkit-scrollbar-track,
+#editTaskModal .modal-content::-webkit-scrollbar-track,
+#addHabitModal .modal-content::-webkit-scrollbar-track,
+#editHabitModal .modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 2px !important;
+}
+
+#addTaskModal .modal-content::-webkit-scrollbar-thumb,
+#editTaskModal .modal-content::-webkit-scrollbar-thumb,
+#addHabitModal .modal-content::-webkit-scrollbar-thumb,
+#editHabitModal .modal-content::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 2px !important;
+    border: none !important;
+}
+
+#addTaskModal .modal-content::-webkit-scrollbar-thumb:hover,
+#editTaskModal .modal-content::-webkit-scrollbar-thumb:hover,
+#addHabitModal .modal-content::-webkit-scrollbar-thumb:hover,
+#editHabitModal .modal-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Firefox scrollbar styling */
+#addTaskModal .modal-content,
+#editTaskModal .modal-content,
+#addHabitModal .modal-content,
+#editHabitModal .modal-content {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Status messages */

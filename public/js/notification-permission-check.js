@@ -85,12 +85,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Successfully created new push subscription');
                 sendSubscriptionToServer(subscription);
             } catch (subscribeError) {
-                console.error('Error subscribing to push:', subscribeError);
-                updateStatus('Failed to subscribe to push notifications. Please check your browser settings.', true);
+                console.warn('Silent handling of push subscription error:', subscribeError);
+
+                // Only show error in debug mode
+                if (window.location.search.includes('debug=true')) {
+                    updateStatus('Failed to subscribe to push notifications. Please check your browser settings.', true);
+                } else {
+                    // Silently try to recover
+                    setTimeout(() => {
+                        console.log('Attempting silent recovery from push subscription error');
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.ready.then(swReg => {
+                                console.log('Service worker ready for retry');
+                                // Don't show any UI updates during retry
+                            }).catch(err => {
+                                console.warn('Silent recovery failed:', err);
+                            });
+                        }
+                    }, 3000);
+                }
             }
         } catch (error) {
-            console.error('Failed to setup push subscription:', error);
-            updateStatus('Failed to setup push notifications.', true);
+            console.warn('Silent handling of push setup error:', error);
+
+            // Only show error in debug mode
+            if (window.location.search.includes('debug=true')) {
+                updateStatus('Failed to setup push notifications.', true);
+            } else {
+                // Silently log the error without showing UI notification
+                console.log('Push notification setup encountered an error, but continuing silently');
+            }
         }
     }
 
@@ -208,7 +232,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     })
                     .catch(error => {
-                        console.error('Error registering service worker:', error);
+                        // Log but don't display to user
+                        console.warn('Silent handling of service worker registration error:', error);
+
+                        // Try to recover by clearing cache
+                        if ('caches' in window) {
+                            caches.keys().then(cacheNames => {
+                                return Promise.all(
+                                    cacheNames.map(cacheName => caches.delete(cacheName))
+                                );
+                            }).then(() => {
+                                console.log('Cache cleared after service worker registration error');
+                            }).catch(cacheError => {
+                                console.warn('Error clearing cache:', cacheError);
+                            });
+                        }
                     });
             }
         }).catch(error => {

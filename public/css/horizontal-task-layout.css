@@ -39,9 +39,9 @@
     align-items: center !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    padding: 3px 8px !important; /* Reduced padding for more compact layout */
-    margin-bottom: 2px !important; /* Reduced margin for tighter list */
-    min-height: 24px !important; /* Reduced height for more compact layout */
+    padding: 2px 8px !important; /* Further reduced vertical padding */
+    margin-bottom: 1px !important; /* Further reduced margin for tighter list */
+    min-height: 20px !important; /* Further reduced height for more compact layout */
     background-color: rgba(18, 18, 18, 0.8) !important;
     border-radius: 4px !important; /* Smaller border radius */
     border: 1px solid rgba(255, 255, 255, 0.03) !important;
@@ -64,7 +64,7 @@
     margin-right: 5px !important;
     flex-shrink: 0 !important;
     transform: scale(0.85) !important; /* Make checkbox smaller */
-    margin-left: -2px !important; /* Move checkbox further to the left */
+    margin-left: -8px !important; /* Move checkbox even further to the left */
 }
 
 /* Task content area */
@@ -196,9 +196,9 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .task-item {
-        padding: 2px 4px 2px 2px !important; /* Minimal padding */
-        margin-bottom: 2px !important;
-        min-height: 22px !important; /* Very compact height */
+        padding: 1px 4px 1px 2px !important; /* Even more minimal padding */
+        margin-bottom: 1px !important; /* Further reduced margin */
+        min-height: 18px !important; /* Even more compact height */
     }
 
     .task-actions {
@@ -357,7 +357,7 @@
     .subtask-item {
         padding: 0px 3px !important;
         margin-bottom: 1px !important;
-        min-height: 18px !important;
+        min-height: 16px !important; /* Further reduced height for mobile */
     }
 }
 
@@ -415,7 +415,7 @@
 
     /* Move checkbox further left on mobile */
     .task-checkbox-container {
-        margin-left: -4px !important;
+        margin-left: -10px !important; /* Move checkbox even further left on mobile */
     }
 }
 

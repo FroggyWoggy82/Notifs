@@ -25,7 +25,7 @@
         return false;
     }
 
-    // Function to handle "Unexpected token '<'" errors
+    // Function to handle "Unexpected token '<'" errors silently
     function handleUnexpectedTokenError() {
         // Check if we have this specific error in the console
         const consoleErrors = [];
@@ -45,38 +45,52 @@
             );
 
             if (hasUnexpectedTokenError) {
-                console.warn("Detected 'Unexpected token <' error - likely a service worker issue");
+                console.warn("Detected 'Unexpected token <' error - silently handling service worker issue");
 
-                // Create a small notification at the top of the page
-                const errorNotification = document.createElement('div');
-                errorNotification.style.position = 'fixed';
-                errorNotification.style.top = '0';
-                errorNotification.style.left = '0';
-                errorNotification.style.right = '0';
-                errorNotification.style.padding = '10px';
-                errorNotification.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
-                errorNotification.style.color = 'white';
-                errorNotification.style.zIndex = '9999';
-                errorNotification.style.textAlign = 'center';
-                errorNotification.style.fontSize = '14px';
-                errorNotification.textContent = "Error: Unexpected token '<'";
-                document.body.appendChild(errorNotification);
+                // Silently fix the issue by clearing cache and refreshing service worker
+                if ('caches' in window) {
+                    caches.keys().then(function(cacheNames) {
+                        return Promise.all(
+                            cacheNames.map(function(cacheName) {
+                                console.log(`Silently deleting cache: ${cacheName}`);
+                                return caches.delete(cacheName);
+                            })
+                        );
+                    }).then(function() {
+                        console.log('Cache cleared silently');
 
-                // Add service worker debug buttons
-                createServiceWorkerButtons(errorNotification);
+                        // Now refresh the service worker registration
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                                for(let registration of registrations) {
+                                    console.log('Updating service worker registration');
+                                    registration.update();
+                                }
+                            });
+                        }
+                    });
+                }
 
-                // Auto-remove after 10 seconds if not interacted with
-                setTimeout(() => {
-                    if (document.body.contains(errorNotification)) {
-                        errorNotification.style.opacity = '0';
-                        errorNotification.style.transition = 'opacity 0.5s ease';
-                        setTimeout(() => {
-                            if (document.body.contains(errorNotification)) {
-                                document.body.removeChild(errorNotification);
-                            }
-                        }, 500);
-                    }
-                }, 10000);
+                // Only show debug buttons if in debug mode
+                if (window.location.search.includes('debug=true')) {
+                    // Create a small notification at the top of the page
+                    const debugNotification = document.createElement('div');
+                    debugNotification.style.position = 'fixed';
+                    debugNotification.style.top = '0';
+                    debugNotification.style.left = '0';
+                    debugNotification.style.right = '0';
+                    debugNotification.style.padding = '10px';
+                    debugNotification.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                    debugNotification.style.color = 'white';
+                    debugNotification.style.zIndex = '9999';
+                    debugNotification.style.textAlign = 'center';
+                    debugNotification.style.fontSize = '14px';
+                    debugNotification.textContent = "Debug: Service Worker Issue Detected";
+                    document.body.appendChild(debugNotification);
+
+                    // Add service worker debug buttons
+                    createServiceWorkerButtons(debugNotification);
+                }
             }
         }, 100);
     }

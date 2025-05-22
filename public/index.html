@@ -90,10 +90,15 @@
             console.error('Global error caught:', event.error || event.message);
 
             // Skip "Unexpected token '<'" errors which are usually from service worker issues
-            // These are handled by the immediate-notification-fix.js script
+            // These are handled silently by the immediate-notification-fix.js script
             const errorMessage = event.error ? event.error.message : event.message;
-            if (errorMessage && errorMessage.includes("Unexpected token '<'")) {
-                console.warn("Ignoring 'Unexpected token <' error - likely a service worker issue that will be handled by immediate-notification-fix.js");
+            if (errorMessage && (
+                errorMessage.includes("Unexpected token '<'") ||
+                errorMessage.includes("Failed to execute 'importScripts'") ||
+                errorMessage.includes("NetworkError when attempting to fetch resource") ||
+                errorMessage.includes("Service worker registration failed")
+            )) {
+                console.warn("Ignoring service worker related error - will be handled silently by immediate-notification-fix.js");
                 return false;
             }
 

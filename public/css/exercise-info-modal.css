@@ -1,0 +1,137 @@
+/**
+ * Exercise Info Modal
+ * Styling for the exercise information modal
+ */
+
+#exercise-info-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+    animation: fadeIn 0.3s ease;
+}
+
+#exercise-info-modal .modal-content {
+    background-color: #1a1a1a;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.3s ease;
+}
+
+#exercise-info-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#exercise-info-modal .modal-header h2 {
+    margin: 0;
+    color: #03dac6;
+    font-size: 1.5rem;
+}
+
+#exercise-info-modal .close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+#exercise-info-modal .close:hover {
+    color: #03dac6;
+}
+
+#exercise-info-modal .modal-body {
+    padding: 10px 0;
+}
+
+#exercise-info-modal h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #ffffff;
+    font-size: 1.3rem;
+}
+
+#exercise-info-modal p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+    color: #e0e0e0;
+}
+
+#exercise-info-modal strong {
+    color: #ffffff;
+}
+
+#exercise-info-modal .youtube-link {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #222;
+    border-radius: 4px;
+}
+
+#exercise-info-modal .youtube-link a {
+    color: #bb86fc;
+    word-break: break-all;
+    text-decoration: none;
+}
+
+#exercise-info-modal .youtube-link a:hover {
+    text-decoration: underline;
+}
+
+#exercise-info-modal .view-video-btn {
+    margin-top: 10px;
+    background-color: #bb86fc;
+    color: #121212;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+#exercise-info-modal .view-video-btn:hover {
+    background-color: #a370f7;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    #exercise-info-modal .modal-content {
+        width: 90%;
+        margin: 20% auto;
+        padding: 15px;
+    }
+    
+    #exercise-info-modal .modal-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    #exercise-info-modal h3 {
+        font-size: 1.1rem;
+    }
+}

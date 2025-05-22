@@ -1,5 +1,11 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v20'; // <-- Bumped version number to force refresh
+const CACHE_NAME = 'notification-pwa-v21'; // <-- Bumped version number to force refresh
+
+// Catch and suppress any errors during service worker execution
+self.addEventListener('error', event => {
+  console.warn('Service worker error suppressed:', event.message);
+  event.preventDefault(); // Prevent the error from being propagated
+});
 
 // Cache essential static assets - expanded for better mobile support
 const urlsToCache = [

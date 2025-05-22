@@ -1,0 +1,11 @@
+/**
+ * Hide Sidebar Icon in Active Workout
+ * This CSS file hides the sidebar menu button when viewing an active workout
+ */
+
+/* Hide the menu button when the active workout page is visible */
+body.active-workout-visible .menu-button {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}

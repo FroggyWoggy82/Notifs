@@ -6,7 +6,7 @@ html body .task-item {
     flex-direction: row !important;
     align-items: flex-start !important;
     flex-wrap: nowrap !important;
-    gap: 0 !important; 
+    gap: 0 !important;
 }
 
 
@@ -16,10 +16,11 @@ html body .task-checkbox-container {
     justify-content: center !important;
     margin-right: 10px !important;
     flex-shrink: 0 !important;
-    order: -1 !important; 
-    min-width: 20px !important; 
-    max-width: 20px !important; 
-    height: 20px !important; 
+    order: -1 !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    height: 20px !important;
+    margin-left: -5px !important; /* Move checkbox more to the left */
 }
 
 
@@ -30,14 +31,14 @@ html body .task-item input[type="checkbox"] {
     position: relative !important;
     width: 16px !important;
     height: 16px !important;
-    
+
     background-color: rgba(0, 0, 0, 0.9) !important;
     border: 1.5px solid #00E676 !important;
-    border-radius: 50% !important; 
-    box-shadow: none !important; 
+    border-radius: 50% !important;
+    box-shadow: none !important;
     transition: all 0.2s ease !important;
     overflow: hidden !important;
-    transform: none !important; 
+    transform: none !important;
     appearance: none !important;
     -webkit-appearance: none !important;
 }
@@ -58,8 +59,8 @@ html body .task-item input[type="checkbox"]::after {
 
 html body .task-item input[type="checkbox"]:hover {
     border-color: rgba(0, 230, 118, 0.9) !important;
-    box-shadow: none !important; 
-    transform: scale(1.05) !important; 
+    box-shadow: none !important;
+    transform: scale(1.05) !important;
 }
 
 html body .task-item input[type="checkbox"]:hover::after {
@@ -71,8 +72,8 @@ html body .task-item input[type="checkbox"]:checked {
     background-color: rgba(0, 0, 0, 0.8) !important;
     border-color: #00ff77 !important;
     border-width: 1.5px !important;
-    box-shadow: none !important; 
-    animation: none !important; 
+    box-shadow: none !important;
+    animation: none !important;
 }
 
 
@@ -83,23 +84,23 @@ html body .task-item input[type="checkbox"]:checked::after {
 
 
 html body .task-item input[type="checkbox"]::before {
-    content: "" !important; 
+    content: "" !important;
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
     width: 10px !important;
     height: 10px !important;
     border-radius: 50% !important;
-    background-color: #00E676 !important; 
-    transform: translate(-50%, -50%) scale(0) !important; 
+    background-color: #00E676 !important;
+    transform: translate(-50%, -50%) scale(0) !important;
     transition: all 0.2s ease-out !important;
-    box-shadow: none !important; 
+    box-shadow: none !important;
     opacity: 0 !important;
 }
 
 html body .task-item input[type="checkbox"]:checked::before {
-    transform: translate(-50%, -50%) scale(1) !important; 
-    animation: none !important; 
+    transform: translate(-50%, -50%) scale(1) !important;
+    animation: none !important;
     opacity: 1 !important;
 }
 
@@ -108,9 +109,9 @@ html body .task-content {
     flex-grow: 1 !important;
     flex-shrink: 1 !important;
     padding-top: 1px !important;
-    order: 0 !important; 
-    min-width: 0 !important; 
-    margin-left: 4px !important; 
+    order: 0 !important;
+    min-width: 0 !important;
+    margin-left: 4px !important;
 }
 
 
@@ -118,8 +119,8 @@ html body .task-actions {
     margin-left: auto !important;
     align-items: flex-start !important;
     margin-top: 2px !important;
-    order: 1 !important; 
-    flex-shrink: 0 !important; 
+    order: 1 !important;
+    flex-shrink: 0 !important;
     display: flex !important;
     gap: 4px !important;
 }

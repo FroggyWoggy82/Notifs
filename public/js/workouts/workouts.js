@@ -725,6 +725,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             </button>
                             <div class="button-group-right">
                                 <button type="button" class="btn-edit-exercise-name" data-workout-index="${index}" title="Edit Exercise Name">✏️</button>
+                                <button type="button" class="btn-replace-exercise" data-workout-index="${index}" data-exercise-id="${exerciseData.exercise_id}" title="Replace Exercise">🔄</button>
+                                <button type="button" class="btn-replace-exercise-global" data-workout-index="${index}" data-exercise-id="${exerciseData.exercise_id}" title="Replace Exercise Globally">🌐</button>
                                 <button type="button" class="btn-delete-exercise" data-workout-index="${index}" title="Remove Exercise">&times;</button>
                             </div>
                         </div>
@@ -1289,6 +1291,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.addEventListener('click', function(event) {
+        // Handle replace exercise button clicks
+        if (event.target.classList.contains('btn-replace-exercise')) {
+            const workoutIndex = parseInt(event.target.dataset.workoutIndex, 10);
+            const exerciseId = event.target.dataset.exerciseId;
+
+            console.log(`[Replace Exercise] Replacing exercise at index ${workoutIndex} with ID ${exerciseId}`);
+
+            // Close the options menu
+            const menu = event.target.closest('.exercise-options-menu');
+            if (menu) {
+                menu.classList.remove('show');
+            }
+
+            // Open the exercise modal in replace mode
+            exerciseModal.dataset.targetList = 'active';
+            openExerciseModal('replace', workoutIndex, false);
+            return;
+        }
+
+        // Handle replace exercise globally button clicks
+        if (event.target.classList.contains('btn-replace-exercise-global')) {
+            const workoutIndex = parseInt(event.target.dataset.workoutIndex, 10);
+            const exerciseId = event.target.dataset.exerciseId;
+
+            console.log(`[Replace Exercise Globally] Replacing exercise at index ${workoutIndex} with ID ${exerciseId} globally`);
+
+            // Close the options menu
+            const menu = event.target.closest('.exercise-options-menu');
+            if (menu) {
+                menu.classList.remove('show');
+            }
+
+            // Open the exercise modal in replace mode with global flag
+            exerciseModal.dataset.targetList = 'active';
+            openExerciseModal('replace', workoutIndex, true);
+            return;
+        }
 
         if (event.target.closest('.exercise-options-menu') ||
             event.target.classList.contains('btn-exercise-options')) {
@@ -1514,13 +1553,28 @@ document.addEventListener('DOMContentLoaded', function() {
         renderAvailableExercises(searchTerm, category);
     }
 
-    function openExerciseModal() {
-        console.log('[openExerciseModal] Function called');
+    function openExerciseModal(mode = 'add', exerciseToReplaceIndex = -1, isGlobalReplace = false) {
+        console.log('[openExerciseModal] Function called with mode:', mode);
 
         if (!exerciseModal) {
             console.error('[openExerciseModal] Exercise modal not found!');
             alert('Error: Exercise modal not found. Please refresh the page and try again.');
             return;
+        }
+
+        // Set the mode and exercise to replace index as data attributes
+        exerciseModal.dataset.mode = mode;
+        exerciseModal.dataset.exerciseToReplaceIndex = exerciseToReplaceIndex;
+        exerciseModal.dataset.isGlobalReplace = isGlobalReplace;
+
+        // Update the modal title based on the mode
+        const modalTitle = exerciseModal.querySelector('h2');
+        if (modalTitle) {
+            if (mode === 'replace') {
+                modalTitle.textContent = isGlobalReplace ? 'Replace Exercise Globally' : 'Replace Exercise';
+            } else {
+                modalTitle.textContent = 'Add Exercise';
+            }
         }
 
         console.log('[openExerciseModal] Target list:', exerciseModal.dataset.targetList);
@@ -1550,39 +1604,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function closeExerciseModal() {
+        console.log('[closeExerciseModal] Function called');
 
-        const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
+        if (!exerciseModal) {
+            console.error('[closeExerciseModal] Exercise modal not found!');
+            return;
+        }
 
-        const visibleExerciseIds = new Set();
-        currentCheckboxes.forEach(checkbox => {
-            const exerciseId = parseInt(checkbox.value, 10);
-            visibleExerciseIds.add(exerciseId);
-        });
+        if (availableExerciseListEl) {
+            const currentCheckboxes = availableExerciseListEl.querySelectorAll('input[type="checkbox"]');
 
-        currentCheckboxes.forEach(checkbox => {
-            const exerciseId = parseInt(checkbox.value, 10);
+            const visibleExerciseIds = new Set();
+            currentCheckboxes.forEach(checkbox => {
+                const exerciseId = parseInt(checkbox.value, 10);
+                visibleExerciseIds.add(exerciseId);
+            });
 
-            if (checkbox.checked) {
+            currentCheckboxes.forEach(checkbox => {
+                const exerciseId = parseInt(checkbox.value, 10);
 
-                checkedExercises.add(exerciseId);
+                if (checkbox.checked) {
+                    checkedExercises.add(exerciseId);
 
-                if (!checkedExercisesOrder.includes(exerciseId)) {
-                    checkedExercisesOrder.push(exerciseId);
+                    if (!checkedExercisesOrder.includes(exerciseId)) {
+                        checkedExercisesOrder.push(exerciseId);
+                    }
+                } else {
+                    checkedExercises.delete(exerciseId);
+
+                    const index = checkedExercisesOrder.indexOf(exerciseId);
+                    if (index > -1) {
+                        checkedExercisesOrder.splice(index, 1);
+                    }
                 }
-            } else {
+            });
+        }
 
-
-                checkedExercises.delete(exerciseId);
-
-                const index = checkedExercisesOrder.indexOf(exerciseId);
-                if (index > -1) {
-                    checkedExercisesOrder.splice(index, 1);
-                }
-            }
-        });
-
-        console.log(`Closing modal with ${checkedExercises.size} checked exercises`);
-
+        console.log(`[closeExerciseModal] Closing modal with ${checkedExercises.size} checked exercises`);
         exerciseModal.style.display = 'none';
     }
 
@@ -6075,9 +6133,20 @@ document.addEventListener('DOMContentLoaded', function() {
     } // End of initialize function
 
     async function handleAddSelectedExercises() {
-        const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
+        console.log('[handleAddSelectedExercises] Function called');
 
-        console.log('Current checked exercises:');
+        if (!exerciseModal) {
+            console.error('[handleAddSelectedExercises] Exercise modal not found!');
+            return;
+        }
+
+        const targetList = exerciseModal.dataset.targetList || 'active'; // Determine target
+        const mode = exerciseModal.dataset.mode || 'add';
+        const exerciseToReplaceIndex = parseInt(exerciseModal.dataset.exerciseToReplaceIndex, 10);
+        const isGlobalReplace = exerciseModal.dataset.isGlobalReplace === 'true';
+
+        console.log(`[handleAddSelectedExercises] Mode: ${mode}, Target: ${targetList}, Replace Index: ${exerciseToReplaceIndex}, Global Replace: ${isGlobalReplace}`);
+        console.log('[handleAddSelectedExercises] Current checked exercises:');
         checkedExercises.forEach(id => {
             console.log(`- Exercise ID: ${id}`);
         });
@@ -6087,7 +6156,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        console.log(`Adding ${checkedExercises.size} checked exercises to ${targetList}`);
+        // Only use the first selected exercise when in replace mode
+        if (mode === 'replace' && checkedExercises.size > 1) {
+            alert('Only one exercise can be selected for replacement. Using the first selected exercise.');
+        }
 
         const orderedIds = checkedExercisesOrder.filter(id => checkedExercises.has(id));
 
@@ -6098,18 +6170,219 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const exercisesToAdd = [...orderedIds];
+        console.log(`[handleAddSelectedExercises] Exercises to add/replace: ${exercisesToAdd.join(', ')}`);
 
+        // First close the modal to improve user experience
         closeExerciseModal();
 
-        for (const exerciseId of exercisesToAdd) {
-            await addExerciseToWorkout(exerciseId, targetList); // Pass targetList and await completion
+        if (mode === 'replace' && exerciseToReplaceIndex >= 0 && exercisesToAdd.length > 0) {
+            const newExerciseId = exercisesToAdd[0];
+            console.log(`[handleAddSelectedExercises] Replacing exercise at index ${exerciseToReplaceIndex} with ID ${newExerciseId}`);
+
+            try {
+                if (isGlobalReplace) {
+                    await replaceExerciseGlobally(exerciseToReplaceIndex, newExerciseId);
+                } else {
+                    await replaceExercise(exerciseToReplaceIndex, newExerciseId);
+                }
+                console.log(`[handleAddSelectedExercises] Replacement successful`);
+            } catch (error) {
+                console.error(`[handleAddSelectedExercises] Error replacing exercise:`, error);
+                alert(`Failed to replace exercise: ${error.message}`);
+            }
+        } else {
+            // Regular add mode
+            console.log(`[handleAddSelectedExercises] Adding ${checkedExercises.size} checked exercises to ${targetList}`);
+
+            for (const exerciseId of exercisesToAdd) {
+                await addExerciseToWorkout(exerciseId, targetList); // Pass targetList and await completion
+            }
+            console.log(`[handleAddSelectedExercises] Addition successful`);
         }
 
         checkedExercises.clear();
         checkedExercisesOrder.length = 0;
-        console.log('Cleared all checked exercises');
+        console.log('[handleAddSelectedExercises] Cleared all checked exercises');
 
         renderAvailableExercises(exerciseSearchInput.value, exerciseCategoryFilter.value);
+    }
+
+    // Function to replace an exercise in the current template
+    async function replaceExercise(exerciseIndex, newExerciseId) {
+        console.log(`[replaceExercise] Replacing exercise at index ${exerciseIndex} with ID ${newExerciseId}`);
+
+        if (exerciseIndex < 0 || !newExerciseId) {
+            console.error('[replaceExercise] Invalid exercise index or new exercise ID');
+            return;
+        }
+
+        // Determine if we're in the template editor or active workout
+        const isTemplateEditor = document.getElementById('template-editor-page').classList.contains('active');
+        let exerciseList = isTemplateEditor ? currentTemplateExercises : currentWorkout.exercises;
+
+        if (!exerciseList || exerciseIndex >= exerciseList.length) {
+            console.error('[replaceExercise] Exercise list not found or index out of bounds');
+            return;
+        }
+
+        // Get the exercise to replace
+        const oldExercise = exerciseList[exerciseIndex];
+        if (!oldExercise) {
+            console.error('[replaceExercise] Exercise not found at index', exerciseIndex);
+            return;
+        }
+
+        // Get the new exercise data
+        let newExercise;
+        try {
+            const response = await fetch(`/api/workouts/exercises/${newExerciseId}`);
+            if (response.ok) {
+                newExercise = await response.json();
+            } else {
+                newExercise = availableExercises.find(ex => ex.exercise_id === newExerciseId);
+                if (!newExercise) {
+                    throw new Error('Exercise not found');
+                }
+            }
+        } catch (error) {
+            console.error('[replaceExercise] Error fetching new exercise data:', error);
+            throw error;
+        }
+
+        // Create the replacement exercise data, preserving settings from the old exercise
+        const replacementExercise = {
+            exercise_id: newExercise.exercise_id,
+            name: newExercise.name,
+            category: newExercise.category,
+            sets: oldExercise.sets,
+            reps: oldExercise.reps,
+            weight: oldExercise.weight,
+            weight_unit: oldExercise.weight_unit,
+            weight_increment: oldExercise.weight_increment,
+            order_position: oldExercise.order_position,
+            notes: oldExercise.notes,
+            youtube_url: newExercise.youtube_url
+        };
+
+        // If in active workout, preserve completed sets
+        if (!isTemplateEditor && oldExercise.completedSets) {
+            replacementExercise.completedSets = oldExercise.completedSets;
+            replacementExercise.template_sets = oldExercise.template_sets;
+            replacementExercise.template_reps = oldExercise.template_reps;
+        }
+
+        // Replace the exercise in the list
+        exerciseList[exerciseIndex] = replacementExercise;
+
+        // Re-render the appropriate list
+        if (isTemplateEditor) {
+            renderTemplateExerciseList();
+        } else {
+            renderCurrentWorkout();
+        }
+
+        console.log(`[replaceExercise] Successfully replaced exercise at index ${exerciseIndex} with ${newExercise.name}`);
+    }
+
+    // Function to replace an exercise globally across all templates
+    async function replaceExerciseGlobally(exerciseIndex, newExerciseId) {
+        console.log(`[replaceExerciseGlobally] Replacing exercise globally at index ${exerciseIndex} with ID ${newExerciseId}`);
+
+        if (exerciseIndex < 0 || !newExerciseId) {
+            console.error('[replaceExerciseGlobally] Invalid exercise index or new exercise ID');
+            return;
+        }
+
+        // Determine if we're in the template editor or active workout
+        const isTemplateEditor = document.getElementById('template-editor-page').classList.contains('active');
+        let exerciseList = isTemplateEditor ? currentTemplateExercises : currentWorkout.exercises;
+
+        if (!exerciseList || exerciseIndex >= exerciseList.length) {
+            console.error('[replaceExerciseGlobally] Exercise list not found or index out of bounds');
+            return;
+        }
+
+        // Get the exercise to replace
+        const oldExercise = exerciseList[exerciseIndex];
+        if (!oldExercise) {
+            console.error('[replaceExerciseGlobally] Exercise not found at index', exerciseIndex);
+            return;
+        }
+
+        const oldExerciseId = oldExercise.exercise_id;
+
+        // Get the new exercise data
+        let newExercise;
+        try {
+            const response = await fetch(`/api/workouts/exercises/${newExerciseId}`);
+            if (response.ok) {
+                newExercise = await response.json();
+            } else {
+                newExercise = availableExercises.find(ex => ex.exercise_id === newExerciseId);
+                if (!newExercise) {
+                    throw new Error('Exercise not found');
+                }
+            }
+        } catch (error) {
+            console.error('[replaceExerciseGlobally] Error fetching new exercise data:', error);
+            throw error;
+        }
+
+        // First, replace in the current list
+        await replaceExercise(exerciseIndex, newExerciseId);
+
+        // Then, replace in all templates
+        if (workoutTemplates && Array.isArray(workoutTemplates)) {
+            let templatesUpdated = false;
+
+            workoutTemplates.forEach(template => {
+                if (template.exercises && Array.isArray(template.exercises)) {
+                    template.exercises.forEach(ex => {
+                        if (ex.exercise_id === oldExerciseId) {
+                            ex.exercise_id = newExercise.exercise_id;
+                            ex.name = newExercise.name;
+                            ex.category = newExercise.category;
+                            ex.youtube_url = newExercise.youtube_url;
+                            templatesUpdated = true;
+                        }
+                    });
+                }
+            });
+
+            if (templatesUpdated) {
+                // Save the updated templates to the server
+                try {
+                    for (const template of workoutTemplates) {
+                        if (template.exercises && template.exercises.some(ex => ex.exercise_id === newExercise.exercise_id)) {
+                            await fetch(`/api/workouts/templates/${template.workout_id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    name: template.name,
+                                    description: template.description,
+                                    exercises: template.exercises
+                                })
+                            });
+                        }
+                    }
+
+                    // Re-render the templates list
+                    renderWorkoutTemplates();
+
+                    console.log(`[replaceExerciseGlobally] Successfully replaced exercise ${oldExercise.name} with ${newExercise.name} in all templates`);
+
+                    // Show confirmation to the user
+                    alert(`Successfully replaced "${oldExercise.name}" with "${newExercise.name}" in all templates.`);
+                } catch (error) {
+                    console.error('[replaceExerciseGlobally] Error saving updated templates:', error);
+                    alert(`Error saving updated templates: ${error.message}`);
+                    throw error;
+                }
+            } else {
+                console.log(`[replaceExerciseGlobally] No templates found with exercise ${oldExercise.name}`);
+                alert(`No other templates found with "${oldExercise.name}".`);
+            }
+        }
     }
 
     function handleCancelWorkout() {

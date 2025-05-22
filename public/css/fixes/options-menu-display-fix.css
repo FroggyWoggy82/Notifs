@@ -1,0 +1,94 @@
+/**
+ * Options Menu Display Fix
+ * This CSS ensures that the exercise options menu and its buttons are properly displayed.
+ */
+
+/* Make sure the options menu is visible when shown */
+.exercise-options-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1000 !important;
+}
+
+/* Ensure the options menu has proper dimensions */
+.exercise-options-menu {
+    min-width: 200px !important;
+    max-width: 300px !important;
+    padding: 10px !important;
+}
+
+/* Style the replace exercise buttons to ensure they're visible */
+.btn-replace-exercise,
+.btn-replace-exercise-global {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 32px !important;
+    height: 32px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border-radius: 4px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 6px !important;
+    margin-bottom: 6px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Style the edit exercise button */
+.btn-edit-exercise-name {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 32px !important;
+    height: 32px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border-radius: 4px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 6px !important;
+    margin-bottom: 6px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ensure the button group is properly displayed */
+.button-group-right {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-left: auto !important;
+}
+
+/* Make sure the buttons row is properly displayed */
+.exercise-options-menu-row.buttons-row {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+}
+
+/* Ensure the delete button is visible */
+.btn-delete-exercise {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Add hover effects for buttons */
+.btn-replace-exercise:hover,
+.btn-replace-exercise-global:hover,
+.btn-edit-exercise-name:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
