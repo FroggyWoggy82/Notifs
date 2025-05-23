@@ -4,22 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Product Tracking - Task List</title>
-    <link rel="stylesheet" href="../css/base/index.css">
-    <link rel="stylesheet" href="../css/layout/sidebar.css">
+    <!-- Main CSS import -->
+    <link rel="stylesheet" href="../css/main.css">
+    <!-- Page-specific CSS -->
     <link rel="stylesheet" href="../css/pages/product-tracking.css">
     <!-- Dynamic theme color for status bar -->
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#0a0a0a">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="stylesheet" href="../css/layout/bottom-nav-fix.css">
-    <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/utilities/task-icons-fix.css">
-    <link rel="stylesheet" href="../css/utilities/recurrence-indicator-redesign.css">
-    <link rel="stylesheet" href="../css/layout/bottom-nav-hover-animation.css">
-    <link rel="stylesheet" href="../css/layout/bottom-nav-white-highlight.css">
-    <link rel="stylesheet" href="../css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
 </head>
 <body>
     <button class="menu-button">
@@ -114,6 +108,17 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="productPhoto">Product Photo (optional):</label>
+                    <div class="photo-upload-container">
+                        <input type="file" id="productPhoto" accept="image/*" class="photo-input">
+                        <label for="productPhoto" class="photo-upload-label">
+                            <i class="fas fa-camera"></i> Choose Photo
+                        </label>
+                        <div class="photo-preview-container" id="productPhotoPreview"></div>
+                        <div class="photo-info">Images will be compressed to 800KB on mobile devices</div>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="productNotes">Initial Notes (optional):</label>
                     <textarea id="productNotes" rows="3" placeholder="Enter any initial observations or product details"></textarea>
                 </div>
@@ -177,7 +182,14 @@
                         </div>
                         <div class="form-group">
                             <label for="entryPhoto">Photo (optional):</label>
-                            <input type="file" id="entryPhoto" accept="image/*">
+                            <div class="photo-upload-container">
+                                <input type="file" id="entryPhoto" accept="image/*" class="photo-input">
+                                <label for="entryPhoto" class="photo-upload-label">
+                                    <i class="fas fa-camera"></i> Choose Photo
+                                </label>
+                                <div class="photo-preview-container" id="entryPhotoPreview"></div>
+                                <div class="photo-info">Images will be compressed to 800KB on mobile devices</div>
+                            </div>
                         </div>
                         <button type="submit" id="addEntryBtn">Add Entry</button>
                     </form>
@@ -215,6 +227,7 @@
     <script src="../js/common/status-bar.js"></script>
 
     <!-- Product tracking functionality -->
+    <script src="../js/product-tracking/image-compressor.js"></script>
     <script src="../js/product-tracking/product-tracking.js"></script>
     <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
     <script src="../js/tasks/task-icons-fix.js"></script>

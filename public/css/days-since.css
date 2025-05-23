@@ -1,29 +1,95 @@
 
+/* Days Since specific styles */
+
+/* Page title */
+h1 {
+    color: var(--color-primary);
+    font-size: var(--font-size-3xl);
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+}
+
+/* Section headers */
+.days-since-input-section h2,
+.days-since-list-section h2 {
+    color: var(--color-primary-light);
+    font-size: var(--font-size-xl);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-dark-border);
+    padding-bottom: 10px;
+}
+
+/* Form styling for Days Since page */
+#addEventForm .form-group {
+    margin-bottom: 20px;
+}
+
+#addEventForm label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-dark-text);
+    font-weight: var(--font-weight-medium);
+}
+
+#addEventForm input[type="text"],
+#addEventForm input[type="datetime-local"] {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: var(--color-dark-surface-3);
+    border: 1px solid var(--color-dark-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-dark-text);
+    transition: all var(--transition-base);
+}
+
+#addEventForm input[type="text"]:focus,
+#addEventForm input[type="datetime-local"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2);
+    outline: none;
+}
+
+#addEventBtn {
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 10px 20px;
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+#addEventBtn:hover {
+    background-color: var(--color-primary);
+    box-shadow: var(--glow-primary);
+}
 .days-since-input-section,
 .days-since-list-section {
     margin-top: 40px;
     padding: 25px;
-    background-color: #ffffff;
-    border-radius: 6px;
-    border: 1px solid #dde5eb;
-    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+    background-color: var(--color-dark-surface-2);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-dark-border);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .days-since-event {
-    background-color: #f8f9fa;
+    background-color: var(--color-dark-surface-3);
     padding: 20px;
     margin-bottom: 15px;
-    border-radius: 4px;
-    border: 1px solid #e8eef2;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-dark-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .days-since-event:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(44, 62, 80, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-color: var(--color-primary-dark);
 }
 
 .event-info {
@@ -31,25 +97,26 @@
 }
 
 .event-name {
-    font-weight: 500;
-    color: #2c3e50;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-dark-text);
     margin-bottom: 8px;
-    font-size: 1.1em;
+    font-size: var(--font-size-md);
 }
 
 .event-date {
-    font-size: 0.9em;
-    color: #566573;
+    font-size: var(--font-size-sm);
+    color: var(--color-dark-text-secondary);
     margin-bottom: 4px;
 }
 
 .days-count {
     font-family: 'Courier New', monospace;
-    font-size: 2em;
-    font-weight: 600;
-    color: #4db6ac;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
     margin: 8px 0;
     letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.4);
 }
 
 .event-actions {
@@ -63,10 +130,10 @@
 .event-actions .delete-btn {
     padding: 6px 12px !important;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
-    font-size: 0.9em !important;
-    transition: background-color 0.2s ease;
+    font-size: var(--font-size-sm) !important;
+    transition: all var(--transition-base);
     width: 75px !important;
     text-align: center;
     box-sizing: border-box;
@@ -75,28 +142,30 @@
 
 
 .event-actions .edit-btn {
-    background-color: #4db6ac;
-    color: white;
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
 }
 
 .event-actions .edit-btn:hover {
-    background-color: #45a69c;
+    background-color: var(--color-primary);
+    box-shadow: var(--glow-primary);
 }
 
 .event-actions .delete-btn {
-    background-color: #e74c3c;
-    color: white;
+    background-color: var(--color-error-dark);
+    color: var(--color-white);
 }
 
 .event-actions .delete-btn:hover {
-    background-color: #c0392b;
+    background-color: var(--color-error);
+    box-shadow: var(--glow-accent);
 }
 
 
 .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: #566573;
+    color: var(--color-dark-text-secondary);
 }
 
 .empty-state p {
@@ -107,7 +176,7 @@
 .loading {
     text-align: center;
     padding: 20px;
-    color: #566573;
+    color: var(--color-dark-text-secondary);
 }
 
 
@@ -127,4 +196,4 @@
     .days-count {
         font-size: 1.6em;
     }
-} 
+}

@@ -50,10 +50,13 @@
     <link rel="stylesheet" href="../css/workout-fab-fix.css"> <!-- Fix for FAB styling to match tasks.html -->
     <link rel="stylesheet" href="../css/workout-options-menu-fix.css"> <!-- Fix for options menu styling with white buttons and Font Awesome icons -->
     <link rel="stylesheet" href="../css/edit-button-font-awesome-fix.css"> <!-- Fix for edit button to use black Font Awesome icon -->
+    <link rel="stylesheet" href="../css/exercise-options-menu-resize.css"> <!-- Resize elements in exercise options menu to fit properly -->
+    <link rel="stylesheet" href="../css/exercise-options-menu-buttons-fix.css"> <!-- Rearrange buttons in exercise options menu -->
+    <link rel="stylesheet" href="../css/exercise-options-menu-buttons-additional-fix.css"> <!-- Additional fixes for exercise options menu buttons -->
     <link rel="stylesheet" href="../css/youtube-modal-fix.css"> <!-- Fix for YouTube URL modal styling -->
     <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
-    <link rel="stylesheet" href="../css/fixes/options-menu-display-fix.css"> <!-- Fix for options menu display issues -->
-    <link rel="stylesheet" href="../css/exercise-info-modal.css"> <!-- Styling for exercise information modal -->
+    <link rel="stylesheet" href="../css/goal-highlight-white.css"> <!-- Change goal highlight from teal/blue to white -->
+    <link rel="stylesheet" href="../css/target-sets-reps-blue.css"> <!-- Change Target Sets×Reps to electric blue -->
 </head>
 <body>
     <button class="menu-button">
@@ -125,28 +128,25 @@
                     </div>
                 </div>
                 <!-- Photo Gallery Display -->
-                <div class="gallery-section" style="margin-bottom: 5px; width: 95vw; max-width: 800px; margin-left: auto; margin-right: auto;">
-                    <div class="photo-navigation-container" style="width: 100%;">
-                        <div class="photo-slider-container" style="width: 100%; height: 500px;"> <!-- Further increased height to 500px -->
-                            <div class="photo-viewport" style="height: 100%; width: 100%;"> <!-- Clipping container with full height and width -->
-                                <div class="photo-reel" style="width: 100%;"> <!-- Image strip that moves -->
+                <div class="gallery-section" style="margin-bottom: 5px;">
+                    <div class="photo-navigation-container">
+                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" onclick="if(typeof showPreviousPhoto === 'function') { showPreviousPhoto(); return false; }" disabled>&lt;</button>
+                        <div class="photo-slider-container">
+                            <div class="photo-viewport"> <!-- Clipping container -->
+                                <div class="photo-reel"> <!-- Image strip that moves -->
                                     <!-- Images will be dynamically loaded here by JavaScript -->
                                 </div>
                             </div>
                         </div>
+                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" onclick="if(typeof showNextPhoto === 'function') { showNextPhoto(); return false; }" disabled>&gt;</button>
                     </div>
                     <!-- ADDED Pagination Dots Container -->
                     <div class="pagination-dots">
                         <!-- Dots will be added here by JS -->
                     </div>
                     <!-- NEW Element for Date Display -->
-                    <div id="current-photo-date-display" style="text-align: center; margin-top: 12px; color: #fff; font-size: 1.1rem; font-weight: 500; padding: 8px; width: 180px; display: inline-block;">
+                    <div id="current-photo-date-display" style="text-align: center; margin-top: 8px; color: #bbb; font-size: 0.9rem;">
                         <!-- Date will be added here by JS -->
-                    </div>
-                    <!-- Navigation arrows - these will be repositioned by photo-nav-redesign.js -->
-                    <div class="photo-navigation-buttons" style="display: flex; justify-content: center; margin-top: 15px; gap: 40px;"> <!-- Increased gap and margin -->
-                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" onclick="if(typeof showPreviousPhoto === 'function') { showPreviousPhoto(); return false; }" disabled style="padding: 10px 20px; font-size: 20px; background-color: #333; border-radius: 8px; border: 1px solid #555;">&lt;</button>
-                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" onclick="if(typeof showNextPhoto === 'function') { showNextPhoto(); return false; }" disabled style="padding: 10px 20px; font-size: 20px; background-color: #333; border-radius: 8px; border: 1px solid #555;">&gt;</button>
                     </div>
                 </div>
             </div>
@@ -415,8 +415,6 @@
     <script src="../js/workouts/force-mobile-layout.js"></script>
     <!-- Photo button fix script - added to fix carousel navigation -->
     <script src="../js/workouts/photo-buttons-fix.js"></script>
-    <!-- Photo navigation redesign - moves arrows to sides of date display -->
-    <script src="../js/workouts/photo-nav-redesign.js"></script>
     <!-- Template name size adjuster - dynamically adjusts text size to prevent overlap with edit buttons -->
     <script src="../js/workouts/template-name-size-adjuster.js"></script>
     <!-- Edit Button Fix - ensures edit button works correctly -->
@@ -446,6 +444,8 @@
     <script src="../js/workouts/label-size-fix.js"></script> <!-- Ensures Weight Unit and Weight Increment labels have the same size -->
     <script src="../js/workouts/options-menu-structure-fix.js"></script> <!-- Ensures options menu has the correct structure for proper label alignment -->
     <script src="../js/workouts/hide-sidebar-icon-active-workout.js"></script> <!-- Hide sidebar icon in active workout -->
+    <script src="../js/workouts/exercise-options-menu-resize.js"></script> <!-- Ensures exercise options menu is properly sized and positioned -->
+    <script src="../js/workouts/exercise-options-menu-buttons-fix.js"></script> <!-- Rearranges buttons in exercise options menu -->
 
 
     <!-- History Edit Modal (Renamed) -->
@@ -543,6 +543,5 @@
     <script src="../js/workouts/workout-return-fix.js"></script> <!-- Return to active workout when coming back to workouts page -->
     <script src="../js/workouts/nav-diagnostic.js"></script> <!-- Diagnostic script for navigation -->
     <script src="../js/workouts/workout-fab-fix.js"></script> <!-- Fix for FAB styling and visibility -->
-    <script src="../js/workouts/fix-options-menu-display.js"></script> <!-- Fix for options menu display issues -->
 </body>
 </html>

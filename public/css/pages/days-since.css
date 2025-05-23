@@ -1,102 +1,239 @@
 
+/* Days Since specific styles */
+
+/* Sidebar specific overrides */
+.menu-button {
+    background-color: transparent !important;
+    border: none !important;
+    color: var(--color-white) !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+}
+
+.sidebar {
+    background-color: var(--color-dark-surface) !important;
+}
+
+.sidebar-header {
+    background-color: #121212 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.sidebar-header h2 {
+    color: var(--color-white) !important;
+}
+
+.sidebar-nav-item {
+    color: var(--color-white) !important;
+}
+
+.sidebar-nav-item.active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-left: 3px solid var(--color-primary) !important;
+}
+
+.sidebar-nav-item.active .nav-icon i {
+    color: var(--color-primary) !important;
+}
+
+/* Page title */
+h1 {
+    color: var(--color-primary);
+    font-size: var(--font-size-3xl);
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+}
+
+/* Section headers */
+.days-since-input-section h2,
+.days-since-list-section h2 {
+    color: var(--color-primary-light);
+    font-size: var(--font-size-xl);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-dark-border);
+    padding-bottom: 10px;
+}
+
+/* Form styling for Days Since page */
+#addEventForm .form-group {
+    margin-bottom: 20px;
+}
+
+#addEventForm label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-dark-text);
+    font-weight: var(--font-weight-medium);
+}
+
+#addEventForm input[type="text"],
+#addEventForm input[type="datetime-local"] {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: var(--color-dark-surface-3);
+    border: 1px solid var(--color-dark-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-dark-text);
+    transition: all var(--transition-base);
+}
+
+#addEventForm input[type="text"]:focus,
+#addEventForm input[type="datetime-local"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2);
+    outline: none;
+}
+
+#addEventBtn {
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 10px 20px;
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+#addEventBtn:hover {
+    background-color: var(--color-primary);
+    box-shadow: var(--glow-primary);
+}
 .days-since-input-section,
 .days-since-list-section {
     margin-top: 40px;
     padding: 25px;
-    background-color: #ffffff;
-    border-radius: 6px;
-    border: 1px solid #dde5eb;
-    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+    background-color: var(--color-dark-surface-2);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-dark-border);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .days-since-event {
-    background-color: #f8f9fa;
+    background-color: var(--color-dark-surface-3);
     padding: 20px;
     margin-bottom: 15px;
-    border-radius: 4px;
-    border: 1px solid #e8eef2;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-dark-border);
+    border-left: 4px solid var(--color-primary-dark);
+    display: grid;
+    grid-template-columns: auto 80px;
+    grid-template-areas:
+        "days-count actions"
+        "event-details actions";
+    gap: 10px;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.days-since-event::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.05) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .days-since-event:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(44, 62, 80, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-color: var(--color-primary);
+}
+
+.days-since-event:hover .days-count {
+    text-shadow: 0 0 15px rgba(0, 230, 118, 0.6);
 }
 
 .event-info {
-    flex-grow: 1;
+    grid-area: event-details;
+    display: flex;
+    flex-direction: column;
 }
 
 .event-name {
-    font-weight: 500;
-    color: #2c3e50;
-    margin-bottom: 8px;
-    font-size: 1.1em;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-white);
+    margin-bottom: 4px;
+    font-size: var(--font-size-lg);
 }
 
 .event-date {
-    font-size: 0.9em;
-    color: #566573;
+    font-size: var(--font-size-sm);
+    color: var(--color-dark-text-secondary);
     margin-bottom: 4px;
 }
 
 .days-count {
+    grid-area: days-count;
     font-family: 'Courier New', monospace;
-    font-size: 2em;
-    font-weight: 600;
-    color: #4db6ac;
-    margin: 8px 0;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin: 0 0 5px 0;
     letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.4);
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
 }
 
 .event-actions {
+    grid-area: actions;
     display: flex;
-    gap: 10px;
-    margin-left: 20px;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: center;
 }
 
 
 .event-actions .edit-btn,
 .event-actions .delete-btn {
-    padding: 6px 12px !important;
+    padding: 5px 8px !important;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
-    font-size: 0.9em !important;
-    transition: background-color 0.2s ease;
-    width: 75px !important;
+    font-size: var(--font-size-xs) !important;
+    transition: all var(--transition-base);
+    width: 60px !important;
     text-align: center;
     box-sizing: border-box;
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 
 .event-actions .edit-btn {
-    background-color: #4db6ac;
-    color: white;
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
 }
 
 .event-actions .edit-btn:hover {
-    background-color: #45a69c;
+    background-color: var(--color-primary);
+    box-shadow: var(--glow-primary);
 }
 
 .event-actions .delete-btn {
-    background-color: #e74c3c;
-    color: white;
+    background-color: var(--color-error-dark);
+    color: var(--color-white);
 }
 
 .event-actions .delete-btn:hover {
-    background-color: #c0392b;
+    background-color: var(--color-error);
+    box-shadow: var(--glow-accent);
 }
 
 
 .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: #566573;
+    color: var(--color-dark-text-secondary);
 }
 
 .empty-state p {
@@ -107,24 +244,37 @@
 .loading {
     text-align: center;
     padding: 20px;
-    color: #566573;
+    color: var(--color-dark-text-secondary);
 }
 
 
 @media (max-width: 480px) {
     .days-since-event {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "days-count"
+            "event-details"
+            "actions";
+        padding: 15px;
     }
 
     .event-actions {
-        margin-left: 0;
-        margin-top: 15px;
-        width: 100%;
+        flex-direction: row;
         justify-content: flex-end;
+        margin-top: 10px;
     }
 
     .days-count {
-        font-size: 1.6em;
+        font-size: var(--font-size-2xl);
+        text-align: center;
+        margin-bottom: 10px;
     }
-} 
+
+    .event-name {
+        text-align: center;
+    }
+
+    .event-date {
+        text-align: center;
+    }
+}

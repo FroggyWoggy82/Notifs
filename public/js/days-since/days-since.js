@@ -81,14 +81,14 @@ function renderEvents(events) {
 
         return `
             <div class="days-since-event" data-id="${event.id}">
+                <div class="days-count">${timeSinceFormatted}</div>
                 <div class="event-info">
                     <div class="event-name">${escapeHtml(event.event_name)}</div>
                     <div class="event-date">Started: ${formatDate(event.start_date)}</div>
-                    <div class="days-count">${timeSinceFormatted}</div>
                 </div>
                 <div class="event-actions">
-                    <button class="edit-btn" onclick="editEvent(${event.id}, '${escapeHtml(event.event_name)}', '${event.start_date}')">Edit</button>
-                    <button class="delete-btn" onclick="deleteEvent(${event.id})">Delete</button>
+                    <button class="edit-btn" onclick="editEvent(${event.id}, '${escapeHtml(event.event_name)}', '${event.start_date}')"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="delete-btn" onclick="deleteEvent(${event.id})"><i class="fas fa-trash"></i> Del</button>
                 </div>
             </div>
         `;

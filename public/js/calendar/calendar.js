@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.isCurrentlyRendering = false;
     window.forceRender = false;
 
+    // Store today's date to check for date changes
+    window.lastCheckedDate = new Date().toDateString();
+
     const currentMonthYearEl = document.getElementById('currentMonthYear');
 
     let calendarGridEl = document.getElementById('calendar-grid');
@@ -343,6 +346,28 @@ document.addEventListener('DOMContentLoaded', () => {
     window.isCurrentlyRendering = false;
 
 
+    // Function to check if the date has changed and refresh if needed
+    function checkDateChange() {
+        const currentDate = new Date().toDateString();
+        if (window.lastCheckedDate !== currentDate) {
+            console.log('Date has changed from', window.lastCheckedDate, 'to', currentDate);
+            window.lastCheckedDate = currentDate;
+            window.forceRender = true;
+            const currentDateObj = new Date();
+            renderCalendar(currentDateObj.getFullYear(), currentDateObj.getMonth());
+        }
+    }
+
+    // Check for date changes when the page becomes visible
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            checkDateChange();
+        }
+    });
+
+    // Also check periodically while the page is open
+    setInterval(checkDateChange, 60000); // Check every minute
+
     window.renderCalendar = async function(year, month) {
 
         const monthYearKey = `${year}-${month}`;
@@ -423,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchHabits(year, month);
 
             const tasksByDate = {};
+
             allTasks.forEach(task => {
                 const dates = [];
 
@@ -513,6 +539,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     } catch (e) {
                         console.warn(`Invalid assigned_date format for task ${task.id}: ${task.assigned_date}`);
+                    }
+                } else if (!task.due_date && !task.is_complete) {
+                    // Add tasks without due dates to today's date
+                    // We'll use the current date (today) regardless of when the calendar was loaded
+                    const currentTodayKey = formatDateKey(new Date());
+                    if (!tasksByDate[currentTodayKey]) {
+                        tasksByDate[currentTodayKey] = [];
+                    }
+
+                    const taskAlreadyAdded = tasksByDate[currentTodayKey].some(t => t.id === task.id);
+                    if (!taskAlreadyAdded) {
+                        console.log(`Adding task without due date ${task.id} (${task.title}) to today's date ${currentTodayKey}`);
+                        tasksByDate[currentTodayKey].push(task);
                     }
                 }
             });
@@ -836,6 +875,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const directlyAssignedTasks = tasks.filter(task => {
             const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
+
+            // Include tasks without due dates on today's date
+            const currentTodayKey = formatDateKey(new Date());
+            if (!task.assigned_date && !task.due_date && !task.is_complete && dateKey === currentTodayKey) {
+                return true;
+            }
+
             return assignedDateKey === dateKey;
         });
 

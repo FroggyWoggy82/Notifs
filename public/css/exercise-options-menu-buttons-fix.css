@@ -1,0 +1,81 @@
+/**
+ * Exercise Options Menu Buttons Fix
+ * Rearranges the buttons in the exercise options menu to place the X button next to the other buttons
+ */
+
+/* Force all buttons to be in a single row */
+.exercise-options-menu-row.buttons-row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 5px !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+/* Style all buttons consistently */
+.exercise-options-menu-row.buttons-row button {
+    margin: 2px !important;
+    flex-shrink: 0 !important;
+    z-index: 5 !important;
+}
+
+/* Ensure the delete workout button is visible and positioned properly */
+.exercise-options-menu .btn-delete-workout,
+.exercise-options-menu button[data-action="delete-workout"],
+.exercise-options-menu button.delete-workout-btn {
+    display: inline-flex !important;
+    position: relative !important;
+    z-index: 10 !important;
+    margin: 2px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+}
+
+/* Style the close button to match other buttons */
+.exercise-options-menu .close-button {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+    position: static !important; /* Remove absolute positioning */
+    margin: 2px !important;
+    padding: 0 !important;
+    z-index: 10 !important;
+}
+
+/* Hover effect for close button */
+.exercise-options-menu .close-button:hover {
+    background-color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Ensure the X button is not hidden */
+.exercise-options-menu .close-button {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-flex !important;
+}
+
+/* Fix for the button group */
+.exercise-options-menu .button-group-right {
+    display: inline-flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 5px !important;
+    position: static !important;
+    z-index: 5 !important;
+}

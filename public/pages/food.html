@@ -85,6 +85,7 @@
     <link rel="stylesheet" href="../css/independent-field-save.css"> <!-- Styles for independent field saving -->
     <link rel="stylesheet" href="../css/grocery-list-fullwidth.css"> <!-- Full width grocery list results styling -->
     <link rel="stylesheet" href="../css/add-ingredient-form-dark.css"> <!-- Dark theme styling for Add Ingredient form -->
+    <link rel="stylesheet" href="../css/meal-submission.css"> <!-- Meal submission styling -->
 </head>
 <body>
     <button class="menu-button">
@@ -279,6 +280,23 @@
         </div>
     </section>
     <!-- ===== End Weight Goal & Daily Calorie Target Section ===== -->
+
+    <!-- Spacer to ensure sections don't overlap -->
+    <div style="height: 60px; clear: both;"></div>
+
+    <!-- Meals Eaten Section -->
+    <section id="meals-eaten-section">
+        <div class="section-header-compact">
+            <h2>Meals Eaten</h2>
+        </div>
+        <div class="meals-container">
+            <button id="add-meal-btn" class="primary-btn">Add Meal</button>
+            <div id="meals-list">
+                <!-- Meals will be loaded here -->
+                <p class="empty-message">No meals recorded yet</p>
+            </div>
+        </div>
+    </section>
 
     <!-- Spacer to ensure sections don't overlap -->
     <div style="height: 60px; clear: both;"></div>
@@ -864,5 +882,129 @@
     <!-- Dedicated Add Ingredient Button Fix - loads absolutely last to ensure it works -->
     <script src="../js/food/add-ingredient-button-fix.js"></script> <!-- Dedicated fix for Add Ingredient button -->
 
+    <!-- Meal Submission Modal -->
+    <div id="meal-submission-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Meal</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="meal-submission-form">
+                    <div class="form-group">
+                        <label for="meal-name">Meal Name:</label>
+                        <input type="text" id="meal-name" name="meal-name" placeholder="Enter meal name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="meal-date">Date:</label>
+                        <input type="date" id="meal-date" name="meal-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="meal-time">Time:</label>
+                        <input type="time" id="meal-time" name="meal-time" required>
+                    </div>
+
+                    <h3>Ingredients</h3>
+                    <div class="ingredient-selection-container">
+                        <div class="ingredient-search-container">
+                            <label for="ingredient-search">Search Existing Ingredients:</label>
+                            <div class="search-input-container">
+                                <input type="text" id="ingredient-search" placeholder="Type to search ingredients">
+                                <div id="ingredient-search-results" class="search-results"></div>
+                            </div>
+                        </div>
+
+                        <div class="or-divider">OR</div>
+
+                        <div class="add-new-ingredient-container">
+                            <button type="button" id="add-new-ingredient-btn" class="secondary-btn">Add New Ingredient</button>
+                        </div>
+                    </div>
+
+                    <div id="selected-ingredients" class="selected-ingredients-container">
+                        <h4>Selected Ingredients</h4>
+                        <div class="selected-ingredients-list">
+                            <!-- Selected ingredients will be added here -->
+                            <p class="empty-message">No ingredients selected yet</p>
+                        </div>
+                    </div>
+
+                    <div class="meal-nutrition-summary">
+                        <h4>Meal Nutrition Summary</h4>
+                        <div class="nutrition-summary-grid">
+                            <div class="nutrition-summary-item">
+                                <span class="label">Calories:</span>
+                                <span id="meal-calories" class="value">0</span>
+                            </div>
+                            <div class="nutrition-summary-item">
+                                <span class="label">Protein:</span>
+                                <span id="meal-protein" class="value">0g</span>
+                            </div>
+                            <div class="nutrition-summary-item">
+                                <span class="label">Carbs:</span>
+                                <span id="meal-carbs" class="value">0g</span>
+                            </div>
+                            <div class="nutrition-summary-item">
+                                <span class="label">Fat:</span>
+                                <span id="meal-fat" class="value">0g</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn">Save Meal</button>
+                        <button type="button" class="cancel-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Ingredient Modal (for meal submission) -->
+    <div id="new-ingredient-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Ingredient</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="new-ingredient-form">
+                    <div class="form-group">
+                        <label for="new-ingredient-name">Ingredient Name:</label>
+                        <input type="text" id="new-ingredient-name" name="new-ingredient-name" placeholder="Enter ingredient name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-ingredient-amount">Amount (g):</label>
+                        <input type="number" id="new-ingredient-amount" name="new-ingredient-amount" step="0.01" placeholder="Enter amount in grams" required>
+                    </div>
+
+                    <!-- Cronometer Text Parser -->
+                    <div class="cronometer-text-paste-container">
+                        <div class="cronometer-header">Cronometer Text Parser</div>
+                        <textarea id="new-ingredient-cronometer-text" class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." rows="5"></textarea>
+                        <button type="button" id="new-ingredient-parse-button" class="cronometer-parse-button">Parse Nutrition Data</button>
+                        <div id="new-ingredient-parse-status" class="cronometer-parse-status"></div>
+                    </div>
+
+                    <!-- Hidden fields for nutrition data -->
+                    <input type="hidden" id="new-ingredient-calories" name="new-ingredient-calories">
+                    <input type="hidden" id="new-ingredient-protein" name="new-ingredient-protein">
+                    <input type="hidden" id="new-ingredient-fat" name="new-ingredient-fat">
+                    <input type="hidden" id="new-ingredient-carbs" name="new-ingredient-carbs">
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-btn">Add to Meal</button>
+                        <button type="button" class="cancel-btn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meal Submission JavaScript -->
+    <script src="../js/food/meal-submission.js"></script>
 </body>
 </html>

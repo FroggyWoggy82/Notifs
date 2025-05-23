@@ -28,26 +28,33 @@ const PhotoLoader = {
      * @param {function} onError - Callback when image fails to load after all attempts
      */
     loadImage: function(src, imgElement, photoId, onSuccess, onError) {
-
+        // Validate inputs
         if (!src || !imgElement) {
             console.error('[PhotoLoader] Missing source or image element');
             if (onError) onError('Missing source or image element');
             return;
         }
 
-        if (this.imageCache[photoId]) {
-            console.log(`[PhotoLoader] Using cached image for ID: ${photoId}`);
+        // Ensure photoId is a string
+        const safePhotoId = String(photoId);
 
+        // Check if image is already in cache
+        if (this.imageCache[safePhotoId]) {
+            console.log(`[PhotoLoader] Using cached image for ID: ${safePhotoId}`);
+
+            // Set placeholder while loading from cache
             imgElement.style.opacity = '0';
-            imgElement.src = this.imageCache[photoId];
+            imgElement.src = this.imageCache[safePhotoId];
 
-            if (this.imageCache[photoId + '_style']) {
-                const styles = this.imageCache[photoId + '_style'];
+            // Apply any cached styles
+            if (this.imageCache[safePhotoId + '_style']) {
+                const styles = this.imageCache[safePhotoId + '_style'];
                 Object.keys(styles).forEach(key => {
                     imgElement.style[key] = styles[key];
                 });
             }
 
+            // Fade in the image
             setTimeout(() => {
                 imgElement.style.opacity = '1';
                 if (onSuccess) onSuccess();
@@ -55,21 +62,24 @@ const PhotoLoader = {
             return;
         }
 
-        if (this.loadingStatus[photoId] === 'loading') {
-            console.log(`[PhotoLoader] Image ${photoId} is already loading, waiting...`);
+        // Check if image is already loading
+        if (this.loadingStatus[safePhotoId] === 'loading') {
+            console.log(`[PhotoLoader] Image ${safePhotoId} is already loading, waiting...`);
 
+            // Show placeholder while waiting
             imgElement.style.opacity = '0';
             imgElement.src = this.placeholderImage;
 
+            // Poll for completion
             const checkInterval = setInterval(() => {
-                if (this.loadingStatus[photoId] === 'loaded' && this.imageCache[photoId]) {
+                if (this.loadingStatus[safePhotoId] === 'loaded' && this.imageCache[safePhotoId]) {
                     clearInterval(checkInterval);
-                    imgElement.src = this.imageCache[photoId];
+                    imgElement.src = this.imageCache[safePhotoId];
                     setTimeout(() => {
                         imgElement.style.opacity = '1';
                         if (onSuccess) onSuccess();
                     }, 50);
-                } else if (this.loadingStatus[photoId] === 'failed') {
+                } else if (this.loadingStatus[safePhotoId] === 'failed') {
                     clearInterval(checkInterval);
                     imgElement.src = this.placeholderImage;
                     imgElement.style.opacity = '1';
@@ -79,21 +89,25 @@ const PhotoLoader = {
             return;
         }
 
-        console.log(`[PhotoLoader] Loading image: ${src} (ID: ${photoId})`);
-        this.loadingStatus[photoId] = 'loading';
+        // Start loading the image
+        console.log(`[PhotoLoader] Loading image: ${src} (ID: ${safePhotoId})`);
+        this.loadingStatus[safePhotoId] = 'loading';
 
+        // Add cache busting parameter
         const cacheBustSrc = this.addCacheBustingParam(src);
 
+        // Show placeholder while loading
         imgElement.style.opacity = '0';
         imgElement.src = this.placeholderImage;
 
+        // First attempt with cache busting
         const tempImg = new Image();
 
         tempImg.onload = () => {
             console.log(`[PhotoLoader] Successfully loaded: ${cacheBustSrc}`);
 
-            this.addToCache(photoId, cacheBustSrc);
-            this.loadingStatus[photoId] = 'loaded';
+            this.addToCache(safePhotoId, cacheBustSrc);
+            this.loadingStatus[safePhotoId] = 'loaded';
 
             imgElement.src = cacheBustSrc;
 
@@ -106,6 +120,7 @@ const PhotoLoader = {
         tempImg.onerror = () => {
             console.error(`[PhotoLoader] Failed to load image: ${cacheBustSrc}`);
 
+            // Second attempt with different cache busting
             const secondAttemptSrc = this.addCacheBustingParam(src, true);
             console.log(`[PhotoLoader] Trying second attempt: ${secondAttemptSrc}`);
 
@@ -113,8 +128,8 @@ const PhotoLoader = {
             secondTempImg.onload = () => {
                 console.log(`[PhotoLoader] Second attempt succeeded: ${secondAttemptSrc}`);
 
-                this.addToCache(photoId, secondAttemptSrc);
-                this.loadingStatus[photoId] = 'loaded';
+                this.addToCache(safePhotoId, secondAttemptSrc);
+                this.loadingStatus[safePhotoId] = 'loaded';
                 imgElement.src = secondAttemptSrc;
 
                 setTimeout(() => {
@@ -126,14 +141,15 @@ const PhotoLoader = {
             secondTempImg.onerror = () => {
                 console.error(`[PhotoLoader] Second attempt failed: ${secondAttemptSrc}`);
 
+                // Final attempt with original URL
                 console.log(`[PhotoLoader] Trying original URL as last resort: ${src}`);
 
                 const finalTempImg = new Image();
                 finalTempImg.onload = () => {
                     console.log(`[PhotoLoader] Original URL succeeded: ${src}`);
 
-                    this.addToCache(photoId, src);
-                    this.loadingStatus[photoId] = 'loaded';
+                    this.addToCache(safePhotoId, src);
+                    this.loadingStatus[safePhotoId] = 'loaded';
                     imgElement.src = src;
 
                     setTimeout(() => {
@@ -144,26 +160,43 @@ const PhotoLoader = {
 
                 finalTempImg.onerror = () => {
                     console.error(`[PhotoLoader] All attempts failed for: ${src}`);
-                    this.loadingStatus[photoId] = 'failed';
+                    this.loadingStatus[safePhotoId] = 'failed';
 
+                    // Use fallback image
                     imgElement.src = this.fallbackImage;
                     imgElement.style.opacity = '1';
                     imgElement.style.backgroundColor = '#555'; // Ensure background is visible
                     imgElement.style.border = '1px solid #777'; // Add border for visibility
 
-                    this.addToCache(photoId, this.fallbackImage);
-
-                    this.addToCache(photoId + '_style', {
+                    // Cache the fallback image and styles
+                    this.addToCache(safePhotoId, this.fallbackImage);
+                    this.addToCache(safePhotoId + '_style', {
                         backgroundColor: '#555',
                         border: '1px solid #777'
                     });
+
                     if (onError) onError('Failed to load image after multiple attempts');
+                };
+
+                // Set error handling for network errors
+                finalTempImg.onerror = finalTempImg.onerror || function() {
+                    console.error(`[PhotoLoader] Network error loading image ${safePhotoId}`);
                 };
 
                 finalTempImg.src = src;
             };
 
+            // Set error handling for network errors
+            secondTempImg.onerror = secondTempImg.onerror || function() {
+                console.error(`[PhotoLoader] Network error loading image ${safePhotoId}`);
+            };
+
             secondTempImg.src = secondAttemptSrc;
+        };
+
+        // Set error handling for network errors
+        tempImg.onerror = tempImg.onerror || function() {
+            console.error(`[PhotoLoader] Network error loading image ${safePhotoId}`);
         };
 
         tempImg.src = cacheBustSrc;
@@ -176,14 +209,27 @@ const PhotoLoader = {
      * @returns {string} The URL with cache busting parameter
      */
     addCacheBustingParam: function(url, useRandom = false) {
-        if (!url) return url;
+        // Validate URL
+        if (!url || typeof url !== 'string') {
+            console.warn('[PhotoLoader] Invalid URL for cache busting:', url);
+            return url || '';
+        }
 
-        const separator = url.includes('?') ? '&' : '?';
-        const param = useRandom ?
-            `nocache=${Math.random().toString(36).substring(2, 15)}` :
-            `t=${Date.now()}`;
+        try {
+            // Check if URL already has parameters
+            const separator = url.includes('?') ? '&' : '?';
 
-        return `${url}${separator}${param}`;
+            // Generate cache busting parameter
+            const param = useRandom ?
+                `nocache=${Math.random().toString(36).substring(2, 15)}` :
+                `t=${Date.now()}`;
+
+            // Return URL with cache busting parameter
+            return `${url}${separator}${param}`;
+        } catch (error) {
+            console.error('[PhotoLoader] Error adding cache busting parameter:', error);
+            return url; // Return original URL if there's an error
+        }
     },
 
     /**
@@ -239,69 +285,113 @@ const PhotoLoader = {
      * @param {Function} onComplete - Callback when image is loaded or failed
      */
     preloadSingleImage: function(photo, onComplete) {
-
-        this.loadingStatus[photo.photo_id] = 'loading';
-
-        if (this.imageCache[photo.photo_id]) {
-            console.log(`[PhotoLoader] Image ${photo.photo_id} already in cache`);
-            this.loadingStatus[photo.photo_id] = 'loaded';
+        // Validate photo object
+        if (!photo || !photo.photo_id || !photo.file_path) {
+            console.error('[PhotoLoader] Invalid photo object:', photo);
             if (onComplete) onComplete();
             return;
         }
 
+        // Ensure photo_id is a string
+        const photoId = String(photo.photo_id);
+
+        // Set loading status
+        this.loadingStatus[photoId] = 'loading';
+
+        // Check if already in cache
+        if (this.imageCache[photoId]) {
+            console.log(`[PhotoLoader] Image ${photoId} already in cache`);
+            this.loadingStatus[photoId] = 'loaded';
+            if (onComplete) onComplete();
+            return;
+        }
+
+        // Validate file path
+        if (!photo.file_path || typeof photo.file_path !== 'string') {
+            console.error(`[PhotoLoader] Invalid file path for photo ${photoId}:`, photo.file_path);
+            this.loadingStatus[photoId] = 'failed';
+            this.addToCache(photoId, this.fallbackImage);
+            this.addToCache(photoId + '_style', {
+                backgroundColor: '#555',
+                border: '1px solid #777'
+            });
+            if (onComplete) onComplete();
+            return;
+        }
+
+        // First attempt with cache busting
         const img = new Image();
         const cacheBustSrc = this.addCacheBustingParam(photo.file_path);
 
         img.onload = () => {
-
-            this.addToCache(photo.photo_id, cacheBustSrc);
-            this.loadingStatus[photo.photo_id] = 'loaded';
-            console.log(`[PhotoLoader] Preloaded image ${photo.photo_id}`);
+            this.addToCache(photoId, cacheBustSrc);
+            this.loadingStatus[photoId] = 'loaded';
+            console.log(`[PhotoLoader] Preloaded image ${photoId}`);
             if (onComplete) onComplete();
         };
 
         img.onerror = () => {
+            console.log(`[PhotoLoader] First attempt failed for ${photoId}, trying second attempt...`);
 
+            // Second attempt with different cache busting
             const secondAttemptSrc = this.addCacheBustingParam(photo.file_path, true);
             const secondImg = new Image();
 
             secondImg.onload = () => {
-                this.addToCache(photo.photo_id, secondAttemptSrc);
-                this.loadingStatus[photo.photo_id] = 'loaded';
-                console.log(`[PhotoLoader] Preloaded image ${photo.photo_id} on second attempt`);
+                this.addToCache(photoId, secondAttemptSrc);
+                this.loadingStatus[photoId] = 'loaded';
+                console.log(`[PhotoLoader] Preloaded image ${photoId} on second attempt`);
                 if (onComplete) onComplete();
             };
 
             secondImg.onerror = () => {
+                console.log(`[PhotoLoader] Second attempt failed for ${photoId}, trying final attempt...`);
 
+                // Final attempt with original URL
                 const finalImg = new Image();
 
                 finalImg.onload = () => {
-                    this.addToCache(photo.photo_id, photo.file_path);
-                    this.loadingStatus[photo.photo_id] = 'loaded';
-                    console.log(`[PhotoLoader] Preloaded image ${photo.photo_id} on final attempt`);
+                    this.addToCache(photoId, photo.file_path);
+                    this.loadingStatus[photoId] = 'loaded';
+                    console.log(`[PhotoLoader] Preloaded image ${photoId} on final attempt`);
                     if (onComplete) onComplete();
                 };
 
                 finalImg.onerror = () => {
-                    console.error(`[PhotoLoader] Failed to preload image ${photo.photo_id}`);
-                    this.loadingStatus[photo.photo_id] = 'failed';
+                    console.error(`[PhotoLoader] All attempts failed to preload image ${photoId}`);
+                    this.loadingStatus[photoId] = 'failed';
 
-                    this.addToCache(photo.photo_id, this.fallbackImage);
-
-                    this.addToCache(photo.photo_id + '_style', {
+                    // Use fallback image
+                    this.addToCache(photoId, this.fallbackImage);
+                    this.addToCache(photoId + '_style', {
                         backgroundColor: '#555',
                         border: '1px solid #777'
                     });
                     if (onComplete) onComplete();
                 };
 
+                // Set error handling for network errors
+                finalImg.onerror = finalImg.onerror || function() {
+                    console.error(`[PhotoLoader] Network error loading image ${photoId}`);
+                };
+
                 finalImg.src = photo.file_path;
+            };
+
+            // Set error handling for network errors
+            secondImg.onerror = secondImg.onerror || function() {
+                console.error(`[PhotoLoader] Network error loading image ${photoId}`);
             };
 
             secondImg.src = secondAttemptSrc;
         };
 
+        // Set error handling for network errors
+        img.onerror = img.onerror || function() {
+            console.error(`[PhotoLoader] Network error loading image ${photoId}`);
+        };
+
+        // Start loading
         img.src = cacheBustSrc;
     },
 
@@ -311,17 +401,23 @@ const PhotoLoader = {
      * @param {*} value - The value to store
      */
     addToCache: function(key, value) {
+        // Ensure key is a string
+        const cacheKey = String(key);
 
-        this.imageCache[key] = value;
+        // Store in cache
+        this.imageCache[cacheKey] = value;
 
-
-        const existingIndex = this.cacheOrder.indexOf(key);
+        // Update LRU tracking
+        const existingIndex = this.cacheOrder.indexOf(cacheKey);
         if (existingIndex !== -1) {
+            // If key already exists, remove it from its current position
             this.cacheOrder.splice(existingIndex, 1);
         }
 
-        this.cacheOrder.push(key);
+        // Add to end of array (most recently used)
+        this.cacheOrder.push(cacheKey);
 
+        // Enforce cache size limit
         this.enforceCacheLimit();
     },
 
@@ -329,23 +425,33 @@ const PhotoLoader = {
      * Enforce the cache size limit by removing least recently used items
      */
     enforceCacheLimit: function() {
-
+        // Check if we need to enforce the cache limit
         if (this.cacheOrder.length <= this.MAX_CACHE_SIZE) {
             return;
         }
 
+        console.log(`[PhotoLoader] Cache size (${this.cacheOrder.length}) exceeds limit (${this.MAX_CACHE_SIZE}), removing oldest items`);
+
         while (this.cacheOrder.length > this.MAX_CACHE_SIZE) {
             const keyToRemove = this.cacheOrder.shift(); // Remove the oldest item
 
+            // Safety check - ensure keyToRemove is a string
+            if (!keyToRemove || typeof keyToRemove !== 'string') {
+                console.warn(`[PhotoLoader] Invalid cache key found: ${keyToRemove}, skipping`);
+                continue;
+            }
+
+            // Check if this is a style key and its related image is still in cache
             if (keyToRemove.endsWith('_style')) {
                 const imageKey = keyToRemove.replace('_style', '');
                 if (this.cacheOrder.includes(imageKey)) {
-
+                    // Keep style entries if their image is still in cache
                     this.cacheOrder.push(keyToRemove);
                     continue;
                 }
             }
 
+            // Remove the item from cache
             delete this.imageCache[keyToRemove];
             console.log(`[PhotoLoader] Removed ${keyToRemove} from cache (LRU eviction)`);
         }

@@ -1,0 +1,60 @@
+/**
+ * Notification Indicator
+ * Creates a visual indicator for tasks with notifications
+ */
+
+/* Add notification indicator to task title container */
+.task-title-container.has-notification::before {
+    content: '';
+    display: inline-block !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    margin-right: 8px !important;
+    position: relative !important;
+    top: 0 !important;
+    background-color: #FF9800 !important; /* Orange color for notifications */
+    box-shadow: 0 0 4px rgba(255, 152, 0, 0.6) !important;
+    animation: pulse 2s infinite;
+}
+
+/* Add a subtle glow to tasks with notifications, but don't override overdue styling */
+.task-item:has(.task-title-container.has-notification):not([data-overdue="true"]):not(.overdue):not([data-recurring-overdue="true"]) {
+    border-left: 2px solid rgba(255, 152, 0, 0.5) !important;
+}
+
+/* Notification badge for task metadata */
+.notification-indicator {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.7em !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    margin-left: 4px !important;
+    background-color: rgba(255, 152, 0, 0.2) !important;
+    color: #FF9800 !important;
+    border: 1px solid rgba(255, 152, 0, 0.3) !important;
+}
+
+/* Bell icon for notification indicator */
+.notification-indicator::before {
+    content: '\f0f3' !important; /* Font Awesome bell icon */
+    font-family: 'Font Awesome 5 Free' !important;
+    display: inline-block !important;
+    margin-right: 3px !important;
+    font-size: 0.9em !important;
+}
+
+/* Pulse animation for the notification dot */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 5px rgba(255, 152, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+    }
+}

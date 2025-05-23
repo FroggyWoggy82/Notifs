@@ -1,5 +1,5 @@
 // Service Worker with Background Sync for PWA Notifications
-const CACHE_NAME = 'notification-pwa-v21'; // <-- Bumped version number to force refresh
+const CACHE_NAME = 'notification-pwa-v22'; // <-- Bumped version number to force refresh with grouped notifications
 
 // Catch and suppress any errors during service worker execution
 self.addEventListener('error', event => {
@@ -527,37 +527,67 @@ async function checkScheduledNotifications() {
 
 // Handle notification clicks
 self.addEventListener('notificationclick', event => {
-  event.notification.close(); // Close the notification
+  // Close the notification
+  event.notification.close();
 
-  // Example: Focus or open the relevant page
-  // const urlToOpen = event.notification.data?.url || '/'; // Get URL from data if present
-  const urlToOpen = '/'; // Always open root for now, or specific page
+  // Get notification data
+  const notificationData = event.notification.data || {};
 
-  event.waitUntil(
-    clients.matchAll({type: 'window', includeUncontrolled: true}).then(windowClients => {
+  // Handle action clicks (for grouped notifications)
+  if (event.action === 'view-tasks' && notificationData.type === 'grouped_task_reminder') {
+    // Open tasks page
+    const urlToOpen = '/pages/tasks.html';
+    handleNavigation(urlToOpen);
+    return;
+  } else if (event.action === 'dismiss-all' && notificationData.type === 'grouped_task_reminder') {
+    // Just close the notification (already done above)
+    return;
+  }
+
+  // Determine which URL to open based on notification type
+  let urlToOpen = '/';
+
+  if (notificationData.type === 'task_reminder' && notificationData.taskId) {
+    // Open the specific task
+    urlToOpen = `/pages/tasks.html?id=${notificationData.taskId}`;
+  } else if (notificationData.type === 'grouped_task_reminder') {
+    // Open tasks page
+    urlToOpen = '/pages/tasks.html';
+  } else if (notificationData.url) {
+    // Use URL from notification data if present
+    urlToOpen = notificationData.url;
+  }
+
+  // Navigate to the appropriate URL
+  handleNavigation(urlToOpen);
+});
+
+// Helper function to handle navigation
+function handleNavigation(urlToOpen) {
+  return clients.matchAll({type: 'window', includeUncontrolled: true})
+    .then(windowClients => {
       // Check if there is already a window open for this origin
       let matchingClient = null;
       for (let i = 0; i < windowClients.length; i++) {
-          const client = windowClients[i];
-          // Check if URL matches roughly (ignoring hash/search for simplicity here)
-          if (new URL(client.url).origin === self.location.origin) {
-              matchingClient = client;
-              break;
-          }
+        const client = windowClients[i];
+        // Check if URL matches roughly (ignoring hash/search for simplicity here)
+        if (new URL(client.url).origin === self.location.origin) {
+          matchingClient = client;
+          break;
+        }
       }
 
       if (matchingClient) {
-          // If found, focus it and navigate it to the target URL
-          return matchingClient.focus().then(client => client.navigate(urlToOpen));
+        // If found, focus it and navigate it to the target URL
+        return matchingClient.focus().then(client => client.navigate(urlToOpen));
       } else {
-          // No window open, open a new one
-          if (clients.openWindow) {
-              return clients.openWindow(urlToOpen);
-          }
+        // No window open, open a new one
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
       }
-    })
-  );
-});
+    });
+}
 
 
 // Store scheduled notifications (Likely REDUNDANT - fetched from API in checkScheduledNotifications)
@@ -616,13 +646,37 @@ self.addEventListener('push', event => {
       notificationData.body = data.body || notificationData.body;
       notificationData.icon = data.icon || notificationData.icon;
       notificationData.badge = data.badge || notificationData.badge;
-      // Add tag, renotify, requireInteraction, vibrate, data, actions etc. from payload if desired
-      notificationData.tag = data.tag || 'push-' + Date.now();
-      notificationData.renotify = data.renotify !== undefined ? data.renotify : true;
-      notificationData.requireInteraction = data.requireInteraction || false;
-      notificationData.vibrate = data.vibrate || [100, 50, 100];
+
+      // Handle notification data
       notificationData.data = data.data || { dateOfArrival: Date.now() };
-      notificationData.actions = data.actions || []; // Example for notification actions
+
+      // Special handling for grouped notifications
+      if (notificationData.data.type === 'grouped_task_reminder') {
+        // Use a consistent tag for grouped notifications
+        notificationData.tag = 'grouped-tasks';
+        // Make it more noticeable
+        notificationData.requireInteraction = true;
+        // Add actions for grouped notifications
+        notificationData.actions = [
+          {
+            action: 'view-tasks',
+            title: 'View Tasks'
+          },
+          {
+            action: 'dismiss-all',
+            title: 'Dismiss All'
+          }
+        ];
+      } else {
+        // Regular notification settings
+        notificationData.tag = data.tag || 'push-' + Date.now();
+        notificationData.actions = data.actions || [];
+      }
+
+      // Common settings
+      notificationData.renotify = data.renotify !== undefined ? data.renotify : true;
+      notificationData.requireInteraction = notificationData.data.type === 'grouped_task_reminder' ? true : (data.requireInteraction || false);
+      notificationData.vibrate = data.vibrate || [100, 50, 100];
 
     } catch (e) {
       // Use default body if parsing fails but data exists

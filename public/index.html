@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="css/task-icons-fix.css">
     <link rel="stylesheet" href="css/checkbox-redesign.css">
     <link rel="stylesheet" href="css/recurrence-indicator-redesign.css">
+    <link rel="stylesheet" href="css/notification-indicator.css">
     <link rel="stylesheet" href="css/progress-photo-fix.css">
     <link rel="stylesheet" href="css/date-badge-redesign.css">
     <link rel="stylesheet" href="css/habit-button-fix.css">
@@ -81,6 +82,30 @@
     <link rel="stylesheet" href="css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
     <link rel="stylesheet" href="css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
     <link rel="stylesheet" href="css/modal-improvements.css"> <!-- UI improvements for modals and forms -->
+
+    <!-- Direct button fix -->
+    <style>
+        /* Ensure modal content doesn't overflow */
+        .modal-content {
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+        }
+
+        /* Subtask button styling */
+        #addTaskModal .subtasks-header,
+        #editTaskModal .subtasks-header {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        #addTaskModal #addSubtaskBtn,
+        #editTaskModal #editAddSubtaskBtn {
+            margin-left: 5px !important;
+            height: auto !important;
+            padding: 2px 6px !important;
+            font-size: 0.75rem !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Error handling script - runs before anything else -->
@@ -90,15 +115,10 @@
             console.error('Global error caught:', event.error || event.message);
 
             // Skip "Unexpected token '<'" errors which are usually from service worker issues
-            // These are handled silently by the immediate-notification-fix.js script
+            // These are handled by the immediate-notification-fix.js script
             const errorMessage = event.error ? event.error.message : event.message;
-            if (errorMessage && (
-                errorMessage.includes("Unexpected token '<'") ||
-                errorMessage.includes("Failed to execute 'importScripts'") ||
-                errorMessage.includes("NetworkError when attempting to fetch resource") ||
-                errorMessage.includes("Service worker registration failed")
-            )) {
-                console.warn("Ignoring service worker related error - will be handled silently by immediate-notification-fix.js");
+            if (errorMessage && errorMessage.includes("Unexpected token '<'")) {
+                console.warn("Ignoring 'Unexpected token <' error - likely a service worker issue that will be handled by immediate-notification-fix.js");
                 return false;
             }
 
@@ -462,8 +482,8 @@
                     </div>
                 </div>
 
-                <div class="button-container">
-                    <button type="submit" id="addTaskBtn" style="background-color: #ffffff !important; color: #121212 !important; min-width: 120px !important;">Add Task</button>
+                <div style="text-align: center; width: 100%; margin: 15px 0; display: flex; justify-content: center;">
+                    <button type="submit" id="addTaskBtn" style="background-color: white; color: #121212; padding: 8px 16px; border: none; border-radius: 4px; min-width: 120px; font-weight: 500; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">Add Task</button>
                 </div>
             </form>
             <div id="addTaskStatus" class="status"></div>
@@ -562,7 +582,9 @@
 
                 <!-- Subtasks fix is now handled by subtasks-fix.js -->
 
-                <button type="submit" id="saveTaskBtn">Save Changes</button>
+                <div style="text-align: center; width: 100%; margin: 15px 0; display: flex; justify-content: center;">
+                    <button type="submit" id="saveTaskBtn" style="background-color: white; color: #121212; padding: 8px 16px; border: none; border-radius: 4px; min-width: 120px; font-weight: 500; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">Save Changes</button>
+                </div>
             </form>
             <div id="editTaskStatus" class="status"></div>
         </div>
@@ -742,6 +764,9 @@
 
     <!-- Final fix for Add Task button to ensure it's white -->
     <script src="js/tasks/add-task-button-final-fix.js"></script>
+
+    <!-- Compact modal layout to reduce scrolling -->
+    <script src="js/tasks/compact-modal-layout.js"></script>
 
     <!-- Auto dismiss notifications after 15 seconds -->
     <script src="js/auto-dismiss-notifications.js"></script>

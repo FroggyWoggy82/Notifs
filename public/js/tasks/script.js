@@ -908,6 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
         titleSpan.textContent = task.title;
         titleContainer.appendChild(titleSpan);
 
+        // Add recurrence indicator
         if (task.recurrence_type && task.recurrence_type !== 'none') {
             const recurringIcon = document.createElement('span');
             recurringIcon.className = `recurring-icon ${task.recurrence_type}`;
@@ -917,10 +918,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const interval = task.recurrence_interval || 1;
 
             if (interval === 1) {
-
                 recurrenceText = `Repeats ${task.recurrence_type}`;
             } else {
-
                 switch(task.recurrence_type) {
                     case 'daily':
                         recurrenceText = `Repeats every ${interval} days`;
@@ -949,6 +948,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             titleContainer.appendChild(recurringIcon);
+            titleContainer.classList.add('recurring', task.recurrence_type);
+        }
+
+        // Add notification indicator
+        // Check if reminder_time is a valid date string and not null/undefined/empty
+        const hasReminderTime = task.reminder_time && task.reminder_time.trim && task.reminder_time.trim() !== '';
+
+        // Check if reminder_times contains actual data (not empty array/object)
+        let hasReminderTimes = false;
+        if (task.reminder_times) {
+            try {
+                // If it's a string, try to parse it
+                const reminderTimesObj = typeof task.reminder_times === 'string' ?
+                    JSON.parse(task.reminder_times) : task.reminder_times;
+
+                // Check if it's an array with items or an object with keys
+                hasReminderTimes =
+                    (Array.isArray(reminderTimesObj) && reminderTimesObj.length > 0) ||
+                    (typeof reminderTimesObj === 'object' && Object.keys(reminderTimesObj).length > 0);
+            } catch (e) {
+                // If parsing fails, it's not valid JSON
+                hasReminderTimes = false;
+            }
+        }
+
+        // Only add notification indicator if there's an actual reminder set
+        if (hasReminderTime || hasReminderTimes) {
+            console.log(`Task ${task.id} (${task.title}) has reminders:`, {
+                reminder_time: task.reminder_time,
+                reminder_times: task.reminder_times,
+                hasReminderTime,
+                hasReminderTimes
+            });
+            titleContainer.classList.add('has-notification');
         }
 
         contentDiv.appendChild(titleContainer);
@@ -962,6 +995,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const metadataDiv = document.createElement('div');
         metadataDiv.className = 'task-metadata';
+
+        // Add notification indicator badge to metadata
+        // Using the same variables from above
+        // Only add notification indicator if there's an actual reminder set
+        // Double-check the variables are defined
+        if ((typeof hasReminderTime !== 'undefined' && hasReminderTime) ||
+            (typeof hasReminderTimes !== 'undefined' && hasReminderTimes)) {
+            const notificationIndicator = document.createElement('div');
+            notificationIndicator.className = 'notification-indicator';
+            notificationIndicator.textContent = 'Reminder';
+            notificationIndicator.title = 'This task has reminders set';
+            metadataDiv.appendChild(notificationIndicator);
+        }
 
         if (task.recurrence_type && task.recurrence_type !== 'none' && nextOccurrenceDate) {
             const nextOccurrenceIndicator = document.createElement('div');

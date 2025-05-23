@@ -159,7 +159,8 @@ function scheduleNotification(notificationData) {
         body: notificationData.body,
         scheduledTime: notificationData.scheduledTime,
         repeat: notificationData.repeat,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        data: notificationData.data || {} // Store additional data for the notification
     };
 
     scheduledNotifications.push(notification);
@@ -424,7 +425,8 @@ async function sendToAllSubscriptions(notification) {
         icon: '/icon-192x192.png',
         timestamp: Date.now(),
         data: {
-            notificationId: notification.id
+            notificationId: notification.id,
+            ...(notification.data || {}) // Include any additional data from the notification
         }
     });
 

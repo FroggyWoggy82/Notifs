@@ -1,0 +1,47 @@
+/**
+ * Exercise Options Menu Buttons Additional Fix
+ * Additional fixes for the exercise options menu buttons
+ */
+
+/* Force all buttons to be visible and properly positioned */
+.exercise-options-menu button {
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: static !important;
+    display: inline-flex !important;
+    z-index: 5 !important;
+}
+
+/* Ensure the buttons row has proper spacing */
+.exercise-options-menu-row.buttons-row {
+    margin-top: 10px !important;
+    margin-bottom: 5px !important;
+    min-height: 40px !important;
+}
+
+/* Fix for any absolute positioned buttons */
+.exercise-options-menu button[style*="position: absolute"],
+.exercise-options-menu button[style*="position:absolute"] {
+    position: static !important;
+}
+
+/* Ensure the close button is always visible */
+.exercise-options-menu .close-button {
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: static !important;
+    display: inline-flex !important;
+    z-index: 10 !important;
+}
+
+/* Fix for any hidden buttons */
+.exercise-options-menu button[style*="display: none"],
+.exercise-options-menu button[style*="display:none"],
+.exercise-options-menu button[style*="visibility: hidden"],
+.exercise-options-menu button[style*="visibility:hidden"],
+.exercise-options-menu button[style*="opacity: 0"],
+.exercise-options-menu button[style*="opacity:0"] {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

@@ -152,9 +152,6 @@
                 return;
             }
 
-            // Initialize or reset weekly goal weights
-            window.weeklyGoalWeights = [];
-
             // Get the goal dataset
             if (!window.weightGoalChart.data || !window.weightGoalChart.data.datasets || window.weightGoalChart.data.datasets.length < 2) {
                 console.warn('[Weekly Goal Points Fix] Goal dataset not available');
@@ -165,6 +162,18 @@
             if (!goalDataset || !goalDataset.data) {
                 console.warn('[Weekly Goal Points Fix] Goal dataset data not available');
                 return;
+            }
+
+            // Get the chart labels
+            const labels = window.weightGoalChart.data.labels;
+            if (!labels || labels.length === 0) {
+                console.warn('[Weekly Goal Points Fix] Chart labels not available');
+                return;
+            }
+
+            // Keep existing weekly goal weights if they exist
+            if (!window.weeklyGoalWeights || window.weeklyGoalWeights.length === 0) {
+                window.weeklyGoalWeights = [];
             }
 
             // Get the weekly increment dates
@@ -179,58 +188,98 @@
                 console.log('[Weekly Goal Points Fix] Using weekly increment dates for extraction');
 
                 // For each label in the chart, check if it's in the weekly increment dates
-                window.weightGoalChart.data.labels.forEach((label, index) => {
+                labels.forEach((label, index) => {
                     // Check if this label is in the weekly increment dates
                     const weekIndex = weeklyDates.indexOf(label);
 
                     if (weekIndex !== -1 && goalDataset.data[index] &&
                         goalDataset.data[index].y !== null && goalDataset.data[index].y !== undefined) {
-                        window.weeklyGoalWeights.push({
-                            index: index,
-                            week: weekIndex,
-                            weight: goalDataset.data[index].y,
-                            date: label
-                        });
+                        // Check if this week is already in the weeklyGoalWeights array
+                        const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekIndex);
+                        if (!existingWeek) {
+                            window.weeklyGoalWeights.push({
+                                index: index,
+                                week: weekIndex,
+                                weight: goalDataset.data[index].y,
+                                date: label
+                            });
 
-                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from dates: ${label}, week ${weekIndex}, index ${index}`);
+                            console.log(`[Weekly Goal Points Fix] Added weekly goal weight from dates: ${label}, week ${weekIndex}, index ${index}`);
+                        }
                     }
                 });
             }
 
-            // If we still don't have weekly goal weights, try using every 7th point
-            if (window.weeklyGoalWeights.length === 0) {
-                console.log('[Weekly Goal Points Fix] Using every 7th point for extraction');
+            // Find the start index (where the goal line begins)
+            let startIndex = -1;
+            for (let i = 0; i < goalDataset.data.length; i++) {
+                if (goalDataset.data[i] && goalDataset.data[i].y !== null && goalDataset.data[i].y !== undefined) {
+                    startIndex = i;
+                    break;
+                }
+            }
 
-                // Find the start index (where the goal line begins)
-                let startIndex = -1;
-                for (let i = 0; i < goalDataset.data.length; i++) {
-                    if (goalDataset.data[i] && goalDataset.data[i].y !== null && goalDataset.data[i].y !== undefined) {
-                        startIndex = i;
-                        break;
+            if (startIndex === -1) {
+                console.warn('[Weekly Goal Points Fix] No valid start index found');
+                return;
+            }
+
+            // Get the start date
+            const startDate = new Date(labels[startIndex]);
+            if (isNaN(startDate.getTime())) {
+                console.warn('[Weekly Goal Points Fix] Invalid start date');
+                return;
+            }
+
+            // Process each point to find weekly increments from the start date
+            for (let i = startIndex; i < goalDataset.data.length; i++) {
+                if (goalDataset.data[i] && goalDataset.data[i].y !== null && goalDataset.data[i].y !== undefined) {
+                    const currentDate = new Date(labels[i]);
+                    if (!isNaN(currentDate.getTime())) {
+                        // Calculate days since start
+                        const daysSinceStart = Math.round((currentDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+
+                        // Check if this is a weekly increment (every 7 days from start)
+                        if (daysSinceStart > 0 && daysSinceStart % 7 === 0) {
+                            const weekNum = daysSinceStart / 7;
+
+                            // Check if this week is already in the weeklyGoalWeights array
+                            const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekNum);
+                            if (!existingWeek) {
+                                window.weeklyGoalWeights.push({
+                                    index: i,
+                                    week: weekNum,
+                                    weight: goalDataset.data[i].y,
+                                    date: labels[i]
+                                });
+
+                                console.log(`[Weekly Goal Points Fix] Added weekly goal weight by day count: ${labels[i]}, week ${weekNum}, index ${i}`);
+                            }
+                        }
                     }
                 }
+            }
 
-                if (startIndex === -1) {
-                    console.warn('[Weekly Goal Points Fix] No valid start index found');
-                    return;
-                }
+            // Also check for every 7th point from the start index
+            for (let i = startIndex; i < goalDataset.data.length; i++) {
+                // Check if this is a weekly point (every 7th point from start)
+                const isWeeklyPoint = ((i - startIndex) % 7 === 0);
 
-                // Process each point starting from the start index
-                for (let i = startIndex; i < goalDataset.data.length; i++) {
-                    // Check if this is a weekly point (every 7th point from start)
-                    const isWeeklyPoint = ((i - startIndex) % 7 === 0);
+                if (isWeeklyPoint && goalDataset.data[i] &&
+                    goalDataset.data[i].y !== null && goalDataset.data[i].y !== undefined) {
+                    const weekNum = Math.floor((i - startIndex) / 7);
 
-                    if (isWeeklyPoint && goalDataset.data[i] &&
-                        goalDataset.data[i].y !== null && goalDataset.data[i].y !== undefined) {
+                    // Check if this week is already in the weeklyGoalWeights array
+                    const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekNum);
+                    if (!existingWeek) {
                         window.weeklyGoalWeights.push({
                             index: i,
-                            week: weekCounter,
+                            week: weekNum,
                             weight: goalDataset.data[i].y,
-                            date: window.weightGoalChart.data.labels[i]
+                            date: labels[i]
                         });
 
-                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from 7th point: ${window.weightGoalChart.data.labels[i]}, week ${weekCounter}, index ${i}`);
-                        weekCounter++;
+                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from 7th point: ${labels[i]}, week ${weekNum}, index ${i}`);
                     }
                 }
             }
@@ -246,16 +295,19 @@
                             index: index,
                             week: weekCounter,
                             weight: point.y,
-                            date: window.weightGoalChart.data.labels[index]
+                            date: labels[index]
                         });
 
-                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from all points: ${window.weightGoalChart.data.labels[index]}, week ${weekCounter}, index ${index}`);
+                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from all points: ${labels[index]}, week ${weekCounter}, index ${index}`);
                         weekCounter++;
                     }
                 });
             }
 
-            console.log(`[Weekly Goal Points Fix] Extracted ${window.weeklyGoalWeights.length} weekly goal weights`);
+            // Sort weekly goal weights by week number
+            window.weeklyGoalWeights.sort((a, b) => a.week - b.week);
+
+            console.log(`[Weekly Goal Points Fix] Extracted ${window.weeklyGoalWeights.length} weekly goal weights:`, window.weeklyGoalWeights);
         } catch (error) {
             console.error('[Weekly Goal Points Fix] Error extracting weekly goal weights:', error);
         }
@@ -358,15 +410,69 @@
 
                     // Modify the pointRadius function to show all weekly goal points
                     goalDataset.pointRadius = function(context) {
-                        // Always return a non-zero value to ensure points are drawn
-                        // The actual styling will be handled by our plugin
-                        return 6;
+                        // Check if this is a weekly goal point
+                        if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                            const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                            if (isWeeklyPoint) {
+                                return 6; // Larger radius for weekly points
+                            }
+                        }
+
+                        // Check if this is a weekly point (every 7th point from the start)
+                        let startIndex = -1;
+                        if (this.data) {
+                            for (let i = 0; i < this.data.length; i++) {
+                                if (this.data[i] && this.data[i].y !== null && this.data[i].y !== undefined) {
+                                    startIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (startIndex !== -1) {
+                            // Check if this is a weekly increment point (every 7 days from start)
+                            if ((context.dataIndex - startIndex) % 7 === 0) {
+                                return 6; // Larger radius for weekly points
+                            }
+                        }
+
+                        return 0; // Hide other points
                     };
 
                     // Make sure all points are visible
                     goalDataset.pointStyle = 'circle';
-                    goalDataset.pointBackgroundColor = '#e74c3c'; // Red color
-                    goalDataset.pointBorderColor = '#ffffff'; // White border
+
+                    // Set point background color based on whether it's a weekly goal point
+                    goalDataset.pointBackgroundColor = function(context) {
+                        // Check if this is a weekly goal point
+                        if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                            const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === context.dataIndex);
+                            if (weeklyPoint) {
+                                const pointDate = new Date(weeklyPoint.date);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+
+                                // Past points are teal, future points are red
+                                return pointDate < today ? '#1abc9c' : '#e74c3c';
+                            }
+                        }
+
+                        return 'transparent'; // Hide other points
+                    };
+
+                    // Set point border color based on whether it's a weekly goal point
+                    goalDataset.pointBorderColor = function(context) {
+                        // Check if this is a weekly goal point
+                        if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                            const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                            if (isWeeklyPoint) {
+                                return '#ffffff'; // White border for weekly points
+                            }
+                        }
+
+                        return 'transparent'; // Hide other points
+                    };
+
                     goalDataset.pointBorderWidth = 2;
 
                     console.log('[Weekly Goal Points Fix] Modified goal dataset point styling');
@@ -600,12 +706,21 @@
         if (window.weightGoalChart) {
             ensureWeeklyGoalPoints();
         }
-    }, 1000); // Check every second
+    }, 500); // Check every half second
 
-    // Clean up the interval after 30 seconds
+    // Clean up the interval after 60 seconds
     setTimeout(function() {
         clearInterval(weeklyGoalPointsInterval);
-    }, 30000);
+    }, 60000);
+
+    // Also set up a more aggressive initial check
+    for (let i = 0; i < 5; i++) {
+        setTimeout(function() {
+            if (window.weightGoalChart) {
+                ensureWeeklyGoalPoints();
+            }
+        }, i * 200); // Check every 200ms for the first second
+    }
 
     // Add a listener for chart updates
     document.addEventListener('weightChartUpdated', function() {

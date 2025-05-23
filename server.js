@@ -69,6 +69,7 @@ const calorieFieldRoutes = require('./routes/calorieFieldRoutes'); // Calorie fi
 const journalRoutes = require('./routes/journal'); // New route for journal entries
 const visionOcrRoutes = require('./routes/vision-ocr'); // Google Cloud Vision OCR implementation
 const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // Cronometer nutrition data scraper
+const mealRoutes = require('./routes/mealRoutes'); // NEW: Meal routes
 const habitResetRoutes = require('./routes/habitResetRoutes'); // New route for habit reset
 const socialMediaRejectionRoutes = require('./routes/socialMediaRejectionRoutes'); // NEW: Social Media Rejection habit routes
 
@@ -215,6 +216,7 @@ app.use('/api/calorie-targets', calorieTargetRoutes);
 app.use('/api/calorie-targets', calorieFieldRoutes); // NEW: Calorie field routes for independent saving
 app.use('/api/journal', journalRoutes); // NEW: Journal entries route
 app.use('/api/habit-reset', habitResetRoutes); // NEW: Habit reset route
+app.use('/api/meals', mealRoutes); // NEW: Meal routes
 app.use('/api', socialMediaRejectionRoutes); // NEW: Social Media Rejection habit routes
 console.log('Registering Google Cloud Vision OCR routes...');
 app.use('/api/vision-ocr', visionOcrRoutes); // Google Cloud Vision OCR implementation
@@ -549,8 +551,13 @@ const initializeAndStart = async () => {
         const CalorieTarget = require('./models/calorieTargetModel');
         await CalorieTarget.initializeTable();
         console.log('Calorie target model initialized successfully');
+
+        // Initialize the meal model
+        const MealModel = require('./models/mealModel');
+        await MealModel.createMealsTables();
+        console.log('Meal model initialized successfully');
       } catch (calorieError) {
-        console.error('Error initializing calorie target model:', calorieError);
+        console.error('Error initializing models:', calorieError);
       }
     } catch (modelError) {
       console.error('Error initializing models:', modelError);

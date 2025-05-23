@@ -264,11 +264,185 @@
     scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05) !important;
 }
 
+/* Compact modal layout to reduce scrolling */
+#addTaskModal .modal-content,
+#editTaskModal .modal-content,
+#addHabitModal .modal-content,
+#editHabitModal .modal-content {
+    padding: 12px !important; /* Further reduce padding */
+    max-height: 85vh !important; /* Slightly shorter to ensure it fits better */
+    width: 90% !important; /* Make modal wider to fit more content horizontally */
+    max-width: 600px !important; /* Increase max width */
+}
+
+/* Reduce spacing between form elements */
+#addTaskModal .form-group,
+#editTaskModal .form-group,
+#addHabitModal .form-group,
+#editHabitModal .form-group {
+    margin-bottom: 10px !important; /* Reduced from 15px */
+}
+
+/* Optimize form layout with grid for side-by-side elements */
+#addTaskModal form,
+#editTaskModal form,
+#addHabitModal form,
+#editHabitModal form {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important; /* Further reduced from 10px */
+}
+
+/* Ensure title and description are stacked vertically */
+#addTaskModal .form-group:nth-child(1),
+#addTaskModal .form-group:nth-child(2),
+#editTaskModal .form-group:nth-child(1),
+#editTaskModal .form-group:nth-child(2) {
+    width: 100% !important;
+    display: block !important;
+    margin-bottom: 10px !important;
+}
+
+/* Make reminder checkboxes display in a 2x2 grid */
+#addTaskModal .reminder-checkboxes,
+#editTaskModal .reminder-checkboxes {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 5px !important;
+}
+
+/* Reduce spacing in modal header */
+#addTaskModal .modal-header,
+#editTaskModal .modal-header,
+#addHabitModal .modal-header,
+#editHabitModal .modal-header {
+    padding-bottom: 5px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Make form rows more compact */
+#addTaskModal .form-row,
+#editTaskModal .form-row,
+#addHabitModal .form-row,
+#editHabitModal .form-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 5px !important;
+}
+
+/* Reduce height of inputs and textareas */
+#addTaskModal input,
+#addTaskModal select,
+#editTaskModal input,
+#editTaskModal select,
+#addHabitModal input,
+#addHabitModal select,
+#editHabitModal input,
+#editHabitModal select {
+    padding: 6px 8px !important; /* Further reduced padding */
+    height: 32px !important; /* Smaller height */
+    font-size: 0.9rem !important; /* Slightly smaller font */
+}
+
+#addTaskModal textarea,
+#editTaskModal textarea {
+    padding: 6px 8px !important;
+    height: 50px !important; /* Smaller height for textareas */
+    min-height: 50px !important;
+    font-size: 0.9rem !important;
+}
+
+/* Make form labels smaller and more compact */
+#addTaskModal .form-label,
+#editTaskModal .form-label,
+#addHabitModal .form-label,
+#editHabitModal .form-label {
+    font-size: 0.8rem !important;
+    margin-bottom: 2px !important;
+    display: inline-block !important;
+}
+
+/* Make subtasks section more compact */
+#addTaskModal .subtasks-header,
+#editTaskModal .subtasks-header {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 3px !important;
+    gap: 5px !important; /* Reduced gap between label and button */
+    justify-content: flex-start !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    position: relative !important;
+}
+
+#addTaskModal .subtasks-header .form-label,
+#editTaskModal .subtasks-header .form-label {
+    margin-bottom: 0 !important;
+    margin-right: 5px !important;
+    display: inline !important;
+    white-space: nowrap !important;
+}
+
+/* Style the Add Subtask button */
+#addTaskModal #addSubtaskBtn,
+#editTaskModal #editAddSubtaskBtn {
+    padding: 1px 5px !important;
+    font-size: 0.75rem !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 3px !important;
+    margin-left: 0 !important;
+    height: 20px !important;
+    line-height: 1 !important;
+    position: static !important;
+    display: inline !important;
+    vertical-align: middle !important;
+}
+
+#addTaskModal #addSubtaskBtn:hover,
+#editTaskModal #editAddSubtaskBtn:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+#addTaskModal #subtasksList,
+#editTaskModal #editSubtasksList {
+    max-height: 80px !important;
+    overflow-y: auto !important;
+    margin-top: 5px !important;
+}
+
+/* Add wrapper for form layout grid */
+.form-layout-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Reduce button size */
+#addTaskModal button,
+#editTaskModal button,
+#addHabitModal button,
+#editHabitModal button {
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+}
+
+/* Button hover effects */
+#addTaskBtn:hover,
+#saveTaskBtn:hover {
+    background-color: #f0f0f0 !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
 /* Status messages */
 .status {
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-radius: 4px;
-    margin: 10px 0;
+    margin: 8px 0;
+    font-size: 0.85rem !important;
 }
 
 .status.success {

@@ -33,5 +33,5 @@
 @import 'utilities/task-icons-fix.css';
 @import 'utilities/expand-button-alignment-fix.css';
 
-
-
+/* Page-specific styles */
+@import 'pages/days-since.css';
