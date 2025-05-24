@@ -1,0 +1,95 @@
+/**
+ * Button Alignment Consistent
+ * Ensures consistent alignment and styling for all buttons in the food page
+ * Specifically fixes alignment of Parse Nutrition Data, Add Ingredient, Remove, and Save Recipe buttons
+ */
+
+/* Style the button container for the Parse Nutrition Data button */
+.button-container {
+    display: flex !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+}
+
+/* Make the Parse Nutrition Data button match the other buttons */
+.cronometer-parse-button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 38px !important;
+    line-height: 1 !important;
+    padding: 0 15px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: 0.9em !important;
+    vertical-align: middle !important;
+    width: auto !important;
+    margin: 10px 0 !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.cronometer-parse-button:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Ensure consistent button row styling */
+.buttons-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+    gap: 10px !important;
+    height: 38px !important;
+}
+
+.buttons-row button {
+    flex: 1 !important;
+    height: 38px !important;
+    padding: 0 15px !important;
+    margin: 0 !important;
+    font-size: 0.9em !important;
+    border-radius: 3px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Make the Save Recipe button match the other buttons */
+#create-recipe-form button[type="submit"] {
+    height: 38px !important;
+    line-height: 1 !important;
+    padding: 0 15px !important;
+    font-size: 0.9em !important;
+    margin: 10px 0 !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+
+
+#create-recipe-form button[type="submit"]:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}

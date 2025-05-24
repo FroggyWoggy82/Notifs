@@ -7,10 +7,10 @@
 #meals-eaten-section {
     margin-top: 20px;
     padding: 25px;
-    background-color: #ffffff;
+    background-color: #1a1a1a;
     border-radius: 6px;
-    border: 1px solid #dde5eb;
-    box-shadow: 0 3px 6px rgba(44, 62, 80, 0.05);
+    border: 1px solid #333;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .meals-container {
@@ -19,6 +19,18 @@
 
 #add-meal-btn {
     margin-bottom: 20px;
+    background-color: #2c3e50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+#add-meal-btn:hover {
+    background-color: #34495e;
 }
 
 #meals-list {
@@ -196,6 +208,15 @@
     border-radius: 4px;
     padding: 15px;
     background-color: #1e1e1e;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.selected-ingredients-container h4 {
+    color: #3498db;
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
 }
 
 .selected-ingredients-list {
@@ -270,6 +291,15 @@
     border-radius: 4px;
     padding: 15px;
     background-color: #1e1e1e;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.meal-nutrition-summary h4 {
+    color: #3498db;
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
 }
 
 .nutrition-summary-grid {
@@ -284,18 +314,27 @@
     flex-direction: column;
     align-items: center;
     background-color: #2a2a2a;
-    border-radius: 4px;
-    padding: 10px;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.nutrition-summary-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .nutrition-summary-item .label {
     font-size: 12px;
-    color: #aaa;
+    color: #3498db;
     margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .nutrition-summary-item .value {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: #fff;
 }
@@ -384,42 +423,138 @@
     font-style: italic;
 }
 
+/* Loading Message */
+.loading-message {
+    color: #3498db;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Error Message */
+.error-message {
+    color: #e74c3c;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
 /* Dark Theme Overrides */
 #meal-submission-modal .modal-content,
 #new-ingredient-modal .modal-content {
     background-color: #121212;
     color: #fff;
     border: 1px solid #333;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
 #meal-submission-modal .modal-header,
 #new-ingredient-modal .modal-header {
     background-color: #1a1a1a;
     border-bottom: 1px solid #333;
+    padding: 15px 20px;
+}
+
+#meal-submission-modal .modal-header h2,
+#new-ingredient-modal .modal-header h2 {
+    color: #3498db;
+    margin: 0;
+}
+
+#meal-submission-modal .modal-body,
+#new-ingredient-modal .modal-body {
+    padding: 20px;
 }
 
 #meal-submission-modal .close,
 #new-ingredient-modal .close {
     color: #aaa;
+    font-size: 24px;
+    transition: color 0.2s;
 }
 
 #meal-submission-modal .close:hover,
 #new-ingredient-modal .close:hover {
-    color: #fff;
+    color: #3498db;
 }
 
 #meal-submission-modal input,
 #meal-submission-modal select,
+#meal-submission-modal textarea,
 #new-ingredient-modal input,
-#new-ingredient-modal select {
+#new-ingredient-modal select,
+#new-ingredient-modal textarea {
     background-color: #1e1e1e;
     color: #fff;
     border: 1px solid #333;
+    border-radius: 4px;
+    padding: 10px;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+
+#meal-submission-modal input:focus,
+#meal-submission-modal select:focus,
+#meal-submission-modal textarea:focus,
+#new-ingredient-modal input:focus,
+#new-ingredient-modal select:focus,
+#new-ingredient-modal textarea:focus {
+    border-color: #3498db;
+    outline: none;
 }
 
 #meal-submission-modal label,
 #new-ingredient-modal label {
     color: #ddd;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#meal-submission-modal .form-group,
+#new-ingredient-modal .form-group {
+    margin-bottom: 15px;
+}
+
+#meal-submission-modal button.primary-btn,
+#new-ingredient-modal button.primary-btn {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+#meal-submission-modal button.primary-btn:hover,
+#new-ingredient-modal button.primary-btn:hover {
+    background-color: #2980b9;
+}
+
+#meal-submission-modal button.secondary-btn,
+#new-ingredient-modal button.secondary-btn,
+#meal-submission-modal button.cancel-btn,
+#new-ingredient-modal button.cancel-btn {
+    background-color: #34495e;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+#meal-submission-modal button.secondary-btn:hover,
+#new-ingredient-modal button.secondary-btn:hover,
+#meal-submission-modal button.cancel-btn:hover,
+#new-ingredient-modal button.cancel-btn:hover {
+    background-color: #2c3e50;
 }
 
 /* Responsive Adjustments */
@@ -427,12 +562,12 @@
     .nutrition-summary-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .selected-ingredient-item {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .selected-ingredient-actions {
         margin-top: 10px;
         width: 100%;

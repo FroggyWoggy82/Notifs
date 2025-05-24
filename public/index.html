@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="css/task-icons-fix.css">
     <link rel="stylesheet" href="css/checkbox-redesign.css">
     <link rel="stylesheet" href="css/recurrence-indicator-redesign.css">
-    <link rel="stylesheet" href="css/notification-indicator.css">
     <link rel="stylesheet" href="css/progress-photo-fix.css">
     <link rel="stylesheet" href="css/date-badge-redesign.css">
     <link rel="stylesheet" href="css/habit-button-fix.css">
@@ -70,6 +69,7 @@
     <link rel="stylesheet" href="css/notification-fix.css"> <!-- Fix for notification display and auto-dismissal -->
     <link rel="stylesheet" href="css/section-headers-fix.css"> <!-- Makes Task List and Habit List headers smaller and consistent -->
     <link rel="stylesheet" href="css/completed-tasks-toggle-fix.css"> <!-- Makes completed tasks header more clickable -->
+    <link rel="stylesheet" href="css/add-task-button-center.css"> <!-- Centers the Add Task button in the modal and ensures it's white -->
 
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -82,30 +82,6 @@
     <link rel="stylesheet" href="css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
     <link rel="stylesheet" href="css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
     <link rel="stylesheet" href="css/modal-improvements.css"> <!-- UI improvements for modals and forms -->
-
-    <!-- Direct button fix -->
-    <style>
-        /* Ensure modal content doesn't overflow */
-        .modal-content {
-            overflow-x: hidden !important;
-            max-width: 100% !important;
-        }
-
-        /* Subtask button styling */
-        #addTaskModal .subtasks-header,
-        #editTaskModal .subtasks-header {
-            display: flex !important;
-            align-items: center !important;
-        }
-
-        #addTaskModal #addSubtaskBtn,
-        #editTaskModal #editAddSubtaskBtn {
-            margin-left: 5px !important;
-            height: auto !important;
-            padding: 2px 6px !important;
-            font-size: 0.75rem !important;
-        }
-    </style>
 </head>
 <body>
     <!-- Error handling script - runs before anything else -->
@@ -115,10 +91,15 @@
             console.error('Global error caught:', event.error || event.message);
 
             // Skip "Unexpected token '<'" errors which are usually from service worker issues
-            // These are handled by the immediate-notification-fix.js script
+            // These are handled silently by the immediate-notification-fix.js script
             const errorMessage = event.error ? event.error.message : event.message;
-            if (errorMessage && errorMessage.includes("Unexpected token '<'")) {
-                console.warn("Ignoring 'Unexpected token <' error - likely a service worker issue that will be handled by immediate-notification-fix.js");
+            if (errorMessage && (
+                errorMessage.includes("Unexpected token '<'") ||
+                errorMessage.includes("Failed to execute 'importScripts'") ||
+                errorMessage.includes("NetworkError when attempting to fetch resource") ||
+                errorMessage.includes("Service worker registration failed")
+            )) {
+                console.warn("Ignoring service worker related error - will be handled silently by immediate-notification-fix.js");
                 return false;
             }
 
@@ -482,8 +463,8 @@
                     </div>
                 </div>
 
-                <div style="text-align: center; width: 100%; margin: 15px 0; display: flex; justify-content: center;">
-                    <button type="submit" id="addTaskBtn" style="background-color: white; color: #121212; padding: 8px 16px; border: none; border-radius: 4px; min-width: 120px; font-weight: 500; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">Add Task</button>
+                <div class="button-container">
+                    <button type="submit" id="addTaskBtn">Add Task</button>
                 </div>
             </form>
             <div id="addTaskStatus" class="status"></div>
@@ -582,9 +563,7 @@
 
                 <!-- Subtasks fix is now handled by subtasks-fix.js -->
 
-                <div style="text-align: center; width: 100%; margin: 15px 0; display: flex; justify-content: center;">
-                    <button type="submit" id="saveTaskBtn" style="background-color: white; color: #121212; padding: 8px 16px; border: none; border-radius: 4px; min-width: 120px; font-weight: 500; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">Save Changes</button>
-                </div>
+                <button type="submit" id="saveTaskBtn">Save Changes</button>
             </form>
             <div id="editTaskStatus" class="status"></div>
         </div>
@@ -759,14 +738,14 @@
     <!-- Subtask dropdown fix - improves responsiveness of subtask dropdowns -->
     <script src="js/tasks/subtask-dropdown-fix.js"></script>
 
+    <!-- Subtask button position fix - ensures Add Subtask button appears next to label -->
+    <script src="js/tasks/subtask-button-position-fix.js"></script>
+
     <!-- Task buttons fix - makes Add Task button white and matches size with Add Subtask button -->
     <script src="js/tasks/task-buttons-fix.js"></script>
 
     <!-- Final fix for Add Task button to ensure it's white -->
     <script src="js/tasks/add-task-button-final-fix.js"></script>
-
-    <!-- Compact modal layout to reduce scrolling -->
-    <script src="js/tasks/compact-modal-layout.js"></script>
 
     <!-- Auto dismiss notifications after 15 seconds -->
     <script src="js/auto-dismiss-notifications.js"></script>

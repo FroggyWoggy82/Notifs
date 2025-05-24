@@ -14,12 +14,12 @@ async function getAllGoals(req, res) {
     console.log("Received GET /api/goals request");
     try {
         const tree = await GoalModel.getAllGoals();
-        
+
         // Set cache control headers to prevent stale data
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-        
+
         res.json(tree);
     } catch (error) {
         console.error('Error fetching goals:', error);
@@ -36,18 +36,18 @@ async function getAllGoals(req, res) {
 async function createGoal(req, res) {
     const { text, parentId } = req.body;
     console.log(`Received POST /api/goals request: text='${text}', parentId=${parentId}`);
-    
+
     try {
         const goal = await GoalModel.createGoal(text, parentId);
         console.log(`Goal created successfully with ID: ${goal.id}`);
         res.status(201).json(goal);
     } catch (error) {
         console.error('Error creating goal:', error);
-        
+
         if (error.message === 'Goal text cannot be empty') {
             return res.status(400).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to create goal' });
     }
 }
@@ -60,21 +60,21 @@ async function createGoal(req, res) {
 async function insertGoalBetween(req, res) {
     const { newGoalText, currentGoalId } = req.body;
     console.log(`Received POST /api/goals/insert-between: new text='${newGoalText}', currentGoalId=${currentGoalId}`);
-    
+
     try {
         const goal = await GoalModel.insertGoalBetween(newGoalText, currentGoalId);
         console.log(`Goal inserted successfully with ID: ${goal.id}`);
         res.status(201).json(goal);
     } catch (error) {
         console.error('Error inserting goal between:', error);
-        
-        if (error.message.includes('cannot be empty') || 
+
+        if (error.message.includes('cannot be empty') ||
             error.message.includes('required') ||
             error.message.includes('not found') ||
             error.message.includes('Cannot insert parent above a root goal')) {
             return res.status(400).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to insert goal' });
     }
 }
@@ -87,22 +87,22 @@ async function insertGoalBetween(req, res) {
 async function deleteGoalAndPromoteChildren(req, res) {
     const { id: targetId } = req.params;
     console.log(`Received DELETE /api/goals/promote/${targetId} request`);
-    
+
     try {
         const result = await GoalModel.deleteGoalAndPromoteChildren(targetId);
         console.log(`Goal ${targetId} deleted and children promoted successfully.`);
-        res.status(200).json({ 
-            message: `Goal ${targetId} deleted and children promoted successfully`, 
-            id: result.id 
+        res.status(200).json({
+            message: `Goal ${targetId} deleted and children promoted successfully`,
+            id: result.id
         });
     } catch (error) {
         console.error(`Error deleting goal ${targetId} with promotion:`, error);
-        
-        if (error.message.includes('Invalid goal ID format') || 
+
+        if (error.message.includes('Invalid goal ID format') ||
             error.message.includes('not found')) {
             return res.status(400).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to delete goal' });
     }
 }
@@ -115,25 +115,25 @@ async function deleteGoalAndPromoteChildren(req, res) {
 async function deleteGoalCascade(req, res) {
     const { id } = req.params;
     console.log(`Received DELETE /api/goals/${id} request (Cascade)`);
-    
+
     try {
         const result = await GoalModel.deleteGoalCascade(id);
         console.log(`Cascade Delete: Goal ${id} deleted successfully.`);
-        res.status(200).json({ 
-            message: `Goal ${id} and descendants deleted successfully`, 
-            id: result.id 
+        res.status(200).json({
+            message: `Goal ${id} and descendants deleted successfully`,
+            id: result.id
         });
     } catch (error) {
         console.error(`Error during cascade delete for goal ${id}:`, error);
-        
+
         if (error.message.includes('Invalid goal ID format')) {
             return res.status(400).json({ error: error.message });
         }
-        
+
         if (error.message.includes('not found')) {
             return res.status(404).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to delete goal' });
     }
 }
@@ -147,24 +147,105 @@ async function updateGoal(req, res) {
     const { id } = req.params;
     const { text } = req.body;
     console.log(`Received PUT /api/goals/${id} request: text='${text}'`);
-    
+
     try {
         const goal = await GoalModel.updateGoal(id, text);
         console.log(`Goal ${id} updated successfully.`);
         res.status(200).json(goal);
     } catch (error) {
         console.error(`Error updating goal ${id}:`, error);
-        
-        if (error.message.includes('Invalid goal ID format') || 
+
+        if (error.message.includes('Invalid goal ID format') ||
             error.message.includes('cannot be empty')) {
             return res.status(400).json({ error: error.message });
         }
-        
+
         if (error.message.includes('not found')) {
             return res.status(404).json({ error: error.message });
         }
-        
+
         res.status(500).json({ error: 'Failed to update goal' });
+    }
+}
+
+/**
+ * Complete a goal and promote its children to its parent
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function completeGoal(req, res) {
+    const { id } = req.params;
+    console.log(`Received POST /api/goals/complete/${id} request`);
+
+    try {
+        const result = await GoalModel.completeGoal(id);
+        console.log(`Goal ${id} completed successfully.`);
+        res.status(200).json({
+            message: `Goal ${id} completed successfully`,
+            goal: result
+        });
+    } catch (error) {
+        console.error(`Error completing goal ${id}:`, error);
+
+        if (error.message.includes('Invalid goal ID format')) {
+            return res.status(400).json({ error: error.message });
+        }
+
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to complete goal' });
+    }
+}
+
+/**
+ * Complete a goal and all its descendants
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function completeGoalChain(req, res) {
+    const { id } = req.params;
+    console.log(`Received POST /api/goals/complete-chain/${id} request`);
+
+    try {
+        const result = await GoalModel.completeGoalChain(id);
+        console.log(`Goal ${id} and all descendants completed successfully.`);
+        res.status(200).json({
+            message: `Goal ${id} and all descendants completed successfully`,
+            goal: result
+        });
+    } catch (error) {
+        console.error(`Error completing goal chain ${id}:`, error);
+
+        if (error.message.includes('Invalid goal ID format')) {
+            return res.status(400).json({ error: error.message });
+        }
+
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to complete goal chain' });
+    }
+}
+
+/**
+ * Get completed goals history
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getCompletedGoals(req, res) {
+    const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+    console.log(`Received GET /api/goals/completed request with limit=${limit}`);
+
+    try {
+        const completedGoals = await GoalModel.getCompletedGoals(limit);
+        console.log(`Retrieved ${completedGoals.length} completed goals.`);
+        res.status(200).json(completedGoals);
+    } catch (error) {
+        console.error('Error fetching completed goals:', error);
+        res.status(500).json({ error: 'Failed to fetch completed goals' });
     }
 }
 
@@ -174,5 +255,8 @@ module.exports = {
     insertGoalBetween,
     deleteGoalAndPromoteChildren,
     deleteGoalCascade,
-    updateGoal
+    updateGoal,
+    completeGoal,
+    completeGoalChain,
+    getCompletedGoals
 };

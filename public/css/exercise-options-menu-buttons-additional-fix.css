@@ -12,11 +12,18 @@
     z-index: 5 !important;
 }
 
-/* Ensure the buttons row has proper spacing */
+/* Ensure the buttons row has proper spacing and layout */
 .exercise-options-menu-row.buttons-row {
     margin-top: 10px !important;
     margin-bottom: 5px !important;
     min-height: 40px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 5px !important;
 }
 
 /* Fix for any absolute positioned buttons */
@@ -34,6 +41,23 @@
     z-index: 10 !important;
 }
 
+/* Specifically target the delete exercise button */
+.exercise-options-menu .btn-delete-exercise,
+.exercise-options-menu button[data-action="delete-exercise"],
+.exercise-options-menu button.delete-exercise-btn,
+.exercise-options-menu button:has(i.fa-trash),
+.exercise-options-menu button:has(i.fa-trash-alt) {
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: static !important;
+    display: inline-flex !important;
+    z-index: 10 !important;
+    margin: 2px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    order: 5 !important;
+}
+
 /* Fix for any hidden buttons */
 .exercise-options-menu button[style*="display: none"],
 .exercise-options-menu button[style*="display:none"],
@@ -44,4 +68,18 @@
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+/* Force all buttons to be in a single row */
+.exercise-options-menu-row.buttons-row > * {
+    float: none !important;
+    position: static !important;
+    display: inline-flex !important;
+}
+
+/* Clear any floats that might be causing layout issues */
+.exercise-options-menu-row.buttons-row::after {
+    content: "" !important;
+    display: table !important;
+    clear: both !important;
 }

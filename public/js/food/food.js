@@ -2823,12 +2823,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3 class="recipe-card-title">${escapeHtml(recipe.name)}</h3>
                         <i class="fas fa-pencil-alt edit-recipe-name-icon" title="Edit Recipe Name"></i>
                     </div>
-                    <div class="recipe-card-actions">
-                        <button type="button" class="recipe-card-btn primary view-ingredients-btn">View</button>
-                        <button type="button" class="recipe-card-btn adjust-calories-toggle">Adjust</button>
-                        <button type="button" class="recipe-card-btn danger delete-recipe-btn">Delete</button>
-                    </div>
                     <p class="recipe-card-calories">${recipe.total_calories.toFixed(1)} calories</p>
+                </div>
+
+                <!-- Recipe action buttons moved below title and calories -->
+                <div class="recipe-card-actions">
+                    <button type="button" class="recipe-card-btn primary view-ingredients-btn">View</button>
+                    <button type="button" class="recipe-card-btn adjust-calories-toggle">Adjust</button>
+                    <button type="button" class="recipe-card-btn danger delete-recipe-btn">Delete</button>
                 </div>
 
                 <div class="recipe-card-body">

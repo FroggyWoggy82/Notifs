@@ -1,0 +1,85 @@
+/**
+ * Recipe Button Size Fix
+ * Makes the view, adjust, and delete buttons smaller with less margin around the text
+ * Also handles the new button placement below title and calories
+ */
+
+/* Position the recipe card actions below the header */
+.recipe-card-actions {
+    padding: 8px 15px !important; /* Add some padding around the buttons */
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle separator line */
+    background-color: rgba(0, 0, 0, 0.1) !important; /* Slightly darker background */
+    display: flex !important;
+    justify-content: center !important; /* Center the buttons */
+    gap: 6px !important; /* Space between buttons */
+    margin: 0 !important;
+}
+
+/* Make recipe card action buttons smaller - ensure all buttons are the same size */
+.recipe-card-actions button {
+    padding: 3px 8px !important; /* Slightly larger than before for better readability */
+    font-size: 0.75rem !important; /* Reduced from 0.85rem */
+    height: 24px !important; /* Slightly taller for better touch targets */
+    min-width: 50px !important;
+    max-width: 70px !important;
+    border-radius: 4px !important;
+    width: 60px !important; /* Force all buttons to be the same width */
+    box-sizing: border-box !important;
+}
+
+/* Specifically target each button type to ensure they all match - high specificity */
+.recipe-card .recipe-card-actions .view-ingredients-btn,
+.recipe-card .recipe-card-actions .adjust-calories-toggle,
+.recipe-card .recipe-card-actions .delete-recipe-btn,
+.recipe-card .recipe-card-actions button.view-ingredients-btn,
+.recipe-card .recipe-card-actions button.adjust-calories-toggle,
+.recipe-card .recipe-card-actions button.delete-recipe-btn {
+    padding: 3px 8px !important;
+    font-size: 0.75rem !important;
+    height: 24px !important;
+    min-width: 50px !important;
+    max-width: 70px !important;
+    width: 60px !important;
+    border-radius: 4px !important;
+    box-sizing: border-box !important;
+    /* Override any theme-specific styling */
+    line-height: 1.1 !important;
+    text-align: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    /* Force override of any inherited styles */
+    margin: 0 !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+}
+
+/* Also apply to any recipe card buttons with the recipe-card-btn class */
+.recipe-card-btn {
+    padding: 2px 6px !important;
+    font-size: 0.7rem !important;
+    height: 22px !important;
+    min-width: 45px !important;
+    border-radius: 3px !important;
+}
+
+/* Make sure text fits properly in smaller buttons */
+.recipe-card-actions button,
+.recipe-card-btn {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.1 !important;
+    cursor: pointer !important;
+}
+
+/* Ensure the recipe card header doesn't have the old button styling */
+.recipe-card-header {
+    padding-bottom: 0 !important; /* Remove bottom padding since buttons moved */
+}
+
+/* Style the calories text to have some spacing from the title */
+.recipe-card-calories {
+    margin-top: 5px !important;
+    margin-bottom: 0 !important;
+}

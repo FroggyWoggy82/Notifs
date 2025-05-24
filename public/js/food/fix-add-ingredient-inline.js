@@ -4,23 +4,23 @@
  */
 
 (function() {
-    console.log('[Fix Add Ingredient Inline] Initializing');
+    // Initialize add ingredient inline functionality
 
     // Function to add a new ingredient row
     function addNewIngredientRow() {
-        console.log('[Fix Add Ingredient Inline] Adding new ingredient row');
-        
+        // Adding new ingredient row
+
         // Get the ingredients list container
         const ingredientsList = document.getElementById('ingredients-list');
         if (!ingredientsList) {
             console.error('[Fix Add Ingredient Inline] Could not find ingredients list');
             return;
         }
-        
+
         // Create a new ingredient item
         const newIngredientItem = document.createElement('div');
         newIngredientItem.className = 'ingredient-item';
-        
+
         // Get the HTML for a new ingredient row
         if (typeof window.createIngredientRowHtml === 'function') {
             newIngredientItem.innerHTML = window.createIngredientRowHtml();
@@ -87,22 +87,22 @@
                 </div>
             `;
         }
-        
+
         // Add the new ingredient item to the list
         ingredientsList.appendChild(newIngredientItem);
-        
+
         // Initialize the Cronometer text parser for the new ingredient
         if (typeof window.initializeCronometerTextParser === 'function') {
             window.initializeCronometerTextParser(newIngredientItem);
         }
-        
+
         // Add event listeners to the new buttons
         addButtonEventListeners(newIngredientItem);
-        
+
         // Scroll to the new ingredient item
         newIngredientItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    
+
     // Function to add event listeners to buttons in an ingredient item
     function addButtonEventListeners(ingredientItem) {
         // Add event listener to the Add Ingredient button
@@ -113,38 +113,38 @@
                 addNewIngredientRow();
             });
         }
-        
+
         // Add event listener to the Remove button
         const removeButton = ingredientItem.querySelector('.remove-ingredient-btn');
         if (removeButton) {
             removeButton.addEventListener('click', function(event) {
                 event.preventDefault();
-                
+
                 // Get the ingredients list
                 const ingredientsList = document.getElementById('ingredients-list');
                 if (!ingredientsList) {
                     console.error('[Fix Add Ingredient Inline] Could not find ingredients list');
                     return;
                 }
-                
+
                 // Check if this is the only ingredient item
                 if (ingredientsList.querySelectorAll('.ingredient-item').length <= 1) {
-                    console.log('[Fix Add Ingredient Inline] Cannot remove the only ingredient item');
+                    // Cannot remove the only ingredient item
                     return;
                 }
-                
+
                 // Remove the ingredient item
                 ingredientItem.remove();
             });
         }
-        
+
         // Add event listener to the Toggle Detailed Nutrition button
         const toggleButton = ingredientItem.querySelector('.toggle-detailed-nutrition');
         const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
         if (toggleButton && detailedPanel) {
             toggleButton.addEventListener('click', function(event) {
                 event.preventDefault();
-                
+
                 // Toggle the detailed nutrition panel
                 if (detailedPanel.style.display === 'none') {
                     detailedPanel.style.display = 'block';
@@ -156,18 +156,18 @@
             });
         }
     }
-    
+
     // Function to initialize all Add Ingredient buttons
     function initializeAddIngredientButtons() {
-        console.log('[Fix Add Ingredient Inline] Initializing Add Ingredient buttons');
-        
+        // Initialize Add Ingredient buttons
+
         // Get all ingredient items
         const ingredientItems = document.querySelectorAll('.ingredient-item');
         ingredientItems.forEach(item => {
             addButtonEventListeners(item);
         });
     }
-    
+
     // Initialize when the DOM is loaded
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
@@ -176,7 +176,7 @@
     } else {
         setTimeout(initializeAddIngredientButtons, 500);
     }
-    
+
     // Set up a mutation observer to watch for new ingredient items
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
@@ -185,9 +185,9 @@
             }
         });
     });
-    
+
     // Start observing the document body for changes
     observer.observe(document.body, { childList: true, subtree: true });
-    
+
     console.log('[Fix Add Ingredient Inline] Initialized');
 })();

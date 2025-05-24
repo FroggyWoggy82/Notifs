@@ -54,13 +54,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const submitBtn = addTaskModal.querySelector('#addTaskBtn');
         if (submitBtn) {
-            submitBtn.style.backgroundColor = '#00e676';
-            submitBtn.style.color = '#121212';
-            submitBtn.style.fontWeight = 'bold';
-            submitBtn.style.textTransform = 'uppercase';
-            submitBtn.style.border = 'none';
-            submitBtn.style.borderRadius = '4px';
-            submitBtn.style.padding = '12px 15px';
+            // Remove any inline styles to let CSS take control
+            submitBtn.style.removeProperty('background-color');
+            submitBtn.style.removeProperty('color');
+            submitBtn.style.removeProperty('font-weight');
+            submitBtn.style.removeProperty('text-transform');
+            submitBtn.style.removeProperty('border');
+            submitBtn.style.removeProperty('border-radius');
+            submitBtn.style.removeProperty('padding');
         }
 
         const toggleContainer = addTaskModal.querySelector('.toggle-container');
@@ -74,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.showAddTaskModal = function() {
         console.log("showAddTaskModal called");
-        
+
         if (!addTaskModal) {
             console.error("Add Task modal not found");
             return;
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addTaskModal.classList.add('modal-visible');
 
         applyDarkThemeToAddTaskModal();
-        
+
         console.log("Add Task modal should now be visible with dark theme");
     };
 
@@ -148,6 +149,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     applyDarkThemeToAddTaskModal();
-    
+
     console.log("Add Task modal fix initialization complete");
 });

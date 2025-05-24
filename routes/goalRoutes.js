@@ -169,4 +169,75 @@ router.delete('/:id', GoalController.deleteGoalCascade);
  */
 router.put('/:id', GoalController.updateGoal);
 
+/**
+ * @swagger
+ * /api/goals/complete/{id}:
+ *   post:
+ *     summary: Complete a goal and promote its children to its parent
+ *     tags: [Goals]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The goal ID
+ *     responses:
+ *       200:
+ *         description: Goal completed successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Goal not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/complete/:id', GoalController.completeGoal);
+
+/**
+ * @swagger
+ * /api/goals/complete-chain/{id}:
+ *   post:
+ *     summary: Complete a goal and all its descendants
+ *     tags: [Goals]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The goal ID
+ *     responses:
+ *       200:
+ *         description: Goal and descendants completed successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Goal not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/complete-chain/:id', GoalController.completeGoalChain);
+
+/**
+ * @swagger
+ * /api/goals/completed:
+ *   get:
+ *     summary: Get completed goals history
+ *     tags: [Goals]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Maximum number of completed goals to return
+ *     responses:
+ *       200:
+ *         description: List of completed goals
+ *       500:
+ *         description: Server error
+ */
+router.get('/completed', GoalController.getCompletedGoals);
+
 module.exports = router;

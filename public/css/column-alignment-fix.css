@@ -1,0 +1,45 @@
+/**
+ * Column Alignment Fix
+ * Ensures the "Your recipes" and "Grocery list generator" boxes are properly aligned
+ */
+
+/* Make sure both column sections have the same top padding and margin */
+.two-column-layout .column-section {
+    margin-top: 0 !important;
+    padding-top: 15px !important;
+}
+
+/* Ensure both section headings have the same styling and spacing */
+#recipes-display-section h2,
+#grocery-list-section h2 {
+    font-weight: 500 !important;
+    color: #e0e0e0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    text-align: left !important;
+    font-size: 1.3em !important;
+    line-height: 1.2 !important;
+}
+
+/* Ensure both sections have the same background and border styling */
+#recipes-display-section,
+#grocery-list-section {
+    background-color: rgba(18, 18, 18, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+    color: #e0e0e0 !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+}
+
+/* Fix for the compact-section-heading class that might be causing misalignment */
+.compact-section-heading {
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-size: 1.3em !important;
+    line-height: 1.2 !important;
+}

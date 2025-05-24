@@ -6,7 +6,7 @@
 (function() {
 
     function fixAdjustButtonsStyling() {
-        console.log('[Recipe Adjust Buttons Fix] Fixing adjust buttons styling...');
+        // Removed excessive logging
 
         const setButtons = document.querySelectorAll('button:not([style*="background-color: rgb(255, 255, 255)"]');
         setButtons.forEach(button => {
@@ -16,7 +16,7 @@
                 button.id && button.id.includes('set-btn') ||
                 button.className && button.className.includes('set-btn')) {
 
-                console.log('[Recipe Adjust Buttons Fix] Found Set button:', button);
+                // Removed excessive logging
 
                 button.style.backgroundColor = '#ffffff';
                 button.style.color = '#121212';
@@ -49,7 +49,7 @@
                 button.id && button.id.includes('adjust-btn') ||
                 button.className && button.className.includes('adjust-btn')) {
 
-                console.log('[Recipe Adjust Buttons Fix] Found adjustment button:', button);
+                // Removed excessive logging
 
                 button.style.backgroundColor = 'rgba(30, 30, 30, 0.7)';
                 button.style.color = '#ffffff';
@@ -78,7 +78,7 @@
                 input.name && input.name.includes('cal-total') ||
                 input.placeholder && input.placeholder.includes('Cal')) {
 
-                console.log('[Recipe Adjust Buttons Fix] Found calorie input field:', input);
+                // Removed excessive logging
 
                 input.style.backgroundColor = 'rgba(30, 30, 30, 0.7)';
                 input.style.color = '#e0e0e0';
@@ -100,7 +100,7 @@
             }
         });
 
-        console.log('[Recipe Adjust Buttons Fix] Adjust buttons styling fixed');
+        // Styling complete
     }
 
     function observeDOMChanges() {
@@ -134,13 +134,13 @@
     }
 
     function init() {
-        console.log('[Recipe Adjust Buttons Fix] Initializing...');
+        // Initialize styling fixes
 
         setTimeout(fixAdjustButtonsStyling, 500); // Delay to ensure the DOM is fully loaded
 
         observeDOMChanges();
 
-        console.log('[Recipe Adjust Buttons Fix] Initialized');
+        // Initialization complete
     }
 
     if (document.readyState === 'loading') {
@@ -160,7 +160,7 @@
             event.target.id && event.target.id.includes('adjust') ||
             event.target.className && event.target.className.includes('adjust')) {
 
-            console.log('[Recipe Adjust Buttons Fix] Adjust button clicked, fixing Set button styling...');
+            // Adjust button clicked, fix styling
 
             setTimeout(fixAdjustButtonsStyling, 100);
         }

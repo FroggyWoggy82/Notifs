@@ -1,0 +1,117 @@
+/**
+ * Delete Exercise Button Fix
+ * Ensures the delete exercise button is properly positioned and visible
+ */
+
+/* AGGRESSIVE FIX: Force all buttons into a single row */
+.exercise-options-menu-row.buttons-row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 3px !important;
+    padding: 5px !important;
+    width: 100% !important;
+    position: relative !important;
+    min-height: 32px !important;
+    max-height: 40px !important;
+    overflow: visible !important;
+}
+
+/* Force ALL buttons to be inline and visible */
+.exercise-options-menu-row.buttons-row > *,
+.exercise-options-menu-row.buttons-row button,
+.exercise-options-menu-row.buttons-row .btn-view-exercise,
+.exercise-options-menu-row.buttons-row .view-history-btn,
+.exercise-options-menu-row.buttons-row .btn-edit-exercise-name,
+.exercise-options-menu-row.buttons-row .btn-delete-exercise,
+.exercise-options-menu-row.buttons-row .close-button {
+    display: inline-flex !important;
+    position: static !important;
+    float: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 10 !important;
+    margin: 1px !important;
+    flex-shrink: 1 !important;
+    flex-grow: 0 !important;
+    order: initial !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+}
+
+/* Specifically target the delete exercise button with maximum priority */
+.exercise-options-menu .btn-delete-exercise,
+.exercise-options-menu button[data-action="delete-exercise"],
+.exercise-options-menu button.delete-exercise-btn,
+.exercise-options-menu .button-group-right .btn-delete-exercise {
+    display: inline-flex !important;
+    position: static !important;
+    float: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 100 !important;
+    margin: 1px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    order: 6 !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+}
+
+/* Remove any absolute positioning from button groups */
+.exercise-options-menu .button-group-right {
+    position: static !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    gap: 3px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Override any existing positioning rules */
+.exercise-options-menu button[style*="position: absolute"],
+.exercise-options-menu button[style*="position:absolute"],
+.exercise-options-menu .btn-delete-exercise[style*="position: absolute"],
+.exercise-options-menu .btn-delete-exercise[style*="position:absolute"] {
+    position: static !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+}
+
+/* Make sure no buttons are hidden */
+.exercise-options-menu button[style*="display: none"],
+.exercise-options-menu button[style*="display:none"],
+.exercise-options-menu button[style*="visibility: hidden"],
+.exercise-options-menu button[style*="visibility:hidden"],
+.exercise-options-menu button[style*="opacity: 0"],
+.exercise-options-menu button[style*="opacity:0"] {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Clear any floats */
+.exercise-options-menu-row.buttons-row::before,
+.exercise-options-menu-row.buttons-row::after {
+    content: "" !important;
+    display: table !important;
+    clear: both !important;
+}

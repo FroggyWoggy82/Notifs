@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOMContentLoaded event fired');
-    
+
     const mainGoalInput = document.getElementById('mainGoalInput');
     const setMainGoalBtn = document.getElementById('setMainGoalBtn');
     const goalTree = document.getElementById('goalTree');
@@ -74,6 +74,24 @@ document.addEventListener('DOMContentLoaded', function() {
              goalActions.appendChild(deletePromoteButton);
         }
 
+
+        // Complete button
+        const completeButton = document.createElement('button');
+        completeButton.textContent = '✓'; // Checkmark
+        completeButton.className = 'complete-button action-button';
+        completeButton.title = "Complete this goal (Promote children)";
+        completeButton.style.display = 'none';
+        completeButton.addEventListener('click', handleCompleteGoal);
+        goalActions.appendChild(completeButton);
+
+        // Complete Chain button
+        const completeChainButton = document.createElement('button');
+        completeChainButton.textContent = '✓✓'; // Double checkmark
+        completeChainButton.className = 'complete-chain-button action-button';
+        completeChainButton.title = "Complete this goal AND all sub-goals";
+        completeChainButton.style.display = 'none';
+        completeChainButton.addEventListener('click', handleCompleteChainGoal);
+        goalActions.appendChild(completeChainButton);
 
         const deleteButton = document.createElement('button');
         deleteButton.textContent = '✕'; // Original delete symbol
@@ -480,9 +498,181 @@ document.addEventListener('DOMContentLoaded', function() {
         goalEditInput.removeAttribute('data-original-text');
     }
 
+    // Handler for completing a goal (promote children)
+    function handleCompleteGoal(event) {
+        event.stopPropagation();
+        const goalBox = event.target.closest('.goal-box');
+        const goalId = goalBox.getAttribute('data-id');
+
+        if (confirm('Complete this goal and promote its children? This action cannot be undone.')) {
+            fetch(`/api/goals/complete/${goalId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to complete goal');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Goal completed successfully:', data);
+                showNotification('Goal completed successfully!', 'success');
+                fetchAndRenderGoals(); // Reload the goals to reflect changes
+                loadCompletedGoals(); // Load the completed goals feed
+            })
+            .catch(error => {
+                console.error('Error completing goal:', error);
+                showNotification('Error completing goal: ' + error.message, 'error');
+            });
+        }
+    }
+
+    // Handler for completing a goal chain (complete goal and all descendants)
+    function handleCompleteChainGoal(event) {
+        event.stopPropagation();
+        const goalBox = event.target.closest('.goal-box');
+        const goalId = goalBox.getAttribute('data-id');
+
+        if (confirm('Complete this goal AND ALL its sub-goals? This action cannot be undone.')) {
+            fetch(`/api/goals/complete-chain/${goalId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to complete goal chain');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Goal chain completed successfully:', data);
+                showNotification(`Goal and ${data.goal.completedCount - 1} sub-goals completed successfully!`, 'success');
+                fetchAndRenderGoals(); // Reload the goals to reflect changes
+                loadCompletedGoals(); // Load the completed goals feed
+            })
+            .catch(error => {
+                console.error('Error completing goal chain:', error);
+                showNotification('Error completing goal chain: ' + error.message, 'error');
+            });
+        }
+    }
+
+    // Function to load completed goals
+    function loadCompletedGoals() {
+        fetch('/api/goals/completed')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch completed goals');
+                }
+                return response.json();
+            })
+            .then(completedGoals => {
+                renderCompletedGoalsFeed(completedGoals);
+            })
+            .catch(error => {
+                console.error('Error loading completed goals:', error);
+                showNotification('Error loading completed goals: ' + error.message, 'error');
+            });
+    }
+
+    // Function to render the completed goals feed
+    function renderCompletedGoalsFeed(completedGoals) {
+        const completedGoalsFeed = document.getElementById('completedGoalsFeed');
+
+        if (!completedGoalsFeed) {
+            console.error('Completed goals feed element not found');
+            return;
+        }
+
+        completedGoalsFeed.innerHTML = '';
+
+        if (completedGoals.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'empty-feed-message';
+            emptyMessage.textContent = 'No completed goals yet.';
+            completedGoalsFeed.appendChild(emptyMessage);
+            return;
+        }
+
+        // Group completed goals by date
+        const groupedByDate = {};
+        completedGoals.forEach(goal => {
+            const date = new Date(goal.completed_at).toLocaleDateString();
+            if (!groupedByDate[date]) {
+                groupedByDate[date] = [];
+            }
+            groupedByDate[date].push(goal);
+        });
+
+        // Create elements for each date group
+        Object.keys(groupedByDate).sort((a, b) => {
+            return new Date(b) - new Date(a); // Sort dates in descending order
+        }).forEach(date => {
+            const dateGroup = document.createElement('div');
+            dateGroup.className = 'completed-date-group';
+
+            const dateHeader = document.createElement('h3');
+            dateHeader.className = 'completed-date-header';
+            dateHeader.textContent = date;
+            dateGroup.appendChild(dateHeader);
+
+            const goalsList = document.createElement('ul');
+            goalsList.className = 'completed-goals-list';
+
+            groupedByDate[date].forEach(goal => {
+                const goalItem = document.createElement('li');
+                goalItem.className = 'completed-goal-item';
+
+                const goalText = document.createElement('span');
+                goalText.className = 'completed-goal-text';
+                goalText.textContent = goal.goal_text;
+
+                const completionTime = document.createElement('span');
+                completionTime.className = 'completed-goal-time';
+                completionTime.textContent = new Date(goal.completed_at).toLocaleTimeString();
+
+                const completionType = document.createElement('span');
+                completionType.className = `completed-goal-type ${goal.completion_type}`;
+                completionType.textContent = goal.completion_type === 'single' ? 'Completed' : 'Chain Completed';
+
+                goalItem.appendChild(goalText);
+                goalItem.appendChild(completionType);
+                goalItem.appendChild(completionTime);
+
+                goalsList.appendChild(goalItem);
+            });
+
+            dateGroup.appendChild(goalsList);
+            completedGoalsFeed.appendChild(dateGroup);
+        });
+    }
+
+    // Helper function to show notifications
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }, 5000);
+    }
+
     setMainGoalBtn.addEventListener('click', handleSetMainGoal);
     console.log('Event listeners attached');
 
     console.log('Initiating initial load of goals');
     fetchAndRenderGoals();
+    loadCompletedGoals(); // Load completed goals on page load
 });

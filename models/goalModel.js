@@ -241,11 +241,156 @@ async function updateGoal(goalId, text) {
     return result.rows[0];
 }
 
+/**
+ * Complete a goal and promote its children to its parent
+ * @param {number} goalId - The ID of the goal to complete
+ * @returns {Promise<Object>} - Promise resolving to the completed goal
+ */
+async function completeGoal(goalId) {
+    if (!/^[1-9]\d*$/.test(goalId)) {
+        throw new Error('Invalid goal ID format');
+    }
+
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Get the goal to be completed and its parent ID
+        const goalResult = await client.query(
+            'SELECT * FROM goals WHERE id = $1',
+            [goalId]
+        );
+
+        if (goalResult.rows.length === 0) {
+            throw new Error(`Goal with ID ${goalId} not found`);
+        }
+
+        const goal = goalResult.rows[0];
+        const parentId = goal.parent_id;
+
+        // 2. Insert into completed_goals table
+        await client.query(
+            'INSERT INTO completed_goals (goal_id, goal_text, parent_id, completion_type) VALUES ($1, $2, $3, $4)',
+            [goalId, goal.text, parentId, 'single']
+        );
+
+        // 3. Update all children to point to the grandparent
+        await client.query(
+            'UPDATE goals SET parent_id = $1 WHERE parent_id = $2',
+            [parentId, goalId]
+        );
+
+        // 4. Delete the goal
+        await client.query(
+            'DELETE FROM goals WHERE id = $1',
+            [goalId]
+        );
+
+        await client.query('COMMIT');
+        return { id: parseInt(goalId), text: goal.text, parent_id: parentId };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
+/**
+ * Complete a goal and all its descendants
+ * @param {number} goalId - The ID of the goal to complete
+ * @returns {Promise<Object>} - Promise resolving to the completed goals
+ */
+async function completeGoalChain(goalId) {
+    if (!/^[1-9]\d*$/.test(goalId)) {
+        throw new Error('Invalid goal ID format');
+    }
+
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Get the goal and all its descendants
+        const goalResult = await client.query(
+            'WITH RECURSIVE goal_tree AS (
+                SELECT id, text, parent_id FROM goals WHERE id = $1
+                UNION ALL
+                SELECT g.id, g.text, g.parent_id FROM goals g
+                JOIN goal_tree gt ON g.parent_id = gt.id
+            )
+            SELECT * FROM goal_tree',
+            [goalId]
+        );
+
+        if (goalResult.rows.length === 0) {
+            throw new Error(`Goal with ID ${goalId} not found`);
+        }
+
+        // 2. Get the main goal to return its details
+        const mainGoalResult = await client.query(
+            'SELECT * FROM goals WHERE id = $1',
+            [goalId]
+        );
+
+        if (mainGoalResult.rows.length === 0) {
+            throw new Error(`Main goal with ID ${goalId} not found`);
+        }
+
+        const mainGoal = mainGoalResult.rows[0];
+
+        // 3. Insert all goals into completed_goals table
+        for (const goal of goalResult.rows) {
+            await client.query(
+                'INSERT INTO completed_goals (goal_id, goal_text, parent_id, completion_type) VALUES ($1, $2, $3, $4)',
+                [goal.id, goal.text, goal.parent_id, 'chain']
+            );
+        }
+
+        // 4. Delete all goals in the chain
+        const goalIds = goalResult.rows.map(g => g.id);
+        await client.query(
+            'DELETE FROM goals WHERE id = ANY($1::int[])',
+            [goalIds]
+        );
+
+        await client.query('COMMIT');
+        return {
+            id: parseInt(goalId),
+            text: mainGoal.text,
+            parent_id: mainGoal.parent_id,
+            completedCount: goalResult.rows.length
+        };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
+/**
+ * Get completed goals history
+ * @param {number} limit - Maximum number of completed goals to return
+ * @returns {Promise<Array>} - Promise resolving to an array of completed goals
+ */
+async function getCompletedGoals(limit = 50) {
+    const result = await db.query(
+        'SELECT * FROM completed_goals ORDER BY completed_at DESC LIMIT $1',
+        [limit]
+    );
+    return result.rows;
+}
+
 module.exports = {
     getAllGoals,
     createGoal,
     insertGoalBetween,
     deleteGoalAndPromoteChildren,
     deleteGoalCascade,
-    updateGoal
+    updateGoal,
+    completeGoal,
+    completeGoalChain,
+    getCompletedGoals
 };
