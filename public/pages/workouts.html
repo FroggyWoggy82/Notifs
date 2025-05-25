@@ -132,7 +132,6 @@
                 <!-- Photo Gallery Display -->
                 <div class="gallery-section" style="margin-bottom: 5px;">
                     <div class="photo-navigation-container">
-                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" onclick="if(typeof showPreviousPhoto === 'function') { showPreviousPhoto(); return false; }" disabled>&lt;</button>
                         <div class="photo-slider-container">
                             <div class="photo-viewport"> <!-- Clipping container -->
                                 <div class="photo-reel"> <!-- Image strip that moves -->
@@ -140,15 +139,18 @@
                                 </div>
                             </div>
                         </div>
-                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" onclick="if(typeof showNextPhoto === 'function') { showNextPhoto(); return false; }" disabled>&gt;</button>
                     </div>
                     <!-- ADDED Pagination Dots Container -->
                     <div class="pagination-dots">
                         <!-- Dots will be added here by JS -->
                     </div>
-                    <!-- NEW Element for Date Display -->
-                    <div id="current-photo-date-display" style="text-align: center; margin-top: 8px; color: #bbb; font-size: 0.9rem;">
-                        <!-- Date will be added here by JS -->
+                    <!-- NEW Element for Date Display with navigation arrows -->
+                    <div class="date-navigation-container" style="display: flex; align-items: center; justify-content: center; margin-top: 8px;">
+                        <button id="photo-prev-btn" class="slider-nav-btn prev" title="Previous Photo" onclick="if(typeof showPreviousPhoto === 'function') { showPreviousPhoto(); return false; }" disabled>&lt;</button>
+                        <div id="current-photo-date-display" style="text-align: center; color: #bbb; font-size: 0.9rem; margin: 0 10px;">
+                            <!-- Date will be added here by JS -->
+                        </div>
+                        <button id="photo-next-btn" class="slider-nav-btn next" title="Next Photo" onclick="if(typeof showNextPhoto === 'function') { showNextPhoto(); return false; }" disabled>&gt;</button>
                     </div>
                 </div>
             </div>

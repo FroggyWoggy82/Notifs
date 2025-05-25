@@ -37,7 +37,7 @@ async function getMealById(req, res) {
     try {
         const { id } = req.params;
         const userId = req.query.user_id || 1;
-        
+
         const meal = await MealModel.getMealById(id, userId);
         res.json({
             success: true,
@@ -45,7 +45,7 @@ async function getMealById(req, res) {
         });
     } catch (error) {
         console.error('Error in getMealById controller:', error);
-        
+
         if (error.message === 'Meal not found') {
             return res.status(404).json({
                 success: false,
@@ -53,7 +53,7 @@ async function getMealById(req, res) {
                 error: error.message
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: 'Server error getting meal',
@@ -71,7 +71,26 @@ async function createMeal(req, res) {
     try {
         const mealData = req.body;
         const userId = req.body.user_id || 1;
-        
+
+        // Parse ingredients if they come as a JSON string (from FormData)
+        if (typeof mealData.ingredients === 'string') {
+            try {
+                mealData.ingredients = JSON.parse(mealData.ingredients);
+            } catch (parseError) {
+                console.error('Error parsing ingredients JSON:', parseError);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid ingredients format',
+                    error: parseError.message
+                });
+            }
+        }
+
+        // Handle uploaded photo
+        if (req.file) {
+            mealData.photo_url = `/uploads/meal_photos/${req.file.filename}`;
+        }
+
         const meal = await MealModel.createMeal(mealData, userId);
         res.status(201).json({
             success: true,
@@ -80,7 +99,7 @@ async function createMeal(req, res) {
         });
     } catch (error) {
         console.error('Error in createMeal controller:', error);
-        
+
         if (error.message.includes('required')) {
             return res.status(400).json({
                 success: false,
@@ -88,7 +107,7 @@ async function createMeal(req, res) {
                 error: error.message
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: 'Server error creating meal',
@@ -107,7 +126,7 @@ async function updateMeal(req, res) {
         const { id } = req.params;
         const mealData = req.body;
         const userId = req.body.user_id || 1;
-        
+
         const meal = await MealModel.updateMeal(id, mealData, userId);
         res.json({
             success: true,
@@ -116,7 +135,7 @@ async function updateMeal(req, res) {
         });
     } catch (error) {
         console.error('Error in updateMeal controller:', error);
-        
+
         if (error.message.includes('required')) {
             return res.status(400).json({
                 success: false,
@@ -124,7 +143,7 @@ async function updateMeal(req, res) {
                 error: error.message
             });
         }
-        
+
         if (error.message.includes('not found')) {
             return res.status(404).json({
                 success: false,
@@ -132,7 +151,7 @@ async function updateMeal(req, res) {
                 error: error.message
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: 'Server error updating meal',
@@ -150,7 +169,7 @@ async function deleteMeal(req, res) {
     try {
         const { id } = req.params;
         const userId = req.query.user_id || 1;
-        
+
         const result = await MealModel.deleteMeal(id, userId);
         res.json({
             success: true,
@@ -159,7 +178,7 @@ async function deleteMeal(req, res) {
         });
     } catch (error) {
         console.error('Error in deleteMeal controller:', error);
-        
+
         if (error.message.includes('not found')) {
             return res.status(404).json({
                 success: false,
@@ -167,7 +186,7 @@ async function deleteMeal(req, res) {
                 error: error.message
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: 'Server error deleting meal',

@@ -92,22 +92,73 @@ function debugPoints() {
         const goalDataset = window.weightGoalChart.data.datasets[1];
 
         goalDataset.pointRadius = function(context) {
-            return 8; // Make all points visible with 8px radius
-        };
-
-        goalDataset.pointBackgroundColor = function(context) {
-
+            // Check if this is a weekly goal point from the stored weekly goal weights
             if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
-                const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === context.dataIndex);
-
-                if (weeklyPoint) {
-
-                    const colors = ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40', '#c9cbcf'];
-                    return colors[weeklyPoint.week % colors.length];
+                const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                if (isWeeklyPoint) {
+                    return 8; // Larger radius for weekly points
                 }
             }
 
-            return '#ff6384'; // Default red for other points
+            // Fallback: Check if this is a weekly point (every 7th point from the start)
+            let startIndex = -1;
+            const dataset = context.dataset;
+
+            if (dataset && dataset.data) {
+                for (let i = 0; i < dataset.data.length; i++) {
+                    if (dataset.data[i] && dataset.data[i].y !== null && dataset.data[i].y !== undefined) {
+                        startIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // If this is a weekly point, show it
+            if (startIndex !== -1 && (context.dataIndex - startIndex) % 7 === 0 && dataset.data[context.dataIndex] && dataset.data[context.dataIndex].y !== null) {
+                return 8; // Larger radius for weekly points
+            }
+
+            return 2; // Show small dots for all other goal line points
+        };
+
+        goalDataset.pointBackgroundColor = function(context) {
+            // Color weekly points based on whether they're in the past or future
+            if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === context.dataIndex);
+                if (weeklyPoint) {
+                    const pointDate = new Date(weeklyPoint.date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    // Past points are teal, future points are red
+                    return pointDate < today ? '#1abc9c' : '#e74c3c';
+                }
+            }
+
+            // Fallback: Check if this is a weekly point (every 7th point from the start)
+            let startIndex = -1;
+            const dataset = context.dataset;
+
+            if (dataset && dataset.data) {
+                for (let i = 0; i < dataset.data.length; i++) {
+                    if (dataset.data[i] && dataset.data[i].y !== null && dataset.data[i].y !== undefined) {
+                        startIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // If this is a weekly point, color it red (default for goal points)
+            if (startIndex !== -1 && (context.dataIndex - startIndex) % 7 === 0 && dataset.data[context.dataIndex] && dataset.data[context.dataIndex].y !== null) {
+                return '#e74c3c'; // Red for weekly goal points
+            }
+
+            // Show all other goal line points with a semi-transparent red
+            if (dataset.data[context.dataIndex] && dataset.data[context.dataIndex].y !== null) {
+                return 'rgba(231, 76, 60, 0.3)'; // Semi-transparent red for other goal points
+            }
+
+            return 'transparent';
         };
 
         goalDataset.pointBorderColor = '#ffffff';
@@ -173,12 +224,33 @@ function debugPoints() {
             const goalDataset = window.weightGoalChart.data.datasets[1];
 
             goalDataset.pointRadius = function(context) {
-
+                // Check if this is a weekly goal point from the stored weekly goal weights
                 if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
                     const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
-                    return isWeeklyPoint ? 3 : 0; // 3px radius for weekly points, 0 for others
+                    if (isWeeklyPoint) {
+                        return 8; // Larger radius for weekly points
+                    }
                 }
-                return 0;
+
+                // Fallback: Check if this is a weekly point (every 7th point from the start)
+                let startIndex = -1;
+                const dataset = context.dataset;
+
+                if (dataset && dataset.data) {
+                    for (let i = 0; i < dataset.data.length; i++) {
+                        if (dataset.data[i] && dataset.data[i].y !== null && dataset.data[i].y !== undefined) {
+                            startIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                // If this is a weekly point, show it
+                if (startIndex !== -1 && (context.dataIndex - startIndex) % 7 === 0 && dataset.data[context.dataIndex] && dataset.data[context.dataIndex].y !== null) {
+                    return 8; // Larger radius for weekly points
+                }
+
+                return 2; // Show small dots for all other goal line points
             };
 
             goalDataset.pointBackgroundColor = function(context) {
@@ -335,7 +407,7 @@ function enablePointSelection() {
                 100% { opacity: 0.7; }
             }
 
-            
+
             #weight-goal-chart {
                 cursor: pointer !important;
             }
@@ -364,12 +436,33 @@ function enablePointSelection() {
                 }
 
                 goalDataset.pointRadius = function(context) {
-                    const index = context.dataIndex;
-
-                    if (futureIndices.includes(index)) {
-                        return 10; // Make future points larger
+                    // Check if this is a weekly goal point from the stored weekly goal weights
+                    if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                        const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                        if (isWeeklyPoint) {
+                            return 8; // Larger radius for weekly points
+                        }
                     }
-                    return 3; // Keep past points small
+
+                    // Fallback: Check if this is a weekly point (every 7th point from the start)
+                    let startIndex = -1;
+                    const dataset = context.dataset;
+
+                    if (dataset && dataset.data) {
+                        for (let i = 0; i < dataset.data.length; i++) {
+                            if (dataset.data[i] && dataset.data[i].y !== null && dataset.data[i].y !== undefined) {
+                                startIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    // If this is a weekly point, show it
+                    if (startIndex !== -1 && (context.dataIndex - startIndex) % 7 === 0 && dataset.data[context.dataIndex] && dataset.data[context.dataIndex].y !== null) {
+                        return 8; // Larger radius for weekly points
+                    }
+
+                    return 2; // Show small dots for all other goal line points
                 };
 
                 goalDataset.pointBackgroundColor = function(context) {
@@ -517,12 +610,33 @@ function disablePointSelection() {
         const futureIndices = window.weeklyGoalWeights ? window.weeklyGoalWeights.map(w => w.index) : [];
 
         goalDataset.pointRadius = function(context) {
-            const index = context.dataIndex;
-
-            if (futureIndices.includes(index)) {
-                return 5; // Make future points visible but not too large
+            // Check if this is a weekly goal point from the stored weekly goal weights
+            if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
+                const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
+                if (isWeeklyPoint) {
+                    return 8; // Larger radius for weekly points
+                }
             }
-            return 3; // Keep past points small
+
+            // Fallback: Check if this is a weekly point (every 7th point from the start)
+            let startIndex = -1;
+            const dataset = context.dataset;
+
+            if (dataset && dataset.data) {
+                for (let i = 0; i < dataset.data.length; i++) {
+                    if (dataset.data[i] && dataset.data[i].y !== null && dataset.data[i].y !== undefined) {
+                        startIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // If this is a weekly point, show it
+            if (startIndex !== -1 && (context.dataIndex - startIndex) % 7 === 0 && dataset.data[context.dataIndex] && dataset.data[context.dataIndex].y !== null) {
+                return 8; // Larger radius for weekly points
+            }
+
+            return 2; // Show small dots for all other goal line points
         };
 
         goalDataset.pointBackgroundColor = function(context) {
@@ -786,22 +900,38 @@ function updateChartSelection() {
     goalDataset.pointRadius = function(context) {
         const index = context.dataIndex;
 
-        if (futureIndices.includes(index)) {
-
+        // Check if this is a weekly goal point from the stored weekly goal weights
+        if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
             const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === index);
-
             if (weeklyPoint) {
-
+                // Check if this week is selected
                 const isSelected = selectedWeeks.includes(weeklyPoint.week);
-
                 if (isSelected) {
                     return 18; // Larger radius for selected points
                 }
+                return 8; // Normal radius for weekly points
             }
-            return 15; // Normal radius for future points
         }
 
-        return 3; // Small radius for past points
+        // Fallback: Check if this is a weekly point (every 7th point from the start)
+        let startIndex = -1;
+        const dataset = context.dataset;
+
+        if (dataset && dataset.data) {
+            for (let i = 0; i < dataset.data.length; i++) {
+                if (dataset.data[i] && dataset.data[i].y !== null && dataset.data[i].y !== undefined) {
+                    startIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // If this is a weekly point, show it
+        if (startIndex !== -1 && (context.dataIndex - startIndex) % 7 === 0 && dataset.data[context.dataIndex] && dataset.data[context.dataIndex].y !== null) {
+            return 8; // Larger radius for weekly points
+        }
+
+        return 2; // Show small dots for all other goal line points
     };
 
     window.weightGoalChart.update();

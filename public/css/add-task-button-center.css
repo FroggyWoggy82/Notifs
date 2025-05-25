@@ -1,90 +1,80 @@
-/* Center the Add Task button in the modal and ensure it's white */
-#addTaskModal .button-container {
+/**
+ * Add Task Button Center Fix
+ * Centers the Add Task button in the modal and ensures consistent styling
+ */
+
+/* Center the Add Task button in the modal */
+#addTaskModal button[type="submit"],
+#addTaskModal #addTaskBtn,
+#editTaskModal button[type="submit"],
+#editTaskModal #saveTaskBtn {
+    display: block !important;
+    margin: 15px auto !important;
+    text-align: center !important;
+    width: auto !important;
+    min-width: 120px !important;
+    max-width: 200px !important;
+}
+
+/* Ensure the button container is centered */
+#addTaskModal .button-container,
+#editTaskModal .button-container,
+#addTaskModal form > div:last-child,
+#editTaskModal form > div:last-child {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    margin-top: 20px !important;
     width: 100% !important;
+    margin: 15px 0 !important;
     text-align: center !important;
 }
 
-/* High specificity to override all other button styles */
-#addTaskModal .button-container #addTaskBtn,
+/* Override any conflicting inline styles */
+#addTaskModal button[type="submit"][style],
+#addTaskModal #addTaskBtn[style],
+#editTaskModal button[type="submit"][style],
+#editTaskModal #saveTaskBtn[style] {
+    display: block !important;
+    margin: 15px auto !important;
+    text-align: center !important;
+}
+
+/* Ensure consistent button styling */
+#addTaskModal button[type="submit"],
 #addTaskModal #addTaskBtn,
-.modal-content #addTaskBtn,
-button#addTaskBtn {
-    background-color: #ffffff !important;
+#editTaskModal button[type="submit"],
+#editTaskModal #saveTaskBtn {
+    background-color: white !important;
     color: #121212 !important;
-    min-width: 120px !important;
+    padding: 8px 16px !important;
+    border: none !important;
     border-radius: 4px !important;
-    padding: 10px 15px !important;
     font-weight: 500 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
-    margin: 0 !important;
-    display: inline-block !important;
-    text-align: center !important;
-    width: auto !important;
-}
-
-#addTaskModal .button-container #addTaskBtn:hover,
-#addTaskModal #addTaskBtn:hover,
-.modal-content #addTaskBtn:hover,
-button#addTaskBtn:hover {
-    background-color: #f5f5f5 !important;
-    color: #121212 !important;
-    transform: none !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Style the subtasks header to put the Add Subtask button next to the label */
-/* Use maximum specificity to override ALL other CSS files */
-html body div#addTaskModal div.modal-content form#addTaskForm div.form-group div.subtasks-header,
-html body #addTaskModal .modal-content .subtasks-header,
-html body #addTaskModal .subtasks-header,
-html body .modal-content #addTaskModal .subtasks-header,
-body div#addTaskModal div.modal-content div.subtasks-header {
-    display: flex !important;
-    justify-content: flex-start !important; /* Override space-between */
-    align-items: center !important;
-    gap: 10px !important;
-    margin-bottom: 10px !important;
-    flex-direction: row !important;
-}
-
-html body #addTaskModal .subtasks-header .form-label,
-html body #addTaskModal .modal-content .subtasks-header .form-label {
-    margin: 0 !important;
-    margin-right: 10px !important;
-    flex-shrink: 0 !important;
-    /* Keep the original label color, don't make it green */
-}
-
-html body div#addTaskModal div.modal-content form#addTaskForm div.form-group div.subtasks-header button#addSubtaskBtn,
-html body #addTaskModal .subtasks-header #addSubtaskBtn,
-html body #addTaskModal .modal-content .subtasks-header #addSubtaskBtn,
-html body #addTaskModal .subtasks-header button[id="addSubtaskBtn"],
-body div#addTaskModal button#addSubtaskBtn {
-    background-color: #ffffff !important;
-    color: #121212 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 4px !important;
-    padding: 6px 12px !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
-    margin: 0 !important; /* Remove any auto margins */
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    align-self: initial !important; /* Override any center alignment */
-    flex-shrink: 0 !important;
-    order: 2 !important;
 }
 
-html body #addTaskModal .subtasks-header #addSubtaskBtn:hover,
-html body #addTaskModal .modal-content .subtasks-header #addSubtaskBtn:hover {
+/* Hover effect for buttons */
+#addTaskModal button[type="submit"]:hover,
+#addTaskModal #addTaskBtn:hover,
+#editTaskModal button[type="submit"]:hover,
+#editTaskModal #saveTaskBtn:hover {
     background-color: #f5f5f5 !important;
-    color: #121212 !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Fix for any flex container issues */
+#addTaskModal .modal-content,
+#editTaskModal .modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#addTaskModal form,
+#editTaskModal form {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
 }

@@ -1,6 +1,7 @@
 
 
 
+/* Legacy weight goal section styling */
 #weight-goal-section {
     margin-top: 15px;
     padding: 15px;
@@ -8,6 +9,17 @@
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* New unified goals section styling */
+#unified-goals-section {
+    margin-top: 15px;
+    padding: 20px;
+    background-color: rgba(20, 20, 20, 0.4);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     margin-bottom: 20px;
 }
 
@@ -282,6 +294,7 @@
 }
 
 
+/* Legacy goals grid container - keeping for compatibility */
 .goals-grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -289,13 +302,114 @@
     margin-bottom: 20px;
 }
 
+/* Single unified box with form elements in 2x2 grid layout */
+.unified-goals-box {
+    background-color: rgba(30, 30, 30, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+}
 
+.unified-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 20px 0;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+/* Main 2x2 grid for primary form elements */
+.form-grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Additional targets in a horizontal row */
+.additional-targets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Action section with help text and buttons */
+.action-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.help-text-container {
+    flex: 1;
+}
+
+.help-text {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.button-group .save-goal-btn,
+.button-group .save-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    min-width: 120px;
+}
+
+/* Status section */
+.status-section {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.status-section .status {
+    font-size: 0.8rem;
+    text-align: center;
+    flex: 1;
+}
+
+
+/* Legacy goal card styling - keeping for compatibility */
 .goal-card {
     background-color: rgba(30, 30, 30, 0.2);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 12px 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Form group styling within the unified box */
+.unified-goals-box .form-group {
+    margin-bottom: 0;
+}
+
+.unified-goals-box .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+}
+
+.unified-goals-box .form-group input {
+    width: 100%;
+}
+
+.unified-goals-box .current-display {
+    width: 100%;
 }
 
 .goal-card-title {
@@ -314,6 +428,77 @@
     flex-direction: row;
     gap: 15px;
     margin-bottom: 15px;
+}
+
+
+
+/* Responsive design for unified goals box */
+@media (max-width: 768px) {
+    .form-grid-2x2 {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, auto);
+        gap: 12px;
+    }
+
+    .additional-targets {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(2, auto);
+        gap: 10px;
+    }
+
+    .unified-goals-box {
+        padding: 15px;
+    }
+
+    .action-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .help-text-container {
+        text-align: center;
+    }
+
+    .button-group {
+        justify-content: center;
+    }
+
+    .status-section {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .unified-goals-box {
+        padding: 12px;
+    }
+
+    .form-grid-2x2 {
+        gap: 10px;
+    }
+
+    .additional-targets {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .unified-title {
+        font-size: 1rem;
+        margin-bottom: 15px;
+    }
+
+    .button-group .save-goal-btn,
+    .button-group .save-btn {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+        min-width: 100px;
+    }
+
+    .help-text {
+        font-size: 0.7rem;
+    }
 }
 
 
@@ -471,18 +656,55 @@
     background-color: rgba(20, 20, 20, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    height: 34px;
+    height: 38px;
     display: flex;
     align-items: center;
-    padding: 0 10px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
-#current-calorie-target {
+/* Ensure all current target displays match input field sizing exactly */
+.form-group .current-display {
+    height: 38px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(20, 20, 20, 0.6);
+    color: #ffffff;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Ensure all target input fields have the same height as calorie-target */
+#calorie-target,
+#protein-target,
+#fat-target {
+    height: 38px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(20, 20, 20, 0.6);
+    color: #ffffff;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure current target spans have consistent styling */
+#current-calorie-target,
+#current-protein-target,
+#current-fat-target {
     color: #ffffff;
     font-weight: 500;
     font-size: 0.9rem;
+    margin: 0;
+    padding: 0;
 }
-
 
 .user-selector-container {
     display: flex;

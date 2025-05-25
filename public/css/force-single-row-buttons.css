@@ -3,7 +3,7 @@
  * Ultra-aggressive fix to force all buttons into a single row
  */
 
-/* NUCLEAR OPTION: Force everything into a single row with even spacing */
+/* NUCLEAR OPTION: Force everything into a single row with COMPACT spacing */
 .exercise-options-menu-row.buttons-row,
 .exercise-options-menu .exercise-options-menu-row.buttons-row {
     display: flex !important;
@@ -11,18 +11,18 @@
     flex-wrap: nowrap !important;
     justify-content: space-evenly !important;
     align-items: center !important;
-    gap: 4px !important;
-    padding: 5px !important;
+    gap: 2px !important;
+    padding: 3px !important;
     width: 100% !important;
     height: auto !important;
-    min-height: 30px !important;
-    max-height: 35px !important;
+    min-height: 28px !important;
+    max-height: 32px !important;
     position: relative !important;
     overflow: visible !important;
     box-sizing: border-box !important;
 }
 
-/* Force EVERY element in the buttons row to be inline with consistent height and spacing */
+/* Force EVERY element in the buttons row to be inline with consistent height and COMPACT spacing */
 .exercise-options-menu-row.buttons-row *,
 .exercise-options-menu-row.buttons-row button,
 .exercise-options-menu-row.buttons-row .btn-view-exercise,
@@ -39,8 +39,8 @@
     visibility: visible !important;
     z-index: 10 !important;
     margin: 0 !important;
-    padding: 2px 4px !important;
-    flex-shrink: 0 !important;
+    padding: 1px 2px !important;
+    flex-shrink: 1 !important;
     flex-grow: 1 !important;
     flex-basis: 0 !important;
     order: initial !important;
@@ -50,23 +50,18 @@
     right: auto !important;
     transform: none !important;
     width: auto !important;
-    height: 26px !important;
-    min-width: 20px !important;
-    min-height: 26px !important;
+    height: 24px !important;
+    min-width: 18px !important;
+    min-height: 24px !important;
     max-width: none !important;
-    max-height: 26px !important;
+    max-height: 24px !important;
     align-items: center !important;
     justify-content: center !important;
     box-sizing: border-box !important;
+    font-size: 0.8rem !important;
 }
 
-/* Reduce padding for specific buttons that contain more text */
-.exercise-options-menu-row.buttons-row .btn-view-exercise,
-.exercise-options-menu-row.buttons-row .view-history-btn {
-    padding: 2px 2px !important;
-}
-
-/* Ultra-specific targeting for the delete exercise button with consistent height and spacing */
+/* Ultra-specific targeting for the delete exercise button with COMPACT sizing */
 .exercise-options-menu .btn-delete-exercise,
 .exercise-options-menu button[data-action="delete-exercise"],
 .exercise-options-menu button.delete-exercise-btn,
@@ -80,18 +75,18 @@
     visibility: visible !important;
     z-index: 999 !important;
     margin: 0 !important;
-    padding: 2px 4px !important;
+    padding: 1px 2px !important;
     background-color: #ffffff !important;
     color: #121212 !important;
     border: 1px solid #ccc !important;
     border-radius: 4px !important;
     width: auto !important;
-    height: 26px !important;
-    min-width: 26px !important;
-    min-height: 26px !important;
+    height: 24px !important;
+    min-width: 18px !important;
+    min-height: 24px !important;
     max-width: none !important;
-    max-height: 26px !important;
-    flex-shrink: 0 !important;
+    max-height: 24px !important;
+    flex-shrink: 1 !important;
     flex-grow: 1 !important;
     flex-basis: 0 !important;
     order: 10 !important;
@@ -103,6 +98,7 @@
     align-items: center !important;
     justify-content: center !important;
     box-sizing: border-box !important;
+    font-size: 0.8rem !important;
 }
 
 /* Remove any absolute positioning */

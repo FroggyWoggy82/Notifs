@@ -50,16 +50,17 @@
                 buttonsRow.appendChild(deleteExerciseButton);
             }
 
-            // Style the close button with consistent height and spacing
+            // Style the close button with compact dimensions
             closeButton.style.backgroundColor = '#ffffff';
             closeButton.style.color = '#121212';
             closeButton.style.border = 'none';
             closeButton.style.borderRadius = '4px';
             closeButton.style.width = 'auto';
-            closeButton.style.height = '26px';
-            closeButton.style.minHeight = '26px';
-            closeButton.style.maxHeight = '26px';
-            closeButton.style.fontSize = '14px';
+            closeButton.style.height = '24px';
+            closeButton.style.minHeight = '24px';
+            closeButton.style.maxHeight = '24px';
+            closeButton.style.minWidth = '18px';
+            closeButton.style.fontSize = '0.8rem';
             closeButton.style.display = 'inline-flex';
             closeButton.style.alignItems = 'center';
             closeButton.style.justifyContent = 'center';
@@ -68,72 +69,76 @@
             closeButton.style.boxShadow = '0 2px 5px rgba(255, 255, 255, 0.2)';
             closeButton.style.position = 'static';
             closeButton.style.margin = '0';
-            closeButton.style.padding = '2px 4px';
+            closeButton.style.padding = '1px 2px';
             closeButton.style.zIndex = '10';
             closeButton.style.opacity = '1';
             closeButton.style.visibility = 'visible';
             closeButton.style.boxSizing = 'border-box';
-            closeButton.style.flexShrink = '0';
+            closeButton.style.flexShrink = '1';
             closeButton.style.flexGrow = '1';
             closeButton.style.flexBasis = '0';
 
-            // Style the delete workout button if it exists with consistent height and spacing
+            // Style the delete workout button if it exists with compact dimensions
             if (deleteWorkoutButton) {
                 deleteWorkoutButton.style.display = 'inline-flex';
                 deleteWorkoutButton.style.position = 'static';
                 deleteWorkoutButton.style.zIndex = '10';
                 deleteWorkoutButton.style.margin = '0';
-                deleteWorkoutButton.style.padding = '2px 4px';
+                deleteWorkoutButton.style.padding = '1px 2px';
                 deleteWorkoutButton.style.backgroundColor = '#ffffff';
                 deleteWorkoutButton.style.color = '#121212';
-                deleteWorkoutButton.style.height = '26px';
-                deleteWorkoutButton.style.minHeight = '26px';
-                deleteWorkoutButton.style.maxHeight = '26px';
+                deleteWorkoutButton.style.height = '24px';
+                deleteWorkoutButton.style.minHeight = '24px';
+                deleteWorkoutButton.style.maxHeight = '24px';
+                deleteWorkoutButton.style.minWidth = '18px';
                 deleteWorkoutButton.style.alignItems = 'center';
                 deleteWorkoutButton.style.justifyContent = 'center';
                 deleteWorkoutButton.style.boxSizing = 'border-box';
-                deleteWorkoutButton.style.flexShrink = '0';
+                deleteWorkoutButton.style.fontSize = '0.8rem';
+                deleteWorkoutButton.style.flexShrink = '1';
                 deleteWorkoutButton.style.flexGrow = '1';
                 deleteWorkoutButton.style.flexBasis = '0';
             }
 
-            // Style the delete exercise button if it exists with consistent height and spacing
+            // Style the delete exercise button if it exists with compact dimensions
             if (deleteExerciseButton) {
                 deleteExerciseButton.style.display = 'inline-flex';
                 deleteExerciseButton.style.position = 'static';
                 deleteExerciseButton.style.zIndex = '10';
                 deleteExerciseButton.style.margin = '0';
-                deleteExerciseButton.style.padding = '2px 4px';
+                deleteExerciseButton.style.padding = '1px 2px';
                 deleteExerciseButton.style.backgroundColor = '#ffffff';
                 deleteExerciseButton.style.color = '#121212';
                 deleteExerciseButton.style.opacity = '1';
                 deleteExerciseButton.style.visibility = 'visible';
-                deleteExerciseButton.style.height = '26px';
-                deleteExerciseButton.style.minHeight = '26px';
-                deleteExerciseButton.style.maxHeight = '26px';
+                deleteExerciseButton.style.height = '24px';
+                deleteExerciseButton.style.minHeight = '24px';
+                deleteExerciseButton.style.maxHeight = '24px';
+                deleteExerciseButton.style.minWidth = '18px';
                 deleteExerciseButton.style.alignItems = 'center';
                 deleteExerciseButton.style.justifyContent = 'center';
                 deleteExerciseButton.style.boxSizing = 'border-box';
-                deleteExerciseButton.style.flexShrink = '0';
+                deleteExerciseButton.style.fontSize = '0.8rem';
+                deleteExerciseButton.style.flexShrink = '1';
                 deleteExerciseButton.style.flexGrow = '1';
                 deleteExerciseButton.style.flexBasis = '0';
             }
 
-            // AGGRESSIVE STYLING: Force buttons row to be a single row with even spacing
+            // COMPACT STYLING: Force buttons row to be a single row with compact spacing
             buttonsRow.style.display = 'flex';
             buttonsRow.style.flexDirection = 'row';
             buttonsRow.style.flexWrap = 'nowrap';
             buttonsRow.style.justifyContent = 'space-evenly';
             buttonsRow.style.alignItems = 'center';
-            buttonsRow.style.gap = '4px';
-            buttonsRow.style.padding = '5px';
+            buttonsRow.style.gap = '2px';
+            buttonsRow.style.padding = '3px';
             buttonsRow.style.width = '100%';
             buttonsRow.style.position = 'relative';
-            buttonsRow.style.minHeight = '32px';
-            buttonsRow.style.maxHeight = '40px';
+            buttonsRow.style.minHeight = '28px';
+            buttonsRow.style.maxHeight = '32px';
             buttonsRow.style.overflow = 'visible';
 
-            // AGGRESSIVE STYLING: Force all buttons to be inline and visible with consistent height and spacing
+            // COMPACT STYLING: Force all buttons to be inline and visible with compact dimensions
             const allButtons = buttonsRow.querySelectorAll('*');
             allButtons.forEach(element => {
                 if (element.tagName === 'BUTTON' || element.classList.contains('btn-')) {
@@ -144,26 +149,18 @@
                     element.style.visibility = 'visible';
                     element.style.zIndex = '10';
                     element.style.margin = '0';
-
-                    // Reduce padding for Add Video and History buttons
-                    if (element.classList.contains('btn-view-exercise') ||
-                        element.classList.contains('view-history-btn') ||
-                        element.textContent.includes('Add Video') ||
-                        element.textContent.includes('History')) {
-                        element.style.padding = '2px 2px';
-                    } else {
-                        element.style.padding = '2px 4px';
-                    }
-
-                    element.style.flexShrink = '0';
+                    element.style.padding = '1px 2px';
+                    element.style.flexShrink = '1';
                     element.style.flexGrow = '1';
                     element.style.flexBasis = '0';
-                    element.style.height = '26px';
-                    element.style.minHeight = '26px';
-                    element.style.maxHeight = '26px';
+                    element.style.height = '24px';
+                    element.style.minHeight = '24px';
+                    element.style.maxHeight = '24px';
+                    element.style.minWidth = '18px';
                     element.style.alignItems = 'center';
                     element.style.justifyContent = 'center';
                     element.style.boxSizing = 'border-box';
+                    element.style.fontSize = '0.8rem';
                     element.style.top = 'auto';
                     element.style.bottom = 'auto';
                     element.style.left = 'auto';

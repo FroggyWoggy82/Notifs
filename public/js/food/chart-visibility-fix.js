@@ -60,15 +60,27 @@
                             window.weightGoalChart.data.datasets[0].data &&
                             window.weightGoalChart.data.datasets[0].data.length > 0;
 
+            console.log('[Chart Visibility Fix] Chart data check:', {
+                hasChart: !!window.weightGoalChart,
+                hasData: hasData,
+                datasets: window.weightGoalChart?.data?.datasets?.length || 0,
+                firstDatasetLength: window.weightGoalChart?.data?.datasets?.[0]?.data?.length || 0
+            });
+
             if (hasData) {
+                console.log('[Chart Visibility Fix] Chart has data, hiding message');
                 weightChartMessage.style.display = 'none';
             } else {
-                weightChartMessage.style.display = 'block';
-                weightChartMessage.style.padding = '10px';
-                weightChartMessage.style.backgroundColor = 'rgba(30, 30, 30, 0.7)';
-                weightChartMessage.style.borderRadius = '4px';
-                weightChartMessage.style.margin = '10px 0';
-                weightChartMessage.textContent = 'Weight data needed to display graph.';
+                console.log('[Chart Visibility Fix] Chart has no data, showing message');
+                // Don't override the message if it's already set by the main chart loading logic
+                if (!weightChartMessage.textContent || weightChartMessage.textContent === 'Loading chart data...') {
+                    weightChartMessage.style.display = 'block';
+                    weightChartMessage.style.padding = '10px';
+                    weightChartMessage.style.backgroundColor = 'rgba(30, 30, 30, 0.7)';
+                    weightChartMessage.style.borderRadius = '4px';
+                    weightChartMessage.style.margin = '10px 0';
+                    weightChartMessage.textContent = 'Weight data needed to display graph.';
+                }
             }
         }
 

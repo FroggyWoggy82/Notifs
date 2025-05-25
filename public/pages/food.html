@@ -8,6 +8,7 @@
 
     <!-- Console log suppressor - load this first to suppress console logs -->
     <script src="../js/console-log-suppressor.js"></script>
+    <script src="../js/food/console-log-suppressor.js?v=1737073900"></script> <!-- Food-specific log suppressor -->
     <script src="../js/console-log-helper.js"></script>
     <script src="../js/log-throttle.js"></script> <!-- Throttle repeated log messages -->
 
@@ -132,10 +133,10 @@
 
     <h1>Food & Recipes</h1>
 
-    <!-- ===== Weight Goal & Daily Calorie Target Section ===== -->
-    <section id="weight-goal-section">
+    <!-- ===== Unified Goals & Targets Dashboard ===== -->
+    <section id="unified-goals-section">
         <div class="section-header-compact">
-            <h2>Weight Goal & Daily Calorie Target</h2>
+            <h2>Goals & Targets Dashboard</h2>
 
             <!-- Unified user selector for both sections -->
             <div class="user-selector-container">
@@ -147,84 +148,84 @@
             </div>
         </div>
 
-        <!-- Compact goals container with grid layout -->
-        <div class="goals-grid-container">
-            <!-- Weight Goal Section -->
-            <div class="goal-card weight-goal-card">
-                <h3 class="goal-card-title">Weight Goal</h3>
-                <div class="compact-form-layout">
-                    <div class="input-row">
-                        <div class="form-group">
-                            <label for="targetWeight">Target Weight (lbs)</label>
-                            <input type="number" id="targetWeight" step="0.1" placeholder="e.g., 175.5">
-                        </div>
-                        <div class="form-group">
-                            <label for="weeklyGainGoal">Weekly Goal (lbs)</label>
-                            <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
-                        </div>
-                    </div>
-                    <div class="button-row">
-                        <small class="help-text">Use positive values for gain, negative for loss</small>
-                        <div class="spacer"></div>
-                        <button type="button" id="save-all-weight-goals-btn" class="save-goal-btn">Save</button>
+        <!-- Single unified box with form elements in 2x2 grid layout -->
+        <div class="unified-goals-box">
+            <h3 class="unified-title">Weight Goal & Daily Targets</h3>
+
+            <div class="form-grid-2x2">
+                <!-- Top Left: Target Weight -->
+                <div class="form-group">
+                    <label for="targetWeight">Target Weight (lbs)</label>
+                    <input type="number" id="targetWeight" step="0.1" placeholder="e.g., 175.5">
+                </div>
+
+                <!-- Top Right: Weekly Goal -->
+                <div class="form-group">
+                    <label for="weeklyGainGoal">Weekly Goal (lbs)</label>
+                    <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
+                </div>
+
+                <!-- Bottom Left: Target Calories -->
+                <div class="form-group">
+                    <label for="calorie-target">Target Calories</label>
+                    <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
+                </div>
+
+                <!-- Bottom Right: Current Calorie Target -->
+                <div class="form-group">
+                    <label class="current-label">Current Calorie Target</label>
+                    <div class="current-display">
+                        <span id="current-calorie-target">2200 calories</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Additional targets row -->
+            <div class="additional-targets">
+                <div class="form-group">
+                    <label for="protein-target">Target Protein (g)</label>
+                    <input type="number" id="protein-target" min="20" max="500" step="1" placeholder="e.g., 150">
+                </div>
+                <div class="form-group">
+                    <label class="current-label">Current Protein Target</label>
+                    <div class="current-display">
+                        <span id="current-protein-target">83 g</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fat-target">Target Fat (g)</label>
+                    <input type="number" id="fat-target" min="20" max="300" step="1" placeholder="e.g., 70">
+                </div>
+                <div class="form-group">
+                    <label class="current-label">Current Fat Target</label>
+                    <div class="current-display">
+                        <span id="current-fat-target">73 g</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons and help text -->
+            <div class="action-section">
+                <div class="help-text-container">
+                    <small class="help-text">Weight: Use positive values for gain, negative for loss</small>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="save-all-weight-goals-btn" class="save-goal-btn">Save Weight Goals</button>
+                    <button id="save-all-targets-btn" class="save-btn">Save All Targets</button>
+                </div>
+            </div>
+
+            <!-- Status messages -->
+            <div class="status-section">
                 <div id="weight-goal-status" class="status"></div>
-            </div>
-
-            <!-- Calorie Target Section -->
-            <div class="goal-card calorie-goal-card">
-                <h3 class="goal-card-title">Daily Calorie, Protein & Fat Targets</h3>
-                <div class="compact-form-layout">
-                    <div class="input-row">
-                        <div class="form-group">
-                            <label for="calorie-target">Target Calories</label>
-                            <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
-                        </div>
-                        <div class="form-group">
-                            <label class="current-label">Current Target</label>
-                            <div class="current-display">
-                                <span id="current-calorie-target">2200 calories</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="form-group">
-                            <label for="protein-target">Target Protein (g)</label>
-                            <input type="number" id="protein-target" min="20" max="500" step="1" placeholder="e.g., 150">
-                        </div>
-                        <div class="form-group">
-                            <label class="current-label">Current Target</label>
-                            <div class="current-display">
-                                <span id="current-protein-target">83 g</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-row">
-                        <div class="form-group">
-                            <label for="fat-target">Target Fat (g)</label>
-                            <input type="number" id="fat-target" min="20" max="300" step="1" placeholder="e.g., 70">
-                        </div>
-                        <div class="form-group">
-                            <label class="current-label">Current Target</label>
-                            <div class="current-display">
-                                <span id="current-fat-target">73 g</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="button-row">
-                        <div class="spacer"></div>
-                        <button id="save-all-targets-btn" class="save-btn">Save</button>
-                    </div>
-                </div>
                 <div id="calorie-target-status" class="status"></div>
-
-                <!-- Hidden user selector that will be synced with the main one -->
-                <select id="calorie-user-selector" style="display: none;">
-                    <option value="1" selected>My Data</option>
-                    <option value="2">Mom's Data</option>
-                </select>
             </div>
+
+            <!-- Hidden elements for compatibility -->
+            <select id="calorie-user-selector" style="display: none;">
+                <option value="1" selected>My Data</option>
+                <option value="2">Mom's Data</option>
+            </select>
         </div>
 
         <div class="chart-container" style="position: relative; height: 450px; width: 100%; margin-top: 20px; margin-bottom: 20px; background-color: rgba(20, 20, 20, 0.8); border-radius: 4px; padding: 10px; display: block; visibility: visible;">

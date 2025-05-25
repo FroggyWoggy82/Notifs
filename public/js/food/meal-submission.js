@@ -493,13 +493,26 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.textContent = 'Saving...';
         submitButton.disabled = true;
 
+        // Create FormData to handle both meal data and photo upload
+        const formData = new FormData();
+
+        // Add meal data fields
+        formData.append('name', mealData.name);
+        formData.append('date', mealData.date);
+        formData.append('time', mealData.time);
+        formData.append('user_id', mealData.user_id || 1);
+        formData.append('ingredients', JSON.stringify(mealData.ingredients));
+
+        // Add photo if selected
+        const photoInput = document.getElementById('meal-photo');
+        if (photoInput && photoInput.files && photoInput.files[0]) {
+            formData.append('meal-photo', photoInput.files[0]);
+        }
+
         // Send the meal data to the server
         fetch('/api/meals', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(mealData)
+            body: formData // Don't set Content-Type header, let browser set it for multipart/form-data
         })
         .then(response => {
             if (!response.ok) {
@@ -621,6 +634,24 @@ document.addEventListener('DOMContentLoaded', function() {
         mealHeader.appendChild(mealTitle);
         mealHeader.appendChild(mealDatetime);
 
+        // Create meal photo section if photo exists
+        let mealPhoto = null;
+        if (meal.photo_url) {
+            mealPhoto = document.createElement('div');
+            mealPhoto.className = 'meal-photo';
+
+            const photoImg = document.createElement('img');
+            photoImg.src = meal.photo_url;
+            photoImg.alt = `Photo of ${meal.name}`;
+            photoImg.className = 'meal-photo-img';
+            photoImg.addEventListener('click', () => {
+                // Open photo in a modal or new window
+                window.open(meal.photo_url, '_blank');
+            });
+
+            mealPhoto.appendChild(photoImg);
+        }
+
         // Create meal nutrition
         const mealNutrition = document.createElement('div');
         mealNutrition.className = 'meal-nutrition';
@@ -727,6 +758,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Assemble meal card
         mealCard.appendChild(mealHeader);
+        if (mealPhoto) {
+            mealCard.appendChild(mealPhoto);
+        }
         mealCard.appendChild(mealNutrition);
         mealCard.appendChild(mealIngredients);
         mealCard.appendChild(mealActions);

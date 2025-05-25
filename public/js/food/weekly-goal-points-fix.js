@@ -408,70 +408,17 @@
                     // Get the goal dataset
                     const goalDataset = window.weightGoalChart.data.datasets[1];
 
-                    // Modify the pointRadius function to show all weekly goal points
-                    goalDataset.pointRadius = function(context) {
-                        // Check if this is a weekly goal point
-                        if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
-                            const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
-                            if (isWeeklyPoint) {
-                                return 6; // Larger radius for weekly points
-                            }
-                        }
-
-                        // Check if this is a weekly point (every 7th point from the start)
-                        let startIndex = -1;
-                        if (this.data) {
-                            for (let i = 0; i < this.data.length; i++) {
-                                if (this.data[i] && this.data[i].y !== null && this.data[i].y !== undefined) {
-                                    startIndex = i;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (startIndex !== -1) {
-                            // Check if this is a weekly increment point (every 7 days from start)
-                            if ((context.dataIndex - startIndex) % 7 === 0) {
-                                return 6; // Larger radius for weekly points
-                            }
-                        }
-
-                        return 0; // Hide other points
-                    };
+                    // Modify the pointRadius function to show uniform dots for all goal points
+                    goalDataset.pointRadius = 4; // Show uniform medium-sized dots for all goal line points
 
                     // Make sure all points are visible
                     goalDataset.pointStyle = 'circle';
 
-                    // Set point background color based on whether it's a weekly goal point
-                    goalDataset.pointBackgroundColor = function(context) {
-                        // Check if this is a weekly goal point
-                        if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
-                            const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === context.dataIndex);
-                            if (weeklyPoint) {
-                                const pointDate = new Date(weeklyPoint.date);
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
+                    // Set uniform point background color for all goal points
+                    goalDataset.pointBackgroundColor = 'rgba(231, 76, 60, 0.6)'; // Semi-transparent red for all goal points
 
-                                // Past points are teal, future points are red
-                                return pointDate < today ? '#1abc9c' : '#e74c3c';
-                            }
-                        }
-
-                        return 'transparent'; // Hide other points
-                    };
-
-                    // Set point border color based on whether it's a weekly goal point
-                    goalDataset.pointBorderColor = function(context) {
-                        // Check if this is a weekly goal point
-                        if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
-                            const isWeeklyPoint = window.weeklyGoalWeights.some(w => w.index === context.dataIndex);
-                            if (isWeeklyPoint) {
-                                return '#ffffff'; // White border for weekly points
-                            }
-                        }
-
-                        return 'transparent'; // Hide other points
-                    };
+                    // Set uniform point border color for all goal points
+                    goalDataset.pointBorderColor = 'rgba(255, 255, 255, 0.8)'; // Semi-transparent white border for all goal points
 
                     goalDataset.pointBorderWidth = 2;
 
@@ -643,11 +590,11 @@
                     if (chart.data && chart.data.datasets && chart.data.datasets.length > 1) {
                         const goalDataset = chart.data.datasets[1];
 
-                        // Make all points visible
-                        goalDataset.pointRadius = 6;
+                        // Make all points visible with uniform styling
+                        goalDataset.pointRadius = 4; // Show uniform medium-sized dots for all goal line points
                         goalDataset.pointStyle = 'circle';
-                        goalDataset.pointBackgroundColor = '#e74c3c'; // Red color
-                        goalDataset.pointBorderColor = '#ffffff'; // White border
+                        goalDataset.pointBackgroundColor = 'rgba(231, 76, 60, 0.6)'; // Semi-transparent red for all goal points
+                        goalDataset.pointBorderColor = 'rgba(255, 255, 255, 0.8)'; // Semi-transparent white border for all goal points
                         goalDataset.pointBorderWidth = 2;
 
                         // Try updating again

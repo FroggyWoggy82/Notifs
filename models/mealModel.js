@@ -22,7 +22,7 @@ async function getAllMeals(userId = 1) {
         `);
 
         const tableExists = tableCheckResult.rows[0].exists;
-        
+
         if (!tableExists) {
             console.error('Meals table does not exist!');
             await createMealsTables();
@@ -65,19 +65,19 @@ async function getMealById(id, userId = 1) {
         'SELECT * FROM meals WHERE id = $1 AND user_id = $2',
         [id, userId]
     );
-    
+
     if (mealResult.rowCount === 0) {
         throw new Error('Meal not found');
     }
-    
+
     const meal = mealResult.rows[0];
-    
+
     // Fetch ingredients for the meal
     const ingredientsResult = await db.query(
         'SELECT * FROM meal_ingredients WHERE meal_id = $1',
         [id]
     );
-    
+
     meal.ingredients = ingredientsResult.rows;
     return meal;
 }
@@ -89,30 +89,30 @@ async function getMealById(id, userId = 1) {
  * @returns {Promise<Object>} - Promise resolving to the created meal with ingredients
  */
 async function createMeal(mealData, userId = 1) {
-    const { name, date, time, ingredients } = mealData;
-    
+    const { name, date, time, photo_url, ingredients } = mealData;
+
     if (!name || !date || !time || !ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
         throw new Error('Meal name, date, time, and at least one ingredient are required');
     }
-    
+
     const client = await db.getClient();
-    
+
     try {
         await client.query('BEGIN');
-        
+
         // Insert the meal
         const mealInsertResult = await client.query(
-            'INSERT INTO meals (name, date, time, user_id) VALUES ($1, $2, $3, $4) RETURNING id',
-            [name.trim(), date, time, userId]
+            'INSERT INTO meals (name, date, time, photo_url, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+            [name.trim(), date, time, photo_url || null, userId]
         );
-        
+
         const newMealId = mealInsertResult.rows[0].id;
-        
+
         // Insert ingredients
         for (const ingredient of ingredients) {
             // Check if this is a new ingredient that needs to be created
             let ingredientId = ingredient.id;
-            
+
             if (ingredient.isNew) {
                 // Create a new ingredient in the ingredients table
                 const newIngredientResult = await client.query(
@@ -121,21 +121,21 @@ async function createMeal(mealData, userId = 1) {
                      RETURNING id`,
                     [ingredient.name.trim(), ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs]
                 );
-                
+
                 ingredientId = newIngredientResult.rows[0].id;
             }
-            
+
             // Insert the meal ingredient
             await client.query(
                 `INSERT INTO meal_ingredients (meal_id, ingredient_id, name, amount, calories, protein, fat, carbs)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-                [newMealId, ingredientId, ingredient.name.trim(), ingredient.amount, 
+                [newMealId, ingredientId, ingredient.name.trim(), ingredient.amount,
                  ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs]
             );
         }
-        
+
         await client.query('COMMIT');
-        
+
         // Fetch the newly created meal with ingredients
         return await getMealById(newMealId, userId);
     } catch (error) {
@@ -154,41 +154,41 @@ async function createMeal(mealData, userId = 1) {
  * @returns {Promise<Object>} - Promise resolving to the updated meal with ingredients
  */
 async function updateMeal(id, mealData, userId = 1) {
-    const { name, date, time, ingredients } = mealData;
-    
+    const { name, date, time, photo_url, ingredients } = mealData;
+
     if (!name || !date || !time || !ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
         throw new Error('Meal name, date, time, and at least one ingredient are required');
     }
-    
+
     const client = await db.getClient();
-    
+
     try {
         await client.query('BEGIN');
-        
+
         // Check if meal exists and belongs to the user
         const mealResult = await client.query(
             'SELECT * FROM meals WHERE id = $1 AND user_id = $2',
             [id, userId]
         );
-        
+
         if (mealResult.rowCount === 0) {
             throw new Error('Meal not found or does not belong to this user');
         }
-        
+
         // Update the meal
         await client.query(
-            'UPDATE meals SET name = $1, date = $2, time = $3 WHERE id = $4',
-            [name.trim(), date, time, id]
+            'UPDATE meals SET name = $1, date = $2, time = $3, photo_url = $4 WHERE id = $5',
+            [name.trim(), date, time, photo_url || null, id]
         );
-        
+
         // Delete existing ingredients
         await client.query('DELETE FROM meal_ingredients WHERE meal_id = $1', [id]);
-        
+
         // Insert new ingredients
         for (const ingredient of ingredients) {
             // Check if this is a new ingredient that needs to be created
             let ingredientId = ingredient.id;
-            
+
             if (ingredient.isNew) {
                 // Create a new ingredient in the ingredients table
                 const newIngredientResult = await client.query(
@@ -197,21 +197,21 @@ async function updateMeal(id, mealData, userId = 1) {
                      RETURNING id`,
                     [ingredient.name.trim(), ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs]
                 );
-                
+
                 ingredientId = newIngredientResult.rows[0].id;
             }
-            
+
             // Insert the meal ingredient
             await client.query(
                 `INSERT INTO meal_ingredients (meal_id, ingredient_id, name, amount, calories, protein, fat, carbs)
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-                [id, ingredientId, ingredient.name.trim(), ingredient.amount, 
+                [id, ingredientId, ingredient.name.trim(), ingredient.amount,
                  ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs]
             );
         }
-        
+
         await client.query('COMMIT');
-        
+
         // Fetch the updated meal with ingredients
         return await getMealById(id, userId);
     } catch (error) {
@@ -234,16 +234,16 @@ async function deleteMeal(id, userId = 1) {
         'SELECT * FROM meals WHERE id = $1 AND user_id = $2',
         [id, userId]
     );
-    
+
     if (mealResult.rowCount === 0) {
         throw new Error('Meal not found or does not belong to this user');
     }
-    
+
     const meal = mealResult.rows[0];
-    
+
     // Delete the meal (meal_ingredients will be deleted by ON DELETE CASCADE)
     await db.query('DELETE FROM meals WHERE id = $1', [id]);
-    
+
     return {
         id: parseInt(id),
         name: meal.name
@@ -256,10 +256,10 @@ async function deleteMeal(id, userId = 1) {
  */
 async function createMealsTables() {
     const client = await db.getClient();
-    
+
     try {
         await client.query('BEGIN');
-        
+
         // Create meals table
         await client.query(`
             CREATE TABLE IF NOT EXISTS meals (
@@ -267,11 +267,22 @@ async function createMealsTables() {
                 name VARCHAR(255) NOT NULL,
                 date DATE NOT NULL,
                 time TIME NOT NULL,
+                photo_url VARCHAR(500),
                 user_id INTEGER NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        
+
+        // Add photo_url column if it doesn't exist (for existing tables)
+        try {
+            await client.query(`
+                ALTER TABLE meals ADD COLUMN IF NOT EXISTS photo_url VARCHAR(500)
+            `);
+        } catch (error) {
+            // Column might already exist, ignore error
+            console.log('Photo URL column already exists or could not be added:', error.message);
+        }
+
         // Create meal_ingredients table
         await client.query(`
             CREATE TABLE IF NOT EXISTS meal_ingredients (
@@ -287,7 +298,7 @@ async function createMealsTables() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        
+
         await client.query('COMMIT');
         console.log('Meals tables created successfully');
     } catch (error) {

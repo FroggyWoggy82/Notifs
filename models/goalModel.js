@@ -314,13 +314,13 @@ async function completeGoalChain(goalId) {
 
         // 1. Get the goal and all its descendants
         const goalResult = await client.query(
-            'WITH RECURSIVE goal_tree AS (
+            `WITH RECURSIVE goal_tree AS (
                 SELECT id, text, parent_id FROM goals WHERE id = $1
                 UNION ALL
                 SELECT g.id, g.text, g.parent_id FROM goals g
                 JOIN goal_tree gt ON g.parent_id = gt.id
             )
-            SELECT * FROM goal_tree',
+            SELECT * FROM goal_tree`,
             [goalId]
         );
 

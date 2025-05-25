@@ -1,0 +1,126 @@
+/**
+ * Save Recipe Button Alignment Fix
+ * Aligns the Save Recipe button with the Parse Nutrition Data, Add Ingredient, and Remove buttons
+ */
+
+/* Style the recipe-level action buttons container */
+.recipe-actions-row {
+    display: flex !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    margin-top: 25px !important; /* More space from ingredient buttons */
+    margin-bottom: 15px !important;
+    padding: 0 !important;
+    max-width: 200px !important; /* Limit the width so it doesn't take up too much space */
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Visual separator */
+    padding-top: 15px !important; /* Space above the border */
+}
+
+/* Style the Save Recipe button to match other buttons but smaller */
+.save-recipe-btn {
+    flex: 0 0 auto !important;
+    height: 38px !important;
+    padding: 8px 12px !important; /* Slightly smaller padding */
+    margin: 0 !important;
+    font-size: 0.85em !important; /* Slightly smaller font */
+    border-radius: 3px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.5 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    width: auto !important;
+    min-width: 100px !important; /* Smaller minimum width */
+    max-width: 150px !important; /* Maximum width to prevent it from getting too big */
+}
+
+/* Hover effect for Save Recipe button */
+.save-recipe-btn:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Ensure the Parse Nutrition Data button in the buttons-row has consistent styling */
+.cronometer-parse-button-inline {
+    flex: 1 !important;
+    height: 38px !important;
+    padding: 8px 15px !important;
+    margin: 0 5px !important;
+    font-size: 0.9em !important;
+    border-radius: 3px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.5 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+}
+
+/* First button in row should have no left margin */
+.cronometer-parse-button-inline:first-child {
+    margin-left: 0 !important;
+}
+
+/* Hover effect for Parse Nutrition Data button */
+.cronometer-parse-button-inline:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Hide the original Parse Nutrition Data button in the Cronometer section to avoid duplication */
+.cronometer-text-paste-container .cronometer-parse-button {
+    display: none !important;
+}
+
+/* Ensure all buttons in the buttons-row have consistent spacing and are clearly visible */
+.buttons-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin-top: 10px !important;
+    margin-bottom: 15px !important; /* Add more bottom margin to separate from Save Recipe button */
+    gap: 0 !important;
+    z-index: 10 !important; /* Ensure ingredient buttons are above other elements */
+    position: relative !important;
+}
+
+/* Ensure consistent button styling across all buttons in the row */
+.buttons-row button {
+    flex: 1 !important;
+    height: 38px !important;
+    padding: 8px 15px !important;
+    margin: 0 5px !important;
+    font-size: 0.9em !important;
+    border-radius: 3px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.5 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Remove margins from first and last buttons in the row */
+.buttons-row button:first-child {
+    margin-left: 0 !important;
+}
+
+.buttons-row button:last-child {
+    margin-right: 0 !important;
+}
+
+/* Hover effects for all buttons in the row */
+.buttons-row button:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+}

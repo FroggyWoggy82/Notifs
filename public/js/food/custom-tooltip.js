@@ -45,36 +45,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let formattedDate = label;
         try {
-
+            // First check if this is a weekly goal point and use its pre-formatted date
             if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
                 const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === pointIndex);
-                if (weeklyPoint && weeklyPoint.week === 0) {
-                    // Use the actual date from the weekly point instead of hardcoding
-                    // Try to use the pre-formatted fullDate if available
+                if (weeklyPoint) {
+                    // Always use the pre-formatted fullDate if available for weekly points
                     if (weeklyPoint.fullDate) {
                         formattedDate = weeklyPoint.fullDate;
-                        console.log(`Using pre-formatted fullDate for week 0: ${formattedDate}`);
+                        console.log(`Using pre-formatted fullDate for week ${weeklyPoint.week}: ${formattedDate}`);
                     }
                     // Otherwise try to format the date field
                     else if (weeklyPoint.date) {
                         try {
-                            const date = new Date(weeklyPoint.date);
+                            // Parse the date string carefully to avoid timezone issues
+                            const dateStr = weeklyPoint.date;
+                            let date;
+
+                            // If it's in YYYY-MM-DD format, parse it as local date
+                            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                const [year, month, day] = dateStr.split('-');
+                                date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                            } else {
+                                date = new Date(dateStr);
+                            }
+
                             if (!isNaN(date.getTime())) {
                                 formattedDate = date.toLocaleDateString('en-US', {
                                     month: 'long',
                                     day: 'numeric',
                                     year: 'numeric'
                                 });
-                                console.log(`Using formatted date for week 0: ${formattedDate}`);
+                                console.log(`Using formatted date for week ${weeklyPoint.week}: ${formattedDate}`);
                             }
                         } catch (e) {
-                            console.error('Error formatting week 0 date:', e);
+                            console.error(`Error formatting week ${weeklyPoint.week} date:`, e);
                         }
                     }
                 }
             }
 
-            const date = new Date(label);
+            // General date formatting for non-weekly points
+            // Parse the date string carefully to avoid timezone issues
+            let date;
+            if (label.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // If it's in YYYY-MM-DD format, parse it as local date
+                const [year, month, day] = label.split('-');
+                date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            } else {
+                date = new Date(label);
+            }
+
             if (!isNaN(date.getTime())) {
                 formattedDate = date.toLocaleDateString('en-US', {
                     month: 'long',
@@ -117,32 +137,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 isWeeklyPoint = true;
                 weekNumber = weeklyPoint.week;
                 weeklyInfo = `<div style="color: #e74c3c; font-weight: bold;">Week ${weeklyPoint.week} Goal</div>`;
-
-                // Special case for first weekly point
-                if (weeklyPoint.week === 0) {
-                    // Use the actual date from the weekly point instead of hardcoding
-                    // Try to use the pre-formatted fullDate if available
-                    if (weeklyPoint.fullDate) {
-                        formattedDate = weeklyPoint.fullDate;
-                        console.log(`Using pre-formatted fullDate for week 0 in tooltip: ${formattedDate}`);
-                    }
-                    // Otherwise try to format the date field
-                    else if (weeklyPoint.date) {
-                        try {
-                            const date = new Date(weeklyPoint.date);
-                            if (!isNaN(date.getTime())) {
-                                formattedDate = date.toLocaleDateString('en-US', {
-                                    month: 'long',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                });
-                                console.log(`Using formatted date for week 0 in tooltip: ${formattedDate}`);
-                            }
-                        } catch (e) {
-                            console.error('Error formatting week 0 date in tooltip:', e);
-                        }
-                    }
-                }
             }
         }
 
@@ -167,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ? parseFloat(goalDataset.data[pointIndex].y).toFixed(2)
                 : parseFloat(goalValue).toFixed(2);
 
-            // Different styling for weekly points vs regular goal points
+            // Only show goal weight info for weekly points, not interpolated points
             if (isWeeklyPoint) {
                 // Check if this weekly point is in the past or future
                 const pointDate = new Date(label);
@@ -181,9 +175,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${weeklyInfo}
                     <div style="color: ${pointColor}; font-weight: bold;">Target Weight: ${goalWeight} lbs</div>
                 `;
-            } else {
-                goalWeightInfo = `<div style="color: #e74c3c;">Target Weight: ${goalWeight} lbs</div>`;
             }
+            // Don't show goal weight info for interpolated points between weekly goals
+            // This prevents the confusing "Target Weight" tooltips on non-weekly points
 
             // Add comparison to target weight if available
             if (targetWeight !== null && targetWeight !== undefined && !isNaN(targetWeight)) {
@@ -414,23 +408,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     isHoveringGoalLine = true;
 
                     try {
-                        showWeightTooltip(event, chart, goalLineCheck.pointIndex, true, goalLineCheck.goalValue);
-
+                        // Only show tooltip for weekly goal points, not interpolated points
                         if (goalLineCheck.isWeeklyPoint) {
+                            showWeightTooltip(event, chart, goalLineCheck.pointIndex, true, goalLineCheck.goalValue);
+
                             if (typeof chart.setActiveElements === 'function') {
                                 chart.setActiveElements([{
                                     datasetIndex: 1, // Goal dataset index
                                     index: goalLineCheck.pointIndex
                                 }]);
                             }
+
+                            if (typeof chart.update === 'function') {
+                                chart.update('none');
+                            }
                         } else {
+                            // For non-weekly points, just hide the tooltip
+                            hideWeightTooltip();
                             if (typeof chart.setActiveElements === 'function') {
                                 chart.setActiveElements([]);
                             }
-                        }
-
-                        if (typeof chart.update === 'function') {
-                            chart.update('none');
                         }
                     } catch (error) {
                         console.warn('Error handling goal line hover:', error);

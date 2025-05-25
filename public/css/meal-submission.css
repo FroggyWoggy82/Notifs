@@ -66,6 +66,25 @@
     color: #aaa;
 }
 
+.meal-photo {
+    margin: 10px 0;
+    text-align: center;
+}
+
+.meal-photo-img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    border: 1px solid #333;
+}
+
+.meal-photo-img:hover {
+    transform: scale(1.02);
+    border-color: #555;
+}
+
 .meal-nutrition {
     display: flex;
     gap: 15px;

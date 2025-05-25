@@ -23,7 +23,7 @@
         'Added week',
         'Date:',
         'Projected:',
-        'Added weekly goal weight:',
+        // 'Added weekly goal weight:', // Temporarily disabled for debugging
         '[Recipe Adjust Buttons Fix] Found Set button:',
         '[Recipe Adjust Buttons Fix] Found adjustment button:',
         '[Recipe Adjust Buttons Fix] Found calorie input field:',
@@ -34,7 +34,35 @@
         '[Add Ingredient Fix] Request method:',
         '[Add Ingredient Fix] Request headers:',
         '[Direct API Call Fix] Making direct API call to:',
-        '[Direct API Call Fix] Method:'
+        '[Direct API Call Fix] Method:',
+        // Repetitive recipe position and ingredient button logs
+        '[Fix Recipe Name Position] Fixing recipe name position',
+        '[Fix Recipe Name Position] Recipe name position fixed',
+        '[Fix Add Ingredient Final] Initializing Add Ingredient buttons',
+        // Repetitive weekly goal points logs
+        '[Weekly Goal Points Fix] Adding week number labels',
+        '[Weekly Goal Points Fix] Extracting weekly goal weights',
+        '[Weekly Goal Points Fix] Week number labels added',
+        '[Weekly Goal Points Fix] All weekly goal weights:',
+        '[Weekly Goal Points Fix] Weekly increment dates:',
+        '[Weekly Goal Points Fix] Using weekly increment dates for extraction',
+        '[Weekly Goal Points Fix] Extracted 4 weekly goal weights:',
+        '[Weekly Goal Points Fix] Modified goal dataset point styling',
+        '[Weekly Goal Points Fix] Chart updated',
+        '[Weekly Goal Points Fix] Chart update detected',
+        // Additional repetitive logs
+        '[Remove OCR Toggle] Hiding OCR container:',
+        '[Fix Add Ingredient Click] Fixing Add Ingredient button clicks',
+        '[Fix Add Ingredient Button] Adding event listeners',
+        '[Remove OCR Toggle] Removing OCR toggle buttons',
+        '[Tooltip Fix] Attaching tooltip events to chart',
+        '[Tooltip Fix] Tooltip events attached successfully',
+        '[Tooltip Fix] Weekly goal points fix not available',
+        '[Add Ingredient Button Fix] Found 1 Add Ingredient buttons',
+        'Initializing ingredient search autocomplete for:',
+        'Using existing dropdown',
+        'Initialized autocomplete for 1 ingredient search inputs',
+        'Set up MutationObserver to watch for new search inputs'
     ];
 
     // List of patterns to limit frequency (show first occurrence, then suppress duplicates)
@@ -71,8 +99,11 @@
                 // Count suppressed messages by pattern
                 suppressedCounts[pattern] = (suppressedCounts[pattern] || 0) + 1;
 
-                // Every 50 occurrences, show a summary
-                if (suppressedCounts[pattern] % 50 === 0) {
+                // Show notifications less frequently as counts get higher
+                const notificationInterval = suppressedCounts[pattern] < 500 ? 200 :
+                                            suppressedCounts[pattern] < 2000 ? 500 : 1000;
+
+                if (suppressedCounts[pattern] % notificationInterval === 0) {
                     originalConsoleLog.call(console, `[Log Reducer] Suppressed ${suppressedCounts[pattern]} logs containing: "${pattern}"`);
                 }
 
@@ -87,8 +118,11 @@
                 if (seenLimitedMessages.has(pattern)) {
                     suppressedCounts[pattern] = (suppressedCounts[pattern] || 0) + 1;
 
-                    // Every 20 occurrences, show a summary
-                    if (suppressedCounts[pattern] % 20 === 0) {
+                    // Show notifications less frequently for limited patterns
+                    const limitedNotificationInterval = suppressedCounts[pattern] < 100 ? 50 :
+                                                       suppressedCounts[pattern] < 500 ? 100 : 250;
+
+                    if (suppressedCounts[pattern] % limitedNotificationInterval === 0) {
                         originalConsoleLog.call(console, `[Log Reducer] Suppressed ${suppressedCounts[pattern]} logs containing: "${pattern}"`);
                     }
 

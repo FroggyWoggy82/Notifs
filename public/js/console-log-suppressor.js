@@ -17,7 +17,7 @@
 
     // Configuration
     const config = {
-        enabled: true,                // Whether log suppression is enabled
+        enabled: false,                // Whether log suppression is enabled (TEMPORARILY DISABLED FOR DEBUGGING)
         suppressionThreshold: 2,      // Number of similar logs before suppression (reduced from 5)
         summaryInterval: 100,         // How often to show summary (in terms of suppressed logs)
         logLevel: 'warn',             // Minimum log level to show: 'debug', 'info', 'warn', 'error'
