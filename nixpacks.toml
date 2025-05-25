@@ -9,4 +9,4 @@ nixPkgs = ["vips", "libheif", "pkg-config", "nodejs_20"]
 
 [start]
 # Make sure this matches your actual start command in package.json or Procfile
-cmd = "npm start" 
+cmd = "node railway-start.js"

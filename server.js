@@ -177,15 +177,40 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  const healthData = {
-    status: 'UP',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    environment: process.env.NODE_ENV || 'development',
-    database: global._pgClient ? 'CONNECTED' : 'NOT_CONNECTED'
-  };
-  res.json(healthData);
+  try {
+    const healthData = {
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      environment: process.env.NODE_ENV || 'development',
+      database: global._pgClient ? 'CONNECTED' : 'NOT_CONNECTED',
+      railway: {
+        environment: process.env.RAILWAY_ENVIRONMENT || 'NOT_RAILWAY',
+        service: process.env.RAILWAY_SERVICE_NAME || 'unknown',
+        deployment: process.env.RAILWAY_DEPLOYMENT_ID || 'unknown'
+      },
+      port: PORT,
+      version: require('./package.json').version
+    };
+
+    // Set appropriate status code
+    res.status(200).json(healthData);
+  } catch (error) {
+    console.error('Health check error:', error);
+    // Return a minimal health response even if there's an error
+    res.status(200).json({
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      error: 'Health check partial failure',
+      uptime: process.uptime()
+    });
+  }
+});
+
+// Simple health check endpoint for Railway (fallback)
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
 });
 
 // API Routes
@@ -508,12 +533,15 @@ const initializeAndStart = async () => {
   const offlineMode = process.env.OFFLINE_MODE === 'true';
   // Check if we should skip the database connection test
   const skipDbTest = process.env.SKIP_DB_TEST === 'true';
+  // Check if we're in Railway environment (Railway sets RAILWAY_ENVIRONMENT)
+  const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
 
-  // Set a global timeout to ensure server starts even if DB connection hangs
+  // Set a shorter timeout for Railway to ensure faster startup
+  const timeoutDuration = isRailway ? 15000 : 30000; // 15 seconds for Railway, 30 for local
   const serverStartTimeout = setTimeout(() => {
-    console.log('WARNING: Server start timeout reached. Starting server without waiting for database.');
+    console.log(`WARNING: Server start timeout reached after ${timeoutDuration/1000}s. Starting server without waiting for database.`);
     startServer(false);
-  }, 30000); // 30 second timeout
+  }, timeoutDuration);
 
   if (offlineMode) {
     console.log('OFFLINE MODE ENABLED: Skipping database connection test');
@@ -533,9 +561,12 @@ const initializeAndStart = async () => {
     // Test database connection before starting the server
     console.log('Testing database connection...');
 
-    // Use the improved testDbConnection function with retry logic
-    // Reduced retries and timeout to fail faster
-    const dbConnected = await db.testDbConnection(2, 10000); // 2 retries, 10 second timeout
+    // Use shorter timeouts for Railway environment
+    const retries = isRailway ? 1 : 2; // Fewer retries for Railway
+    const timeout = isRailway ? 5000 : 10000; // Shorter timeout for Railway
+    console.log(`Database connection config: retries=${retries}, timeout=${timeout}ms, environment=${isRailway ? 'Railway' : 'Local'}`);
+
+    const dbConnected = await db.testDbConnection(retries, timeout);
 
     if (!dbConnected) {
       throw new Error('Database connection failed after multiple attempts');
@@ -582,12 +613,22 @@ const initializeAndStart = async () => {
 
 // Function to start the server
 const startServer = async (dbConnected) => {
+  console.log('=== STARTING SERVER ===');
+  console.log('Database connected:', dbConnected);
+  console.log('Environment:', process.env.NODE_ENV || 'development');
+  console.log('Railway environment:', process.env.RAILWAY_ENVIRONMENT || 'not Railway');
+  console.log('Port:', PORT);
+
   // Check sharp features before starting the server
   console.log('--- Sharp Feature Check ---');
-  console.log('Sharp Version:', sharp.versions.sharp);
-  console.log('Libvips Version:', sharp.versions.vips);
-  console.log('Formats:', sharp.format);
-  console.log('HEIF Support (via libvips):', sharp.format.heif ? 'Available' : 'NOT Available');
+  try {
+    console.log('Sharp Version:', sharp.versions.sharp);
+    console.log('Libvips Version:', sharp.versions.vips);
+    console.log('Formats:', sharp.format);
+    console.log('HEIF Support (via libvips):', sharp.format.heif ? 'Available' : 'NOT Available');
+  } catch (sharpError) {
+    console.error('Sharp feature check failed:', sharpError.message);
+  }
   console.log('--- End Sharp Feature Check ---');
 
   // Start the server with increased timeout and handle port conflicts
