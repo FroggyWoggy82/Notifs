@@ -2,12 +2,6 @@
 const CACHE_NAME = 'notification-pwa-v23-optimized';
 const CACHE_VERSION = 23;
 
-// Catch and suppress any errors during service worker execution
-self.addEventListener('error', event => {
-  console.warn('Service worker error suppressed:', event.message);
-  event.preventDefault(); // Prevent the error from being propagated
-});
-
 // Minimal critical resources for fastest startup
 const CRITICAL_CACHE = [
   '/',
@@ -40,7 +34,7 @@ const CACHE_DURATION = {
 // Install event - cache only critical resources for fast startup
 self.addEventListener('install', event => {
   self.skipWaiting(); // Activate immediately
-
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -63,7 +57,7 @@ function cacheSecondaryResources() {
   caches.open(CACHE_NAME)
     .then(cache => {
       return Promise.allSettled(
-        SECONDARY_CACHE.map(url =>
+        SECONDARY_CACHE.map(url => 
           fetch(url)
             .then(response => response.ok ? cache.put(url, response) : null)
             .catch(error => console.warn(`Failed to cache ${url}:`, error))
@@ -94,13 +88,13 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
-
+  
   // Skip non-HTTP(S) requests
   if (!url.protocol.startsWith('http')) return;
-
+  
   // Skip non-GET requests except for critical API calls
   if (request.method !== 'GET' && !url.pathname.startsWith('/api/')) return;
-
+  
   event.respondWith(handleRequest(request, url));
 });
 
@@ -110,12 +104,12 @@ async function handleRequest(request, url) {
   if (url.pathname.startsWith('/api/')) {
     return handleApiRequest(request);
   }
-
+  
   // Critical resources - cache first
   if (isCriticalResource(url.pathname)) {
     return handleCriticalResource(request);
   }
-
+  
   // Other resources - network first
   return handleNetworkFirst(request);
 }
@@ -127,10 +121,10 @@ async function handleApiRequest(request) {
     return response;
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: 'Network unavailable' }),
-      {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
+      JSON.stringify({ error: 'Network unavailable' }), 
+      { 
+        status: 503, 
+        headers: { 'Content-Type': 'application/json' } 
       }
     );
   }
@@ -145,7 +139,7 @@ async function handleCriticalResource(request) {
       updateCacheInBackground(request);
       return cachedResponse;
     }
-
+    
     // Not in cache, fetch from network
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
@@ -157,12 +151,12 @@ async function handleCriticalResource(request) {
     // Return cached version if available, even if stale
     const cachedResponse = await caches.match(request);
     if (cachedResponse) return cachedResponse;
-
+    
     // Return offline fallback for HTML
     if (request.url.includes('index.html') || request.url.endsWith('/')) {
       return createOfflineFallback();
     }
-
+    
     throw error;
   }
 }
@@ -171,13 +165,13 @@ async function handleCriticalResource(request) {
 async function handleNetworkFirst(request) {
   try {
     const networkResponse = await fetch(request);
-
+    
     // Cache successful responses
     if (networkResponse.ok && shouldCache(request.url)) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
-
+    
     return networkResponse;
   } catch (error) {
     const cachedResponse = await caches.match(request);
@@ -185,6 +179,7 @@ async function handleNetworkFirst(request) {
     throw error;
   }
 }
+
 // Update cache in background without blocking response
 function updateCacheInBackground(request) {
   fetch(request)
@@ -204,9 +199,10 @@ function isCriticalResource(pathname) {
 
 // Check if resource should be cached
 function shouldCache(url) {
-  return url.includes(self.location.origin) &&
+  return url.includes(self.location.origin) && 
          (url.endsWith('.js') || url.endsWith('.css') || url.endsWith('.html'));
 }
+
 // Create offline fallback page
 function createOfflineFallback() {
   return new Response(`
@@ -217,28 +213,28 @@ function createOfflineFallback() {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Offline - Task Dashboard</title>
       <style>
-        body {
-          background: #0a0a0a;
-          color: #E0E0E0;
-          font-family: system-ui;
-          text-align: center;
-          padding: 20px;
+        body { 
+          background: #0a0a0a; 
+          color: #E0E0E0; 
+          font-family: system-ui; 
+          text-align: center; 
+          padding: 20px; 
         }
-        .container {
-          max-width: 400px;
-          margin: 50px auto;
-          padding: 20px;
-          background: #121212;
-          border-radius: 8px;
+        .container { 
+          max-width: 400px; 
+          margin: 50px auto; 
+          padding: 20px; 
+          background: #121212; 
+          border-radius: 8px; 
         }
         h1 { color: #00E676; }
-        button {
-          background: #00E676;
-          color: #121212;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 4px;
-          cursor: pointer;
+        button { 
+          background: #00E676; 
+          color: #121212; 
+          border: none; 
+          padding: 10px 20px; 
+          border-radius: 4px; 
+          cursor: pointer; 
         }
       </style>
     </head>
@@ -256,7 +252,6 @@ function createOfflineFallback() {
   });
 }
 
-
 // Background sync for notifications (simplified)
 self.addEventListener('sync', event => {
   if (event.tag === 'check-notifications') {
@@ -269,10 +264,10 @@ async function checkNotifications() {
   try {
     const response = await fetch('/api/get-scheduled-notifications', { cache: 'no-store' });
     if (!response.ok) return;
-
+    
     const notifications = await response.json();
     const now = Date.now();
-
+    
     for (const notification of notifications) {
       const scheduledTime = new Date(notification.scheduledTime).getTime();
       if (scheduledTime <= now && scheduledTime > now - 60000) {
@@ -288,7 +283,6 @@ async function checkNotifications() {
     console.warn('Notification check failed:', error);
   }
 }
-
 
 // Handle notification clicks
 self.addEventListener('notificationclick', event => {

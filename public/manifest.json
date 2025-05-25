@@ -1,21 +1,79 @@
 {
-    "name": "Notification PWA",
-    "short_name": "NotifyPWA",
-    "description": "A simple PWA that sends notifications",
-    "start_url": "index.html",
+    "name": "Task Dashboard - Notifs",
+    "short_name": "Notifs",
+    "description": "Personal productivity dashboard with tasks, habits, calendar, and notifications",
+    "start_url": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#ffffff",
+    "orientation": "portrait-primary",
+    "background_color": "#0a0a0a",
+    "theme_color": "#121212",
+    "categories": ["productivity", "lifestyle", "utilities"],
+    "lang": "en-US",
+    "dir": "ltr",
+    "prefer_related_applications": false,
     "icons": [
       {
-        "src": "./icon-192x192.png",
+        "src": "/icon-192x192.png",
         "sizes": "192x192",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any maskable"
       },
       {
-        "src": "./icon-512x512.png",
+        "src": "/icon-512x512.png",
         "sizes": "512x512",
-        "type": "image/png"
+        "type": "image/png",
+        "purpose": "any maskable"
       }
-    ]
+    ],
+    "shortcuts": [
+      {
+        "name": "Add Task",
+        "short_name": "Add Task",
+        "description": "Quickly add a new task",
+        "url": "/?action=add-task",
+        "icons": [
+          {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      },
+      {
+        "name": "Calendar",
+        "short_name": "Calendar",
+        "description": "View calendar and schedule",
+        "url": "/pages/calendar.html",
+        "icons": [
+          {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      },
+      {
+        "name": "Goals",
+        "short_name": "Goals",
+        "description": "Track your goals and progress",
+        "url": "/pages/goals.html",
+        "icons": [
+          {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      }
+    ],
+    "display_override": ["window-controls-overlay", "standalone"],
+    "edge_side_panel": {
+      "preferred_width": 400
+    },
+    "launch_handler": {
+      "client_mode": "focus-existing"
+    },
+    "handle_links": "preferred",
+    "capture_links": "existing-client-navigate"
   }

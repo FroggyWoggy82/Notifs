@@ -44,11 +44,16 @@
     background-color: #333;
     border: 1px solid #555;
     color: #ffffff;
-    padding: 8px 12px;
-    border-radius: 4px;
+    padding: 4px 6px;
+    border-radius: 3px;
     cursor: pointer;
     transition: background-color 0.2s;
-    font-size: 14px;
+    font-size: 10px;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .calendar-nav-btn:hover {
@@ -189,30 +194,32 @@
         gap: 1px;
         padding: 1px;
     }
-    
+
     .calendar-day {
         min-height: 70px;
         padding: 4px 2px;
     }
-    
+
     .day-number {
         font-size: 11px;
     }
-    
+
     .calorie-info {
         font-size: 9px;
     }
-    
+
     .meals-list {
         font-size: 8px;
         max-height: 35px;
     }
-    
+
     .calendar-nav-btn {
-        padding: 6px 8px;
-        font-size: 12px;
+        padding: 3px 4px;
+        font-size: 9px;
+        min-width: 24px;
+        height: 24px;
     }
-    
+
     #calendar-month-year {
         font-size: 1rem;
     }
@@ -223,29 +230,31 @@
         min-height: 60px;
         padding: 3px 1px;
     }
-    
+
     .day-number {
         font-size: 10px;
     }
-    
+
     .calorie-info {
         font-size: 8px;
     }
-    
+
     .meals-list {
         font-size: 7px;
         max-height: 30px;
     }
-    
+
     .calendar-controls {
         padding: 0 5px;
     }
-    
+
     .calendar-nav-btn {
-        padding: 5px 6px;
-        font-size: 11px;
+        padding: 2px 3px;
+        font-size: 8px;
+        min-width: 20px;
+        height: 20px;
     }
-    
+
     #calendar-month-year {
         font-size: 0.9rem;
     }

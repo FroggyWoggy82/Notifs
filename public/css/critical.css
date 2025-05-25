@@ -1,0 +1,126 @@
+/**
+ * Critical CSS - Inline styles for fastest initial render
+ * Contains only the most essential styles needed for above-the-fold content
+ */
+
+/* Critical CSS Variables */
+:root {
+  --color-primary: #00E676;
+  --color-dark-bg: #0a0a0a;
+  --color-dark-surface: #121212;
+  --color-dark-surface-2: #181818;
+  --color-dark-text: #E0E0E0;
+  --color-dark-text-secondary: #AAAAAA;
+  --color-white: #FFFFFF;
+  --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-size-base: 1rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --line-height-base: 1.6;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --border-radius-md: 8px;
+  --transition-base: 0.2s ease;
+  --container-max-width: 2000px;
+  --bottom-nav-height: 60px;
+}
+
+/* Critical Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+}
+
+body {
+  background-color: var(--color-dark-bg);
+  color: var(--color-dark-text);
+  margin: 0 auto;
+  padding: 15px 15px 60px 15px;
+  line-height: var(--line-height-base);
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Critical Layout */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-xs);
+  padding-right: var(--spacing-xs);
+}
+
+/* Critical Utilities */
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+/* Critical Loading State */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: var(--color-primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Critical Mobile Styles */
+@media (max-width: 768px) {
+  body {
+    padding: 10px 10px 60px 10px;
+  }
+}
+
+/* Critical Button Styles */
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Critical Link Styles */
+a {
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Critical Focus Styles */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Critical Image Styles */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}

@@ -7,81 +7,177 @@
     <meta name="description" content="A simple PWA To-Do list with background notifications">
     <link rel="manifest" href="manifest.json">
 
-    <!-- Unified CSS structure -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/modal-fix.css">
-    <link rel="stylesheet" href="css/habit-redesign.css">
-    <link rel="stylesheet" href="css/habit-card-fix.css">
-    <link rel="stylesheet" href="css/habit-alignment-fix.css">
-    <link rel="stylesheet" href="css/habit-action-buttons-fix.css">
-    <link rel="stylesheet" href="css/habit-text-fix.css">
-    <link rel="stylesheet" href="css/header-text-fix.css">
-    <link rel="stylesheet" href="css/status-bar-fix.css">
-    <link rel="stylesheet" href="css/header-area-fix.css">
-    <link rel="stylesheet" href="css/sidebar-fix.css">
-    <link rel="stylesheet" href="css/sidebar-style-fix.css"> <!-- Fix for sidebar styling -->
-    <link rel="stylesheet" href="css/task-action-hover-fix.css">
-    <link rel="stylesheet" href="css/task-icons-fix.css">
-    <link rel="stylesheet" href="css/checkbox-redesign.css">
-    <link rel="stylesheet" href="css/recurrence-indicator-redesign.css">
-    <link rel="stylesheet" href="css/notification-indicator.css">
-    <link rel="stylesheet" href="css/progress-photo-fix.css">
-    <link rel="stylesheet" href="css/date-badge-redesign.css">
-    <link rel="stylesheet" href="css/habit-button-fix.css">
-    <link rel="stylesheet" href="css/habit-ui-fix.css">
-    <link rel="stylesheet" href="css/habit-glow-fix.css">
-    <link rel="stylesheet" href="css/habit-indicators-redesign.css">
-    <link rel="stylesheet" href="css/progress-badge-fix.css">
-    <link rel="stylesheet" href="css/habit-checkbox-fix.css">
-    <link rel="stylesheet" href="css/header-dropdown-fix.css">
-    <link rel="stylesheet" href="css/action-buttons-uniform.css">
-    <link rel="stylesheet" href="css/habit-checkbox-alignment.css">
-    <link rel="stylesheet" href="css/dropdown-arrow-fix.css">
-    <link rel="stylesheet" href="css/modal-highlight-fix.css">
-    <link rel="stylesheet" href="css/notification-status-fix.css">
-    <link rel="stylesheet" href="css/remove-recurrence-indicators.css"> <!-- Remove recurrence indicators -->
-    <link rel="stylesheet" href="css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
-    <link rel="stylesheet" href="css/subtasks.css"> <!-- Subtasks styling -->
-    <link rel="stylesheet" href="css/checkbox-minimal-fix.css"> <!-- Minimal fix for checkbox flashing issue -->
-    <link rel="stylesheet" href="css/expand-button-fix.css"> <!-- Expand button fix styling -->
-    <link rel="stylesheet" href="css/grocery-tasks.css"> <!-- Grocery tasks styling -->
-    <link rel="stylesheet" href="css/expand-button.css"> <!-- New expand button styling -->
-    <link rel="stylesheet" href="css/task-overdue-styling.css"> <!-- Consistent styling for overdue tasks -->
-    <link rel="stylesheet" href="css/overdue-task-highlight.css"> <!-- Enhanced overdue task highlighting -->
-    <link rel="stylesheet" href="css/mobile-task-optimization.css"> <!-- Mobile optimization for task list -->
-    <link rel="stylesheet" href="css/modal-subtasks.css"> <!-- Modal subtasks styling -->
-    <link rel="stylesheet" href="css/checkbox-interaction-fix.css"> <!-- Checkbox interaction fix styling -->
-    <link rel="stylesheet" href="css/modal-dark-theme-fix.css"> <!-- Modal dark theme styling -->
-    <link rel="stylesheet" href="css/subtask-form-fix.css"> <!-- Subtask form fix styling -->
-    <link rel="stylesheet" href="css/subtask-fix.css"> <!-- Subtask fix styling -->
-    <link rel="stylesheet" href="css/grocery-subtasks-unified.css"> <!-- Unified grocery subtasks styling -->
-    <link rel="stylesheet" href="css/grocery-subtasks-improved.css"> <!-- Improved grocery subtasks styling with better contrast -->
-    <link rel="stylesheet" href="css/subtask-dropdown-fix.css"> <!-- Improved subtask dropdown styling -->
+    <!-- Resource Preloading for Performance -->
+    <!-- Critical Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 
-    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date.css"> --> <!-- Fix for Yuvi's Bday overdue date -->
-    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-overdue-date-final.css"> --> <!-- Final fix for Yuvi's Bday overdue date -->
-    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-duplicate-text.css"> --> <!-- Fix for Yuvi's Bday duplicate text -->
-    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-final.css"> --> <!-- Final fix for Yuvi's Bday dates -->
-    <!-- <link rel="stylesheet" href="css/fix-yuvi-bday-important.css"> --> <!-- Final fix for Yuvi's Bday dates with !important -->
-    <link rel="stylesheet" href="css/standardized-date-indicators.css"> <!-- Standardized date indicators styling -->
-    <link rel="stylesheet" href="css/horizontal-task-layout.css"> <!-- Horizontal task layout for better space utilization -->
-    <link rel="stylesheet" href="css/task-banners-right-alignment.css"> <!-- Move task banners to the right of task titles -->
-    <link rel="stylesheet" href="css/notification-fix.css"> <!-- Fix for notification display and auto-dismissal -->
-    <link rel="stylesheet" href="css/section-headers-fix.css"> <!-- Makes Task List and Habit List headers smaller and consistent -->
-    <link rel="stylesheet" href="css/completed-tasks-toggle-fix.css"> <!-- Makes completed tasks header more clickable -->
+    <!-- Critical External Resources -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Critical JavaScript Files -->
+    <link rel="preload" href="/js/css-loader.js" as="script">
+    <link rel="preload" href="/js/immediate-notification-fix.js" as="script">
+    <link rel="preload" href="/js/notification-system.js" as="script">
+    <link rel="preload" href="/js/modal-system.js" as="script">
+    <link rel="preload" href="/js/tasks/script.js" as="script">
+
+    <!-- Critical Images -->
+    <link rel="preload" href="/icon-192x192.png" as="image">
+    <link rel="preload" href="/icon-512x512.png" as="image">
+
+    <!-- Critical CSS -->
+    <link rel="preload" href="/css/main.css" as="style">
+
+    <!-- Service Worker -->
+    <link rel="preload" href="/service-worker.js" as="script">
+
+    <!-- DNS Prefetch for External Domains -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+
+    <!-- Critical CSS Inline for Fastest Render -->
+    <style>
+        /* Critical CSS Variables */
+        :root {
+          --color-primary: #00E676;
+          --color-dark-bg: #0a0a0a;
+          --color-dark-surface: #121212;
+          --color-dark-surface-2: #181818;
+          --color-dark-text: #E0E0E0;
+          --color-dark-text-secondary: #AAAAAA;
+          --color-white: #FFFFFF;
+          --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+          --font-size-base: 1rem;
+          --font-weight-normal: 400;
+          --font-weight-medium: 500;
+          --line-height-base: 1.6;
+          --spacing-xs: 0.25rem;
+          --spacing-sm: 0.5rem;
+          --spacing-md: 1rem;
+          --border-radius-md: 8px;
+          --transition-base: 0.2s ease;
+          --container-max-width: 2000px;
+          --bottom-nav-height: 60px;
+        }
+
+        /* Critical Reset */
+        *, *::before, *::after {
+          box-sizing: border-box;
+        }
+
+        html, body {
+          margin: 0;
+          padding: 0;
+          font-size: 100%;
+        }
+
+        body {
+          background-color: var(--color-dark-bg);
+          color: var(--color-dark-text);
+          margin: 0 auto;
+          padding: 15px 15px 60px 15px;
+          line-height: var(--line-height-base);
+          font-family: var(--font-family-base);
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
+        }
+
+        /* Critical Layout */
+        .container {
+          width: 100%;
+          max-width: var(--container-max-width);
+          margin-left: auto;
+          margin-right: auto;
+          padding-left: var(--spacing-xs);
+          padding-right: var(--spacing-xs);
+        }
+
+        /* Critical Utilities */
+        .hidden {
+          display: none !important;
+        }
+
+        .visible {
+          display: block !important;
+        }
+
+        /* Critical Loading State */
+        .loading-spinner {
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          border: 3px solid rgba(255,255,255,.3);
+          border-radius: 50%;
+          border-top-color: var(--color-primary);
+          animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        /* Critical Mobile Styles */
+        @media (max-width: 768px) {
+          body {
+            padding: 10px 10px 60px 10px;
+          }
+        }
+
+        /* Critical Button Styles */
+        button {
+          background: none;
+          border: none;
+          padding: 0;
+          font: inherit;
+          cursor: pointer;
+          outline: inherit;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Critical Link Styles */
+        a {
+          text-decoration: none;
+          color: inherit;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Critical Focus Styles */
+        :focus {
+          outline: none;
+        }
+
+        :focus-visible {
+          outline: 2px solid var(--color-primary);
+          outline-offset: 2px;
+        }
+
+        /* Critical Image Styles */
+        img {
+          max-width: 100%;
+          height: auto;
+          display: block;
+        }
+    </style>
 
     <!-- Dynamic theme color for status bar - updated for dark theme -->
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
-    <link rel="stylesheet" href="css/unified-bottom-nav-final.css"> <!-- Unified bottom navigation styling -->
-    <link rel="stylesheet" href="css/bottom-nav-center-fix.css"> <!-- Fix for bottom nav centering -->
-    <link rel="stylesheet" href="css/modal-improvements.css"> <!-- UI improvements for modals and forms -->
-    <link rel="stylesheet" href="css/add-task-button-center.css"> <!-- Center Add Task button in modal -->
+
+    <!-- Critical Scripts (must load synchronously) -->
+    <script src="/js/immediate-notification-fix.js"></script>
+
+    <!-- Performance Optimization Scripts -->
+    <script src="/js/loading-optimizer.js"></script>
+    <script src="/js/css-loader.js"></script>
+    <script src="/js/resource-preloader.js"></script>
+    <script src="/js/script-loader.js" defer></script>
+    <script src="/js/performance-monitor.js" defer></script>
 
     <!-- Direct button fix -->
     <style>
@@ -669,107 +765,25 @@
     </div>
     <!-- ===== End Edit Habit Modal ===== -->
 
-    <!-- UI Improvement Systems -->
-    <script src="js/notification-system.js"></script> <!-- Notification system for success messages -->
-    <script src="js/modal-system.js"></script> <!-- Improved modal system -->
-    <script src="js/form-improvements.js"></script> <!-- Form layout and save confirmation improvements -->
+    <!--
+    ===== OPTIMIZED JAVASCRIPT LOADING =====
+    All JavaScript files are now loaded asynchronously via script-loader.js for better performance.
+    This reduces blocking during initial page load and improves PWA startup time.
 
-    <!-- All Yuvi's Bday fix scripts are now disabled and replaced by standardized-date-indicators.js -->
-    <!-- <script src="js/yuvi-fix-final.js"></script> -->
-    <!-- <script src="js/fix-yuvi-overdue-format.js"></script> -->
-    <!-- <script src="js/fix-yuvi-date-format-final.js"></script> -->
+    Scripts are loaded in the following order:
+    1. Critical scripts (immediate-notification-fix, css-loader, resource-preloader)
+    2. Core scripts (notification-system, modal-system, form-improvements)
+    3. Feature scripts (sidebar, status-bar, bottom-nav, dashboard-stats)
+    4. Task scripts (tasks/script, recurring-task-helper, modal fixes, subtasks)
+    5. Habit scripts (habit-redesign, completion-fix, modal-fix)
+    6. Enhancement scripts (loaded during idle time for non-critical features)
 
-    <!-- Load external script to fix Yuvi's Bday dates - disabled and replaced by standardized-date-indicators.js -->
-    <!-- <script src="js/fix-yuvi-bday-dates.js"></script> -->
-
-    <!-- Common utilities -->
-    <script src="js/common/sidebar.js"></script>
-    <script src="js/common/status-bar.js"></script>
-    <script src="js/common/clear-cache.js"></script>
-    <script src="js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
-    <script src="js/common/bottom-nav-center-fix.js"></script> <!-- Bottom navigation centering fix -->
-    <script src="js/notification-permission-check.js"></script> <!-- Notification permission check -->
-
-    <!-- Dashboard functionality -->
-    <script src="js/dashboard-stats.js"></script>
-
-    <!-- Task functionality -->
-    <script src="js/tasks/recurring-task-helper.js"></script>
-    <script src="js/tasks/script.js"></script>
-    <script src="js/tasks/edit-modal-fix.js"></script>
-    <script src="js/tasks/add-task-modal-fix.js"></script>
-    <script src="js/tasks/task-action-hover-fix.js"></script>
-    <script src="js/tasks/subtasks-support.js"></script>
-    <script src="js/tasks/expand-button-fix.js"></script>
-    <script src="js/tasks/task-icons-fix.js"></script>
-    <script src="js/tasks/checkbox-redesign.js"></script>
-    <script src="js/tasks/recurrence-indicator-redesign.js"></script>
-    <script src="js/tasks/progress-photo-fix.js"></script>
-    <script src="js/tasks/date-badge-redesign.js"></script>
-    <script src="js/components/next-date-prefix.js"></script>
-    <!-- <script src="js/components/yuvi-bday-fix.js"></script> --> <!-- Disabled and replaced by standardized-date-indicators.js -->
-    <script src="js/dropdown-arrow-toggle.js"></script>
-
-    <!-- Habit functionality -->
-    <script src="js/habits/habit-level-fix.js"></script>
-    <script src="js/habits/habit-completion-fix.js"></script>
-    <script src="js/habits/habit-icons-fix.js"></script>
-    <script src="js/habits/high-completion-habit-fix.js"></script>
-    <script src="js/habits/habit-reset.js"></script>
-    <script src="js/habits/habit-modal-fix.js"></script>
-    <script src="js/habits/habit-redesign.js"></script>
-    <script src="js/habits/social-media-rejection-fix.js"></script>
-
-    <!-- Calendar integration -->
-    <script src="js/calendar/calendar-refresh-fix.js"></script>
-
-    <!-- Subtasks support -->
-    <script src="js/tasks/subtask-form-handler.js"></script>
-    <script src="js/tasks/subtasks-fix-v4.js"></script>
-    <script src="js/tasks/subtask-checkbox-fix.js"></script>
-    <script src="js/tasks/subtask-button-fix.js"></script>
-
-    <!-- Grocery task display -->
-    <script src="js/tasks/grocery-task-display.js"></script>
-    <script src="js/tasks/grocery-subtasks-unified.js"></script>
-
-    <!-- Overdue recurrence adjuster - must be loaded last -->
-    <script src="js/tasks/overdue-recurrence-adjuster.js"></script>
-
-    <!-- Overdue task highlighter - ensures consistent styling for all overdue tasks -->
-    <script src="js/tasks/overdue-task-highlighter.js"></script>
-
-    <!-- Standardized date indicators - fixes inconsistent styling and flashing -->
-    <script src="js/standardized-date-indicators.js"></script>
-
-    <!-- Task banners right alignment - moves banners to the right of task titles -->
-    <script src="js/tasks/task-banners-right-alignment.js"></script>
-
-    <!-- No JavaScript fix needed for checkbox flashing -->
-
-    <!-- Checkbox click fix - prevents checkbox clicks from opening the task details modal and moves tasks to completed section immediately -->
-    <script src="js/tasks/checkbox-click-fix.js"></script>
-
-    <!-- Form field fix - adds proper ID and name attributes to all form fields -->
-    <script src="js/food/form-field-fix.js"></script>
-
-    <!-- Subtask display fix - fixes issues with subtask display -->
-    <script src="js/tasks/subtask-display-fix.js"></script>
-
-    <!-- Subtask debug script - helps diagnose and fix subtask display issues -->
-    <script src="js/tasks/subtask-debug.js"></script>
-
-    <!-- Subtask dropdown fix - improves responsiveness of subtask dropdowns -->
-    <script src="js/tasks/subtask-dropdown-fix.js"></script>
-
-
-
-    <!-- Compact modal layout to reduce scrolling -->
-    <script src="js/tasks/compact-modal-layout.js"></script>
-
-    <!-- Auto dismiss functionality is handled by notification-permission-check.js -->
-
-    <!-- Simple toggle for completed tasks section -->
-    <script src="js/tasks/completed-tasks-simple-toggle.js"></script>
+    This approach ensures:
+    - Faster initial render
+    - Non-blocking script loading
+    - Proper dependency order
+    - Better mobile performance
+    - Improved PWA startup time
+    -->
 </body>
 </html>
