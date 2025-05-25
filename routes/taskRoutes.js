@@ -18,6 +18,32 @@ router.get('/', TaskController.getAllTasks);
 
 /**
  * @swagger
+ * /api/tasks/completed/week:
+ *   get:
+ *     summary: Get completed tasks for the current week
+ *     responses:
+ *       200:
+ *         description: List of completed tasks from this week
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 count:
+ *                   type: integer
+ *                 tasks:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         description: Server error
+ */
+router.get('/completed/week', TaskController.getCompletedTasksThisWeek);
+
+/**
+ * @swagger
  * /api/tasks:
  *   post:
  *     summary: Create a new task

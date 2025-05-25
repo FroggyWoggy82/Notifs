@@ -23,6 +23,49 @@ class TaskController {
     }
 
     /**
+     * Get completed tasks for the current week
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getCompletedTasksThisWeek(req, res) {
+        try {
+            console.log("Received GET /api/tasks/completed/week request");
+
+            // Get start and end of current week (Sunday to Saturday)
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay()); // Go to Sunday
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6); // Go to Saturday
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            const query = `
+                SELECT * FROM tasks
+                WHERE is_complete = true
+                AND updated_at >= $1
+                AND updated_at <= $2
+                ORDER BY updated_at DESC
+            `;
+
+            const result = await db.query(query, [startOfWeek, endOfWeek]);
+
+            res.json({
+                success: true,
+                count: result.rows.length,
+                tasks: result.rows
+            });
+        } catch (err) {
+            console.error('Error fetching completed tasks this week:', err);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to fetch completed tasks this week'
+            });
+        }
+    }
+
+    /**
      * Create a new task
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object

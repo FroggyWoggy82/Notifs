@@ -89,6 +89,7 @@
     <link rel="stylesheet" href="../css/grocery-list-fullwidth.css"> <!-- Full width grocery list results styling -->
     <link rel="stylesheet" href="../css/add-ingredient-form-dark.css"> <!-- Dark theme styling for Add Ingredient form -->
     <link rel="stylesheet" href="../css/meal-submission.css"> <!-- Meal submission styling -->
+    <link rel="stylesheet" href="../css/meal-calendar.css"> <!-- Meal calendar styling -->
 </head>
 <body>
     <button class="menu-button">
@@ -258,7 +259,47 @@
     <!-- ===== End Weight Goal & Daily Calorie Target Section ===== -->
 
     <!-- Spacer to ensure sections don't overlap -->
-    <div style="height: 60px; clear: both;"></div>
+    <div style="height: 20px; clear: both;"></div>
+
+    <!-- ===== Meal Calendar Section ===== -->
+    <section id="meal-calendar-section">
+        <div class="section-header-compact">
+            <h2>Meal Calendar</h2>
+            <p class="section-description">View your daily calorie targets, meals, and consumption at a glance</p>
+        </div>
+
+        <div class="calendar-container">
+            <!-- Calendar Controls -->
+            <div class="calendar-controls">
+                <button id="calendar-prev-month" class="calendar-nav-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h3 id="calendar-month-year">Loading...</h3>
+                <button id="calendar-next-month" class="calendar-nav-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-grid" id="meal-calendar-grid">
+                <div class="calendar-header">Sun</div>
+                <div class="calendar-header">Mon</div>
+                <div class="calendar-header">Tue</div>
+                <div class="calendar-header">Wed</div>
+                <div class="calendar-header">Thu</div>
+                <div class="calendar-header">Fri</div>
+                <div class="calendar-header">Sat</div>
+                <!-- Calendar days will be populated here by JavaScript -->
+            </div>
+
+            <!-- Calendar Status -->
+            <div id="calendar-status" class="status" style="display: none;"></div>
+        </div>
+    </section>
+    <!-- ===== End Meal Calendar Section ===== -->
+
+    <!-- Spacer to ensure sections don't overlap -->
+    <div style="height: 20px; clear: both;"></div>
 
     <!-- ===== Submit Meal Section ===== -->
     <section id="submit-meal-section">
@@ -949,6 +990,9 @@
 
     <!-- Meal submission functionality -->
     <script src="../js/food/meal-submission.js"></script> <!-- Meal submission functionality -->
+
+    <!-- Meal calendar functionality -->
+    <script src="../js/food/meal-calendar.js"></script> <!-- Meal calendar functionality -->
 
 </body>
 </html>

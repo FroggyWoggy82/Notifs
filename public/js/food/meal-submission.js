@@ -502,6 +502,11 @@
                 showStatus('Meal submitted successfully!', 'success');
                 resetForm();
                 console.log('[Meal Submission] Meal submitted successfully:', result.meal);
+
+                // Refresh the meal calendar if it exists
+                if (window.MealCalendar && typeof window.MealCalendar.refresh === 'function') {
+                    window.MealCalendar.refresh();
+                }
             } else {
                 throw new Error(result.message || 'Failed to submit meal');
             }

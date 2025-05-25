@@ -1,0 +1,294 @@
+/**
+ * Meal Calendar Styles
+ * Styling for the meal calendar component in the food page
+ */
+
+/* Calendar Section */
+#meal-calendar-section {
+    background-color: rgba(20, 20, 20, 0.8);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid #333;
+}
+
+#meal-calendar-section .section-header-compact h2 {
+    color: #ffffff;
+    margin-bottom: 5px;
+    font-size: 1.4rem;
+}
+
+#meal-calendar-section .section-description {
+    color: #cccccc;
+    font-size: 14px;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+/* Calendar Container */
+.calendar-container {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Calendar Controls */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+.calendar-nav-btn {
+    background-color: #333;
+    border: 1px solid #555;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.calendar-nav-btn:hover {
+    background-color: #444;
+}
+
+.calendar-nav-btn:active {
+    background-color: #222;
+}
+
+#calendar-month-year {
+    color: #ffffff;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-align: center;
+    flex: 1;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    background-color: #333;
+    border-radius: 4px;
+    padding: 2px;
+    margin-bottom: 10px;
+}
+
+.calendar-header {
+    background-color: #444;
+    color: #ffffff;
+    padding: 8px 4px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    border-radius: 2px;
+}
+
+.calendar-day {
+    background-color: #2a2a2a;
+    border-radius: 2px;
+    padding: 6px 4px;
+    min-height: 80px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.calendar-day:hover {
+    background-color: #333;
+}
+
+.calendar-day.other-month {
+    background-color: #1a1a1a;
+    color: #666;
+}
+
+.calendar-day.today {
+    background-color: #2d4a3e;
+    border: 1px solid #4a7c59;
+}
+
+.calendar-day.selected {
+    background-color: #3a3a3a;
+    border: 1px solid #ffffff;
+}
+
+/* Day Number */
+.day-number {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.calendar-day.other-month .day-number {
+    color: #666;
+}
+
+/* Calorie Info */
+.calorie-info {
+    font-size: 10px;
+    color: #cccccc;
+    text-align: center;
+    margin-bottom: 3px;
+    line-height: 1.2;
+}
+
+.calorie-target {
+    color: #aaaaaa;
+}
+
+.calorie-consumed {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.calorie-over-target {
+    color: #ff6b6b;
+}
+
+.calorie-under-target {
+    color: #51cf66;
+}
+
+/* Meals List */
+.meals-list {
+    font-size: 9px;
+    color: #cccccc;
+    line-height: 1.1;
+    max-height: 40px;
+    overflow: hidden;
+}
+
+.meal-item {
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meal-time {
+    color: #999;
+    margin-right: 2px;
+}
+
+.meal-name {
+    color: #ffffff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .calendar-grid {
+        gap: 1px;
+        padding: 1px;
+    }
+    
+    .calendar-day {
+        min-height: 70px;
+        padding: 4px 2px;
+    }
+    
+    .day-number {
+        font-size: 11px;
+    }
+    
+    .calorie-info {
+        font-size: 9px;
+    }
+    
+    .meals-list {
+        font-size: 8px;
+        max-height: 35px;
+    }
+    
+    .calendar-nav-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+    
+    #calendar-month-year {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-day {
+        min-height: 60px;
+        padding: 3px 1px;
+    }
+    
+    .day-number {
+        font-size: 10px;
+    }
+    
+    .calorie-info {
+        font-size: 8px;
+    }
+    
+    .meals-list {
+        font-size: 7px;
+        max-height: 30px;
+    }
+    
+    .calendar-controls {
+        padding: 0 5px;
+    }
+    
+    .calendar-nav-btn {
+        padding: 5px 6px;
+        font-size: 11px;
+    }
+    
+    #calendar-month-year {
+        font-size: 0.9rem;
+    }
+}
+
+/* Loading State */
+.calendar-loading {
+    text-align: center;
+    color: #cccccc;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Empty State */
+.calendar-empty {
+    text-align: center;
+    color: #999;
+    padding: 10px;
+    font-size: 11px;
+}
+
+/* Status Messages */
+#calendar-status {
+    text-align: center;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+#calendar-status.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+#calendar-status.error {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+#calendar-status.info {
+    background-color: rgba(33, 150, 243, 0.2);
+    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}

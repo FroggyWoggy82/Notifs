@@ -62,34 +62,6 @@ router.get('/', MealController.getAllMeals);
 
 /**
  * @swagger
- * /api/meals/{id}:
- *   get:
- *     summary: Get a meal by ID
- *     tags: [Meals]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: The meal ID
- *       - in: query
- *         name: user_id
- *         schema:
- *           type: integer
- *         description: The user ID (optional, defaults to 1)
- *     responses:
- *       200:
- *         description: Meal details
- *       404:
- *         description: Meal not found
- *       500:
- *         description: Server error
- */
-router.get('/:id', MealController.getMealById);
-
-/**
- * @swagger
  * /api/meals:
  *   post:
  *     summary: Create a new meal
@@ -210,6 +182,64 @@ router.post('/upload-photo', upload.single('meal-photo'), (req, res) => {
         });
     }
 });
+
+/**
+ * @swagger
+ * /api/meals/calendar-data:
+ *   get:
+ *     summary: Get calendar data for meals and calorie targets
+ *     tags: [Meals]
+ *     parameters:
+ *       - in: query
+ *         name: user_id
+ *         schema:
+ *           type: integer
+ *         description: The user ID (optional, defaults to 1)
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         description: The year to fetch data for
+ *       - in: query
+ *         name: month
+ *         schema:
+ *           type: integer
+ *         description: The month to fetch data for (1-12)
+ *     responses:
+ *       200:
+ *         description: Calendar data with meals and calorie targets
+ *       500:
+ *         description: Server error
+ */
+router.get('/calendar-data', MealController.getCalendarData);
+
+/**
+ * @swagger
+ * /api/meals/{id}:
+ *   get:
+ *     summary: Get a meal by ID
+ *     tags: [Meals]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The meal ID
+ *       - in: query
+ *         name: user_id
+ *         schema:
+ *           type: integer
+ *         description: The user ID (optional, defaults to 1)
+ *     responses:
+ *       200:
+ *         description: Meal details
+ *       404:
+ *         description: Meal not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id', MealController.getMealById);
 
 /**
  * @swagger

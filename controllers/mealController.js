@@ -4,6 +4,7 @@
  */
 
 const MealModel = require('../models/mealModel');
+const CalorieTarget = require('../models/calorieTargetModel');
 
 /**
  * Get all meals
@@ -195,10 +196,75 @@ async function deleteMeal(req, res) {
     }
 }
 
+/**
+ * Get calendar data for meals and calorie targets
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getCalendarData(req, res) {
+    try {
+        const userId = req.query.user_id || 1;
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+        const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+
+        // Get start and end dates for the month
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0);
+
+        // Get meals for the month
+        const meals = await MealModel.getMealsByDateRange(userId, startDate, endDate);
+
+        // Get calorie target for the user
+        const calorieTarget = await CalorieTarget.getCalorieTarget(userId);
+
+        // Group meals by date and calculate daily totals
+        const dailyData = {};
+
+        meals.forEach(meal => {
+            const dateKey = meal.date.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+            if (!dailyData[dateKey]) {
+                dailyData[dateKey] = {
+                    meals: [],
+                    totalCalories: 0,
+                    calorieTarget: calorieTarget ? calorieTarget.daily_target : null
+                };
+            }
+
+            dailyData[dateKey].meals.push({
+                id: meal.id,
+                name: meal.name,
+                time: meal.time,
+                calories: meal.total_calories || 0
+            });
+
+            dailyData[dateKey].totalCalories += meal.total_calories || 0;
+        });
+
+        res.json({
+            success: true,
+            data: {
+                year,
+                month,
+                dailyData,
+                calorieTarget: calorieTarget ? calorieTarget.daily_target : null
+            }
+        });
+    } catch (error) {
+        console.error('Error in getCalendarData controller:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error getting calendar data',
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     getAllMeals,
     getMealById,
     createMeal,
     updateMeal,
-    deleteMeal
+    deleteMeal,
+    getCalendarData
 };

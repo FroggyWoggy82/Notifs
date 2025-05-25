@@ -251,6 +251,37 @@ async function deleteMeal(id, userId = 1) {
 }
 
 /**
+ * Get meals by date range
+ * @param {number} userId - The user ID
+ * @param {Date} startDate - The start date
+ * @param {Date} endDate - The end date
+ * @returns {Promise<Array>} - Promise resolving to array of meals with total calories
+ */
+async function getMealsByDateRange(userId, startDate, endDate) {
+    const query = `
+        SELECT
+            m.id,
+            m.name,
+            m.date,
+            m.time,
+            m.photo_url,
+            m.user_id,
+            m.created_at,
+            COALESCE(SUM(mi.calories), 0) as total_calories
+        FROM meals m
+        LEFT JOIN meal_ingredients mi ON m.id = mi.meal_id
+        WHERE m.user_id = $1
+        AND m.date >= $2
+        AND m.date <= $3
+        GROUP BY m.id, m.name, m.date, m.time, m.photo_url, m.user_id, m.created_at
+        ORDER BY m.date ASC, m.time ASC
+    `;
+
+    const result = await db.query(query, [userId, startDate, endDate]);
+    return result.rows;
+}
+
+/**
  * Create the meals tables if they don't exist
  * @returns {Promise<void>}
  */
@@ -316,5 +347,6 @@ module.exports = {
     createMeal,
     updateMeal,
     deleteMeal,
+    getMealsByDateRange,
     createMealsTables
 };

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Recap Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 30px;
+        }
+        
+        .demo-section {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        
+        .demo-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .demo-button:hover {
+            background-color: #45a049;
+        }
+        
+        .demo-button.secondary {
+            background-color: #2196F3;
+        }
+        
+        .demo-button.secondary:hover {
+            background-color: #1976D2;
+        }
+        
+        .info {
+            background-color: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            min-height: 20px;
+        }
+        
+        code {
+            background-color: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Weekly Recap Popup Demo</h1>
+        
+        <div class="demo-section">
+            <h2>About the Weekly Recap</h2>
+            <p>The Weekly Recap popup shows users a summary of all the tasks they completed during the current week. It appears where the old "Notification subscription saved successfully!" message used to show.</p>
+            
+            <div class="info">
+                <strong>Features:</strong>
+                <ul>
+                    <li>Shows completed tasks from the current week (Sunday to Saturday)</li>
+                    <li>Displays task titles and completion dates</li>
+                    <li>Automatically appears weekly (configurable frequency)</li>
+                    <li>Beautiful dark theme design matching the app</li>
+                    <li>Auto-dismisses after 10 seconds</li>
+                    <li>Manual close button</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Demo Controls</h2>
+            <p>Click the button below to see the weekly recap popup in action:</p>
+            
+            <button class="demo-button" onclick="showWeeklyRecap()">
+                <i class="fas fa-calendar-check"></i> Show Weekly Recap
+            </button>
+            
+            <button class="demo-button secondary" onclick="clearStorage()">
+                <i class="fas fa-trash"></i> Clear Storage (Reset Demo)
+            </button>
+            
+            <div class="info">
+                <strong>Note:</strong> This demo uses mock data to show 3 sample completed tasks. In the actual app, it will fetch real completed tasks from the database.
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Implementation Details</h2>
+            <p>The weekly recap system includes:</p>
+            <ul>
+                <li><strong>Backend API:</strong> <code>/api/tasks/completed/week</code> endpoint to fetch completed tasks</li>
+                <li><strong>Frontend Script:</strong> <code>weekly-recap-popup.js</code> handles the popup logic</li>
+                <li><strong>Local Storage:</strong> Tracks when the popup was last shown to avoid spam</li>
+                <li><strong>Responsive Design:</strong> Works on both desktop and mobile devices</li>
+            </ul>
+        </div>
+        
+        <!-- Status area for any messages -->
+        <div id="status" class="status"></div>
+    </div>
+
+    <!-- Include the weekly recap script -->
+    <script src="js/weekly-recap-popup.js"></script>
+    
+    <script>
+        // Additional demo functions
+        function clearStorage() {
+            localStorage.removeItem('lastWeeklyRecapShown');
+            document.getElementById('status').innerHTML = '<span style="color: #4CAF50;">✓ Storage cleared! The popup will show again on next trigger.</span>';
+        }
+        
+        // Show a status message when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('status').innerHTML = '<span style="color: #2196F3;">ℹ️ Weekly recap demo loaded. Click the button above to see the popup!</span>';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
