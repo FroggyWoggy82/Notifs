@@ -55,7 +55,6 @@
         '/js/tasks/date-badge-redesign.js',
         '/js/tasks/overdue-task-highlighter.js',
         '/js/tasks/task-banners-right-alignment.js',
-        '/js/tasks/completed-tasks-simple-toggle.js',
         '/js/standardized-date-indicators.js',
         '/js/dropdown-arrow-toggle.js'
     ];
