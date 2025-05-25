@@ -327,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const goalDataset = chart.data.datasets.find(ds => ds.label && ds.label.includes('Goal'));
                 if (!goalDataset || !goalDataset.data) return false;
 
-            try {
                 const mouseYValue = chart.scales.y.getValueForPixel(y);
 
                 let closestPointIndex = -1;

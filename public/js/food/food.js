@@ -1371,19 +1371,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (weightGoalChart) weightGoalChart.destroy(); // Clear previous chart immediately
 
         try {
+            console.log("Starting API calls for weight data...");
+            console.log("Current user ID:", currentUserId);
 
             const [logsResponse, goalResponse] = await Promise.all([
                 fetch(`/api/weight/logs?user_id=${currentUserId}`),
                 fetch(`/api/weight/goal?user_id=${currentUserId}`)
             ]);
 
+            console.log("Logs response status:", logsResponse.status, logsResponse.statusText);
+            console.log("Goal response status:", goalResponse.status, goalResponse.statusText);
+
             if (!logsResponse.ok) {
-                const errorData = await logsResponse.json();
-                throw new Error(errorData.error || 'Failed to fetch weight logs');
+                const errorText = await logsResponse.text();
+                console.error("Logs response error:", errorText);
+                throw new Error(`Failed to fetch weight logs: ${logsResponse.status} ${logsResponse.statusText} - ${errorText}`);
             }
             if (!goalResponse.ok) {
-                const errorData = await goalResponse.json();
-                throw new Error(errorData.error || 'Failed to fetch weight goal');
+                const errorText = await goalResponse.text();
+                console.error("Goal response error:", errorText);
+                throw new Error(`Failed to fetch weight goal: ${goalResponse.status} ${goalResponse.statusText} - ${errorText}`);
             }
 
             const weightLogs = await logsResponse.json(); // Expecting [{ log_id, log_date (YYYY-MM-DD), weight }, ...]
@@ -1428,8 +1435,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Added today's date (${todayFormatted}) to the chart at position ${insertIndex}`);
             }
 
-            const histLabels = weightLogs.map(log => {
-                // Ensure proper date formatting for consistency
+            // Create standardized date objects and labels for Chart.js
+            const histLabels = [];
+            const histDateObjects = [];
+
+            weightLogs.forEach(log => {
                 try {
                     // First try with the log_date directly
                     let date = new Date(log.log_date);
@@ -1448,20 +1458,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (!isNaN(date.getTime())) {
-                        console.log(`Formatted date for weight log: ${log.log_date} -> ${date.toLocaleDateString()}`);
-                        return date.toLocaleDateString();
+                        // Use consistent MM/DD/YYYY format for display
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const day = date.getDate().toString().padStart(2, '0');
+                        const year = date.getFullYear();
+                        const formattedLabel = `${month}/${day}/${year}`;
+
+                        console.log(`Formatted date for weight log: ${log.log_date} -> ${formattedLabel}`);
+                        histLabels.push(formattedLabel);
+                        histDateObjects.push(date);
                     } else {
                         console.warn(`Could not parse date: ${log.log_date}, using as-is`);
-                        return log.log_date;
+                        histLabels.push(log.log_date);
+                        histDateObjects.push(new Date(log.log_date)); // Fallback
                     }
                 } catch (e) {
                     console.error(`Error formatting date: ${log.log_date}`, e);
-                    return log.log_date;
+                    histLabels.push(log.log_date);
+                    histDateObjects.push(new Date(log.log_date)); // Fallback
                 }
-            }); // Use consistent date formatting
+            });
             const actualWeightData = weightLogs.map(log => log.weight);
 
             const futureLabels = [];
+            const futureDateObjects = [];
             const WEEKS_TO_PROJECT = 12; // Project ~12 weeks into the future for longer-term goals
 
             let mostRecentWeight = null;
@@ -1485,13 +1505,19 @@ document.addEventListener('DOMContentLoaded', () => {
             let goalStartDate;
 
             if (goalData.start_date) {
-
                 goalStartDate = new Date(goalData.start_date);
-                console.log("Using goal start date for projections:", goalStartDate.toLocaleDateString());
+                // Use consistent formatting
+                const month = (goalStartDate.getMonth() + 1).toString().padStart(2, '0');
+                const day = goalStartDate.getDate().toString().padStart(2, '0');
+                const year = goalStartDate.getFullYear();
+                console.log("Using goal start date for projections:", `${month}/${day}/${year}`);
             } else {
-
                 goalStartDate = new Date();
-                console.log("No goal start date available, using today:", goalStartDate.toLocaleDateString());
+                // Use consistent formatting
+                const month = (goalStartDate.getMonth() + 1).toString().padStart(2, '0');
+                const day = goalStartDate.getDate().toString().padStart(2, '0');
+                const year = goalStartDate.getFullYear();
+                console.log("No goal start date available, using today:", `${month}/${day}/${year}`);
             }
 
             goalStartDate.setHours(0, 0, 0, 0);
@@ -1500,7 +1526,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.weeklyGoalWeights = [];
 
             for (let i = 0; i <= WEEKS_TO_PROJECT; i++) { // Start from 0 to include the start date
-
                 const futureDate = new Date(goalStartDate);
 
                 if (i > 0) {
@@ -1509,15 +1534,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (i === 0) {
                     console.log("First future date:", futureDate);
-                    console.log("First future date formatted:", futureDate.toLocaleDateString());
                     console.log("First future date ISO:", futureDate.toISOString());
                 }
 
-                futureLabels.push(futureDate.toLocaleDateString());
+                // Use consistent MM/DD/YYYY format for future dates
+                const month = (futureDate.getMonth() + 1).toString().padStart(2, '0');
+                const day = futureDate.getDate().toString().padStart(2, '0');
+                const year = futureDate.getFullYear();
+                const formattedFutureLabel = `${month}/${day}/${year}`;
+
+                futureLabels.push(formattedFutureLabel);
+                futureDateObjects.push(futureDate);
 
                 // Store the date in multiple formats to ensure compatibility
                 const dateObj = {
-                    date: futureDate.toLocaleDateString(),
+                    date: formattedFutureLabel, // Use consistent format
                     isoDate: futureDate.toISOString().split('T')[0], // YYYY-MM-DD format
                     fullDate: futureDate.toLocaleDateString('en-US', {
                         month: 'long',
@@ -1531,12 +1562,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Weekly increment date for week ${i}: ${dateObj.date} (${dateObj.fullDate})`);
                 window.weeklyIncrementDates.push(dateObj);
 
-                console.log(`Added future date: ${futureDate.toLocaleDateString()} (week ${i})`);
+                console.log(`Added future date: ${formattedFutureLabel} (week ${i})`);
             }
 
-            const labels = [...histLabels, ...futureLabels];
+            // Combine labels and data
+            const combinedLabels = [...histLabels, ...futureLabels];
+            const combinedActualData = [...actualWeightData, ...Array(futureLabels.length).fill(null)];
 
-            const paddedActualWeightData = [...actualWeightData, ...Array(futureLabels.length).fill(null)];
+            // Create array of objects to sort together
+            const combinedData = combinedLabels.map((label, index) => ({
+                label: label,
+                actualWeight: combinedActualData[index],
+                originalIndex: index
+            }));
+
+            // Sort by date to ensure chronological order
+            combinedData.sort((a, b) => {
+                const dateA = parseDate(a.label);
+                const dateB = parseDate(b.label);
+                return dateA.getTime() - dateB.getTime();
+            });
+
+            // Extract sorted arrays
+            const labels = combinedData.map(item => item.label);
+            const paddedActualWeightData = combinedData.map(item => item.actualWeight);
+
+            console.log("=== SORTING DEBUG ===");
+            console.log("First 10 sorted labels:");
+            labels.slice(0, 10).forEach((label, i) => {
+                const date = parseDate(label);
+                console.log(`${i}: ${label} -> ${date.toDateString()}`);
+            });
+            console.log("=== END SORTING DEBUG ===");
+
+            // Helper function to parse dates consistently
+            function parseDate(dateStr) {
+                if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        return new Date(parts[2], parts[0] - 1, parts[1]);
+                    }
+                }
+                return new Date(dateStr);
+            }
 
             const targetWeightLine = [];
 
@@ -1653,8 +1721,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 console.log("Chart labels (first 10):", labels.slice(0, 10));
+            console.log("Chart labels (last 10):", labels.slice(-10));
                 console.log("Goal start date:", startDate.toLocaleDateString());
                 console.log("Weekly target dates (first 5):", weeklyTargetDates.slice(0, 5).map(d => d.toLocaleDateString()));
+
+            // Debug: Check if labels are in chronological order
+            console.log("=== DATE ORDER DEBUG ===");
+            for (let i = 0; i < Math.min(labels.length, 15); i++) {
+                const label = labels[i];
+                const parts = label.split('/');
+                if (parts.length === 3) {
+                    const date = new Date(parts[2], parts[0] - 1, parts[1]);
+                    console.log(`Index ${i}: ${label} -> ${date.toDateString()}`);
+                }
+            }
+            console.log("=== END DATE ORDER DEBUG ===");
 
                 // Now process each label date and find the appropriate target weight
                 labels.forEach((labelStr, index) => {
@@ -1881,7 +1962,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < labels.length; i++) {
             formattedActualData.push({
-                x: i,
+                x: i, // Use index for category scale
                 y: actualData[i] // Keep null values to maintain line continuity
             });
 
@@ -1900,7 +1981,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < labels.length; i++) {
             formattedTargetData.push({
-                x: i,
+                x: i, // Use index for category scale
                 y: targetData[i] // Keep null values to maintain line continuity
             });
         }
@@ -1992,23 +2073,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const today = new Date();
-        const todayFormatted = today.toLocaleDateString();
+        // Use consistent MM/DD/YYYY format for today
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+        const year = today.getFullYear();
+        const todayFormatted = `${month}/${day}/${year}`;
 
         console.log('Today formatted:', todayFormatted);
         console.log('Available labels:', labels);
 
-        let todayIndex = -1;
-
-        todayIndex = labels.findIndex(label => label === todayFormatted);
-
-        if (todayIndex === -1) {
-            const month = (today.getMonth() + 1).toString().padStart(2, '0');
-            const day = today.getDate().toString().padStart(2, '0');
-            const year = today.getFullYear();
-            const altFormat = `${month}/${day}/${year}`;
-            todayIndex = labels.findIndex(label => label === altFormat);
-            console.log('Trying alternate format:', altFormat);
-        }
+        let todayIndex = labels.findIndex(label => label === todayFormatted);
 
         if (todayIndex === -1) {
             const todayTime = today.getTime();
@@ -2016,13 +2090,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             labels.forEach((label, index) => {
                 try {
-
                     let labelDate;
                     if (label.includes('/')) {
                         const parts = label.split('/');
                         if (parts.length === 3) {
-
-                            labelDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                            // Parse MM/DD/YYYY format consistently
+                            const labelMonth = parseInt(parts[0]);
+                            const labelDay = parseInt(parts[1]);
+                            const labelYear = parseInt(parts[2]);
+                            labelDate = new Date(labelYear, labelMonth - 1, labelDay);
                         }
                     } else {
                         labelDate = new Date(label);
@@ -2036,7 +2112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 } catch (e) {
-
+                    console.warn('Error parsing date label:', label, e);
                 }
             });
 
@@ -2046,7 +2122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const annotations = {};
 
         if (todayIndex !== -1) {
-
             annotations.todayLine = {
                 type: 'line',
                 xMin: todayIndex,
@@ -2070,7 +2145,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log(`Today indicator added at index ${todayIndex} (${labels[todayIndex]})`);
         } else {
-
             let lastDataIndex = -1;
             for (let i = actualData.length - 1; i >= 0; i--) {
                 if (actualData[i] !== null) {
@@ -2319,6 +2393,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     },
                     x: {
+                        type: 'category', // Use category scale
+                        labels: labels, // Provide the labels array for proper ordering
                         title: {
                             display: true,
                             text: 'Date',
@@ -2333,7 +2409,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             color: 'rgba(255, 255, 255, 0.1)',
                             borderColor: 'rgba(255, 255, 255, 0.2)'
                         },
-
                         ticks: {
                             color: '#e0e0e0', // Light text color for dark theme
                             maxRotation: 45,
@@ -2341,22 +2416,37 @@ document.addEventListener('DOMContentLoaded', () => {
                             font: {
                                 size: 11
                             },
-
-
-
                             autoSkip: true,
                             autoSkipPadding: 15, // Increased padding between ticks
-                            maxTicksLimit: Math.max(5, Math.round(20 / xAxisScale)),
-                            padding: 10 // Add padding to ensure ticks don't get cut off
+                            maxTicksLimit: Math.max(5, Math.round(20 / (typeof xAxisScale !== 'undefined' ? xAxisScale : 1))),
+                            padding: 10, // Add padding to ensure ticks don't get cut off
+                            callback: function(value, index) {
+                                // Format the date labels for display
+                                const label = labels[index];
+                                if (label && label.includes('/')) {
+                                    try {
+                                        const parts = label.split('/');
+                                        if (parts.length === 3) {
+                                            const month = parseInt(parts[0]);
+                                            const day = parseInt(parts[1]);
+                                            const year = parseInt(parts[2]);
+                                            const date = new Date(year, month - 1, day);
+                                            return date.toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric'
+                                            });
+                                        }
+                                    } catch (e) {
+                                        // Fallback to original label
+                                    }
+                                }
+                                return label;
+                            }
                         },
-
                         min: 0,
                         max: labels.length - 1,
-
                         offset: true, // Add offset to prevent labels from being cut off
-
                         afterFit: function(scaleInstance) {
-
                             scaleInstance.height = Math.max(scaleInstance.height, 60);
                         }
                     }
