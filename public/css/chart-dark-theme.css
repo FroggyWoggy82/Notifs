@@ -160,6 +160,8 @@ canvas.chartjs-render-monitor {
     background-color: rgba(20, 20, 20, 0.8) !important;
     border-radius: 4px !important;
     padding: 10px !important;
+    padding-bottom: 50px !important;
+    overflow: hidden !important;
 }
 
 

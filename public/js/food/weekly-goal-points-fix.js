@@ -109,15 +109,22 @@
 
                     const point = meta.data[weeklyPoint.index];
 
+                    // Get the canvas element and its position within the container
+                    const canvas = window.weightGoalChart.canvas;
+
+                    // Get the canvas offset within its parent container
+                    const canvasOffsetX = canvas.offsetLeft || 0;
+                    const canvasOffsetY = canvas.offsetTop || 0;
+
                     // Create a week number label
                     const weekLabel = document.createElement('div');
                     weekLabel.className = 'week-number-label';
                     weekLabel.textContent = `Week ${weeklyPoint.week}`;
 
-                    // Style the label
+                    // Style the label with corrected positioning
                     weekLabel.style.position = 'absolute';
-                    weekLabel.style.top = `${point.y - 20}px`;
-                    weekLabel.style.left = `${point.x}px`;
+                    weekLabel.style.top = `${canvasOffsetY + point.y - 20}px`;
+                    weekLabel.style.left = `${canvasOffsetX + point.x}px`;
                     weekLabel.style.transform = 'translateX(-50%)';
                     weekLabel.style.color = '#fff';
                     weekLabel.style.fontSize = '10px';
@@ -195,16 +202,17 @@
                     if (weekIndex !== -1 && goalDataset.data[index] &&
                         goalDataset.data[index].y !== null && goalDataset.data[index].y !== undefined) {
                         // Check if this week is already in the weeklyGoalWeights array
-                        const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekIndex);
+                        const actualWeekNumber = weekIndex + 1; // Start from week 1, not week 0
+                        const existingWeek = window.weeklyGoalWeights.find(w => w.week === actualWeekNumber);
                         if (!existingWeek) {
                             window.weeklyGoalWeights.push({
                                 index: index,
-                                week: weekIndex,
+                                week: actualWeekNumber,
                                 weight: goalDataset.data[index].y,
                                 date: label
                             });
 
-                            console.log(`[Weekly Goal Points Fix] Added weekly goal weight from dates: ${label}, week ${weekIndex}, index ${index}`);
+                            console.log(`[Weekly Goal Points Fix] Added weekly goal weight from dates: ${label}, week ${actualWeekNumber}, index ${index}`);
                         }
                     }
                 });
@@ -240,8 +248,8 @@
                         const daysSinceStart = Math.round((currentDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
 
                         // Check if this is a weekly increment (every 7 days from start)
-                        if (daysSinceStart > 0 && daysSinceStart % 7 === 0) {
-                            const weekNum = daysSinceStart / 7;
+                        if (daysSinceStart >= 0 && daysSinceStart % 7 === 0) {
+                            const weekNum = (daysSinceStart / 7) + 1; // Start from week 1, not week 0
 
                             // Check if this week is already in the weeklyGoalWeights array
                             const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekNum);
@@ -267,7 +275,7 @@
 
                 if (isWeeklyPoint && goalDataset.data[i] &&
                     goalDataset.data[i].y !== null && goalDataset.data[i].y !== undefined) {
-                    const weekNum = Math.floor((i - startIndex) / 7);
+                    const weekNum = Math.floor((i - startIndex) / 7) + 1; // Start from week 1, not week 0
 
                     // Check if this week is already in the weeklyGoalWeights array
                     const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekNum);
@@ -293,12 +301,12 @@
                     if (point && point.y !== null && point.y !== undefined) {
                         window.weeklyGoalWeights.push({
                             index: index,
-                            week: weekCounter,
+                            week: weekCounter + 1, // Start from week 1, not week 0
                             weight: point.y,
                             date: labels[index]
                         });
 
-                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from all points: ${labels[index]}, week ${weekCounter}, index ${index}`);
+                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from all points: ${labels[index]}, week ${weekCounter + 1}, index ${index}`);
                         weekCounter++;
                     }
                 });

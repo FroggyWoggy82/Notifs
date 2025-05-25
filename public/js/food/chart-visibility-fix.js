@@ -37,7 +37,6 @@
 
         // Make sure the chart canvas is visible
         weightGoalChartCanvas.style.display = 'block';
-        weightGoalChartCanvas.style.height = '400px';
         weightGoalChartCanvas.style.width = '100%';
         weightGoalChartCanvas.style.backgroundColor = 'rgba(20, 20, 20, 0.8)';
         weightGoalChartCanvas.style.borderRadius = '4px';

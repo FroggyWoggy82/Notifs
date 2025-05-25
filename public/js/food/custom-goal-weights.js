@@ -5,51 +5,17 @@ let weeklyIncrementDates = [];
 let isEditMode = false;
 
 function initCustomGoalWeights() {
-
-    document.getElementById('edit-goal-weights-btn').addEventListener('click', toggleEditMode);
-    document.getElementById('save-custom-weights-btn').addEventListener('click', saveCustomWeights);
-    document.getElementById('cancel-custom-weights-btn').addEventListener('click', cancelCustomWeights);
-    document.getElementById('reset-custom-weights-btn').addEventListener('click', resetCustomWeights);
-
-    const debugBtn = document.getElementById('debug-points-btn');
-    if (debugBtn) {
-        debugBtn.addEventListener('click', debugPoints);
+    // Custom goal weights panel has been removed
+    // Only initialize the edit button with a disabled message
+    const editBtn = document.getElementById('edit-goal-weights-btn');
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            alert('Custom goal weights feature is currently disabled. The UI panel has been removed.');
+        });
     }
 
-    const selectedWeeksContainer = document.getElementById('selected-weeks');
-    if (!selectedWeeksContainer) {
-
-        const container = document.createElement('p');
-        container.id = 'selected-weeks';
-        container.innerHTML = '<em style="color: #aaa;">No weeks selected</em>';
-        container.style.backgroundColor = 'transparent';
-        container.style.padding = '5px';
-        container.style.border = 'none';
-        container.style.display = 'block';
-        container.style.color = 'white';
-        container.style.fontWeight = 'normal';
-        container.style.marginTop = '10px';
-        container.style.marginBottom = '10px';
-
-        const customWeightsPanel = document.getElementById('custom-weights-panel');
-        if (customWeightsPanel) {
-
-            const instructionsParagraph = customWeightsPanel.querySelector('#point-selection-instructions');
-            if (instructionsParagraph) {
-                instructionsParagraph.parentNode.insertBefore(container, instructionsParagraph.nextSibling);
-            } else {
-
-                customWeightsPanel.appendChild(container);
-            }
-        } else {
-
-            document.body.appendChild(container);
-        }
-    }
-
-    createWeightInputContainer();
-
-    loadCustomGoalWeights();
+    // Skip initialization of other buttons since they don't exist anymore
+    return;
 }
 
 function debugPoints() {
@@ -193,10 +159,15 @@ function debugPoints() {
                 if (meta && meta.data && meta.data[weeklyPoint.index]) {
                     const point = meta.data[weeklyPoint.index];
 
+                    // Get the canvas offset within its parent container
+                    const canvas = window.weightGoalChart.canvas;
+                    const canvasOffsetX = canvas.offsetLeft || 0;
+                    const canvasOffsetY = canvas.offsetTop || 0;
+
                     const label = document.createElement('div');
                     label.style.position = 'absolute';
-                    label.style.left = `${point.x}px`;
-                    label.style.top = `${point.y - 20}px`;
+                    label.style.left = `${canvasOffsetX + point.x}px`;
+                    label.style.top = `${canvasOffsetY + point.y - 20}px`;
                     label.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
                     label.style.color = 'white';
                     label.style.padding = '2px 5px';
@@ -521,16 +492,16 @@ function enablePointSelection() {
 
                         futureIndices.forEach((index, weekNumber) => {
                             if (meta.data[index]) {
-
-                                const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekNumber);
+                                const actualWeekNumber = weekNumber + 1; // Start from week 1, not week 0
+                                const existingWeek = window.weeklyGoalWeights.find(w => w.week === actualWeekNumber);
                                 if (!existingWeek) {
                                     window.weeklyGoalWeights.push({
-                                        week: weekNumber,
+                                        week: actualWeekNumber,
                                         index: index,
                                         date: labels[index],
                                         weight: goalDataset.data[index].y
                                     });
-                                    console.log(`Added week ${weekNumber} to weekly goal weights: index ${index}, date ${labels[index]}, weight ${goalDataset.data[index].y}`);
+                                    console.log(`Added week ${actualWeekNumber} to weekly goal weights: index ${index}, date ${labels[index]}, weight ${goalDataset.data[index].y}`);
                                 }
                             }
                         });

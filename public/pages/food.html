@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="../css/detailed-nutrition-view.css"> <!-- Detailed nutrition view styling -->
     <link rel="stylesheet" href="../css/micronutrient-display.css"> <!-- Micronutrient display styling -->
     <link rel="stylesheet" href="../css/micronutrient-percentage.css"> <!-- Micronutrient percentage display styling -->
-    <link rel="stylesheet" href="../css/custom-goal-weights.css"> <!-- Custom goal weights styling -->
+    <!-- <link rel="stylesheet" href="../css/custom-goal-weights.css"> Custom goal weights styling - disabled -->
     <link rel="stylesheet" href="../css/section-separator.css"> <!-- Section separator styling -->
 
     <link rel="stylesheet" href="../css/white-checkbox-fill.css"> <!-- White checkbox fill with animation -->
@@ -249,37 +249,10 @@
                     <button id="edit-goal-weights-btn">Edit Goal Weights</button>
                 </div>
             </div>
-            <canvas id="weight-goal-chart" style="display: block; height: 400px; width: 100%; background-color: rgba(20, 20, 20, 0.8); border-radius: 4px;"></canvas>
+            <canvas id="weight-goal-chart" style="display: block; width: 100%; background-color: rgba(20, 20, 20, 0.8); border-radius: 4px;"></canvas>
             <p id="weight-chart-message" style="text-align: center; padding: 10px; background-color: rgba(30, 30, 30, 0.7); border-radius: 4px; margin: 10px 0; display: block;">Weight data needed to display graph.</p>
 
-            <!-- Custom Goal Weights Panel -->
-            <div id="custom-weights-panel" class="custom-weights-container">
-                <div class="custom-weights-header">
-                    <h3>Custom Goal Weights</h3>
-                </div>
-                <div class="custom-weights-description">
-                    <p>Customize your goal weight path by adjusting individual weekly targets.</p>
-                </div>
-                <p id="point-selection-instructions">Click on goal weight points (red dots) to select them for adjustment. You can select multiple points.</p>
-                <p id="selected-weeks"></p>
-                <div id="weight-input-container">
-                    <label for="custom-weight-input">New Weight (lbs):</label>
-                    <input type="number" id="custom-weight-input" step="0.1" min="0" placeholder="Enter weight">
-                    <div class="weight-input-help">Enter the new target weight for the selected week(s)</div>
-                </div>
-                <div id="custom-weights-actions">
-                    <button id="save-custom-weights-btn">Save Changes</button>
-                    <button id="cancel-custom-weights-btn">Cancel</button>
-                    <button id="reset-custom-weights-btn">Reset All</button>
-                    <button id="debug-points-btn" style="background-color: #333; color: #999; font-size: 12px; margin-top: 10px;">Debug Points</button>
-                </div>
-            </div>
-
-            <!-- Add a clear div to ensure proper spacing -->
-            <div style="clear: both; height: 40px;"></div>
-
-            <!-- Add a visual separator -->
-            <hr style="border: 0; height: 1px; background-color: #333; margin: 30px 0;">
+            <!-- Custom Goal Weights Panel removed - functionality moved to chart controls -->
         </div>
     </section>
     <!-- ===== End Weight Goal & Daily Calorie Target Section ===== -->
@@ -295,27 +268,12 @@
         </div>
 
         <form id="submit-meal-form" class="meal-submission-form">
-            <!-- Meal Basic Info -->
-            <div class="meal-basic-info">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="meal-name">Meal Name:</label>
-                        <input type="text" id="meal-name" name="meal-name" placeholder="e.g., Breakfast, Lunch, Dinner" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="meal-date">Date:</label>
-                        <input type="date" id="meal-date" name="meal-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="meal-time">Time:</label>
-                        <input type="time" id="meal-time" name="meal-time" required>
-                    </div>
+            <!-- Date and Recipe Selection -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="meal-date">Date:</label>
+                    <input type="date" id="meal-date" name="meal-date" required>
                 </div>
-            </div>
-
-            <!-- Recipe Selection -->
-            <div class="recipe-selection-container">
-                <h3>Select Recipe</h3>
                 <div class="form-group">
                     <label for="recipe-selector">Choose a recipe:</label>
                     <select id="recipe-selector" name="recipe-selector" required>
@@ -323,8 +281,8 @@
                         <!-- Recipes will be loaded dynamically -->
                     </select>
                 </div>
-                <div id="recipe-loading-status" class="loading-message" style="display: none;">Loading recipes...</div>
             </div>
+            <div id="recipe-loading-status" class="loading-message" style="display: none;">Loading recipes...</div>
 
             <!-- Ingredients List -->
             <div id="meal-ingredients-container" class="meal-ingredients-container" style="display: none;">

@@ -7,20 +7,20 @@
 #submit-meal-section {
     background-color: rgba(20, 20, 20, 0.8);
     border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
+    padding: 15px;
+    margin: 15px 0;
     border: 1px solid #333;
 }
 
 #submit-meal-section .section-header-compact h2 {
     color: #ffffff;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
 }
 
 #submit-meal-section .section-description {
     color: #cccccc;
     font-size: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-style: italic;
 }
 
@@ -28,21 +28,73 @@
 .meal-submission-form {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 15px;
+}
+
+/* Force correct order of form elements */
+.meal-submission-form .form-row {
+    order: 1;
+    display: flex;
+    gap: 12px;
+    align-items: end;
+}
+
+.meal-submission-form .form-row .form-group {
+    flex: 1;
+}
+
+.meal-submission-form .form-row .form-group label {
+    color: #ffffff;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 14px;
+    display: block;
+}
+
+.meal-submission-form .form-row .form-group input,
+.meal-submission-form .form-row .form-group select {
+    background-color: rgba(40, 40, 40, 0.8);
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: #ffffff;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.meal-submission-form .meal-ingredients-container {
+    order: 2;
+}
+
+.meal-submission-form .meal-nutrition-summary {
+    order: 3;
+}
+
+.meal-submission-form .meal-photo-container {
+    order: 4;
+}
+
+.meal-submission-form .form-actions {
+    order: 5;
+}
+
+.meal-submission-form #meal-submission-status {
+    order: 6;
 }
 
 /* Meal Basic Info */
 .meal-basic-info {
     background-color: rgba(30, 30, 30, 0.6);
     border-radius: 6px;
-    padding: 15px;
+    padding: 12px;
     border: 1px solid #444;
 }
 
 .meal-basic-info .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 15px;
+    gap: 12px;
 }
 
 .meal-basic-info .form-group {
@@ -53,7 +105,7 @@
 .meal-basic-info label {
     color: #ffffff;
     font-weight: 500;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     font-size: 14px;
 }
 
@@ -61,7 +113,7 @@
     background-color: rgba(40, 40, 40, 0.8);
     border: 1px solid #555;
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     color: #ffffff;
     font-size: 14px;
 }
@@ -336,13 +388,13 @@
 .meal-photo-container {
     background-color: rgba(30, 30, 30, 0.6);
     border-radius: 6px;
-    padding: 15px;
+    padding: 12px;
     border: 1px solid #444;
 }
 
 .meal-photo-container h3 {
     color: #ffffff;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     font-size: 16px;
 }
 
@@ -359,8 +411,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 30px;
-    border: 2px dashed #555;
+    padding: 20px;
+    border: none;
     border-radius: 6px;
     background-color: rgba(40, 40, 40, 0.4);
     cursor: pointer;
@@ -369,15 +421,14 @@
 }
 
 .photo-upload-label:hover {
-    border-color: #4CAF50;
-    background-color: rgba(76, 175, 80, 0.1);
+    background-color: rgba(60, 60, 60, 0.6);
     color: #ffffff;
 }
 
 .photo-upload-label i {
     font-size: 24px;
     margin-bottom: 10px;
-    color: #4CAF50;
+    color: #ffffff;
 }
 
 .photo-upload-label span {
@@ -421,9 +472,9 @@
 /* Form Actions */
 .form-actions {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     justify-content: center;
-    padding-top: 20px;
+    padding-top: 15px;
     border-top: 1px solid #444;
 }
 
@@ -506,28 +557,28 @@
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    
+
     .meal-ingredient-item {
         grid-template-columns: 1fr;
         gap: 10px;
         text-align: center;
     }
-    
+
     .nutrition-summary-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
-    
+
     .micronutrients-grid {
         grid-template-columns: 1fr;
         gap: 10px;
     }
-    
+
     .form-actions {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .submit-meal-btn,
     .reset-meal-btn {
         width: 100%;
@@ -540,11 +591,11 @@
         padding: 15px;
         margin: 15px 0;
     }
-    
+
     .nutrition-summary-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .meal-ingredient-item {
         padding: 10px;
     }

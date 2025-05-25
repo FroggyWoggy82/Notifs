@@ -21,10 +21,20 @@ if (!fs.existsSync(DATA_DIR)) {
     }
 }
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+// Initialize OpenAI client (only if API key is available)
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+    try {
+        openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+        });
+        console.log('OpenAI client initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize OpenAI client:', error.message);
+    }
+} else {
+    console.log('OPENAI_API_KEY not found - AI features will be disabled');
+}
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
 

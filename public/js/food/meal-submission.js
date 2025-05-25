@@ -25,13 +25,11 @@
 
     function init() {
         console.log('[Meal Submission] DOM ready, initializing...');
-        
+
         // Get DOM elements
         elements = {
             form: document.getElementById('submit-meal-form'),
-            mealName: document.getElementById('meal-name'),
             mealDate: document.getElementById('meal-date'),
-            mealTime: document.getElementById('meal-time'),
             recipeSelector: document.getElementById('recipe-selector'),
             recipeLoadingStatus: document.getElementById('recipe-loading-status'),
             ingredientsContainer: document.getElementById('meal-ingredients-container'),
@@ -58,8 +56,8 @@
             return;
         }
 
-        // Set default date and time
-        setDefaultDateTime();
+        // Set default date to today
+        setDefaultDate();
 
         // Load recipes
         loadRecipes();
@@ -70,18 +68,10 @@
         console.log('[Meal Submission] Initialization complete');
     }
 
-    function setDefaultDateTime() {
+    function setDefaultDate() {
         const now = new Date();
-        
-        // Set date to today
-        const today = now.toISOString().split('T')[0];
+        const today = now.toISOString().split('T')[0]; // YYYY-MM-DD format
         elements.mealDate.value = today;
-
-        // Set time to current time (rounded to nearest 15 minutes)
-        const minutes = Math.round(now.getMinutes() / 15) * 15;
-        const hours = now.getHours();
-        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        elements.mealTime.value = timeString;
     }
 
     function bindEventListeners() {
@@ -102,14 +92,13 @@
         elements.resetBtn.addEventListener('click', resetForm);
 
         // Form validation
-        elements.mealName.addEventListener('input', validateForm);
         elements.mealDate.addEventListener('change', validateForm);
-        elements.mealTime.addEventListener('change', validateForm);
+        elements.recipeSelector.addEventListener('change', validateForm);
     }
 
     async function loadRecipes() {
         console.log('[Meal Submission] Loading recipes...');
-        
+
         elements.recipeLoadingStatus.style.display = 'block';
         elements.recipeSelector.disabled = true;
 
@@ -149,7 +138,7 @@
 
     async function handleRecipeSelection() {
         const recipeId = elements.recipeSelector.value;
-        
+
         if (!recipeId) {
             hideIngredientsAndNutrition();
             return;
@@ -200,11 +189,11 @@
             </div>
             <div class="amount-input-group">
                 <label for="ingredient-amount-${index}">Amount eaten (g):</label>
-                <input 
-                    type="number" 
-                    id="ingredient-amount-${index}" 
-                    value="${ingredient.amount}" 
-                    min="0" 
+                <input
+                    type="number"
+                    id="ingredient-amount-${index}"
+                    value="${ingredient.amount}"
+                    min="0"
                     step="0.1"
                     data-index="${index}"
                 >
@@ -294,7 +283,7 @@
 
     function updateMicronutrientsDisplay(micronutrients) {
         const micronutrientsContainer = elements.micronutrientsDetails;
-        
+
         // Define micronutrient categories
         const categories = {
             'Carbohydrates': {
@@ -346,7 +335,7 @@
             Object.entries(categoryFields).forEach(([field, label]) => {
                 const value = micronutrients[field] || 0;
                 const displayValue = value > 0 ? (Math.round(value * 100) / 100) : 0;
-                
+
                 html += `<div class="micronutrient-item">`;
                 html += `<span class="name">${label}</span>`;
                 html += `<span class="value">${displayValue}</span>`;
@@ -362,7 +351,7 @@
 
     function toggleMicronutrients() {
         const isExpanded = elements.micronutrientsDetails.style.display !== 'none';
-        
+
         if (isExpanded) {
             elements.micronutrientsDetails.style.display = 'none';
             elements.toggleMicronutrients.classList.remove('expanded');
@@ -376,7 +365,7 @@
 
     function handlePhotoSelection(event) {
         const file = event.target.files[0];
-        
+
         if (!file) {
             removePhoto();
             return;
@@ -427,11 +416,7 @@
     }
 
     function validateForm() {
-        const isValid = elements.mealName.value.trim() && 
-                       elements.mealDate.value && 
-                       elements.mealTime.value && 
-                       elements.recipeSelector.value;
-
+        const isValid = elements.mealDate.value && elements.recipeSelector.value;
         elements.submitBtn.disabled = !isValid;
     }
 
@@ -443,16 +428,20 @@
         }
 
         console.log('[Meal Submission] Submitting meal...');
-        
+
         elements.submitBtn.disabled = true;
         elements.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
         try {
+            // Generate default time
+            const now = new Date();
+            const currentTime = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM format
+
             // Prepare meal data
             const mealData = {
-                name: elements.mealName.value.trim(),
+                name: currentRecipe ? currentRecipe.name : 'Meal',
                 date: elements.mealDate.value,
-                time: elements.mealTime.value,
+                time: currentTime,
                 ingredients: []
             };
 
@@ -460,7 +449,7 @@
             currentIngredients.forEach((ingredient, index) => {
                 const amountInput = document.getElementById(`ingredient-amount-${index}`);
                 const amount = parseFloat(amountInput?.value) || 0;
-                
+
                 if (amount > 0) {
                     const originalAmount = ingredient.amount;
                     const ratio = amount / originalAmount;
@@ -529,12 +518,12 @@
 
     function resetForm() {
         elements.form.reset();
-        setDefaultDateTime();
+        setDefaultDate();
         hideIngredientsAndNutrition();
         removePhoto();
         hideStatus();
         validateForm();
-        
+
         // Reset micronutrients toggle
         elements.micronutrientsDetails.style.display = 'none';
         elements.toggleMicronutrients.classList.remove('expanded');

@@ -30,9 +30,15 @@
 }
 
 
-.edit-ingredient-form form > .row,
-.edit-ingredient-form form > .form-row {
+/* Only hide form-row elements inside edit-ingredient-form, not in meal submission forms */
+.edit-ingredient-form .row,
+.edit-ingredient-form .form-row {
     display: none !important;
+}
+
+/* But allow form-row in meal submission forms to be visible */
+.meal-submission-form .form-row {
+    display: flex !important;
 }
 
 

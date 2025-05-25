@@ -1886,14 +1886,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (weightGoalChartCanvas) {
                 weightGoalChartCanvas.style.display = 'block'; // Show canvas
-                weightGoalChartCanvas.style.height = '400px';
                 weightGoalChartCanvas.style.width = '100%';
 
                 // Make sure parent container is also visible
                 const chartContainer = document.querySelector('.chart-container');
                 if (chartContainer) {
                     chartContainer.style.display = 'block';
-                    chartContainer.style.height = '450px';
                     chartContainer.style.visibility = 'visible';
                 }
             }
@@ -1927,8 +1925,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const chartContainer = document.querySelector('.chart-container');
             if (chartContainer) {
                 chartContainer.style.display = 'block';
-                chartContainer.style.height = 'auto';
-                chartContainer.style.minHeight = '100px';
                 chartContainer.style.visibility = 'visible';
             }
         }

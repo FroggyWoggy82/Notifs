@@ -80,6 +80,22 @@ async function initialize() {
         if (fs.existsSync(NOTIFICATIONS_FILE)) {
             scheduledNotifications = JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf8'));
             console.log(`Loaded ${scheduledNotifications.length} notifications from file.`);
+
+            // Clean up old notifications (older than 24 hours)
+            const now = new Date();
+            const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            const initialCount = scheduledNotifications.length;
+
+            scheduledNotifications = scheduledNotifications.filter(notification => {
+                const scheduledTime = new Date(notification.scheduledTime);
+                return scheduledTime > oneDayAgo;
+            });
+
+            const cleanedCount = initialCount - scheduledNotifications.length;
+            if (cleanedCount > 0) {
+                console.log(`Cleaned up ${cleanedCount} old notifications`);
+                saveNotificationsToFile();
+            }
         }
     } catch (error) {
         console.error('Error loading notifications from file:', error);
@@ -380,9 +396,8 @@ async function validateSubscriptions() {
  * @returns {Object} - Result of the operation
  */
 async function sendToAllSubscriptions(notification) {
-    // Skip if no subscriptions
+    // Skip if no subscriptions (don't spam console)
     if (subscriptions.length === 0) {
-        console.log('No subscriptions available to send notifications');
         return { success: true, expiredCount: 0, invalidCount: 0 };
     }
 
@@ -513,14 +528,18 @@ function scheduleNotificationJob(notification) {
     // Removed scheduling log message
 
     // Check if the scheduled time is in the past
-    if (scheduledTime <= new Date()) {
-        // Removed past time log message
-        sendToAllSubscriptions(notification);
+    const now = new Date();
+    if (scheduledTime <= now) {
+        // Only send if it's not too old (within last hour)
+        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+        if (scheduledTime > oneHourAgo) {
+            sendToAllSubscriptions(notification);
+        }
+        // Don't send very old notifications
         return;
     }
 
     // Calculate the delay in milliseconds (capped at max safe integer)
-    const now = new Date();
     const delay = Math.min(
         scheduledTime - now,
         // Use a maximum delay of 24 hours (in milliseconds)
