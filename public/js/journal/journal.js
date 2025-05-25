@@ -417,59 +417,57 @@ document.addEventListener('DOMContentLoaded', function() {
         wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
     }
 
-    async function testOllama() {
+    async function testAI() {
         try {
-            showStatus('Testing Ollama connection...', 'info');
-            analysisContentElement.innerHTML = '<p>Testing Ollama connection...</p>';
+            showStatus('Testing AI connection...', 'info');
+            analysisContentElement.innerHTML = '<p>Testing AI connection...</p>';
 
             try {
-                const response = await fetch('http://localhost:11434/api/generate', {
+                const response = await fetch('/api/journal/analyze', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'mistral',
-                        prompt: 'Hello, how are you?',
-                        stream: false
+                        content: 'Hello, this is a test journal entry to verify the AI is working.'
                     })
                 });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
 
                 const result = await response.json();
                 analysisContentElement.innerHTML = `
                     <div class="ai-analysis-conversation">
-                        <p><strong>Ollama is running correctly!</strong></p>
-                        <p>The Mistral model responded with: "${result.response.substring(0, 100)}..."</p>
+                        <p><strong>AI is working correctly!</strong></p>
+                        <p>GPT-4.1 nano responded successfully. The AI therapist is ready to analyze your journal entries.</p>
                         <p>You can now use the "Talk to AI Therapist" button to analyze your journal entries.</p>
                     </div>`;
-                showStatus('Ollama test successful!', 'success');
+                showStatus('AI test successful!', 'success');
             } catch (error) {
-                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                    throw new Error('Ollama is not running. Please start Ollama in your terminal with the command: ollama serve');
-                } else if (error.message.includes('model not found')) {
-                    throw new Error('The Mistral model is not installed. Please run this command in your terminal: ollama pull mistral');
+                if (error.message.includes('OpenAI API key')) {
+                    throw new Error('OpenAI API key is not configured. Please set your OPENAI_API_KEY environment variable.');
+                } else if (error.message.includes('quota exceeded')) {
+                    throw new Error('OpenAI API quota exceeded. Please check your billing and usage limits.');
                 } else {
                     throw error;
                 }
             }
         } catch (error) {
-            console.error('Error testing Ollama:', error);
-            showStatus(`Error testing Ollama: ${error.message}`, 'error');
+            console.error('Error testing AI:', error);
+            showStatus(`Error testing AI: ${error.message}`, 'error');
             analysisContentElement.innerHTML = `
                 <div class="ai-analysis-conversation error-message">
-                    <p><strong>Failed to connect to Ollama</strong></p>
+                    <p><strong>Failed to connect to AI service</strong></p>
                     <p>${error.message}</p>
                     <p>To use the AI therapist feature, you need to:</p>
                     <ol>
-                        <li>Open a terminal window</li>
-                        <li>Run the command: <code>ollama serve</code></li>
-                        <li>If you haven't installed the Mistral model yet, run: <code>ollama pull mistral</code></li>
-                        <li>Once Ollama is running, try this test again</li>
+                        <li>Set your OpenAI API key in the environment variables</li>
+                        <li>Make sure you have sufficient OpenAI API credits</li>
+                        <li>Restart the server after setting the API key</li>
+                        <li>Try this test again</li>
                     </ol>
                 </div>`;
         }

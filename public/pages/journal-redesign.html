@@ -74,11 +74,6 @@
         <div class="top-bar">
             <button id="open-sidebar" class="menu-button">☰</button>
             <h1>Journal</h1>
-            <div class="top-bar-actions">
-                <button id="theme-toggle" class="icon-button" title="Toggle theme">
-                    <i class="fas fa-sun"></i>
-                </button>
-            </div>
         </div>
 
         <div class="journal-container">
@@ -87,75 +82,47 @@
                 <div class="date-selector">
                     <label for="journal-date">Date:</label>
                     <input type="date" id="journal-date">
-                    <div id="sentiment-indicator" class="sentiment-indicator neutral" title="Entry sentiment">
-                        <span class="sentiment-icon">😐</span>
-                    </div>
                 </div>
                 <div class="journal-actions">
                     <button id="save-entry" class="primary-button">
-                        <i class="fas fa-save"></i> Save Entry
+                        Save Entry
                     </button>
                     <button id="analyze-entry" class="secondary-button">
-                        <i class="fas fa-brain"></i> Talk to AI Therapist
+                        Confer
                     </button>
-                    <button id="test-ollama" class="secondary-button">
-                        <i class="fas fa-server"></i> Test Ollama
-                    </button>
-                    <a href="/pages/journal.html" class="secondary-button" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-                        <i class="fas fa-undo"></i> Classic View
-                    </a>
                 </div>
             </div>
 
-            <!-- Editor section -->
-            <div class="journal-editor">
-                <div class="editor-header">
-                    <h3 class="editor-title">Write Your Journal</h3>
-                    <div class="editor-tools">
-                        <button id="voice-to-text" class="tool-button" title="Voice to text">
-                            <i class="fas fa-microphone"></i>
-                        </button>
+            <!-- Main content area with editor and AI assistant side by side -->
+            <div class="journal-main">
+                <!-- Editor section -->
+                <div class="journal-editor">
+                    <div class="editor-prompt" id="editor-prompt">Let's just start anywhere...</div>
+                    <textarea id="journal-content" placeholder="" spellcheck="false"></textarea>
+                    <div class="editor-footer">
+                        <div class="word-count" id="word-count">0 words</div>
+                        <div class="mood-selector">
+                            <label for="mood-selector">Mood:</label>
+                            <select id="mood-selector">
+                                <option value="neutral">Neutral</option>
+                                <option value="happy">Happy</option>
+                                <option value="sad">Sad</option>
+                                <option value="anxious">Anxious</option>
+                                <option value="excited">Excited</option>
+                                <option value="tired">Tired</option>
+                                <option value="angry">Angry</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <textarea id="journal-content" placeholder="Start writing your thoughts here..." spellcheck="false"></textarea>
-                <div class="editor-footer">
-                    <div class="word-count" id="word-count" style="color: white; font-weight: bold;">0 words</div>
-                    <div class="mood-selector">
-                        <label for="mood-selector">Mood:</label>
-                        <select id="mood-selector">
-                            <option value="neutral">Neutral</option>
-                            <option value="happy">Happy</option>
-                            <option value="sad">Sad</option>
-                            <option value="anxious">Anxious</option>
-                            <option value="excited">Excited</option>
-                            <option value="tired">Tired</option>
-                            <option value="angry">Angry</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
 
-            <!-- AI Assistant section -->
-            <div class="ai-assistant">
-                <div class="assistant-header">
-                    <h3 class="assistant-title">
-                        <i class="fas fa-robot"></i> AI Assistant
-                    </h3>
-                    <div class="assistant-tools">
-                        <button id="save-insights" class="tool-button" title="Save insights">
-                            <i class="fas fa-bookmark"></i>
-                        </button>
+                <!-- AI Assistant section -->
+                <div class="ai-assistant">
+                    <div class="assistant-header">
+                        <h3>Gibiti</h3>
                     </div>
-                </div>
-                <div class="assistant-content" id="analysis-content">
-                    <p class="placeholder">Your AI assistant will provide insights, questions, and feedback as you write.</p>
-                </div>
-                <div class="assistant-footer">
-                    <h4>Suggested prompts:</h4>
-                    <div class="prompt-suggestions" id="prompt-suggestions">
-                        <div class="prompt-suggestion">How are you feeling today?</div>
-                        <div class="prompt-suggestion">What's on your mind?</div>
-                        <div class="prompt-suggestion">What are you grateful for?</div>
+                    <div class="assistant-content" id="analysis-content">
+                        <p class="placeholder"></p>
                     </div>
                 </div>
             </div>

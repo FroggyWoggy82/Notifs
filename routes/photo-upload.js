@@ -8,8 +8,11 @@ const db = require('../utils/db');
 const router = express.Router();
 
 // --- Configuration ---
-// Use Railway persistent volume for storage
-const progressPhotosDir = path.join('/data', 'uploads', 'progress_photos');
+// Use Railway persistent volume for storage in production, local directory in development
+const isProduction = process.env.NODE_ENV === 'production';
+const progressPhotosDir = isProduction
+    ? path.join('/data', 'uploads', 'progress_photos')
+    : path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
 
 // Create a symlink from the persistent storage to the public directory
 const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');

@@ -26,14 +26,21 @@ const poolConfig = {
     ssl: {
         rejectUnauthorized: false
     },
-    // Shorter timeouts for Railway to prevent hanging
-    connectionTimeoutMillis: isRailway ? 5000 : 10000, // 5s for Railway, 10s for local
-    idleTimeoutMillis: isRailway ? 15000 : 30000, // 15s for Railway, 30s for local
-    max: isRailway ? 3 : 5, // Fewer connections for Railway
-    statement_timeout: isRailway ? 10000 : 15000, // 10s for Railway, 15s for local
-    // Add retry logic
-    max_retries: isRailway ? 1 : 2, // Fewer retries for Railway
-    retry_delay: 1000 // Wait 1 second between retries
+    // Optimized timeouts for Railway connectivity issues
+    connectionTimeoutMillis: 30000, // 30s connection timeout
+    idleTimeoutMillis: 60000, // 60s idle timeout
+    max: 3, // Smaller pool size to reduce connection overhead
+    min: 1, // Keep at least 1 connection alive
+    acquireTimeoutMillis: 30000, // 30s to acquire connection from pool
+    createTimeoutMillis: 30000, // 30s to create new connection
+    destroyTimeoutMillis: 5000, // 5s to destroy connection
+    reapIntervalMillis: 1000, // Check for idle connections every 1s
+    createRetryIntervalMillis: 200, // Wait 200ms between connection creation retries
+    // PostgreSQL specific settings
+    query_timeout: 60000, // 60s query timeout
+    statement_timeout: 60000, // 60s statement timeout
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000
 };
 
 console.log('Database connection config:', {
@@ -100,35 +107,69 @@ const testDbConnection = async (maxRetries = 3, timeout = 20000) => {
 
 module.exports = {
     testDbConnection, // Export the test function
-    query: (text, params) => {
+    query: async (text, params) => {
         // Ensure params is always an array
         const safeParams = Array.isArray(params) ? params : (params ? [params] : []);
 
         console.log(`Executing query: ${text}`, safeParams);
 
-        // Create a promise that will reject after 30 seconds
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Query timed out after 30 seconds')), 30000);
-        });
+        const maxRetries = 3;
+        let lastError;
 
-        // Create the query promise
-        const queryPromise = pool.query(text, safeParams)
-            .then(res => {
-                console.log(`Query completed successfully with ${res.rowCount} rows`);
-                if (text.includes('INSERT') && res.rows && res.rows.length > 0) {
-                    console.log('Inserted row:', JSON.stringify(res.rows[0]));
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`Query attempt ${attempt}/${maxRetries}`);
+
+                // Create a promise that will reject after 60 seconds
+                const timeoutMs = 60000;
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error(`Query timed out after ${timeoutMs/1000} seconds`)), timeoutMs);
+                });
+
+                // Create the query promise
+                const queryPromise = pool.query(text, safeParams)
+                    .then(res => {
+                        console.log(`Query completed successfully with ${res.rowCount} rows`);
+                        if (text.includes('INSERT') && res.rows && res.rows.length > 0) {
+                            console.log('Inserted row:', JSON.stringify(res.rows[0]));
+                        }
+                        return res;
+                    });
+
+                // Race the query against the timeout
+                const result = await Promise.race([queryPromise, timeoutPromise]);
+                return result;
+
+            } catch (err) {
+                lastError = err;
+                console.error(`Query attempt ${attempt} failed:`, err.message);
+
+                // Check if this is a connection-related error
+                const isConnectionError = err.message.includes('Connection terminated') ||
+                                        err.message.includes('connection timeout') ||
+                                        err.message.includes('ECONNRESET') ||
+                                        err.message.includes('ENOTFOUND');
+
+                if (isConnectionError && attempt < maxRetries) {
+                    console.log(`Connection error detected, retrying in ${attempt * 1000}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+                    continue;
+                } else if (attempt === maxRetries) {
+                    console.error('Query error:', err);
+                    console.error('Query that failed:', text);
+                    console.error('Parameters:', safeParams);
+                    throw err;
+                } else {
+                    // Non-connection error, don't retry
+                    console.error('Query error:', err);
+                    console.error('Query that failed:', text);
+                    console.error('Parameters:', safeParams);
+                    throw err;
                 }
-                return res;
-            })
-            .catch(err => {
-                console.error('Query error:', err);
-                console.error('Query that failed:', text);
-                console.error('Parameters:', safeParams);
-                throw err;
-            });
+            }
+        }
 
-        // Race the query against the timeout
-        return Promise.race([queryPromise, timeoutPromise]);
+        throw lastError;
     },
 
     // Get a client from the pool for transactions

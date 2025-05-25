@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="nav-icon"><i class="fas fa-utensils"></i></span>
             <span>Food</span>
         </a>
-        <a href="/pages/journal.html" class="sidebar-nav-item">
+        <a href="/pages/journal-redesign.html" class="sidebar-nav-item">
             <span class="nav-icon"><i class="fas fa-book"></i></span>
             <span>Journal</span>
         </a>
@@ -51,16 +51,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentPath = window.location.pathname;
 
     const sidebar = document.querySelector('.sidebar');
-    
+
     if (sidebar) {
 
         sidebar.innerHTML = standardSidebar;
 
         const navItems = sidebar.querySelectorAll('.sidebar-nav-item');
-        
+
         navItems.forEach(item => {
             const href = item.getAttribute('href');
-            if (currentPath.endsWith(href) || 
+            if (currentPath.endsWith(href) ||
                 (currentPath === '/' && href === '/index.html') ||
                 (currentPath.includes(href) && href !== '/index.html')) {
                 item.classList.add('active');

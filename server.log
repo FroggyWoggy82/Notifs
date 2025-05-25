@@ -1,0 +1,38 @@
+Running setup script to check for missing files...
+File already exists: /mnt/persist/workspace/config/routes/weight.js
+File already exists: /mnt/persist/workspace/config/routes/weightRoutes.js
+Setup script completed.
+DATABASE_URL environment variable is not set. Using hardcoded connection string.
+Using database connection string: postgresql://postgres:****@nozomi.proxy.rlwy.net:18056/railway
+Database connection config: {
+  usingConnectionString: true,
+  host: 'from connection string',
+  database: 'from connection string',
+  ssl: 'enabled'
+}
+[WORKOUTS] Removed existing directory: /mnt/persist/workspace/public/uploads/progress_photos
+[WORKOUTS] Created symlink from /mnt/persist/workspace/public/uploads/progress_photos to /mnt/persist/workspace/public/uploads/progress_photos
+[Server Config] Multer configured with file size limit: 25 MB
+[PHOTO UPLOAD] Configured with file size limit: 100 MB
+node:fs:1364
+  const result = binding.mkdir(
+                         ^
+
+Error: EACCES: permission denied, mkdir '/data/uploads/progress_photos'
+    at Object.mkdirSync (node:fs:1364:26)
+    at Object.<anonymous> (/mnt/persist/workspace/routes/photo-upload.js:26:8)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16) {
+  errno: -13,
+  code: 'EACCES',
+  syscall: 'mkdir',
+  path: '/data/uploads/progress_photos'
+}
+
+Node.js v22.15.1

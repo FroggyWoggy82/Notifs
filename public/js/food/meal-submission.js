@@ -1,813 +1,562 @@
 /**
- * Meal Submission
- *
- * This module handles the meal submission functionality, including:
- * - Opening and closing the meal submission modal
- * - Searching for existing ingredients
- * - Adding new ingredients with the Cronometer processor
- * - Submitting meal data to the server
+ * Meal Submission Functionality
+ * Handles the submit meal section functionality
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Load existing meals when the page loads
-    loadMeals();
-    // DOM Elements
-    const addMealBtn = document.getElementById('add-meal-btn');
-    const mealSubmissionModal = document.getElementById('meal-submission-modal');
-    const newIngredientModal = document.getElementById('new-ingredient-modal');
-    const mealSubmissionForm = document.getElementById('meal-submission-form');
-    const newIngredientForm = document.getElementById('new-ingredient-form');
-    const ingredientSearch = document.getElementById('ingredient-search');
-    const ingredientSearchResults = document.getElementById('ingredient-search-results');
-    const addNewIngredientBtn = document.getElementById('add-new-ingredient-btn');
-    const selectedIngredientsList = document.querySelector('.selected-ingredients-list');
-    const emptyMessage = selectedIngredientsList.querySelector('.empty-message');
+(function() {
+    'use strict';
 
-    // Nutrition summary elements
-    const mealCalories = document.getElementById('meal-calories');
-    const mealProtein = document.getElementById('meal-protein');
-    const mealCarbs = document.getElementById('meal-carbs');
-    const mealFat = document.getElementById('meal-fat');
+    console.log('[Meal Submission] Initializing...');
 
-    // Cronometer parser elements
-    const newIngredientCronometerText = document.getElementById('new-ingredient-cronometer-text');
-    const newIngredientParseButton = document.getElementById('new-ingredient-parse-button');
-    const newIngredientParseStatus = document.getElementById('new-ingredient-parse-status');
+    // State variables
+    let currentRecipe = null;
+    let currentIngredients = [];
+    let selectedPhoto = null;
 
-    // Hidden nutrition fields
-    const newIngredientCalories = document.getElementById('new-ingredient-calories');
-    const newIngredientProtein = document.getElementById('new-ingredient-protein');
-    const newIngredientFat = document.getElementById('new-ingredient-fat');
-    const newIngredientCarbs = document.getElementById('new-ingredient-carbs');
+    // DOM elements
+    let elements = {};
 
-    // Close buttons
-    const closeButtons = document.querySelectorAll('.close, .cancel-btn');
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
-    // State
-    let selectedIngredients = [];
-    let allIngredients = [];
-
-    // Set default date to today
-    const today = new Date();
-    const dateInput = document.getElementById('meal-date');
-    dateInput.value = today.toISOString().split('T')[0];
-
-    // Set default time to current time
-    const timeInput = document.getElementById('meal-time');
-    const hours = today.getHours().toString().padStart(2, '0');
-    const minutes = today.getMinutes().toString().padStart(2, '0');
-    timeInput.value = `${hours}:${minutes}`;
-
-    // ===== EVENT LISTENERS =====
-
-    // Open meal submission modal
-    addMealBtn.addEventListener('click', function() {
-        mealSubmissionModal.style.display = 'block';
-        fetchIngredients();
-    });
-
-    // Close modals
-    closeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            mealSubmissionModal.style.display = 'none';
-            newIngredientModal.style.display = 'none';
-        });
-    });
-
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === mealSubmissionModal) {
-            mealSubmissionModal.style.display = 'none';
-        }
-        if (event.target === newIngredientModal) {
-            newIngredientModal.style.display = 'none';
-        }
-    });
-
-    // Ingredient search
-    ingredientSearch.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-
-        if (searchTerm.length < 2) {
-            ingredientSearchResults.style.display = 'none';
-            return;
-        }
-
-        // Make sure allIngredients is initialized
-        if (!allIngredients || !Array.isArray(allIngredients)) {
-            fetchIngredients().then(() => {
-                // After ingredients are fetched, filter and display results
-                const filteredIngredients = allIngredients.filter(ingredient =>
-                    ingredient.name.toLowerCase().includes(searchTerm)
-                );
-                displaySearchResults(filteredIngredients);
-            });
-        } else {
-            // If ingredients are already loaded, filter and display results
-            const filteredIngredients = allIngredients.filter(ingredient =>
-                ingredient.name.toLowerCase().includes(searchTerm)
-            );
-            displaySearchResults(filteredIngredients);
-        }
-    });
-
-    // Open new ingredient modal
-    addNewIngredientBtn.addEventListener('click', function() {
-        newIngredientModal.style.display = 'block';
-        newIngredientForm.reset();
-        newIngredientParseStatus.textContent = '';
-        newIngredientParseStatus.className = 'cronometer-parse-status';
-    });
-
-    // Parse Cronometer text
-    newIngredientParseButton.addEventListener('click', function() {
-        const text = newIngredientCronometerText.value.trim();
-        if (text) {
-            parseCronometerText(text);
-        } else {
-            showParseStatus('Please paste Cronometer nutrition data first', 'error');
-        }
-    });
-
-    // Add new ingredient to meal
-    newIngredientForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const name = document.getElementById('new-ingredient-name').value.trim();
-        const amount = parseFloat(document.getElementById('new-ingredient-amount').value);
-        const calories = parseFloat(newIngredientCalories.value) || 0;
-        const protein = parseFloat(newIngredientProtein.value) || 0;
-        const fat = parseFloat(newIngredientFat.value) || 0;
-        const carbs = parseFloat(newIngredientCarbs.value) || 0;
-
-        if (!name || isNaN(amount) || amount <= 0) {
-            showParseStatus('Please enter a valid name and amount', 'error');
-            return;
-        }
-
-        if (calories <= 0) {
-            showParseStatus('Please parse nutrition data first', 'error');
-            return;
-        }
-
-        const newIngredient = {
-            id: 'temp-' + Date.now(), // Temporary ID for new ingredients
-            name,
-            amount,
-            calories,
-            protein,
-            fat,
-            carbs,
-            isNew: true // Flag to indicate this is a new ingredient
+    function init() {
+        console.log('[Meal Submission] DOM ready, initializing...');
+        
+        // Get DOM elements
+        elements = {
+            form: document.getElementById('submit-meal-form'),
+            mealName: document.getElementById('meal-name'),
+            mealDate: document.getElementById('meal-date'),
+            mealTime: document.getElementById('meal-time'),
+            recipeSelector: document.getElementById('recipe-selector'),
+            recipeLoadingStatus: document.getElementById('recipe-loading-status'),
+            ingredientsContainer: document.getElementById('meal-ingredients-container'),
+            ingredientsList: document.getElementById('meal-ingredients-list'),
+            nutritionSummary: document.getElementById('meal-nutrition-summary'),
+            totalCalories: document.getElementById('total-calories'),
+            totalProtein: document.getElementById('total-protein'),
+            totalCarbs: document.getElementById('total-carbs'),
+            totalFat: document.getElementById('total-fat'),
+            toggleMicronutrients: document.getElementById('toggle-micronutrients'),
+            micronutrientsDetails: document.getElementById('micronutrients-details'),
+            mealPhoto: document.getElementById('meal-photo'),
+            photoPreview: document.getElementById('photo-preview'),
+            previewImage: document.getElementById('preview-image'),
+            removePhotoBtn: document.getElementById('remove-photo'),
+            submitBtn: document.getElementById('submit-meal-btn'),
+            resetBtn: document.getElementById('reset-meal-form'),
+            status: document.getElementById('meal-submission-status')
         };
 
-        addIngredientToSelection(newIngredient);
-        newIngredientModal.style.display = 'none';
-        newIngredientForm.reset();
-    });
-
-    // Submit meal
-    mealSubmissionForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const name = document.getElementById('meal-name').value.trim();
-        const date = document.getElementById('meal-date').value;
-        const time = document.getElementById('meal-time').value;
-
-        if (!name) {
-            alert('Please enter a meal name');
+        // Check if elements exist
+        if (!elements.form) {
+            console.log('[Meal Submission] Form not found, skipping initialization');
             return;
         }
 
-        if (selectedIngredients.length === 0) {
-            alert('Please add at least one ingredient');
-            return;
-        }
+        // Set default date and time
+        setDefaultDateTime();
 
-        const mealData = {
-            name,
-            date,
-            time,
-            ingredients: selectedIngredients.map(ing => ({
-                id: ing.id,
-                name: ing.name,
-                amount: ing.amount,
-                calories: ing.calories,
-                protein: ing.protein,
-                fat: ing.fat,
-                carbs: ing.carbs,
-                isNew: ing.isNew || false
-            }))
-        };
+        // Load recipes
+        loadRecipes();
 
-        submitMeal(mealData);
-    });
+        // Bind event listeners
+        bindEventListeners();
 
-    // ===== FUNCTIONS =====
-
-    /**
-     * Fetch all ingredients from the server
-     * @returns {Promise} - Promise that resolves when ingredients are loaded
-     */
-    function fetchIngredients() {
-        // Show loading state
-        ingredientSearch.placeholder = 'Loading ingredients...';
-        ingredientSearch.disabled = true;
-
-        // Return the promise so it can be chained
-        return fetch('/api/unique-ingredients')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch ingredients');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && Array.isArray(data.ingredients)) {
-                    // Map the ingredients to a consistent format
-                    allIngredients = data.ingredients.map(ing => ({
-                        id: ing.id,
-                        name: ing.name,
-                        calories: ing.calories || 0,
-                        protein: ing.protein || 0,
-                        fat: ing.fats || 0, // Note: API uses 'fats' but we use 'fat' in our UI
-                        carbs: ing.carbohydrates || 0 // API uses 'carbohydrates' but we use 'carbs' in our UI
-                    }));
-
-                    console.log(`Loaded ${allIngredients.length} ingredients from database`);
-                } else {
-                    // Fallback to empty array if no ingredients found
-                    allIngredients = [];
-                    console.warn('No ingredients found or invalid response format');
-                }
-
-                // Reset search input
-                ingredientSearch.placeholder = 'Type to search ingredients';
-                ingredientSearch.disabled = false;
-
-                // Return the ingredients for chaining
-                return allIngredients;
-            })
-            .catch(error => {
-                console.error('Error fetching ingredients:', error);
-
-                // Fallback to empty array on error
-                allIngredients = [];
-
-                // Reset search input
-                ingredientSearch.placeholder = 'Type to search ingredients (error loading)';
-                ingredientSearch.disabled = false;
-
-                // Return empty array for chaining
-                return [];
-            });
+        console.log('[Meal Submission] Initialization complete');
     }
 
-    /**
-     * Display search results
-     * @param {Array} results - Array of ingredient objects
-     */
-    function displaySearchResults(results) {
-        ingredientSearchResults.innerHTML = '';
+    function setDefaultDateTime() {
+        const now = new Date();
+        
+        // Set date to today
+        const today = now.toISOString().split('T')[0];
+        elements.mealDate.value = today;
 
-        if (results.length === 0) {
-            const noResults = document.createElement('div');
-            noResults.className = 'search-result-item';
-            noResults.textContent = 'No ingredients found';
-            ingredientSearchResults.appendChild(noResults);
-        } else {
-            results.forEach(ingredient => {
-                const resultItem = document.createElement('div');
-                resultItem.className = 'search-result-item';
-                resultItem.textContent = ingredient.name;
-                resultItem.addEventListener('click', () => {
-                    addIngredientToSelection(ingredient);
-                    ingredientSearch.value = '';
-                    ingredientSearchResults.style.display = 'none';
-                });
-                ingredientSearchResults.appendChild(resultItem);
-            });
-        }
-
-        ingredientSearchResults.style.display = 'block';
+        // Set time to current time (rounded to nearest 15 minutes)
+        const minutes = Math.round(now.getMinutes() / 15) * 15;
+        const hours = now.getHours();
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        elements.mealTime.value = timeString;
     }
 
-    /**
-     * Add an ingredient to the selected ingredients list
-     * @param {Object} ingredient - Ingredient object
-     */
-    function addIngredientToSelection(ingredient) {
-        // Check if ingredient is already selected
-        const existingIndex = selectedIngredients.findIndex(ing => ing.id === ingredient.id);
+    function bindEventListeners() {
+        // Recipe selection
+        elements.recipeSelector.addEventListener('change', handleRecipeSelection);
 
-        if (existingIndex !== -1) {
-            // If already selected, increase the amount
-            selectedIngredients[existingIndex].amount += ingredient.amount || 100;
-            updateSelectedIngredientsList();
-            return;
-        }
+        // Photo upload
+        elements.mealPhoto.addEventListener('change', handlePhotoSelection);
+        elements.removePhotoBtn.addEventListener('click', removePhoto);
 
-        // Add default amount if not provided
-        if (!ingredient.amount) {
-            ingredient.amount = 100;
-        }
+        // Micronutrients toggle
+        elements.toggleMicronutrients.addEventListener('click', toggleMicronutrients);
 
-        // Add to selected ingredients
-        selectedIngredients.push(ingredient);
+        // Form submission
+        elements.form.addEventListener('submit', handleFormSubmission);
 
-        // Update UI
-        updateSelectedIngredientsList();
+        // Reset form
+        elements.resetBtn.addEventListener('click', resetForm);
+
+        // Form validation
+        elements.mealName.addEventListener('input', validateForm);
+        elements.mealDate.addEventListener('change', validateForm);
+        elements.mealTime.addEventListener('change', validateForm);
     }
 
-    /**
-     * Update the selected ingredients list in the UI
-     */
-    function updateSelectedIngredientsList() {
-        // Clear the list
-        selectedIngredientsList.innerHTML = '';
-
-        if (selectedIngredients.length === 0) {
-            selectedIngredientsList.appendChild(emptyMessage);
-            updateNutritionSummary();
-            return;
-        }
-
-        // Add each ingredient to the list
-        selectedIngredients.forEach((ingredient, index) => {
-            const ingredientItem = document.createElement('div');
-            ingredientItem.className = 'selected-ingredient-item';
-
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'selected-ingredient-info';
-
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'selected-ingredient-name';
-            nameSpan.textContent = ingredient.name;
-
-            const nutritionSpan = document.createElement('span');
-            nutritionSpan.className = 'selected-ingredient-nutrition';
-            nutritionSpan.textContent = `${ingredient.calories} cal | ${ingredient.protein}g protein | ${ingredient.fat}g fat | ${ingredient.carbs}g carbs`;
-
-            infoDiv.appendChild(nameSpan);
-            infoDiv.appendChild(nutritionSpan);
-
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'selected-ingredient-actions';
-
-            const amountDiv = document.createElement('div');
-            amountDiv.className = 'selected-ingredient-amount';
-
-            const amountInput = document.createElement('input');
-            amountInput.type = 'number';
-            amountInput.value = ingredient.amount;
-            amountInput.min = '1';
-            amountInput.step = '1';
-            amountInput.addEventListener('change', () => {
-                const newAmount = parseFloat(amountInput.value);
-                if (!isNaN(newAmount) && newAmount > 0) {
-                    selectedIngredients[index].amount = newAmount;
-                    updateNutritionSummary();
-                }
-            });
-
-            const amountLabel = document.createElement('span');
-            amountLabel.textContent = 'g';
-
-            amountDiv.appendChild(amountInput);
-            amountDiv.appendChild(amountLabel);
-
-            const removeButton = document.createElement('button');
-            removeButton.type = 'button';
-            removeButton.className = 'remove-ingredient-btn';
-            removeButton.textContent = 'Remove';
-            removeButton.addEventListener('click', () => {
-                selectedIngredients.splice(index, 1);
-                updateSelectedIngredientsList();
-            });
-
-            actionsDiv.appendChild(amountDiv);
-            actionsDiv.appendChild(removeButton);
-
-            ingredientItem.appendChild(infoDiv);
-            ingredientItem.appendChild(actionsDiv);
-
-            selectedIngredientsList.appendChild(ingredientItem);
-        });
-
-        // Update nutrition summary
-        updateNutritionSummary();
-    }
-
-    /**
-     * Update the nutrition summary
-     */
-    function updateNutritionSummary() {
-        let totalCalories = 0;
-        let totalProtein = 0;
-        let totalFat = 0;
-        let totalCarbs = 0;
-
-        selectedIngredients.forEach(ingredient => {
-            // Calculate nutrition based on amount
-            const ratio = ingredient.amount / 100; // Assuming nutrition values are per 100g
-            totalCalories += ingredient.calories * ratio;
-            totalProtein += ingredient.protein * ratio;
-            totalFat += ingredient.fat * ratio;
-            totalCarbs += ingredient.carbs * ratio;
-        });
-
-        // Update UI
-        mealCalories.textContent = Math.round(totalCalories);
-        mealProtein.textContent = Math.round(totalProtein) + 'g';
-        mealFat.textContent = Math.round(totalFat) + 'g';
-        mealCarbs.textContent = Math.round(totalCarbs) + 'g';
-    }
-
-    /**
-     * Parse Cronometer text using the CronometerParser
-     * @param {string} text - Text from Cronometer
-     */
-    function parseCronometerText(text) {
-        showParseStatus('Processing Cronometer data...', 'loading');
+    async function loadRecipes() {
+        console.log('[Meal Submission] Loading recipes...');
+        
+        elements.recipeLoadingStatus.style.display = 'block';
+        elements.recipeSelector.disabled = true;
 
         try {
-            // Use the global CronometerParser if available
-            if (window.CronometerParser) {
-                const nutritionData = window.CronometerParser.parseText(text);
+            const response = await fetch('/api/recipes');
+            const data = await response.json();
 
-                if (nutritionData.success) {
-                    // Update hidden fields
-                    newIngredientCalories.value = nutritionData.calories || 0;
-                    newIngredientProtein.value = nutritionData.protein || 0;
-                    newIngredientFat.value = nutritionData.fat || 0;
-                    newIngredientCarbs.value = nutritionData.carbs || 0;
-
-                    showParseStatus('Nutrition data extracted successfully!', 'success');
-                } else {
-                    showParseStatus('Could not extract nutrition data. Please check the format.', 'error');
-                }
+            if (data.success && data.recipes) {
+                populateRecipeSelector(data.recipes);
+                console.log(`[Meal Submission] Loaded ${data.recipes.length} recipes`);
             } else {
-                // Fallback to a simple parser if CronometerParser is not available
-                const caloriesMatch = text.match(/Energy\s*(\d+\.?\d*)\s*kcal/i);
-                const proteinMatch = text.match(/Protein\s*(\d+\.?\d*)\s*g/i);
-                const fatMatch = text.match(/Fat\s*(\d+\.?\d*)\s*g/i);
-                const carbsMatch = text.match(/Carbs\s*(\d+\.?\d*)\s*g/i);
-
-                if (caloriesMatch || proteinMatch || fatMatch || carbsMatch) {
-                    newIngredientCalories.value = caloriesMatch ? parseFloat(caloriesMatch[1]) : 0;
-                    newIngredientProtein.value = proteinMatch ? parseFloat(proteinMatch[1]) : 0;
-                    newIngredientFat.value = fatMatch ? parseFloat(fatMatch[1]) : 0;
-                    newIngredientCarbs.value = carbsMatch ? parseFloat(carbsMatch[1]) : 0;
-
-                    showParseStatus('Nutrition data extracted successfully!', 'success');
-                } else {
-                    showParseStatus('Could not extract nutrition data. Please check the format.', 'error');
-                }
+                throw new Error(data.message || 'Failed to load recipes');
             }
         } catch (error) {
-            console.error('Error parsing Cronometer text:', error);
-            showParseStatus(`Error: ${error.message}`, 'error');
+            console.error('[Meal Submission] Error loading recipes:', error);
+            showStatus('Error loading recipes. Please refresh the page.', 'error');
+        } finally {
+            elements.recipeLoadingStatus.style.display = 'none';
+            elements.recipeSelector.disabled = false;
         }
     }
 
-    /**
-     * Show a status message for the Cronometer parser
-     * @param {string} message - Message to show
-     * @param {string} type - Type of message (success, error, loading)
-     */
-    function showParseStatus(message, type) {
-        newIngredientParseStatus.textContent = message;
-        newIngredientParseStatus.className = `cronometer-parse-status ${type}`;
-    }
-
-    /**
-     * Submit meal data to the server
-     * @param {Object} mealData - Meal data object
-     */
-    function submitMeal(mealData) {
-        console.log('Submitting meal:', mealData);
-
-        // Show loading state
-        const submitButton = mealSubmissionForm.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
-        submitButton.textContent = 'Saving...';
-        submitButton.disabled = true;
-
-        // Create FormData to handle both meal data and photo upload
-        const formData = new FormData();
-
-        // Add meal data fields
-        formData.append('name', mealData.name);
-        formData.append('date', mealData.date);
-        formData.append('time', mealData.time);
-        formData.append('user_id', mealData.user_id || 1);
-        formData.append('ingredients', JSON.stringify(mealData.ingredients));
-
-        // Add photo if selected
-        const photoInput = document.getElementById('meal-photo');
-        if (photoInput && photoInput.files && photoInput.files[0]) {
-            formData.append('meal-photo', photoInput.files[0]);
+    function populateRecipeSelector(recipes) {
+        // Clear existing options (except the first one)
+        while (elements.recipeSelector.children.length > 1) {
+            elements.recipeSelector.removeChild(elements.recipeSelector.lastChild);
         }
 
-        // Send the meal data to the server
-        fetch('/api/meals', {
-            method: 'POST',
-            body: formData // Don't set Content-Type header, let browser set it for multipart/form-data
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to save meal');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Reset form and close modal
-                mealSubmissionForm.reset();
-                selectedIngredients = [];
-                updateSelectedIngredientsList();
-                mealSubmissionModal.style.display = 'none';
-
-                // Show success message
-                alert('Meal saved successfully!');
-
-                // Add the meal to the list
-                addMealToList(data.meal || mealData);
-            } else {
-                throw new Error(data.message || 'Unknown error saving meal');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving meal:', error);
-            alert(`Error saving meal: ${error.message}`);
-        })
-        .finally(() => {
-            // Reset button
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
+        // Add recipe options
+        recipes.forEach(recipe => {
+            const option = document.createElement('option');
+            option.value = recipe.id;
+            option.textContent = `${recipe.name} (${recipe.total_calories || 0} cal)`;
+            elements.recipeSelector.appendChild(option);
         });
     }
 
-    /**
-     * Load existing meals from the server
-     */
-    function loadMeals() {
-        const mealsList = document.getElementById('meals-list');
+    async function handleRecipeSelection() {
+        const recipeId = elements.recipeSelector.value;
+        
+        if (!recipeId) {
+            hideIngredientsAndNutrition();
+            return;
+        }
 
-        // Show loading message
-        mealsList.innerHTML = '<p class="loading-message">Loading meals...</p>';
+        console.log(`[Meal Submission] Loading recipe ${recipeId}...`);
 
-        // Fetch meals from the server
-        fetch('/api/meals')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch meals');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Clear the loading message
-                mealsList.innerHTML = '';
+        try {
+            const response = await fetch(`/api/recipes/${recipeId}`);
+            const data = await response.json();
 
-                if (data.success && Array.isArray(data.meals) && data.meals.length > 0) {
-                    // Sort meals by date and time (newest first)
-                    data.meals.sort((a, b) => {
-                        const dateA = new Date(`${a.date}T${a.time}`);
-                        const dateB = new Date(`${b.date}T${b.time}`);
-                        return dateB - dateA;
-                    });
-
-                    // Add each meal to the list
-                    data.meals.forEach(meal => {
-                        addMealToList(meal);
-                    });
-
-                    console.log(`Loaded ${data.meals.length} meals from database`);
-                } else {
-                    // Show empty message if no meals found
-                    const emptyMessage = document.createElement('p');
-                    emptyMessage.className = 'empty-message';
-                    emptyMessage.textContent = 'No meals recorded yet';
-                    mealsList.appendChild(emptyMessage);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching meals:', error);
-
-                // Show error message
-                mealsList.innerHTML = `<p class="error-message">Error loading meals: ${error.message}</p>`;
-            });
+            if (data.success && data.recipe) {
+                currentRecipe = data.recipe;
+                currentIngredients = data.recipe.ingredients || [];
+                displayIngredients();
+                calculateNutrition();
+                showIngredientsAndNutrition();
+                validateForm();
+                console.log(`[Meal Submission] Loaded recipe: ${data.recipe.name}`);
+            } else {
+                throw new Error(data.message || 'Failed to load recipe details');
+            }
+        } catch (error) {
+            console.error('[Meal Submission] Error loading recipe:', error);
+            showStatus('Error loading recipe details. Please try again.', 'error');
+            hideIngredientsAndNutrition();
+        }
     }
 
-    /**
-     * Add a meal to the meals list
-     * @param {Object} meal - Meal data object
-     */
-    function addMealToList(meal) {
-        const mealsList = document.getElementById('meals-list');
+    function displayIngredients() {
+        elements.ingredientsList.innerHTML = '';
 
-        // Remove empty message if present
-        const emptyMessage = mealsList.querySelector('.empty-message');
-        if (emptyMessage) {
-            emptyMessage.remove();
+        currentIngredients.forEach((ingredient, index) => {
+            const ingredientElement = createIngredientElement(ingredient, index);
+            elements.ingredientsList.appendChild(ingredientElement);
+        });
+    }
+
+    function createIngredientElement(ingredient, index) {
+        const div = document.createElement('div');
+        div.className = 'meal-ingredient-item';
+        div.dataset.index = index;
+
+        div.innerHTML = `
+            <div class="ingredient-info">
+                <div class="ingredient-name">${ingredient.name}</div>
+                <div class="ingredient-original-amount">Recipe amount: ${ingredient.amount}g</div>
+            </div>
+            <div class="amount-input-group">
+                <label for="ingredient-amount-${index}">Amount eaten (g):</label>
+                <input 
+                    type="number" 
+                    id="ingredient-amount-${index}" 
+                    value="${ingredient.amount}" 
+                    min="0" 
+                    step="0.1"
+                    data-index="${index}"
+                >
+            </div>
+            <div class="nutrition-preview">
+                <div class="calories">Cal: <span class="cal-value">${ingredient.calories || 0}</span></div>
+                <div class="protein">Protein: <span class="protein-value">${ingredient.protein || 0}</span>g</div>
+                <div class="fat">Fat: <span class="fat-value">${ingredient.fats || 0}</span>g</div>
+                <div class="carbs">Carbs: <span class="carbs-value">${ingredient.carbohydrates || 0}</span>g</div>
+            </div>
+        `;
+
+        // Add event listener for amount changes
+        const amountInput = div.querySelector('input');
+        amountInput.addEventListener('input', () => {
+            updateIngredientNutrition(index, parseFloat(amountInput.value) || 0);
+            calculateNutrition();
+        });
+
+        return div;
+    }
+
+    function updateIngredientNutrition(index, newAmount) {
+        const ingredient = currentIngredients[index];
+        const originalAmount = ingredient.amount;
+        const ratio = newAmount / originalAmount;
+
+        // Update the nutrition preview
+        const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+        if (ingredientElement) {
+            const calories = Math.round((ingredient.calories || 0) * ratio);
+            const protein = Math.round((ingredient.protein || 0) * ratio * 10) / 10;
+            const fat = Math.round((ingredient.fats || 0) * ratio * 10) / 10;
+            const carbs = Math.round((ingredient.carbohydrates || 0) * ratio * 10) / 10;
+
+            ingredientElement.querySelector('.cal-value').textContent = calories;
+            ingredientElement.querySelector('.protein-value').textContent = protein;
+            ingredientElement.querySelector('.fat-value').textContent = fat;
+            ingredientElement.querySelector('.carbs-value').textContent = carbs;
         }
+    }
 
-        // Create meal card
-        const mealCard = document.createElement('div');
-        mealCard.className = 'meal-card';
-        if (meal.id) {
-            mealCard.dataset.mealId = meal.id;
-        }
-
-        // Create meal header
-        const mealHeader = document.createElement('div');
-        mealHeader.className = 'meal-header';
-
-        const mealTitle = document.createElement('h3');
-        mealTitle.className = 'meal-title';
-        mealTitle.textContent = meal.name;
-
-        const mealDatetime = document.createElement('div');
-        mealDatetime.className = 'meal-datetime';
-        mealDatetime.textContent = `${meal.date} ${meal.time}`;
-
-        mealHeader.appendChild(mealTitle);
-        mealHeader.appendChild(mealDatetime);
-
-        // Create meal photo section if photo exists
-        let mealPhoto = null;
-        if (meal.photo_url) {
-            mealPhoto = document.createElement('div');
-            mealPhoto.className = 'meal-photo';
-
-            const photoImg = document.createElement('img');
-            photoImg.src = meal.photo_url;
-            photoImg.alt = `Photo of ${meal.name}`;
-            photoImg.className = 'meal-photo-img';
-            photoImg.addEventListener('click', () => {
-                // Open photo in a modal or new window
-                window.open(meal.photo_url, '_blank');
-            });
-
-            mealPhoto.appendChild(photoImg);
-        }
-
-        // Create meal nutrition
-        const mealNutrition = document.createElement('div');
-        mealNutrition.className = 'meal-nutrition';
-
-        // Calculate total nutrition
+    function calculateNutrition() {
         let totalCalories = 0;
         let totalProtein = 0;
         let totalFat = 0;
         let totalCarbs = 0;
+        let micronutrients = {};
 
-        if (meal.ingredients && Array.isArray(meal.ingredients)) {
-            meal.ingredients.forEach(ingredient => {
-                const ratio = ingredient.amount / 100;
-                totalCalories += (ingredient.calories || 0) * ratio;
-                totalProtein += (ingredient.protein || ingredient.protein || 0) * ratio;
-                totalFat += (ingredient.fat || ingredient.fats || 0) * ratio;
-                totalCarbs += (ingredient.carbs || ingredient.carbohydrates || 0) * ratio;
-            });
-        }
+        currentIngredients.forEach((ingredient, index) => {
+            const amountInput = document.getElementById(`ingredient-amount-${index}`);
+            const amount = parseFloat(amountInput?.value) || 0;
+            const originalAmount = ingredient.amount;
+            const ratio = amount / originalAmount;
 
-        // Create nutrition items
-        const caloriesItem = document.createElement('div');
-        caloriesItem.className = 'meal-nutrition-item';
-        caloriesItem.textContent = `${Math.round(totalCalories)} calories`;
+            totalCalories += (ingredient.calories || 0) * ratio;
+            totalProtein += (ingredient.protein || 0) * ratio;
+            totalFat += (ingredient.fats || 0) * ratio;
+            totalCarbs += (ingredient.carbohydrates || 0) * ratio;
 
-        const proteinItem = document.createElement('div');
-        proteinItem.className = 'meal-nutrition-item';
-        proteinItem.textContent = `${Math.round(totalProtein)}g protein`;
+            // Calculate micronutrients
+            const micronutrientFields = [
+                'fiber', 'sugars', 'saturated', 'monounsaturated', 'polyunsaturated',
+                'omega3', 'omega6', 'cholesterol', 'vitamin_a', 'vitamin_c', 'vitamin_d',
+                'vitamin_e', 'vitamin_k', 'thiamine', 'riboflavin', 'niacin', 'vitamin_b6',
+                'folate', 'vitamin_b12', 'pantothenic_acid', 'calcium', 'iron', 'magnesium',
+                'phosphorus', 'potassium', 'sodium', 'zinc', 'copper', 'manganese', 'selenium'
+            ];
 
-        const fatItem = document.createElement('div');
-        fatItem.className = 'meal-nutrition-item';
-        fatItem.textContent = `${Math.round(totalFat)}g fat`;
-
-        const carbsItem = document.createElement('div');
-        carbsItem.className = 'meal-nutrition-item';
-        carbsItem.textContent = `${Math.round(totalCarbs)}g carbs`;
-
-        mealNutrition.appendChild(caloriesItem);
-        mealNutrition.appendChild(proteinItem);
-        mealNutrition.appendChild(fatItem);
-        mealNutrition.appendChild(carbsItem);
-
-        // Create ingredients section
-        const mealIngredients = document.createElement('div');
-        mealIngredients.className = 'meal-ingredients';
-
-        const ingredientsTitle = document.createElement('div');
-        ingredientsTitle.className = 'meal-ingredients-title';
-        ingredientsTitle.textContent = 'Ingredients:';
-
-        const ingredientsList = document.createElement('div');
-        ingredientsList.className = 'meal-ingredients-list';
-
-        if (meal.ingredients && Array.isArray(meal.ingredients)) {
-            meal.ingredients.forEach(ingredient => {
-                const ingredientItem = document.createElement('div');
-                ingredientItem.className = 'meal-ingredient';
-                ingredientItem.textContent = `${ingredient.name} (${ingredient.amount}g)`;
-                ingredientsList.appendChild(ingredientItem);
-            });
-        }
-
-        mealIngredients.appendChild(ingredientsTitle);
-        mealIngredients.appendChild(ingredientsList);
-
-        // Create actions
-        const mealActions = document.createElement('div');
-        mealActions.className = 'meal-actions';
-
-        const editButton = document.createElement('button');
-        editButton.type = 'button';
-        editButton.className = 'secondary-btn';
-        editButton.textContent = 'Edit';
-        editButton.addEventListener('click', () => {
-            alert('Edit functionality not implemented yet');
-        });
-
-        const deleteButton = document.createElement('button');
-        deleteButton.type = 'button';
-        deleteButton.className = 'cancel-btn';
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', () => {
-            if (confirm('Are you sure you want to delete this meal?')) {
-                if (meal.id) {
-                    // Delete from server if we have an ID
-                    deleteMeal(meal.id, mealCard);
-                } else {
-                    // Just remove from DOM if no ID (local only)
-                    mealCard.remove();
-
-                    // If no meals left, show empty message
-                    if (mealsList.children.length === 0) {
-                        const emptyMessage = document.createElement('p');
-                        emptyMessage.className = 'empty-message';
-                        emptyMessage.textContent = 'No meals recorded yet';
-                        mealsList.appendChild(emptyMessage);
-                    }
+            micronutrientFields.forEach(field => {
+                if (ingredient[field] !== undefined && ingredient[field] !== null) {
+                    if (!micronutrients[field]) micronutrients[field] = 0;
+                    micronutrients[field] += (ingredient[field] || 0) * ratio;
                 }
-            }
+            });
         });
 
-        mealActions.appendChild(editButton);
-        mealActions.appendChild(deleteButton);
+        // Update main nutrition display
+        elements.totalCalories.textContent = Math.round(totalCalories);
+        elements.totalProtein.textContent = Math.round(totalProtein * 10) / 10;
+        elements.totalFat.textContent = Math.round(totalFat * 10) / 10;
+        elements.totalCarbs.textContent = Math.round(totalCarbs * 10) / 10;
 
-        // Assemble meal card
-        mealCard.appendChild(mealHeader);
-        if (mealPhoto) {
-            mealCard.appendChild(mealPhoto);
-        }
-        mealCard.appendChild(mealNutrition);
-        mealCard.appendChild(mealIngredients);
-        mealCard.appendChild(mealActions);
-
-        // Add to meals list
-        mealsList.prepend(mealCard); // Add to the top of the list
+        // Update micronutrients display
+        updateMicronutrientsDisplay(micronutrients);
     }
 
-    /**
-     * Delete a meal from the server
-     * @param {number} mealId - The meal ID
-     * @param {HTMLElement} mealCard - The meal card element to remove on success
-     */
-    function deleteMeal(mealId, mealCard) {
-        // Send delete request to the server
-        fetch(`/api/meals/${mealId}`, {
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to delete meal');
+    function updateMicronutrientsDisplay(micronutrients) {
+        const micronutrientsContainer = elements.micronutrientsDetails;
+        
+        // Define micronutrient categories
+        const categories = {
+            'Carbohydrates': {
+                'fiber': 'Fiber (g)',
+                'sugars': 'Sugars (g)'
+            },
+            'Lipids': {
+                'saturated': 'Saturated Fat (g)',
+                'monounsaturated': 'Monounsaturated Fat (g)',
+                'polyunsaturated': 'Polyunsaturated Fat (g)',
+                'omega3': 'Omega-3 (g)',
+                'omega6': 'Omega-6 (g)',
+                'cholesterol': 'Cholesterol (mg)'
+            },
+            'Vitamins': {
+                'vitamin_a': 'Vitamin A (μg)',
+                'vitamin_c': 'Vitamin C (mg)',
+                'vitamin_d': 'Vitamin D (IU)',
+                'vitamin_e': 'Vitamin E (mg)',
+                'vitamin_k': 'Vitamin K (μg)',
+                'thiamine': 'B1 (Thiamine) (mg)',
+                'riboflavin': 'B2 (Riboflavin) (mg)',
+                'niacin': 'B3 (Niacin) (mg)',
+                'vitamin_b6': 'B6 (Pyridoxine) (mg)',
+                'folate': 'Folate (μg)',
+                'vitamin_b12': 'B12 (Cobalamin) (μg)',
+                'pantothenic_acid': 'B5 (Pantothenic Acid) (mg)'
+            },
+            'Minerals': {
+                'calcium': 'Calcium (mg)',
+                'iron': 'Iron (mg)',
+                'magnesium': 'Magnesium (mg)',
+                'phosphorus': 'Phosphorus (mg)',
+                'potassium': 'Potassium (mg)',
+                'sodium': 'Sodium (mg)',
+                'zinc': 'Zinc (mg)',
+                'copper': 'Copper (mg)',
+                'manganese': 'Manganese (mg)',
+                'selenium': 'Selenium (μg)'
             }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Remove the meal card from the DOM
-                mealCard.remove();
+        };
 
-                // If no meals left, show empty message
-                const mealsList = document.getElementById('meals-list');
-                if (mealsList.children.length === 0) {
-                    const emptyMessage = document.createElement('p');
-                    emptyMessage.className = 'empty-message';
-                    emptyMessage.textContent = 'No meals recorded yet';
-                    mealsList.appendChild(emptyMessage);
+        let html = '<div class="micronutrients-grid">';
+
+        Object.entries(categories).forEach(([categoryName, categoryFields]) => {
+            html += `<div class="micronutrient-category">`;
+            html += `<h4>${categoryName}</h4>`;
+
+            Object.entries(categoryFields).forEach(([field, label]) => {
+                const value = micronutrients[field] || 0;
+                const displayValue = value > 0 ? (Math.round(value * 100) / 100) : 0;
+                
+                html += `<div class="micronutrient-item">`;
+                html += `<span class="name">${label}</span>`;
+                html += `<span class="value">${displayValue}</span>`;
+                html += `</div>`;
+            });
+
+            html += `</div>`;
+        });
+
+        html += '</div>';
+        micronutrientsContainer.innerHTML = html;
+    }
+
+    function toggleMicronutrients() {
+        const isExpanded = elements.micronutrientsDetails.style.display !== 'none';
+        
+        if (isExpanded) {
+            elements.micronutrientsDetails.style.display = 'none';
+            elements.toggleMicronutrients.classList.remove('expanded');
+            elements.toggleMicronutrients.innerHTML = '<i class="fas fa-chevron-down"></i> Show Detailed Micronutrients';
+        } else {
+            elements.micronutrientsDetails.style.display = 'block';
+            elements.toggleMicronutrients.classList.add('expanded');
+            elements.toggleMicronutrients.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Detailed Micronutrients';
+        }
+    }
+
+    function handlePhotoSelection(event) {
+        const file = event.target.files[0];
+        
+        if (!file) {
+            removePhoto();
+            return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showStatus('Please select a valid image file.', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            showStatus('Image file is too large. Please select a file smaller than 10MB.', 'error');
+            event.target.value = '';
+            return;
+        }
+
+        selectedPhoto = file;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            elements.previewImage.src = e.target.result;
+            elements.photoPreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removePhoto() {
+        selectedPhoto = null;
+        elements.mealPhoto.value = '';
+        elements.photoPreview.style.display = 'none';
+        elements.previewImage.src = '';
+    }
+
+    function showIngredientsAndNutrition() {
+        elements.ingredientsContainer.style.display = 'block';
+        elements.nutritionSummary.style.display = 'block';
+    }
+
+    function hideIngredientsAndNutrition() {
+        elements.ingredientsContainer.style.display = 'none';
+        elements.nutritionSummary.style.display = 'none';
+        currentRecipe = null;
+        currentIngredients = [];
+    }
+
+    function validateForm() {
+        const isValid = elements.mealName.value.trim() && 
+                       elements.mealDate.value && 
+                       elements.mealTime.value && 
+                       elements.recipeSelector.value;
+
+        elements.submitBtn.disabled = !isValid;
+    }
+
+    async function handleFormSubmission(event) {
+        event.preventDefault();
+
+        if (elements.submitBtn.disabled) {
+            return;
+        }
+
+        console.log('[Meal Submission] Submitting meal...');
+        
+        elements.submitBtn.disabled = true;
+        elements.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+        try {
+            // Prepare meal data
+            const mealData = {
+                name: elements.mealName.value.trim(),
+                date: elements.mealDate.value,
+                time: elements.mealTime.value,
+                ingredients: []
+            };
+
+            // Collect ingredient data with actual amounts
+            currentIngredients.forEach((ingredient, index) => {
+                const amountInput = document.getElementById(`ingredient-amount-${index}`);
+                const amount = parseFloat(amountInput?.value) || 0;
+                
+                if (amount > 0) {
+                    const originalAmount = ingredient.amount;
+                    const ratio = amount / originalAmount;
+
+                    mealData.ingredients.push({
+                        id: ingredient.id,
+                        name: ingredient.name,
+                        amount: amount,
+                        calories: Math.round((ingredient.calories || 0) * ratio * 100) / 100,
+                        protein: Math.round((ingredient.protein || 0) * ratio * 100) / 100,
+                        fat: Math.round((ingredient.fats || 0) * ratio * 100) / 100,
+                        carbs: Math.round((ingredient.carbohydrates || 0) * ratio * 100) / 100
+                    });
                 }
+            });
 
-                // Show success message
-                alert('Meal deleted successfully!');
+            if (mealData.ingredients.length === 0) {
+                throw new Error('Please specify amounts for at least one ingredient.');
+            }
+
+            // Submit meal data
+            let response;
+            if (selectedPhoto) {
+                // Submit with photo
+                const formData = new FormData();
+                formData.append('meal-photo', selectedPhoto);
+                formData.append('name', mealData.name);
+                formData.append('date', mealData.date);
+                formData.append('time', mealData.time);
+                formData.append('ingredients', JSON.stringify(mealData.ingredients));
+
+                response = await fetch('/api/meals', {
+                    method: 'POST',
+                    body: formData
+                });
             } else {
-                throw new Error(data.message || 'Unknown error deleting meal');
+                // Submit without photo
+                response = await fetch('/api/meals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(mealData)
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error deleting meal:', error);
-            alert(`Error deleting meal: ${error.message}`);
-        });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showStatus('Meal submitted successfully!', 'success');
+                resetForm();
+                console.log('[Meal Submission] Meal submitted successfully:', result.meal);
+            } else {
+                throw new Error(result.message || 'Failed to submit meal');
+            }
+
+        } catch (error) {
+            console.error('[Meal Submission] Error submitting meal:', error);
+            showStatus(error.message || 'Error submitting meal. Please try again.', 'error');
+        } finally {
+            elements.submitBtn.disabled = false;
+            elements.submitBtn.innerHTML = '<i class="fas fa-utensils"></i> Submit Meal';
+            validateForm();
+        }
     }
-});
+
+    function resetForm() {
+        elements.form.reset();
+        setDefaultDateTime();
+        hideIngredientsAndNutrition();
+        removePhoto();
+        hideStatus();
+        validateForm();
+        
+        // Reset micronutrients toggle
+        elements.micronutrientsDetails.style.display = 'none';
+        elements.toggleMicronutrients.classList.remove('expanded');
+        elements.toggleMicronutrients.innerHTML = '<i class="fas fa-chevron-down"></i> Show Detailed Micronutrients';
+    }
+
+    function showStatus(message, type) {
+        elements.status.textContent = message;
+        elements.status.className = `status ${type}`;
+        elements.status.style.display = 'block';
+
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(hideStatus, 5000);
+        }
+    }
+
+    function hideStatus() {
+        elements.status.style.display = 'none';
+        elements.status.className = 'status';
+    }
+
+    console.log('[Meal Submission] Module loaded');
+
+})();

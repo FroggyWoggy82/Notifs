@@ -18,8 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const promptSuggestions = document.getElementById('prompt-suggestions');
     const sentimentIndicator = document.getElementById('sentiment-indicator');
     const saveInsightsButton = document.getElementById('save-insights');
-    const themeToggleButton = document.getElementById('theme-toggle');
-    const testOllamaButton = document.getElementById('test-ollama');
 
     // Set today's date as default
     const today = new Date();
@@ -34,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadEntries();
     loadMemoryEntries();
     initializeAnimations();
+    initializeFlowExperience();
 
     // Make sure word count is initialized
     console.log('Initializing word count');
@@ -102,14 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveInsightsButton.addEventListener('click', saveAIInsights);
     }
 
-    if (themeToggleButton) {
-        themeToggleButton.addEventListener('click', toggleTheme);
-    }
-
-    if (testOllamaButton) {
-        testOllamaButton.addEventListener('click', testOllama);
-    }
-
     /**
      * Handles input in the textarea
      * Triggers word count update and real-time analysis
@@ -126,8 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
             wordCount = words.length;
         }
 
-        console.log('Text content:', text);
-        console.log('Word count calculated:', wordCount);
+
 
         wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
 
@@ -216,9 +206,9 @@ document.addEventListener('DOMContentLoaded', function() {
         sentimentIndicator.classList.add(sentiment.label);
 
         // Update icon
-        let icon = '😐';
-        if (sentiment.label === 'positive') icon = '😊';
-        if (sentiment.label === 'negative') icon = '😔';
+        let icon = '•';
+        if (sentiment.label === 'positive') icon = '↑';
+        if (sentiment.label === 'negative') icon = '↓';
 
         sentimentIndicator.innerHTML = `<span class="sentiment-icon">${icon}</span>`;
 
@@ -281,6 +271,64 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * Initializes the Peak Flow journaling experience
+     */
+    function initializeFlowExperience() {
+        const editorPrompt = document.getElementById('editor-prompt');
+        const journalContent = document.getElementById('journal-content');
+        const container = document.querySelector('.journal-container');
+
+        if (!editorPrompt || !journalContent || !container) {
+            console.log('Flow experience elements not found, skipping initialization');
+            return;
+        }
+
+        // Hide prompt when user starts typing
+        journalContent.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                editorPrompt.classList.add('hidden');
+            } else {
+                editorPrompt.classList.remove('hidden');
+            }
+
+            // Add typing ripple effect
+            this.classList.add('typing');
+            setTimeout(() => {
+                this.classList.remove('typing');
+            }, 600);
+        });
+
+        // Focus mode - fade distractions when writing
+        journalContent.addEventListener('focus', function() {
+            container.classList.add('focus-mode');
+        });
+
+        journalContent.addEventListener('blur', function() {
+            setTimeout(() => {
+                container.classList.remove('focus-mode');
+            }, 1000);
+        });
+
+        // Auto-save as user types (debounced)
+        let saveTimeout;
+        journalContent.addEventListener('input', function() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                if (this.value.trim().length > 10) {
+                    saveEntry();
+                }
+            }, 3000); // Auto-save after 3 seconds of no typing
+        });
+
+        // Gentle focus on page load
+        setTimeout(() => {
+            journalContent.focus();
+        }, 800);
+
+        console.log('Peak Flow journaling experience initialized');
+    }
+
+    /**
      * Toggles voice-to-text functionality
      */
     function toggleVoiceToText() {
@@ -313,24 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showStatus('AI insights saved successfully!', 'success');
     }
 
-    /**
-     * Toggles between light and dark themes
-     */
-    function toggleTheme() {
-        document.body.classList.toggle('light-theme');
 
-        // Update button icon
-        if (themeToggleButton) {
-            const icon = themeToggleButton.querySelector('i');
-            if (icon) {
-                if (document.body.classList.contains('light-theme')) {
-                    icon.className = 'fas fa-moon';
-                } else {
-                    icon.className = 'fas fa-sun';
-                }
-            }
-        }
-    }
 
     /**
      * Updates the word count display
@@ -351,8 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
             wordCount = words.length;
         }
 
-        console.log('Text content for word count:', text);
-        console.log(`Updating word count: ${wordCount} words`);
+
 
         // Update the word count display with the calculated value
         wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
@@ -464,70 +494,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const specificContext = getSpecificMemoryContext(memoryEntries, content);
 
-            // Enhanced prompt for the AI assistant
-            const prompt = `
-            You are an empathetic AI assistant having a conversation with someone about their journal entry.
 
-            Here are recent entries from this person's journal (READ THESE CAREFULLY - they contain important context):
-            ${themes}${specificContext}
-
-            Today's journal entry:
-            "${content}"
-
-            Respond in a warm, empathetic, conversational tone. Reference information from previous entries when relevant.
-            Never contradict information they've provided in previous entries.
-
-            In your response:
-            1. Acknowledge their feelings and experiences
-            2. Identify patterns or recurring themes across entries
-            3. Ask 2-3 thoughtful follow-up questions that encourage deeper reflection (format as [QUESTION 1: your question])
-            4. Offer one insight that might help them gain perspective (format as [INSIGHT: your insight])
-
-            At the very end, include a one-sentence summary of this entry prefixed with [SUMMARY:] that I can use to track themes (this will be hidden from the user).
-            `;
 
             try {
-                const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+                const aiResponse = await fetch('/api/journal/analyze', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: 'mistral',
-                        prompt: prompt,
-                        stream: false
+                        content: content
                     })
                 });
 
-                if (!ollamaResponse.ok) {
-                    const errorText = await ollamaResponse.text();
-                    throw new Error(`Ollama error! status: ${ollamaResponse.status}, message: ${errorText}`);
+                if (!aiResponse.ok) {
+                    const errorData = await aiResponse.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${aiResponse.status}`);
                 }
 
-                const ollamaResult = await ollamaResponse.json();
-                const aiResponse = ollamaResult.response;
+                const result = await aiResponse.json();
+                const analysis = result.analysis;
+                const summary = result.summary;
+                const questions = result.questions || [];
+                const insights = result.insights || [];
 
-                // Extract summary, questions, and insights
-                const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)\]/i);
-                const summary = summaryMatch ? summaryMatch[1].trim() : 'No summary generated';
-
-                const questions = [];
-                const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
-                let questionMatch;
-                while ((questionMatch = questionRegex.exec(aiResponse)) !== null) {
-                    questions.push({
-                        number: parseInt(questionMatch[1]),
-                        text: questionMatch[2].trim()
-                    });
-                }
-
-                const insights = [];
-                const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
-                let insightMatch;
-                while ((insightMatch = insightRegex.exec(aiResponse)) !== null) {
-                    insights.push({
-                        text: insightMatch[1].trim()
-                    });
+                // Generate AI summary for memory (300 characters max)
+                let memorySummary = summary || 'No summary available';
+                if (memorySummary.length > 300) {
+                    memorySummary = memorySummary.substring(0, 297) + '...';
                 }
 
                 // Save to memory
@@ -539,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         },
                         body: JSON.stringify({
                             date: new Date().toISOString(),
-                            text: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
+                            text: memorySummary,
                             summary: summary
                         })
                     });
@@ -548,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Format and display the analysis
-                const formattedAnalysis = formatAIAnalysis(aiResponse, questions, insights);
+                const formattedAnalysis = formatAIAnalysis(analysis, questions, insights);
                 analysisContentElement.classList.remove('loading');
                 analysisContentElement.innerHTML = formattedAnalysis;
 
@@ -565,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             body: JSON.stringify({
                                 date: date,
                                 content: content,
-                                analysis: aiResponse,
+                                analysis: analysis,
                                 mood: mood
                             })
                         });
@@ -573,13 +567,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.error('Error saving analysis with entry:', saveError);
                     }
                 }
-            } catch (ollamaError) {
-                console.error('Error with Ollama:', ollamaError);
+            } catch (aiError) {
+                console.error('Error with AI:', aiError);
                 analysisContentElement.classList.remove('loading');
                 analysisContentElement.innerHTML = `
                     <div class="ai-analysis-conversation error-message">
                         <p><strong>AI Analysis Error</strong></p>
-                        <p>There was an error communicating with the Ollama AI server: ${ollamaError.message}</p>
+                        <p>There was an error communicating with the AI service: ${aiError.message}</p>
                         <p>Your journal entry has been saved without AI analysis.</p>
                     </div>`;
 
@@ -640,6 +634,12 @@ document.addEventListener('DOMContentLoaded', function() {
      * @returns {string} - Formatted HTML
      */
     function formatAIAnalysis(analysisText, questions = [], insights = []) {
+        // Ensure analysisText is a string
+        if (typeof analysisText !== 'string') {
+            console.error('formatAIAnalysis: analysisText is not a string:', typeof analysisText, analysisText);
+            return '<div class="error-message">Error: Invalid analysis data received</div>';
+        }
+
         // Remove metadata tags
         const summaryMatch = analysisText.match(/\[SUMMARY:\s*(.+?)\]/i);
         let formatted = analysisText;
@@ -654,19 +654,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add additional formatting for readability
         formatted = formatted.replace(/^([A-Za-z\s]+:)/gm, '$1');
-
-        // Format insights section
-        let insightsHTML = '';
-        if (insights && insights.length > 0) {
-            insightsHTML = `
-                <div class="ai-insights">
-                    <h3>Insights:</h3>
-                    <ul>
-                        ${insights.map(insight => `<li>${insight.text}</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-        }
 
         // Format questions section
         let questionsHTML = '';
@@ -684,7 +671,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return `
             <div class="ai-analysis-conversation">
                 ${formatted}
-                ${insightsHTML}
                 ${questionsHTML}
             </div>
         `;
@@ -952,64 +938,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /**
-     * Tests the Ollama connection
-     */
-    async function testOllama() {
-        try {
-            showStatus('Testing Ollama connection...', 'info');
-            analysisContentElement.innerHTML = '<p>Testing Ollama connection...</p>';
 
-            try {
-                const response = await fetch('http://localhost:11434/api/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'mistral',
-                        prompt: 'Hello, how are you?',
-                        stream: false
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-                }
-
-                const result = await response.json();
-                analysisContentElement.innerHTML = `
-                    <div class="ai-analysis-conversation">
-                        <p><strong>Ollama is running correctly!</strong></p>
-                        <p>The Mistral model responded with: "${result.response.substring(0, 100)}..."</p>
-                        <p>You can now use the "Analyze" button to analyze your journal entries.</p>
-                    </div>`;
-                showStatus('Ollama test successful!', 'success');
-            } catch (error) {
-                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                    throw new Error('Ollama is not running. Please start Ollama in your terminal with the command: ollama serve');
-                } else if (error.message.includes('model not found')) {
-                    throw new Error('The Mistral model is not installed. Please run this command in your terminal: ollama pull mistral');
-                } else {
-                    throw error;
-                }
-            }
-        } catch (error) {
-            console.error('Error testing Ollama:', error);
-            showStatus(`Error testing Ollama: ${error.message}`, 'error');
-            analysisContentElement.innerHTML = `
-                <div class="ai-analysis-conversation error-message">
-                    <p><strong>Failed to connect to Ollama</strong></p>
-                    <p>${error.message}</p>
-                    <p>To use the AI assistant feature, you need to:</p>
-                    <ol>
-                        <li>Open a terminal window</li>
-                        <li>Run the command: <code>ollama serve</code></li>
-                        <li>If you haven't installed the Mistral model yet, run: <code>ollama pull mistral</code></li>
-                        <li>Once Ollama is running, try this test again</li>
-                    </ol>
-                </div>`;
-        }
-    }
 });

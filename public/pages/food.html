@@ -88,6 +88,7 @@
     <link rel="stylesheet" href="../css/independent-field-save.css"> <!-- Styles for independent field saving -->
     <link rel="stylesheet" href="../css/grocery-list-fullwidth.css"> <!-- Full width grocery list results styling -->
     <link rel="stylesheet" href="../css/add-ingredient-form-dark.css"> <!-- Dark theme styling for Add Ingredient form -->
+    <link rel="stylesheet" href="../css/meal-submission.css"> <!-- Meal submission styling -->
 </head>
 <body>
     <button class="menu-button">
@@ -285,6 +286,124 @@
 
     <!-- Spacer to ensure sections don't overlap -->
     <div style="height: 60px; clear: both;"></div>
+
+    <!-- ===== Submit Meal Section ===== -->
+    <section id="submit-meal-section">
+        <div class="section-header-compact">
+            <h2>Submit Meal</h2>
+            <p class="section-description">Record a meal you've eaten by selecting from your recipes and adjusting ingredient amounts</p>
+        </div>
+
+        <form id="submit-meal-form" class="meal-submission-form">
+            <!-- Meal Basic Info -->
+            <div class="meal-basic-info">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="meal-name">Meal Name:</label>
+                        <input type="text" id="meal-name" name="meal-name" placeholder="e.g., Breakfast, Lunch, Dinner" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="meal-date">Date:</label>
+                        <input type="date" id="meal-date" name="meal-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="meal-time">Time:</label>
+                        <input type="time" id="meal-time" name="meal-time" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recipe Selection -->
+            <div class="recipe-selection-container">
+                <h3>Select Recipe</h3>
+                <div class="form-group">
+                    <label for="recipe-selector">Choose a recipe:</label>
+                    <select id="recipe-selector" name="recipe-selector" required>
+                        <option value="">-- Select a recipe --</option>
+                        <!-- Recipes will be loaded dynamically -->
+                    </select>
+                </div>
+                <div id="recipe-loading-status" class="loading-message" style="display: none;">Loading recipes...</div>
+            </div>
+
+            <!-- Ingredients List -->
+            <div id="meal-ingredients-container" class="meal-ingredients-container" style="display: none;">
+                <h3>Adjust Ingredient Amounts</h3>
+                <p class="instructions">Enter the actual amount (in grams) of each ingredient you consumed:</p>
+                <div id="meal-ingredients-list" class="meal-ingredients-list">
+                    <!-- Ingredients will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Nutritional Summary -->
+            <div id="meal-nutrition-summary" class="meal-nutrition-summary" style="display: none;">
+                <h3>Nutritional Summary</h3>
+                <div class="nutrition-summary-grid">
+                    <div class="nutrition-item">
+                        <label>Total Calories:</label>
+                        <span id="total-calories">0</span> kcal
+                    </div>
+                    <div class="nutrition-item">
+                        <label>Protein:</label>
+                        <span id="total-protein">0</span> g
+                    </div>
+                    <div class="nutrition-item">
+                        <label>Carbs:</label>
+                        <span id="total-carbs">0</span> g
+                    </div>
+                    <div class="nutrition-item">
+                        <label>Fat:</label>
+                        <span id="total-fat">0</span> g
+                    </div>
+                </div>
+
+                <!-- Detailed Micronutrients (collapsible) -->
+                <div class="micronutrients-section">
+                    <button type="button" class="toggle-micronutrients" id="toggle-micronutrients">
+                        <i class="fas fa-chevron-down"></i> Show Detailed Micronutrients
+                    </button>
+                    <div id="micronutrients-details" class="micronutrients-details" style="display: none;">
+                        <!-- Micronutrients will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Upload -->
+            <div class="meal-photo-container">
+                <h3>Meal Photo (Optional)</h3>
+                <div class="photo-upload-area">
+                    <input type="file" id="meal-photo" name="meal-photo" accept="image/*" class="photo-input">
+                    <label for="meal-photo" class="photo-upload-label">
+                        <i class="fas fa-camera"></i>
+                        <span>Click to add a photo of your meal</span>
+                    </label>
+                    <div id="photo-preview" class="photo-preview" style="display: none;">
+                        <img id="preview-image" src="" alt="Meal preview">
+                        <button type="button" id="remove-photo" class="remove-photo-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button type="submit" id="submit-meal-btn" class="submit-meal-btn" disabled>
+                    <i class="fas fa-utensils"></i> Submit Meal
+                </button>
+                <button type="button" id="reset-meal-form" class="reset-meal-btn">
+                    <i class="fas fa-undo"></i> Reset Form
+                </button>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="meal-submission-status" class="status"></div>
+        </form>
+    </section>
+    <!-- ===== End Submit Meal Section ===== -->
+
+    <!-- Spacer to ensure sections don't overlap -->
+    <div style="height: 40px; clear: both;"></div>
 
     <!-- Recipe Creation Section -->
     <section id="recipe-creation-section">
@@ -869,6 +988,9 @@
 
     <!-- Recipe Button Size Equalizer - ensures all recipe buttons are the same size -->
     <script src="../js/food/recipe-button-size-equalizer.js"></script> <!-- Forces all recipe card buttons to be exactly the same size -->
+
+    <!-- Meal submission functionality -->
+    <script src="../js/food/meal-submission.js"></script> <!-- Meal submission functionality -->
 
 </body>
 </html>

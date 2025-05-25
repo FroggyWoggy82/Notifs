@@ -15,11 +15,23 @@ async function resetHabitCompletions() {
     try {
         // Get today's date in YYYY-MM-DD format using Central Time
         const now = new Date();
-        const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
-        const year = centralTime.getFullYear();
-        const month = String(centralTime.getMonth() + 1).padStart(2, '0');
-        const day = String(centralTime.getDate()).padStart(2, '0');
+
+        // Properly get Central Time date without timezone offset bugs
+        const centralTimeString = now.toLocaleString('en-US', {
+            timeZone: 'America/Chicago',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+
+        // Parse the MM/DD/YYYY format to YYYY-MM-DD
+        const [month, day, year] = centralTimeString.split('/');
         const todayString = `${year}-${month}-${day}`;
+
+        console.log(`Current UTC time: ${now.toISOString()}`);
+        console.log(`Current Central Time: ${now.toLocaleString('en-US', { timeZone: 'America/Chicago' })}`);
+        console.log(`Central Time date string: ${centralTimeString}`);
+        console.log(`Formatted date for database: ${todayString}`);
 
         console.log(`Resetting habit completions for date: ${todayString}`);
 

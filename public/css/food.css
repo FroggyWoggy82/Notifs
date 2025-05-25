@@ -307,7 +307,7 @@
     background-color: rgba(30, 30, 30, 0.2);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     margin-bottom: 20px;
 }
@@ -328,7 +328,7 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 /* Additional targets in a horizontal row */
@@ -336,7 +336,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 /* Action section with help text and buttons */
@@ -344,8 +344,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding-top: 10px;
+    margin-bottom: 8px;
+    padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -376,12 +376,16 @@
     display: flex;
     gap: 15px;
     justify-content: center;
+    margin-bottom: 0;
+    min-height: 0;
 }
 
 .status-section .status {
     font-size: 0.8rem;
     text-align: center;
     flex: 1;
+    margin: 0;
+    padding: 0;
 }
 
 
@@ -447,7 +451,7 @@
     }
 
     .unified-goals-box {
-        padding: 15px;
+        padding: 12px;
     }
 
     .action-section {
@@ -472,7 +476,7 @@
 
 @media (max-width: 480px) {
     .unified-goals-box {
-        padding: 12px;
+        padding: 10px;
     }
 
     .form-grid-2x2 {

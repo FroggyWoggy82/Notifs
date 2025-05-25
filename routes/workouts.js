@@ -10,8 +10,11 @@ const { promisify } = require('util'); // For promisifying fs functions
 const fsStatAsync = promisify(fs.stat); // Promisified fs.stat
 
 // --- Multer Configuration for Progress Photos ---
-// Use Railway persistent volume for storage
-const progressPhotosDir = path.join('/data', 'uploads', 'progress_photos');
+// Use Railway persistent volume for storage in production, local directory in development
+const isProduction = process.env.NODE_ENV === 'production';
+const progressPhotosDir = isProduction
+    ? path.join('/data', 'uploads', 'progress_photos')
+    : path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
 const MAX_FILE_SIZE_MB = 25;
 let TARGET_FILE_SIZE_KB = 800; // Target file size in KB for compression - can be modified for mobile
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;

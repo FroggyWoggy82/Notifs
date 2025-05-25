@@ -1,11 +1,11 @@
 /**
  * AI Service
- * Handles interactions with Ollama for AI analysis
+ * Handles interactions with OpenAI for AI analysis
  */
 
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
+const OpenAI = require('openai');
 
 // Constants
 const DATA_DIR = path.join(__dirname, '..', 'data');
@@ -20,8 +20,13 @@ if (!fs.existsSync(DATA_DIR)) {
         console.error(`Error creating data directory: ${error.message}`);
     }
 }
-const OLLAMA_API = 'http://localhost:11434/api/generate';
-const DEFAULT_MODEL = 'mistral';
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
+
+const DEFAULT_MODEL = 'gpt-4o-mini';
 
 /**
  * Load memory from file
@@ -75,32 +80,44 @@ function getThemes(memory) {
 }
 
 /**
- * Query Ollama API
- * @param {string} prompt - The prompt to send to Ollama
- * @param {string} model - The model to use (default: mistral)
+ * Query OpenAI API
+ * @param {string} systemPrompt - The system prompt for the AI
+ * @param {string} userMessage - The user message to send to OpenAI
+ * @param {string} model - The model to use (default: gpt-4o-mini)
  * @returns {Promise<string>} The AI response
  */
-async function queryOllama(prompt, model = DEFAULT_MODEL) {
+async function queryOpenAI(systemPrompt, userMessage, model = DEFAULT_MODEL) {
     try {
-        const response = await fetch(OLLAMA_API, {
-            method: 'POST',
-            body: JSON.stringify({
-                model: model,
-                prompt: prompt,
-                stream: false
-            }),
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI API key is not configured. Please set OPENAI_API_KEY in your environment variables.');
         }
 
-        const data = await response.json();
-        return data.response.trim();
+        const completion = await openai.chat.completions.create({
+            model: model,
+            messages: [
+                {
+                    role: "system",
+                    content: systemPrompt
+                },
+                {
+                    role: "user",
+                    content: userMessage
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000
+        });
+
+        return completion.choices[0].message.content.trim();
     } catch (error) {
-        console.error('Error querying Ollama:', error);
-        throw new Error(`Failed to query AI model: ${error.message}`);
+        console.error('Error querying OpenAI:', error);
+        if (error.code === 'insufficient_quota') {
+            throw new Error('OpenAI API quota exceeded. Please check your billing and usage limits.');
+        } else if (error.code === 'invalid_api_key') {
+            throw new Error('Invalid OpenAI API key. Please check your OPENAI_API_KEY environment variable.');
+        } else {
+            throw new Error(`Failed to query AI model: ${error.message}`);
+        }
     }
 }
 
@@ -130,14 +147,10 @@ async function analyzeJournalEntry(text) {
     const themes = getThemes(memory);
     const specificContext = getSpecificMemoryContext(memory, text);
 
-    const prompt = `
-You are an empathetic AI therapist.
+    const systemPrompt = `You are an empathetic AI therapist. You provide warm, understanding responses to journal entries.
 
 Here are recent entries from this person's journal (IMPORTANT - read these carefully for context):
 ${themes}${specificContext}
-
-Today's journal entry:
-"${text}"
 
 Respond in a warm, empathetic, conversational tone. Reference information from previous entries when relevant. Never contradict information they've provided in previous entries.
 
@@ -149,10 +162,11 @@ At the end of your response, include up to 3 thoughtful questions that would hel
 Also include any insights you've gained about the person in this format:
 [INSIGHT: Your insight about the person]
 
-Finally, include a "[SUMMARY:]" at the end (which will be hidden from the user).
-`;
+Finally, include a "[SUMMARY:]" at the end (which will be hidden from the user).`;
 
-    const aiResponse = await queryOllama(prompt);
+    const userMessage = `Today's journal entry: "${text}"`;
+
+    const aiResponse = await queryOpenAI(systemPrompt, userMessage);
 
     // Extract summary from the response
     const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)(?:\]|\n|$)/i);

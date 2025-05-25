@@ -1,361 +1,442 @@
 /*
- * Journal Redesign - Modern AI-assisted interface
- * Dark-themed, distraction-free writing environment with split-screen layout
+ * Peak Flow Journaling - Minimalist, distraction-free writing sanctuary
+ * "Time slows down. The world fades. It's just me and my thoughts."
  */
 
 :root {
-    --primary-bg: #121212;
-    --secondary-bg: #1e1e1e;
-    --tertiary-bg: #252525;
-    --accent-color: #4caf50;
-    --accent-color-hover: #5dbd61;
-    --accent-color-transparent: rgba(76, 175, 80, 0.1);
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.7);
-    --text-tertiary: rgba(255, 255, 255, 0.5);
-    --border-color: #333333;
-    --shadow-color: rgba(0, 0, 0, 0.5);
-    --error-color: #f44336;
-    --success-color: #4caf50;
-    --info-color: #2196f3;
-    --warning-color: #ff9800;
-    --transition-speed: 0.3s;
+    /* Soft, warm color palette for calm focus - Forest & Ocean theme */
+    --flow-bg-primary: #fefefe;
+    --flow-bg-secondary: #f8faf9;
+    --flow-bg-tertiary: #f1f4f3;
+    --flow-accent: #059669;
+    --flow-accent-soft: rgba(5, 150, 105, 0.1);
+    --flow-accent-hover: #047857;
+    --flow-text-primary: #1f2937;
+    --flow-text-secondary: #6b7280;
+    --flow-text-tertiary: #9ca3af;
+    --flow-text-placeholder: #d1d5db;
+    --flow-border: #e5e7eb;
+    --flow-border-soft: #f3f4f6;
+    --flow-shadow: rgba(0, 0, 0, 0.05);
+    --flow-shadow-soft: rgba(0, 0, 0, 0.02);
+    --flow-success: #10b981;
+    --flow-warning: #f59e0b;
+    --flow-error: #ef4444;
+
+    /* AI Assistant specific colors */
+    --ai-bg: var(--flow-bg-secondary);
+    --ai-border: var(--flow-border);
+    --ai-text: var(--flow-text-primary);
+
+    /* Gentle transitions for flow state */
+    --flow-transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --flow-transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Typography for readability and calm */
+    --flow-font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --flow-font-writing: 'Charter', 'Georgia', serif;
+    --flow-font-mono: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
 }
 
-/* Main container */
+/* Body and page setup for flow state */
+body {
+    background: linear-gradient(135deg, var(--flow-bg-primary) 0%, var(--flow-bg-secondary) 100%);
+    font-family: var(--flow-font-primary);
+    color: var(--flow-text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Gentle background animation for time distortion effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 80%, rgba(5, 150, 105, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(5, 150, 105, 0.02) 0%, transparent 50%);
+    animation: breathe 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes breathe {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.02); }
+}
+
+/* Main container - simplified, focused layout */
 .journal-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
-        "controls controls"
-        "editor ai-assistant"
-        "history history";
-    gap: 20px;
-    padding: 15px;
-    max-width: 1600px;
+        "controls"
+        "main"
+        "history";
+    gap: 0;
+    padding: 0;
+    max-width: 1400px;
     margin: 0 auto;
-    height: calc(100vh - 120px);
+    min-height: calc(100vh - 80px);
+    position: relative;
 }
 
-/* Controls section */
+/* Main content area with side-by-side layout */
+.journal-main {
+    grid-area: main;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+    padding: 0 24px;
+    min-height: calc(100vh - 200px);
+}
+
+/* Controls section - minimal and unobtrusive */
 .journal-controls {
     grid-area: controls;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background-color: var(--secondary-bg);
-    border-radius: 8px;
-    box-shadow: 0 4px 6px var(--shadow-color);
+    padding: 20px 24px 16px;
+    background: transparent;
+    border-bottom: 1px solid var(--flow-border-soft);
+    transition: var(--flow-transition);
+}
+
+.journal-controls:hover {
+    border-bottom-color: var(--flow-border);
 }
 
 .date-selector {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
+    opacity: 0.7;
+    transition: var(--flow-transition);
+}
+
+.date-selector:hover {
+    opacity: 1;
 }
 
 .date-selector label {
-    font-weight: bold;
-    color: var(--text-primary);
+    font-weight: 500;
+    color: var(--flow-text-secondary);
+    font-size: 14px;
+    letter-spacing: 0.025em;
 }
 
 .date-selector input[type="date"] {
-    padding: 10px 15px;
-    background-color: var(--tertiary-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    color: var(--text-primary);
-    font-size: 16px;
+    padding: 8px 12px;
+    background: var(--flow-bg-primary);
+    border: 1px solid var(--flow-border);
+    border-radius: 8px;
+    color: var(--flow-text-primary);
+    font-size: 14px;
+    font-family: var(--flow-font-mono);
+    transition: var(--flow-transition);
+}
+
+.date-selector input[type="date"]:focus {
+    outline: none;
+    border-color: var(--flow-accent);
+    box-shadow: 0 0 0 3px var(--flow-accent-soft);
 }
 
 .journal-actions {
     display: flex;
-    gap: 15px;
+    gap: 8px;
+    opacity: 1;
+    transition: var(--flow-transition);
 }
 
-/* Editor section */
+/* Editor section - the heart of the flow experience */
 .journal-editor {
-    grid-area: editor;
     display: flex;
     flex-direction: column;
-    background-color: var(--secondary-bg);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px var(--shadow-color);
+    background: transparent;
     position: relative;
-    transition: all var(--transition-speed) ease;
+    min-height: 60vh;
+    transition: var(--flow-transition);
 }
 
-.editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: var(--tertiary-bg);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.editor-title {
+/* Gentle prompt that fades as user types */
+.editor-prompt {
+    position: absolute;
+    top: 32px;
+    left: 32px;
+    color: var(--flow-text-placeholder);
     font-size: 18px;
-    font-weight: bold;
-    color: var(--text-primary);
-    margin: 0;
+    font-family: var(--flow-font-writing);
+    font-style: italic;
+    pointer-events: none;
+    opacity: 1;
+    transition: var(--flow-transition);
+    z-index: 1;
 }
 
-.editor-tools {
-    display: flex;
-    gap: 10px;
+.editor-prompt.hidden {
+    opacity: 0;
+    transform: translateY(-8px);
 }
 
-.tool-button {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 5px;
-    border-radius: 4px;
-    transition: all var(--transition-speed) ease;
+/* Supportive phrases that rotate */
+.editor-prompt::after {
+    content: "Let's just start anywhere...";
+    animation: rotatePrompts 12s infinite;
 }
 
-.tool-button:hover {
-    color: var(--text-primary);
-    background-color: var(--accent-color-transparent);
+@keyframes rotatePrompts {
+    0%, 33% { content: "Let's just start anywhere..."; }
+    34%, 66% { content: "Say it like no one's reading..."; }
+    67%, 100% { content: "There's no right way to do this..."; }
 }
 
+/* Main writing area */
 #journal-content {
-    flex: 1;
     width: 100%;
-    padding: 20px;
-    background-color: var(--secondary-bg);
+    height: 60vh;
+    min-height: 60vh;
+    max-height: 60vh;
+    padding: 32px;
+    background: transparent;
     border: none;
-    color: var(--text-primary);
-    font-size: 18px;
-    line-height: 1.6;
+    color: var(--flow-text-primary);
+    font-size: 20px;
+    line-height: 1.8;
     resize: none;
-    font-family: 'Roboto', Arial, sans-serif;
+    font-family: var(--flow-font-writing);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    position: relative;
+    z-index: 2;
+    overflow-y: auto;
 }
 
 #journal-content:focus {
     outline: none;
+    color: var(--flow-text-primary);
+    border-color: transparent !important;
+    box-shadow: none !important;
 }
 
+/* Typing ripple effect - disabled to prevent jitter */
+#journal-content.typing {
+    /* animation: typingRipple 0.6s ease-out; */
+}
+
+/* @keyframes typingRipple {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.002); }
+    100% { transform: scale(1); }
+} */
+
+/* Placeholder styling */
+#journal-content::placeholder {
+    color: transparent;
+    font-style: italic;
+}
+
+/* Editor footer - subtle and unobtrusive */
 .editor-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
-    background-color: var(--tertiary-bg);
-    border-top: 1px solid var(--border-color);
+    padding: 16px 32px 24px;
+    background: transparent;
+    border-top: 1px solid var(--flow-border-soft);
+    opacity: 0.6;
+    transition: var(--flow-transition);
+}
+
+.editor-footer:hover {
+    opacity: 1;
 }
 
 .word-count {
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: bold;
+    color: var(--flow-text-secondary);
+    font-size: 13px;
+    font-family: var(--flow-font-mono);
+    font-weight: 500;
+    letter-spacing: 0.05em;
 }
 
 .mood-selector {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .mood-selector label {
-    color: var(--text-secondary);
-    font-size: 14px;
+    color: var(--flow-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .mood-selector select {
-    background-color: var(--tertiary-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    color: var(--text-primary);
-    padding: 5px 10px;
+    background: var(--flow-bg-primary);
+    border: 1px solid var(--flow-border);
+    border-radius: 6px;
+    color: var(--flow-text-primary);
+    padding: 4px 8px;
+    font-size: 13px;
+    transition: var(--flow-transition);
 }
 
-/* AI Assistant section */
+.mood-selector select:focus {
+    outline: none;
+    border-color: var(--flow-accent);
+    box-shadow: 0 0 0 3px var(--flow-accent-soft);
+}
+
+/* Beautiful, calm buttons */
+.primary-button, .secondary-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--flow-font-primary);
+    cursor: pointer;
+    transition: var(--flow-transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.025em;
+}
+
+.primary-button {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.primary-button:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.secondary-button {
+    background: var(--flow-bg-secondary);
+    color: var(--flow-text-secondary);
+    border: 1px solid var(--flow-border);
+    padding: 10px 20px;
+    text-align: center;
+}
+
+.secondary-button:hover {
+    background: var(--flow-bg-tertiary);
+    color: var(--flow-text-primary);
+    border-color: var(--flow-accent);
+    transform: translateY(-1px);
+}
+
+/* AI Assistant section - gentle sidebar presence */
 .ai-assistant {
-    grid-area: ai-assistant;
-    display: flex;
-    flex-direction: column;
-    background-color: var(--secondary-bg);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px var(--shadow-color);
-    transition: all var(--transition-speed) ease;
+    background: transparent;
+    border: 1px solid var(--flow-border-soft);
+    border-radius: 16px;
+    padding: 24px;
+    transition: var(--flow-transition);
+    opacity: 0;
+    transform: translateX(20px);
+    animation: fadeInRight 1.2s ease-out 0.8s forwards;
+    height: fit-content;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+    position: sticky;
+    top: 24px;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInRight {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .assistant-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: var(--tertiary-bg);
-    border-bottom: 1px solid var(--border-color);
+    margin-top: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--ai-border);
 }
 
-.assistant-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: var(--text-primary);
+.assistant-header h3 {
     margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.assistant-title i {
-    color: var(--accent-color);
-}
-
-.assistant-tools {
-    display: flex;
-    gap: 10px;
+    color: var(--ai-text);
+    font-size: 18px;
+    font-weight: 600;
+    font-family: var(--flow-font-primary);
 }
 
 .assistant-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    color: var(--text-primary);
+    color: var(--ai-text);
+    font-family: var(--flow-font-primary);
+    line-height: 1.7;
+    font-size: 15px;
+    max-width: none;
 }
 
 .assistant-content .placeholder {
-    color: var(--text-tertiary);
+    color: var(--flow-text-secondary);
     font-style: italic;
     text-align: center;
-    margin-top: 40px;
-}
-
-.assistant-footer {
-    padding: 15px;
-    background-color: var(--tertiary-bg);
-    border-top: 1px solid var(--border-color);
-}
-
-.prompt-suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.prompt-suggestion {
-    background-color: var(--accent-color-transparent);
-    color: var(--text-primary);
-    border: 1px solid var(--accent-color);
-    border-radius: 20px;
-    padding: 5px 15px;
     font-size: 14px;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-}
-
-.prompt-suggestion:hover {
-    background-color: var(--accent-color);
-}
-
-/* History section */
-.journal-history {
-    grid-area: history;
-    background-color: var(--secondary-bg);
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 6px var(--shadow-color);
-}
-
-.history-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.history-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: var(--text-primary);
     margin: 0;
-}
-
-.entry-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-}
-
-.entry-list li {
-    min-width: 200px;
-    padding: 15px;
-    background-color: var(--tertiary-bg);
+    padding: 20px 16px;
     border-radius: 8px;
-    cursor: pointer;
-    transition: all var(--transition-speed) ease;
-    border-left: 3px solid transparent;
+    background: transparent;
+    border: none;
 }
 
-.entry-list li:hover {
-    background-color: var(--accent-color-transparent);
-    border-left-color: var(--accent-color);
+/* AI Analysis Display */
+.ai-analysis-conversation {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--flow-text-primary);
 }
 
-.entry-list li.no-entries {
-    width: 100%;
-    text-align: center;
-    color: var(--text-tertiary);
-    font-style: italic;
-    cursor: default;
+.ai-analysis-conversation p {
+    margin-bottom: 16px;
 }
 
-.entry-list .entry-date {
-    display: block;
-    font-weight: bold;
-    color: var(--accent-color);
-    margin-bottom: 5px;
+.ai-analysis-conversation strong {
+    color: var(--flow-accent);
+    font-weight: 600;
 }
 
-.entry-list .entry-preview {
-    color: var(--text-secondary);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+/* Loading states with gentle animations */
+.assistant-content.loading {
+    position: relative;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-/* Mood indicators */
-.entry-mood {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-left: 10px;
+.assistant-content.loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--flow-accent), transparent);
+    animation: shimmer 2s infinite;
 }
 
-.entry-mood.happy, .entry-mood.excited {
-    background-color: #4caf50;
-}
-
-.entry-mood.sad, .entry-mood.anxious {
-    background-color: #2196f3;
-}
-
-.entry-mood.angry {
-    background-color: #f44336;
-}
-
-.entry-mood.tired {
-    background-color: #ff9800;
-}
-
-.entry-mood.neutral {
-    background-color: #9e9e9e;
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 
 /* Sentiment indicator */
@@ -363,180 +444,291 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background-color: var(--tertiary-bg);
-    transition: all var(--transition-speed) ease;
+    background: var(--flow-bg-tertiary);
+    transition: var(--flow-transition);
 }
 
 .sentiment-indicator.positive {
-    background-color: rgba(76, 175, 80, 0.2);
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--flow-success);
 }
 
 .sentiment-indicator.negative {
-    background-color: rgba(244, 67, 54, 0.2);
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--flow-error);
 }
 
 .sentiment-indicator.neutral {
-    background-color: rgba(158, 158, 158, 0.2);
+    background: var(--flow-bg-tertiary);
+    color: var(--flow-text-tertiary);
 }
 
 .sentiment-icon {
-    font-size: 18px;
+    font-size: 14px;
 }
 
-/* AI Insights section */
-.ai-insights {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: rgba(76, 175, 80, 0.1);
+/* Journal history section - show recent entries */
+.journal-history {
+    grid-area: history;
+    background: transparent;
+    border-top: 1px solid var(--flow-border-soft);
+    padding: 24px;
+    margin-top: 24px;
+}
+
+.history-header {
+    margin-bottom: 16px;
+}
+
+.history-title {
+    margin: 0;
+    color: var(--flow-text-primary);
+    font-size: 18px;
+    font-weight: 600;
+    font-family: var(--flow-font-primary);
+}
+
+.entry-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.entry-list li {
+    background: var(--flow-bg-secondary);
+    border: 1px solid var(--flow-border-soft);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: var(--flow-transition);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.entry-list li:hover {
+    background: var(--flow-bg-tertiary);
+    border-color: var(--flow-border);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--flow-shadow);
+}
+
+.entry-date {
+    font-size: 13px;
+    color: var(--flow-text-secondary);
+    font-family: var(--flow-font-mono);
+    font-weight: 500;
+}
+
+.entry-preview {
+    color: var(--flow-text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.entry-mood {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    align-self: flex-end;
+}
+
+.entry-mood.happy { background: #10b981; }
+.entry-mood.sad { background: #6b7280; }
+.entry-mood.anxious { background: #f59e0b; }
+.entry-mood.excited { background: #3b82f6; }
+.entry-mood.tired { background: #8b5cf6; }
+.entry-mood.angry { background: #ef4444; }
+.entry-mood.neutral { background: var(--flow-text-tertiary); }
+
+.no-entries {
+    color: var(--flow-text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 32px 16px;
+    background: transparent !important;
+    cursor: default !important;
+}
+
+.no-entries:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Focus mode - hide distractions when writing but keep buttons available */
+.journal-container.focus-mode .ai-assistant {
+    opacity: 0.3;
+    pointer-events: none;
+    transition: var(--flow-transition);
+}
+
+/* Removed focus mode font size changes to prevent jitter */
+/* .journal-container.focus-mode #journal-content {
+    font-size: 22px;
+    line-height: 1.9;
+} */
+
+/* Error states */
+.error-message {
+    color: var(--flow-error);
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.1);
     border-radius: 8px;
-    border-left: 4px solid var(--accent-color);
+    padding: 16px;
+    margin: 16px 0;
 }
 
-.ai-insights h3 {
-    margin-top: 0;
-    margin-bottom: 12px;
-    color: var(--accent-color);
-    font-size: 18px;
+.error-message strong {
+    display: block;
+    margin-bottom: 8px;
     font-weight: 600;
 }
 
-.ai-insights ul {
-    margin: 0;
-    padding-left: 20px;
-}
-
-.ai-insights li {
-    margin-bottom: 10px;
-    line-height: 1.5;
-    color: var(--text-primary);
-}
-
-/* Loading animation */
-.assistant-content.loading {
-    position: relative;
-}
-
-.assistant-content.loading::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
-    animation: loading 1.5s infinite;
-}
-
-@keyframes loading {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(100%);
-    }
-}
-
-/* Save animation */
-.saved-animation {
-    animation: saved-flash 1s ease;
-}
-
-@keyframes saved-flash {
-    0%, 100% {
-        background-color: var(--secondary-bg);
-    }
-    50% {
-        background-color: rgba(76, 175, 80, 0.1);
-    }
-}
-
-/* Voice to text animation */
-.recording .tool-button[title="Voice to text"] {
-    color: #f44336;
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.2);
-    }
-}
-
-/* Responsive design */
-@media (max-width: 1200px) {
-    .journal-container {
-        grid-template-columns: 1fr 1fr;
-        height: auto;
-    }
-}
-
-@media (max-width: 900px) {
-    .journal-container {
+/* Responsive design for mobile flow state */
+@media (max-width: 1024px) {
+    .journal-main {
         grid-template-columns: 1fr;
-        grid-template-areas:
-            "controls"
-            "editor"
-            "ai-assistant"
-            "history";
+        grid-template-rows: 1fr auto;
+        gap: 16px;
     }
 
-    .journal-controls {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .date-selector, .journal-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .journal-editor, .ai-assistant {
-        min-height: 300px;
+    .ai-assistant {
+        position: static;
+        max-height: none;
+        margin-top: 24px;
+        animation: fadeInUp 1.2s ease-out 0.8s forwards;
+        transform: translateY(10px);
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+    .journal-container {
+        max-width: 100%;
+        margin: 0;
+        min-height: calc(100vh - 60px);
+    }
+
+    .journal-main {
+        padding: 0 16px;
+        gap: 16px;
+    }
+
     .journal-controls {
-        padding: 10px;
+        padding: 16px 20px 12px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
     }
 
     .date-selector {
-        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .journal-actions {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .journal-actions button {
-        width: 100%;
-    }
-
-    .editor-header, .assistant-header {
-        flex-direction: column;
-        gap: 10px;
-        align-items: flex-start;
-    }
-
-    .editor-tools, .assistant-tools {
-        width: 100%;
-        justify-content: flex-end;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
     #journal-content {
-        font-size: 16px;
-        padding: 15px;
+        padding: 24px 20px;
+        font-size: 18px;
+        min-height: 50vh;
     }
 
-    .prompt-suggestion {
-        font-size: 12px;
-        padding: 4px 10px;
+    .editor-prompt {
+        top: 24px;
+        left: 20px;
+        font-size: 16px;
+    }
+
+    .editor-footer {
+        padding: 12px 20px 20px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .ai-assistant {
+        margin: 16px 0 0 0;
+        padding: 20px 16px;
+        border-radius: 12px;
+    }
+
+    .assistant-content {
+        font-size: 14px;
+    }
+
+    .primary-button, .secondary-button {
+        padding: 12px 20px;
+        font-size: 15px;
+        min-width: 120px;
+    }
+
+    .journal-history {
+        padding: 20px 16px;
+        margin-top: 16px;
+    }
+
+    .entry-list li {
+        padding: 12px;
     }
 }
+
+@media (max-width: 480px) {
+    #journal-content {
+        padding: 20px 16px;
+        font-size: 17px;
+    }
+
+    .editor-prompt {
+        left: 16px;
+        font-size: 15px;
+    }
+
+    .journal-controls {
+        padding: 12px 16px 8px;
+    }
+
+    .ai-assistant {
+        margin: 20px 0 0 0;
+        padding: 20px 16px 16px;
+    }
+
+    .assistant-content {
+        font-size: 14px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --flow-bg-primary: #1a1a1a;
+        --flow-bg-secondary: #2d2d2d;
+        --flow-bg-tertiary: #3a3a3a;
+        --flow-text-primary: #f5f5f5;
+        --flow-text-secondary: #b0b0b0;
+        --flow-text-tertiary: #808080;
+        --flow-text-placeholder: #606060;
+        --flow-border: #404040;
+        --flow-border-soft: #353535;
+        --flow-shadow: rgba(0, 0, 0, 0.3);
+
+        /* Dark mode AI Assistant colors */
+        --ai-bg: #1f2937;
+        --ai-border: #374151;
+        --ai-text: #a7f3d0;
+    }
+
+    body::before {
+        background: radial-gradient(circle at 20% 80%, rgba(5, 150, 105, 0.05) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(5, 150, 105, 0.03) 0%, transparent 50%);
+    }
+}
+
+
