@@ -14,13 +14,13 @@
     flex-wrap: wrap !important;
     gap: 20px !important;
     margin-bottom: 15px !important;
-    background-color: rgba(30, 30, 30, 0.7) !important; 
+    background-color: rgba(30, 30, 30, 0.7) !important;
     padding: 10px !important;
     border-radius: 4px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     align-items: center !important;
-    justify-content: center !important; 
-    position: relative !important; 
+    justify-content: center !important;
+    position: relative !important;
 }
 
 
@@ -28,16 +28,16 @@
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
-    flex: 0 1 auto !important; 
+    flex: 0 1 auto !important;
     min-width: 200px !important;
-    margin: 0 20px !important; 
+    margin: 0 20px !important;
 }
 
 
 .axis-control label {
     font-size: 0.9em !important;
     font-weight: 500 !important;
-    color: #ffffff !important; 
+    color: #ffffff !important;
     width: 90px !important;
 }
 
@@ -52,7 +52,7 @@
 
 .scale-value {
     font-size: 0.9em !important;
-    color: #ffffff !important; 
+    color: #ffffff !important;
     font-weight: bold !important;
     width: 40px !important;
     text-align: right !important;
@@ -63,17 +63,18 @@
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    margin-left: auto !important; 
+    margin-left: auto !important;
     padding-right: 10px !important;
-    flex: 0 0 auto !important; 
+    flex: 0 0 auto !important;
+    gap: 10px !important; /* Add gap between buttons */
 }
 
 
 #reset-scale-button {
-    background-color: #ffffff !important; 
-    color: #121212 !important; 
+    background-color: #ffffff !important;
+    color: #121212 !important;
     border: none !important;
-    padding: 8px 16px !important; 
+    padding: 8px 16px !important;
     border-radius: 4px !important;
     cursor: pointer !important;
     font-size: 0.85em !important;
@@ -84,10 +85,34 @@
     align-items: center !important;
     justify-content: center !important;
     box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
-    margin: 0 !important; 
+    margin: 0 !important;
 }
 
 #reset-scale-button:hover {
-    transform: translateY(-2px) !important; 
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Style the Edit Goal Weights button to match the Reset Scale button */
+#edit-goal-weights-btn {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 0.85em !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2) !important;
+    margin: 0 !important;
+}
+
+#edit-goal-weights-btn:hover {
+    transform: translateY(-2px) !important;
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3) !important;
 }

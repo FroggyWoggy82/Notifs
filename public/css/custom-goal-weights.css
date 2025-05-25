@@ -15,7 +15,7 @@
 
 .custom-weights-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 10px;
 }
@@ -36,19 +36,7 @@
     margin: 0;
 }
 
-#edit-goal-weights-btn {
-    background-color: white;
-    color: black;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-#edit-goal-weights-btn:hover {
-    background-color: #e0e0e0;
-}
+/* Edit Goal Weights button styling moved to chart-controls-fix.css */
 
 #custom-weights-actions {
     display: none;

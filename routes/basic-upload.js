@@ -7,65 +7,24 @@ const db = require('../utils/db');
 
 // --- Configuration ---
 // Use Railway persistent volume for storage
-const progressPhotosDir = path.join('/data', 'uploads', 'progress_photos');
+const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
 
 // Reference to the public directory path (for file paths in the database)
 const publicPhotosPath = '/uploads/progress_photos';
 
-// Ensure the persistent directory exists
+// Since we're using the public directory directly, just ensure it exists
+const publicPhotosDir = progressPhotosDir; // Same as progressPhotosDir now
+
+// Ensure the upload directory exists
 if (!fs.existsSync(progressPhotosDir)) {
     fs.mkdirSync(progressPhotosDir, { recursive: true });
-    console.log(`[BASIC UPLOAD] Created persistent directory: ${progressPhotosDir}`);
+    console.log(`[BASIC UPLOAD] Created directory: ${progressPhotosDir}`);
 }
 
-// Check if we're running on Windows
-const isWindows = process.platform === 'win32';
-
-// Create a symlink from the persistent storage to the public directory (skip on Windows)
-const publicPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
-
-// Ensure the public uploads directory exists
+// Ensure the parent uploads directory exists
 const publicUploadsDir = path.join(__dirname, '..', 'public', 'uploads');
 if (!fs.existsSync(publicUploadsDir)) {
     fs.mkdirSync(publicUploadsDir, { recursive: true });
-}
-
-if (isWindows) {
-    console.log(`[BASIC UPLOAD] Running on Windows - skipping symlink creation and using direct storage in public directory`);
-
-    // Ensure the public directory exists
-    if (!fs.existsSync(publicPhotosDir)) {
-        fs.mkdirSync(publicPhotosDir, { recursive: true });
-        console.log(`[BASIC UPLOAD] Created public directory: ${publicPhotosDir}`);
-    }
-} else {
-    // On non-Windows platforms, try to create symlink
-    try {
-        // Remove existing directory if it exists and is not a symlink
-        if (fs.existsSync(publicPhotosDir)) {
-            const stats = fs.lstatSync(publicPhotosDir);
-            if (!stats.isSymbolicLink()) {
-                fs.rmdirSync(publicPhotosDir, { recursive: true });
-                console.log(`[BASIC UPLOAD] Removed existing directory: ${publicPhotosDir}`);
-            } else {
-                console.log(`[BASIC UPLOAD] Symlink already exists: ${publicPhotosDir}`);
-            }
-        }
-
-        // Create the symlink if it doesn't exist
-        if (!fs.existsSync(publicPhotosDir)) {
-            fs.symlinkSync(progressPhotosDir, publicPhotosDir, 'dir');
-            console.log(`[BASIC UPLOAD] Created symlink from ${progressPhotosDir} to ${publicPhotosDir}`);
-        }
-    } catch (error) {
-        console.error(`[BASIC UPLOAD] Error creating symlink: ${error.message}`);
-
-        // Ensure the public directory exists as fallback
-        if (!fs.existsSync(publicPhotosDir)) {
-            fs.mkdirSync(publicPhotosDir, { recursive: true });
-            console.log(`[BASIC UPLOAD] Created public directory: ${publicPhotosDir}`);
-        }
-    }
 }
 
 // Configure multer storage - extremely simple approach

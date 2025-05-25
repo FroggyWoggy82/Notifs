@@ -510,7 +510,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const recipes = await response.json();
+            const responseData = await response.json();
+
+            // Handle both old format (direct array) and new format (object with recipes property)
+            let recipes;
+            if (Array.isArray(responseData)) {
+                // Old format: direct array
+                recipes = responseData;
+            } else if (responseData && responseData.success && Array.isArray(responseData.recipes)) {
+                // New format: object with success and recipes properties
+                recipes = responseData.recipes;
+            } else {
+                console.error('Invalid response format:', responseData);
+                throw new Error('Invalid recipe data format');
+            }
+
             console.log(`Loaded ${recipes.length} recipes`);
 
             // Extract all ingredients from all recipes
@@ -2726,7 +2740,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let recipes;
             try {
-                recipes = JSON.parse(responseText);
+                const responseData = JSON.parse(responseText);
+
+                // Handle both old format (direct array) and new format (object with recipes property)
+                if (Array.isArray(responseData)) {
+                    // Old format: direct array
+                    recipes = responseData;
+                } else if (responseData && responseData.success && Array.isArray(responseData.recipes)) {
+                    // New format: object with success and recipes properties
+                    recipes = responseData.recipes;
+                } else {
+                    console.error('Invalid response format:', responseData);
+                    throw new Error('Invalid recipe data format');
+                }
+
                 console.log(`Loaded ${recipes.length} recipes:`, recipes);
             } catch (jsonError) {
                 console.error('Error parsing JSON:', jsonError);
@@ -6353,7 +6380,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const recipes = await response.json();
+            const responseData = await response.json();
+
+            // Handle both old format (direct array) and new format (object with recipes property)
+            let recipes;
+            if (Array.isArray(responseData)) {
+                // Old format: direct array
+                recipes = responseData;
+            } else if (responseData && responseData.success && Array.isArray(responseData.recipes)) {
+                // New format: object with success and recipes properties
+                recipes = responseData.recipes;
+            } else {
+                console.error('Invalid response format:', responseData);
+                throw new Error('Invalid recipe data format');
+            }
+
             const uniqueIngredients = new Map(); // Use Map to store unique ingredients by name
 
             recipes.forEach(recipe => {

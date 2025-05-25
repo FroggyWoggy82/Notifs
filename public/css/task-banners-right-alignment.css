@@ -1,0 +1,182 @@
+/**
+ * Task Banners Right Alignment
+ * Moves task banners (Due Today, Weekly, Monthly, Next: date) to the right of the task title
+ */
+
+/* Modify the task title container to use flexbox with space-between */
+/* Use higher specificity to override existing styles */
+html body .task-item .task-title-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 12px !important; /* Increased gap to push elements further apart */
+    margin-bottom: 0px !important;
+    min-width: 0 !important;
+}
+
+/* Create a left section for title and recurring icon */
+.task-title-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+/* Create a right section for banners */
+.task-title-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Ensure task title can still truncate properly */
+/* Use higher specificity to override existing styles */
+html body .task-item .task-title {
+    font-weight: 400 !important;
+    color: #FFFFFF !important;
+    font-size: 0.75em !important;
+    line-height: 1 !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Style the banners when they're inline with the title */
+.task-title-right .due-date-indicator,
+.task-title-right .recurrence-indicator,
+.task-title-right .next-occurrence-indicator,
+.task-title-right .notification-indicator {
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    font-size: 0.65em !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    white-space: nowrap !important;
+}
+
+/* Hide the original metadata section since we're moving indicators to title */
+/* Use higher specificity to override existing styles */
+html body .task-item .task-metadata {
+    display: none !important;
+}
+
+/* Ensure recurring icon stays with the title */
+.recurring-icon {
+    margin-left: 4px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    html body .task-item .task-title-container {
+        gap: 8px !important; /* Keep reasonable gap on mobile */
+    }
+
+    .task-title-right .due-date-indicator,
+    .task-title-right .recurrence-indicator,
+    .task-title-right .next-occurrence-indicator,
+    .task-title-right .notification-indicator {
+        font-size: 0.6em !important;
+        padding: 1px 4px !important;
+    }
+
+    /* Maintain expanded layout on mobile */
+    html body .task-item {
+        padding: 1px 8px !important; /* Slightly reduced padding on mobile */
+        margin-left: -2px !important;
+        margin-right: -2px !important;
+        width: calc(100% + 4px) !important;
+    }
+
+    html body .task-item .task-checkbox-container {
+        margin-left: -8px !important; /* Less aggressive pull on mobile */
+    }
+
+    /* On very small screens, allow wrapping if needed */
+    @media (max-width: 480px) {
+        html body .task-item .task-title-container {
+            flex-wrap: wrap !important;
+            gap: 4px !important;
+        }
+
+        .task-title-right {
+            margin-top: 2px !important;
+        }
+
+        /* More conservative spacing on very small screens */
+        html body .task-item {
+            margin-left: 0px !important;
+            margin-right: 0px !important;
+            width: 100% !important;
+        }
+    }
+}
+
+/* Ensure the layout works with the horizontal task layout */
+/* Use higher specificity to override existing styles */
+html body .task-item .task-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0px !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: 0 !important;
+    width: calc(100% - 30px) !important; /* Reduced from 40px to 30px for more space */
+}
+
+/* Make the overall task item take up more horizontal space */
+html body .task-item {
+    padding: 2px 12px !important; /* Increased horizontal padding from 8px to 12px */
+    margin-left: -4px !important; /* Pull task items slightly to the left */
+    margin-right: -4px !important; /* Pull task items slightly to the right */
+    width: calc(100% + 8px) !important; /* Make tasks wider than container */
+}
+
+/* Adjust checkbox container to be more compact */
+html body .task-item .task-checkbox-container {
+    margin-right: 8px !important; /* Increased from 5px to 8px */
+    margin-left: -12px !important; /* Pull checkbox further left */
+}
+
+/* Make task actions more compact but still accessible */
+html body .task-item .task-actions {
+    margin-left: 8px !important; /* Add some space from content */
+    margin-right: -4px !important; /* Pull actions closer to right edge */
+}
+
+/* Hide calendar icons in the inline banners for cleaner look */
+.task-title-right .due-date-indicator i,
+.task-title-right .next-occurrence-indicator i {
+    display: none !important;
+}
+
+/* Make the card containers take up more horizontal space */
+html body .task-list-section .card__body,
+html body .completed-tasks-section .card__body {
+    padding: 8px 4px !important; /* Reduced horizontal padding from 12px to 4px */
+}
+
+/* Make the task list containers take up full width */
+html body #taskList,
+html body #completedTaskList {
+    margin-left: -2px !important;
+    margin-right: -2px !important;
+    width: calc(100% + 4px) !important;
+}
+
+/* Ensure the main container uses maximum available space */
+html body .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+}

@@ -27,14 +27,27 @@ async function getAllRecipes(req, res) {
         // Return an empty array if recipes is null or undefined
         if (!recipes) {
             console.log("No recipes found, returning empty array");
-            return res.json([]);
+            return res.json({
+                success: true,
+                recipes: [],
+                message: 'No recipes found'
+            });
         }
 
-        res.json(recipes);
+        // Return recipes in the expected format for meal submission
+        res.json({
+            success: true,
+            recipes: recipes,
+            message: `Found ${recipes.length} recipes`
+        });
     } catch (error) {
         console.error('Error fetching recipes:', error);
         console.error('Error stack:', error.stack);
-        res.status(500).json({ error: `Failed to fetch recipes: ${error.message}` });
+        res.status(500).json({
+            success: false,
+            error: `Failed to fetch recipes: ${error.message}`,
+            message: 'Error loading recipes. Please refresh the page.'
+        });
     }
 }
 
@@ -55,15 +68,28 @@ async function getRecipeById(req, res) {
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
 
-        res.json(recipe);
+        // Return recipe in the expected format for meal submission
+        res.json({
+            success: true,
+            recipe: recipe,
+            message: `Recipe ${recipe.name} loaded successfully`
+        });
     } catch (error) {
         console.error(`Error fetching recipe ${id}:`, error);
 
         if (error.message === 'Recipe not found') {
-            return res.status(404).json({ error: error.message });
+            return res.status(404).json({
+                success: false,
+                error: error.message,
+                message: 'Recipe not found'
+            });
         }
 
-        res.status(500).json({ error: 'Failed to fetch recipe details' });
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch recipe details',
+            message: 'Error loading recipe details. Please try again.'
+        });
     }
 }
 

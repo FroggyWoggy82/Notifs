@@ -27,7 +27,33 @@ document.addEventListener('DOMContentLoaded', () => {
             statusDiv.textContent = message;
             statusDiv.className = `status ${isError ? 'error' : 'success'}`;
             statusDiv.style.display = 'block';
-            setTimeout(() => { statusDiv.style.display = 'none'; }, duration);
+            statusDiv.style.opacity = '1';
+
+            // Clear any existing timeout
+            if (statusDiv._hideTimeout) {
+                clearTimeout(statusDiv._hideTimeout);
+            }
+
+            // Set up fade out after the specified duration
+            statusDiv._hideTimeout = setTimeout(() => {
+                // Add transition if not already present
+                if (!statusDiv.style.transition) {
+                    statusDiv.style.transition = 'opacity 300ms ease-out';
+                }
+
+                // Start fade out
+                statusDiv.style.opacity = '0';
+
+                // Hide completely after fade out completes
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                    // Clean up
+                    if (statusDiv._hideTimeout) {
+                        clearTimeout(statusDiv._hideTimeout);
+                        delete statusDiv._hideTimeout;
+                    }
+                }, 300);
+            }, duration);
         }
     }
 

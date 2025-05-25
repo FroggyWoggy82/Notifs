@@ -191,7 +191,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            allRecipes = await response.json();
+            const responseData = await response.json();
+
+            // Handle both old format (direct array) and new format (object with recipes property)
+            if (Array.isArray(responseData)) {
+                // Old format: direct array
+                allRecipes = responseData;
+            } else if (responseData && responseData.success && Array.isArray(responseData.recipes)) {
+                // New format: object with success and recipes properties
+                allRecipes = responseData.recipes;
+            } else {
+                console.error('Invalid response format:', responseData);
+                throw new Error('Invalid recipe data format');
+            }
 
             recipeSelectionContainer.innerHTML = '';
 

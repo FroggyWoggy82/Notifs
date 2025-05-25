@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notification Banner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .status.success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .status.error {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Notification Banner Auto-Dismiss</h1>
+    
+    <!-- Status element like the one on index.html -->
+    <div id="status" class="status" data-auto-dismiss="true"></div>
+    
+    <button onclick="showNotificationMessage()">Show "Notification subscription saved successfully!" (should disappear after 5 seconds)</button>
+    <button onclick="showLongMessage()">Show Long Message (should disappear after 15 seconds)</button>
+    
+    <script>
+        // Simulate the updateStatus function from notification-permission-check.js
+        function updateStatus(message, isError = false, duration = 5000) {
+            const statusDiv = document.getElementById('status');
+            if (statusDiv) {
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${isError ? 'error' : 'success'}`;
+                statusDiv.style.display = 'block';
+                statusDiv.style.opacity = '1';
+                
+                // Clear any existing timeout
+                if (statusDiv._hideTimeout) {
+                    clearTimeout(statusDiv._hideTimeout);
+                }
+                
+                // Set up fade out after the specified duration
+                statusDiv._hideTimeout = setTimeout(() => {
+                    // Add transition if not already present
+                    if (!statusDiv.style.transition) {
+                        statusDiv.style.transition = 'opacity 300ms ease-out';
+                    }
+                    
+                    // Start fade out
+                    statusDiv.style.opacity = '0';
+                    
+                    // Hide completely after fade out completes
+                    setTimeout(() => {
+                        statusDiv.style.display = 'none';
+                        // Clean up
+                        if (statusDiv._hideTimeout) {
+                            clearTimeout(statusDiv._hideTimeout);
+                            delete statusDiv._hideTimeout;
+                        }
+                    }, 300);
+                }, duration);
+            }
+        }
+        
+        function showNotificationMessage() {
+            updateStatus('Notification subscription saved successfully!', false, 5000);
+        }
+        
+        function showLongMessage() {
+            updateStatus('This is a longer message that should disappear after 15 seconds', false, 15000);
+        }
+    </script>
+</body>
+</html>

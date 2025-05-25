@@ -116,7 +116,21 @@ async function loadAllExistingIngredients() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const recipes = await response.json();
+        const responseData = await response.json();
+
+        // Handle both old format (direct array) and new format (object with recipes property)
+        let recipes;
+        if (Array.isArray(responseData)) {
+            // Old format: direct array
+            recipes = responseData;
+        } else if (responseData && responseData.success && Array.isArray(responseData.recipes)) {
+            // New format: object with success and recipes properties
+            recipes = responseData.recipes;
+        } else {
+            console.error('[Enhanced Ingredient Selection] Invalid response format:', responseData);
+            throw new Error('Invalid recipe data format');
+        }
+
         console.log('[Enhanced Ingredient Selection] Recipes loaded:', recipes.length);
 
         allIngredients = [];

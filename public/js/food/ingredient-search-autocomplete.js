@@ -94,7 +94,22 @@ async function fetchRecentIngredients() {
             return hardcodedIngredients; // Fallback to hardcoded ingredients
         }
 
-        const recipes = await recipesResponse.json();
+        const responseData = await recipesResponse.json();
+
+        // Handle both old format (direct array) and new format (object with recipes property)
+        let recipes;
+        if (Array.isArray(responseData)) {
+            // Old format: direct array
+            recipes = responseData;
+        } else if (responseData && responseData.success && Array.isArray(responseData.recipes)) {
+            // New format: object with success and recipes properties
+            recipes = responseData.recipes;
+        } else {
+            console.error('Invalid response format:', responseData);
+            searchableIngredients = hardcodedIngredients;
+            return hardcodedIngredients;
+        }
+
         console.log(`Fetched ${recipes.length} recipes`);
 
         // Extract all ingredients from all recipes
@@ -109,7 +124,21 @@ async function fetchRecentIngredients() {
                     continue;
                 }
 
-                const recipeDetail = await recipeDetailResponse.json();
+                const recipeDetailData = await recipeDetailResponse.json();
+
+                // Handle both old format (direct object) and new format (object with recipe property)
+                let recipeDetail;
+                if (recipeDetailData && recipeDetailData.success && recipeDetailData.recipe) {
+                    // New format: object with success and recipe properties
+                    recipeDetail = recipeDetailData.recipe;
+                } else if (recipeDetailData && recipeDetailData.ingredients) {
+                    // Old format: direct recipe object
+                    recipeDetail = recipeDetailData;
+                } else {
+                    console.error('Invalid recipe detail format:', recipeDetailData);
+                    continue;
+                }
+
                 console.log(`Fetched details for recipe ${recipe.name} (ID: ${recipe.id})`);
 
                 if (recipeDetail.ingredients && Array.isArray(recipeDetail.ingredients)) {
