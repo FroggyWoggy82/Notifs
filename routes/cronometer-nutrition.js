@@ -1,6 +1,6 @@
 /**
  * Cronometer Nutrition API Routes
- * 
+ *
  * This file contains routes for accessing nutrition data from Cronometer.
  * For personal use only, in accordance with Cronometer's terms of service.
  */
@@ -48,11 +48,17 @@ let scraper = null;
  */
 async function initializeScraper() {
     if (!scraper) {
-        scraper = new CronometerScraper({
-            headless: process.env.NODE_ENV === 'production',
-            slowMo: 50
-        });
-        await scraper.initialize();
+        try {
+            scraper = new CronometerScraper({
+                headless: process.env.NODE_ENV === 'production',
+                slowMo: 50
+            });
+            await scraper.initialize();
+        } catch (error) {
+            console.warn('Cronometer scraper initialization failed:', error.message);
+            scraper = null;
+            throw error;
+        }
     }
     return scraper;
 }
@@ -62,21 +68,21 @@ async function initializeScraper() {
  */
 async function ensureLoggedIn() {
     const scraper = await initializeScraper();
-    
+
     if (!scraper.isLoggedIn) {
         const username = process.env.CRONOMETER_USERNAME;
         const password = process.env.CRONOMETER_PASSWORD;
-        
+
         if (!username || !password) {
             throw new Error('Cronometer credentials not found in environment variables');
         }
-        
+
         const success = await scraper.login(username, password);
         if (!success) {
             throw new Error('Failed to log in to Cronometer');
         }
     }
-    
+
     return scraper;
 }
 
@@ -96,19 +102,19 @@ router.get('/test', (req, res) => {
  */
 router.get('/search', async (req, res) => {
     const { query } = req.query;
-    
+
     if (!query) {
         return res.status(400).json({
             success: false,
             error: 'Search query is required'
         });
     }
-    
+
     try {
         // First, check the local database
         const scraper = await initializeScraper();
         const localResults = scraper.searchLocalDatabase(query);
-        
+
         if (localResults.length > 0) {
             return res.json({
                 success: true,
@@ -116,11 +122,11 @@ router.get('/search', async (req, res) => {
                 results: localResults
             });
         }
-        
+
         // If no local results, search Cronometer
         await ensureLoggedIn();
         const results = await scraper.searchFood(query);
-        
+
         res.json({
             success: true,
             source: 'cronometer',
@@ -132,6 +138,16 @@ router.get('/search', async (req, res) => {
         });
     } catch (error) {
         console.error('[Cronometer Nutrition] Search error:', error);
+
+        // Check if this is a Puppeteer-related error
+        if (error.message.includes('Puppeteer is not installed')) {
+            return res.status(503).json({
+                success: false,
+                error: 'Cronometer scraping functionality is not available. Puppeteer is not installed.',
+                code: 'PUPPETEER_NOT_AVAILABLE'
+            });
+        }
+
         res.status(500).json({
             success: false,
             error: `Error searching for foods: ${error.message}`
@@ -144,19 +160,19 @@ router.get('/search', async (req, res) => {
  */
 router.get('/food/:id', async (req, res) => {
     const { id } = req.params;
-    
+
     if (!id) {
         return res.status(400).json({
             success: false,
             error: 'Food ID is required'
         });
     }
-    
+
     try {
         // First, check the local database
         const scraper = await initializeScraper();
         const localFood = scraper.db.foods.find(food => food.id === id);
-        
+
         if (localFood) {
             return res.json({
                 success: true,
@@ -164,18 +180,18 @@ router.get('/food/:id', async (req, res) => {
                 food: localFood
             });
         }
-        
+
         // If not in local database, get from Cronometer
         await ensureLoggedIn();
         const food = await scraper.getFoodNutrition(id);
-        
+
         if (!food) {
             return res.status(404).json({
                 success: false,
                 error: `Food with ID ${id} not found`
             });
         }
-        
+
         res.json({
             success: true,
             source: 'cronometer',
@@ -183,6 +199,16 @@ router.get('/food/:id', async (req, res) => {
         });
     } catch (error) {
         console.error('[Cronometer Nutrition] Get food error:', error);
+
+        // Check if this is a Puppeteer-related error
+        if (error.message.includes('Puppeteer is not installed')) {
+            return res.status(503).json({
+                success: false,
+                error: 'Cronometer scraping functionality is not available. Puppeteer is not installed.',
+                code: 'PUPPETEER_NOT_AVAILABLE'
+            });
+        }
+
         res.status(500).json({
             success: false,
             error: `Error getting food nutrition: ${error.message}`
@@ -195,25 +221,25 @@ router.get('/food/:id', async (req, res) => {
  */
 router.get('/export', async (req, res) => {
     const { startDate, endDate } = req.query;
-    
+
     if (!startDate || !endDate) {
         return res.status(400).json({
             success: false,
             error: 'Start date and end date are required'
         });
     }
-    
+
     try {
         await ensureLoggedIn();
         const exportData = await scraper.exportDiaryData(startDate, endDate);
-        
+
         if (!exportData) {
             return res.status(500).json({
                 success: false,
                 error: 'Failed to export diary data'
             });
         }
-        
+
         res.json({
             success: true,
             filePath: path.basename(exportData.filePath),
@@ -221,6 +247,16 @@ router.get('/export', async (req, res) => {
         });
     } catch (error) {
         console.error('[Cronometer Nutrition] Export error:', error);
+
+        // Check if this is a Puppeteer-related error
+        if (error.message.includes('Puppeteer is not installed')) {
+            return res.status(503).json({
+                success: false,
+                error: 'Cronometer scraping functionality is not available. Puppeteer is not installed.',
+                code: 'PUPPETEER_NOT_AVAILABLE'
+            });
+        }
+
         res.status(500).json({
             success: false,
             error: `Error exporting diary data: ${error.message}`
@@ -234,14 +270,14 @@ router.get('/export', async (req, res) => {
 router.get('/download/:filename', (req, res) => {
     const { filename } = req.params;
     const filePath = path.join(dataDir, filename);
-    
+
     if (!fs.existsSync(filePath)) {
         return res.status(404).json({
             success: false,
             error: 'File not found'
         });
     }
-    
+
     res.download(filePath);
 });
 
@@ -262,7 +298,7 @@ router.post('/process-screenshot', upload.single('image'), async (req, res) => {
 
         // TODO: Implement OCR or image processing to extract nutrition data from screenshot
         // For now, return a placeholder response
-        
+
         res.json({
             success: true,
             message: 'Screenshot processing not yet implemented',

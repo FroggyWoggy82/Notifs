@@ -1,15 +1,23 @@
 /**
  * Cronometer Scraper
- * 
+ *
  * A utility for scraping nutrition data from Cronometer.com for personal use.
  * This is intended for personal projects only and should be used in accordance
  * with Cronometer's terms of service.
  */
 
 const axios = require('axios');
-const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+
+// Optional Puppeteer import - gracefully handle if not installed
+let puppeteer;
+try {
+    puppeteer = require('puppeteer');
+} catch (error) {
+    console.warn('Puppeteer not installed. Cronometer scraping functionality will be disabled.');
+    puppeteer = null;
+}
 
 // Local database to store nutrition data
 const NUTRITION_DB_PATH = path.join(__dirname, '../data/nutrition-db.json');
@@ -75,6 +83,10 @@ class CronometerScraper {
      * Initialize the browser and page
      */
     async initialize() {
+        if (!puppeteer) {
+            throw new Error('Puppeteer is not installed. Please install puppeteer to use Cronometer scraping functionality.');
+        }
+
         try {
             this.browser = await puppeteer.launch({
                 headless: this.options.headless ? 'new' : false,
@@ -84,7 +96,7 @@ class CronometerScraper {
             this.page = await this.browser.newPage();
             await this.page.setViewport({ width: 1280, height: 800 });
             await this.page.setDefaultNavigationTimeout(this.options.timeout);
-            
+
             // Set up request interception for better performance
             await this.page.setRequestInterception(true);
             this.page.on('request', (request) => {
@@ -96,7 +108,7 @@ class CronometerScraper {
                     request.continue();
                 }
             });
-            
+
             console.log('Browser initialized');
             return true;
         } catch (error) {
@@ -125,7 +137,7 @@ class CronometerScraper {
             // Fill in login form
             await this.page.type('input[name="username"]', username);
             await this.page.type('input[name="password"]', password);
-            
+
             // Click login button
             await Promise.all([
                 this.page.click('button[type="submit"]'),
@@ -135,13 +147,13 @@ class CronometerScraper {
             // Check if login was successful
             const url = this.page.url();
             this.isLoggedIn = url.includes('app.cronometer.com');
-            
+
             if (this.isLoggedIn) {
                 console.log('Successfully logged in to Cronometer');
             } else {
                 console.error('Failed to log in to Cronometer');
             }
-            
+
             return this.isLoggedIn;
         } catch (error) {
             console.error('Error logging in to Cronometer:', error);
@@ -167,25 +179,25 @@ class CronometerScraper {
 
             // Click the "Add Food" button
             await this.page.click('button[data-testid="add-food-button"]');
-            
+
             // Wait for the search modal to appear
             await this.page.waitForSelector('input[placeholder="Search for a food"]');
-            
+
             // Type the search query
             await this.page.type('input[placeholder="Search for a food"]', query);
-            
+
             // Wait for search results
             await this.page.waitForSelector('.search-result-item');
-            
+
             // Extract search results
             const searchResults = await this.page.evaluate(() => {
                 const results = [];
                 const resultElements = document.querySelectorAll('.search-result-item');
-                
+
                 resultElements.forEach((element) => {
                     const nameElement = element.querySelector('.food-name');
                     const brandElement = element.querySelector('.food-brand');
-                    
+
                     results.push({
                         id: element.getAttribute('data-food-id'),
                         name: nameElement ? nameElement.textContent.trim() : '',
@@ -193,10 +205,10 @@ class CronometerScraper {
                         element: element
                     });
                 });
-                
+
                 return results;
             });
-            
+
             return searchResults;
         } catch (error) {
             console.error('Error searching for food:', error);
@@ -216,7 +228,7 @@ class CronometerScraper {
             }
 
             const foodId = typeof food === 'string' ? food : food.id;
-            
+
             // Check if we already have this food in our database
             const existingFood = this.db.foods.find(f => f.id === foodId);
             if (existingFood) {
@@ -236,15 +248,15 @@ class CronometerScraper {
                 if (!foodItem) {
                     throw new Error(`Food with ID ${foodId} not found`);
                 }
-                
+
                 await this.page.evaluate((element) => {
                     element.click();
                 }, foodItem.element);
             }
-            
+
             // Wait for the nutrition panel to load
             await this.page.waitForSelector('.nutrition-panel');
-            
+
             // Extract nutrition data
             const nutritionData = await this.page.evaluate(() => {
                 const data = {
@@ -261,32 +273,32 @@ class CronometerScraper {
                     },
                     micronutrients: {}
                 };
-                
+
                 // Get basic food info
                 const nameElement = document.querySelector('.food-detail-name');
                 const brandElement = document.querySelector('.food-detail-brand');
                 const servingSizeElement = document.querySelector('.serving-size');
-                
+
                 if (nameElement) data.name = nameElement.textContent.trim();
                 if (brandElement) data.brand = brandElement.textContent.trim();
                 if (servingSizeElement) data.servingSize = servingSizeElement.textContent.trim();
-                
+
                 // Get calories
                 const caloriesElement = document.querySelector('.calories-value');
                 if (caloriesElement) {
                     data.calories = parseFloat(caloriesElement.textContent.trim());
                 }
-                
+
                 // Get macronutrients
                 const macroElements = document.querySelectorAll('.macro-panel .nutrient-row');
                 macroElements.forEach(element => {
                     const nameElement = element.querySelector('.nutrient-name');
                     const valueElement = element.querySelector('.nutrient-value');
-                    
+
                     if (nameElement && valueElement) {
                         const name = nameElement.textContent.trim().toLowerCase();
                         const value = parseFloat(valueElement.textContent.trim());
-                        
+
                         if (name.includes('protein')) data.macronutrients.protein = value;
                         if (name.includes('carbs') || name.includes('carbohydrates')) data.macronutrients.carbs = value;
                         if (name.includes('fat')) data.macronutrients.fat = value;
@@ -294,36 +306,36 @@ class CronometerScraper {
                         if (name.includes('sugar')) data.macronutrients.sugar = value;
                     }
                 });
-                
+
                 // Get micronutrients
                 const microElements = document.querySelectorAll('.micro-panel .nutrient-row');
                 microElements.forEach(element => {
                     const nameElement = element.querySelector('.nutrient-name');
                     const valueElement = element.querySelector('.nutrient-value');
                     const unitElement = element.querySelector('.nutrient-unit');
-                    
+
                     if (nameElement && valueElement) {
                         const name = nameElement.textContent.trim().toLowerCase();
                         const value = parseFloat(valueElement.textContent.trim());
                         const unit = unitElement ? unitElement.textContent.trim() : '';
-                        
+
                         data.micronutrients[name] = {
                             value,
                             unit
                         };
                     }
                 });
-                
+
                 return data;
             });
-            
+
             // Add the food ID to the nutrition data
             nutritionData.id = foodId;
-            
+
             // Add to our database
             this.db.foods.push(nutritionData);
             this.saveDatabase();
-            
+
             return nutritionData;
         } catch (error) {
             console.error('Error getting food nutrition:', error);
@@ -347,33 +359,33 @@ class CronometerScraper {
             await this.page.goto('https://app.cronometer.com/export', {
                 waitUntil: 'networkidle2'
             });
-            
+
             // Set date range
             await this.page.type('input[name="startDate"]', startDate);
             await this.page.type('input[name="endDate"]', endDate);
-            
+
             // Select export format (CSV)
             await this.page.select('select[name="format"]', 'csv');
-            
+
             // Click export button
             const [download] = await Promise.all([
                 this.page.waitForEvent('download'),
                 this.page.click('button[type="submit"]')
             ]);
-            
+
             // Save the downloaded file
             const filePath = path.join(dataDir, `cronometer-export-${startDate}-to-${endDate}.csv`);
             await download.saveAs(filePath);
-            
+
             console.log(`Exported diary data saved to ${filePath}`);
-            
+
             // Read and parse the CSV file
             const csvData = fs.readFileSync(filePath, 'utf8');
-            
+
             // Simple CSV parsing (for a more robust solution, use a CSV parsing library)
             const lines = csvData.split('\n');
             const headers = lines[0].split(',');
-            
+
             const data = [];
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(',');
@@ -385,7 +397,7 @@ class CronometerScraper {
                     data.push(entry);
                 }
             }
-            
+
             return {
                 filePath,
                 data
@@ -403,10 +415,10 @@ class CronometerScraper {
      */
     searchLocalDatabase(query) {
         if (!query) return [];
-        
+
         const lowerQuery = query.toLowerCase();
-        return this.db.foods.filter(food => 
-            food.name.toLowerCase().includes(lowerQuery) || 
+        return this.db.foods.filter(food =>
+            food.name.toLowerCase().includes(lowerQuery) ||
             (food.brand && food.brand.toLowerCase().includes(lowerQuery))
         );
     }
