@@ -1,5 +1,5 @@
-// Service Worker with Background Sync for PWA Notifications - Optimized for Bundled Resources
-const CACHE_NAME = 'notification-pwa-v23-optimized'; // Bumped version for bundled resources optimization
+// Service Worker with Background Sync for PWA Notifications
+const CACHE_NAME = 'notification-pwa-v22'; // <-- Bumped version number to force refresh with grouped notifications
 
 // Catch and suppress any errors during service worker execution
 self.addEventListener('error', event => {
@@ -7,15 +7,31 @@ self.addEventListener('error', event => {
   event.preventDefault(); // Prevent the error from being propagated
 });
 
-// Cache essential static assets - optimized for bundled resources
+// Cache essential static assets - expanded for better mobile support
 const urlsToCache = [
   '/',
   '/index.html',
   '/icon-192x192.png',
   '/icon-512x512.png',
   '/manifest.json',
-  '/css/bundle.css'            // Single bundled CSS file (replaces 60+ individual CSS files)
-  // Note: Font Awesome loaded from CDN for reliability, JS files loaded with async/defer
+  '/css/main.css',
+  '/css/base/variables.css',
+  '/css/base/reset.css',
+  '/css/base/typography.css',
+  '/css/base/base.css',
+  '/css/base/index.css',
+  '/js/immediate-notification-fix.js',
+  '/js/notification-system.js',
+  '/js/modal-system.js',
+  '/js/form-improvements.js',
+  '/js/common/sidebar.js',
+  '/js/common/status-bar.js',
+  '/js/common/clear-cache.js',
+  '/js/common/bottom-nav-fix.js',
+  '/js/common/bottom-nav-center-fix.js',
+  '/js/notification-permission-check.js',
+  '/js/dashboard-stats.js',
+  '/js/tasks/script.js'
 ];
 
 // Cache duration in seconds
