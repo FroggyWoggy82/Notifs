@@ -82,7 +82,7 @@
             console.log(`[Meal Calendar] Loading data for ${year}-${month}, user ${userId}`);
 
             const response = await fetch(`/api/meals/calendar-data?user_id=${userId}&year=${year}&month=${month}`);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -183,31 +183,19 @@
             const calorieInfo = document.createElement('div');
             calorieInfo.className = 'calorie-info';
 
-            if (dayData) {
-                const target = dayData.calorieTarget || calendarData.calorieTarget;
-                const consumed = Math.round(dayData.totalCalories || 0);
+            const target = (dayData && dayData.calorieTarget) || calendarData.calorieTarget;
+            const consumed = Math.round((dayData && dayData.totalCalories) || 0);
 
-                if (target) {
-                    const targetText = document.createElement('div');
-                    targetText.className = 'calorie-target';
-                    targetText.textContent = `Target: ${target}`;
-                    calorieInfo.appendChild(targetText);
-
-                    const consumedText = document.createElement('div');
-                    consumedText.className = `calorie-consumed ${consumed > target ? 'calorie-over-target' : 'calorie-under-target'}`;
-                    consumedText.textContent = `${consumed}/${target} cal`;
-                    calorieInfo.appendChild(consumedText);
-                } else {
-                    const consumedText = document.createElement('div');
-                    consumedText.className = 'calorie-consumed';
-                    consumedText.textContent = `${consumed} cal`;
-                    calorieInfo.appendChild(consumedText);
-                }
-            } else if (calendarData.calorieTarget) {
-                const targetText = document.createElement('div');
-                targetText.className = 'calorie-target';
-                targetText.textContent = `Target: ${calendarData.calorieTarget}`;
-                calorieInfo.appendChild(targetText);
+            if (target) {
+                const consumedText = document.createElement('div');
+                consumedText.className = `calorie-consumed ${consumed > target ? 'calorie-over-target' : 'calorie-under-target'}`;
+                consumedText.textContent = `${consumed}/${target} cal`;
+                calorieInfo.appendChild(consumedText);
+            } else if (consumed > 0) {
+                const consumedText = document.createElement('div');
+                consumedText.className = 'calorie-consumed';
+                consumedText.textContent = `${consumed} cal`;
+                calorieInfo.appendChild(consumedText);
             }
 
             dayElement.appendChild(calorieInfo);
@@ -249,7 +237,7 @@
      */
     function handleDayClick(date, dayData) {
         console.log('[Meal Calendar] Day clicked:', date, dayData);
-        
+
         // Remove previous selection
         const previousSelected = calendarGrid.querySelector('.calendar-day.selected');
         if (previousSelected) {

@@ -1,0 +1,173 @@
+/**
+ * Expanded Task Layout
+ * Makes tasks take up significantly more horizontal room on index.html
+ */
+
+/* Remove all container constraints and maximize horizontal space */
+html body .container {
+    max-width: none !important;
+    width: 100vw !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+}
+
+/* Make task sections take up full viewport width */
+html body .task-list-section,
+html body .completed-tasks-section,
+html body .habit-list-section {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100vw - 16px) !important;
+    max-width: none !important;
+}
+
+/* Expand task cards to use full available space */
+html body .task-list-section .card,
+html body .completed-tasks-section .card,
+html body .habit-list-section .card {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Make task lists take up maximum horizontal space */
+html body #taskList,
+html body #completedTaskList,
+html body #habitList {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100% + 16px) !important;
+    max-width: none !important;
+}
+
+/* Expand individual task items to use more horizontal space */
+html body .task-item {
+    padding: 8px 16px !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100% + 16px) !important;
+    max-width: none !important;
+}
+
+/* Expand habit items similarly */
+html body .habit-item {
+    padding: 12px 16px !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100% + 16px) !important;
+    max-width: none !important;
+}
+
+/* Ensure task content uses all available space */
+html body .task-item .task-content {
+    width: calc(100% - 60px) !important;
+    max-width: none !important;
+    flex: 1 !important;
+}
+
+/* Ensure habit content uses all available space */
+html body .habit-item .habit-content {
+    width: calc(100% - 120px) !important;
+    max-width: none !important;
+    flex: 1 !important;
+}
+
+/* Adjust checkbox positioning for expanded layout */
+html body .task-item .task-checkbox-container {
+    margin-left: -16px !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Adjust habit control positioning */
+html body .habit-item .habit-control-container {
+    margin-left: -16px !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Ensure action buttons stay positioned correctly */
+html body .task-item .task-actions {
+    margin-right: -8px !important;
+    flex-shrink: 0 !important;
+}
+
+html body .habit-item .habit-actions {
+    margin-right: -8px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Make the main title use full width */
+html body h1.gradient-text {
+    width: calc(100vw - 16px) !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    text-align: center !important;
+}
+
+/* Adjust card headers to use full width */
+html body .card__header {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Ensure filter dropdown uses available space */
+html body .task-filter-container {
+    width: auto !important;
+    min-width: 200px !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    html body .container {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+    }
+
+    html body .task-list-section,
+    html body .completed-tasks-section,
+    html body .habit-list-section {
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        width: calc(100vw - 8px) !important;
+    }
+
+    html body .task-item,
+    html body .habit-item {
+        padding: 6px 12px !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        width: calc(100% + 8px) !important;
+    }
+
+    html body h1.gradient-text {
+        width: calc(100vw - 8px) !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+    }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1200px) {
+    html body .task-item {
+        padding: 10px 24px !important;
+    }
+
+    html body .habit-item {
+        padding: 15px 24px !important;
+    }
+
+    html body .task-item .task-content {
+        width: calc(100% - 80px) !important;
+    }
+
+    html body .habit-item .habit-content {
+        width: calc(100% - 150px) !important;
+    }
+}

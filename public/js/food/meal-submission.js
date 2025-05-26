@@ -175,6 +175,14 @@
             const ingredientElement = createIngredientElement(ingredient, index);
             elements.ingredientsList.appendChild(ingredientElement);
         });
+
+        // Add "Add Ingredient" button after all ingredients
+        const addIngredientBtn = document.createElement('button');
+        addIngredientBtn.type = 'button';
+        addIngredientBtn.className = 'add-ingredient-btn';
+        addIngredientBtn.innerHTML = '+ Add Ingredient';
+        addIngredientBtn.addEventListener('click', showAddIngredientForm);
+        elements.ingredientsList.appendChild(addIngredientBtn);
     }
 
     function createIngredientElement(ingredient, index) {
@@ -204,6 +212,9 @@
                 <div class="fat">Fat: <span class="fat-value">${ingredient.fats || 0}</span>g</div>
                 <div class="carbs">Carbs: <span class="carbs-value">${ingredient.carbohydrates || 0}</span>g</div>
             </div>
+            <div class="ingredient-actions">
+                <button type="button" class="remove-ingredient-btn" data-index="${index}">Remove</button>
+            </div>
         `;
 
         // Add event listener for amount changes
@@ -211,6 +222,12 @@
         amountInput.addEventListener('input', () => {
             updateIngredientNutrition(index, parseFloat(amountInput.value) || 0);
             calculateNutrition();
+        });
+
+        // Add event listener for remove button
+        const removeBtn = div.querySelector('.remove-ingredient-btn');
+        removeBtn.addEventListener('click', () => {
+            removeIngredient(index);
         });
 
         return div;
@@ -413,6 +430,226 @@
         elements.nutritionSummary.style.display = 'none';
         currentRecipe = null;
         currentIngredients = [];
+    }
+
+    function removeIngredient(index) {
+        if (currentIngredients.length <= 1) {
+            showStatus('Cannot remove the last ingredient.', 'error');
+            return;
+        }
+
+        // Remove ingredient from array
+        currentIngredients.splice(index, 1);
+
+        // Re-display ingredients with updated indices
+        displayIngredients();
+
+        // Recalculate nutrition
+        calculateNutrition();
+
+        console.log(`[Meal Submission] Removed ingredient at index ${index}`);
+    }
+
+    function showAddIngredientForm() {
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'add-ingredient-modal-overlay';
+        overlay.innerHTML = `
+            <div class="add-ingredient-modal">
+                <div class="modal-header">
+                    <h3>Add Ingredient</h3>
+                    <button type="button" class="close-modal-btn">&times;</button>
+                </div>
+                <div class="modal-content">
+                    <div class="ingredient-selection-type">
+                        <label>
+                            <input type="radio" name="ingredient-type" value="existing" checked>
+                            Select from existing ingredients
+                        </label>
+                        <label>
+                            <input type="radio" name="ingredient-type" value="manual">
+                            Enter manually
+                        </label>
+                    </div>
+
+                    <div id="existing-ingredient-section">
+                        <label for="existing-ingredient-select">Choose ingredient:</label>
+                        <select id="existing-ingredient-select">
+                            <option value="">-- Select an ingredient --</option>
+                        </select>
+                    </div>
+
+                    <div id="manual-ingredient-section" style="display: none;">
+                        <div class="form-group">
+                            <label for="manual-ingredient-name">Ingredient Name:</label>
+                            <input type="text" id="manual-ingredient-name" placeholder="Enter ingredient name">
+                        </div>
+                        <div class="form-group">
+                            <label for="manual-ingredient-calories">Calories per 100g:</label>
+                            <input type="number" id="manual-ingredient-calories" min="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="manual-ingredient-protein">Protein per 100g:</label>
+                            <input type="number" id="manual-ingredient-protein" min="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="manual-ingredient-fat">Fat per 100g:</label>
+                            <input type="number" id="manual-ingredient-fat" min="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="manual-ingredient-carbs">Carbs per 100g:</label>
+                            <input type="number" id="manual-ingredient-carbs" min="0" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ingredient-amount">Amount (g):</label>
+                        <input type="number" id="ingredient-amount" min="0" step="0.1" value="100">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="add-ingredient-confirm-btn">Add Ingredient</button>
+                    <button type="button" class="cancel-add-ingredient-btn">Cancel</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Load existing ingredients
+        loadExistingIngredients();
+
+        // Add event listeners
+        setupAddIngredientModalEvents(overlay);
+    }
+
+    async function loadExistingIngredients() {
+        try {
+            const response = await fetch('/api/ingredients');
+            const data = await response.json();
+
+            if (data.success && data.ingredients) {
+                const select = document.getElementById('existing-ingredient-select');
+                data.ingredients.forEach(ingredient => {
+                    const option = document.createElement('option');
+                    option.value = ingredient.id;
+                    option.textContent = ingredient.name;
+                    option.dataset.ingredient = JSON.stringify(ingredient);
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('[Meal Submission] Error loading ingredients:', error);
+        }
+    }
+
+    function setupAddIngredientModalEvents(overlay) {
+        const modal = overlay.querySelector('.add-ingredient-modal');
+        const closeBtn = overlay.querySelector('.close-modal-btn');
+        const cancelBtn = overlay.querySelector('.cancel-add-ingredient-btn');
+        const confirmBtn = overlay.querySelector('.add-ingredient-confirm-btn');
+        const typeRadios = overlay.querySelectorAll('input[name="ingredient-type"]');
+        const existingSection = overlay.querySelector('#existing-ingredient-section');
+        const manualSection = overlay.querySelector('#manual-ingredient-section');
+
+        // Close modal events
+        closeBtn.addEventListener('click', () => closeAddIngredientModal(overlay));
+        cancelBtn.addEventListener('click', () => closeAddIngredientModal(overlay));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeAddIngredientModal(overlay);
+        });
+
+        // Toggle between existing and manual ingredient entry
+        typeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'existing') {
+                    existingSection.style.display = 'block';
+                    manualSection.style.display = 'none';
+                } else {
+                    existingSection.style.display = 'none';
+                    manualSection.style.display = 'block';
+                }
+            });
+        });
+
+        // Confirm add ingredient
+        confirmBtn.addEventListener('click', () => addNewIngredient(overlay));
+
+        // Prevent modal from closing when clicking inside
+        modal.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    function closeAddIngredientModal(overlay) {
+        document.body.removeChild(overlay);
+    }
+
+    function addNewIngredient(overlay) {
+        const typeRadio = overlay.querySelector('input[name="ingredient-type"]:checked');
+        const amount = parseFloat(overlay.querySelector('#ingredient-amount').value) || 0;
+
+        if (amount <= 0) {
+            alert('Please enter a valid amount.');
+            return;
+        }
+
+        let newIngredient;
+
+        if (typeRadio.value === 'existing') {
+            const select = overlay.querySelector('#existing-ingredient-select');
+            const selectedOption = select.options[select.selectedIndex];
+
+            if (!selectedOption.value) {
+                alert('Please select an ingredient.');
+                return;
+            }
+
+            const ingredientData = JSON.parse(selectedOption.dataset.ingredient);
+            newIngredient = {
+                id: ingredientData.id,
+                name: ingredientData.name,
+                amount: amount,
+                calories: (ingredientData.calories || 0) * (amount / 100),
+                protein: (ingredientData.protein || 0) * (amount / 100),
+                fats: (ingredientData.fats || 0) * (amount / 100),
+                carbohydrates: (ingredientData.carbohydrates || 0) * (amount / 100)
+            };
+        } else {
+            // Manual entry
+            const name = overlay.querySelector('#manual-ingredient-name').value.trim();
+            const caloriesPer100g = parseFloat(overlay.querySelector('#manual-ingredient-calories').value) || 0;
+            const proteinPer100g = parseFloat(overlay.querySelector('#manual-ingredient-protein').value) || 0;
+            const fatPer100g = parseFloat(overlay.querySelector('#manual-ingredient-fat').value) || 0;
+            const carbsPer100g = parseFloat(overlay.querySelector('#manual-ingredient-carbs').value) || 0;
+
+            if (!name) {
+                alert('Please enter an ingredient name.');
+                return;
+            }
+
+            newIngredient = {
+                id: `manual_${Date.now()}`, // Temporary ID for manual ingredients
+                name: name,
+                amount: amount,
+                calories: caloriesPer100g * (amount / 100),
+                protein: proteinPer100g * (amount / 100),
+                fats: fatPer100g * (amount / 100),
+                carbohydrates: carbsPer100g * (amount / 100)
+            };
+        }
+
+        // Add to current ingredients
+        currentIngredients.push(newIngredient);
+
+        // Re-display ingredients
+        displayIngredients();
+
+        // Recalculate nutrition
+        calculateNutrition();
+
+        // Close modal
+        closeAddIngredientModal(overlay);
+
+        console.log(`[Meal Submission] Added ingredient: ${newIngredient.name}`);
     }
 
     function validateForm() {
