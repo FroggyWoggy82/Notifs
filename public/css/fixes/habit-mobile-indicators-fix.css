@@ -1,0 +1,135 @@
+/**
+ * Habit Mobile Indicators Fix
+ * Fixes the placement of habit level and progress display on smaller screens
+ * Ensures they appear all the way to the right instead of in the middle
+ */
+
+/* Base layout improvements for all screen sizes */
+.habit-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 12px 16px !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure habit content takes up available space but doesn't push indicators */
+.habit-content {
+    flex: 1 !important;
+    min-width: 0 !important; /* Allow text to truncate if needed */
+    margin-right: 16px !important;
+}
+
+/* Keep indicators on the right side */
+.habit-indicators-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+}
+
+/* Responsive design for tablets and smaller screens */
+@media screen and (max-width: 768px) {
+    .habit-item {
+        flex-direction: row !important; /* Keep row layout even on mobile */
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 12px !important;
+    }
+    
+    .habit-content {
+        flex: 1 !important;
+        margin-right: 12px !important;
+    }
+    
+    .habit-indicators-row {
+        justify-content: flex-end !important; /* Force right alignment */
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        gap: 6px !important;
+    }
+    
+    /* Make indicators slightly smaller on mobile for better fit */
+    .habit-progress-container,
+    .habit-level {
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+        min-width: 40px !important;
+    }
+    
+    .habit-level {
+        min-width: 60px !important;
+    }
+}
+
+/* Responsive design for very small screens (phones) */
+@media screen and (max-width: 480px) {
+    .habit-item {
+        padding: 8px 10px !important;
+    }
+    
+    .habit-content {
+        margin-right: 8px !important;
+    }
+    
+    .habit-indicators-row {
+        gap: 4px !important;
+    }
+    
+    /* Even smaller indicators for very small screens */
+    .habit-progress-container,
+    .habit-level {
+        font-size: 0.7rem !important;
+        padding: 3px 6px !important;
+        min-width: 35px !important;
+    }
+    
+    .habit-level {
+        min-width: 50px !important;
+    }
+    
+    /* Truncate long habit titles on very small screens */
+    .habit-title {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 150px !important;
+    }
+}
+
+/* Override any conflicting styles from other CSS files */
+.habit-indicators-row {
+    width: auto !important;
+    margin-top: 0 !important;
+    position: static !important;
+}
+
+/* Ensure action buttons don't interfere with indicator positioning */
+.habit-actions {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 10 !important;
+}
+
+/* Hide action buttons on mobile to prevent overlap */
+@media screen and (max-width: 768px) {
+    .habit-actions {
+        display: none !important;
+    }
+    
+    /* Show actions on hover/touch for mobile */
+    .habit-item:hover .habit-actions,
+    .habit-item:focus .habit-actions,
+    .habit-item:active .habit-actions {
+        display: flex !important;
+        background-color: rgba(0, 0, 0, 0.8) !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+    }
+}

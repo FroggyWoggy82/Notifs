@@ -31,8 +31,8 @@
 #addTaskModal .modal-content,
 #addHabitModal .modal-content,
 #editHabitModal .modal-content {
-    background-color: #121212 !important; 
-    color: #e0e0e0 !important; 
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
     padding: 20px !important;
     border-radius: 8px !important;
     width: 80% !important;
@@ -41,6 +41,207 @@
     position: relative !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
     border: 1px solid #333 !important;
+}
+
+/* Mobile-specific modal optimizations */
+@media (max-width: 768px) {
+    #editTaskModal .modal-content,
+    #addTaskModal .modal-content,
+    #addHabitModal .modal-content,
+    #editHabitModal .modal-content {
+        width: 95% !important;
+        max-width: none !important;
+        padding: 12px !important;
+        margin: 10px auto !important;
+        max-height: calc(100vh - 20px) !important;
+        overflow-y: auto !important;
+        border-radius: 6px !important;
+    }
+
+    /* Compact form layout on mobile */
+    #editTaskModal form,
+    #addTaskModal form,
+    #addHabitModal form,
+    #editHabitModal form {
+        gap: 8px !important;
+    }
+
+    /* Smaller form groups */
+    #editTaskModal .form-group,
+    #addTaskModal .form-group,
+    #addHabitModal .form-group,
+    #editHabitModal .form-group {
+        margin-bottom: 6px !important;
+    }
+
+    /* Compact form labels */
+    #editTaskModal .form-label,
+    #addTaskModal .form-label,
+    #addHabitModal .form-label,
+    #editHabitModal .form-label {
+        font-size: 0.8rem !important;
+        margin-bottom: 3px !important;
+    }
+
+    /* Smaller inputs */
+    #editTaskModal input,
+    #editTaskModal textarea,
+    #editTaskModal select,
+    #addTaskModal input,
+    #addTaskModal textarea,
+    #addTaskModal select,
+    #addHabitModal input,
+    #addHabitModal textarea,
+    #addHabitModal select,
+    #editHabitModal input,
+    #editHabitModal textarea,
+    #editHabitModal select {
+        padding: 6px !important;
+        font-size: 0.8rem !important;
+        min-height: 32px !important;
+    }
+
+    /* Compact textarea */
+    #editTaskModal textarea,
+    #addTaskModal textarea,
+    #addHabitModal textarea,
+    #editHabitModal textarea {
+        min-height: 60px !important;
+        resize: vertical !important;
+    }
+
+    /* Compact form rows */
+    #editTaskModal .form-row,
+    #addTaskModal .form-row {
+        gap: 8px !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* Compact reminder checkboxes */
+    #editTaskModal .reminder-checkboxes,
+    #addTaskModal .reminder-checkboxes {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4px !important;
+        margin-top: 4px !important;
+    }
+
+    #editTaskModal .form-check,
+    #addTaskModal .form-check {
+        margin-bottom: 4px !important;
+        font-size: 0.75rem !important;
+    }
+
+    #editTaskModal .form-check-label,
+    #addTaskModal .form-check-label {
+        font-size: 0.75rem !important;
+    }
+
+    /* Compact subtasks section */
+    #editTaskModal .subtasks-header,
+    #addTaskModal .subtasks-header {
+        margin-bottom: 4px !important;
+    }
+
+    #editTaskModal .subtasks-list,
+    #addTaskModal .subtasks-list {
+        max-height: 120px !important;
+        overflow-y: auto !important;
+    }
+
+    /* Compact subtask items */
+    .subtask-item {
+        padding: 4px 6px !important;
+        margin-bottom: 3px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Compact buttons */
+    #editTaskModal button[type="submit"],
+    #addTaskModal button[type="submit"],
+    #addHabitModal button[type="submit"],
+    #editHabitModal button[type="submit"],
+    #addTaskModal .btn.btn--primary,
+    #addHabitModal .btn.btn--primary,
+    #editHabitModal .btn.btn--primary {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+        margin-top: 8px !important;
+    }
+
+    /* Compact modal header */
+    #editTaskModal .modal-header,
+    #addTaskModal .modal-header,
+    #addHabitModal .modal-header,
+    #editHabitModal .modal-header {
+        padding-bottom: 6px !important;
+        margin-bottom: 8px !important;
+    }
+
+    #editTaskModal .modal-header h2,
+    #addTaskModal .modal-header h2,
+    #addHabitModal .modal-header h2,
+    #editHabitModal .modal-header h2 {
+        font-size: 1.2rem !important;
+    }
+
+    /* Compact close button */
+    #editTaskModal .close-button,
+    #addTaskModal .close-button,
+    #addHabitModal .close-button,
+    #editHabitModal .close-button {
+        top: 8px !important;
+        right: 8px !important;
+        font-size: 16px !important;
+    }
+
+    /* Compact toggle controls */
+    #addTaskModal .toggle-container {
+        margin-bottom: 6px !important;
+    }
+
+    #addTaskModal .toggle-label {
+        font-size: 0.8rem !important;
+    }
+
+    #addTaskModal .toggle-switch {
+        width: 32px !important;
+        height: 16px !important;
+    }
+
+    #addTaskModal .toggle-slider:before {
+        height: 12px !important;
+        width: 12px !important;
+        left: 2px !important;
+        bottom: 2px !important;
+    }
+
+    #addTaskModal input:checked + .toggle-slider:before {
+        transform: translateX(16px) !important;
+    }
+
+    /* Compact input groups */
+    #editTaskModal .input-group-text,
+    #addTaskModal .input-group-text {
+        padding: 6px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Hide "no subtasks" message on mobile to save space */
+    .no-subtasks-message {
+        font-size: 0.75rem !important;
+        margin: 4px 0 !important;
+    }
+
+    /* Compact status messages */
+    #editTaskModal .status,
+    #addTaskModal .status,
+    #addHabitModal .status,
+    #editHabitModal .status {
+        margin-top: 8px !important;
+        padding: 6px !important;
+        font-size: 0.8rem !important;
+    }
 }
 
 #editTaskModal .modal-header,
@@ -56,7 +257,7 @@
 #addTaskModal .modal-header h2,
 #addHabitModal .modal-header h2,
 #editHabitModal .modal-header h2 {
-    color: #00e676 !important; 
+    color: #00e676 !important;
     margin: 0 !important;
     font-size: 1.5rem !important;
 }
@@ -78,7 +279,7 @@
 #addTaskModal .close-button:hover,
 #addHabitModal .close-button:hover,
 #editHabitModal .close-button:hover {
-    color: #00e676 !important; 
+    color: #00e676 !important;
 }
 
 #editTaskModal form,
@@ -96,7 +297,7 @@
 #editHabitModal .form-label {
     font-weight: 500 !important;
     margin-bottom: 5px !important;
-    color: #00e676 !important; 
+    color: #00e676 !important;
     font-size: 0.9rem !important;
 }
 
@@ -113,7 +314,7 @@
 #editHabitModal textarea,
 #editHabitModal select {
     padding: 10px !important;
-    background-color: #1e1e1e !important; 
+    background-color: #1e1e1e !important;
     color: #e0e0e0 !important;
     border: 1px solid #333 !important;
     border-radius: 4px !important;
@@ -132,7 +333,7 @@
 #editHabitModal input:focus,
 #editHabitModal textarea:focus,
 #editHabitModal select:focus {
-    border-color: #00e676 !important; 
+    border-color: #00e676 !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2) !important;
 }
@@ -183,8 +384,8 @@
 #addTaskModal .btn.btn--primary,
 #addHabitModal .btn.btn--primary,
 #editHabitModal .btn.btn--primary {
-    background-color: #00e676 !important; 
-    color: #121212 !important; 
+    background-color: #00e676 !important;
+    color: #121212 !important;
     padding: 12px 15px !important;
     border: none !important;
     border-radius: 4px !important;
@@ -204,7 +405,7 @@
 #addTaskModal .btn.btn--primary:hover,
 #addHabitModal .btn.btn--primary:hover,
 #editHabitModal .btn.btn--primary:hover {
-    background-color: #00c853 !important; 
+    background-color: #00c853 !important;
 }
 
 #editTaskModal button[type="submit"]:disabled,

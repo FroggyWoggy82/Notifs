@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 const db = require('../utils/db');
 
 // --- Configuration ---
@@ -80,9 +81,30 @@ router.post('/basic', uploadMiddleware, async (req, res) => {
     console.log(`[BASIC UPLOAD] Saved as: ${req.file.filename}`);
 
     try {
-        // Insert into database with minimal processing
+        // Process the image to fix rotation and create a single, properly oriented image
+        const timestamp = Date.now();
+        const processedFilename = `processed_${timestamp}.jpg`;
+        const processedPath = path.join(progressPhotosDir, processedFilename);
+
+        console.log(`[BASIC UPLOAD] Processing image to fix rotation: ${req.file.path} -> ${processedPath}`);
+
+        // Process image with Sharp to fix rotation and ensure single output
+        await sharp(req.file.path)
+            .rotate() // Apply EXIF rotation and remove EXIF data to prevent rotation issues
+            .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 80, progressive: true })
+            .toFile(processedPath);
+
+        // Clean up the original uploaded file
+        try {
+            fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+            console.warn(`[BASIC UPLOAD] Could not clean up temp file: ${req.file.path}`);
+        }
+
+        // Insert into database with processed file
         const photoDate = new Date(date);
-        const filePath = `/uploads/progress_photos/${req.file.filename}`;
+        const filePath = `/uploads/progress_photos/${processedFilename}`;
 
         console.log(`[BASIC UPLOAD] Inserting into database: ${filePath}`);
 

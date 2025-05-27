@@ -56,17 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 taskTitle.setAttribute('data-recurrence-text', recurrenceText);
 
-                if (interval !== '1') {
-
-                    if (!titleContainer.querySelector('.recurrence-interval')) {
-                        const intervalElement = document.createElement('span');
-                        intervalElement.className = `recurrence-interval ${recurrenceType.toLowerCase()}`;
-                        intervalElement.textContent = `×${interval}`;
-                        intervalElement.title = `Repeats every ${interval} ${recurrenceType.toLowerCase()}`;
-                        titleContainer.appendChild(intervalElement);
-                    }
-                }
-
                 recurringIcon.style.display = 'none';
             }
         });
@@ -152,17 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 taskTitle.setAttribute('data-recurrence-text', recurrenceText);
-
-                if (interval !== '1') {
-
-                    if (!titleContainer.querySelector('.recurrence-interval')) {
-                        const intervalElement = document.createElement('span');
-                        intervalElement.className = `recurrence-interval ${recurrenceType.toLowerCase()}`;
-                        intervalElement.textContent = `×${interval}`;
-                        intervalElement.title = `Repeats every ${interval} ${recurrenceType.toLowerCase()}`;
-                        titleContainer.appendChild(intervalElement);
-                    }
-                }
 
                 recurringIcon.style.display = 'none';
             }

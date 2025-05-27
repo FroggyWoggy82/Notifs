@@ -1,0 +1,15 @@
+/**
+ * Hide Recurrence Interval Badges
+ * This CSS file hides the "×6" type badges for recurring tasks since they already have descriptive badges like "Every 6 weeks"
+ */
+
+/* Hide all recurrence interval badges (×6, ×2, etc.) */
+.recurrence-interval {
+    display: none !important;
+}
+
+/* Also hide any interval badges that might be styled differently */
+.task-title-container .recurrence-interval,
+.task-item .recurrence-interval {
+    display: none !important;
+}

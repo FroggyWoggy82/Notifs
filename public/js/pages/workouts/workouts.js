@@ -4780,8 +4780,8 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         submitButton.disabled = true;
 
-        const uploadEndpoint = isMobile ? '/api/mobile/mobile' : '/api/photos/upload';
-        console.log(`[Photo Upload Client] Using endpoint: ${uploadEndpoint} for ${isMobile ? 'mobile' : 'desktop'} device`);
+        const uploadEndpoint = '/api/basic/upload';
+        console.log(`[Photo Upload Client] Using basic upload endpoint: ${uploadEndpoint}`);
 
         console.log(`[Photo Upload Client] Running on ${isMobile ? 'MOBILE' : 'DESKTOP'} device`);
         console.log(`[Photo Upload Client] About to initiate fetch to ${uploadEndpoint}`);
