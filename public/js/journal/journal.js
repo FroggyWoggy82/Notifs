@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateWordCount();
 
-    const testOllamaButton = document.getElementById('test-ollama');
-    if (testOllamaButton) {
-        testOllamaButton.addEventListener('click', testOllama);
+    const testAIButton = document.getElementById('test-ai');
+    if (testAIButton) {
+        testAIButton.addEventListener('click', testAI);
     }
 
     async function saveEntry() {
@@ -119,78 +119,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const specificContext = getSpecificMemoryContext(memoryEntries, content);
 
-            const prompt = `
-            You are an empathetic AI therapist having a conversation with someone about their journal entry.
-
-            Here are recent entries from this person's journal (READ THESE CAREFULLY - they contain important context):
-            ${themes}${specificContext}
-
-            Today's journal entry:
-            "${content}"
-
-            Respond in a warm, empathetic, conversational tone. Reference information from previous entries when relevant. Never contradict information they've provided in previous entries.
-
-            At the very end, include a one-sentence summary of this entry prefixed with [SUMMARY:] that I can use to track themes (this will be hidden from the user).
-            `;
-
-            const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+            // Use the backend AI service instead of calling Ollama directly
+            const response = await fetch('/api/journal/analyze', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: 'mistral',
-                    prompt: prompt,
-                    stream: false
+                    content: content
                 })
             });
 
-            if (!ollamaResponse.ok) {
-                const errorText = await ollamaResponse.text();
-                throw new Error(`Ollama error! status: ${ollamaResponse.status}, message: ${errorText}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
-            const ollamaResult = await ollamaResponse.json();
-            const aiResponse = ollamaResult.response;
+            const result = await response.json();
+            const aiResponse = result.analysis;
 
-            const summaryMatch = aiResponse.match(/\[SUMMARY:\s*(.+?)\]/i);
-            const summary = summaryMatch ? summaryMatch[1].trim() : 'No summary generated';
+            // Extract questions from the backend response
+            const questions = result.questions || [];
 
-            const questions = [];
-            const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
-            let questionMatch;
-            while ((questionMatch = questionRegex.exec(aiResponse)) !== null) {
-                questions.push({
-                    number: parseInt(questionMatch[1]),
-                    text: questionMatch[2].trim()
-                });
-            }
-
-            const insights = [];
-            const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
-            let insightMatch;
-            while ((insightMatch = insightRegex.exec(aiResponse)) !== null) {
-                insights.push({
-                    text: insightMatch[1].trim()
-                });
-            }
-
-            try {
-                await fetch('/api/journal/memory', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        date: new Date().toISOString(),
-                        text: content.substring(0, 200) + (content.length > 200 ? '...' : ''),
-                        summary: summary
-                    })
-                });
-            } catch (memoryError) {
-                console.error('Error saving to memory:', memoryError);
-
-            }
+            // Memory is already saved by the backend, no need to save it again here
 
             const formattedAnalysis = formatAIAnalysis(aiResponse, questions);
             analysisContentElement.innerHTML = formattedAnalysis;

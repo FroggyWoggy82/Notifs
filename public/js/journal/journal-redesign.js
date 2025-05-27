@@ -19,14 +19,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const sentimentIndicator = document.getElementById('sentiment-indicator');
     const saveInsightsButton = document.getElementById('save-insights');
 
-    // Set today's date as default
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
-    journalDateInput.value = formattedDate;
-    console.log('Setting journal date to local date:', formattedDate);
+    // Set today's date as default - Enhanced to ensure it always works
+    function setTodaysDate() {
+        if (!journalDateInput) {
+            console.error('Journal date input not found');
+            return;
+        }
+
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+
+        journalDateInput.value = formattedDate;
+        console.log('Setting journal date to local date:', formattedDate);
+
+        // Force the input to update by triggering change event
+        journalDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // Set today's date immediately
+    setTodaysDate();
+
+    // Also set it after a short delay to ensure DOM is fully ready
+    setTimeout(setTodaysDate, 100);
 
     // Initialize
     loadEntries();
