@@ -8,8 +8,15 @@
     display: none !important;
 }
 
+/* Hide interval badges created by JavaScript */
+.interval-badge {
+    display: none !important;
+}
+
 /* Also hide any interval badges that might be styled differently */
 .task-title-container .recurrence-interval,
-.task-item .recurrence-interval {
+.task-item .recurrence-interval,
+.task-title-container .interval-badge,
+.task-item .interval-badge {
     display: none !important;
 }

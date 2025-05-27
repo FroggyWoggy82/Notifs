@@ -87,21 +87,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            updateStatus('Setting up push notifications...', false);
+
             // Check for existing subscription
             let subscription = await swRegistration.pushManager.getSubscription();
 
             // If there's an existing subscription, unsubscribe first
-            // This is necessary when VAPID keys have changed
+            // This is necessary when VAPID keys have changed or to force new endpoint format
             if (subscription) {
+                console.log('Found existing subscription, unsubscribing to force fresh registration...');
                 updateStatus('Updating subscription with new security keys...', false);
                 await subscription.unsubscribe();
                 console.log('Unsubscribed from existing push subscription');
+
+                // Wait a moment to ensure the unsubscription is processed
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
+
+            // Force service worker update to ensure we get the latest endpoint format
+            console.log('Updating service worker to ensure latest endpoint format...');
+            await swRegistration.update();
+
+            // Wait for the service worker to be ready
+            await navigator.serviceWorker.ready;
 
             // Create a new subscription with the current VAPID key
             // Using properly generated VAPID key on the P-256 curve
             const applicationServerKey = urlBase64ToUint8Array('BIErgrKRpDGw2XoFq1vhgowolKyleAgJxC_DcZlyIUASuTUHi0SlWZQ-e2p2ctskva52qii0a36uS5CqTprMxRE');
 
+            console.log('Creating new push subscription with updated endpoint format...');
             try {
                 subscription = await swRegistration.pushManager.subscribe({
                     userVisibleOnly: true,
@@ -109,6 +123,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 console.log('Successfully created new push subscription');
+                console.log('Subscription endpoint:', subscription.endpoint);
+
+                // Check if the endpoint uses the correct format
+                if (subscription.endpoint.includes('https://fcm.googleapis.com/wp/')) {
+                    console.log('✅ Subscription uses correct /wp/ endpoint format');
+                } else if (subscription.endpoint.includes('https://fcm.googleapis.com/fcm/send/')) {
+                    console.warn('⚠️ Subscription still uses old /fcm/send/ format - this may not work');
+                } else {
+                    console.log('ℹ️ Subscription uses different endpoint format:', subscription.endpoint);
+                }
+
                 sendSubscriptionToServer(subscription);
             } catch (subscribeError) {
                 console.warn('Silent handling of push subscription error:', subscribeError);
@@ -154,6 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Sending subscription to server:', subscription.endpoint);
 
+            // Check endpoint format before sending
+            if (subscription.endpoint.includes('https://fcm.googleapis.com/wp/')) {
+                console.log('✅ Subscription uses correct /wp/ endpoint format');
+            } else if (subscription.endpoint.includes('https://fcm.googleapis.com/fcm/send/')) {
+                console.warn('⚠️ Subscription uses old /fcm/send/ format - server may reject this');
+            }
+
             const response = await fetch('/api/save-subscription', {
                 method: 'POST',
                 body: JSON.stringify(subscription),
@@ -172,6 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             console.log('Subscription saved successfully:', data);
             updateStatus('Notification subscription saved successfully!', false, 15000);
+
+            // Hide the notification banner since we're now subscribed
+            const permissionStatusDiv = document.getElementById('permissionStatus');
+            if (permissionStatusDiv) {
+                permissionStatusDiv.style.display = 'none';
+            }
+
             return true;
         } catch (error) {
             console.error('Error saving subscription to server:', error);

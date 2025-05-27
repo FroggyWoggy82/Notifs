@@ -13,6 +13,9 @@
     <!-- Font Awesome for icons - External CDN for reliability -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Hide recurrence interval badges (×6, ×2, etc.) since tasks already have descriptive badges -->
+    <link rel="stylesheet" href="css/utilities/hide-recurrence-interval-badges.css">
+
     <!-- Expanded task layout for more horizontal space -->
     <link rel="stylesheet" href="css/expanded-task-layout.css">
 
@@ -413,19 +416,19 @@
                     <label class="form-label">Reminders (Optional):</label>
                     <div class="reminder-checkboxes">
                         <div class="form-check">
-                            <input type="checkbox" id="reminderSameDay" class="form-check-input" value="same-day">
+                            <input type="checkbox" id="reminderSameDay" class="form-check-input reminder-checkbox" value="same-day">
                             <label for="reminderSameDay" class="form-check-label">On the due date</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" id="reminderDayBefore" class="form-check-input" value="day-before">
+                            <input type="checkbox" id="reminderDayBefore" class="form-check-input reminder-checkbox" value="day-before">
                             <label for="reminderDayBefore" class="form-check-label">1 day before</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" id="reminderWeekBefore" class="form-check-input" value="week-before">
+                            <input type="checkbox" id="reminderWeekBefore" class="form-check-input reminder-checkbox" value="week-before">
                             <label for="reminderWeekBefore" class="form-check-label">1 week before</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" id="reminderCustom" class="form-check-input" value="custom">
+                            <input type="checkbox" id="reminderCustom" class="form-check-input reminder-checkbox" value="custom">
                             <label for="reminderCustom" class="form-check-label">Custom time</label>
                         </div>
                     </div>
@@ -511,19 +514,19 @@
                     <label class="form-label">Reminders (Optional):</label>
                     <div class="reminder-checkboxes">
                         <div class="form-check">
-                            <input type="checkbox" id="editReminderSameDay" class="form-check-input" value="same-day">
+                            <input type="checkbox" id="editReminderSameDay" class="form-check-input reminder-checkbox" value="same-day">
                             <label for="editReminderSameDay" class="form-check-label">On the due date</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" id="editReminderDayBefore" class="form-check-input" value="day-before">
+                            <input type="checkbox" id="editReminderDayBefore" class="form-check-input reminder-checkbox" value="day-before">
                             <label for="editReminderDayBefore" class="form-check-label">1 day before</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" id="editReminderWeekBefore" class="form-check-input" value="week-before">
+                            <input type="checkbox" id="editReminderWeekBefore" class="form-check-input reminder-checkbox" value="week-before">
                             <label for="editReminderWeekBefore" class="form-check-label">1 week before</label>
                         </div>
                         <div class="form-check">
-                            <input type="checkbox" id="editReminderCustom" class="form-check-input" value="custom">
+                            <input type="checkbox" id="editReminderCustom" class="form-check-input reminder-checkbox" value="custom">
                             <label for="editReminderCustom" class="form-check-label">Custom time</label>
                         </div>
                     </div>
