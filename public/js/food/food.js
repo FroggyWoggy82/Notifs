@@ -3129,9 +3129,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorMessage);
             }
 
-            const recipeData = await response.json();
+            const responseData = await response.json();
 
-            console.log('Fetched recipe data:', recipeData);
+            console.log('Fetched response data:', responseData);
+
+            // Handle both wrapped and direct response formats
+            let recipeData;
+            if (responseData.success && responseData.recipe) {
+                // New MVC format: {success: true, recipe: {...}, message: "..."}
+                recipeData = responseData.recipe;
+                console.log('Using wrapped response format');
+            } else if (responseData.ingredients) {
+                // Old direct format: {id: 1, name: "...", ingredients: [...]}
+                recipeData = responseData;
+                console.log('Using direct response format');
+            } else {
+                console.error('Invalid response format:', responseData);
+                throw new Error('Invalid response format from server');
+            }
+
+            console.log('Processed recipe data:', recipeData);
             console.log(`Fetched ${recipeData.ingredients ? recipeData.ingredients.length : 0} ingredients`);
 
             if (!recipeData.ingredients || !Array.isArray(recipeData.ingredients)) {
@@ -3153,10 +3170,33 @@ document.addEventListener('DOMContentLoaded', () => {
             renderIngredientDetails(recipeData.ingredients, detailsDiv);
             console.log('Ingredient details rendered successfully');
 
+            // Ensure edit form is hidden after rendering ingredients (fix for unwanted edit modal)
             setTimeout(() => {
+                const editForm = detailsDiv.querySelector('.edit-ingredient-form');
+                if (editForm) {
+                    editForm.style.display = 'none';
+                    editForm.style.visibility = 'hidden';
+                    editForm.classList.add('force-hidden');
+                    console.log('Ensured edit form is hidden after view');
+                }
                 detailsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 console.log('Scrolled to ingredient details');
             }, 100);
+
+            // Add CSS rule to force hide edit forms when viewing
+            if (!document.getElementById('force-hide-edit-style')) {
+                const style = document.createElement('style');
+                style.id = 'force-hide-edit-style';
+                style.textContent = `
+                    .edit-ingredient-form.force-hidden {
+                        display: none !important;
+                        visibility: hidden !important;
+                        opacity: 0 !important;
+                        pointer-events: none !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
         } catch (error) {
             console.error('Error fetching ingredients:', error);
             detailsDiv.innerHTML = `<p style="color:red;">Error loading ingredients: ${error.message}</p>
@@ -4072,6 +4112,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleEditIngredientClick(event) {
+        // Don't show edit form if we're in view mode
+        if (window._isViewingIngredients) {
+            console.log('Blocked edit form - currently viewing ingredients');
+            return;
+        }
+
         const row = event.target.closest('tr');
         const ingredientId = row.dataset.ingredientId;
         const recipeId = row.dataset.recipeId;
@@ -4486,8 +4532,25 @@ document.addEventListener('DOMContentLoaded', () => {
                                 throw new Error(`HTTP error! status: ${freshResponse.status}`);
                             }
 
-                            const freshRecipeData = await freshResponse.json();
-                            console.log('Fresh recipe data from server:', freshRecipeData);
+                            const responseData = await freshResponse.json();
+                            console.log('Fresh response data from server:', responseData);
+
+                            // Handle both wrapped and direct response formats
+                            let freshRecipeData;
+                            if (responseData.success && responseData.recipe) {
+                                // New MVC format: {success: true, recipe: {...}, message: "..."}
+                                freshRecipeData = responseData.recipe;
+                                console.log('Using wrapped response format for fresh data');
+                            } else if (responseData.ingredients) {
+                                // Old direct format: {id: 1, name: "...", ingredients: [...]}
+                                freshRecipeData = responseData;
+                                console.log('Using direct response format for fresh data');
+                            } else {
+                                console.error('Invalid fresh response format:', responseData);
+                                throw new Error('Invalid response format from server');
+                            }
+
+                            console.log('Fresh recipe data processed:', freshRecipeData);
 
                             freshRecipeData.ingredients.forEach(ing => {
                                 console.log(`Fresh data - Ingredient ${ing.name} package_amount:`, ing.package_amount, typeof ing.package_amount);
@@ -4932,8 +4995,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(`HTTP error! status: ${freshResponse.status}`);
                 }
 
-                const freshRecipeData = await freshResponse.json();
-                console.debug('Fresh recipe data from server received');
+                const responseData = await freshResponse.json();
+                console.debug('Fresh response data from server received');
+
+                // Handle both wrapped and direct response formats
+                let freshRecipeData;
+                if (responseData.success && responseData.recipe) {
+                    // New MVC format: {success: true, recipe: {...}, message: "..."}
+                    freshRecipeData = responseData.recipe;
+                    console.debug('Using wrapped response format for fresh data');
+                } else if (responseData.ingredients) {
+                    // Old direct format: {id: 1, name: "...", ingredients: [...]}
+                    freshRecipeData = responseData;
+                    console.debug('Using direct response format for fresh data');
+                } else {
+                    console.error('Invalid fresh response format:', responseData);
+                    throw new Error('Invalid response format from server');
+                }
+
+                console.debug('Fresh recipe data processed');
 
                 freshRecipeData.ingredients.forEach(ing => {
                     console.debug(`Fresh data - Ingredient ${ing.name} package_amount:`, ing.package_amount);
@@ -5163,7 +5243,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         else if (target.classList.contains('view-ingredients-btn')) {
             const detailsDiv = recipeItem.querySelector('.ingredient-details');
+
+            // Prevent any edit forms from showing when viewing ingredients
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+
+            // Set a flag to indicate we're in view mode
+            window._isViewingIngredients = true;
+
             await fetchAndDisplayIngredients(recipeId, detailsDiv, target); // Pass button to toggle text
+
+            // Multiple safety checks to hide edit form after view
+            const hideEditForm = () => {
+                const editForm = detailsDiv.querySelector('.edit-ingredient-form');
+                if (editForm) {
+                    editForm.style.display = 'none';
+                    editForm.style.visibility = 'hidden';
+                    editForm.classList.add('force-hidden');
+                    console.log('View button: Forcefully hid edit form');
+                }
+            };
+
+            // Hide immediately and with multiple timeouts
+            hideEditForm();
+            setTimeout(hideEditForm, 50);
+            setTimeout(hideEditForm, 100);
+            setTimeout(hideEditForm, 200);
+            setTimeout(hideEditForm, 500);
+
+            // Clear the flag after a delay
+            setTimeout(() => {
+                window._isViewingIngredients = false;
+            }, 1000);
         }
     });
 

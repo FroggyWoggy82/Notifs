@@ -50,7 +50,7 @@
 /* Ensure the task item with subtasks has proper positioning */
 .task-item.has-subtasks {
     position: relative !important;
-    padding-left: 40px !important;
+    padding-left: 60px !important; /* Increased to prevent overlap with expand button */
     display: flex !important;
     align-items: center !important;
     min-height: 48px !important;

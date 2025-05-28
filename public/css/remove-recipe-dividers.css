@@ -15,28 +15,34 @@
 
 /* Improve spacing between heading and recipe name field */
 #create-recipe-form {
-    margin-top: 15px !important;
+    margin-top: 3px !important;
 }
 
 /* Remove any borders from the recipe name form group */
 #create-recipe-form .form-group {
     border-top: none !important;
     border-bottom: none !important;
+    margin-bottom: 3px !important;
 }
 
 /* Remove any borders from the recipe creation section heading */
 #recipe-creation-section h2 {
     border-bottom: none !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 2px !important;
 }
 
 /* Remove any borders from the ingredients heading */
 #create-recipe-form h3 {
     border-bottom: none !important;
+    font-size: 0.8rem !important;
+    margin-top: 6px !important;
+    margin-bottom: 3px !important;
 }
 
 /* Ensure proper spacing between elements */
 #create-recipe-form > * {
-    margin-bottom: 15px !important;
+    margin-bottom: 3px !important;
 }
 
 /* Ensure the recipe name field is properly visible */
@@ -58,42 +64,44 @@
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 1px !important;
+    font-size: 10px !important;
+    color: white !important;
 }
 
 /* Ensure the recipe name input is properly styled */
 #create-recipe-form .form-group input[type="text"] {
     width: 100% !important;
-    padding: 8px 12px !important;
-    font-size: 16px !important;
+    padding: 2px 4px !important;
+    font-size: 10px !important;
     background-color: rgba(40, 40, 40, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: white !important;
-    border-radius: 4px !important;
-    height: 40px !important;
+    border-radius: 2px !important;
+    height: 22px !important;
 }
 
 /* Ensure the ingredients heading is properly styled */
 #create-recipe-form h3 {
-    margin-top: 20px !important;
-    margin-bottom: 15px !important;
+    margin-top: 6px !important;
+    margin-bottom: 3px !important;
     color: white !important;
-    font-size: 18px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
 }
 
 /* Ensure the ingredients list has proper spacing */
 #ingredients-list {
-    margin-top: 15px !important;
+    margin-top: 3px !important;
 }
 
 /* Ensure the ingredient items have proper styling */
 .ingredient-item {
     background-color: rgba(30, 30, 30, 0.7) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 4px !important;
-    padding: 15px !important;
-    margin-bottom: 15px !important;
+    border-radius: 3px !important;
+    padding: 4px !important;
+    margin-bottom: 3px !important;
 }
 
 /* Ensure the buttons have proper styling */
@@ -101,16 +109,109 @@
     background-color: white !important;
     color: #121212 !important;
     border: none !important;
-    padding: 8px 15px !important;
-    border-radius: 4px !important;
+    padding: 3px 6px !important;
+    border-radius: 3px !important;
     cursor: pointer !important;
-    font-size: 14px !important;
+    font-size: 10px !important;
     transition: background-color 0.2s !important;
-    margin-right: 10px !important;
+    margin-right: 3px !important;
+    height: 22px !important;
 }
 
 .buttons-row button:hover {
     background-color: #e0e0e0 !important;
+}
+
+/* Mobile Responsive - Ultra Compact Recipe Creation */
+@media (max-width: 768px) {
+    #recipe-creation-section {
+        padding: 2px !important;
+        margin: 1px 0 !important;
+    }
+
+    #recipe-creation-section h2 {
+        font-size: 0.8rem !important;
+        margin-bottom: 1px !important;
+    }
+
+    #create-recipe-form {
+        margin-top: 2px !important;
+    }
+
+    #create-recipe-form .form-group {
+        margin-bottom: 2px !important;
+    }
+
+    #create-recipe-form .form-group label {
+        font-size: 9px !important;
+        margin-bottom: 0px !important;
+    }
+
+    #create-recipe-form .form-group input[type="text"] {
+        padding: 1px 3px !important;
+        font-size: 9px !important;
+        height: 20px !important;
+    }
+
+    #create-recipe-form h3 {
+        font-size: 10px !important;
+        margin-top: 3px !important;
+        margin-bottom: 2px !important;
+    }
+
+    #ingredients-list {
+        margin-top: 2px !important;
+        gap: 2px !important;
+    }
+
+    .ingredient-item {
+        padding: 2px !important;
+        margin-bottom: 2px !important;
+        gap: 2px !important;
+    }
+
+    .ingredient-item input[type="text"],
+    .ingredient-item input[type="number"] {
+        padding: 1px 2px !important;
+        font-size: 0.6em !important;
+        height: 18px !important;
+    }
+
+    .remove-ingredient-btn {
+        padding: 1px 3px !important;
+        font-size: 0.6em !important;
+        height: 18px !important;
+    }
+
+    #add-ingredient-btn {
+        width: 80px !important;
+        padding: 2px 4px !important;
+        margin: 2px auto 3px auto !important;
+        font-size: 0.6em !important;
+        height: 20px !important;
+    }
+
+    .buttons-row button {
+        padding: 2px 4px !important;
+        font-size: 9px !important;
+        height: 20px !important;
+        margin-right: 2px !important;
+    }
+
+    .input-section-header {
+        font-size: 0.6em !important;
+        margin: 0 0 1px 0 !important;
+    }
+
+    .ingredient-inputs-container {
+        gap: 2px !important;
+        margin-top: 1px !important;
+        min-width: 80px !important;
+    }
+
+    .ingredient-row {
+        gap: 2px !important;
+    }
 }
 
 /* Ensure the Save Recipe button has proper styling */

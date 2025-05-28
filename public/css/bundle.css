@@ -1,7 +1,20 @@
 /**
  * Bundled CSS for PWA Performance Optimization
+ * Generated on: 2025-05-27T18:37:39.897Z
+ *
+ * This file contains all CSS styles consolidated into a single file
+ * to reduce HTTP requests and improve loading performance.
+ */
+
+
+/* ========================================== */
+/* File: css/bundle.css */
+/* ========================================== */
+
+/**
+ * Bundled CSS for PWA Performance Optimization
  * Generated on: 2025-05-26T00:30:23.313Z
- * 
+ *
  * This file contains all CSS styles consolidated into a single file
  * to reduce HTTP requests and improve loading performance.
  */
@@ -190,8 +203,8 @@ b, u, i, center,
 dl, dt, dd, ol, ul, li,
 fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
   margin: 0;
@@ -202,7 +215,7 @@ time, mark, audio, video {
 }
 
 
-article, aside, details, figcaption, figure, 
+article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block;
 }
@@ -787,8 +800,8 @@ b, u, i, center,
 dl, dt, dd, ol, ul, li,
 fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
   margin: 0;
@@ -799,7 +812,7 @@ time, mark, audio, video {
 }
 
 
-article, aside, details, figcaption, figure, 
+article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block;
 }
@@ -1209,7 +1222,7 @@ body {
   background-color: var(--color-dark-bg);
   color: var(--color-dark-text);
   margin: 0 auto;
-  padding: 15px 15px 60px 15px; 
+  padding: 15px 15px 60px 15px;
   text-align: left;
   line-height: var(--line-height-base);
   font-family: var(--font-family-base);
@@ -1383,52 +1396,52 @@ body.light-theme {
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
 body {
-    
+
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    
-    background-color: #0a0a0a; 
-    color: #E0E0E0; 
-    
-     
-    margin: 0 auto; 
-    padding: 15px 15px 60px 15px; 
+
+    background-color: #0a0a0a;
+    color: #E0E0E0;
+
+
+    margin: 0 auto;
+    padding: 15px 15px 60px 15px;
     text-align: left;
     line-height: 1.6;
-     
+
 }
 
 h1 {
     text-align: center;
-    color: #E0E0E0; 
-    font-weight: 500; 
-    margin-bottom: 10px; 
-    font-size: 2em; 
+    color: #E0E0E0;
+    font-weight: 500;
+    margin-bottom: 10px;
+    font-size: 2em;
 }
 
 p {
     text-align: center;
-    color: #AAAAAA; 
-    margin-bottom: 20px; 
+    color: #AAAAAA;
+    margin-bottom: 20px;
     font-size: 1em;
 }
 
 button {
-    
-    background-color: #181818; 
+
+    background-color: #181818;
     color: #E0E0E0;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px 20px; 
-    font-size: 0.9em; 
+    padding: 10px 20px;
+    font-size: 0.9em;
     font-weight: 500;
-    border-radius: 4px; 
+    border-radius: 4px;
     cursor: pointer;
-    margin-top: 10px; 
+    margin-top: 10px;
     transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-    display: inline-block; 
-    width: 100%; 
+    display: inline-block;
+    width: 100%;
     box-sizing: border-box;
     text-align: center;
-    -webkit-tap-highlight-color: transparent; 
+    -webkit-tap-highlight-color: transparent;
 }
 
 
@@ -1437,12 +1450,12 @@ a {
 }
 
 button:hover {
-    background-color: #202020; 
+    background-color: #202020;
     border-color: rgba(255, 255, 255, 0.2);
 }
 
 button:active {
-    transform: scale(0.98); 
+    transform: scale(0.98);
 }
 
 
@@ -1459,7 +1472,7 @@ button:active {
 
 
 .secondary-btn {
-    background-color: #121212; 
+    background-color: #121212;
     color: #AAAAAA;
 }
 
@@ -1469,8 +1482,8 @@ button:active {
 
 
 #notifyBtn {
-    
-    background-color: #00C853; 
+
+    background-color: #00C853;
     color: #FFFFFF;
     margin-bottom: 15px;
 }
@@ -1479,7 +1492,7 @@ button:active {
 }
 
 #scheduleBtn {
-    margin-top: 20px; 
+    margin-top: 20px;
 }
 
 
@@ -1496,19 +1509,19 @@ button:active {
 
 
 .permission-granted {
-    background-color: rgba(0, 230, 118, 0.1); 
-    color: #00E676; 
+    background-color: rgba(0, 230, 118, 0.1);
+    color: #00E676;
     border-color: rgba(0, 230, 118, 0.3);
-    display: none; 
+    display: none;
 }
 .permission-denied {
-    background-color: rgba(255, 61, 0, 0.1); 
-    color: #FF3D00; 
+    background-color: rgba(255, 61, 0, 0.1);
+    color: #FF3D00;
     border-color: rgba(255, 61, 0, 0.3);
 }
 .permission-default {
-    background-color: rgba(255, 171, 0, 0.1); 
-    color: #FFAB00; 
+    background-color: rgba(255, 171, 0, 0.1);
+    color: #FFAB00;
     border-color: rgba(255, 171, 0, 0.3);
 }
 
@@ -1528,7 +1541,7 @@ button:active {
     display: none;
     margin-top: 15px;
     padding: 12px;
-    background-color: rgba(0, 176, 255, 0.1); 
+    background-color: rgba(0, 176, 255, 0.1);
     border-radius: 4px;
     border: 1px solid rgba(0, 176, 255, 0.3);
     text-align: center;
@@ -1536,8 +1549,8 @@ button:active {
 }
 #installPrompt button {
     margin-top: 8px;
-    display: inline-block; 
-    width: auto; 
+    display: inline-block;
+    width: auto;
 }
 
 
@@ -1557,78 +1570,78 @@ button:active {
 .task-input-section h2, .task-list-section h2 {
     font-weight: 500;
     color: #E0E0E0;
-    margin-bottom: 15px; 
-    padding-bottom: 8px; 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     text-align: left;
     font-size: 1.2em;
 }
 
 .form-group {
-    margin-bottom: 12px; 
+    margin-bottom: 12px;
     text-align: left;
 }
 
 label {
     display: block;
-    margin-bottom: 4px; 
-    font-weight: 500; 
+    margin-bottom: 4px;
+    font-weight: 500;
     font-size: 0.9em;
-    color: #AAAAAA; 
+    color: #AAAAAA;
 }
 
 
 input[type="text"], input[type="datetime-local"], select, textarea {
     width: 100%;
-    padding: 8px 10px; 
-    border: 1px solid rgba(0, 230, 118, 0.3); 
+    padding: 8px 10px;
+    border: 1px solid rgba(0, 230, 118, 0.3);
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: rgba(0, 0, 0, 0.3); 
+    background-color: rgba(0, 0, 0, 0.3);
     color: #E0E0E0;
     font-size: 0.9em;
     transition: all 0.2s ease;
 }
 input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: rgba(0, 230, 118, 0.8); 
-    box-shadow: 0 0 10px rgba(0, 230, 118, 0.3); 
+    border-color: rgba(0, 230, 118, 0.8);
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
 }
 
 
 textarea {
-    min-height: 80px; 
-    resize: vertical; 
-    line-height: 1.5; 
+    min-height: 80px;
+    resize: vertical;
+    line-height: 1.5;
 }
 
 
 .form-row {
     display: flex;
-    gap: 15px; 
-    align-items: flex-end; 
-    flex-wrap: wrap; 
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
 }
 
 .form-group-half {
-    flex: 1; 
-    min-width: 0; 
-    min-width: 150px; 
+    flex: 1;
+    min-width: 0;
+    min-width: 150px;
 }
 
 
 
 #recurrenceIntervalGroup {
     display: flex;
-    align-items: center; 
+    align-items: center;
     gap: 8px;
 }
 #recurrenceIntervalGroup label {
-     margin-bottom: 0; 
+     margin-bottom: 0;
 }
 #recurrenceIntervalGroup input[type="number"] {
-     width: 60px; 
-     flex-grow: 0; 
+     width: 60px;
+     flex-grow: 0;
 }
 #recurrenceIntervalGroup span {
      font-size: 0.9em;
@@ -1686,8 +1699,8 @@ textarea {
 
 
 #taskList {
-    margin-top: 10px; 
-    list-style: none; 
+    margin-top: 10px;
+    list-style: none;
     padding: 0;
 }
 
@@ -1700,11 +1713,11 @@ textarea {
     border: 1px solid rgba(255, 255, 255, 0.03);
     border-left: 4px solid transparent;
     display: flex;
-    flex-direction: row !important; 
-    align-items: flex-start !important; 
-    gap: 0; 
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 0;
     transition: all 0.2s ease;
-    position: relative; 
+    position: relative;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -1715,21 +1728,21 @@ textarea {
 }
 
 .task-item.complete {
-    background-color: rgba(0, 230, 118, 0.05); 
+    background-color: rgba(0, 230, 118, 0.05);
     border-left: 4px solid #00E676;
     box-shadow: 0 2px 10px rgba(0, 230, 118, 0.1);
 }
 
 .task-item.overdue {
-    border-left: 4px solid #FF3D00 !important; 
-    background-color: rgba(255, 61, 0, 0.05) !important; 
+    border-left: 4px solid #FF3D00 !important;
+    background-color: rgba(255, 61, 0, 0.05) !important;
     box-shadow: 0 2px 10px rgba(255, 61, 0, 0.1) !important;
 }
 
 
 .task-item.complete.overdue {
-    background-color: rgba(255, 61, 0, 0.05) !important; 
-    border-left: 4px solid #FF3D00 !important; 
+    background-color: rgba(255, 61, 0, 0.05) !important;
+    border-left: 4px solid #FF3D00 !important;
     box-shadow: 0 2px 10px rgba(255, 61, 0, 0.1) !important;
 }
 
@@ -1738,7 +1751,7 @@ textarea {
 .task-item.complete .task-content .task-title,
 .task-item.complete .task-content .task-description {
     text-decoration: line-through;
-    color: rgba(255, 255, 255, 0.5); 
+    color: rgba(255, 255, 255, 0.5);
 }
 
 
@@ -1751,35 +1764,35 @@ textarea {
 
 
 .task-item input[type="checkbox"] {
-    
+
     appearance: none;
     -webkit-appearance: none;
     background-color: rgba(20, 20, 20, 0.9);
-    margin: 0; 
-    margin-top: 3px; 
+    margin: 0;
+    margin-top: 3px;
     font: inherit;
     width: 1.2em;
     height: 1.2em;
     border: 1px solid rgba(0, 230, 118, 0.3);
     border-radius: 3px;
-    transform: none; 
+    transform: none;
     display: grid;
     place-content: center;
     cursor: pointer;
-    flex-shrink: 0; 
-    align-self: flex-start; 
-    position: relative; 
-    left: 0; 
+    flex-shrink: 0;
+    align-self: flex-start;
+    position: relative;
+    left: 0;
     box-shadow: 0 0 5px rgba(0, 230, 118, 0.1), inset 0 0 3px rgba(0, 0, 0, 0.5);
     transition: all 0.2s ease;
-    overflow: hidden; 
+    overflow: hidden;
 }
 
 .task-item input[type="checkbox"]::before {
-    content: "✓"; 
+    content: "✓";
     transform: scale(0);
     transition: 150ms transform ease-in-out;
-    color: #00E676; 
+    color: #00E676;
     font-size: 0.8em;
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 230, 118, 0.8);
@@ -1832,10 +1845,10 @@ textarea {
     flex-grow: 1;
     text-align: left;
     display: flex;
-    flex-direction: column; 
-    gap: 2px; 
-    padding-top: 1px; 
-    margin-left: 4px; 
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 1px;
+    margin-left: 4px;
 }
 
 .task-title-container {
@@ -1850,7 +1863,7 @@ textarea {
     font-size: 1em;
     text-align: left;
     line-height: 1.2;
-    display: block; 
+    display: block;
 }
 
 .recurring-icon {
@@ -1887,11 +1900,11 @@ textarea {
     margin-left: auto;
     flex-shrink: 0;
     display: flex;
-    align-items: flex-start; 
+    align-items: flex-start;
     gap: 4px;
-    opacity: 0; 
+    opacity: 0;
     transition: opacity 0.2s ease;
-    margin-top: 2px; 
+    margin-top: 2px;
 }
 
 
@@ -1944,7 +1957,7 @@ textarea {
 
 
 
-.info-box { 
+.info-box {
     background-color: #fdebd0;
     color: #b9770e;
     padding: 15px;
@@ -1957,22 +1970,22 @@ textarea {
 
 
 .completed-tasks-section {
-    margin-top: 20px; 
-    
+    margin-top: 20px;
+
 }
 
 .collapsible-header {
     font-weight: 500;
-    color: #E0E0E0; 
+    color: #E0E0E0;
     margin-bottom: 10px;
     padding: 12px 15px;
-    background-color: rgba(30, 30, 30, 0.8); 
+    background-color: rgba(30, 30, 30, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 6px;
     cursor: pointer;
-    user-select: none; 
-    display: flex; 
-    justify-content: space-between; 
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -1991,26 +2004,26 @@ textarea {
     border-radius: 6px;
     margin-top: 5px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    
+
 }
 
 
 #completedTaskList .task-item {
-    background-color: rgba(0, 230, 118, 0.03); 
-    opacity: 0.8; 
+    background-color: rgba(0, 230, 118, 0.03);
+    opacity: 0.8;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 #completedTaskList .task-item .task-title,
 #completedTaskList .task-item .task-description {
     text-decoration: line-through;
-    color: rgba(224, 224, 224, 0.6); 
+    color: rgba(224, 224, 224, 0.6);
 }
 
 
 #completedTaskList .task-item .edit-task-btn,
 #completedTaskList .task-item .delete-btn {
-    opacity: 0.7; 
+    opacity: 0.7;
 }
 
 
@@ -2020,35 +2033,35 @@ textarea {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: #ffffff; 
+    background-color: #ffffff;
     display: flex;
     justify-content: space-around;
-    padding: 8px 0; 
-    box-shadow: 0 -1px 3px rgba(44, 62, 80, 0.1); 
+    padding: 8px 0;
+    box-shadow: 0 -1px 3px rgba(44, 62, 80, 0.1);
     z-index: 1000;
-    border-top: 1px solid #dde5eb; 
+    border-top: 1px solid #dde5eb;
 }
 
 .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: #566573; 
+    color: #566573;
     text-decoration: none;
-    font-size: 11px; 
-    padding: 5px 10px; 
+    font-size: 11px;
+    padding: 5px 10px;
     transition: color 0.2s ease;
 }
 
 .nav-item.active {
-    color: #4db6ac; 
+    color: #4db6ac;
 }
 .nav-item:hover {
-     color: #2c3e50; 
+     color: #2c3e50;
 }
 
 .nav-icon {
-    font-size: 22px; 
+    font-size: 22px;
     margin-bottom: 3px;
 }
 
@@ -2064,15 +2077,15 @@ textarea {
 
 
 .modal {
-    display: none; 
-    position: fixed; 
-    z-index: 9999; 
+    display: none;
+    position: fixed;
+    z-index: 9999;
     left: 0;
     top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: hidden; 
-    background-color: rgba(0, 0, 0, 0.7); 
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.7);
     align-items: center;
     justify-content: center;
 }
@@ -2089,9 +2102,9 @@ body .modal {
 
 
 #editTaskModal {
-    display: none !important; 
+    display: none !important;
     position: fixed !important;
-    z-index: 10000 !important; 
+    z-index: 10000 !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
@@ -2099,7 +2112,7 @@ body .modal {
     align-items: center !important;
     justify-content: center !important;
     overflow: auto !important;
-    background-color: rgba(0, 0, 0, 0.5) !important; 
+    background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
 
@@ -2110,11 +2123,11 @@ body .modal {
 
 
 #editTaskModal .modal-content {
-    margin: 0 auto !important; 
+    margin: 0 auto !important;
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
-    transform: translate(-50%, -50%) !important; 
+    transform: translate(-50%, -50%) !important;
     max-width: 500px !important;
     width: 90% !important;
     max-height: 80vh !important;
@@ -2218,28 +2231,28 @@ input:checked + .toggle-slider:before {
 }
 
 .modal-content {
-    background-color: rgba(18, 18, 18, 0.95); 
-    color: #E0E0E0; 
-    margin: auto; 
+    background-color: rgba(18, 18, 18, 0.95);
+    color: #E0E0E0;
+    margin: auto;
     padding: 25px;
-    border: 1px solid rgba(0, 230, 118, 0.3); 
+    border: 1px solid rgba(0, 230, 118, 0.3);
     border-radius: 8px;
-    width: 90%; 
-    max-width: 500px; 
+    width: 90%;
+    max-width: 500px;
     position: relative;
     box-shadow: 0 0 20px rgba(0, 230, 118, 0.2), 0 0 40px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    max-height: 80vh; 
-    overflow-y: auto; 
-    transform: translateY(0); 
+    max-height: 80vh;
+    overflow-y: auto;
+    transform: translateY(0);
 }
 
 .modal-content h2 {
     margin-top: 0;
     text-align: center;
-    color: #00E676; 
-    border-bottom: 1px solid rgba(0, 230, 118, 0.3); 
+    color: #00E676;
+    border-bottom: 1px solid rgba(0, 230, 118, 0.3);
     padding-bottom: 10px;
     margin-bottom: 20px;
     font-weight: 500;
@@ -2252,7 +2265,7 @@ input:checked + .toggle-slider:before {
     position: absolute;
     top: 10px;
     right: 15px;
-    z-index: 100; 
+    z-index: 100;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(0, 230, 118, 0.3);
     border-radius: 50%;
@@ -2325,7 +2338,7 @@ input:checked + .toggle-slider:before {
 .modal-content #addTaskForm,
 .modal-content #addHabitForm,
 .modal-content #editTaskForm,
-.modal-content #editHabitForm { 
+.modal-content #editHabitForm {
     margin: 0;
     padding: 0;
 }
@@ -2441,7 +2454,7 @@ input:checked + .toggle-slider:before {
 
 .fab {
     position: fixed;
-    bottom: 80px; 
+    bottom: 80px;
     right: 20px;
     width: 56px;
     height: 56px;
@@ -2456,7 +2469,7 @@ input:checked + .toggle-slider:before {
     justify-content: center;
     box-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
     cursor: pointer;
-    z-index: 1000; 
+    z-index: 1000;
     transition: all 0.2s ease;
 }
 .fab:hover {
@@ -2474,52 +2487,52 @@ input:checked + .toggle-slider:before {
 
 @media screen and (max-width: 480px) {
     .modal-content {
-        margin: 10vh auto; 
-        padding: 15px; 
-        width: 95%; 
-        max-height: 80vh; 
-        border-radius: 8px; 
-        overflow-y: auto; 
+        margin: 10vh auto;
+        padding: 15px;
+        width: 95%;
+        max-height: 80vh;
+        border-radius: 8px;
+        overflow-y: auto;
     }
 
     #editTaskModal .modal-content {
-        margin: 0 auto !important; 
+        margin: 0 auto !important;
         position: fixed !important;
         top: 50% !important;
         left: 50% !important;
-        transform: translate(-50%, -50%) !important; 
-        padding: 15px !important; 
-        width: 95% !important; 
-        max-height: 80vh !important; 
-        border-radius: 8px !important; 
-        overflow-y: auto !important; 
+        transform: translate(-50%, -50%) !important;
+        padding: 15px !important;
+        width: 95% !important;
+        max-height: 80vh !important;
+        border-radius: 8px !important;
+        overflow-y: auto !important;
         background-color: white !important;
         color: #333 !important;
         border: none !important;
     }
 }
 
-    
+
     .form-row {
-        flex-direction: column; 
+        flex-direction: column;
     }
 
     .form-group-half {
-        width: 100%; 
+        width: 100%;
     }
 
-    
+
     .modal-header {
         position: sticky;
         top: 0;
-        background-color: rgba(18, 18, 18, 0.95); 
+        background-color: rgba(18, 18, 18, 0.95);
         z-index: 10;
         padding-bottom: 10px;
         margin-bottom: 15px;
-        padding-right: 40px; 
+        padding-right: 40px;
     }
 
-    
+
     .close-button {
         position: fixed;
         top: 15px;
@@ -2534,7 +2547,7 @@ input:checked + .toggle-slider:before {
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
-    
+
     #addTaskBtn, #submitHabitBtn, #saveTaskBtn, #submitEditHabitBtn {
         position: sticky;
         bottom: 0;
@@ -2550,7 +2563,7 @@ input:checked + .toggle-slider:before {
 
 @media screen and (min-width: 600px) {
     .fab {
-        bottom: 80px; 
+        bottom: 80px;
         right: 30px;
     }
 }
@@ -2578,7 +2591,7 @@ input:checked + .toggle-slider:before {
 }
 
 #habitList {
-    margin-top: 20px; 
+    margin-top: 20px;
     padding: 0;
 }
 
@@ -2586,12 +2599,12 @@ input:checked + .toggle-slider:before {
 .habit-item {
     background-color: rgba(18, 18, 18, 0.8);
     padding: 15px;
-    padding-right: 60px; 
+    padding-right: 60px;
     margin-bottom: 12px;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.03);
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     gap: 12px;
     transition: all 0.2s ease;
     position: relative;
@@ -2633,7 +2646,7 @@ input:checked + .toggle-slider:before {
     gap: 10px;
     width: 100%;
     margin-bottom: 8px;
-    justify-content: space-between; 
+    justify-content: space-between;
 }
 
 
@@ -2709,31 +2722,31 @@ input:checked + .toggle-slider:before {
     display: inline-block;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
-    min-width: 120px; 
+    min-width: 120px;
     text-align: center;
     white-space: nowrap;
-    background-color: #4db6ac; 
+    background-color: #4db6ac;
     margin: 0;
-    width: 100%; 
-    max-width: 160px; 
+    width: 100%;
+    max-width: 160px;
 }
 
 
 .habit-level.level-1 {
-    background-color: #4db6ac; 
+    background-color: #4db6ac;
 }
 
 .habit-level.level-3 {
-    background-color: #26a69a; 
+    background-color: #26a69a;
 }
 
 .habit-level.level-5 {
-    background-color: #00897b; 
+    background-color: #00897b;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .habit-level.level-10 {
-    background-color: #00796b; 
+    background-color: #00796b;
     box-shadow: 0 2px 5px rgba(0,0,0,0.4), 0 0 10px rgba(0,137,123,0.5);
     padding: 4px 10px;
     font-size: 0.8em;
@@ -2742,8 +2755,8 @@ input:checked + .toggle-slider:before {
 
 
 .habit-actions {
-    display: flex; 
-    gap: 8px;      
+    display: flex;
+    gap: 8px;
     position: absolute;
     top: 10px;
     right: 10px;
@@ -2812,7 +2825,7 @@ input:checked + .toggle-slider:before {
 
 
 .habit-item.complete {
-    background-color: rgba(0, 230, 118, 0.05); 
+    background-color: rgba(0, 230, 118, 0.05);
     border-color: rgba(0, 230, 118, 0.2);
     border-left: 4px solid rgba(0, 230, 118, 0.8);
     box-shadow: 0 2px 10px rgba(0, 230, 118, 0.1);
@@ -2821,7 +2834,7 @@ input:checked + .toggle-slider:before {
 
 
 .habit-item.counter-complete {
-    background-color: rgba(0, 230, 118, 0.05); 
+    background-color: rgba(0, 230, 118, 0.05);
     border-color: rgba(0, 230, 118, 0.2);
     border-left: 4px solid rgba(0, 230, 118, 0.8);
     box-shadow: 0 2px 10px rgba(0, 230, 118, 0.1);
@@ -2831,9 +2844,9 @@ input:checked + .toggle-slider:before {
 
 .habit-item.complete .habit-title,
 .habit-item.counter-complete .habit-title {
-    
+
     font-weight: 600;
-    color: #00E676; 
+    color: #00E676;
     text-shadow: 0 0 3px rgba(0, 230, 118, 0.3);
 }
 
@@ -2894,9 +2907,9 @@ input:checked + .toggle-slider:before {
 
 
 .habit-frequency {
-    display: block; 
+    display: block;
     font-size: 0.8em;
-    color: #AAAAAA; 
+    color: #AAAAAA;
     margin-top: 0;
 }
 
@@ -2909,7 +2922,7 @@ input:checked + .toggle-slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0; 
+    flex-shrink: 0;
 }
 
 
@@ -2925,9 +2938,9 @@ input:checked + .toggle-slider:before {
     position: relative;
     outline: none;
     transition: all 0.2s ease;
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     box-shadow: 0 0 8px rgba(0, 230, 118, 0.1);
 }
 
@@ -2948,7 +2961,7 @@ input:checked + .toggle-slider:before {
     color: #00E676;
     font-size: 18px;
     font-weight: bold;
-    line-height: 1; 
+    line-height: 1;
     text-shadow: 0 0 5px rgba(0, 230, 118, 0.8);
 }
 
@@ -2975,9 +2988,9 @@ input:checked + .toggle-slider:before {
     transition: all 0.2s ease;
     box-shadow: 0 0 8px rgba(0, 230, 118, 0.1);
     outline: none;
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 
@@ -2998,7 +3011,7 @@ input:checked + .toggle-slider:before {
     background-color: rgba(0, 230, 118, 0.2);
     color: #00E676;
     border-color: rgba(0, 230, 118, 0.8);
-    font-size: 18px; 
+    font-size: 18px;
     box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
     text-shadow: 0 0 5px rgba(0, 230, 118, 0.8);
 }
@@ -3014,13 +3027,13 @@ input:checked + .toggle-slider:before {
 
 
 #addHabitBtn {
-    
+
     margin-top: 20px;
 }
 
 
 @media screen and (min-width: 768px) {
-    
+
     .habit-item {
         flex-direction: row;
         flex-wrap: wrap;
@@ -3068,8 +3081,8 @@ input:checked + .toggle-slider:before {
     left: 0;
     height: 100vh;
     width: 250px;
-    background-color: #121212; 
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1); 
+    background-color: #121212;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     z-index: 1100;
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
@@ -3100,7 +3113,7 @@ input:checked + .toggle-slider:before {
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: #2c3e50; 
+    color: #2c3e50;
     text-decoration: none;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -3367,12 +3380,12 @@ section {
 
 
 .fab {
-    bottom: 70px !important; 
+    bottom: 70px !important;
 }
 
 
 body {
-    padding-bottom: 70px !important; 
+    padding-bottom: 70px !important;
 }
 
 
@@ -3869,10 +3882,10 @@ body {
 
 
 #taskFilter.form-control {
-  padding-right: calc(var(--spacing-xl) + 15px); 
-  text-overflow: ellipsis; 
-  white-space: nowrap; 
-  overflow: hidden; 
+  padding-right: calc(var(--spacing-xl) + 15px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 
@@ -3881,7 +3894,7 @@ select.form-control {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e0e0e0' d='M6 8.825L1.175 4 2.05 3.125 6 7.075 9.95 3.125 10.825 4 6 8.825z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right var(--spacing-lg) center;
-  padding-right: calc(var(--spacing-xl) + 10px); 
+  padding-right: calc(var(--spacing-xl) + 10px);
 }
 
 
@@ -4318,8 +4331,8 @@ textarea.form-control {
   border: 1px solid rgba(255, 255, 255, 0.03);
   border-left: 4px solid transparent;
   display: flex;
-  flex-direction: row; 
-  align-items: flex-start; 
+  flex-direction: row;
+  align-items: flex-start;
   gap: var(--spacing-xs);
   transition: all var(--transition-base);
   position: relative;
@@ -4661,8 +4674,8 @@ textarea.form-control {
 #addTaskModal .modal-content,
 #addHabitModal .modal-content,
 #editHabitModal .modal-content {
-    background-color: #121212 !important; 
-    color: #e0e0e0 !important; 
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
     padding: 20px !important;
     border-radius: 8px !important;
     width: 80% !important;
@@ -4686,7 +4699,7 @@ textarea.form-control {
 #addTaskModal .modal-header h2,
 #addHabitModal .modal-header h2,
 #editHabitModal .modal-header h2 {
-    color: #00e676 !important; 
+    color: #00e676 !important;
     margin: 0 !important;
     font-size: 1.5rem !important;
 }
@@ -4708,7 +4721,7 @@ textarea.form-control {
 #addTaskModal .close-button:hover,
 #addHabitModal .close-button:hover,
 #editHabitModal .close-button:hover {
-    color: #00e676 !important; 
+    color: #00e676 !important;
 }
 
 #editTaskModal form,
@@ -4726,7 +4739,7 @@ textarea.form-control {
 #editHabitModal .form-label {
     font-weight: 500 !important;
     margin-bottom: 5px !important;
-    color: #00e676 !important; 
+    color: #00e676 !important;
     font-size: 0.9rem !important;
 }
 
@@ -4743,7 +4756,7 @@ textarea.form-control {
 #editHabitModal textarea,
 #editHabitModal select {
     padding: 10px !important;
-    background-color: #1e1e1e !important; 
+    background-color: #1e1e1e !important;
     color: #e0e0e0 !important;
     border: 1px solid #333 !important;
     border-radius: 4px !important;
@@ -4762,7 +4775,7 @@ textarea.form-control {
 #editHabitModal input:focus,
 #editHabitModal textarea:focus,
 #editHabitModal select:focus {
-    border-color: #00e676 !important; 
+    border-color: #00e676 !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2) !important;
 }
@@ -4813,8 +4826,8 @@ textarea.form-control {
 #addTaskModal .btn.btn--primary,
 #addHabitModal .btn.btn--primary,
 #editHabitModal .btn.btn--primary {
-    background-color: #00e676 !important; 
-    color: #121212 !important; 
+    background-color: #00e676 !important;
+    color: #121212 !important;
     padding: 12px 15px !important;
     border: none !important;
     border-radius: 4px !important;
@@ -4834,7 +4847,7 @@ textarea.form-control {
 #addTaskModal .btn.btn--primary:hover,
 #addHabitModal .btn.btn--primary:hover,
 #editHabitModal .btn.btn--primary:hover {
-    background-color: #00c853 !important; 
+    background-color: #00c853 !important;
 }
 
 #editTaskModal button[type="submit"]:disabled,
@@ -4952,29 +4965,29 @@ textarea.form-control {
 
 
 html body .task-item input[type="checkbox"] {
-    
+
     width: 24px !important;
     height: 24px !important;
 
-    
+
     appearance: none !important;
     -webkit-appearance: none !important;
     background-color: rgba(18, 18, 18, 0.9) !important;
     border: 2px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 50% !important;
 
-    
+
     margin: 0 !important;
     padding: 0 !important;
     position: relative !important;
     align-self: center !important;
 
-    
+
     cursor: pointer !important;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) !important;
     transition: all 0.2s ease !important;
 
-    
+
     transform: none !important;
     -webkit-transform: none !important;
     -moz-transform: none !important;
@@ -5029,23 +5042,23 @@ html body .task-content {
 
 
 html body .habit-item .habit-checkbox {
-    
+
     width: 32px !important;
     height: 32px !important;
 
-    
+
     appearance: none !important;
     -webkit-appearance: none !important;
     background-color: rgba(18, 18, 18, 0.9) !important;
     border: 2px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 50% !important;
 
-    
+
     margin: 0 !important;
     padding: 0 !important;
     position: relative !important;
 
-    
+
     cursor: pointer !important;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) !important;
     transition: all 0.2s ease !important;
@@ -6104,9 +6117,9 @@ h1 {
     align-items: center;
     padding: 12px 16px;
     overflow: hidden;
-    
+
     background-image: linear-gradient(to bottom, rgba(30, 30, 30, 0.5), rgba(18, 18, 18, 0.8));
-    
+
     justify-content: flex-start;
     width: 100%;
     max-width: 100%;
@@ -6134,7 +6147,7 @@ h1 {
     margin-right: 12px;
     position: relative;
     border: 1px solid rgba(0, 230, 118, 0.3);
-    
+
     box-shadow: 0 0 5px rgba(0, 230, 118, 0.1);
     margin-left: 0;
 }
@@ -6212,7 +6225,7 @@ h1 {
     display: flex;
     flex-direction: column;
     padding-right: 16px;
-    max-width: 50%; 
+    max-width: 50%;
     text-align: left;
 }
 
@@ -6235,9 +6248,9 @@ h1 {
 .habit-indicators-row {
     display: flex;
     align-items: center;
-    gap: 12px; 
+    gap: 12px;
     margin-left: auto;
-    margin-right: 8px; 
+    margin-right: 8px;
 }
 
 
@@ -6328,7 +6341,7 @@ h1 {
     background-color: rgba(0, 230, 118, 0.05);
     border-left: 4px solid rgba(0, 230, 118, 0.8);
     box-shadow: 0 2px 10px rgba(0, 230, 118, 0.1);
-    
+
     background-image: linear-gradient(to bottom, rgba(0, 230, 118, 0.05), rgba(18, 18, 18, 0.8));
 }
 
@@ -6787,7 +6800,7 @@ h1 {
         max-width: 100% !important;
         margin-bottom: 8px !important;
     }
-    
+
     .habit-indicators-row {
         width: 100% !important;
         justify-content: flex-end !important;
@@ -6981,7 +6994,7 @@ body {
 
 
 .sidebar {
-    z-index: 1060 !important; 
+    z-index: 1060 !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -7006,7 +7019,7 @@ body {
     width: 100% !important;
     height: 100% !important;
     background-color: rgba(0, 0, 0, 0.7) !important;
-    z-index: 1050 !important; 
+    z-index: 1050 !important;
     opacity: 0 !important;
     visibility: hidden !important;
     transition: opacity 0.3s ease, visibility 0.3s ease !important;
@@ -7028,7 +7041,7 @@ body.sidebar-active .sidebar-overlay {
 
 
 .menu-button {
-    z-index: 1070 !important; 
+    z-index: 1070 !important;
     position: fixed !important;
     top: 15px !important;
     left: 15px !important;
@@ -7090,7 +7103,7 @@ body.sidebar-active {
 
 
 .sidebar {
-    z-index: 1060 !important; 
+    z-index: 1060 !important;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -7115,7 +7128,7 @@ body.sidebar-active {
     width: 100% !important;
     height: 100% !important;
     background-color: rgba(0, 0, 0, 0.7) !important;
-    z-index: 1050 !important; 
+    z-index: 1050 !important;
     opacity: 0 !important;
     visibility: hidden !important;
     transition: opacity 0.3s ease, visibility 0.3s ease !important;
@@ -7137,7 +7150,7 @@ body.sidebar-active .sidebar-overlay {
 
 
 .menu-button {
-    z-index: 1070 !important; 
+    z-index: 1070 !important;
     position: fixed !important;
     top: 15px !important;
     left: 15px !important;
@@ -7246,7 +7259,7 @@ body.sidebar-active .container {
     padding-left: 20px !important;
     padding-right: 20px !important;
     max-width: 800px !important;
-    transform: translateX(140px) !important; 
+    transform: translateX(140px) !important;
 }
 
 
@@ -7312,7 +7325,7 @@ body.sidebar-active .exercise-history {
     justify-content: center !important;
     padding: 10px 0 !important;
     margin: 0 !important;
-    max-width: 20% !important; 
+    max-width: 20% !important;
 }
 
 .bottom-nav .nav-icon {
@@ -7388,14 +7401,14 @@ html body .task-item .task-actions {
     opacity: 0 !important;
     visibility: hidden !important;
     transition: opacity 0.2s ease, visibility 0.2s ease !important;
-    pointer-events: none !important; 
+    pointer-events: none !important;
 }
 
 
 html body .task-item:hover .task-actions {
     opacity: 1 !important;
     visibility: visible !important;
-    pointer-events: auto !important; 
+    pointer-events: auto !important;
 }
 
 
@@ -7446,7 +7459,7 @@ html body .task-actions .x-icon {
 html body .task-item.show-actions .task-actions {
     opacity: 1 !important;
     visibility: visible !important;
-    pointer-events: auto !important; 
+    pointer-events: auto !important;
 }
 
 
@@ -8052,13 +8065,13 @@ html body .task-item > *:last-child {
 
 .due-date-indicator.due-soon,
 .next-occurrence-indicator.due-soon {
-    color: #FFC107 !important; 
+    color: #FFC107 !important;
     border: 1px solid rgba(255, 193, 7, 0.3) !important;
 }
 
 
 .next-occurrence-indicator {
-    color: #66BB6A !important; 
+    color: #66BB6A !important;
     border: 1px solid rgba(102, 187, 106, 0.3) !important;
 }
 
@@ -8577,19 +8590,19 @@ html body .habit-control-container {
 #taskFilter,
 .form-control--glass,
 .task-filter-container select {
-    padding: 8px 30px 8px 12px !important; 
+    padding: 8px 30px 8px 12px !important;
     height: auto !important;
     min-height: 36px !important;
     font-size: 0.9rem !important;
-    box-shadow: none !important; 
-    border: 1px solid rgba(255, 255, 255, 0.1) !important; 
-    background-color: rgba(30, 30, 30, 0.7) !important; 
+    box-shadow: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
     color: white !important;
-    appearance: none !important; 
+    appearance: none !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
     border-radius: 4px !important;
-    background-image: none !important; 
+    background-image: none !important;
 }
 
 
@@ -8621,7 +8634,7 @@ html body .habit-control-container {
     border-right: 5px solid transparent !important;
     border-top: 5px solid rgba(255, 255, 255, 0.7) !important;
     pointer-events: none !important;
-    z-index: 10 !important; 
+    z-index: 10 !important;
 }
 
 
@@ -8765,14 +8778,14 @@ html body .habit-item:hover .habit-actions {
 
 
 .habit-item {
-    padding-left: 20px !important; 
+    padding-left: 20px !important;
 }
 
 
 .habit-control-container,
 html body .habit-control-container {
-    margin-left: 15px !important; 
-    margin-right: 15px !important; 
+    margin-left: 15px !important;
+    margin-right: 15px !important;
 }
 
 
@@ -8815,7 +8828,7 @@ html body .habit-item .habit-checkbox {
     .habit-item {
         padding-left: 15px !important;
     }
-    
+
     .habit-control-container,
     html body .habit-control-container {
         margin-left: 10px !important;
@@ -8870,20 +8883,20 @@ select.form-control {
     position: absolute !important;
     right: 12px !important;
     top: 50% !important;
-    transform: translateY(-50%) rotate(90deg) !important; 
+    transform: translateY(-50%) rotate(90deg) !important;
     width: 0 !important;
     height: 0 !important;
     border-left: 6px solid transparent !important;
     border-right: 6px solid transparent !important;
     border-top: 6px solid rgba(255, 255, 255, 0.9) !important;
     pointer-events: none !important;
-    z-index: 100 !important; 
+    z-index: 100 !important;
     transition: transform 0.2s ease !important;
 }
 
 
 .task-filter-container.dropdown-open::after {
-    transform: translateY(-50%) rotate(0deg) !important; 
+    transform: translateY(-50%) rotate(0deg) !important;
 }
 
 
@@ -9158,7 +9171,7 @@ select::before {
 
 
 .recurrence-indicator {
-    
+
 }
 
 
@@ -9179,24 +9192,24 @@ select::before {
 
 
 html body .task-item input[type="checkbox"] {
-    
+
     width: 24px !important;
     height: 24px !important;
 
-    
+
     appearance: none !important;
     -webkit-appearance: none !important;
     background-color: rgba(18, 18, 18, 0.9) !important;
     border: 2px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 50% !important;
 
-    
+
     margin: 0 !important;
     padding: 0 !important;
     position: relative !important;
     align-self: center !important;
 
-    
+
     cursor: pointer !important;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) !important;
     transition: all 0.2s ease !important;
@@ -9215,13 +9228,13 @@ html body .task-item input[type="checkbox"]::before {
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
-    width: 0 !important; 
-    height: 0 !important; 
+    width: 0 !important;
+    height: 0 !important;
     background-color: rgba(255, 255, 255, 0.9) !important;
     border-radius: 50% !important;
     transform: translate(-50%, -50%) !important;
     opacity: 0 !important;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
 
 
@@ -9232,7 +9245,7 @@ html body .task-item input[type="checkbox"]:checked {
 
 
 html body .task-item input[type="checkbox"]:checked::before {
-    width: 16px !important; 
+    width: 16px !important;
     height: 16px !important;
     opacity: 1 !important;
     animation: checkbox-fill 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
@@ -9240,23 +9253,23 @@ html body .task-item input[type="checkbox"]:checked::before {
 
 
 html body .habit-item .habit-checkbox {
-    
+
     width: 32px !important;
     height: 32px !important;
 
-    
+
     appearance: none !important;
     -webkit-appearance: none !important;
     background-color: rgba(18, 18, 18, 0.9) !important;
     border: 2px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 50% !important;
 
-    
+
     margin: 0 !important;
     padding: 0 !important;
     position: relative !important;
 
-    
+
     cursor: pointer !important;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) !important;
     transition: all 0.2s ease !important;
@@ -9275,13 +9288,13 @@ html body .habit-item .habit-checkbox::before {
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
-    width: 0 !important; 
-    height: 0 !important; 
+    width: 0 !important;
+    height: 0 !important;
     background-color: rgba(255, 255, 255, 0.9) !important;
     border-radius: 50% !important;
     transform: translate(-50%, -50%) !important;
     opacity: 0 !important;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
 
 
@@ -9292,7 +9305,7 @@ html body .habit-item .habit-checkbox:checked {
 
 
 html body .habit-item .habit-checkbox:checked::before {
-    width: 22px !important; 
+    width: 22px !important;
     height: 22px !important;
     opacity: 1 !important;
     animation: checkbox-fill 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
@@ -9316,7 +9329,7 @@ html body .habit-item .habit-checkbox:checked::after {
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
     }
     100% {
-        width: 70% !important; 
+        width: 70% !important;
         height: 70% !important;
         opacity: 1 !important;
         box-shadow: 0 0 15px rgba(255, 255, 255, 0.3) !important;
@@ -9326,7 +9339,7 @@ html body .habit-item .habit-checkbox:checked::after {
 
 html body .task-item input[type="checkbox"]:checked::before,
 html body .habit-item .habit-checkbox:checked::before {
-    animation: checkbox-fill 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, 
+    animation: checkbox-fill 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
                checkbox-pulse 2s ease-in-out infinite 0.5s !important;
 }
 
@@ -9722,7 +9735,7 @@ body.dark-theme .grocery-info span {
 
 /**
  * Checkbox Minimal Fix
- * 
+ *
  * This CSS completely disables the white-checkbox-fill.css animations
  * with the absolute minimum changes needed to fix the flashing issue.
  */
@@ -9741,20 +9754,20 @@ html body .task-item input[type="checkbox"] {
     /* Fixed size */
     width: 24px !important;
     height: 24px !important;
-    
+
     /* Appearance */
     appearance: none !important;
     -webkit-appearance: none !important;
     background-color: #121212 !important;
     border: 2px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 50% !important;
-    
+
     /* Disable all transitions and animations */
     transition: none !important;
     -webkit-transition: none !important;
     animation: none !important;
     -webkit-animation: none !important;
-    
+
     /* Prevent any transforms */
     transform: none !important;
     -webkit-transform: none !important;
@@ -9793,20 +9806,20 @@ html body .habit-item .habit-checkbox {
     /* Fixed size */
     width: 32px !important;
     height: 32px !important;
-    
+
     /* Appearance */
     appearance: none !important;
     -webkit-appearance: none !important;
     background-color: #121212 !important;
     border: 2px solid rgba(255, 255, 255, 0.4) !important;
     border-radius: 50% !important;
-    
+
     /* Disable all transitions and animations */
     transition: none !important;
     -webkit-transition: none !important;
     animation: none !important;
     -webkit-animation: none !important;
-    
+
     /* Prevent any transforms */
     transform: none !important;
     -webkit-transform: none !important;
@@ -12329,11 +12342,11 @@ body.dark-theme .grocery-info span {
 
 /**
  * Fix Yuvi's Bday Overdue Date - Final CSS Approach
- * This CSS file uses a content replacement to change the "Overdue: 5/16/2025" text to "Overdue: 5/15/2025"
- * for the Yuvi's Bday task.
+ * DISABLED: This CSS was causing issues with other tasks showing duplicate overdue text
  */
 
-/* Target the first task item in the task list */
+/* DISABLED: Target the first task item in the task list */
+/*
 #taskList > div:first-child .due-date-indicator.overdue span {
     color: transparent !important;
     position: relative !important;
@@ -12346,6 +12359,7 @@ body.dark-theme .grocery-info span {
     top: 0 !important;
     color: #ff5252 !important;
 }
+*/
 
 
 
@@ -12355,10 +12369,11 @@ body.dark-theme .grocery-info span {
 
 /**
  * Fix Yuvi's Bday duplicate text
- * This CSS file fixes the duplicate text issue in the Yuvi's Bday task
+ * DISABLED: This CSS was causing issues with other tasks showing duplicate overdue text
  */
 
-/* Fix duplicate text in overdue indicators */
+/* DISABLED: Fix duplicate text in overdue indicators */
+/*
 .task-item .task-title:contains('Yuvi') + .task-details .due-date-indicator.overdue {
     position: relative;
 }
@@ -12393,6 +12408,7 @@ body.dark-theme .grocery-info span {
     display: flex;
     align-items: center;
 }
+*/
 
 
 
@@ -13640,6 +13656,359 @@ body {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
+}
+
+
+
+
+
+/* ========================================== */
+/* File: css/utilities/hide-recurrence-interval-badges.css */
+/* ========================================== */
+
+/**
+ * Hide Recurrence Interval Badges
+ * This CSS file hides the "×6" type badges for recurring tasks since they already have descriptive badges like "Every 6 weeks"
+ */
+
+/* Hide all recurrence interval badges (×6, ×2, etc.) */
+.recurrence-interval {
+    display: none !important;
+}
+
+/* Hide interval badges created by JavaScript */
+.interval-badge {
+    display: none !important;
+}
+
+/* Also hide any interval badges that might be styled differently */
+.task-title-container .recurrence-interval,
+.task-item .recurrence-interval,
+.task-title-container .interval-badge,
+.task-item .interval-badge {
+    display: none !important;
+}
+
+
+
+/* ========================================== */
+/* File: css/expanded-task-layout.css */
+/* ========================================== */
+
+/**
+ * Expanded Task Layout
+ * Makes tasks take up significantly more horizontal room on index.html
+ */
+
+/* Remove all container constraints and maximize horizontal space */
+html body .container {
+    max-width: none !important;
+    width: 100vw !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+}
+
+/* Make task sections take up full viewport width */
+html body .task-list-section,
+html body .completed-tasks-section,
+html body .habit-list-section {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100vw - 16px) !important;
+    max-width: none !important;
+}
+
+/* Expand task cards to use full available space */
+html body .task-list-section .card,
+html body .completed-tasks-section .card,
+html body .habit-list-section .card {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Make task lists take up maximum horizontal space */
+html body #taskList,
+html body #completedTaskList,
+html body #habitList {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100% + 16px) !important;
+    max-width: none !important;
+}
+
+/* Expand individual task items to use more horizontal space */
+html body .task-item {
+    padding: 8px 16px !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100% + 16px) !important;
+    max-width: none !important;
+}
+
+/* Expand habit items similarly */
+html body .habit-item {
+    padding: 12px 16px !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    width: calc(100% + 16px) !important;
+    max-width: none !important;
+}
+
+/* Ensure task content uses all available space */
+html body .task-item .task-content {
+    width: calc(100% - 60px) !important;
+    max-width: none !important;
+    flex: 1 !important;
+}
+
+/* Ensure habit content uses all available space */
+html body .habit-item .habit-content {
+    width: calc(100% - 120px) !important;
+    max-width: none !important;
+    flex: 1 !important;
+}
+
+/* Adjust checkbox positioning for expanded layout */
+html body .task-item .task-checkbox-container {
+    margin-left: -16px !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Adjust habit control positioning */
+html body .habit-item .habit-control-container {
+    margin-left: -16px !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Ensure action buttons stay positioned correctly */
+html body .task-item .task-actions {
+    margin-right: -8px !important;
+    flex-shrink: 0 !important;
+}
+
+html body .habit-item .habit-actions {
+    margin-right: -8px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Make the main title use full width */
+html body h1.gradient-text {
+    width: calc(100vw - 16px) !important;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    text-align: center !important;
+}
+
+/* Adjust card headers to use full width */
+html body .card__header {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Ensure filter dropdown uses available space */
+html body .task-filter-container {
+    width: auto !important;
+    min-width: 200px !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    html body .container {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+    }
+
+    html body .task-list-section,
+    html body .completed-tasks-section,
+    html body .habit-list-section {
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        width: calc(100vw - 8px) !important;
+    }
+
+    html body .task-item,
+    html body .habit-item {
+        padding: 6px 12px !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        width: calc(100% + 8px) !important;
+    }
+
+    html body h1.gradient-text {
+        width: calc(100vw - 8px) !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+    }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1200px) {
+    html body .task-item {
+        padding: 10px 24px !important;
+    }
+
+    html body .habit-item {
+        padding: 15px 24px !important;
+    }
+
+    html body .task-item .task-content {
+        width: calc(100% - 80px) !important;
+    }
+
+    html body .habit-item .habit-content {
+        width: calc(100% - 150px) !important;
+    }
+}
+
+
+
+/* ========================================== */
+/* File: css/fixes/habit-mobile-indicators-fix.css */
+/* ========================================== */
+
+/**
+ * Habit Mobile Indicators Fix
+ * Fixes the placement of habit level and progress display on smaller screens
+ * Ensures they appear all the way to the right instead of in the middle
+ */
+
+/* Base layout improvements for all screen sizes */
+.habit-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 12px 16px !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure habit content takes up available space but doesn't push indicators */
+.habit-content {
+    flex: 1 !important;
+    min-width: 0 !important; /* Allow text to truncate if needed */
+    margin-right: 16px !important;
+}
+
+/* Keep indicators on the right side */
+.habit-indicators-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+}
+
+/* Responsive design for tablets and smaller screens */
+@media screen and (max-width: 768px) {
+    .habit-item {
+        flex-direction: row !important; /* Keep row layout even on mobile */
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 12px !important;
+    }
+
+    .habit-content {
+        flex: 1 !important;
+        margin-right: 12px !important;
+    }
+
+    .habit-indicators-row {
+        justify-content: flex-end !important; /* Force right alignment */
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        gap: 6px !important;
+    }
+
+    /* Make indicators slightly smaller on mobile for better fit */
+    .habit-progress-container,
+    .habit-level {
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+        min-width: 40px !important;
+    }
+
+    .habit-level {
+        min-width: 60px !important;
+    }
+}
+
+/* Responsive design for very small screens (phones) */
+@media screen and (max-width: 480px) {
+    .habit-item {
+        padding: 8px 10px !important;
+    }
+
+    .habit-content {
+        margin-right: 8px !important;
+    }
+
+    .habit-indicators-row {
+        gap: 4px !important;
+    }
+
+    /* Even smaller indicators for very small screens */
+    .habit-progress-container,
+    .habit-level {
+        font-size: 0.7rem !important;
+        padding: 3px 6px !important;
+        min-width: 35px !important;
+    }
+
+    .habit-level {
+        min-width: 50px !important;
+    }
+
+    /* Truncate long habit titles on very small screens */
+    .habit-title {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 150px !important;
+    }
+}
+
+/* Override any conflicting styles from other CSS files */
+.habit-indicators-row {
+    width: auto !important;
+    margin-top: 0 !important;
+    position: static !important;
+}
+
+/* Ensure action buttons don't interfere with indicator positioning */
+.habit-actions {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 10 !important;
+}
+
+/* Hide action buttons on mobile to prevent overlap */
+@media screen and (max-width: 768px) {
+    .habit-actions {
+        display: none !important;
+    }
+
+    /* Show actions on hover/touch for mobile */
+    .habit-item:hover .habit-actions,
+    .habit-item:focus .habit-actions,
+    .habit-item:active .habit-actions {
+        display: flex !important;
+        background-color: rgba(0, 0, 0, 0.8) !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+    }
 }
 
 

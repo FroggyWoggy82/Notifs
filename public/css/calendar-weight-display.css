@@ -1,0 +1,31 @@
+/**
+ * Calendar Weight Display Styles
+ * Styling for weight data display on calendar days
+ */
+
+/* Weight display on calendar days */
+.calendar-weight {
+    font-size: 10px !important;
+    color: #ffffff !important;
+    text-align: center !important;
+    margin-top: 2px !important;
+    padding: 1px 2px !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 2px !important;
+    line-height: 1.2 !important;
+    font-weight: 500 !important;
+}
+
+/* Ensure weight data is visible on different calendar day states */
+.calendar-day.today .calendar-weight {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.calendar-day.other-month .calendar-weight {
+    color: #999 !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.calendar-day:hover .calendar-weight {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}

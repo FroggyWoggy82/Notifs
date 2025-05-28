@@ -6,7 +6,7 @@
 /* Position the expand button to the left of the task item */
 .task-item.has-subtasks {
     position: relative;
-    padding-left: 40px !important; /* Make room for the expand button */
+    padding-left: 50px !important; /* Increased space for expand button + checkbox spacing */
     border-left: 3px solid #4CAF50 !important; /* Add a subtle highlight to tasks with subtasks */
 }
 
@@ -88,14 +88,15 @@
 }
 
 /* Ensure the expand button doesn't interfere with the checkbox */
-.task-item.has-subtasks .task-checkbox {
-    margin-left: 5px;
+.task-item.has-subtasks .task-checkbox-container {
+    margin-left: 10px !important; /* Add extra left margin to prevent overlap with expand button */
+    margin-right: 12px !important; /* Increase right margin for better spacing */
 }
 
 /* Ensure the expand button is properly positioned on mobile */
 @media (max-width: 768px) {
     .task-item.has-subtasks {
-        padding-left: 35px !important;
+        padding-left: 45px !important; /* Increased for mobile spacing */
     }
 
     .expand-button-container {
@@ -106,6 +107,12 @@
         width: 25px;
         height: 25px;
         font-size: 14px;
+    }
+
+    /* Adjust checkbox spacing on mobile */
+    .task-item.has-subtasks .task-checkbox-container {
+        margin-left: 8px !important;
+        margin-right: 10px !important;
     }
 }
 

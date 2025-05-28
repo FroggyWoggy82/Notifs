@@ -18,11 +18,13 @@
 .recipe-card-title {
     margin: 0;
     text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-wrap: break-word;
+    line-height: 1.2;
     flex: 1;
-    max-width: 30%;
+    max-width: 50%;
 }
 
 

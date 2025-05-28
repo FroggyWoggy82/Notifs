@@ -1,0 +1,104 @@
+/**
+ * Recipe Title Final Fix
+ * Ultimate override to ensure recipe titles display fully without truncation
+ * and edit buttons are positioned at the end of the title text
+ */
+
+/* Ultra-specific selectors to override all other styles */
+html body .recipe-card .recipe-card-header .recipe-title-container {
+    display: inline-flex !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    max-width: 75% !important;
+    overflow: visible !important;
+    position: relative !important;
+    width: auto !important;
+}
+
+html body .recipe-card .recipe-card-header .recipe-title-container .recipe-card-title {
+    margin: 0 !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    word-wrap: break-word !important;
+    line-height: 1.2 !important;
+    flex: 0 1 auto !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+    min-width: 0 !important;
+    display: inline !important;
+}
+
+html body .recipe-card .recipe-card-header .recipe-title-container .edit-recipe-name-icon {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.9rem !important;
+    cursor: pointer !important;
+    opacity: 0.7 !important;
+    transition: all 0.2s ease !important;
+    position: static !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+    margin-left: 0 !important;
+    margin-top: 2px !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    align-self: flex-start !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    z-index: 10 !important;
+}
+
+html body .recipe-card .recipe-card-header .recipe-title-container .edit-recipe-name-icon:hover {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    html body .recipe-card .recipe-card-header .recipe-title-container {
+        max-width: 100% !important;
+        margin-bottom: 4px !important;
+        flex-wrap: wrap !important;
+    }
+    
+    html body .recipe-card .recipe-card-header .recipe-title-container .recipe-card-title {
+        padding-right: 0 !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    
+    html body .recipe-card .recipe-card-header .recipe-title-container .edit-recipe-name-icon {
+        margin-left: 8px !important;
+        margin-top: 0 !important;
+        align-self: center !important;
+    }
+}
+
+/* Additional override for any conflicting styles */
+.recipe-card-title {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    word-wrap: break-word !important;
+    line-height: 1.2 !important;
+}
+
+.recipe-title-container {
+    overflow: visible !important;
+    max-width: 75% !important;
+}
+
+.edit-recipe-name-icon {
+    position: static !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+    align-self: flex-start !important;
+}
+
+

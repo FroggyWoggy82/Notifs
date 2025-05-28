@@ -37,7 +37,19 @@
 
             fetch(`/api/recipes/${recipeId}`)
                 .then(response => response.json())
-                .then(recipe => {
+                .then(responseData => {
+                    // Handle both wrapped and direct response formats
+                    let recipe;
+                    if (responseData.success && responseData.recipe) {
+                        // New MVC format: {success: true, recipe: {...}, message: "..."}
+                        recipe = responseData.recipe;
+                    } else if (responseData.ingredients) {
+                        // Old direct format: {id: 1, name: "...", ingredients: [...]}
+                        recipe = responseData;
+                    } else {
+                        console.error('Invalid response format:', responseData);
+                        return;
+                    }
 
                     addMicronutrientButton(recipe.ingredients, container);
                 })

@@ -387,6 +387,20 @@
                                 ctx.strokeStyle = 'rgba(231, 76, 60, 0.5)'; // Semi-transparent red
                                 ctx.lineWidth = 1;
                                 ctx.stroke();
+
+                                // Draw the week number text label directly on the canvas
+                                ctx.font = 'bold 10px Arial, sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+
+                                // Draw text shadow for better visibility
+                                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                                ctx.fillText(`Week ${weeklyPoint.week}`, x + 1, y - 11);
+
+                                // Draw the main text
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillText(`Week ${weeklyPoint.week}`, x, y - 12);
+
                                 ctx.restore();
 
                                 // Add a data attribute for week number if the element exists
@@ -401,8 +415,7 @@
                             }
                         });
 
-                        // Add week number labels after drawing all points
-                        setTimeout(addWeekNumberLabels, 50);
+                        // Week number labels are now drawn directly on the canvas above
 
                     } catch (error) {
                         console.error('[Weekly Goal Points Fix] Error in afterDatasetDraw:', error);
@@ -614,15 +627,7 @@
                 }
             }
 
-            // Add week number labels after a short delay to ensure the chart has rendered
-            setTimeout(addWeekNumberLabels, 200);
-
-            // Set up a second attempt to add labels after a longer delay
-            // This helps in case the first attempt fails due to timing issues
-            setTimeout(addWeekNumberLabels, 500);
-
-            // Set up a third attempt for very slow browsers or complex charts
-            setTimeout(addWeekNumberLabels, 1000);
+            // Week number labels are now drawn directly on the canvas by the Chart.js plugin
 
         } catch (error) {
             console.error('[Weekly Goal Points Fix] Error ensuring weekly goal points:', error);

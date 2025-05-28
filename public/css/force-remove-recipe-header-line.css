@@ -11,6 +11,8 @@
     border-bottom: none !important;
     box-shadow: none !important;
     position: relative !important;
+    padding: 3px !important;
+    margin: 2px 0 !important;
 }
 
 /* Target the section header */

@@ -3,7 +3,7 @@
 /* Parent task with subtasks */
 .task-item.has-subtasks {
     position: relative;
-    padding-left: 40px !important; /* Make room for the expand button */
+    padding-left: 50px !important; /* Increased space for expand button + checkbox spacing */
     border-left: 3px solid #4CAF50 !important; /* Add a subtle highlight to tasks with subtasks */
 }
 
@@ -20,6 +20,12 @@
     z-index: 10;
     opacity: 1 !important;
     visibility: visible !important;
+}
+
+/* Ensure proper spacing for checkbox in tasks with subtasks */
+.task-item.has-subtasks .task-checkbox-container {
+    margin-left: 10px !important; /* Add extra left margin to prevent overlap with expand button */
+    margin-right: 12px !important; /* Increase right margin for better spacing */
 }
 
 /* Expand button */

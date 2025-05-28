@@ -144,7 +144,13 @@ html body .task-item {
 /* Adjust checkbox container to be more compact */
 html body .task-item .task-checkbox-container {
     margin-right: 8px !important; /* Increased from 5px to 8px */
-    margin-left: -12px !important; /* Pull checkbox further left */
+    margin-left: 0px !important; /* Reset to prevent overlap issues */
+}
+
+/* Special spacing for tasks with subtasks to prevent overlap with expand button */
+html body .task-item.has-subtasks .task-checkbox-container {
+    margin-right: 8px !important;
+    margin-left: 15px !important; /* Extra space to clear the expand button */
 }
 
 /* Make task actions more compact but still accessible */

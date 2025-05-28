@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let groceryList = null;
     let dailyCalorieTarget = 0;
     let dailyProteinTarget = 0;
+    let dailyFatTarget = 0;
     let fullRecipeData = []; // Store full recipe data for micronutrient calculations
 
     init();
@@ -85,6 +86,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 dailyProteinTarget = 0;
             }
 
+            // Extract the fat target from the UI
+            const currentFatTarget = document.getElementById('current-fat-target');
+            if (currentFatTarget) {
+                const fatText = currentFatTarget.textContent;
+                const fatMatch = fatText.match(/(\d+)/);
+                if (fatMatch && fatMatch[1]) {
+                    dailyFatTarget = parseInt(fatMatch[1]);
+                    console.log(`Daily fat target loaded: ${dailyFatTarget}g`);
+                } else {
+                    console.log('No fat target found in the UI');
+                    dailyFatTarget = 0;
+                }
+            } else {
+                console.log('Current fat target element not found');
+                dailyFatTarget = 0;
+            }
+
             // Update the micronutrient targets based on the user's daily targets
             if (typeof updateMicronutrientTargets === 'function' && dailyCalorieTarget > 0) {
                 updateMicronutrientTargets(dailyCalorieTarget, dailyProteinTarget);
@@ -100,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading daily nutrition targets:', error);
             dailyCalorieTarget = 0;
             dailyProteinTarget = 0;
+            dailyFatTarget = 0;
         }
     }
 
@@ -121,6 +140,36 @@ document.addEventListener('DOMContentLoaded', function() {
             // This is a rough estimate if we don't have actual protein data
             const estimatedProtein = (recipe.adjustedCalories * 0.15) / 4;
             return total + estimatedProtein;
+        }, 0);
+    }
+
+    function calculateTotalFats() {
+        // Calculate the total fats from all adjusted recipes
+        return adjustedRecipes.reduce((total, recipe) => {
+            // If we have fat data directly, use it
+            if (recipe.total_fats) {
+                return total + (recipe.total_fats * recipe.scaleFactor);
+            }
+
+            // Otherwise estimate fats as 30% of calories (9 calories per gram of fat)
+            // This is a rough estimate if we don't have actual fat data
+            const estimatedFats = (recipe.adjustedCalories * 0.30) / 9;
+            return total + estimatedFats;
+        }, 0);
+    }
+
+    function calculateTotalCarbs() {
+        // Calculate the total carbs from all adjusted recipes
+        return adjustedRecipes.reduce((total, recipe) => {
+            // If we have carb data directly, use it
+            if (recipe.total_carbohydrates) {
+                return total + (recipe.total_carbohydrates * recipe.scaleFactor);
+            }
+
+            // Otherwise estimate carbs as 55% of calories (4 calories per gram of carbs)
+            // This is a rough estimate if we don't have actual carb data
+            const estimatedCarbs = (recipe.adjustedCalories * 0.55) / 4;
+            return total + estimatedCarbs;
         }, 0);
     }
 
@@ -585,14 +634,64 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/api/recipes/${recipe.id}`)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status} for recipe ID: ${recipe.id}`);
                     }
                     return response.json();
+                })
+                .then(recipeData => {
+                    // Handle both old format (direct recipe) and new format (wrapped in success object)
+                    let actualRecipe;
+                    if (recipeData && recipeData.success && recipeData.recipe) {
+                        // New format: { success: true, recipe: {...} }
+                        actualRecipe = recipeData.recipe;
+                        console.log(`Using new format for recipe ${recipe.id}`);
+                    } else if (recipeData && recipeData.id) {
+                        // Old format: direct recipe object
+                        actualRecipe = recipeData;
+                        console.log(`Using old format for recipe ${recipe.id}`);
+                    } else {
+                        throw new Error(`Invalid recipe data received for recipe ID: ${recipe.id}`);
+                    }
+
+                    // Validate the recipe data structure
+                    if (!actualRecipe || typeof actualRecipe !== 'object') {
+                        throw new Error(`Invalid recipe data received for recipe ID: ${recipe.id}`);
+                    }
+                    if (!actualRecipe.ingredients) {
+                        console.warn(`Recipe "${actualRecipe.name || recipe.id}" has no ingredients property, adding empty array`);
+                        actualRecipe.ingredients = [];
+                    }
+                    return actualRecipe;
+                })
+                .catch(error => {
+                    console.error(`Failed to fetch recipe ${recipe.id}:`, error);
+                    // Return a placeholder recipe to prevent the entire operation from failing
+                    return {
+                        id: recipe.id,
+                        name: `Recipe ${recipe.id} (Failed to load)`,
+                        ingredients: [],
+                        total_calories: 0
+                    };
                 })
         ))
         .then(fullRecipes => {
             // Store full recipe data for micronutrient calculations
             fullRecipeData = fullRecipes;
+
+            // Filter out any failed recipes (those with empty ingredients)
+            const validRecipes = fullRecipes.filter(recipe =>
+                recipe && recipe.ingredients && recipe.ingredients.length > 0
+            );
+
+            if (validRecipes.length === 0) {
+                throw new Error('No valid recipes with ingredients found');
+            }
+
+            if (validRecipes.length < fullRecipes.length) {
+                const failedCount = fullRecipes.length - validRecipes.length;
+                console.warn(`${failedCount} recipe(s) failed to load or have no ingredients`);
+                showStatus(`Warning: ${failedCount} recipe(s) could not be loaded properly`, 'warning');
+            }
 
             // EMERGENCY FIX: Log the full recipe data to verify micronutrient data
             console.log('Full recipe data for micronutrient calculations:');
@@ -628,16 +727,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const combinedIngredients = {};
 
             fullRecipes.forEach((fullRecipe, index) => {
+                // Validate recipe data
+                if (!fullRecipe) {
+                    console.error(`Recipe at index ${index} is null or undefined`);
+                    return;
+                }
+
+                if (!fullRecipe.ingredients || !Array.isArray(fullRecipe.ingredients)) {
+                    console.error(`Recipe "${fullRecipe.name || 'Unknown'}" has no ingredients or ingredients is not an array:`, fullRecipe);
+                    return;
+                }
+
                 // Calculate scale factor - handle both formats
                 let scaleFactor = 1;
-                if (adjustedRecipes[index].scaleFactor !== undefined) {
+                if (adjustedRecipes[index] && adjustedRecipes[index].scaleFactor !== undefined) {
                     scaleFactor = adjustedRecipes[index].scaleFactor;
-                } else if (adjustedRecipes[index].total_calories !== undefined && fullRecipe.total_calories) {
+                } else if (adjustedRecipes[index] && adjustedRecipes[index].total_calories !== undefined && fullRecipe.total_calories) {
                     scaleFactor = adjustedRecipes[index].total_calories / fullRecipe.total_calories;
                 }
-                console.log(`Using scale factor ${scaleFactor} for recipe ${fullRecipe.name}`);
+                console.log(`Using scale factor ${scaleFactor} for recipe ${fullRecipe.name || 'Unknown'}`);
 
                 fullRecipe.ingredients.forEach(ingredient => {
+                    // Validate ingredient data
+                    if (!ingredient || !ingredient.name) {
+                        console.error(`Invalid ingredient in recipe "${fullRecipe.name}":`, ingredient);
+                        return;
+                    }
+
                     const key = ingredient.name.toLowerCase();
 
                     if (!combinedIngredients[key]) {
@@ -650,11 +766,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         };
                     }
 
-                    const scaledAmount = ingredient.amount * scaleFactor;
+                    const ingredientAmount = ingredient.amount || 0;
+                    const scaledAmount = ingredientAmount * scaleFactor;
 
                     combinedIngredients[key].amount += scaledAmount;
                     combinedIngredients[key].recipes.push({
-                        name: fullRecipe.name,
+                        name: fullRecipe.name || 'Unknown Recipe',
                         amount: scaledAmount
                     });
                 });
@@ -826,47 +943,117 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculate total protein
         const totalProtein = calculateTotalProtein();
 
-        // Create calorie and protein summary content
+        // Calculate total fats
+        const totalFats = calculateTotalFats();
+
+        // Calculate total carbs
+        const totalCarbs = calculateTotalCarbs();
+
+        // Create calorie and protein summary content in compact format
         let calorieSummaryContent = '';
         if (dailyCalorieTarget > 0) {
             const caloriePercentOfTarget = ((totalCalories / dailyCalorieTarget) * 100).toFixed(1);
 
-            // Protein percentage calculation
-            let proteinPercentDisplay = '';
+            // Protein display in compact format
+            let proteinDisplay = '';
             if (dailyProteinTarget > 0) {
                 const proteinPercentOfTarget = ((totalProtein / dailyProteinTarget) * 100).toFixed(1);
-                proteinPercentDisplay = `
+                proteinDisplay = `
+                    <span class="calorie-summary-separator">|</span>
+                    <span class="calorie-summary-label">Protein:</span>
+                    <span class="calorie-summary-value protein-compact ${proteinPercentOfTarget > 100 ? 'over-target' : ''}">${totalProtein.toFixed(2)}g/${dailyProteinTarget}g</span>
+                `;
+            } else {
+                proteinDisplay = `
                     <span class="calorie-summary-separator">|</span>
                     <span class="calorie-summary-label">Total Protein:</span>
                     <span class="calorie-summary-value total-protein">${totalProtein.toFixed(2)}g</span>
-                    <span class="calorie-summary-separator">|</span>
-                    <span class="calorie-summary-label">Protein Target:</span>
-                    <span class="calorie-summary-value protein-target">${dailyProteinTarget}g</span>
-                    <span class="calorie-summary-separator">|</span>
-                    <span class="calorie-summary-label">Percentage of Protein Target:</span>
-                    <span class="calorie-summary-value protein-percentage ${proteinPercentOfTarget > 100 ? 'over-target' : ''}">${proteinPercentOfTarget}%</span>
                 `;
             }
+
+            // Fats display in compact format
+            let fatsDisplay = '';
+            if (dailyFatTarget > 0) {
+                const fatPercentOfTarget = ((totalFats / dailyFatTarget) * 100).toFixed(1);
+                fatsDisplay = `
+                    <span class="calorie-summary-separator">|</span>
+                    <span class="calorie-summary-label">Fats:</span>
+                    <span class="calorie-summary-value fats-compact ${fatPercentOfTarget > 100 ? 'over-target' : ''}">${totalFats.toFixed(2)}g/${dailyFatTarget}g</span>
+                `;
+            } else {
+                fatsDisplay = `
+                    <span class="calorie-summary-separator">|</span>
+                    <span class="calorie-summary-label">Total Fats:</span>
+                    <span class="calorie-summary-value total-fats">${totalFats.toFixed(2)}g</span>
+                `;
+            }
+
+            // Carbs display (no target, just total)
+            const carbsDisplay = `
+                <span class="calorie-summary-separator">|</span>
+                <span class="calorie-summary-label">Total Carbs:</span>
+                <span class="calorie-summary-value total-carbs">${totalCarbs.toFixed(2)}g</span>
+            `;
+
+            calorieSummaryContent = `
+                <div class="calorie-summary">
+                    <span class="calorie-summary-label">Calories:</span>
+                    <span class="calorie-summary-value calories-compact ${caloriePercentOfTarget > 100 ? 'over-target' : ''}">${totalCalories.toFixed(2)}/${dailyCalorieTarget}</span>
+                    ${proteinDisplay}
+                    ${fatsDisplay}
+                    ${carbsDisplay}
+                </div>
+            `;
+        } else {
+            // When no calorie target is set
+            let proteinDisplay = '';
+            if (dailyProteinTarget > 0) {
+                const proteinPercentOfTarget = ((totalProtein / dailyProteinTarget) * 100).toFixed(1);
+                proteinDisplay = `
+                    <span class="calorie-summary-separator">|</span>
+                    <span class="calorie-summary-label">Protein:</span>
+                    <span class="calorie-summary-value protein-compact ${proteinPercentOfTarget > 100 ? 'over-target' : ''}">${totalProtein.toFixed(2)}g/${dailyProteinTarget}g</span>
+                `;
+            } else {
+                proteinDisplay = `
+                    <span class="calorie-summary-separator">|</span>
+                    <span class="calorie-summary-label">Total Protein:</span>
+                    <span class="calorie-summary-value total-protein">${totalProtein.toFixed(2)}g</span>
+                `;
+            }
+
+            // Fats display in compact format
+            let fatsDisplay = '';
+            if (dailyFatTarget > 0) {
+                const fatPercentOfTarget = ((totalFats / dailyFatTarget) * 100).toFixed(1);
+                fatsDisplay = `
+                    <span class="calorie-summary-separator">|</span>
+                    <span class="calorie-summary-label">Fats:</span>
+                    <span class="calorie-summary-value fats-compact ${fatPercentOfTarget > 100 ? 'over-target' : ''}">${totalFats.toFixed(2)}g/${dailyFatTarget}g</span>
+                `;
+            } else {
+                fatsDisplay = `
+                    <span class="calorie-summary-separator">|</span>
+                    <span class="calorie-summary-label">Total Fats:</span>
+                    <span class="calorie-summary-value total-fats">${totalFats.toFixed(2)}g</span>
+                `;
+            }
+
+            // Carbs display (no target, just total)
+            const carbsDisplay = `
+                <span class="calorie-summary-separator">|</span>
+                <span class="calorie-summary-label">Total Carbs:</span>
+                <span class="calorie-summary-value total-carbs">${totalCarbs.toFixed(2)}g</span>
+            `;
 
             calorieSummaryContent = `
                 <div class="calorie-summary">
                     <span class="calorie-summary-label">Total Calories:</span>
-                    <span class="calorie-summary-value total-calories">${totalCalories.toFixed(2)}</span>
-                    <span class="calorie-summary-separator">|</span>
-                    <span class="calorie-summary-label">Calorie Target:</span>
-                    <span class="calorie-summary-value calorie-target">${dailyCalorieTarget}</span>
-                    <span class="calorie-summary-separator">|</span>
-                    <span class="calorie-summary-label">Percentage of Calorie Target:</span>
-                    <span class="calorie-summary-value calorie-percentage ${caloriePercentOfTarget > 100 ? 'over-target' : ''}">${caloriePercentOfTarget}%</span>
-                    ${proteinPercentDisplay}
-                </div>
-            `;
-        } else {
-            calorieSummaryContent = `
-                <div class="calorie-summary">
-                    <span class="calorie-summary-label">Total Calories:</span>
                     <span class="calorie-summary-value">${totalCalories.toFixed(2)}</span>
-                    <span class="calorie-summary-note">(Set a daily calorie target to see percentage)</span>
+                    <span class="calorie-summary-note">(Set a daily calorie target to see ratio)</span>
+                    ${proteinDisplay}
+                    ${fatsDisplay}
+                    ${carbsDisplay}
                 </div>
             `;
         }
@@ -956,6 +1143,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 tempStatus.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
             } else if (type === 'success') {
                 tempStatus.style.backgroundColor = 'rgba(40, 167, 69, 0.9)';
+            } else if (type === 'warning') {
+                tempStatus.style.backgroundColor = 'rgba(255, 193, 7, 0.9)';
+                tempStatus.style.color = 'black';
             } else {
                 tempStatus.style.backgroundColor = 'rgba(0, 123, 255, 0.9)';
             }
@@ -993,11 +1183,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create a main task for the grocery list
         const totalCalories = calculateTotalCalories();
         const totalProtein = calculateTotalProtein();
+        const totalFats = calculateTotalFats();
+        const totalCarbs = calculateTotalCarbs();
         const caloriePercentage = dailyCalorieTarget > 0 ? ((totalCalories / dailyCalorieTarget) * 100).toFixed(1) + '%' : 'N/A';
         const proteinPercentage = dailyProteinTarget > 0 ? ((totalProtein / dailyProteinTarget) * 100).toFixed(1) + '%' : 'N/A';
+        const fatPercentage = dailyFatTarget > 0 ? ((totalFats / dailyFatTarget) * 100).toFixed(1) + '%' : 'N/A';
 
         const taskTitle = `Grocery List (${totalCalories.toFixed(0)} cal, ${caloriePercentage} of target)`;
-        const taskDescription = `Grocery list for selected recipes. Total calories: ${totalCalories.toFixed(1)} (${caloriePercentage} of daily target). Total protein: ${totalProtein.toFixed(1)}g (${proteinPercentage} of daily target).`;
+        const taskDescription = `Grocery list for selected recipes. Calories: ${totalCalories.toFixed(1)} (${caloriePercentage}), Protein: ${totalProtein.toFixed(1)}g (${proteinPercentage}), Fats: ${totalFats.toFixed(1)}g (${fatPercentage}), Carbs: ${totalCarbs.toFixed(1)}g.`;
 
         // Create subtasks for each ingredient
         const subtasks = groceryList.map(ingredient => {
@@ -1070,27 +1263,113 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const calorieSummaryCell = calorieSummaryRow.querySelector('td');
 
                                 if (calorieSummaryCell) {
+                                    const totalProtein = calculateTotalProtein();
+                                    const totalFats = calculateTotalFats();
+                                    const totalCarbs = calculateTotalCarbs();
                                     let calorieSummaryContent = '';
                                     if (dailyCalorieTarget > 0) {
                                         const percentOfTarget = ((totalCalories / dailyCalorieTarget) * 100).toFixed(1);
+
+                                        // Protein display in compact format
+                                        let proteinDisplay = '';
+                                        if (dailyProteinTarget > 0) {
+                                            const proteinPercentOfTarget = ((totalProtein / dailyProteinTarget) * 100).toFixed(1);
+                                            proteinDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Protein:</span>
+                                                <span class="calorie-summary-value protein-compact ${proteinPercentOfTarget > 100 ? 'over-target' : ''}">${totalProtein.toFixed(2)}g/${dailyProteinTarget}g</span>
+                                            `;
+                                        } else {
+                                            proteinDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Total Protein:</span>
+                                                <span class="calorie-summary-value total-protein">${totalProtein.toFixed(2)}g</span>
+                                            `;
+                                        }
+
+                                        // Fats display in compact format
+                                        let fatsDisplay = '';
+                                        if (dailyFatTarget > 0) {
+                                            const fatPercentOfTarget = ((totalFats / dailyFatTarget) * 100).toFixed(1);
+                                            fatsDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Fats:</span>
+                                                <span class="calorie-summary-value fats-compact ${fatPercentOfTarget > 100 ? 'over-target' : ''}">${totalFats.toFixed(2)}g/${dailyFatTarget}g</span>
+                                            `;
+                                        } else {
+                                            fatsDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Total Fats:</span>
+                                                <span class="calorie-summary-value total-fats">${totalFats.toFixed(2)}g</span>
+                                            `;
+                                        }
+
+                                        // Carbs display (no target, just total)
+                                        const carbsDisplay = `
+                                            <span class="calorie-summary-separator">|</span>
+                                            <span class="calorie-summary-label">Total Carbs:</span>
+                                            <span class="calorie-summary-value total-carbs">${totalCarbs.toFixed(2)}g</span>
+                                        `;
+
                                         calorieSummaryContent = `
                                             <div class="calorie-summary">
-                                                <span class="calorie-summary-label">Total Calories:</span>
-                                                <span class="calorie-summary-value">${totalCalories.toFixed(1)}</span>
-                                                <span class="calorie-summary-separator">|</span>
-                                                <span class="calorie-summary-label">Daily Target:</span>
-                                                <span class="calorie-summary-value">${dailyCalorieTarget}</span>
-                                                <span class="calorie-summary-separator">|</span>
-                                                <span class="calorie-summary-label">Percentage of Daily Target:</span>
-                                                <span class="calorie-summary-value ${percentOfTarget > 100 ? 'over-target' : ''}">${percentOfTarget}%</span>
+                                                <span class="calorie-summary-label">Calories:</span>
+                                                <span class="calorie-summary-value calories-compact ${percentOfTarget > 100 ? 'over-target' : ''}">${totalCalories.toFixed(1)}/${dailyCalorieTarget}</span>
+                                                ${proteinDisplay}
+                                                ${fatsDisplay}
+                                                ${carbsDisplay}
                                             </div>
                                         `;
                                     } else {
+                                        // When no calorie target is set
+                                        let proteinDisplay = '';
+                                        if (dailyProteinTarget > 0) {
+                                            const proteinPercentOfTarget = ((totalProtein / dailyProteinTarget) * 100).toFixed(1);
+                                            proteinDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Protein:</span>
+                                                <span class="calorie-summary-value protein-compact ${proteinPercentOfTarget > 100 ? 'over-target' : ''}">${totalProtein.toFixed(2)}g/${dailyProteinTarget}g</span>
+                                            `;
+                                        } else {
+                                            proteinDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Total Protein:</span>
+                                                <span class="calorie-summary-value total-protein">${totalProtein.toFixed(2)}g</span>
+                                            `;
+                                        }
+
+                                        // Fats display in compact format
+                                        let fatsDisplay = '';
+                                        if (dailyFatTarget > 0) {
+                                            const fatPercentOfTarget = ((totalFats / dailyFatTarget) * 100).toFixed(1);
+                                            fatsDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Fats:</span>
+                                                <span class="calorie-summary-value fats-compact ${fatPercentOfTarget > 100 ? 'over-target' : ''}">${totalFats.toFixed(2)}g/${dailyFatTarget}g</span>
+                                            `;
+                                        } else {
+                                            fatsDisplay = `
+                                                <span class="calorie-summary-separator">|</span>
+                                                <span class="calorie-summary-label">Total Fats:</span>
+                                                <span class="calorie-summary-value total-fats">${totalFats.toFixed(2)}g</span>
+                                            `;
+                                        }
+
+                                        // Carbs display (no target, just total)
+                                        const carbsDisplay = `
+                                            <span class="calorie-summary-separator">|</span>
+                                            <span class="calorie-summary-label">Total Carbs:</span>
+                                            <span class="calorie-summary-value total-carbs">${totalCarbs.toFixed(2)}g</span>
+                                        `;
+
                                         calorieSummaryContent = `
                                             <div class="calorie-summary">
                                                 <span class="calorie-summary-label">Total Calories:</span>
                                                 <span class="calorie-summary-value">${totalCalories.toFixed(1)}</span>
-                                                <span class="calorie-summary-note">(Set a daily calorie target to see percentage)</span>
+                                                <span class="calorie-summary-note">(Set a daily calorie target to see ratio)</span>
+                                                ${proteinDisplay}
+                                                ${fatsDisplay}
+                                                ${carbsDisplay}
                                             </div>
                                         `;
                                     }

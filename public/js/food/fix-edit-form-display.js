@@ -143,6 +143,12 @@
             }
 
             if (event.target.classList.contains('edit-ingredient-btn')) {
+                // Don't show edit form if we're in view mode
+                if (window._isViewingIngredients) {
+                    console.log('[Fix Edit Form Display] Blocked edit - currently viewing ingredients');
+                    return;
+                }
+
                 console.log('[Fix Edit Form Display] Edit button clicked');
                 window._editButtonClicked = true;
 

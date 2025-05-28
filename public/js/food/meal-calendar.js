@@ -81,16 +81,36 @@
 
             console.log(`[Meal Calendar] Loading data for ${year}-${month}, user ${userId}`);
 
-            const response = await fetch(`/api/meals/calendar-data?user_id=${userId}&year=${year}&month=${month}`);
+            // Load both meal data and weight data
+            const [mealResponse, weightResponse] = await Promise.all([
+                fetch(`/api/meals/calendar-data?user_id=${userId}&year=${year}&month=${month}`),
+                fetch(`/api/weight/logs?user_id=${userId}&limit=100`)
+            ]);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (!mealResponse.ok) {
+                throw new Error(`HTTP error! status: ${mealResponse.status}`);
             }
 
-            const result = await response.json();
+            const result = await mealResponse.json();
 
             if (result.success) {
                 calendarData = result.data;
+
+                // Add weight data if available
+                if (weightResponse.ok) {
+                    const weightResult = await weightResponse.json();
+                    if (weightResult && Array.isArray(weightResult)) {
+                        // Create a map of weight data by date
+                        const weightMap = {};
+                        weightResult.forEach(log => {
+                            // Use log_date instead of date (API returns log_date)
+                            weightMap[log.log_date] = log.weight;
+                        });
+                        calendarData.weightData = weightMap;
+                        console.log('[Meal Calendar] Loaded weight data:', weightMap);
+                    }
+                }
+
                 renderCalendar();
                 hideStatus();
             } else {
@@ -148,6 +168,12 @@
 
             const dayElement = createDayElement(date, todayString);
             calendarGrid.appendChild(dayElement);
+
+            // Auto-select today's date
+            const dateKey = formatDateKey(date);
+            if (dateKey === todayString) {
+                dayElement.classList.add('selected');
+            }
         }
     }
 
@@ -199,6 +225,22 @@
             }
 
             dayElement.appendChild(calorieInfo);
+
+            // Weight info
+            if (calendarData.weightData && calendarData.weightData[dateKey]) {
+                const weightInfo = document.createElement('div');
+                weightInfo.className = 'weight-info';
+
+                const weightValue = document.createElement('div');
+                weightValue.className = 'weight-value';
+                weightValue.textContent = `${calendarData.weightData[dateKey]} lbs`;
+                weightInfo.appendChild(weightValue);
+
+                dayElement.appendChild(weightInfo);
+                console.log('[Meal Calendar] Added weight info for', dateKey, ':', calendarData.weightData[dateKey]);
+            } else if (calendarData.weightData) {
+                console.log('[Meal Calendar] No weight data for', dateKey, 'Available dates:', Object.keys(calendarData.weightData));
+            }
 
             // Meals list
             if (dayData && dayData.meals && dayData.meals.length > 0) {
@@ -254,10 +296,14 @@
     }
 
     /**
-     * Format date as YYYY-MM-DD
+     * Format date as YYYY-MM-DD using local timezone
      */
     function formatDateKey(date) {
-        return date.toISOString().split('T')[0];
+        // Use local timezone instead of UTC to avoid date mismatch
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     /**

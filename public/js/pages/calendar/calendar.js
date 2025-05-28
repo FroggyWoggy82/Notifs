@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allTasks = []; // Store fetched tasks
     let allHabits = []; // Store fetched habits
     let habitCompletions = {}; // Store habit completions by date
+    let weightData = {}; // Store weight data by date
     let calendarFilter = 'both'; // Default filter value (both, tasks, habits)
 
 
@@ -276,6 +277,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    // Function to fetch weight data
+    async function fetchWeightData() {
+        try {
+            console.log("Fetching weight data...");
+            const response = await fetch('/api/weight/logs?user_id=1&limit=100');
+
+            if (response.ok) {
+                const weightLogs = await response.json();
+                if (weightLogs && Array.isArray(weightLogs)) {
+                    // Create a map of weight data by date
+                    weightData = {};
+                    weightLogs.forEach(log => {
+                        weightData[log.date] = log.weight;
+                    });
+                    console.log('Weight data loaded:', weightData);
+                }
+            } else {
+                console.log('Weight data not available');
+                weightData = {};
+            }
+        } catch (error) {
+            console.error('Error fetching weight data:', error);
+            weightData = {};
+        }
+    }
+
     window.fetchHabits = async function(year, month) {
         try {
             console.log("Fetching habits for", year, month);
@@ -420,7 +447,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             const todayKey = formatDateKey(today);
 
-            await fetchHabits(year, month);
+            // Fetch both habits and weight data
+            await Promise.all([
+                fetchHabits(year, month),
+                fetchWeightData()
+            ]);
 
             const tasksByDate = {};
             allTasks.forEach(task => {
@@ -750,6 +781,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         dayDiv.appendChild(habitCountIndicator);
                     }
                 }, 0);
+            }
+
+            // Add weight data if available
+            if (weightData && weightData[dateKey]) {
+                const weightDiv = document.createElement('div');
+                weightDiv.className = 'calendar-weight';
+                weightDiv.style.fontSize = '10px';
+                weightDiv.style.color = '#ffffff';
+                weightDiv.style.textAlign = 'center';
+                weightDiv.style.marginTop = '2px';
+                weightDiv.style.padding = '1px 2px';
+                weightDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                weightDiv.style.borderRadius = '2px';
+                weightDiv.textContent = `${weightData[dateKey]} lbs`;
+                dayDiv.appendChild(weightDiv);
             }
         }
 
@@ -1636,11 +1682,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Loading tasks');
             await fetchTasks(); // Load tasks first
 
-            console.log('Loading habits');
+            console.log('Loading habits and weight data');
             try {
-                await fetchHabits(currentDate.getFullYear(), currentDate.getMonth()); // Load habits
+                await Promise.all([
+                    fetchHabits(currentDate.getFullYear(), currentDate.getMonth()),
+                    fetchWeightData()
+                ]);
             } catch (habitError) {
-                console.error('Error loading habits, continuing with calendar render:', habitError);
+                console.error('Error loading habits/weight data, continuing with calendar render:', habitError);
             }
 
             console.log('Initial calendar render');

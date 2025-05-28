@@ -3,40 +3,45 @@
  * Adjusts the placement of the pencil icon to be at the end of the recipe title
  */
 
-/* Adjust the recipe title container to better position the title and icon */
+/* Adjust the recipe title container to allow full title display */
 .recipe-title-container {
     display: flex;
     align-items: center;
-    gap: 0; /* Remove gap between title and icon */
+    gap: 8px; /* Add gap between title and icon */
     flex: 1;
-    max-width: 50%; /* Reduced from 60% to leave more space for buttons */
-    overflow: visible; /* Changed from hidden to allow icon to be visible */
-    position: relative; /* Add position relative for absolute positioning of icon */
+    max-width: 75%; /* Increased to allow more space for titles */
+    overflow: visible; /* Allow full content to be visible */
+    position: relative;
 }
 
-/* Make the title take up all available space */
+/* Make the title display fully without truncation */
 .recipe-card-title {
     margin: 0;
     font-size: 1rem;
     font-weight: 500;
     color: #ffffff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1; /* Take up all available space */
-    padding-right: 0; /* Remove padding as we'll position the icon differently */
+    white-space: normal; /* Allow text wrapping */
+    overflow: visible; /* Show all content */
+    text-overflow: unset; /* Remove ellipsis */
+    word-wrap: break-word; /* Break long words */
+    line-height: 1.2; /* Better line spacing */
+    flex: 1; /* Take up available space */
+    padding-right: 0;
 }
 
-/* Position the edit icon next to the title text */
+/* Position the edit icon at the end of the title */
 .edit-recipe-name-icon {
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.9rem;
     cursor: pointer;
     opacity: 0.7;
     transition: all 0.2s ease;
-    position: static; /* Changed from absolute to static */
-    margin-left: 8px; /* Add margin to separate from title */
-    display: inline-block;
+    position: static;
+    margin-left: auto; /* Push to the end */
+    margin-top: 2px; /* Align with first line */
+    align-self: flex-start; /* Align to top */
+    flex-shrink: 0; /* Don't shrink */
+    display: block;
 }
 
 .edit-recipe-name-icon:hover {

@@ -1,0 +1,43 @@
+/**
+ * Meal Calendar White Text Fix
+ * Changes green calorie text to white for better readability
+ */
+
+/* Change green calorie text to white */
+.calorie-under-target {
+    color: #ffffff !important;
+}
+
+/* Ensure all calorie info text is white */
+.calorie-info {
+    color: #ffffff !important;
+}
+
+/* Make calorie target text white */
+.calorie-target {
+    color: #cccccc !important;
+}
+
+/* Make calorie consumed text white */
+.calorie-consumed {
+    color: #ffffff !important;
+}
+
+/* Keep over-target red for visibility */
+.calorie-over-target {
+    color: #ff6b6b !important;
+}
+
+/* Weight info styling */
+.weight-info {
+    font-size: 9px;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 2px;
+    line-height: 1.1;
+}
+
+.weight-value {
+    color: #ffffff;
+    font-weight: 500;
+}

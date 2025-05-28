@@ -32,6 +32,11 @@
     color: #2c3e50;
     margin: 0;
     font-size: 1.15rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-wrap: break-word;
+    line-height: 1.2;
 }
 
 .recipe-card-calories {

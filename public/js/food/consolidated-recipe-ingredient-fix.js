@@ -248,8 +248,26 @@
 
             console.log(`[Recipe Ingredient Fix] API response status: ${response.status}`);
 
-            const recipeData = await response.json();
-            console.log(`[Recipe Ingredient Fix] Fetched recipe data:`, recipeData);
+            const responseData = await response.json();
+            console.log(`[Recipe Ingredient Fix] Fetched response data:`, responseData);
+
+            // Handle both wrapped and direct response formats
+            let recipeData;
+            if (responseData.success && responseData.recipe) {
+                // New MVC format: {success: true, recipe: {...}, message: "..."}
+                recipeData = responseData.recipe;
+                console.log(`[Recipe Ingredient Fix] Using wrapped response format`);
+            } else if (responseData.ingredients) {
+                // Old direct format: {id: 1, name: "...", ingredients: [...]}
+                recipeData = responseData;
+                console.log(`[Recipe Ingredient Fix] Using direct response format`);
+            } else {
+                console.error(`[Recipe Ingredient Fix] Invalid response format:`, responseData);
+                detailsDiv.innerHTML = '<p>Error loading recipe data.</p>';
+                return;
+            }
+
+            console.log(`[Recipe Ingredient Fix] Processed recipe data:`, recipeData);
 
             if (!recipeData.ingredients || !Array.isArray(recipeData.ingredients)) {
                 console.log(`[Recipe Ingredient Fix] No ingredients found for recipe ${recipeId}`);

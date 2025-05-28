@@ -1126,9 +1126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dueDateText = document.createElement('span');
 
                     if (task.isOverdueNextOccurrence && task.nextOccurrenceDate) {
-
-
-
+                        // For recurring tasks with overdue next occurrence, show the original due date as overdue
                         dueDateText.textContent = `Overdue: ${formattedDate}`;
                         dueDateIndicator.classList.add('overdue'); // Ensure it's marked as overdue
                         dueDateIndicator.classList.add('next-occurrence-overdue'); // Add special styling
@@ -1198,6 +1196,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                     dueDateIndicator.appendChild(dueDateText);
+
+                    // Safeguard: Check for duplicate overdue text and fix it
+                    setTimeout(() => {
+                        fixDuplicateOverdueText();
+                    }, 100);
 
                     metadataDiv.appendChild(dueDateIndicator);
 
@@ -4396,6 +4399,28 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('tasksLoaded event received, initializing completed tasks section');
         setTimeout(initializeCompletedTasksSection, 100);
     });
+
+    // Global function to fix duplicate overdue text
+    function fixDuplicateOverdueText() {
+        const allOverdueElements = document.querySelectorAll('.due-date-indicator.overdue');
+        allOverdueElements.forEach(element => {
+            const textContent = element.textContent || '';
+            if (textContent.includes('Overdue:') && textContent.match(/Overdue:/g)?.length > 1) {
+                // Found duplicate "Overdue:" text, fix it
+                const firstOverdueIndex = textContent.indexOf('Overdue:');
+                const secondOverdueIndex = textContent.indexOf('Overdue:', firstOverdueIndex + 1);
+                if (secondOverdueIndex !== -1) {
+                    // Extract the first overdue text (keep the original date)
+                    const firstOverdueText = textContent.substring(firstOverdueIndex, secondOverdueIndex).trim();
+                    element.textContent = firstOverdueText;
+                    console.log(`Fixed duplicate overdue text: "${textContent}" -> "${firstOverdueText}"`);
+                }
+            }
+        });
+    }
+
+    // Run the fix periodically to catch any duplicate text created by other scripts
+    setInterval(fixDuplicateOverdueText, 2000);
 
     function updateCompletedTaskHeader(count) {
         const arrow = completedTaskListDiv.style.display === 'none' ? '&#9662;' : '&#9652;'; // Get current arrow state

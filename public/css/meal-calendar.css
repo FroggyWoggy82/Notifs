@@ -7,21 +7,21 @@
 #meal-calendar-section {
     background-color: rgba(20, 20, 20, 0.8);
     border-radius: 8px;
-    padding: 15px;
-    margin: 15px 0;
+    padding: 10px;
+    margin: 8px 0;
     border: 1px solid #333;
 }
 
 #meal-calendar-section .section-header-compact h2 {
     color: #ffffff;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     font-size: 1.4rem;
 }
 
 #meal-calendar-section .section-description {
     color: #cccccc;
     font-size: 14px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     font-style: italic;
 }
 
@@ -36,8 +36,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding: 0 10px;
+    margin-bottom: 10px;
+    padding: 0 8px;
 }
 
 .calendar-nav-btn {

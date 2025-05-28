@@ -77,7 +77,14 @@ html body .habit-item .habit-content {
 
 /* Adjust checkbox positioning for expanded layout */
 html body .task-item .task-checkbox-container {
-    margin-left: -16px !important;
+    margin-left: 0px !important; /* Reset to prevent overlap with expand button */
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Special spacing for tasks with subtasks to prevent overlap */
+html body .task-item.has-subtasks .task-checkbox-container {
+    margin-left: 15px !important; /* Extra space to clear the expand button */
     margin-right: 12px !important;
     flex-shrink: 0 !important;
 }

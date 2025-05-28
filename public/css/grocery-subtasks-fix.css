@@ -120,7 +120,7 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 30px;
+    width: 40px !important; /* Consistent with other CSS files */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -129,8 +129,14 @@
 
 /* Fix for task item with subtasks */
 .task-item.has-subtasks {
-    padding-left: 30px;
+    padding-left: 50px !important; /* Increased space for expand button + checkbox spacing */
     position: relative;
+}
+
+/* Ensure proper spacing for checkbox in tasks with subtasks */
+.task-item.has-subtasks .task-checkbox-container {
+    margin-left: 10px !important; /* Add extra left margin to prevent overlap with expand button */
+    margin-right: 12px !important; /* Increase right margin for better spacing */
 }
 
 /* Animation for subtasks */
