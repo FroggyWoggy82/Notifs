@@ -119,8 +119,9 @@ router.post('/', async (req, res) => {
     console.log('Received POST /api/recipes request');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
 
-    const { name, ingredients } = req.body; // Expecting name and an array of ingredients
+    const { name, ingredients, groceryStore } = req.body; // Expecting name, ingredients array, and optional grocery store
     console.log(`Recipe name: '${name}'`);
+    console.log(`Grocery store: '${groceryStore || 'none'}'`);
     console.log(`Number of ingredients: ${ingredients ? ingredients.length : 0}`);
 
     // Log each ingredient's micronutrient data
@@ -147,7 +148,7 @@ router.post('/', async (req, res) => {
     try {
         console.log('Calling RecipeModel.createRecipe...');
         // Use the RecipeModel to create the recipe
-        const recipe = await RecipeModel.createRecipe(name, ingredients);
+        const recipe = await RecipeModel.createRecipe(name, ingredients, groceryStore);
         console.log(`Recipe '${name}' created successfully with ID: ${recipe.id}`);
 
         // Check if the ingredients have micronutrient data

@@ -809,14 +809,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.updateUI();
             }
 
-            // Dispatch a custom event for the protein optimization feature
+            // Dispatch a custom event for the grocery list optimization feature
             const groceryListGeneratedEvent = new CustomEvent('groceryListGenerated', {
                 detail: {
                     groceryList: groceryList,
                     recipes: fullRecipeData,
                     adjustedRecipesData: adjustedRecipes,
                     calorieTarget: dailyCalorieTarget,
-                    proteinTarget: dailyProteinTarget
+                    proteinTarget: dailyProteinTarget,
+                    fatTarget: dailyFatTarget
                 }
             });
             document.dispatchEvent(groceryListGeneratedEvent);
@@ -1065,12 +1066,12 @@ document.addEventListener('DOMContentLoaded', function() {
         groceryListResults.innerHTML = '';
         groceryListResults.appendChild(table);
 
-        // Create a placeholder for the protein optimization section
-        const proteinOptimizationSection = document.createElement('div');
-        proteinOptimizationSection.id = 'protein-optimization-section';
-        proteinOptimizationSection.className = 'protein-optimization-section';
-        proteinOptimizationSection.style.display = 'none'; // Hide initially
-        groceryListResults.appendChild(proteinOptimizationSection);
+        // Create a placeholder for the grocery optimization section
+        const groceryOptimizationSection = document.createElement('div');
+        groceryOptimizationSection.id = 'grocery-optimization-section';
+        groceryOptimizationSection.className = 'grocery-optimization-section';
+        groceryOptimizationSection.style.display = 'none'; // Hide initially
+        groceryListResults.appendChild(groceryOptimizationSection);
 
         // Add micronutrient percentage display if we have full recipe data
         if (fullRecipeData && fullRecipeData.length > 0 && typeof MicronutrientPercentage !== 'undefined') {

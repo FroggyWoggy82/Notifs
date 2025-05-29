@@ -43,7 +43,7 @@ async function getAllRecipes() {
 
         // Now fetch all recipes
         console.log('Executing query to get all recipes...');
-        const result = await db.query('SELECT id, name, total_calories FROM recipes ORDER BY name ASC');
+        const result = await db.query('SELECT id, name, total_calories, grocery_store FROM recipes ORDER BY name ASC');
         console.log(`Query returned ${result.rowCount} recipes`);
         console.log('Recipes:', result.rows);
         return result.rows;
@@ -102,9 +102,10 @@ async function getRecipeById(id) {
  * Create a new recipe with ingredients
  * @param {string} name - The recipe name
  * @param {Array} ingredients - Array of ingredient objects
+ * @param {string} groceryStore - Optional grocery store name
  * @returns {Promise<Object>} - Promise resolving to the created recipe with ingredients
  */
-async function createRecipe(name, ingredients) {
+async function createRecipe(name, ingredients, groceryStore = null) {
     console.log('=== createRecipe called ===');
     console.log('Recipe name:', name);
     console.log('Ingredients count:', ingredients ? ingredients.length : 0);
@@ -132,10 +133,10 @@ async function createRecipe(name, ingredients) {
         await client.query('BEGIN'); // Start transaction
 
         // Insert the recipe
-        console.log(`Inserting recipe: ${name.trim()} with total calories: ${calculatedTotalCalories}`);
+        console.log(`Inserting recipe: ${name.trim()} with total calories: ${calculatedTotalCalories}, grocery store: ${groceryStore || 'none'}`);
         const recipeInsertResult = await client.query(
-            'INSERT INTO recipes (name, total_calories) VALUES ($1, $2) RETURNING id',
-            [name.trim(), calculatedTotalCalories]
+            'INSERT INTO recipes (name, total_calories, grocery_store) VALUES ($1, $2, $3) RETURNING id',
+            [name.trim(), calculatedTotalCalories, groceryStore]
         );
 
         if (!recipeInsertResult.rows || recipeInsertResult.rows.length === 0) {

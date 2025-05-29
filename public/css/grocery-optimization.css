@@ -1,0 +1,323 @@
+/**
+ * Grocery List Optimization Styles
+ * 
+ * Styles for the grocery list optimization feature that optimizes for protein, fat, and carbs.
+ * Follows the futuristic dark theme with white text and green accents.
+ */
+
+.grocery-optimization-section {
+    margin-top: 20px;
+    background-color: rgba(30, 30, 30, 0.7);
+    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.grocery-optimization-section h3 {
+    color: #e0e0e0;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 6px;
+}
+
+.grocery-optimization-info {
+    background-color: rgba(40, 40, 40, 0.8);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-left: 3px solid #00ff00;
+}
+
+.grocery-optimization-info p {
+    margin: 5px 0;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+}
+
+.grocery-optimization-info ul {
+    margin: 8px 0;
+    padding-left: 20px;
+    color: #e0e0e0;
+}
+
+.grocery-optimization-info li {
+    margin: 4px 0;
+    font-size: 0.9rem;
+}
+
+/* Status comparison layout - more compact */
+.status-comparison {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.status-box {
+    flex: 1;
+    min-width: 180px;
+    background-color: rgba(40, 40, 40, 0.8);
+    border-radius: 4px;
+    padding: 10px 12px;
+    border-left: 3px solid #00ff00;
+}
+
+.status-box h4 {
+    margin: 0 0 6px 0;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-box .macro-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+    font-size: 0.8rem;
+    color: #e0e0e0;
+    line-height: 1.2;
+}
+
+.status-box .macro-value {
+    font-weight: 600;
+    color: #00ff00;
+}
+
+.status-arrow {
+    font-size: 1.5rem;
+    color: #00ff00;
+    font-weight: bold;
+    flex-shrink: 0;
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.grocery-optimization-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+}
+
+.grocery-optimization-table thead,
+.grocery-optimization-table tbody {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.grocery-optimization-table th {
+    background-color: rgba(30, 30, 30, 0.9);
+    color: #e0e0e0;
+    text-align: left;
+    padding: 4px 3px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.1;
+}
+
+.grocery-optimization-table td {
+    padding: 4px 3px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #e0e0e0;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.1;
+}
+
+/* Column width optimization for 7-column table */
+.grocery-optimization-table th:nth-child(1),
+.grocery-optimization-table td:nth-child(1) { width: 25%; } /* Ingredient */
+.grocery-optimization-table th:nth-child(2),
+.grocery-optimization-table td:nth-child(2) { width: 20%; } /* Amount Change */
+.grocery-optimization-table th:nth-child(3),
+.grocery-optimization-table td:nth-child(3) { width: 11%; } /* +Protein */
+.grocery-optimization-table th:nth-child(4),
+.grocery-optimization-table td:nth-child(4) { width: 11%; } /* +Fat */
+.grocery-optimization-table th:nth-child(5),
+.grocery-optimization-table td:nth-child(5) { width: 11%; } /* +Carbs */
+.grocery-optimization-table th:nth-child(6),
+.grocery-optimization-table td:nth-child(6) { width: 11%; } /* +Calories */
+.grocery-optimization-table th:nth-child(7),
+.grocery-optimization-table td:nth-child(7) { width: 11%; } /* Recipe */
+
+.grocery-optimization-table tr:nth-child(even) {
+    background-color: rgba(40, 40, 40, 0.5);
+}
+
+.grocery-optimization-table tr:hover {
+    background-color: rgba(50, 50, 50, 0.7);
+}
+
+.grocery-optimization-table .summary-row {
+    background-color: rgba(30, 30, 30, 0.9) !important;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.grocery-optimization-summary {
+    background-color: rgba(40, 40, 40, 0.8);
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 10px;
+}
+
+.grocery-optimization-summary p {
+    margin: 6px 0;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+}
+
+.grocery-optimization-summary ul {
+    margin: 6px 0;
+    padding-left: 18px;
+    color: #e0e0e0;
+}
+
+.grocery-optimization-summary li {
+    margin: 3px 0;
+    font-size: 0.8rem;
+}
+
+.grocery-optimization-summary strong {
+    color: #00ff00;
+}
+
+.apply-optimization-btn {
+    background-color: #00ff00;
+    color: #121212;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 180px;
+    margin-top: 8px;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+.apply-optimization-btn:hover {
+    background-color: #00cc00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.apply-optimization-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.apply-optimization-btn:disabled {
+    background-color: #555;
+    color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .status-comparison {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .status-arrow {
+        transform: rotate(90deg);
+        font-size: 1.2rem;
+    }
+
+    .status-box {
+        min-width: unset;
+        width: 100%;
+        padding: 8px 10px;
+    }
+
+    .status-box h4 {
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+
+    .status-box .macro-item {
+        font-size: 0.75rem;
+        margin: 2px 0;
+    }
+
+    .grocery-optimization-table {
+        font-size: 0.65rem;
+    }
+
+    .grocery-optimization-table th,
+    .grocery-optimization-table td {
+        padding: 3px 2px;
+        font-size: 0.6rem;
+    }
+
+    .apply-optimization-btn {
+        width: 100%;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .grocery-optimization-section {
+        padding: 8px;
+    }
+
+    .status-box {
+        padding: 6px 8px;
+    }
+
+    .status-box .macro-item {
+        font-size: 0.7rem;
+    }
+
+    .grocery-optimization-table {
+        font-size: 0.6rem;
+    }
+
+    .grocery-optimization-table th,
+    .grocery-optimization-table td {
+        padding: 2px 1px;
+        font-size: 0.55rem;
+    }
+}
+
+/* Optimization type indicators */
+.grocery-optimization-table td:nth-child(9) {
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.grocery-optimization-table td:nth-child(9):contains("protein") {
+    color: #ff6b6b;
+}
+
+.grocery-optimization-table td:nth-child(9):contains("fat") {
+    color: #ffd93d;
+}
+
+.grocery-optimization-table td:nth-child(9):contains("carbs") {
+    color: #6bcf7f;
+}

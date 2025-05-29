@@ -47,6 +47,7 @@
         '[Weekly Goal Points Fix] Weekly increment dates:',
         '[Weekly Goal Points Fix] Using weekly increment dates for extraction',
         '[Weekly Goal Points Fix] Extracted 4 weekly goal weights:',
+        '[Weekly Goal Points Fix] Extracted 6 weekly goal weights:',
         '[Weekly Goal Points Fix] Modified goal dataset point styling',
         '[Weekly Goal Points Fix] Chart updated',
         '[Weekly Goal Points Fix] Chart update detected',
@@ -62,7 +63,17 @@
         'Initializing ingredient search autocomplete for:',
         'Using existing dropdown',
         'Initialized autocomplete for 1 ingredient search inputs',
-        'Set up MutationObserver to watch for new search inputs'
+        'Set up MutationObserver to watch for new search inputs',
+        '[Recipe Table Dark Fix] Fixing recipe table styling',
+        '[Recipe Table Dark Fix] Recipe table styling fixed',
+        '[Grocery List Full Width] Mutation detected',
+        '[Grocery List Full Width] Updating layout',
+        '[Grocery List Full Width] Grocery list displayed',
+        '[Grocery List Full Width] Expanding grocery list',
+        '[Grocery List Full Width] Expanded grocery list',
+        '[Custom Tooltip] Chart canvas detected',
+        'Tooltip events attached to chart',
+        'Added event listener to apply button'
     ];
 
     // List of patterns to limit frequency (show first occurrence, then suppress duplicates)
@@ -90,6 +101,20 @@
 
         // Only process string messages
         if (typeof message !== 'string') {
+            return originalConsoleLog.apply(console, arguments);
+        }
+
+        // Always allow optimization debugging logs through
+        if (message.includes('APPLYING GROCERY LIST OPTIMIZATION') ||
+            message.includes('Looking for ingredient') ||
+            message.includes('Available grocery list ingredients') ||
+            message.includes('GROCERY LIST REGENERATED AFTER OPTIMIZATION') ||
+            message.includes('New grocery list items') ||
+            message.includes('Updated grocery list item') ||
+            message.includes('not found in grocery list') ||
+            message.includes('OPTIMIZATION BUTTON CLICKED') ||
+            message.includes('✓ Added event listener to apply button') ||
+            message.includes('✗ Apply button not found')) {
             return originalConsoleLog.apply(console, arguments);
         }
 

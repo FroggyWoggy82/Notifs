@@ -3,28 +3,115 @@
  * Makes recipe sections extremely vertically compact with minimal spacing
  */
 
-/* Reduce spacing between recipe cards */
+/* Eliminate spacing between recipe cards */
 .recipe-card {
-    margin-bottom: 8px !important;
+    margin: 0 !important;
+    margin-bottom: 0 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Make recipe card headers more compact */
 .recipe-card-header {
-    padding: 8px 12px !important;
+    padding: 4px 8px !important;
     min-height: auto !important;
 }
 
-/* Reduce spacing in recipe card body */
+/* COMPLETELY ELIMINATE recipe card body spacing */
 .recipe-card-body {
-    padding: 6px 12px 8px !important;
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    line-height: 0 !important;
+    position: absolute !important;
+    visibility: hidden !important;
+}
+
+/* Force hidden elements to take no space */
+.recipe-card-body .calorie-adjustment-compact[style*="display: none"],
+.recipe-card-body .ingredient-details[style*="display: none"],
+.recipe-card-body .adjustment-status {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+    line-height: 0 !important;
+}
+
+/* When content is expanded, show the recipe card body and restore padding */
+.recipe-card-body:has(.calorie-adjustment-compact[style*="display: grid"]),
+.recipe-card-body:has(.calorie-adjustment-compact[style*="display: block"]),
+.recipe-card-body:has(.ingredient-details[style*="display: block"]) {
+    display: block !important;
+    position: static !important;
+    visibility: visible !important;
+    height: auto !important;
+    padding: 3px 8px !important;
+    margin: 2px 0 !important;
+    line-height: normal !important;
+}
+
+/* Fallback for browsers that don't support :has() */
+.recipe-card-body.expanded {
+    display: block !important;
+    position: static !important;
+    visibility: visible !important;
+    height: auto !important;
+    padding: 3px 8px !important;
+    margin: 2px 0 !important;
+    line-height: normal !important;
+}
+
+.recipe-card-body .calorie-adjustment-compact[style*="display: grid"],
+.recipe-card-body .calorie-adjustment-compact[style*="display: block"],
+.recipe-card-body .ingredient-details[style*="display: block"] {
+    padding: 3px 8px !important;
+    margin: 2px 0 !important;
+    height: auto !important;
+    line-height: normal !important;
+}
+
+/* Additional aggressive spacing removal */
+.recipe-card-body::after,
+.recipe-card-body::before {
+    display: none !important;
+    height: 0 !important;
+    content: none !important;
+}
+
+/* Force recipe card body to have absolutely no height when empty */
+.recipe-card-body:empty {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+/* Remove any default spacing from status elements */
+.recipe-card .adjustment-status:empty {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
 }
 
 /* Make recipe card actions more compact */
 .recipe-card-actions {
-    padding: 6px 12px !important;
-    gap: 4px !important;
+    padding: 3px 8px 0 8px !important;
+    gap: 3px !important;
     margin: 0 !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+/* Ensure no spacing after action buttons */
+.recipe-card-actions::after {
+    display: none !important;
+    height: 0 !important;
+    content: none !important;
 }
 
 /* Make action buttons smaller */
@@ -51,10 +138,122 @@
     margin: 0 !important;
 }
 
-/* Reduce spacing in recipe list container */
+/* Recipe Search Bar Styling */
+.recipe-search-container {
+    position: relative;
+    margin-bottom: 8px !important;
+}
+
+.recipe-search-input {
+    width: 100% !important;
+    padding: 6px 30px 6px 8px !important;
+    font-size: 0.85rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+    background-color: rgba(40, 40, 40, 0.8) !important;
+    color: #e0e0e0 !important;
+    box-sizing: border-box !important;
+}
+
+.recipe-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.recipe-search-input:focus {
+    outline: none !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(50, 50, 50, 0.9) !important;
+}
+
+.clear-search-btn {
+    position: absolute !important;
+    right: 6px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: none !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.clear-search-btn:hover {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Scrollable Recipe List Container */
+.recipe-list-scroll-container {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    background-color: rgba(20, 20, 20, 0.5) !important;
+    padding: 4px !important;
+}
+
+/* Custom scrollbar styling */
+.recipe-list-scroll-container::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.recipe-list-scroll-container::-webkit-scrollbar-track {
+    background: rgba(40, 40, 40, 0.3) !important;
+    border-radius: 3px !important;
+}
+
+.recipe-list-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 3px !important;
+}
+
+.recipe-list-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Eliminate spacing in recipe list container */
 #recipe-list {
-    gap: 6px !important;
-    margin-top: 8px !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Remove any spacing between recipe items */
+#recipe-list > * {
+    margin: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Ensure recipe cards have no spacing */
+#recipe-list .recipe-card {
+    margin: 0 !important;
+    border-bottom: 1px solid #333 !important;
+    overflow: hidden !important;
+}
+
+/* Force all recipe card children to have no bottom spacing */
+.recipe-card > * {
+    margin-bottom: 0 !important;
+}
+
+/* Specifically target the last element in recipe cards */
+.recipe-card > *:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove any potential spacing from the card structure itself */
+.recipe-card {
+    line-height: 1 !important;
+}
+
+.recipe-card * {
+    box-sizing: border-box !important;
 }
 
 /* Make section headers more compact */
@@ -79,10 +278,168 @@
     padding: 2px 0 !important;
 }
 
-/* Reduce spacing in calorie adjustment sections */
+/* Make calorie adjustment sections ultra compact */
 .calorie-adjustment-compact {
-    gap: 4px !important;
-    margin-top: 4px !important;
+    gap: 2px !important;
+    margin: 2px 0 !important;
+    padding: 4px !important;
+}
+
+/* Compact the calorie adjustment area in grocery list */
+.calorie-adjustment-area {
+    padding: 6px !important;
+    margin: 4px 0 !important;
+}
+
+.calorie-adjustment-area h3 {
+    margin: 0 0 4px 0 !important;
+    font-size: 0.9rem !important;
+    padding: 0 !important;
+}
+
+/* Make calorie adjustment container more compact */
+#calorie-adjustment-container {
+    padding: 4px !important;
+    margin: 0 !important;
+    gap: 3px !important;
+}
+
+/* Compact individual calorie adjustment items */
+.calorie-adjustment-item {
+    padding: 4px 6px !important;
+    margin: 2px 0 !important;
+    border-radius: 3px !important;
+}
+
+/* Make calorie adjustment headers more compact */
+.calorie-adjustment-header {
+    padding: 2px 4px !important;
+    margin: 0 0 2px 0 !important;
+    font-size: 0.8rem !important;
+    line-height: 1.1 !important;
+}
+
+/* Compact calorie adjustment controls */
+.calorie-adjustment-controls {
+    gap: 3px !important;
+    padding: 2px !important;
+    margin: 2px 0 !important;
+}
+
+/* Make calorie adjustment buttons smaller */
+.calorie-adjustment-controls button {
+    padding: 2px 4px !important;
+    font-size: 0.7rem !important;
+    height: 20px !important;
+    min-width: 35px !important;
+}
+
+/* Compact calorie input fields */
+.calorie-adjustment-controls input {
+    padding: 2px 4px !important;
+    font-size: 0.75rem !important;
+    height: 20px !important;
+    width: 60px !important;
+}
+
+/* Make Auto Adjust button more compact */
+.auto-adjust-btn {
+    padding: 3px 6px !important;
+    font-size: 0.75rem !important;
+    height: 22px !important;
+    margin: 2px 0 !important;
+}
+
+/* Compact calorie and percentage display */
+.calorie-display,
+.percentage-display {
+    font-size: 0.75rem !important;
+    padding: 1px 3px !important;
+    margin: 1px !important;
+    line-height: 1.1 !important;
+}
+
+/* Make calorie adjustment text more compact */
+.calorie-adjustment-text {
+    font-size: 0.7rem !important;
+    line-height: 1.1 !important;
+    margin: 1px 0 !important;
+    padding: 0 !important;
+}
+
+/* Compact the scale factor display */
+.scale-factor-display {
+    font-size: 0.7rem !important;
+    padding: 1px 2px !important;
+    margin: 0 !important;
+}
+
+/* Make original calories display more compact */
+.original-calories-display {
+    font-size: 0.7rem !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+
+/* Compact adjustment buttons row */
+.adjustment-buttons-row {
+    gap: 2px !important;
+    margin: 2px 0 !important;
+    padding: 0 !important;
+}
+
+/* Make -10%, +10%, Reset buttons smaller */
+.adjustment-buttons-row button {
+    padding: 1px 3px !important;
+    font-size: 0.65rem !important;
+    height: 18px !important;
+    min-width: 28px !important;
+    margin: 0 1px !important;
+}
+
+/* Apply same scrollbar styling to Select Recipes area as Your Recipes */
+.recipe-checkbox-list {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    background-color: rgba(20, 20, 20, 0.5) !important;
+    padding: 4px !important;
+}
+
+/* Custom scrollbar styling for Select Recipes to match Your Recipes */
+.recipe-checkbox-list::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.recipe-checkbox-list::-webkit-scrollbar-track {
+    background: rgba(40, 40, 40, 0.3) !important;
+    border-radius: 3px !important;
+}
+
+.recipe-checkbox-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 3px !important;
+}
+
+.recipe-checkbox-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Firefox scrollbar styling for Select Recipes */
+.recipe-checkbox-list {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Hide grocery list results container when empty */
+#grocery-list-results:empty {
+    display: none !important;
+}
+
+/* Also hide when it only contains whitespace or comments */
+#grocery-list-results:not(:has(*)) {
+    display: none !important;
 }
 
 /* Make form elements more compact */
@@ -97,24 +454,24 @@
 
 /* Make grocery list items more compact */
 .recipe-item {
-    padding: 8px !important;
-    margin-bottom: 6px !important;
+    padding: 6px !important;
+    margin-bottom: 2px !important;
 }
 
 /* Reduce spacing in recipe selection container */
 .recipe-selection-container {
-    gap: 15px !important;
+    gap: 8px !important;
 }
 
 /* Make recipe list container more compact */
 .recipe-list {
-    padding: 10px !important;
+    padding: 6px !important;
 }
 
 /* Reduce spacing in recipe list headings */
 .recipe-list h3 {
-    margin-bottom: 10px !important;
-    font-size: 1rem !important;
+    margin-bottom: 6px !important;
+    font-size: 0.95rem !important;
 }
 
 /* Make recipe item names more compact */
@@ -179,15 +536,15 @@ button {
 
 /* Reduce spacing between sections */
 section {
-    margin-bottom: 20px !important;
-    padding: 15px !important;
+    margin-bottom: 12px !important;
+    padding: 10px !important;
 }
 
 /* Make section headings more compact */
 section h2 {
-    margin-bottom: 12px !important;
-    padding-bottom: 6px !important;
-    font-size: 1.1rem !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 4px !important;
+    font-size: 1rem !important;
 }
 
 /* Reduce spacing in ingredient list */

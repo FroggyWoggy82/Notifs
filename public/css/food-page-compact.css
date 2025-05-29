@@ -1,0 +1,229 @@
+/**
+ * Food Page Compact Styling
+ * Makes the Food & Recipes page more vertically compact
+ * - Smaller title positioned higher
+ * - More compact Goals & Targets Dashboard
+ */
+
+/* Compact Food & Recipes title */
+.food-page-title {
+    font-size: 1.8rem !important; /* Smaller than default h1 */
+    margin-top: 10px !important; /* Reduced top margin */
+    margin-bottom: 15px !important; /* Reduced bottom margin */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Compact Goals & Targets Dashboard section */
+.compact-goals-section {
+    margin-top: 0 !important;
+    margin-bottom: 15px !important;
+    padding-top: 0 !important;
+}
+
+/* More compact section header */
+.compact-goals-section .section-header-compact {
+    margin-bottom: 8px !important; /* Reduced from default */
+}
+
+.compact-goals-section .section-header-compact h2 {
+    font-size: 1.0rem !important; /* Smaller section title */
+    margin: 0 !important;
+}
+
+/* More compact unified goals box */
+.compact-goals-section .unified-goals-box {
+    padding: 8px !important; /* Reduced padding */
+    margin-bottom: 12px !important; /* Reduced margin */
+}
+
+/* Compact unified title */
+.compact-goals-section .unified-title {
+    font-size: 0.9rem !important; /* Smaller title */
+    margin-bottom: 8px !important; /* Reduced margin */
+    padding-bottom: 4px !important; /* Reduced padding */
+}
+
+/* Compact form grid */
+.compact-goals-section .form-grid-2x2 {
+    gap: 8px !important; /* Reduced gap */
+    margin-bottom: 8px !important; /* Reduced margin */
+}
+
+/* Compact additional targets */
+.compact-goals-section .additional-targets {
+    gap: 6px !important; /* Reduced gap */
+    margin-bottom: 8px !important; /* Reduced margin */
+}
+
+/* Compact form groups */
+.compact-goals-section .form-group {
+    margin-bottom: 0 !important;
+}
+
+.compact-goals-section .form-group label {
+    font-size: 0.8rem !important; /* Smaller labels */
+    margin-bottom: 3px !important; /* Reduced margin */
+}
+
+.compact-goals-section .form-group input,
+.compact-goals-section .form-group select {
+    height: 28px !important; /* Slightly smaller inputs */
+    font-size: 0.8rem !important; /* Smaller text */
+}
+
+.compact-goals-section .current-display {
+    height: 28px !important; /* Match input height */
+    font-size: 0.8rem !important; /* Smaller text */
+}
+
+/* Compact action section */
+.compact-goals-section .action-section {
+    margin-bottom: 6px !important; /* Reduced margin */
+    padding-top: 6px !important; /* Reduced padding */
+}
+
+.compact-goals-section .help-text {
+    font-size: 0.65rem !important; /* Smaller help text */
+}
+
+.compact-goals-section .button-group .save-goal-btn,
+.compact-goals-section .button-group .save-btn {
+    height: 26px !important; /* Smaller buttons */
+    font-size: 0.75rem !important; /* Smaller button text */
+    padding: 2px 6px !important; /* Reduced padding */
+    min-width: 75px !important; /* Smaller minimum width */
+}
+
+/* Compact status section */
+.compact-goals-section .status-section {
+    margin-bottom: 0 !important;
+    gap: 4px !important; /* Reduced gap */
+}
+
+.compact-goals-section .status-section .status {
+    font-size: 0.7rem !important; /* Smaller status text */
+}
+
+/* Compact user selector */
+.compact-goals-section .user-selector-container label {
+    font-size: 0.75rem !important; /* Smaller label */
+}
+
+.compact-goals-section #user-selector {
+    height: 26px !important; /* Smaller selector */
+    font-size: 0.75rem !important; /* Smaller text */
+    min-width: 90px !important; /* Smaller minimum width */
+}
+
+/* Compact chart container */
+.compact-goals-section .chart-container {
+    margin-top: 15px !important; /* Reduced top margin */
+    margin-bottom: 15px !important; /* Reduced bottom margin */
+    padding: 8px !important; /* Reduced padding */
+}
+
+/* Compact axis controls */
+.compact-goals-section .axis-controls {
+    margin-bottom: 8px !important; /* Reduced margin */
+}
+
+.compact-goals-section .axis-control label {
+    font-size: 0.75rem !important; /* Smaller labels */
+}
+
+.compact-goals-section .scale-value {
+    font-size: 0.7rem !important; /* Smaller scale values */
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .food-page-title {
+        font-size: 1.6rem !important;
+        margin-top: 8px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .compact-goals-section .unified-goals-box {
+        padding: 6px !important;
+    }
+    
+    .compact-goals-section .form-grid-2x2 {
+        gap: 6px !important;
+    }
+    
+    .compact-goals-section .additional-targets {
+        gap: 4px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .food-page-title {
+        font-size: 1.4rem !important;
+        margin-top: 6px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .compact-goals-section .unified-goals-box {
+        padding: 4px !important;
+    }
+    
+    .compact-goals-section .form-grid-2x2 {
+        gap: 4px !important;
+    }
+    
+    .compact-goals-section .additional-targets {
+        gap: 3px !important;
+    }
+    
+    .compact-goals-section .unified-title {
+        font-size: 0.85rem !important;
+        margin-bottom: 6px !important;
+    }
+}
+
+/* Compact Calendar Navigation Arrows */
+.calendar-nav-btn {
+    min-width: 20px !important; /* Much smaller minimum width */
+    width: 20px !important; /* Fixed width */
+    height: 20px !important; /* Smaller height */
+    padding: 0 !important; /* Remove padding */
+    font-size: 8px !important; /* Smaller icon */
+    border-radius: 2px !important; /* Smaller border radius */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.calendar-nav-btn i {
+    font-size: 8px !important; /* Smaller chevron icons */
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Responsive adjustments for calendar arrows */
+@media (max-width: 768px) {
+    .calendar-nav-btn {
+        min-width: 18px !important;
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 7px !important;
+    }
+
+    .calendar-nav-btn i {
+        font-size: 7px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-nav-btn {
+        min-width: 16px !important;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 6px !important;
+    }
+
+    .calendar-nav-btn i {
+        font-size: 6px !important;
+    }
+}

@@ -475,7 +475,14 @@
 
         let html = `
             <div class="micronutrient-percentage-container">
-                <h3>Micronutrient Target Coverage</h3>
+                <div class="micronutrient-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Micronutrient Target Coverage</h3>
+                    <button class="micronutrient-toggle-btn" onclick="toggleMicronutrientDisplay()"
+                            style="background: #333; color: #fff; border: 1px solid #555; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-size: 12px;">
+                        Show
+                    </button>
+                </div>
+                <div class="micronutrient-content" id="micronutrient-content" style="display: none;">
         `;
 
         // No informational or debug messages
@@ -505,6 +512,7 @@
         }
 
         html += `
+                </div>
                 </div>
             </div>
         `;
@@ -712,10 +720,31 @@
         `;
     }
 
+    /**
+     * Toggle the micronutrient display visibility
+     */
+    function toggleMicronutrientDisplay() {
+        const content = document.getElementById('micronutrient-content');
+        const button = document.querySelector('.micronutrient-toggle-btn');
+
+        if (content && button) {
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                button.textContent = 'Hide';
+            } else {
+                content.style.display = 'none';
+                button.textContent = 'Show';
+            }
+        }
+    }
+
     // Export functions to global scope
     window.MicronutrientPercentage = {
         calculateTotals: calculateMicronutrientTotals,
         calculatePercentages: calculateMicronutrientPercentages,
         createHTML: createMicronutrientPercentageHTML
     };
+
+    // Export toggle function to global scope
+    window.toggleMicronutrientDisplay = toggleMicronutrientDisplay;
 })();
