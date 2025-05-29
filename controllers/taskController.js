@@ -667,6 +667,54 @@ class TaskController {
         }
     }
 
+    /**
+     * Get a complete weekly list of all tasks organized by day and notification
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getWeeklyCompleteList(req, res) {
+        try {
+            const { startDate } = req.query;
+            console.log(`Received GET /api/tasks/weekly-complete-list with startDate: ${startDate}`);
+
+            // Calculate week start and end dates
+            let weekStart;
+            if (startDate) {
+                weekStart = new Date(startDate);
+            } else {
+                // Default to current week's Sunday
+                const now = new Date();
+                weekStart = new Date(now);
+                weekStart.setDate(now.getDate() - now.getDay()); // Go to Sunday
+            }
+            weekStart.setHours(0, 0, 0, 0);
+
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6); // Go to Saturday
+            weekEnd.setHours(23, 59, 59, 999);
+
+            console.log(`Getting weekly task list from ${weekStart.toISOString()} to ${weekEnd.toISOString()}`);
+
+            // Get the complete weekly data from the model
+            const weeklyData = await Task.getWeeklyCompleteList(weekStart, weekEnd);
+
+            res.json({
+                success: true,
+                weekStart: weekStart.toISOString().split('T')[0],
+                weekEnd: weekEnd.toISOString().split('T')[0],
+                ...weeklyData
+            });
+
+        } catch (error) {
+            console.error('Error getting weekly complete list:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to get weekly complete list',
+                details: error.message
+            });
+        }
+    }
+
 
 }
 

@@ -162,4 +162,53 @@ router.post('/test', NotificationController.sendTestNotification);
  */
 router.post('/save-subscription', NotificationController.saveSubscription);
 
+/**
+ * @swagger
+ * /api/notifications/debug:
+ *   get:
+ *     summary: Get notification system debug information
+ *     tags: [Notifications]
+ *     responses:
+ *       200:
+ *         description: Debug information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 subscriptions:
+ *                   type: object
+ *                   properties:
+ *                     count:
+ *                       type: number
+ *                     endpoints:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                 scheduledNotifications:
+ *                   type: object
+ *                   properties:
+ *                     count:
+ *                       type: number
+ *                     notifications:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                 taskReminders:
+ *                   type: object
+ *                   properties:
+ *                     count:
+ *                       type: number
+ *                     tasks:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *       500:
+ *         description: Server error
+ */
+router.get('/debug', NotificationController.getDebugInfo);
+
 module.exports = router;

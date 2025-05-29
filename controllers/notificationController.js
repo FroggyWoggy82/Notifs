@@ -105,9 +105,77 @@ async function sendTestNotification(req, res) {
         res.json(result);
     } catch (error) {
         console.error('Error sending test notification:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Server error sending test notification' 
+        res.status(500).json({
+            success: false,
+            message: 'Server error sending test notification'
+        });
+    }
+}
+
+/**
+ * Get notification system debug info
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getDebugInfo(req, res) {
+    try {
+        const scheduledNotifications = NotificationModel.getScheduledNotifications();
+        const subscriptions = NotificationModel.getSubscriptions();
+
+        // Get task reminders from database
+        const db = require('../utils/db');
+        const now = new Date();
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+        const taskResult = await db.query(
+            `SELECT id, title, reminder_time, reminder_type, due_date, is_complete
+             FROM tasks
+             WHERE reminder_time IS NOT NULL
+             AND reminder_time > $1
+             ORDER BY reminder_time ASC`,
+            [oneDayAgo.toISOString()]
+        );
+
+        const debugInfo = {
+            timestamp: now.toISOString(),
+            subscriptions: {
+                count: subscriptions.length,
+                endpoints: subscriptions.map(s => ({
+                    endpoint: s.endpoint.substring(0, 50) + '...',
+                    timestamp: s.timestamp,
+                    lastValidated: s.lastValidated
+                }))
+            },
+            scheduledNotifications: {
+                count: scheduledNotifications.length,
+                notifications: scheduledNotifications.map(n => ({
+                    id: n.id,
+                    title: n.title,
+                    scheduledTime: n.scheduledTime,
+                    createdAt: n.createdAt,
+                    isPast: new Date(n.scheduledTime) <= now
+                }))
+            },
+            taskReminders: {
+                count: taskResult.rows.length,
+                tasks: taskResult.rows.map(t => ({
+                    id: t.id,
+                    title: t.title,
+                    reminderTime: t.reminder_time,
+                    reminderType: t.reminder_type,
+                    dueDate: t.due_date,
+                    isComplete: t.is_complete,
+                    isPastDue: new Date(t.reminder_time) <= now
+                }))
+            }
+        };
+
+        res.json(debugInfo);
+    } catch (error) {
+        console.error('Error getting debug info:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error getting debug info'
         });
     }
 }
@@ -117,5 +185,6 @@ module.exports = {
     scheduleNotification,
     getScheduledNotifications,
     deleteNotification,
-    sendTestNotification
+    sendTestNotification,
+    getDebugInfo
 };

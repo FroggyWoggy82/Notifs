@@ -276,4 +276,77 @@ router.get('/:id', TaskController.getTaskById);
  */
 router.get('/:id/subtasks', TaskController.getSubtasks);
 
+/**
+ * @swagger
+ * /api/tasks/weekly-complete-list:
+ *   get:
+ *     summary: Get a complete weekly list of all tasks organized by day and notification
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date of the week (YYYY-MM-DD). Defaults to current week's Sunday.
+ *     responses:
+ *       200:
+ *         description: Complete weekly task list organized by day and notification
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 weekStart:
+ *                   type: string
+ *                   format: date
+ *                 weekEnd:
+ *                   type: string
+ *                   format: date
+ *                 dailyBreakdown:
+ *                   type: object
+ *                   properties:
+ *                     sunday:
+ *                       type: array
+ *                     monday:
+ *                       type: array
+ *                     tuesday:
+ *                       type: array
+ *                     wednesday:
+ *                       type: array
+ *                     thursday:
+ *                       type: array
+ *                     friday:
+ *                       type: array
+ *                     saturday:
+ *                       type: array
+ *                 notificationBreakdown:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       time:
+ *                         type: string
+ *                       tasks:
+ *                         type: array
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     totalTasks:
+ *                       type: integer
+ *                     completedTasks:
+ *                       type: integer
+ *                     pendingTasks:
+ *                       type: integer
+ *                     tasksWithNotifications:
+ *                       type: integer
+ *       500:
+ *         description: Server error
+ */
+router.get('/weekly-complete-list', TaskController.getWeeklyCompleteList);
+
 module.exports = router;

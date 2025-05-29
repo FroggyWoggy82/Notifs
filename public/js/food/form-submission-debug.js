@@ -178,14 +178,19 @@
                 return;
             }
 
-            console.log('[Form Submission Override] Sending data to backend:', { name: recipeName, ingredients });
+            // Get grocery store field
+            const groceryStoreInput = document.getElementById('groceryStore');
+            const groceryStore = groceryStoreInput ? groceryStoreInput.value.trim() || null : null;
+            console.log('[Form Submission Override] Grocery store:', groceryStore);
+
+            console.log('[Form Submission Override] Sending data to backend:', { name: recipeName, groceryStore, ingredients });
 
             fetch('/api/recipes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name: recipeName, ingredients })
+                body: JSON.stringify({ name: recipeName, groceryStore, ingredients })
             })
             .then(response => {
                 if (!response.ok) {

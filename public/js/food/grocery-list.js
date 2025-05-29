@@ -109,6 +109,14 @@ document.addEventListener('DOMContentLoaded', function() {
         recipeElement.appendChild(nameElement);
         recipeElement.appendChild(caloriesElement);
 
+        // Add grocery store if available
+        if (recipe.grocery_store) {
+            const storeElement = document.createElement('div');
+            storeElement.className = 'recipe-item-store';
+            storeElement.textContent = `🏪 ${recipe.grocery_store}`;
+            recipeElement.appendChild(storeElement);
+        }
+
         recipeElement.addEventListener('click', function() {
             toggleRecipeSelection(recipeElement);
         });

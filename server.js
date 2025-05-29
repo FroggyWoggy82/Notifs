@@ -500,6 +500,10 @@ app.get('/subscription-manager', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'subscription-manager.html'));
 });
 
+app.get('/weekly-task-list', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'weekly-task-list.html'));
+});
+
 // Fallback Routes
 app.get('/pages/goals.html', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'goals.html'));

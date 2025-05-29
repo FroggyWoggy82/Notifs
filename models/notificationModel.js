@@ -525,17 +525,19 @@ async function sendToAllSubscriptions(notification) {
  */
 function scheduleNotificationJob(notification) {
     const scheduledTime = new Date(notification.scheduledTime);
-    // Removed scheduling log message
+    console.log(`Scheduling notification: ${notification.title} for ${scheduledTime.toLocaleString()}`);
 
     // Check if the scheduled time is in the past
     const now = new Date();
     if (scheduledTime <= now) {
-        // Only send if it's not too old (within last hour)
-        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-        if (scheduledTime > oneHourAgo) {
+        // Send immediately for recent notifications (within last 24 hours)
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        if (scheduledTime > oneDayAgo) {
+            console.log(`Sending past notification immediately: ${notification.title}`);
             sendToAllSubscriptions(notification);
+        } else {
+            console.log(`Skipping very old notification: ${notification.title} (${scheduledTime.toLocaleString()})`);
         }
-        // Don't send very old notifications
         return;
     }
 
@@ -744,6 +746,44 @@ function getSubscriptionCount() {
     };
 }
 
+/**
+ * Manually reschedule all pending notifications (useful for debugging)
+ */
+function rescheduleAllNotifications() {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    console.log(`Manually rescheduling ${scheduledNotifications.length} notifications`);
+
+    // Filter out very old notifications and reschedule the rest
+    const validNotifications = scheduledNotifications.filter(notification => {
+        const scheduledTime = new Date(notification.scheduledTime);
+        return scheduledTime > oneDayAgo; // Keep notifications from last 24 hours
+    });
+
+    // Update the array to only include valid notifications
+    scheduledNotifications.length = 0;
+    scheduledNotifications.push(...validNotifications);
+
+    // Clear existing jobs
+    notificationJobs.clear();
+
+    // Reschedule all valid notifications
+    validNotifications.forEach(notification => {
+        scheduleNotificationJob(notification);
+    });
+
+    // Save the cleaned up notifications
+    saveNotificationsToFile();
+
+    console.log(`Manually rescheduled ${validNotifications.length} valid notifications`);
+    return {
+        success: true,
+        rescheduledCount: validNotifications.length,
+        removedCount: scheduledNotifications.length - validNotifications.length
+    };
+}
+
 module.exports = {
     initialize,
     saveSubscription,
@@ -756,5 +796,6 @@ module.exports = {
     cleanInvalidSubscriptions,
     clearAllSubscriptions,
     getSubscriptions,
-    getSubscriptionCount
+    getSubscriptionCount,
+    rescheduleAllNotifications
 };

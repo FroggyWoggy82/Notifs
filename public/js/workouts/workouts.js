@@ -558,8 +558,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         exerciseItemElement.dataset.isTemplate = isTemplate ? 'true' : 'false';
 
-        if (!exerciseData.weight_unit) {
-
+        // Load exercise preferences if not already loaded
+        if (!exerciseData.weight_unit || exerciseData.weight_increment === undefined) {
             try {
                 const baseUrl = window.location.origin;
                 const response = await fetch(`${baseUrl}/api/exercise-preferences/${exerciseData.exercise_id}`, {
@@ -568,20 +568,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (response.ok) {
                     const preference = await response.json();
-                    if (preference && preference.weight_unit) {
+                    if (preference) {
+                        // Load weight unit
+                        if (preference.weight_unit && !exerciseData.weight_unit) {
+                            exerciseData.weight_unit = preference.weight_unit;
+                        }
+                        // Load weight increment
+                        if (preference.weight_increment !== undefined && exerciseData.weight_increment === undefined) {
+                            exerciseData.weight_increment = preference.weight_increment;
+                        }
+                    }
 
-                        exerciseData.weight_unit = preference.weight_unit;
-                    } else {
-
+                    // Set defaults if not provided
+                    if (!exerciseData.weight_unit) {
                         exerciseData.weight_unit = 'lbs';
                     }
+                    if (exerciseData.weight_increment === undefined) {
+                        exerciseData.weight_increment = 5;
+                    }
                 } else {
-
-                    exerciseData.weight_unit = 'lbs';
+                    // Set defaults on API error
+                    if (!exerciseData.weight_unit) {
+                        exerciseData.weight_unit = 'lbs';
+                    }
+                    if (exerciseData.weight_increment === undefined) {
+                        exerciseData.weight_increment = 5;
+                    }
                 }
             } catch (error) {
-
-                exerciseData.weight_unit = 'lbs';
+                // Set defaults on network error
+                if (!exerciseData.weight_unit) {
+                    exerciseData.weight_unit = 'lbs';
+                }
+                if (exerciseData.weight_increment === undefined) {
+                    exerciseData.weight_increment = 5;
+                }
             }
         }
 
@@ -5587,10 +5608,30 @@ document.addEventListener('DOMContentLoaded', function() {
             saveExerciseUnitPreference(exerciseId, weightUnit, newIncrement);
         }
 
+        // Refresh goal calculations with the new weight increment
+        refreshGoalCalculations(exerciseItem, exercises[exerciseIndex]);
+
         saveWorkoutState();
 
         if (typeof saveWorkoutData === 'function') {
             saveWorkoutData();
+        }
+    }
+
+    function refreshGoalCalculations(exerciseItem, exerciseData) {
+        // Recalculate goals with the updated weight increment
+        const goalData = calculateGoal(exerciseData);
+
+        if (goalData && goalData.sets) {
+            // Update the goal column for each set
+            const setRows = exerciseItem.querySelectorAll('.set-row');
+            setRows.forEach((row, index) => {
+                const goalCell = row.querySelector('.goal-cell');
+                if (goalCell && goalData.sets[index]) {
+                    const goalSet = goalData.sets[index];
+                    goalCell.textContent = `${goalSet.weight}${goalData.unit} × ${goalSet.reps}`;
+                }
+            });
         }
     }
 
@@ -6553,15 +6594,13 @@ function calculateGoal(exerciseData) {
 
     const goalSets = JSON.parse(JSON.stringify(validSets));
 
-
+    // Always prioritize the weight increment from exercise preferences
     let weightIncrement = parseFloat(exerciseData.weight_increment) || 5; // Default to 5 if not specified
 
     console.log(`[calculateGoal] Using weight increment from exercise data: ${weightIncrement} ${prevUnit}`);
 
-
+    // Only try to detect increment if no explicit increment is set in preferences
     if (validSets.length > 1 && !exerciseData.weight_increment) {
-
-
         for (let i = 1; i < validSets.length; i++) {
             if (validSets[i].weight !== validSets[0].weight) {
                 const calculatedIncrement = Math.abs(validSets[i].weight - validSets[0].weight);
@@ -6576,19 +6615,18 @@ function calculateGoal(exerciseData) {
 
     console.log(`[calculateGoal] Using weight increment: ${weightIncrement} ${prevUnit}`);
 
+    // Apply the weight increment to all sets when target is reached
     if (allSetsReachedTarget) {
-
-
-        const firstSetWeight = goalSets[0].weight;
-
-        goalSets[0].weight = firstSetWeight + weightIncrement;
-        goalSets[0].reps = 8; // Start with fewer reps at the higher weight
+        // Apply the increment to all sets
+        for (let i = 0; i < goalSets.length; i++) {
+            goalSets[i].weight = goalSets[i].weight + weightIncrement;
+            goalSets[i].reps = 8; // Start with fewer reps at the higher weight
+        }
     } else {
-
+        // If not all sets reached target, just increment reps for the first incomplete set
         const incompleteSetIndex = goalSets.findIndex(set => set.reps < targetReps);
 
         if (incompleteSetIndex >= 0) {
-
             goalSets[incompleteSetIndex].reps += 1;
         }
     }

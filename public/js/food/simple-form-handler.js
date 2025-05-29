@@ -37,6 +37,11 @@
             const recipeName = recipeNameInput.value;
             console.log('[Simple Form Handler] Recipe name:', recipeName);
 
+            // Get grocery store field
+            const groceryStoreInput = document.getElementById('groceryStore');
+            const groceryStore = groceryStoreInput ? groceryStoreInput.value.trim() || null : null;
+            console.log('[Simple Form Handler] Grocery store:', groceryStore);
+
             const ingredientItems = document.querySelectorAll('.ingredient-item');
             console.log(`[Simple Form Handler] Found ${ingredientItems.length} ingredient items`);
 
@@ -122,14 +127,14 @@
                 return;
             }
 
-            console.log('[Simple Form Handler] Sending data to backend:', { name: recipeName, ingredients });
+            console.log('[Simple Form Handler] Sending data to backend:', { name: recipeName, groceryStore, ingredients });
 
             fetch('/api/recipes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name: recipeName, ingredients })
+                body: JSON.stringify({ name: recipeName, groceryStore, ingredients })
             })
             .then(response => {
                 if (!response.ok) {

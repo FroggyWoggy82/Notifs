@@ -99,11 +99,11 @@ async function getRecipeById(req, res) {
  * @param {Object} res - Express response object
  */
 async function createRecipe(req, res) {
-    const { name, ingredients } = req.body;
-    console.log(`Received POST /api/recipes: name='${name}'`, ingredients);
+    const { name, ingredients, groceryStore } = req.body;
+    console.log(`Received POST /api/recipes: name='${name}', groceryStore='${groceryStore || 'none'}'`, ingredients);
 
     try {
-        const recipe = await RecipeModel.createRecipe(name, ingredients);
+        const recipe = await RecipeModel.createRecipe(name, ingredients, groceryStore);
         console.log(`Recipe '${name}' created successfully with ID: ${recipe.id}`);
 
         // Set cache control headers to prevent caching

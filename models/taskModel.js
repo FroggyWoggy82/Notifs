@@ -515,6 +515,194 @@ class Task {
         return result.rows[0];
     }
 
+    /**
+     * Get a complete weekly list of all tasks organized by day and notification
+     * @param {Date} weekStart - Start of the week (Sunday)
+     * @param {Date} weekEnd - End of the week (Saturday)
+     * @returns {Promise<Object>} Complete weekly breakdown
+     */
+    static async getWeeklyCompleteList(weekStart, weekEnd) {
+        try {
+            // Get all tasks that fall within the week or have notifications within the week
+            const query = `
+                SELECT
+                    t.*,
+                    CASE
+                        WHEN t.parent_task_id IS NOT NULL THEN 'subtask'
+                        WHEN t.has_subtasks = true THEN 'parent'
+                        ELSE 'standalone'
+                    END as task_type
+                FROM tasks t
+                WHERE
+                    -- Tasks with assigned dates in the week
+                    (t.assigned_date >= $1::date AND t.assigned_date <= $2::date)
+                    OR
+                    -- Tasks with due dates in the week
+                    (t.due_date >= $1::date AND t.due_date <= $2::date)
+                    OR
+                    -- Tasks with reminder times in the week
+                    (t.reminder_time >= $1::timestamp AND t.reminder_time <= $2::timestamp)
+                    OR
+                    -- Recurring tasks that might have occurrences in the week
+                    (t.recurrence_type IS NOT NULL AND t.recurrence_type != 'none' AND t.due_date IS NOT NULL)
+                ORDER BY
+                    COALESCE(t.assigned_date, t.due_date, t.created_at::date) ASC,
+                    t.reminder_time ASC NULLS LAST,
+                    t.is_complete ASC,
+                    t.created_at DESC
+            `;
+
+            const result = await db.query(query, [weekStart, weekEnd]);
+            const allTasks = result.rows;
+
+            // Initialize daily breakdown
+            const dailyBreakdown = {
+                sunday: [],
+                monday: [],
+                tuesday: [],
+                wednesday: [],
+                thursday: [],
+                friday: [],
+                saturday: []
+            };
+
+            const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+            // Initialize notification breakdown
+            const notificationBreakdown = [];
+            const notificationMap = new Map();
+
+            // Initialize summary counters
+            let totalTasks = 0;
+            let completedTasks = 0;
+            let pendingTasks = 0;
+            let tasksWithNotifications = 0;
+
+            // Process each task
+            for (const task of allTasks) {
+                totalTasks++;
+
+                if (task.is_complete) {
+                    completedTasks++;
+                } else {
+                    pendingTasks++;
+                }
+
+                if (task.reminder_time) {
+                    tasksWithNotifications++;
+                }
+
+                // Add task to daily breakdown based on assigned_date or due_date
+                const taskDate = task.assigned_date || task.due_date;
+                if (taskDate) {
+                    const date = new Date(taskDate);
+                    if (date >= weekStart && date <= weekEnd) {
+                        const dayIndex = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                        const dayName = dayNames[dayIndex];
+
+                        // Enhance task with additional info
+                        const enhancedTask = {
+                            ...task,
+                            dateFormatted: date.toISOString().split('T')[0],
+                            dayOfWeek: dayName,
+                            hasSubtasks: task.has_subtasks || false,
+                            isSubtask: task.parent_task_id !== null,
+                            reminderFormatted: task.reminder_time ?
+                                new Date(task.reminder_time).toLocaleString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                }) : null
+                        };
+
+                        dailyBreakdown[dayName].push(enhancedTask);
+                    }
+                }
+
+                // Add task to notification breakdown if it has a reminder
+                if (task.reminder_time) {
+                    const reminderDate = new Date(task.reminder_time);
+                    if (reminderDate >= weekStart && reminderDate <= weekEnd) {
+                        const dateKey = reminderDate.toISOString().split('T')[0];
+                        const timeKey = reminderDate.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+
+                        const notificationKey = `${dateKey}_${timeKey}`;
+
+                        if (!notificationMap.has(notificationKey)) {
+                            notificationMap.set(notificationKey, {
+                                date: dateKey,
+                                time: timeKey,
+                                dateFormatted: reminderDate.toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    month: 'long',
+                                    day: 'numeric'
+                                }),
+                                tasks: []
+                            });
+                        }
+
+                        const enhancedTask = {
+                            ...task,
+                            reminderDateTime: reminderDate.toISOString(),
+                            taskDate: task.assigned_date || task.due_date,
+                            taskDateFormatted: (task.assigned_date || task.due_date) ?
+                                new Date(task.assigned_date || task.due_date).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric'
+                                }) : null
+                        };
+
+                        notificationMap.get(notificationKey).tasks.push(enhancedTask);
+                    }
+                }
+            }
+
+            // Convert notification map to sorted array
+            const sortedNotifications = Array.from(notificationMap.values()).sort((a, b) => {
+                const dateA = new Date(`${a.date} ${a.time}`);
+                const dateB = new Date(`${b.date} ${b.time}`);
+                return dateA - dateB;
+            });
+
+            // Get subtasks for parent tasks
+            for (const dayName of dayNames) {
+                for (const task of dailyBreakdown[dayName]) {
+                    if (task.has_subtasks) {
+                        const subtasks = await this.getSubtasks(task.id);
+                        task.subtasks = subtasks.map(subtask => ({
+                            ...subtask,
+                            isSubtask: true,
+                            parentTaskId: task.id
+                        }));
+                    }
+                }
+            }
+
+            return {
+                dailyBreakdown,
+                notificationBreakdown: sortedNotifications,
+                summary: {
+                    totalTasks,
+                    completedTasks,
+                    pendingTasks,
+                    tasksWithNotifications,
+                    completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+                }
+            };
+
+        } catch (error) {
+            console.error('Error in getWeeklyCompleteList:', error);
+            throw error;
+        }
+    }
+
 }
 
 module.exports = Task;

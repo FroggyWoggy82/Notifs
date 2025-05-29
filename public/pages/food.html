@@ -422,45 +422,37 @@
                 <input type="text" id="recipeName" name="recipe-name" placeholder="Enter recipe name" required>
             </div>
 
-            <!-- Grocery Store Input -->
-            <div class="form-group">
-                <label for="groceryStore">Grocery Store:</label>
-                <input type="text" id="groceryStore" name="grocery-store" placeholder="Enter grocery store name (optional)">
-            </div>
-
             <h3>Ingredients</h3>
             <div id="ingredients-list">
                 <!-- Ingredient inputs will be added dynamically here -->
                 <div class="ingredient-item">
                     <div class="ingredient-row">
-                        <!-- Ingredient Name, Amount, and Price stacked vertically -->
+                        <!-- All ingredient inputs in a single column -->
                         <div class="ingredient-inputs-container">
                             <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
                             <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.01" required>
                             <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="0.01">
                             <input type="number" placeholder="Package Price" class="ingredient-price" step="0.01" required>
+                            <input type="text" id="groceryStore" name="grocery-store" placeholder="Grocery store (optional)" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                            <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; min-height: 60px; resize: vertical;"></textarea>
                             <!-- Hidden fields for form submission with default values -->
                             <input type="hidden" class="ingredient-calories" required>
                             <input type="hidden" class="ingredient-protein" required>
                             <input type="hidden" class="ingredient-fat" required>
                             <input type="hidden" class="ingredient-carbs" required>
                         </div>
-
-                        <!-- Cronometer Text Parser -->
-                        <div class="cronometer-text-paste-container">
-                            <div class="cronometer-header">Cronometer Text Parser</div>
-                            <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." rows="5"></textarea>
-                            <button type="button" class="cronometer-parse-button" onclick="if(window.processCronometerText){window.processCronometerText(this.parentNode.querySelector('.cronometer-text-paste-area').value.trim(), this.closest('.ingredient-item'), this.parentNode.querySelector('.cronometer-parse-status'))}">Parse Nutrition Data</button>
-                            <div class="cronometer-parse-status"></div>
-                        </div>
                     </div>
 
                     <!-- Action buttons in one row -->
                     <div class="buttons-row">
+                        <button type="button" class="cronometer-parse-button" onclick="if(window.processCronometerText){window.processCronometerText(this.closest('.ingredient-item').querySelector('.cronometer-text-paste-area').value.trim(), this.closest('.ingredient-item'), this.closest('.ingredient-item').querySelector('.cronometer-parse-status'))}">Parse Nutrition Data</button>
                         <button type="button" class="toggle-detailed-nutrition">Show Detailed Nutrition</button>
                         <button type="button" class="add-ingredient-btn-inline">Add Ingredient</button>
                         <button type="button" class="remove-ingredient-btn">Remove</button>
                     </div>
+
+                    <!-- Status area for cronometer parsing -->
+                    <div class="cronometer-parse-status"></div>
 
                     <div class="detailed-nutrition-panel" style="display:none;">
                         <!-- General Section -->
