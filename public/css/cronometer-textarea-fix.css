@@ -1,0 +1,169 @@
+/**
+ * Cronometer Textarea Fix
+ * Makes the cronometer textarea and grocery store input match the size of other ingredient input fields
+ */
+
+/* Style the cronometer textarea to match other ingredient inputs */
+.cronometer-text-paste-area {
+    width: 100% !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    height: 36px !important; /* Same height as other ingredient inputs */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    resize: none !important; /* Disable resize to maintain consistent height */
+    background-color: rgba(30, 30, 30, 0.7) !important; /* Dark background to match other inputs */
+    color: #e0e0e0 !important; /* Light text color */
+    font-family: inherit !important;
+    min-height: 36px !important; /* Override any min-height */
+    max-height: 36px !important; /* Prevent expansion */
+}
+
+/* Focus state to match other inputs */
+.cronometer-text-paste-area:focus {
+    outline: none !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Style the grocery store input to match other ingredient inputs */
+.grocery-store-input {
+    width: 100% !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    height: 36px !important; /* Same height as other ingredient inputs */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    background-color: rgba(30, 30, 30, 0.7) !important; /* Dark background to match other inputs */
+    color: #e0e0e0 !important; /* Light text color */
+    font-family: inherit !important;
+}
+
+/* Focus state for grocery store input */
+.grocery-store-input:focus {
+    outline: none !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Additional styling for consistency with the ingredient inputs container */
+.ingredient-inputs-container .cronometer-text-paste-area,
+.ingredient-inputs-container .grocery-store-input {
+    width: 100% !important;
+    height: 36px !important;
+}
+
+/* Ensure consistent styling in dark theme if applicable */
+@media (prefers-color-scheme: dark) {
+    .cronometer-text-paste-area,
+    .grocery-store-input {
+        background-color: rgba(30, 30, 30, 0.7) !important;
+        color: #e0e0e0 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .cronometer-text-paste-area:focus,
+    .grocery-store-input:focus {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+/* Comprehensive styling to make ALL ingredient inputs look exactly the same */
+#create-recipe-form .ingredient-name,
+#create-recipe-form .ingredient-amount,
+#create-recipe-form .ingredient-package-amount,
+#create-recipe-form .ingredient-price,
+#create-recipe-form .grocery-store-input,
+#create-recipe-form .cronometer-text-paste-area,
+#ingredients-list .ingredient-name,
+#ingredients-list .ingredient-amount,
+#ingredients-list .ingredient-package-amount,
+#ingredients-list .ingredient-price,
+#ingredients-list .grocery-store-input,
+#ingredients-list .cronometer-text-paste-area,
+.ingredient-inputs-container .ingredient-name,
+.ingredient-inputs-container .ingredient-amount,
+.ingredient-inputs-container .ingredient-package-amount,
+.ingredient-inputs-container .ingredient-price,
+.ingredient-inputs-container .grocery-store-input,
+.ingredient-inputs-container .cronometer-text-paste-area {
+    width: 100% !important;
+    padding: 8px !important;
+    height: 36px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    font-weight: normal !important;
+    font-family: inherit !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    margin-bottom: 10px !important;
+    background-color: rgba(30, 30, 30, 0.7) !important;
+    color: #e0e0e0 !important;
+    line-height: normal !important;
+    letter-spacing: normal !important;
+}
+
+/* Specific override for textarea resize */
+#create-recipe-form textarea.cronometer-text-paste-area,
+#ingredients-list textarea.cronometer-text-paste-area {
+    resize: none !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+}
+
+/* Consistent placeholder styling for all ingredient inputs */
+#create-recipe-form .ingredient-name::placeholder,
+#create-recipe-form .ingredient-amount::placeholder,
+#create-recipe-form .ingredient-package-amount::placeholder,
+#create-recipe-form .ingredient-price::placeholder,
+#create-recipe-form .grocery-store-input::placeholder,
+#create-recipe-form .cronometer-text-paste-area::placeholder,
+#ingredients-list .ingredient-name::placeholder,
+#ingredients-list .ingredient-amount::placeholder,
+#ingredients-list .ingredient-package-amount::placeholder,
+#ingredients-list .ingredient-price::placeholder,
+#ingredients-list .grocery-store-input::placeholder,
+#ingredients-list .cronometer-text-paste-area::placeholder,
+.ingredient-inputs-container .ingredient-name::placeholder,
+.ingredient-inputs-container .ingredient-amount::placeholder,
+.ingredient-inputs-container .ingredient-package-amount::placeholder,
+.ingredient-inputs-container .ingredient-price::placeholder,
+.ingredient-inputs-container .grocery-store-input::placeholder,
+.ingredient-inputs-container .cronometer-text-paste-area::placeholder {
+    color: rgba(224, 224, 224, 0.7) !important;
+    font-size: 14px !important;
+    font-weight: normal !important;
+    font-family: inherit !important;
+    opacity: 1 !important;
+}
+
+/* Focus states for all ingredient inputs */
+#create-recipe-form .ingredient-name:focus,
+#create-recipe-form .ingredient-amount:focus,
+#create-recipe-form .ingredient-package-amount:focus,
+#create-recipe-form .ingredient-price:focus,
+#create-recipe-form .grocery-store-input:focus,
+#create-recipe-form .cronometer-text-paste-area:focus,
+#ingredients-list .ingredient-name:focus,
+#ingredients-list .ingredient-amount:focus,
+#ingredients-list .ingredient-package-amount:focus,
+#ingredients-list .ingredient-price:focus,
+#ingredients-list .grocery-store-input:focus,
+#ingredients-list .cronometer-text-paste-area:focus,
+.ingredient-inputs-container .ingredient-name:focus,
+.ingredient-inputs-container .ingredient-amount:focus,
+.ingredient-inputs-container .ingredient-package-amount:focus,
+.ingredient-inputs-container .ingredient-price:focus,
+.ingredient-inputs-container .grocery-store-input:focus,
+.ingredient-inputs-container .cronometer-text-paste-area:focus {
+    outline: none !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(40, 40, 40, 0.9) !important;
+}

@@ -95,6 +95,7 @@
     <link rel="stylesheet" href="../css/meal-calendar-white-text.css"> <!-- White text for meal calendar -->
     <link rel="stylesheet" href="../css/ultra-compact-recipes.css"> <!-- Ultra compact recipe sections -->
     <link rel="stylesheet" href="../css/food-page-compact.css"> <!-- Compact styling for Food page title and Goals section -->
+    <link rel="stylesheet" href="../css/cronometer-textarea-fix.css"> <!-- Fix for cronometer textarea to match other input sizes -->
 </head>
 <body>
     <button class="menu-button">
@@ -433,8 +434,8 @@
                             <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.01" required>
                             <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="0.01">
                             <input type="number" placeholder="Package Price" class="ingredient-price" step="0.01" required>
-                            <input type="text" id="groceryStore" name="grocery-store" placeholder="Grocery store (optional)" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                            <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; min-height: 60px; resize: vertical;"></textarea>
+                            <input type="text" id="groceryStore" name="grocery-store" placeholder="Grocery store (optional)" class="grocery-store-input">
+                            <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..."></textarea>
                             <!-- Hidden fields for form submission with default values -->
                             <input type="hidden" class="ingredient-calories" required>
                             <input type="hidden" class="ingredient-protein" required>
