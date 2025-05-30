@@ -43,7 +43,7 @@ async function getAllRecipes() {
 
         // Now fetch all recipes
         console.log('Executing query to get all recipes...');
-        const result = await db.query('SELECT id, name, total_calories, grocery_store FROM recipes ORDER BY name ASC');
+        const result = await db.query('SELECT id, name, total_calories FROM recipes ORDER BY name ASC');
         console.log(`Query returned ${result.rowCount} recipes`);
         console.log('Recipes:', result.rows);
         return result.rows;

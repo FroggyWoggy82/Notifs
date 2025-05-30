@@ -1,0 +1,67 @@
+/**
+ * Mobile Grocery Badges
+ * Reduces padding and sizing of grocery badges for better mobile fit
+ */
+
+/* Mobile-optimized grocery badges with reduced padding */
+@media (max-width: 768px) {
+    .grocery-amount,
+    .grocery-package,
+    .grocery-packages,
+    .grocery-price,
+    .subtask-item.grocery-item .grocery-amount,
+    .subtask-item.grocery-item .grocery-package,
+    .subtask-item.grocery-item .grocery-packages,
+    .subtask-item.grocery-item .grocery-price {
+        font-size: 12px !important;
+        padding: 2px 6px !important;
+        border-radius: 3px !important;
+        font-weight: 600 !important;
+        margin: 1px !important;
+        letter-spacing: 0.3px !important;
+        line-height: 1.2 !important;
+    }
+}
+
+/* Extra small screens - even more compact */
+@media (max-width: 480px) {
+    .grocery-amount,
+    .grocery-package,
+    .grocery-packages,
+    .grocery-price,
+    .subtask-item.grocery-item .grocery-amount,
+    .subtask-item.grocery-item .grocery-package,
+    .subtask-item.grocery-item .grocery-packages,
+    .subtask-item.grocery-item .grocery-price {
+        font-size: 11px !important;
+        padding: 1px 4px !important;
+        border-radius: 2px !important;
+        font-weight: 600 !important;
+        margin: 1px !important;
+        letter-spacing: 0.2px !important;
+        line-height: 1.1 !important;
+    }
+}
+
+/* Maintain color schemes for all sizes */
+.grocery-amount {
+    background-color: rgba(76, 175, 80, 0.8) !important;
+    border: 1px solid rgba(76, 175, 80, 1) !important;
+    box-shadow: 0 0 3px rgba(76, 175, 80, 0.6) !important;
+    color: #ffffff !important;
+}
+
+.grocery-package,
+.grocery-packages {
+    background-color: rgba(33, 150, 243, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 3px rgba(33, 150, 243, 0.8) !important;
+    color: #ffffff !important;
+}
+
+.grocery-price {
+    background-color: rgba(255, 152, 0, 0.8) !important;
+    border: 1px solid rgba(255, 152, 0, 1) !important;
+    box-shadow: 0 0 3px rgba(255, 152, 0, 0.6) !important;
+    color: #ffffff !important;
+}
