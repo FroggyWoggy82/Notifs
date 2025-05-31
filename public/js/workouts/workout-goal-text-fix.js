@@ -44,6 +44,11 @@
     function restoreGoalTextState() {
         console.log('[Workout Goal Text Fix] Restoring goal text state...');
 
+        // TEMPORARILY DISABLED - Clear old cached goals to allow new calculation logic to work
+        console.log('[Workout Goal Text Fix] Clearing old cached goal text to allow new calculations');
+        localStorage.removeItem(GOAL_TEXT_KEY);
+        return;
+
         const savedState = localStorage.getItem(GOAL_TEXT_KEY);
         if (!savedState) {
             console.log('[Workout Goal Text Fix] No saved goal text state found');
@@ -74,7 +79,7 @@
                 }
             });
         });
-        
+
         console.log('[Workout Goal Text Fix] Restored goal text state');
     }
 

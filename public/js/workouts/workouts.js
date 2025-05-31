@@ -744,6 +744,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 title="View Exercise History">
                                 <span class="icon">📊</span> History
                             </button>
+                            <button type="button" class="btn-edit-target-sets-reps"
+                                data-workout-index="${index}"
+                                title="Edit Target Sets×Reps"
+                                onclick="window.handleEditTargetSetsRepsClick(this, ${index});">
+                                🎯 Target
+                            </button>
                             <div class="button-group-right">
                                 <button type="button" class="btn-edit-exercise-name" data-workout-index="${index}" title="Edit Exercise Name">✏️</button>
                                 <button type="button" class="btn-replace-exercise" data-workout-index="${index}" data-exercise-id="${exerciseData.exercise_id}" title="Replace Exercise">🔄</button>
@@ -4209,6 +4215,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (target.classList.contains('btn-delete-exercise')) {
                     console.log("[DEBUG] Detected btn-delete-exercise click");
                     handleDeleteExercise(event);
+                } else if (target.classList.contains('btn-edit-target-sets-reps')) {
+                    console.log("[DEBUG] Detected btn-edit-target-sets-reps click - EVENT TRIGGERED!");
+                    alert("Event listener triggered!"); // Temporary debug alert
+                    handleEditTargetSetsReps(event);
+                } else {
+                    console.log("[DEBUG] Clicked element classes:", target.classList.toString());
                 }
             }
         });
@@ -4230,6 +4242,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         saveInputValues();
                     }, 500); // Save after 500ms of inactivity
+                } else if (target.classList.contains('weight-increment-input')) {
+                    console.log('[Weight Increment] Input detected, triggering goal recalculation');
+                    handleWeightIncrementChange(event);
                 }
             }
         });
@@ -5619,19 +5634,195 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function refreshGoalCalculations(exerciseItem, exerciseData) {
+        console.log("[Refresh Goals] Recalculating goals for:", exerciseData.name);
+        console.log("[Refresh Goals] Exercise data:", exerciseData);
+
         // Recalculate goals with the updated weight increment
         const goalData = calculateGoal(exerciseData);
+        console.log("[Refresh Goals] New goal data:", goalData);
 
         if (goalData && goalData.sets) {
             // Update the goal column for each set
             const setRows = exerciseItem.querySelectorAll('.set-row');
+            console.log("[Refresh Goals] Found", setRows.length, "set rows");
+
             setRows.forEach((row, index) => {
-                const goalCell = row.querySelector('.goal-cell');
+                const goalCell = row.querySelector('.goal-target'); // Changed from .goal-cell to .goal-target
                 if (goalCell && goalData.sets[index]) {
                     const goalSet = goalData.sets[index];
-                    goalCell.textContent = `${goalSet.weight}${goalData.unit} × ${goalSet.reps}`;
+                    const newGoalText = `${goalSet.weight} ${goalData.unit} x ${goalSet.reps}`;
+                    goalCell.textContent = newGoalText;
+                    console.log(`[Refresh Goals] Updated set ${index + 1} goal to: ${newGoalText}`);
+                } else {
+                    console.log(`[Refresh Goals] No goal cell or goal data for set ${index + 1}`);
                 }
             });
+        } else {
+            console.log("[Refresh Goals] No goal data available");
+        }
+    }
+
+    // Global function for direct onclick calls
+    window.handleEditTargetSetsRepsClick = function(button, exerciseIndex) {
+        console.log("[Edit Target Sets×Reps] Direct click function called!");
+        console.log("Exercise index:", exerciseIndex);
+
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        if (!exercises || !exercises[exerciseIndex]) {
+            console.error("[Edit Target Sets×Reps] Exercise not found at index:", exerciseIndex);
+            alert("Error: Exercise not found");
+            return;
+        }
+
+        const exerciseData = exercises[exerciseIndex];
+        const currentSets = exerciseData.template_sets || exerciseData.sets || 3;
+        const currentReps = exerciseData.template_reps || exerciseData.reps || '';
+
+        console.log("Current exercise data:", exerciseData);
+        console.log("Current sets:", currentSets, "Current reps:", currentReps);
+
+        // Create and show modal
+        showEditTargetSetsRepsModal(exerciseIndex, exerciseData.name, currentSets, currentReps);
+    };
+
+    function handleEditTargetSetsReps(event) {
+        console.log("[Edit Target Sets×Reps] Button clicked - FUNCTION CALLED!");
+        alert("Target button clicked!"); // Temporary debug alert
+        event.preventDefault();
+        event.stopPropagation();
+
+        const button = event.target;
+        const exerciseIndex = parseInt(button.dataset.workoutIndex, 10);
+
+        if (isNaN(exerciseIndex)) {
+            console.error("[Edit Target Sets×Reps] Invalid exercise index");
+            return;
+        }
+
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        if (!exercises || !exercises[exerciseIndex]) {
+            console.error("[Edit Target Sets×Reps] Exercise not found at index:", exerciseIndex);
+            return;
+        }
+
+        const exerciseData = exercises[exerciseIndex];
+        const currentSets = exerciseData.template_sets || exerciseData.sets || 3;
+        const currentReps = exerciseData.template_reps || exerciseData.reps || '';
+
+        // Create and show modal
+        showEditTargetSetsRepsModal(exerciseIndex, exerciseData.name, currentSets, currentReps);
+    }
+
+    function showEditTargetSetsRepsModal(exerciseIndex, exerciseName, currentSets, currentReps) {
+        // Remove existing modal if it exists
+        const existingModal = document.getElementById('edit-target-sets-reps-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.id = 'edit-target-sets-reps-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>Edit Target Sets×Reps</h3>
+                <p><strong>${exerciseName}</strong></p>
+                <div class="target-sets-reps-form">
+                    <div class="form-group">
+                        <label for="target-sets-input">Target Sets:</label>
+                        <input type="number" id="target-sets-input" min="1" max="10" value="${currentSets}">
+                    </div>
+                    <div class="form-group">
+                        <label for="target-reps-input">Target Reps:</label>
+                        <input type="number" id="target-reps-input" min="1" max="50" value="${currentReps}" placeholder="e.g., 12">
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" id="save-target-sets-reps" class="btn btn-primary">Save</button>
+                    <button type="button" id="cancel-target-sets-reps" class="btn">Cancel</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add event listeners
+        const closeBtn = modal.querySelector('.close-modal');
+        const saveBtn = modal.querySelector('#save-target-sets-reps');
+        const cancelBtn = modal.querySelector('#cancel-target-sets-reps');
+        const setsInput = modal.querySelector('#target-sets-input');
+        const repsInput = modal.querySelector('#target-reps-input');
+
+        function closeModal() {
+            modal.remove();
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        saveBtn.addEventListener('click', () => {
+            const newSets = parseInt(setsInput.value);
+            const newReps = parseInt(repsInput.value);
+
+            if (isNaN(newSets) || newSets < 1) {
+                alert('Please enter a valid number of sets (1 or more)');
+                return;
+            }
+
+            if (isNaN(newReps) || newReps < 1) {
+                alert('Please enter a valid number of reps (1 or more)');
+                return;
+            }
+
+            updateTargetSetsReps(exerciseIndex, newSets, newReps);
+            closeModal();
+        });
+
+        // Show modal
+        modal.style.display = 'block';
+
+        // Focus on sets input
+        setTimeout(() => setsInput.focus(), 100);
+    }
+
+    function updateTargetSetsReps(exerciseIndex, newSets, newReps) {
+        const exercises = Array.isArray(currentWorkout) ? currentWorkout : currentWorkout.exercises;
+        if (!exercises || !exercises[exerciseIndex]) {
+            console.error("[Update Target Sets×Reps] Exercise not found at index:", exerciseIndex);
+            return;
+        }
+
+        const exerciseData = exercises[exerciseIndex];
+
+        // Update the exercise data
+        exerciseData.template_sets = newSets;
+        exerciseData.template_reps = newReps;
+
+        console.log(`[Update Target Sets×Reps] Updated ${exerciseData.name} to ${newSets}×${newReps}`);
+
+        // Re-render the exercise to update the display
+        const exerciseItem = document.querySelector(`[data-workout-index="${exerciseIndex}"]`);
+        if (exerciseItem) {
+            // Update the target sets×reps display
+            const targetSetsRepsElement = exerciseItem.querySelector('.target-sets-reps');
+            if (targetSetsRepsElement) {
+                targetSetsRepsElement.textContent = `Target Sets×Reps: ${newSets}×${newReps}`;
+            }
+
+            // Recalculate and update goals with new target reps
+            refreshGoalCalculations(exerciseItem, exerciseData);
+        }
+
+        // Save the workout state
+        saveWorkoutState();
+
+        if (typeof saveWorkoutData === 'function') {
+            saveWorkoutData();
         }
     }
 
@@ -6589,15 +6780,16 @@ function calculateGoal(exerciseData) {
         return null; // No valid sets to base goal on
     }
 
-    const targetReps = 10; // This could be configurable
-    const allSetsReachedTarget = validSets.every(set => set.reps >= targetReps);
-
     const goalSets = JSON.parse(JSON.stringify(validSets));
 
     // Always prioritize the weight increment from exercise preferences
     let weightIncrement = parseFloat(exerciseData.weight_increment) || 5; // Default to 5 if not specified
 
-    console.log(`[calculateGoal] Using weight increment from exercise data: ${weightIncrement} ${prevUnit}`);
+    console.log(`[calculateGoal] *** FIXED VERSION *** Exercise: ${exerciseData.name}`);
+    console.log(`[calculateGoal] Raw weight_increment from exerciseData:`, exerciseData.weight_increment);
+    console.log(`[calculateGoal] Parsed weight increment: ${weightIncrement} ${prevUnit}`);
+    console.log(`[calculateGoal] Previous performance:`, validSets.map(s => `${s.weight}x${s.reps}`).join(', '));
+    console.log(`[calculateGoal] Target reps from template:`, exerciseData.template_reps);
 
     // Only try to detect increment if no explicit increment is set in preferences
     if (validSets.length > 1 && !exerciseData.weight_increment) {
@@ -6615,21 +6807,82 @@ function calculateGoal(exerciseData) {
 
     console.log(`[calculateGoal] Using weight increment: ${weightIncrement} ${prevUnit}`);
 
-    // Apply the weight increment to all sets when target is reached
-    if (allSetsReachedTarget) {
-        // Apply the increment to all sets
-        for (let i = 0; i < goalSets.length; i++) {
-            goalSets[i].weight = goalSets[i].weight + weightIncrement;
-            goalSets[i].reps = 8; // Start with fewer reps at the higher weight
-        }
-    } else {
-        // If not all sets reached target, just increment reps for the first incomplete set
-        const incompleteSetIndex = goalSets.findIndex(set => set.reps < targetReps);
+    // Get target reps from template (if available)
+    const targetReps = exerciseData.template_reps ? parseInt(exerciseData.template_reps) : null;
+    console.log(`[calculateGoal] Target reps per set: ${targetReps || 'not specified'}`);
 
-        if (incompleteSetIndex >= 0) {
-            goalSets[incompleteSetIndex].reps += 1;
+    // Progressive overload logic using target reps
+    // If target reps are specified, use them to determine progression
+    // If not specified, fall back to traditional rep range logic
+
+    // Apply progressive overload to each set
+    for (let i = 0; i < goalSets.length; i++) {
+        const currentSet = goalSets[i];
+        const prevReps = currentSet.reps;
+        const prevWeight = currentSet.weight;
+
+        console.log(`[calculateGoal] Set ${i+1}: Previous ${prevWeight} x ${prevReps}`);
+
+        if (targetReps) {
+            // Use target reps logic: only increase weight when target reps are reached
+            if (prevReps >= targetReps) {
+                // Previous reps met or exceeded target - increase weight and reset to lower reps
+                currentSet.weight = prevWeight + weightIncrement;
+                currentSet.reps = Math.max(1, targetReps - 2); // Start 2 reps below target with new weight
+                console.log(`[calculateGoal] Set ${i+1}: Reached target reps (${prevReps} >= ${targetReps}), increased weight to ${currentSet.weight}, reset reps to ${currentSet.reps}`);
+            } else {
+                // Previous reps below target - keep weight same and increase reps toward target
+                currentSet.weight = prevWeight;
+                currentSet.reps = prevReps + 1;
+                console.log(`[calculateGoal] Set ${i+1}: Below target reps (${prevReps} < ${targetReps}), kept weight at ${currentSet.weight}, increased reps to ${currentSet.reps}`);
+            }
+        } else {
+            // Fallback to traditional rep range logic when no target reps specified
+            const targetRepRange = {
+                strength: { min: 3, max: 5 },
+                hypertrophy: { min: 6, max: 12 },
+                endurance: { min: 15, max: 20 }
+            };
+
+            let targetRange;
+            if (prevReps <= 5) {
+                targetRange = targetRepRange.strength;
+            } else if (prevReps <= 12) {
+                targetRange = targetRepRange.hypertrophy;
+            } else {
+                targetRange = targetRepRange.endurance;
+            }
+
+            if (prevReps >= targetRange.max) {
+                // At or above max range - increase weight, reduce reps
+                currentSet.weight = prevWeight + weightIncrement;
+                currentSet.reps = Math.max(targetRange.min, prevReps - 2);
+                console.log(`[calculateGoal] Set ${i+1}: At max range (${prevReps} >= ${targetRange.max}), increased weight to ${currentSet.weight}, reduced reps to ${currentSet.reps}`);
+            } else {
+                // Below max range - keep weight, increase reps
+                currentSet.weight = prevWeight;
+                currentSet.reps = prevReps + 1;
+                console.log(`[calculateGoal] Set ${i+1}: Below max range, kept weight at ${currentSet.weight}, increased reps to ${currentSet.reps}`);
+            }
         }
+
+        // Safety checks to ensure goals are never worse than previous performance
+        if (currentSet.weight < prevWeight) {
+            currentSet.weight = prevWeight;
+            console.log(`[calculateGoal] Set ${i+1}: Safety check - restored weight to ${currentSet.weight}`);
+        }
+        if (currentSet.weight === prevWeight && currentSet.reps < prevReps) {
+            currentSet.reps = prevReps + 1;
+            console.log(`[calculateGoal] Set ${i+1}: Safety check - increased reps to ${currentSet.reps}`);
+        }
+        if (currentSet.reps < 1) {
+            currentSet.reps = 1;
+        }
+
+        console.log(`[calculateGoal] Set ${i+1}: Final goal ${currentSet.weight} x ${currentSet.reps}`);
     }
+
+    console.log(`[calculateGoal] Final goal sets:`, goalSets.map(s => `${s.weight}x${s.reps}`).join(', '));
 
     return {
         sets: goalSets,

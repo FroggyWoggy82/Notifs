@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const journalContentTextarea = document.getElementById('journal-content');
     const saveEntryButton = document.getElementById('save-entry');
     const analyzeEntryButton = document.getElementById('analyze-entry');
+    const sendMessageButton = document.getElementById('send-message');
     const entryListElement = document.getElementById('entry-list');
-    const analysisContentElement = document.getElementById('analysis-content');
+    const chatMessagesElement = document.getElementById('chat-messages');
     const statusMessage = document.getElementById('status-message');
     const wordCountElement = document.getElementById('word-count');
     const moodSelector = document.getElementById('mood-selector');
@@ -18,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const promptSuggestions = document.getElementById('prompt-suggestions');
     const sentimentIndicator = document.getElementById('sentiment-indicator');
     const saveInsightsButton = document.getElementById('save-insights');
+
+    // Chat conversation state
+    let currentConversation = [];
 
     // Set today's date as default - Enhanced to ensure it always works
     function setTodaysDate() {
@@ -49,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadEntries();
     loadMemoryEntries();
     initializeAnimations();
-    initializeFlowExperience();
+    initializeChatInterface();
 
     // Make sure word count is initialized
     console.log('Initializing word count');
@@ -75,7 +79,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event Listeners
     saveEntryButton.addEventListener('click', saveEntry);
     analyzeEntryButton.addEventListener('click', analyzeEntry);
+    sendMessageButton.addEventListener('click', sendMessage);
     journalDateInput.addEventListener('change', loadEntryForDate);
+
+    // Enter key to send message
+    journalContentTextarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 
     // Make sure the textarea input event is properly connected for word count
     if (journalContentTextarea) {
@@ -134,20 +147,168 @@ document.addEventListener('DOMContentLoaded', function() {
             wordCount = words.length;
         }
 
-
-
         wordCountElement.textContent = `${wordCount} word${wordCount !== 1 ? 's' : ''}`;
 
-        // Update sentiment indicator in real-time
-        const content = text;
+        // Enable/disable send button based on content
+        if (sendMessageButton) {
+            sendMessageButton.disabled = !text.trim();
+        }
+    }
 
-        // Debounce real-time analysis
-        clearTimeout(window.journalAnalysisTimeout);
-        window.journalAnalysisTimeout = setTimeout(() => {
-            if (content.length > 50) {
-                performRealTimeAnalysis(content);
+    /**
+     * Sends a message in the chat interface
+     */
+    async function sendMessage() {
+        const content = journalContentTextarea.value.trim();
+        if (!content) return;
+
+        // Add user message to chat
+        addMessageToChat('user', content);
+
+        // Clear input
+        journalContentTextarea.value = '';
+        handleTextareaInput();
+
+        // Add to conversation history
+        currentConversation.push({
+            role: 'user',
+            content: content,
+            timestamp: new Date()
+        });
+
+        // Get AI response
+        await getAIResponse(content);
+    }
+
+    /**
+     * Adds a message to the chat interface
+     */
+    function addMessageToChat(sender, content, timestamp = new Date()) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        messageContent.innerHTML = formatMessageContent(content);
+
+        const messageTimestamp = document.createElement('div');
+        messageTimestamp.className = 'message-timestamp';
+        messageTimestamp.textContent = timestamp.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(messageTimestamp);
+
+        // Remove welcome message if it exists
+        const welcomeMessage = chatMessagesElement.querySelector('.welcome-message');
+        if (welcomeMessage && sender === 'user') {
+            welcomeMessage.remove();
+        }
+
+        chatMessagesElement.appendChild(messageDiv);
+
+        // Scroll to bottom
+        chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+
+        return messageDiv;
+    }
+
+    /**
+     * Formats message content for display
+     */
+    function formatMessageContent(content) {
+        // Convert line breaks to <br> tags
+        return content.replace(/\n/g, '<br>');
+    }
+
+    /**
+     * Gets AI response for the user's message
+     */
+    async function getAIResponse(userMessage) {
+        // Add loading message
+        const loadingMessage = addMessageToChat('ai', 'Thinking...');
+        loadingMessage.classList.add('loading');
+
+        try {
+            const response = await fetch('/api/journal/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: userMessage,
+                    conversation: currentConversation
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        }, 2000);
+
+            const result = await response.json();
+            const analysis = result.analysis;
+
+            // Remove loading message
+            loadingMessage.remove();
+
+            // Add AI response
+            addMessageToChat('ai', analysis);
+
+            // Add to conversation history
+            currentConversation.push({
+                role: 'ai',
+                content: analysis,
+                timestamp: new Date()
+            });
+
+            // Save the conversation
+            await saveConversation();
+
+        } catch (error) {
+            console.error('Error getting AI response:', error);
+
+            // Remove loading message
+            loadingMessage.remove();
+
+            // Add error message
+            addMessageToChat('ai', 'I apologize, but I\'m having trouble responding right now. Please try again in a moment.');
+        }
+    }
+
+    /**
+     * Saves the current conversation
+     */
+    async function saveConversation() {
+        try {
+            const date = journalDateInput.value;
+            const mood = moodSelector ? moodSelector.value : 'neutral';
+
+            // Create a summary of the conversation for storage
+            const conversationText = currentConversation
+                .map(msg => `${msg.role}: ${msg.content}`)
+                .join('\n\n');
+
+            await fetch('/api/journal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    date: date,
+                    content: conversationText,
+                    mood: mood,
+                    conversation: currentConversation
+                })
+            });
+
+            // Refresh entry list
+            loadEntries();
+
+        } catch (error) {
+            console.error('Error saving conversation:', error);
+        }
     }
 
     /**
@@ -288,61 +449,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Initializes the Peak Flow journaling experience
+     * Initializes the chat interface
      */
-    function initializeFlowExperience() {
-        const editorPrompt = document.getElementById('editor-prompt');
-        const journalContent = document.getElementById('journal-content');
-        const container = document.querySelector('.journal-container');
-
-        if (!editorPrompt || !journalContent || !container) {
-            console.log('Flow experience elements not found, skipping initialization');
-            return;
+    function initializeChatInterface() {
+        // Initialize send button state
+        if (sendMessageButton) {
+            sendMessageButton.disabled = true;
         }
 
-        // Hide prompt when user starts typing
-        journalContent.addEventListener('input', function() {
-            if (this.value.length > 0) {
-                editorPrompt.classList.add('hidden');
-            } else {
-                editorPrompt.classList.remove('hidden');
-            }
+        // Auto-resize textarea
+        if (journalContentTextarea) {
+            journalContentTextarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
 
-            // Add typing ripple effect
-            this.classList.add('typing');
+            // Focus on the input
             setTimeout(() => {
-                this.classList.remove('typing');
-            }, 600);
-        });
+                journalContentTextarea.focus();
+            }, 500);
+        }
 
-        // Focus mode - fade distractions when writing
-        journalContent.addEventListener('focus', function() {
-            container.classList.add('focus-mode');
-        });
+        // Load today's conversation if it exists
+        loadEntryForDate();
 
-        journalContent.addEventListener('blur', function() {
-            setTimeout(() => {
-                container.classList.remove('focus-mode');
-            }, 1000);
-        });
-
-        // Auto-save as user types (debounced)
-        let saveTimeout;
-        journalContent.addEventListener('input', function() {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                if (this.value.trim().length > 10) {
-                    saveEntry();
-                }
-            }, 3000); // Auto-save after 3 seconds of no typing
-        });
-
-        // Gentle focus on page load
-        setTimeout(() => {
-            journalContent.focus();
-        }, 800);
-
-        console.log('Peak Flow journaling experience initialized');
+        console.log('Chat interface initialized');
     }
 
     /**
@@ -780,16 +911,47 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function loadEntry(entry) {
         journalDateInput.value = entry.date;
-        journalContentTextarea.value = entry.content;
 
         if (moodSelector && entry.mood) {
             moodSelector.value = entry.mood;
         }
 
-        updateWordCount();
+        // Clear current conversation
+        currentConversation = [];
 
-        // Clear analysis content
-        analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
+        // Clear chat messages
+        chatMessagesElement.innerHTML = '';
+
+        // Load conversation if it exists
+        if (entry.conversation && Array.isArray(entry.conversation)) {
+            currentConversation = entry.conversation;
+
+            // Render conversation messages
+            entry.conversation.forEach(msg => {
+                addMessageToChat(msg.role, msg.content, new Date(msg.timestamp));
+            });
+        } else if (entry.content) {
+            // If it's an old-style entry, show it as a single user message
+            addMessageToChat('user', entry.content);
+
+            // If there's analysis, show it as AI response
+            if (entry.analysis) {
+                addMessageToChat('ai', entry.analysis);
+            }
+        } else {
+            // Show welcome message
+            chatMessagesElement.innerHTML = `
+                <div class="welcome-message">
+                    <div class="message ai-message">
+                        <div class="message-content">
+                            <p>Hello! I'm Gibiti, your AI journaling companion. Share your thoughts with me and I'll help you reflect and gain insights. What's on your mind today?</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        updateWordCount();
 
         // Scroll to top
         window.scrollTo(0, 0);
@@ -805,13 +967,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/api/journal/date/${selectedDate}`);
 
             if (response.status === 404) {
-                // No entry for this date
+                // No entry for this date - clear everything and show welcome
                 journalContentTextarea.value = '';
                 if (moodSelector) {
                     moodSelector.value = 'neutral';
                 }
+                currentConversation = [];
+                chatMessagesElement.innerHTML = `
+                    <div class="welcome-message">
+                        <div class="message ai-message">
+                            <div class="message-content">
+                                <p>Hello! I'm Gibiti, your AI journaling companion. Share your thoughts with me and I'll help you reflect and gain insights. What's on your mind today?</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
                 updateWordCount();
-                analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
                 return;
             }
 
@@ -821,43 +992,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const entry = await response.json();
-            journalContentTextarea.value = entry.content;
 
-            if (moodSelector && entry.mood) {
-                moodSelector.value = entry.mood;
-            } else if (moodSelector) {
-                moodSelector.value = 'neutral';
-            }
+            // Load the entry using the existing loadEntry function
+            loadEntry(entry);
 
-            updateWordCount();
-
-            // If the entry has an analysis, display it
-            if (entry.analysis) {
-                // Extract questions and insights for proper formatting
-                const questions = [];
-                const questionRegex = /\[QUESTION\s+(\d+):\s*(.+?)(?:\]|\n|$)/gi;
-                let questionMatch;
-                while ((questionMatch = questionRegex.exec(entry.analysis)) !== null) {
-                    questions.push({
-                        number: parseInt(questionMatch[1]),
-                        text: questionMatch[2].trim()
-                    });
-                }
-
-                const insights = [];
-                const insightRegex = /\[INSIGHT:\s*(.+?)(?:\]|\n|$)/gi;
-                let insightMatch;
-                while ((insightMatch = insightRegex.exec(entry.analysis)) !== null) {
-                    insights.push({
-                        text: insightMatch[1].trim()
-                    });
-                }
-
-                const formattedAnalysis = formatAIAnalysis(entry.analysis, questions, insights);
-                analysisContentElement.innerHTML = formattedAnalysis;
-            } else {
-                analysisContentElement.innerHTML = '<p class="placeholder">AI analysis will appear here after you analyze your entry.</p>';
-            }
         } catch (error) {
             console.error('Error loading entry for date:', error);
             showStatus(`Error loading entry: ${error.message}`, 'error');

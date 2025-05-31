@@ -84,14 +84,14 @@ body::before {
     position: relative;
 }
 
-/* Main content area with side-by-side layout */
+/* Main content area with chat layout */
 .journal-main {
     grid-area: main;
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 24px;
+    display: flex;
+    flex-direction: column;
     padding: 0 24px;
     min-height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px);
 }
 
 /* Controls section - minimal and unobtrusive */
@@ -153,14 +153,131 @@ body::before {
     transition: var(--flow-transition);
 }
 
-/* Editor section - the heart of the flow experience */
-.journal-editor {
+/* Chat container - main chat area */
+.chat-container {
+    flex: 1;
     display: flex;
     flex-direction: column;
     background: transparent;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--flow-border-soft);
+    margin-bottom: 16px;
+}
+
+.chat-header h3 {
+    margin: 0;
+    color: var(--flow-text-primary);
+    font-size: 18px;
+    font-weight: 600;
+    font-family: var(--flow-font-primary);
+    text-align: center;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.user-message {
+    align-self: flex-end;
+}
+
+.ai-message {
+    align-self: flex-start;
+}
+
+.message-content {
+    padding: 16px 20px;
+    border-radius: 18px;
+    font-family: var(--flow-font-primary);
+    line-height: 1.6;
+    font-size: 15px;
     position: relative;
-    min-height: 60vh;
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+.ai-message .message-content {
+    background: var(--flow-bg-secondary);
+    color: var(--flow-text-primary);
+    border: 1px solid var(--flow-border-soft);
+    border-bottom-left-radius: 6px;
+}
+
+.message-timestamp {
+    font-size: 12px;
+    color: var(--flow-text-tertiary);
+    margin-top: 4px;
+    font-family: var(--flow-font-mono);
+}
+
+.user-message .message-timestamp {
+    text-align: right;
+}
+
+.ai-message .message-timestamp {
+    text-align: left;
+}
+
+.welcome-message {
+    opacity: 0.8;
+}
+
+/* Chat input area */
+.chat-input-area {
+    border-top: 1px solid var(--flow-border-soft);
+    padding: 16px 0;
+    background: transparent;
+}
+
+.input-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    opacity: 0.7;
     transition: var(--flow-transition);
+}
+
+.input-controls:hover {
+    opacity: 1;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    background: var(--flow-bg-secondary);
+    border: 1px solid var(--flow-border);
+    border-radius: 20px;
+    padding: 8px 8px 8px 20px;
+    transition: var(--flow-transition);
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--flow-accent);
+    box-shadow: 0 0 0 3px var(--flow-accent-soft);
 }
 
 /* Gentle prompt that fades as user types */
@@ -195,25 +312,52 @@ body::before {
     67%, 100% { content: "There's no right way to do this..."; }
 }
 
-/* Main writing area */
+/* Chat input textarea */
 #journal-content {
-    width: 100%;
-    height: 60vh;
-    min-height: 60vh;
-    max-height: 60vh;
-    padding: 32px;
+    flex: 1;
+    min-height: 20px;
+    max-height: 120px;
+    padding: 12px 0;
     background: transparent;
     border: none;
     color: var(--flow-text-primary);
-    font-size: 20px;
-    line-height: 1.8;
+    font-size: 16px;
+    line-height: 1.5;
     resize: none;
-    font-family: var(--flow-font-writing);
+    font-family: var(--flow-font-primary);
     font-weight: 400;
-    letter-spacing: 0.01em;
-    position: relative;
-    z-index: 2;
     overflow-y: auto;
+    outline: none;
+}
+
+.send-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--flow-transition);
+    flex-shrink: 0;
+}
+
+.send-button:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: scale(1.05);
+}
+
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.send-button i {
+    font-size: 16px;
 }
 
 #journal-content:focus {
@@ -240,21 +384,7 @@ body::before {
     font-style: italic;
 }
 
-/* Editor footer - subtle and unobtrusive */
-.editor-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 32px 24px;
-    background: transparent;
-    border-top: 1px solid var(--flow-border-soft);
-    opacity: 0.6;
-    transition: var(--flow-transition);
-}
-
-.editor-footer:hover {
-    opacity: 1;
-}
+/* Word count styling in input controls */
 
 .word-count {
     color: var(--flow-text-secondary);
@@ -335,21 +465,21 @@ body::before {
     transform: translateY(-1px);
 }
 
-/* AI Assistant section - gentle sidebar presence */
-.ai-assistant {
-    background: transparent;
-    border: 1px solid var(--flow-border-soft);
-    border-radius: 16px;
-    padding: 24px;
-    transition: var(--flow-transition);
-    opacity: 0;
-    transform: translateX(20px);
-    animation: fadeInRight 1.2s ease-out 0.8s forwards;
-    height: fit-content;
-    max-height: calc(100vh - 300px);
-    overflow-y: auto;
-    position: sticky;
-    top: 24px;
+/* Loading states for chat messages */
+.message.loading .message-content {
+    position: relative;
+    overflow: hidden;
+}
+
+.message.loading .message-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--flow-accent), transparent);
+    animation: shimmer 2s infinite;
 }
 
 @keyframes fadeInUp {
@@ -590,20 +720,14 @@ body::before {
     font-weight: 600;
 }
 
-/* Responsive design for mobile flow state */
+/* Responsive design for mobile chat interface */
 @media (max-width: 1024px) {
     .journal-main {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr auto;
-        gap: 16px;
+        padding: 0 16px;
     }
 
-    .ai-assistant {
-        position: static;
-        max-height: none;
-        margin-top: 24px;
-        animation: fadeInUp 1.2s ease-out 0.8s forwards;
-        transform: translateY(10px);
+    .message {
+        max-width: 90%;
     }
 }
 
@@ -615,8 +739,8 @@ body::before {
     }
 
     .journal-main {
-        padding: 0 16px;
-        gap: 16px;
+        padding: 0 12px;
+        max-height: calc(100vh - 180px);
     }
 
     .journal-controls {
@@ -635,32 +759,30 @@ body::before {
         flex-wrap: wrap;
     }
 
-    #journal-content {
-        padding: 24px 20px;
-        font-size: 18px;
-        min-height: 50vh;
+    .chat-messages {
+        padding: 0 4px;
     }
 
-    .editor-prompt {
-        top: 24px;
-        left: 20px;
-        font-size: 16px;
+    .message {
+        max-width: 95%;
     }
 
-    .editor-footer {
-        padding: 12px 20px 20px;
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
+    .message-content {
+        padding: 12px 16px;
+        font-size: 14px;
     }
 
-    .ai-assistant {
-        margin: 16px 0 0 0;
-        padding: 20px 16px;
-        border-radius: 12px;
+    .input-wrapper {
+        padding: 6px 6px 6px 16px;
+        border-radius: 16px;
     }
 
-    .assistant-content {
+    .send-button {
+        width: 36px;
+        height: 36px;
+    }
+
+    .send-button i {
         font-size: 14px;
     }
 
@@ -681,27 +803,27 @@ body::before {
 }
 
 @media (max-width: 480px) {
-    #journal-content {
-        padding: 20px 16px;
-        font-size: 17px;
-    }
-
-    .editor-prompt {
-        left: 16px;
-        font-size: 15px;
-    }
-
     .journal-controls {
         padding: 12px 16px 8px;
     }
 
-    .ai-assistant {
-        margin: 20px 0 0 0;
-        padding: 20px 16px 16px;
+    .input-controls {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
     }
 
-    .assistant-content {
-        font-size: 14px;
+    .input-wrapper {
+        padding: 6px 6px 6px 12px;
+    }
+
+    .send-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .send-button i {
+        font-size: 12px;
     }
 }
 
