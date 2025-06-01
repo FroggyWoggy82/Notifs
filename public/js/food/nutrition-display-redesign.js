@@ -1,6 +1,7 @@
 /**
  * Nutrition Display Redesign
- * Creates a more compact, user-friendly, and visually appealing nutrition information display
+ * Creates nutrition panel structure but keeps it hidden by default
+ * The user should manually open panels using the toggle button
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 detailedNutritionPanel = document.createElement('div');
                 detailedNutritionPanel.className = 'detailed-nutrition-panel';
-                detailedNutritionPanel.style.display = 'block';
+                detailedNutritionPanel.style.display = 'none'; // Start hidden, let user toggle manually
                 detailedNutritionPanel.style.padding = '8px';
                 detailedNutritionPanel.style.marginTop = '8px';
 
@@ -229,8 +230,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return section;
     }
 
-    setTimeout(redesignNutritionDisplay, 300);
+    // Only run when explicitly called, not automatically
+    // setTimeout(redesignNutritionDisplay, 300);
 
+    // Don't automatically observe DOM changes
+    /*
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.addedNodes.length) {
@@ -240,18 +244,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
+    */
 
+    // Only run when edit button is clicked, but don't automatically show panel
     document.body.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-ingredient-btn')) {
-
+            // Create the panel structure but keep it hidden
             setTimeout(redesignNutritionDisplay, 200);
-
-            setTimeout(redesignNutritionDisplay, 500);
-            setTimeout(redesignNutritionDisplay, 1000);
         }
     });
 
-    setInterval(redesignNutritionDisplay, 2000);
+    // Don't run automatically on intervals - only when needed
+    // setInterval(redesignNutritionDisplay, 2000);
 
     function syncInputValues() {
         document.querySelectorAll('.edit-ingredient-form').forEach(form => {
@@ -276,5 +280,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    setInterval(syncInputValues, 500);
+    // Don't sync automatically - only when needed
+    // setInterval(syncInputValues, 500);
+
+    // Make the function available globally for add ingredient forms
+    window.createNutritionDisplayStructure = redesignNutritionDisplay;
 });

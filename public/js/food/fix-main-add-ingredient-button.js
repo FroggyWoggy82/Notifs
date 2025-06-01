@@ -4,6 +4,10 @@
  */
 
 (function() {
+    // DISABLED - This script is now handled by unified-add-ingredient-handler.js
+    console.log('[Fix Main Add Ingredient Button] Script disabled to prevent duplicate modals');
+    return;
+
     console.log('[Fix Main Add Ingredient Button] Initializing');
 
     // Flag to track if we've already initialized

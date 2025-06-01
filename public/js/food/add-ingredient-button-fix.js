@@ -5,6 +5,10 @@
  */
 
 (function() {
+    // DISABLED - This script is now handled by unified-add-ingredient-handler.js
+    console.log('[Add Ingredient Button Fix] Script disabled to prevent duplicate modals');
+    return;
+
     // Logging control to prevent console spam
     const logConfig = {
         enabled: true,

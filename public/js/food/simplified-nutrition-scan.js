@@ -190,16 +190,8 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
 
                 showStatus(statusElement, 'No nutrition values detected. Please enter values manually.', 'warning');
 
-
-                const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
-                if (detailedPanel) {
-                    detailedPanel.style.display = 'block';
-
-                    const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
-                    if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
-                        toggleButton.textContent = 'Hide Detailed Nutrition';
-                    }
-                }
+                // Don't automatically open the detailed nutrition panel
+                // Let the user manually open it using the toggle button if they want to see details
             }
         } else {
             throw new Error(data.error || 'Failed to extract nutrition data');
@@ -209,17 +201,8 @@ function processImageWithOCR(imageBlob, pasteArea, statusElement) {
         console.error('OCR Error:', error);
         showStatus(statusElement, 'Error: ' + error.message, 'error');
 
-
-        const detailedPanel = pasteArea.closest('.ingredient-item').querySelector('.detailed-nutrition-panel');
-        if (detailedPanel) {
-            detailedPanel.style.display = 'block';
-
-            const toggleButton = pasteArea.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
-            if (toggleButton && toggleButton.textContent === 'Show Detailed Nutrition') {
-                toggleButton.textContent = 'Hide Detailed Nutrition';
-            }
-        }
-
+        // Don't automatically open the detailed nutrition panel
+        // Let the user manually open it using the toggle button if they want to see details
 
         updateNutritionFieldsWithDefaults(pasteArea);
         showStatus(statusElement, 'Please enter nutrition values manually', 'warning');

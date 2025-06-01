@@ -25,6 +25,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@ngrok/ngrok": "^1.5.1",
+    "@ngrok/ngrok-win32-x64-msvc": "^1.5.1",
+    "@smithery/cli": "^1.2.4",
     "acorn": "^8.14.1",
     "acorn-walk": "^8.3.4",
     "axios": "^1.8.4",

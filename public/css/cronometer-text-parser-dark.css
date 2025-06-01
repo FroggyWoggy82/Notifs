@@ -82,11 +82,14 @@
     100% { background-color: rgba(0, 149, 182, 0.2) !important; }
 }
 
-/* Ensure detailed nutrition panel is visible when parsing */
+/* DISABLED - Don't automatically show detailed nutrition panel when parsing */
+/* Let the user manually open the panel using the toggle button */
+/*
 .cronometer-parsing .detailed-nutrition-panel,
 .ingredient-item:has(.cronometer-parsed) .detailed-nutrition-panel {
     display: block !important;
 }
+*/
 
 
 .cronometer-text-paste-container::before {

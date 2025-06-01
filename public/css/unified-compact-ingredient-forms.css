@@ -1,0 +1,384 @@
+/**
+ * Unified Compact Ingredient Forms
+ * Creates consistent, space-efficient styling for all ingredient forms and nutrition panels
+ * Reduces vertical space while maintaining usability
+ */
+
+/* ===== INGREDIENT ITEM CONTAINER ===== */
+.ingredient-item {
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+    margin-bottom: 4px !important;
+    padding: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+.ingredient-item:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(35, 35, 35, 0.9) !important;
+}
+
+/* ===== INGREDIENT ROW LAYOUT ===== */
+.ingredient-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 8px !important;
+    align-items: start !important;
+}
+
+/* ===== SELECTION ROW (RADIO BUTTONS) ===== */
+.selection-row {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+
+.selection-type {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+}
+
+.selection-type label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    color: #e0e0e0 !important;
+    font-size: 0.8rem !important;
+    cursor: pointer !important;
+}
+
+.ingredient-selection-radio {
+    margin: 0 !important;
+    accent-color: #666 !important;
+}
+
+/* ===== EXISTING INGREDIENT SELECTION ===== */
+.existing-ingredient-selection {
+    margin-top: 2px !important;
+}
+
+.ingredient-search-input {
+    width: 100% !important;
+    padding: 4px 6px !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 3px !important;
+    color: #e0e0e0 !important;
+    font-size: 0.8rem !important;
+}
+
+/* ===== LEFT COLUMN - MAIN INPUTS ===== */
+.ingredient-left-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+}
+
+/* ===== INGREDIENT INPUTS CONTAINER ===== */
+.ingredient-inputs-container {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important;
+    align-items: start !important;
+}
+
+/* ===== RIGHT COLUMN - BUTTONS AND NUTRITION ===== */
+.ingredient-right-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    min-width: 200px !important;
+    max-width: 250px !important;
+}
+
+.ingredient-inputs-container input {
+    padding: 4px 6px !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 3px !important;
+    color: #e0e0e0 !important;
+    font-size: 0.8rem !important;
+    height: auto !important;
+    min-height: 28px !important;
+}
+
+.ingredient-inputs-container input:focus {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===== CRONOMETER TEXT PASTE CONTAINER ===== */
+.cronometer-text-paste-container {
+    margin-top: 3px !important;
+    padding: 4px !important;
+    background-color: rgba(25, 25, 25, 0.6) !important;
+    border-radius: 3px !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.cronometer-text-paste-area {
+    width: 100% !important;
+    min-height: 45px !important;
+    max-height: 60px !important;
+    padding: 4px 6px !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 3px !important;
+    color: #e0e0e0 !important;
+    font-size: 0.75rem !important;
+    resize: vertical !important;
+    font-family: monospace !important;
+}
+
+.cronometer-parse-button {
+    margin-top: 2px !important;
+    padding: 4px 8px !important;
+    background-color: rgba(60, 60, 60, 0.8) !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 3px !important;
+    font-size: 0.75rem !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.cronometer-parse-button:hover {
+    background-color: rgba(80, 80, 80, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.cronometer-parse-status {
+    margin-top: 2px !important;
+    font-size: 0.7rem !important;
+    color: #ccc !important;
+}
+
+/* ===== BUTTONS ROW ===== */
+.buttons-row {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    margin-top: 0 !important;
+}
+
+.buttons-row button {
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+    background-color: rgba(60, 60, 60, 0.8) !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    text-align: center !important;
+}
+
+.buttons-row button:hover {
+    background-color: rgba(80, 80, 80, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.toggle-detailed-nutrition.active {
+    background-color: rgba(90, 90, 90, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===== DETAILED NUTRITION PANEL ===== */
+.detailed-nutrition-panel {
+    margin-top: 2px !important;
+    padding: 4px !important;
+    background-color: rgba(25, 25, 25, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 3px !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    font-size: 0.7rem !important;
+}
+
+.detailed-nutrition-panel h4 {
+    color: #ffffff !important;
+    font-size: 0.8rem !important;
+    margin: 0 0 4px 0 !important;
+    padding-bottom: 2px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===== NUTRITION SECTIONS ===== */
+.nutrition-section {
+    margin-bottom: 8px !important;
+}
+
+.nutrition-section:last-child {
+    margin-bottom: 0 !important;
+}
+
+.nutrition-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 2px !important;
+    margin-top: 2px !important;
+}
+
+.nutrition-item {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1px !important;
+}
+
+.nutrition-item label {
+    color: #ccc !important;
+    font-size: 0.7rem !important;
+    font-weight: 500 !important;
+}
+
+.nutrition-item input {
+    padding: 3px 4px !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 2px !important;
+    color: #e0e0e0 !important;
+    font-size: 0.75rem !important;
+    height: auto !important;
+    min-height: 24px !important;
+}
+
+.nutrition-item input:focus {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===== MOBILE RESPONSIVENESS ===== */
+@media (max-width: 768px) {
+    .ingredient-inputs-container {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .nutrition-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .buttons-row {
+        flex-direction: column !important;
+    }
+    
+    .buttons-row button {
+        flex: none !important;
+        width: 100% !important;
+    }
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+.detailed-nutrition-panel::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.detailed-nutrition-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 3px !important;
+}
+
+.detailed-nutrition-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 3px !important;
+}
+
+.detailed-nutrition-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===== GROCERY STORE INPUT ===== */
+.grocery-store-input {
+    grid-column: 1 / -1 !important;
+    margin-top: 4px !important;
+}
+
+/* ===== OVERRIDE EXISTING STYLES ===== */
+/* Force override any existing ingredient item styles */
+#ingredients-list .ingredient-item,
+.ingredient-item {
+    margin-bottom: 4px !important;
+    padding: 6px !important;
+}
+
+/* Force compact button layout */
+.ingredient-item .buttons-row {
+    margin-top: 3px !important;
+    gap: 3px !important;
+}
+
+/* Ensure consistent input sizing */
+.ingredient-item input[type="text"],
+.ingredient-item input[type="number"],
+.ingredient-item textarea {
+    font-size: 0.8rem !important;
+    padding: 4px 6px !important;
+    border-radius: 3px !important;
+}
+
+/* Force compact textarea */
+.ingredient-item .cronometer-text-paste-area {
+    min-height: 45px !important;
+    max-height: 60px !important;
+    rows: 3 !important;
+}
+
+/* Ensure nutrition panel is compact */
+.ingredient-item .detailed-nutrition-panel {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    margin-top: 4px !important;
+}
+
+/* Force consistent spacing in nutrition sections */
+.detailed-nutrition-panel .nutrition-section {
+    margin-bottom: 8px !important;
+}
+
+.detailed-nutrition-panel .nutrition-section:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Mobile responsiveness - stack columns vertically */
+@media (max-width: 768px) {
+    .ingredient-row {
+        grid-template-columns: 1fr !important;
+        gap: 4px !important;
+    }
+
+    .ingredient-right-column {
+        min-width: auto !important;
+        max-width: none !important;
+    }
+
+    .buttons-row {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 3px !important;
+    }
+
+    .buttons-row button {
+        flex: 1 !important;
+        min-width: 80px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .ingredient-inputs-container {
+        grid-template-columns: 1fr !important;
+        gap: 2px !important;
+    }
+
+    .ingredient-item {
+        margin-bottom: 3px !important;
+        padding: 4px !important;
+    }
+
+    .detailed-nutrition-panel {
+        max-height: 250px !important;
+    }
+}

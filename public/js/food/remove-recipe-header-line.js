@@ -4,7 +4,7 @@
  */
 
 (function() {
-    console.log('[Remove Recipe Header Line] Initializing');
+    // console.log('[Remove Recipe Header Line] Initializing');
 
     // Flag to track if we've already applied the fix
     let fixApplied = false;
@@ -22,9 +22,8 @@
 
     // Function to remove any dividers or lines
     function removeHeaderLine() {
-        // Only log if this is the first time we're applying the fix
+        // Only apply fix once
         if (!fixApplied) {
-            console.log('[Remove Recipe Header Line] Removing header line');
             fixApplied = true;
         }
 
@@ -117,5 +116,5 @@
         init();
     }
 
-    console.log('[Remove Recipe Header Line] Initialized');
+    // console.log('[Remove Recipe Header Line] Initialized');
 })();

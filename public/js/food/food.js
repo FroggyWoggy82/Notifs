@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const recipeListContainer = document.getElementById('recipe-list');
     const recipesDisplayStatus = document.getElementById('recipes-display-status');
 
+    // Check if recipe container exists
+    if (!recipeListContainer) {
+        console.error('[Food.js] Recipe list container not found!');
+    }
+
     const targetWeightInput = document.getElementById('targetWeight');
     const weeklyGainGoalInput = document.getElementById('weeklyGainGoal');
     const saveAllWeightGoalsBtn = document.getElementById('save-all-weight-goals-btn');
@@ -42,51 +47,117 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createIngredientRowHtml() {
         return `
-            <div class="ingredient-row">
-                <!-- Ingredient Selection Type -->
-                <div class="selection-row">
-                    <div class="selection-type">
-                        <label>
-                            <input type="radio" name="ingredient-selection-type" value="existing" class="ingredient-selection-radio">
-                            Use existing
-                        </label>
-                        <label>
-                            <input type="radio" name="ingredient-selection-type" value="new" class="ingredient-selection-radio" checked>
-                            Create new
-                        </label>
+            <div class="ingredient-item">
+                <!-- Header Section -->
+                <div class="ingredient-header">
+                    <div class="ingredient-type-selector">
+                        <div class="ingredient-type-option active" data-type="new">
+                            <input type="radio" name="ingredient-selection-type-${Date.now()}" value="new" class="ingredient-selection-radio" checked>
+                            <span>✨ Create New</span>
+                        </div>
+                        <div class="ingredient-type-option" data-type="existing">
+                            <input type="radio" name="ingredient-selection-type-${Date.now()}" value="existing" class="ingredient-selection-radio">
+                            <span>📋 Use Existing</span>
+                        </div>
                     </div>
-                    <div class="existing-ingredient-selection" style="display: none;">
-                        <input type="text" class="ingredient-search-input" placeholder="Search ingredients...">
-                        <!-- Dropdown will be created dynamically by ingredient-search-autocomplete.js -->
+                    <div class="ingredient-header-actions">
+                        <button type="button" class="action-btn action-btn-danger remove-ingredient-btn" title="Remove Ingredient">
+                            <span>🗑️</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Ingredient Name, Amount, and Price stacked vertically -->
-                <div class="ingredient-inputs-container">
-                    <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-                    <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.01" required>
-                    <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="0.01">
-                    <input type="number" placeholder="Package Price" class="ingredient-price" step="0.01" required>
-                    <!-- Hidden fields for form submission -->
-                    <input type="hidden" class="ingredient-calories" required>
-                    <input type="hidden" class="ingredient-protein" required>
-                    <input type="hidden" class="ingredient-fat" required>
-                    <input type="hidden" class="ingredient-carbs" required>
-                </div>
+                <!-- Main Content Area -->
+                <div class="ingredient-content">
+                    <!-- Left Column: Primary Inputs -->
+                    <div class="ingredient-primary-inputs">
+                        <!-- Search Section (hidden by default) -->
+                        <div class="ingredient-search-section">
+                            <div class="search-input-wrapper">
+                                <input type="text" class="ingredient-search-input" placeholder="Search existing ingredients...">
+                            </div>
+                        </div>
 
-                <!-- Cronometer Text Parser -->
-                <div class="cronometer-text-paste-container">
-                    <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." rows="5"></textarea>
-                    <button type="button" class="cronometer-parse-button" onclick="if(window.processCronometerText){window.processCronometerText(this.parentNode.querySelector('.cronometer-text-paste-area').value.trim(), this.closest('.ingredient-item'), this.parentNode.querySelector('.cronometer-parse-status'))}">Parse Nutrition Data</button>
-                    <div class="cronometer-parse-status"></div>
-                </div>
-            </div>
+                        <!-- Input Grid -->
+                        <div class="ingredient-inputs-grid">
+                            <div class="input-group">
+                                <label class="input-label">Ingredient Name</label>
+                                <input type="text" class="form-input ingredient-name" placeholder="Enter ingredient name" required>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Amount (g)</label>
+                                <input type="number" class="form-input ingredient-amount" placeholder="0" step="0.01" required>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Package Price</label>
+                                <input type="number" class="form-input ingredient-price" placeholder="0.00" step="0.01" required>
+                            </div>
+                        </div>
 
-            <!-- Action buttons in one row -->
-            <div class="buttons-row">
-                <button type="button" class="toggle-detailed-nutrition">Show Detailed Nutrition</button>
-                <button type="button" class="add-ingredient-btn-inline">Add Ingredient</button>
-                <button type="button" class="remove-ingredient-btn">Remove</button>
+                        <!-- Additional Fields Row -->
+                        <div class="ingredient-inputs-grid">
+                            <div class="input-group">
+                                <label class="input-label">Package Amount (g)</label>
+                                <input type="number" class="form-input ingredient-package-amount" placeholder="Optional" step="0.01">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Grocery Store</label>
+                                <input type="text" class="form-input grocery-store-input" placeholder="Optional">
+                            </div>
+                            <div class="input-group">
+                                <!-- Spacer for alignment -->
+                            </div>
+                        </div>
+
+                        <!-- Cronometer Section -->
+                        <div class="cronometer-section">
+                            <div class="cronometer-header">
+                                <span class="cronometer-icon">📊</span>
+                                <span class="cronometer-title">Nutrition Data Parser</span>
+                            </div>
+                            <textarea class="cronometer-textarea cronometer-text-paste-area"
+                                     placeholder="Paste Cronometer nutrition data here for automatic parsing..."></textarea>
+                            <button type="button" class="cronometer-parse-btn cronometer-parse-button">
+                                Parse Nutrition Data
+                            </button>
+                            <div class="cronometer-parse-status"></div>
+                        </div>
+
+                        <!-- Hidden fields for form submission -->
+                        <input type="hidden" class="ingredient-calories" required>
+                        <input type="hidden" class="ingredient-protein" required>
+                        <input type="hidden" class="ingredient-fat" required>
+                        <input type="hidden" class="ingredient-carbs" required>
+                    </div>
+
+                    <!-- Right Column: Actions & Nutrition -->
+                    <div class="ingredient-sidebar">
+                        <!-- Action Buttons -->
+                        <div class="action-buttons-section">
+                            <div class="action-buttons-grid">
+                                <button type="button" class="action-btn action-btn-secondary toggle-detailed-nutrition">
+                                    <span>📋</span> Nutrition Panel
+                                </button>
+                                <button type="button" class="action-btn action-btn-primary add-ingredient-btn-inline">
+                                    <span>➕</span> Add Ingredient
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Nutrition Panel -->
+                        <div class="nutrition-panel detailed-nutrition-panel" style="display: none;">
+                            <div class="nutrition-panel-header">
+                                <span class="nutrition-panel-title">Detailed Nutrition</span>
+                                <button type="button" class="action-btn action-btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="this.closest('.nutrition-panel').style.display='none'">
+                                    ✕
+                                </button>
+                            </div>
+                            <div class="nutrition-panel-content">
+                                <!-- Nutrition content will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="detailed-nutrition-panel" style="display:none;">
@@ -339,6 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 </div>
+                    </div>
+                </div>
             </div>
 
             <div class="simplified-scan-status"></div>
@@ -353,10 +426,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function addIngredientRow() {
+        console.log('[Food.js] addIngredientRow() called');
+        console.log('[Food.js] ingredientsList:', ingredientsList);
+
+        if (!ingredientsList) {
+            console.error('[Food.js] ingredientsList is null or undefined');
+            return;
+        }
+
         const ingredientItem = document.createElement('div');
         ingredientItem.classList.add('ingredient-item');
         ingredientItem.innerHTML = createIngredientRowHtml();
         ingredientsList.appendChild(ingredientItem);
+
+        console.log('[Food.js] New ingredient item added to DOM');
+        console.log('[Food.js] Total ingredient items now:', ingredientsList.children.length);
 
         setTimeout(() => {
 
@@ -402,6 +486,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.dispatchEvent(event);
         }, 100); // Slightly longer timeout to ensure DOM is updated
 
+        // Scroll to the new ingredient item
+        setTimeout(() => {
+            ingredientItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
     }
 
     // Function to handle radio button changes
@@ -685,6 +773,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial setup for existing ingredient rows
     document.addEventListener('DOMContentLoaded', function() {
         setupRadioButtonListeners();
+
+        // Set up cronometer parse buttons for existing ingredient items
+        const existingParseButtons = document.querySelectorAll('.cronometer-parse-button');
+        existingParseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const ingredientItem = this.closest('.ingredient-item');
+                const textPasteArea = ingredientItem.querySelector('.cronometer-text-paste-area');
+                const statusElement = ingredientItem.querySelector('.cronometer-parse-status');
+
+                const text = textPasteArea.value.trim();
+                if (text) {
+                    if (typeof processCronometerText === 'function') {
+                        processCronometerText(text, ingredientItem, statusElement);
+                    } else if (window.processCronometerText) {
+                        window.processCronometerText(text, ingredientItem, statusElement);
+                    } else {
+                        statusElement.textContent = 'Error: Nutrition parser not loaded';
+                        statusElement.className = 'cronometer-parse-status error';
+                    }
+                } else {
+                    statusElement.textContent = 'Please paste Cronometer nutrition data first';
+                    statusElement.className = 'cronometer-parse-status error';
+                }
+            });
+        });
     });
 
     ingredientsList.addEventListener('click', (event) => {
@@ -715,10 +828,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (event.target.classList.contains('add-ingredient-btn-inline')) {
+            console.log('[Food.js] Add Ingredient button clicked (ingredientsList listener)');
+            event.preventDefault();
+            event.stopPropagation(); // Prevent event bubbling
+            addIngredientRow();
+        }
+    });
+
+    // Handle clicks on document level for dynamically added elements
+    document.addEventListener('click', function(event) {
+        // Handle Add Ingredient buttons (fallback for buttons outside ingredientsList)
+        if (event.target.classList.contains('add-ingredient-btn-inline')) {
+            // Check if this event was already handled by ingredientsList listener
+            if (event.target.closest('#ingredients-list')) {
+                return; // Already handled by ingredientsList listener
+            }
+            console.log('[Food.js] Add Ingredient button clicked (document listener - fallback)');
+            event.preventDefault();
+            event.stopPropagation();
             addIngredientRow();
         }
 
-        // Handle radio button clicks directly
+        // Handle radio button clicks
         if (event.target.classList.contains('ingredient-selection-radio')) {
             const radio = event.target;
             const ingredientItem = radio.closest('.ingredient-item');
@@ -753,10 +884,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Flag to track if a recipe submission is in progress
-    let recipeSubmissionInProgress = false;
+    // Check if unified form submission handler is already loaded
+    if (window.unifiedFormSubmissionInitialized) {
+        console.log('[Food.js] Unified form submission handler detected, skipping form handler initialization');
+    } else {
+        // Flag to track if a recipe submission is in progress
+        let recipeSubmissionInProgress = false;
 
-    createRecipeForm.addEventListener('submit', async (event) => {
+        createRecipeForm.addEventListener('submit', async (event) => {
         event.preventDefault(); // Prevent default form submission
 
         // Prevent duplicate submissions
@@ -1118,6 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+    } // End of else block for unified form submission check
 
 
     async function loadWeightGoal() {
@@ -5048,6 +5184,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Function to handle recipe button clicks
+    async function handleRecipeButtonClick(event, target, recipeItem, recipeId) {
+        const currentCaloriesSpan = recipeItem.querySelector('.recipe-card-calories');
+        const currentCaloriesText = currentCaloriesSpan?.textContent || '0';
+        const currentCalories = parseFloat(currentCaloriesText.replace(/[^0-9.]/g, ''));
+
+        if (target.classList.contains('delete-recipe-btn')) {
+            deleteRecipe(recipeId);
+        } else if (target.classList.contains('view-ingredients-btn')) {
+            const detailsDiv = recipeItem.querySelector('.ingredient-details');
+
+            // Prevent any edit forms from showing when viewing ingredients
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+
+            // Set a flag to indicate we're in view mode
+            window._isViewingIngredients = true;
+
+            await fetchAndDisplayIngredients(recipeId, detailsDiv, target); // Pass button to toggle text
+        } else if (target.classList.contains('adjust-calories-toggle')) {
+            const adjustmentDiv = recipeItem.querySelector('.calorie-adjustment');
+            if (adjustmentDiv.style.display === 'none' || !adjustmentDiv.style.display) {
+                adjustmentDiv.style.display = 'block';
+                target.textContent = 'Hide Adjust';
+            } else {
+                adjustmentDiv.style.display = 'none';
+                target.textContent = 'Adjust';
+            }
+        }
+    }
+
+    // DISABLED: Recipe button event listener - now handled by direct-recipe-button-fix.js
+    // Add global backup event listener
+    /*
+    document.addEventListener('click', async (event) => {
+        const target = event.target;
+
+        // Check if this is a recipe button click
+        if (target.classList.contains('view-ingredients-btn') ||
+            target.classList.contains('delete-recipe-btn') ||
+            target.classList.contains('adjust-calories-toggle')) {
+
+            const recipeItem = target.closest('.recipe-card');
+            if (recipeItem) {
+                const recipeId = recipeItem.dataset.id;
+                await handleRecipeButtonClick(event, target, recipeItem, recipeId);
+            }
+        }
+    });
+    */
+
+    // DISABLED: Recipe list event listener - now handled by direct-recipe-button-fix.js
+    // Only keep the edit-recipe-name-icon functionality
     recipeListContainer.addEventListener('click', async (event) => { // Make async for await
         const target = event.target;
         const recipeItem = target.closest('.recipe-card'); // Updated selector for new layout
@@ -5059,9 +5249,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const currentCalories = parseFloat(currentCaloriesText.replace(/[^0-9.]/g, ''));
 
+        // DISABLED: Delete button now handled by direct-recipe-button-fix.js
+        /*
         if (target.classList.contains('delete-recipe-btn')) {
             deleteRecipe(recipeId);
-        } else if (target.classList.contains('edit-recipe-name-icon')) {
+        } else
+        */
+        if (target.classList.contains('edit-recipe-name-icon')) {
             // Handle edit recipe name click
             const titleElement = recipeItem.querySelector('.recipe-card-title');
             const currentName = titleElement.textContent;
@@ -5146,6 +5340,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // DISABLED: View ingredients button now handled by direct-recipe-button-fix.js
+        /*
         else if (target.classList.contains('view-ingredients-btn')) {
             const detailsDiv = recipeItem.querySelector('.ingredient-details');
 
@@ -5166,7 +5362,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     editForm.style.display = 'none';
                     editForm.style.visibility = 'hidden';
                     editForm.classList.add('force-hidden');
-                    
+
                 }
             };
 
@@ -5182,6 +5378,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window._isViewingIngredients = false;
             }, 1000);
         }
+        */
     });
 
     // Add event listener for weight goal save button
@@ -7021,4 +7218,8 @@ document.addEventListener('DOMContentLoaded', () => {
         button.textContent = isVisible ? 'Show Detailed Nutrition' : 'Hide Detailed Nutrition';
         button.classList.toggle('active', !isVisible);
     }
+
+    // Export functions globally for use by direct-recipe-button-fix.js
+    window.fetchAndDisplayIngredients = fetchAndDisplayIngredients;
+    window.deleteRecipe = deleteRecipe;
 });

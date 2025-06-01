@@ -32,12 +32,8 @@
                                       document.getElementById('add-ingredient-form');
 
                 if (ingredientItem) {
-                    // Make sure the detailed nutrition panel is visible
-                    const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
-                    if (detailedPanel) {
-                        detailedPanel.style.display = 'block';
-                        console.log('[Fix Cronometer Parser Fields] Made detailed nutrition panel visible');
-                    }
+                    // Don't automatically open the detailed nutrition panel
+                    // Let the user manually open it using the toggle button if they want to see details
 
                     // Add a class to the ingredient item to mark it as being processed
                     ingredientItem.classList.add('cronometer-parsing');

@@ -4,7 +4,7 @@
  */
 
 (function() {
-    console.log('[Force Remove Recipe Header Line] Initializing');
+    // console.log('[Force Remove Recipe Header Line] Initializing');
 
     // Flag to track if we've already applied the fix
     let fixApplied = false;
@@ -23,9 +23,8 @@
 
     // Function to force remove the header line
     function forceRemoveHeaderLine() {
-        // Only log if this is the first time we're applying the fix
+        // Only apply fix once
         if (!fixApplied) {
-            console.log('[Force Remove Recipe Header Line] Forcing removal of header line');
             fixApplied = true;
         }
 
@@ -178,5 +177,5 @@
         });
     }, 1000);
 
-    console.log('[Force Remove Recipe Header Line] Initialized');
+    // console.log('[Force Remove Recipe Header Line] Initialized');
 })();

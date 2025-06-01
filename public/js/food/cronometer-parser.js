@@ -225,17 +225,8 @@ window.CronometerParser = (function() {
 
                 showStatus(statusElement, 'Nutrition data extracted successfully!', 'success');
 
-                // Show detailed nutrition panel if available
-                const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
-                if (detailedPanel) {
-                    detailedPanel.style.display = 'block';
-                    
-                    const toggleButton = ingredientItem.querySelector('.toggle-detailed-nutrition');
-                    if (toggleButton && toggleButton.textContent.includes('Show')) {
-                        toggleButton.textContent = 'Hide Detailed Nutrition';
-                        toggleButton.classList.add('active');
-                    }
-                }
+                // Don't automatically open the detailed nutrition panel
+                // Let the user manually open it using the toggle button if they want to see details
             } else {
                 showStatus(statusElement, 'Could not extract nutrition data. Please check the format.', 'error');
             }

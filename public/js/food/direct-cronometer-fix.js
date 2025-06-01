@@ -95,12 +95,8 @@
                 statusElement.textContent = 'Nutrition data extracted successfully!';
                 statusElement.className = 'cronometer-parse-status success';
 
-                // Make sure the detailed nutrition panel is visible
-                const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
-                if (detailedPanel) {
-                    detailedPanel.style.display = 'block';
-                    console.log('[Direct Cronometer Fix] Made detailed nutrition panel visible');
-                }
+                // Don't automatically open the detailed nutrition panel
+                // Let the user manually open it using the toggle button if they want to see details
             } else {
                 statusElement.textContent = 'Could not update form fields. Please check the form structure.';
                 statusElement.className = 'cronometer-parse-status error';
@@ -407,13 +403,9 @@
             zinc: ['#add-ingredient-zinc', '#edit-ingredient-zinc', '.nutrition-zinc', '[name="ingredient-zinc"]', '[name="zinc"]']
         };
 
-        // First, make sure the detailed nutrition panel is visible
-        const detailedPanel = container.querySelector('.detailed-nutrition-panel');
-        if (detailedPanel) {
-            detailedPanel.style.display = 'block';
-            container.classList.add('cronometer-parsing');
-            console.log('[Direct Cronometer Fix] Made detailed nutrition panel visible');
-        }
+        // Don't automatically open the detailed nutrition panel
+        // Let the user manually open it using the toggle button if they want to see details
+        container.classList.add('cronometer-parsing');
 
         // Special handling for Fat and Protein fields
         // These are critical fields that need to be populated

@@ -20,7 +20,7 @@
         console.log(...args);
     }
 
-    log('Form Field Fix script loaded');
+    // log('Form Field Fix script loaded');
 
     // Keep track of fields we've already fixed to avoid redundant work
     const fixedFields = new WeakSet();

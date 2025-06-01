@@ -3,8 +3,6 @@
  * Provides improved functionality for selecting existing ingredients in recipes
  */
 
-console.log('ENHANCED INGREDIENT SELECTION SCRIPT LOADED');
-
 // Store all ingredients data for searching
 let allIngredients = [];
 
@@ -12,8 +10,6 @@ let allIngredients = [];
  * Initialize the enhanced ingredient selection functionality
  */
 function initializeEnhancedIngredientSelection() {
-    console.log('Initializing enhanced ingredient selection');
-
     // Add the selection type radio buttons and dropdown to each ingredient row
     addSelectionUIToIngredientRows();
 
@@ -28,41 +24,28 @@ function initializeEnhancedIngredientSelection() {
  * Add selection UI (radio buttons and dropdown) to all ingredient rows
  */
 function addSelectionUIToIngredientRows() {
-    console.log('[Enhanced Ingredient Selection] Adding selection UI to ingredient rows');
-
     // Look for ingredient rows in the create recipe section
     const ingredientRows = document.querySelectorAll('#ingredients-list .ingredient-row');
-    console.log(`[Enhanced Ingredient Selection] Found ${ingredientRows.length} ingredient rows`);
 
     if (ingredientRows.length === 0) {
-        console.log('[Enhanced Ingredient Selection] No ingredient rows found with selector "#ingredients-list .ingredient-row"');
-
         // Try a more general selector
         const allIngredientRows = document.querySelectorAll('.ingredient-row');
-        console.log(`[Enhanced Ingredient Selection] Found ${allIngredientRows.length} ingredient rows with general selector`);
 
         // Try to identify the ingredient container
         const ingredientsList = document.getElementById('ingredients-list');
-        if (ingredientsList) {
-            console.log('[Enhanced Ingredient Selection] Found ingredients-list container');
-            console.log('[Enhanced Ingredient Selection] Container HTML:', ingredientsList.innerHTML);
-        } else {
-            console.warn('[Enhanced Ingredient Selection] Could not find ingredients-list container');
+        if (!ingredientsList) {
+            return;
         }
     }
 
     ingredientRows.forEach((row, index) => {
-        console.log(`[Enhanced Ingredient Selection] Processing row #${index + 1}`);
-
         // Check if the row already has selection UI
         if (row.querySelector('.selection-row')) {
-            console.log(`[Enhanced Ingredient Selection] Row #${index + 1} already has selection UI, skipping`);
             return;
         }
 
         // Create a unique ID for this row's elements
         const rowId = `ingredient-row-${index}`;
-        console.log(`[Enhanced Ingredient Selection] Creating selection UI with ID: ${rowId}`);
 
         // Create the selection UI
         const selectionUI = document.createElement('div');
@@ -88,12 +71,8 @@ function addSelectionUIToIngredientRows() {
         // Insert the selection UI at the beginning of the row
         const inputsContainer = row.querySelector('.ingredient-inputs-container');
         if (inputsContainer) {
-            console.log(`[Enhanced Ingredient Selection] Found inputs container for row #${index + 1}, inserting UI`);
             inputsContainer.insertBefore(selectionUI, inputsContainer.firstChild);
         } else {
-            console.warn(`[Enhanced Ingredient Selection] Could not find inputs container for row #${index + 1}`);
-            console.log(`[Enhanced Ingredient Selection] Row HTML:`, row.innerHTML);
-
             // Try to insert at the beginning of the row as a fallback
             row.insertBefore(selectionUI, row.firstChild);
         }
@@ -108,8 +87,6 @@ function addSelectionUIToIngredientRows() {
  */
 async function loadAllExistingIngredients() {
     try {
-        console.log('[Enhanced Ingredient Selection] Loading all existing ingredients');
-
         // Use the existing recipes API endpoint
         const response = await fetch('/api/recipes');
         if (!response.ok) {
@@ -127,28 +104,19 @@ async function loadAllExistingIngredients() {
             // New format: object with success and recipes properties
             recipes = responseData.recipes;
         } else {
-            console.error('[Enhanced Ingredient Selection] Invalid response format:', responseData);
             throw new Error('Invalid recipe data format');
         }
-
-        console.log('[Enhanced Ingredient Selection] Recipes loaded:', recipes.length);
 
         allIngredients = [];
 
         // Extract all ingredients from all recipes
         recipes.forEach(recipe => {
-            console.log(`[Enhanced Ingredient Selection] Processing recipe: ${recipe.name}, ID: ${recipe.id}`);
-
             // Check if we need to fetch ingredients separately
             if (!recipe.ingredients || !Array.isArray(recipe.ingredients)) {
-                console.log(`[Enhanced Ingredient Selection] No ingredients array found for recipe ${recipe.name}`);
                 return; // Skip this recipe
             }
 
-            console.log(`[Enhanced Ingredient Selection] Recipe ${recipe.name} has ${recipe.ingredients.length} ingredients`);
-
             recipe.ingredients.forEach(ingredient => {
-                console.log(`[Enhanced Ingredient Selection] Adding ingredient: ${ingredient.name}, ID: ${ingredient.id}`);
 
                 allIngredients.push({
                     id: ingredient.id,
@@ -171,12 +139,10 @@ async function loadAllExistingIngredients() {
         // Sort ingredients alphabetically by name
         allIngredients.sort((a, b) => a.name.localeCompare(b.name));
 
-        console.log(`[Enhanced Ingredient Selection] Loaded ${allIngredients.length} ingredients`);
-
         // Populate all dropdowns with the ingredients
         populateAllDropdowns();
     } catch (error) {
-        console.error('[Enhanced Ingredient Selection] Error loading existing ingredients:', error);
+        // Silent error handling
     }
 }
 
@@ -184,14 +150,9 @@ async function loadAllExistingIngredients() {
  * Populate all ingredient dropdowns with the loaded ingredients
  */
 function populateAllDropdowns() {
-    console.log('[Enhanced Ingredient Selection] Populating dropdowns with ingredients');
-
     const dropdowns = document.querySelectorAll('.existing-ingredient-select');
-    console.log(`[Enhanced Ingredient Selection] Found ${dropdowns.length} dropdowns to populate`);
 
     dropdowns.forEach((dropdown, index) => {
-        console.log(`[Enhanced Ingredient Selection] Populating dropdown #${index + 1}`);
-
         // Clear existing options except the first one
         while (dropdown.options.length > 1) {
             dropdown.remove(1);
@@ -206,22 +167,16 @@ function populateAllDropdowns() {
             dropdown.appendChild(option);
         });
 
-        console.log(`[Enhanced Ingredient Selection] Added ${allIngredients.length} options to dropdown #${index + 1}`);
-
         // Initialize the searchable dropdown
         initializeSearchableDropdown(dropdown);
     });
 
     if (dropdowns.length === 0) {
-        console.warn('[Enhanced Ingredient Selection] No dropdowns found to populate!');
-        console.log('[Enhanced Ingredient Selection] Looking for ingredient rows to add selection UI to');
-
         // Try to add the selection UI to any ingredient rows that might be missing it
         addSelectionUIToIngredientRows();
 
         // Try again to find dropdowns
         const newDropdowns = document.querySelectorAll('.existing-ingredient-select');
-        console.log(`[Enhanced Ingredient Selection] After adding UI, found ${newDropdowns.length} dropdowns`);
 
         if (newDropdowns.length > 0) {
             // Call this function again to populate the newly added dropdowns
@@ -319,7 +274,6 @@ async function fetchAndFillIngredientDetails(combinedId, selectElement) {
     );
 
     if (selectedIngredient) {
-        console.log('Using cached ingredient details:', selectedIngredient);
         fillIngredientFields(selectedIngredient, selectElement);
         return;
     }
@@ -327,7 +281,6 @@ async function fetchAndFillIngredientDetails(combinedId, selectElement) {
     // If not found in cache, fetch from API
     const [recipeId, ingredientId] = combinedId.split(':');
     if (!recipeId || !ingredientId) {
-        console.error('Invalid ingredient ID format');
         return;
     }
 
@@ -340,12 +293,11 @@ async function fetchAndFillIngredientDetails(combinedId, selectElement) {
         }
 
         const ingredient = await response.json();
-        console.log('Fetched ingredient details:', ingredient);
 
         // Fill the form fields with the ingredient data
         fillIngredientFields(ingredient, selectElement);
     } catch (error) {
-        console.error('Error fetching ingredient details:', error);
+        // Silent error handling
     }
 }
 

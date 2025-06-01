@@ -186,10 +186,7 @@ function initializeCronometerTextParser(container = document) {
  * @param {HTMLElement} ingredientItem - The ingredient item element
  */
 function initializeIngredientItem(ingredientItem) {
-    console.log('Initializing ingredient item:', ingredientItem);
-
     if (ingredientItem.dataset.cronometerParserInitialized === 'true') {
-        console.log('Skipping already initialized ingredient item');
         return;
     }
 
@@ -199,22 +196,13 @@ function initializeIngredientItem(ingredientItem) {
     const parseButton = ingredientItem.querySelector('.cronometer-parse-button');
     const statusElement = ingredientItem.querySelector('.cronometer-parse-status');
 
-    console.log('Found elements:', {
-        textPasteArea: !!textPasteArea,
-        parseButton: !!parseButton,
-        statusElement: !!statusElement
-    });
-
     if (textPasteArea && parseButton && statusElement) {
-        console.log('Adding event listeners to Cronometer text parser elements');
 
         parseButton.removeEventListener('click', parseButtonClickHandler);
 
         function parseButtonClickHandler() {
-            console.log('Parse button clicked (from cronometer-text-parser.js)');
             const text = textPasteArea.value.trim();
             if (text) {
-                console.log('Processing text:', text.substring(0, 50) + '...');
                 processCronometerText(text, ingredientItem, statusElement);
             } else {
                 showParseStatus(statusElement, 'Please paste Cronometer nutrition data first', 'error');
@@ -233,10 +221,6 @@ function initializeIngredientItem(ingredientItem) {
             statusElement.className = 'cronometer-parse-status';
         });
 
-        console.log('Event listeners added successfully');
-    } else {
-        console.error('Cronometer text parser elements not found in ingredient item');
-        console.log('ingredientItem HTML:', ingredientItem.innerHTML);
     }
 }
 
@@ -382,17 +366,8 @@ function processCronometerText(text, ingredientItem, statusElement) {
 
             showParseStatus(statusElement, 'Nutrition data extracted successfully!', 'success');
 
-            const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
-            if (detailedPanel) {
-                detailedPanel.style.display = 'block';
-
-                const toggleButton = ingredientItem.querySelector('.toggle-detailed-nutrition') ||
-                                    document.querySelector('.toggle-detailed-nutrition');
-                if (toggleButton && toggleButton.textContent.includes('Show')) {
-                    toggleButton.textContent = 'Hide Detailed Nutrition';
-                    toggleButton.classList.add('active');
-                }
-            }
+            // Don't automatically open the detailed nutrition panel
+            // Let the user manually open it using the toggle button if they want to see details
         } else {
 
             showParseStatus(statusElement, 'Could not extract nutrition data. Please check the format.', 'error');
@@ -417,12 +392,8 @@ function updateNutritionFieldsFromText(data, ingredientItem) {
 
     console.log(`Updating nutrition fields in ${isEditForm ? 'edit' : 'add'} form (${ingredientItem.tagName}${ingredientItem.id ? ' #' + ingredientItem.id : ''}${ingredientItem.className ? ' .' + ingredientItem.className.replace(/ /g, ' .') : ''})`);
 
-    // Try to find the detailed nutrition panel and make it visible
-    const detailedPanel = ingredientItem.querySelector('.detailed-nutrition-panel');
-    if (detailedPanel) {
-        detailedPanel.style.display = 'block';
-        console.log('Made detailed nutrition panel visible');
-    }
+    // Don't automatically show the detailed nutrition panel
+    // Let the user manually open it using the toggle button if they want to see details
 
     // Try to update the basic fields with multiple selector patterns
     updateFieldIfExists(ingredientItem, '.ingredient-calories', data.calories);
@@ -607,23 +578,18 @@ function showParseStatus(statusElement, message, type) {
 window.processCronometerText = processCronometerText;
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Cronometer Text Parser: DOM loaded, initializing parser');
     initializeCronometerTextParser();
 
     document.addEventListener('ingredientAdded', (event) => {
-        console.log('Cronometer Text Parser: ingredientAdded event received');
         if (event.detail && event.detail.ingredientItem) {
-            console.log('Cronometer Text Parser: Initializing specific ingredient item');
             initializeCronometerTextParser(event.detail.ingredientItem);
         } else {
-            console.log('Cronometer Text Parser: Initializing all ingredient items');
             initializeCronometerTextParser();
         }
     });
 
     document.addEventListener('click', function(event) {
         if (event.target && event.target.classList.contains('cronometer-parse-button')) {
-            console.log('Parse button clicked (from global event listener)');
             const ingredientItem = event.target.closest('.ingredient-item');
             const textPasteArea = ingredientItem.querySelector('.cronometer-text-paste-area');
             const statusElement = ingredientItem.querySelector('.cronometer-parse-status');
@@ -631,7 +597,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (ingredientItem && textPasteArea && statusElement) {
                 const text = textPasteArea.value.trim();
                 if (text) {
-                    console.log('Processing text from global handler:', text.substring(0, 50) + '...');
                     processCronometerText(text, ingredientItem, statusElement);
                 } else {
                     showParseStatus(statusElement, 'Please paste Cronometer nutrition data first', 'error');

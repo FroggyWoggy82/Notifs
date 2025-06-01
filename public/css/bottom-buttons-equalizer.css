@@ -1,0 +1,147 @@
+/**
+ * Bottom Buttons Equalizer
+ * Makes all bottom buttons the same size for consistent appearance
+ */
+
+/* ===== MAIN FORM BUTTONS ===== */
+/* Save Recipe button */
+#create-recipe-form button[type="submit"],
+button[type="submit"]:contains("Save Recipe"),
+button:contains("Save Recipe") {
+    width: 120px !important;
+    height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    border-radius: 4px !important;
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* ===== GROCERY LIST BUTTONS ===== */
+/* Generate Grocery List and Save as Task buttons */
+#generate-list-btn,
+#save-as-task-btn,
+.primary-btn,
+.secondary-btn {
+    width: 120px !important;
+    height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    border-radius: 4px !important;
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
+/* ===== BOTTOM NAVIGATION BUTTONS ===== */
+/* Any buttons in the bottom navigation area */
+.bottom-nav button,
+.bottom-navigation button,
+.nav-button {
+    width: 120px !important;
+    height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    border-radius: 4px !important;
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
+/* ===== GENERAL BOTTOM AREA BUTTONS ===== */
+/* Target buttons in the lower sections of the page */
+.grocery-list-controls button,
+.form-actions button,
+.button-group button {
+    width: 120px !important;
+    height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    border-radius: 4px !important;
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* ===== HOVER EFFECTS ===== */
+#create-recipe-form button[type="submit"]:hover,
+#generate-list-btn:hover,
+#save-as-task-btn:hover,
+.primary-btn:hover,
+.secondary-btn:hover,
+.grocery-list-controls button:hover,
+.form-actions button:hover,
+.button-group button:hover,
+.bottom-nav button:hover {
+    background-color: rgba(40, 40, 40, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ===== DISABLED STATE ===== */
+#generate-list-btn:disabled,
+#save-as-task-btn:disabled,
+.primary-btn:disabled,
+.secondary-btn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background-color: rgba(20, 20, 20, 0.6) !important;
+}
+
+/* ===== SPECIFIC BUTTON OVERRIDES ===== */
+/* Ensure specific buttons maintain consistent sizing */
+button[id*="generate"],
+button[id*="save"],
+button[id*="submit"],
+button[class*="btn"] {
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 36px !important;
+}
+
+/* ===== CONTAINER ADJUSTMENTS ===== */
+/* Ensure button containers don't interfere with sizing */
+.grocery-list-controls {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+.form-actions {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+    #create-recipe-form button[type="submit"],
+    #generate-list-btn,
+    #save-as-task-btn,
+    .primary-btn,
+    .secondary-btn,
+    .grocery-list-controls button,
+    .form-actions button,
+    .button-group button {
+        width: 100px !important;
+        font-size: 0.8rem !important;
+        padding: 6px 8px !important;
+    }
+}

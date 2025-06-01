@@ -749,11 +749,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        document.querySelectorAll('.detailed-nutrition-panel').forEach(panel => {
-            panel.style.display = 'block';
-            const button = panel.closest('.ingredient-item').querySelector('.toggle-detailed-nutrition');
-            if (button) button.textContent = 'Hide Detailed Nutrition';
-        });
+        // Don't automatically open all detailed nutrition panels
+        // Let the user manually open them using the toggle buttons if they want to see details
     }
 
     function setupNutritionFieldSync() {

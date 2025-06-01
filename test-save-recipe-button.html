@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Save Recipe Button</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .ingredient-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .ingredient-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .nutrition-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .form-actions {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        .submit-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Save Recipe Button</h1>
+    
+    <form id="create-recipe-form">
+        <div class="form-group">
+            <label for="recipeName">Recipe Name:</label>
+            <input type="text" id="recipeName" name="recipeName" required>
+        </div>
+
+        <div id="ingredients-list">
+            <div class="ingredient-item">
+                <h4>Ingredient 1</h4>
+                <div class="ingredient-row">
+                    <div>
+                        <label>Name:</label>
+                        <input type="text" class="ingredient-name" value="Test Ingredient" required>
+                    </div>
+                    <div>
+                        <label>Amount (g):</label>
+                        <input type="number" class="ingredient-amount" value="100" step="0.1" required>
+                    </div>
+                    <div>
+                        <label>Package Amount (g):</label>
+                        <input type="number" class="ingredient-package-amount" value="500" step="0.1">
+                    </div>
+                    <div>
+                        <label>Grocery Store:</label>
+                        <input type="text" class="grocery-store-input" value="Test Store">
+                    </div>
+                </div>
+                <div class="nutrition-row">
+                    <div>
+                        <label>Price ($):</label>
+                        <input type="number" class="ingredient-price" value="2.99" step="0.01" required>
+                    </div>
+                    <div>
+                        <label>Calories:</label>
+                        <input type="number" class="ingredient-calories" value="150" step="0.1" required>
+                    </div>
+                    <div>
+                        <label>Protein (g):</label>
+                        <input type="number" class="ingredient-protein" value="5" step="0.1" required>
+                    </div>
+                    <div>
+                        <label>Fat (g):</label>
+                        <input type="number" class="ingredient-fat" value="2" step="0.1" required>
+                    </div>
+                </div>
+                <div class="nutrition-row">
+                    <div>
+                        <label>Carbs (g):</label>
+                        <input type="number" class="ingredient-carbs" value="30" step="0.1" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="submit-btn">Save Recipe</button>
+        </div>
+    </form>
+
+    <div id="create-recipe-status" class="status" style="display: none;"></div>
+
+    <script>
+        // Mock the API endpoint for testing
+        window.fetch = async function(url, options) {
+            console.log('Mock fetch called:', url, options);
+            
+            // Simulate a delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Mock successful response
+            return {
+                ok: true,
+                json: async () => ({
+                    id: 1,
+                    name: JSON.parse(options.body).name,
+                    message: 'Recipe saved successfully!'
+                })
+            };
+        };
+
+        // Mock functions that might be called
+        window.addIngredientRow = function() {
+            console.log('Mock addIngredientRow called');
+        };
+
+        window.loadRecipes = function() {
+            console.log('Mock loadRecipes called');
+        };
+    </script>
+
+    <!-- Include our simple save recipe handler -->
+    <script src="public/js/food/simple-save-recipe-handler.js"></script>
+</body>
+</html>

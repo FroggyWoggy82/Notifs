@@ -24,13 +24,24 @@
         letter-spacing: 0.2px !important;
     }
 
-    /* Make badge containers more compact */
+    /* Make badge containers more compact and force horizontal layout */
     .task-title-right {
         gap: 1px !important;
         margin-left: 3px !important;
         display: inline-flex !important;
         align-items: center !important;
-        flex-wrap: wrap !important;
+        flex-wrap: nowrap !important;
+        flex-direction: row !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Ensure task title left section allows space for badges */
+    .task-title-left {
+        flex: 1 !important;
+        min-width: 0 !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
     /* Reduce task metadata spacing */
@@ -40,12 +51,15 @@
         line-height: 1.0 !important;
     }
 
-    /* Make task title container more compact */
+    /* Make task title container more compact and ensure proper layout */
     .task-title-container {
-        gap: 3px !important;
+        display: flex !important;
+        justify-content: space-between !important;
         align-items: center !important;
+        gap: 3px !important;
         line-height: 1.1 !important;
         margin-bottom: 1px !important;
+        width: 100% !important;
     }
 
     /* Reduce overall task item padding to save vertical space */
@@ -90,17 +104,24 @@
         margin-bottom: 1px !important;
     }
 
-    /* Minimize gaps between badges */
+    /* Minimize gaps between badges and force horizontal layout */
     .task-title-right {
         gap: 0px !important;
         margin-left: 2px !important;
+        flex-wrap: nowrap !important;
+        flex-direction: row !important;
+        white-space: nowrap !important;
     }
 
-    /* Compact task title container */
+    /* Compact task title container with proper layout */
     .task-title-container {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
         gap: 2px !important;
         line-height: 1.0 !important;
         margin-bottom: 0px !important;
+        width: 100% !important;
     }
 
     /* Make recurring badges ultra-compact */

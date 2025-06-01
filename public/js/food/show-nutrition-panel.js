@@ -1,6 +1,7 @@
 /**
  * Show Nutrition Panel
- * Ensures the detailed nutrition panel is displayed in the edit ingredient form
+ * Creates nutrition panel structure but keeps it hidden by default
+ * The user should manually open panels using the toggle button
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 detailedNutritionPanel = document.createElement('div');
                 detailedNutritionPanel.className = 'detailed-nutrition-panel';
-                detailedNutritionPanel.style.display = 'block';
+                detailedNutritionPanel.style.display = 'none'; // Start hidden, let user toggle manually
 
                 const basicInfoSection = createNutritionSection('Basic Information', [
                     { id: 'edit-ingredient-name', label: 'Name:', required: true, type: 'text' },
@@ -114,8 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 formElement.appendChild(detailedNutritionPanel);
             } else {
-
-                detailedNutritionPanel.style.display = 'block';
+                // Don't automatically show the panel - let user toggle manually
+                // detailedNutritionPanel.style.display = 'block';
             }
 
             form.dataset.nutritionPanelFixed = 'true';
@@ -186,8 +187,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return section;
     }
 
-    setTimeout(showNutritionPanel, 200);
+    // Only run when explicitly called, not automatically
+    // setTimeout(showNutritionPanel, 200);
 
+    // Don't automatically observe DOM changes
+    /*
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.addedNodes.length) {
@@ -197,18 +201,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
+    */
 
+    // Only run when edit button is clicked, but don't automatically show panel
     document.body.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-ingredient-btn')) {
-
+            // Create the panel structure but keep it hidden
             setTimeout(showNutritionPanel, 200);
-
-            setTimeout(showNutritionPanel, 500);
-            setTimeout(showNutritionPanel, 1000);
-
-            console.log('Edit button clicked, applying nutrition panel with Basic Information section');
+            console.log('Edit button clicked, creating nutrition panel structure (but keeping it hidden)');
         }
     });
 
-    setInterval(showNutritionPanel, 2000);
+    // Don't run automatically on intervals - only when needed
+    // setInterval(showNutritionPanel, 2000);
+
+    // Make the function available globally for add ingredient forms
+    window.createNutritionPanelStructure = showNutritionPanel;
 });

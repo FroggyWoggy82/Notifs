@@ -451,6 +451,10 @@
     }
 
     function showAddIngredientForm() {
+        // DISABLED - This function is now handled by unified-add-ingredient-handler.js
+        console.log('[Meal Submission] showAddIngredientForm disabled to prevent duplicate modals');
+        return;
+
         // Create modal overlay
         const overlay = document.createElement('div');
         overlay.className = 'add-ingredient-modal-overlay';

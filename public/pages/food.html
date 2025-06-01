@@ -6,11 +6,11 @@
     <title>Food & Recipes - Task List</title>
     <meta name="description" content="Create and manage recipes">
 
-    <!-- Console log suppressor - load this first to suppress console logs -->
-    <script src="../js/console-log-suppressor.js"></script>
-    <script src="../js/food/console-log-suppressor.js?v=1737073900"></script> <!-- Food-specific log suppressor -->
-    <script src="../js/console-log-helper.js"></script>
-    <script src="../js/log-throttle.js"></script> <!-- Throttle repeated log messages -->
+    <!-- Console log suppressor - temporarily disabled to reduce spam -->
+    <!-- <script src="../js/console-log-suppressor.js"></script> -->
+    <!-- <script src="../js/food/console-log-suppressor.js?v=1737073900"></script> --> <!-- Food-specific log suppressor -->
+    <!-- <script src="../js/console-log-helper.js"></script> -->
+    <!-- <script src="../js/log-throttle.js"></script> --> <!-- Throttle repeated log messages -->
 
     <link rel="stylesheet" href="../css/index.css"> <!-- Global styles -->
     <link rel="stylesheet" href="../css/food.css">   <!-- Food specific styles -->
@@ -66,6 +66,7 @@
     <link rel="stylesheet" href="../css/button-text-styling.css"> <!-- Button text styling -->
     <link rel="stylesheet" href="../css/basic-info-alignment-fix.css"> <!-- Fix for Basic Information alignment -->
     <link rel="stylesheet" href="../css/nutrition-edit-buttons.css"> <!-- Add Save and Cancel buttons to nutrition panel -->
+    <link rel="stylesheet" href="../css/comprehensive-nutrition-layout.css"> <!-- Comprehensive nutrition layout with labels and units -->
     <link rel="stylesheet" href="../css/direct-toggle-fix.css"> <!-- Direct fix for toggle button -->
     <link rel="stylesheet" href="../css/match-button-sizes.css"> <!-- Match button sizes -->
     <link rel="stylesheet" href="../css/button-row-flex.css"> <!-- Button row flex layout -->
@@ -98,7 +99,21 @@
     <link rel="stylesheet" href="../css/cronometer-textarea-fix.css"> <!-- Fix for cronometer textarea to match other input sizes -->
     <link rel="stylesheet" href="../css/mobile-grocery-badges.css"> <!-- Mobile-optimized grocery badges with reduced padding -->
     <link rel="stylesheet" href="../css/compact-recipe-creation.css"> <!-- Compact recipe creation section - LOADED LAST FOR PRIORITY -->
+    <link rel="stylesheet" href="../css/unified-compact-ingredient-forms.css"> <!-- Unified compact styling for ingredient forms and nutrition panels -->
+    <link rel="stylesheet" href="../css/redesigned-ingredient-form.css"> <!-- Modern redesigned ingredient form UI -->
     <link rel="stylesheet" href="../css/fixes/prevent-horizontal-scroll-mobile.css"> <!-- Prevent horizontal scrolling on mobile -->
+
+    <!-- Bottom buttons equalizer - makes all bottom buttons the same size -->
+    <link rel="stylesheet" href="../css/bottom-buttons-equalizer.css"> <!-- Equalizes bottom button sizes -->
+
+    <!-- Bottom buttons horizontal layout - makes buttons take equal horizontal space -->
+    <link rel="stylesheet" href="../css/bottom-buttons-horizontal-layout.css"> <!-- Equal horizontal distribution -->
+
+    <!-- Unified button alignment - fixes Add Ingredient button alignment and prevents duplicate modals -->
+    <link rel="stylesheet" href="../css/unified-button-alignment.css"> <!-- Unified button alignment and styling -->
+
+    <!-- CRITICAL: Force header buttons visible - must load immediately after CSS -->
+    <script src="../js/food/force-header-buttons-visible.js"></script> <!-- Forces header buttons to be visible -->
 </head>
 <body>
     <button class="menu-button">
@@ -427,35 +442,120 @@
             <div id="ingredients-list">
                 <!-- Ingredient inputs will be added dynamically here -->
                 <div class="ingredient-item">
-                    <div class="ingredient-row">
-                        <!-- All ingredient inputs in a single column -->
-                        <div class="ingredient-inputs-container">
-                            <input type="text" placeholder="Ingredient Name" class="ingredient-name" required>
-                            <input type="number" placeholder="Amount (g)" class="ingredient-amount" step="0.01" required>
-                            <input type="number" placeholder="Package Amount (g)" class="ingredient-package-amount" step="0.01">
-                            <input type="number" placeholder="Package Price" class="ingredient-price" step="0.01" required>
-                            <input type="text" id="groceryStore" name="grocery-store" placeholder="Grocery store (optional)" class="grocery-store-input">
-                            <textarea class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here..." style="resize: none;"></textarea>
-                            <!-- Hidden fields for form submission with default values -->
+                    <!-- Header Section -->
+                    <div class="ingredient-header">
+                        <div class="ingredient-type-selector">
+                            <div class="ingredient-type-option active" data-type="new">
+                                <input type="radio" name="ingredient-selection-type-initial" value="new" class="ingredient-selection-radio" checked>
+                                <span>✨ Create New</span>
+                            </div>
+                            <div class="ingredient-type-option" data-type="existing">
+                                <input type="radio" name="ingredient-selection-type-initial" value="existing" class="ingredient-selection-radio">
+                                <span>📋 Use Existing</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons Row (underneath radio buttons) -->
+                    <div class="ingredient-header-buttons">
+                        <div class="header-buttons-grid">
+                            <button type="button" class="action-btn action-btn-secondary toggle-detailed-nutrition">
+                                <span>📋</span> Show Detailed Nutrition
+                            </button>
+                            <button type="button" class="action-btn action-btn-danger remove-ingredient-btn" title="Remove Ingredient">
+                                <span>🗑️</span> Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Area -->
+                    <div class="ingredient-content">
+                        <!-- Left Column: Primary Inputs -->
+                        <div class="ingredient-primary-inputs">
+                            <!-- Search Section (hidden by default) -->
+                            <div class="ingredient-search-section">
+                                <div class="search-input-wrapper">
+                                    <input type="text" class="ingredient-search-input" placeholder="Search existing ingredients...">
+                                </div>
+                            </div>
+
+                            <!-- Input Grid -->
+                            <div class="ingredient-inputs-grid">
+                                <div class="input-group">
+                                    <label class="input-label">Ingredient Name</label>
+                                    <input type="text" class="form-input ingredient-name" placeholder="Enter ingredient name" required>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Amount (g)</label>
+                                    <input type="number" class="form-input ingredient-amount" placeholder="0" step="0.01" required>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Package Price</label>
+                                    <input type="number" class="form-input ingredient-price" placeholder="0.00" step="0.01" required>
+                                </div>
+                            </div>
+
+                            <!-- Additional Fields Row -->
+                            <div class="ingredient-inputs-grid">
+                                <div class="input-group">
+                                    <label class="input-label">Package Amount (g)</label>
+                                    <input type="number" class="form-input ingredient-package-amount" placeholder="Optional" step="0.01">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Grocery Store</label>
+                                    <input type="text" class="form-input grocery-store-input" placeholder="Optional">
+                                </div>
+                                <div class="input-group">
+                                    <!-- Spacer for alignment -->
+                                </div>
+                            </div>
+
+                            <!-- Cronometer Section -->
+                            <div class="cronometer-section">
+                                <div class="cronometer-header">
+                                    <span class="cronometer-icon">📊</span>
+                                    <span class="cronometer-title">Nutrition Data Parser</span>
+                                </div>
+                                <textarea class="cronometer-textarea cronometer-text-paste-area"
+                                         placeholder="Paste Cronometer nutrition data here for automatic parsing..."></textarea>
+                                <button type="button" class="cronometer-parse-btn cronometer-parse-button">
+                                    Parse Nutrition Data
+                                </button>
+                                <div class="cronometer-parse-status"></div>
+                            </div>
+
+                            <!-- Hidden fields for form submission -->
                             <input type="hidden" class="ingredient-calories" required>
                             <input type="hidden" class="ingredient-protein" required>
                             <input type="hidden" class="ingredient-fat" required>
                             <input type="hidden" class="ingredient-carbs" required>
                         </div>
+
+                        <!-- Right Column: Actions & Nutrition -->
+                        <div class="ingredient-sidebar">
+                            <!-- Action Buttons -->
+                            <div class="action-buttons-section">
+                                <div class="action-buttons-grid">
+                                    <button type="button" class="action-btn action-btn-primary add-ingredient-btn-inline">
+                                        <span>➕</span> Add Ingredient
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Nutrition Panel -->
+                            <div class="nutrition-panel detailed-nutrition-panel" style="display: none;">
+                                <div class="nutrition-panel-header">
+                                    <span class="nutrition-panel-title">Detailed Nutrition</span>
+                                    <button type="button" class="action-btn action-btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="this.closest('.nutrition-panel').style.display='none'">
+                                        ✕
+                                    </button>
+                                </div>
+                                <div class="nutrition-panel-content">
+                                    <!-- Nutrition content will be populated here -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                    <!-- Action buttons in one row -->
-                    <div class="buttons-row">
-                        <button type="button" class="cronometer-parse-button" onclick="if(window.processCronometerText){window.processCronometerText(this.closest('.ingredient-item').querySelector('.cronometer-text-paste-area').value.trim(), this.closest('.ingredient-item'), this.closest('.ingredient-item').querySelector('.cronometer-parse-status'))}">Parse Nutrition Data</button>
-                        <button type="button" class="toggle-detailed-nutrition">Show Detailed Nutrition</button>
-                        <button type="button" class="add-ingredient-btn-inline">Add Ingredient</button>
-                        <button type="button" class="remove-ingredient-btn">Remove</button>
-                    </div>
-
-                    <!-- Status area for cronometer parsing -->
-                    <div class="cronometer-parse-status"></div>
-
-                    <div class="detailed-nutrition-panel" style="display:none;">
                         <!-- General Section -->
                         <div class="nutrition-section">
                             <h4>General</h4>
@@ -705,6 +805,8 @@
                                 </div>
                             </div>
                         </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="simplified-scan-status"></div>
@@ -716,7 +818,11 @@
                     </div>
                 </div>
             </div>
-            <button type="submit">Save Recipe</button>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">Save Recipe</button>
+            </div>
         </form>
         <div id="create-recipe-status" class="status"></div>
     </section>
@@ -870,12 +976,15 @@
     <script src="../js/food/fix-missing-fields.js"></script> <!-- Fix for missing fields in edit form -->
     <script src="../js/food/remove-duplicate-fields.js"></script> <!-- Remove duplicate fields and dark area -->
     <script src="../js/food/show-nutrition-panel.js"></script> <!-- Ensure nutrition panel is displayed -->
+    <script src="../js/food/nutrition-display-redesign.js"></script> <!-- Populate nutrition panel with input fields -->
     <script src="../js/food/remove-duplicate-buttons.js"></script> <!-- Remove duplicate buttons -->
     <script src="../js/food/direct-toggle-fix.js"></script> <!-- Direct fix for toggle button -->
-    <script src="../js/food/ensure-toggle-works.js"></script> <!-- Ensure toggle button works -->
-    <script src="../js/food/global-toggle-handler.js"></script> <!-- Global toggle button handler -->
-    <script src="../js/food/force-toggle-button.js"></script> <!-- Force toggle button -->
-    <script src="../js/food/button-row-layout.js"></script> <!-- Button row layout -->
+    <!-- DISABLED: Conflicts with force-nutrition-panel-toggle.js -->
+    <!-- <script src="../js/food/ensure-toggle-works.js"></script> --> <!-- Ensure toggle button works -->
+    <!-- <script src="../js/food/global-toggle-handler.js"></script> --> <!-- Global toggle button handler -->
+    <!-- <script src="../js/food/force-toggle-button.js"></script> --> <!-- Force toggle button -->
+    <!-- DISABLED: Conflicts with unified button alignment -->
+    <!-- <script src="../js/food/button-row-layout.js"></script> --> <!-- Button row layout -->
     <script src="../js/food/exact-button-match.js"></script> <!-- Exact button match -->
     <script src="../js/food/fix-button-text-display.js"></script> <!-- Fix button text display -->
     <script src="../js/food/shorter-button-text.js"></script> <!-- Shorter button text -->
@@ -903,9 +1012,18 @@
     <script src="../js/food/detailed-nutrition-integration.js"></script> <!-- Detailed nutrition integration -->
     <script src="../js/food/micronutrient-display.js"></script> <!-- Micronutrient display in recipe view -->
 
+    <!-- Simple Save Recipe Button Handler - single reliable solution -->
+    <script src="../js/food/simple-save-recipe-handler.js"></script> <!-- Simple and reliable Save Recipe button handler -->
+
+    <!-- Force Nutrition Panel Toggle - overrides all conflicting toggle handlers -->
+    <script src="../js/food/force-nutrition-panel-toggle.js"></script> <!-- Force nutrition panel toggle to work properly -->
+
+    <!-- Debug form submission -->
+    <!-- <script src="../js/food/form-submission-debug.js"></script> --> <!-- Temporarily disabled - Conflicts with unified form submission -->
+
     <!-- Prevent duplicate form submissions -->
-    <script src="../js/food/prevent-duplicate-form-submission.js"></script> <!-- Prevents duplicate form submissions -->
-    <script src="../js/food/form-submission-test.js"></script> <!-- Tests form submission process -->
+    <!-- <script src="../js/food/prevent-duplicate-form-submission.js"></script> --> <!-- Temporarily disabled - Prevents duplicate form submissions -->
+    <!-- <script src="../js/food/form-submission-test.js"></script> --> <!-- Temporarily disabled - Tests form submission process -->
 
     <!-- Consolidated package amount handling -->
     <script src="../js/food/package-amount-core.js"></script> <!-- Core package amount handling functionality -->
@@ -915,8 +1033,8 @@
 
     <!-- Removed fix-cronometer-parser.js (consolidated into cronometer-parser.js) -->
 
-    <!-- Consolidated fix for recipe ingredients -->
-    <script src="../js/food/consolidated-recipe-ingredient-fix.js"></script> <!-- Consolidated fix for recipe ingredients -->
+    <!-- Consolidated fix for recipe ingredients - DISABLED: Conflicts with direct-recipe-button-fix.js -->
+    <!-- <script src="../js/food/consolidated-recipe-ingredient-fix.js"></script> --> <!-- Consolidated fix for recipe ingredients -->
 
     <!-- Fix for Cronometer parser fields -->
     <script src="../js/food/fix-cronometer-parser-fields.js"></script> <!-- Fix for Cronometer parser fields not filling in properly -->
@@ -958,8 +1076,8 @@
     <!-- Compact recipe cards -->
     <script src="../js/food/compact-recipe-cards.js"></script> <!-- Makes recipe cards more compact -->
 
-    <!-- Remove OCR Toggle button -->
-    <script src="../js/food/remove-ocr-toggle.js"></script> <!-- Removes OCR toggle button -->
+    <!-- Remove OCR Toggle button - disabled since OCR is no longer needed -->
+    <!-- <script src="../js/food/remove-ocr-toggle.js"></script> --> <!-- Removes OCR toggle button -->
 
     <!-- Fix Recipe Name Position -->
     <script src="../js/food/fix-recipe-name-position.js"></script> <!-- Fixes recipe name position in Create New Recipe section -->
@@ -984,6 +1102,25 @@
 
     <!-- Recipe search functionality -->
     <script src="../js/food/recipe-search.js"></script> <!-- Search and filter recipes functionality -->
+
+    <!-- Redesigned ingredient form -->
+    <script src="../js/food/redesigned-ingredient-form.js"></script> <!-- Modern redesigned ingredient form UI and interactions -->
+
+    <!-- Placeholder updater - updates input placeholders to show proper field names -->
+    <script src="../js/food/placeholder-updater.js"></script> <!-- Updates placeholders from "Optional" to proper field names -->
+
+    <!-- Button layout reorganizer - arranges buttons side-by-side instead of stacked -->
+    <!-- DISABLED: Conflicts with unified button alignment -->
+    <!-- <script src="../js/food/button-layout-reorganizer.js"></script> --> <!-- Reorganizes buttons to be side-by-side -->
+
+    <!-- Disable conflicting Add Ingredient scripts - must load before unified handler -->
+    <script src="../js/food/disable-conflicting-add-ingredient.js"></script> <!-- Disables conflicting Add Ingredient functionality -->
+
+    <!-- Unified Add Ingredient Handler - prevents duplicate modals and ensures proper button alignment -->
+    <script src="../js/food/unified-add-ingredient-handler.js"></script> <!-- Unified Add Ingredient functionality -->
+
+    <!-- Direct Recipe Button Fix - simple fix for View/Adjust/Delete buttons -->
+    <script src="../js/food/direct-recipe-button-fix.js?v=2.2&t=1748820100"></script> <!-- Direct fix for recipe buttons -->
 
 </body>
 </html>

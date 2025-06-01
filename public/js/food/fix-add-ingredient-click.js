@@ -4,6 +4,10 @@
  */
 
 (function() {
+    // DISABLED - This script is now handled by unified-add-ingredient-handler.js
+    console.log('[Fix Add Ingredient Click] Script disabled to prevent duplicate modals');
+    return;
+
     console.log('[Fix Add Ingredient Click] Initializing');
 
     function fixAddIngredientClick() {

@@ -1,0 +1,378 @@
+/**
+ * Unified Button Alignment
+ * Ensures proper alignment and consistent styling for all buttons in ingredient forms
+ */
+
+/* Action buttons grid - ensures buttons are properly aligned side by side */
+.action-buttons-grid {
+    display: flex !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+/* Individual action buttons - consistent sizing and styling */
+.action-buttons-grid .action-btn {
+    flex: 1 !important;
+    height: 38px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Primary action button styling - maintain dark theme */
+.action-btn-primary {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+.action-btn-primary:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+/* Secondary action button styling - maintain dark theme */
+.action-btn-secondary {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+.action-btn-secondary:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+/* Danger action button styling - maintain dark theme */
+.action-btn-danger {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+.action-btn-danger:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+/* Button icons and text alignment */
+.action-btn span {
+    margin-right: 5px !important;
+    font-size: 0.9em !important;
+}
+
+/* Ensure buttons don't wrap or break layout */
+.action-buttons-section {
+    width: 100% !important;
+    margin: 10px 0 !important;
+}
+
+/* Fix for Parse Nutrition Data button alignment - maintain dark theme */
+.cronometer-parse-btn,
+.cronometer-parse-button {
+    width: 100% !important;
+    height: 38px !important;
+    padding: 8px 12px !important;
+    margin: 10px 0 !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+}
+
+.cronometer-parse-btn:hover,
+.cronometer-parse-button:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+/* Save Recipe button alignment - maintain dark theme */
+button[type="submit"] {
+    width: 100% !important;
+    height: 38px !important;
+    padding: 8px 12px !important;
+    margin: 20px 0 10px 0 !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+}
+
+button[type="submit"]:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+/* Remove button styling in header - maintain dark theme */
+.remove-ingredient-btn {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 4px !important;
+    margin: 0 !important;
+    font-size: 1em !important;
+    border-radius: 4px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.remove-ingredient-btn:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+/* Ensure consistent spacing between button rows */
+.ingredient-content {
+    margin-bottom: 15px !important;
+}
+
+/* Fix for button container alignment issues */
+.button-container,
+.buttons-container,
+.buttons-row {
+    display: flex !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.button-container button,
+.buttons-container button,
+.buttons-row button {
+    flex: 1 !important;
+    height: 38px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.button-container button:hover,
+.buttons-container button:hover,
+.buttons-row button:hover {
+    background-color: #f0f0f0 !important;
+    color: #000000 !important;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .action-buttons-grid {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    
+    .action-buttons-grid .action-btn {
+        width: 100% !important;
+        flex: none !important;
+    }
+}
+
+/* Ensure buttons don't interfere with form layout and maintain dark theme */
+.ingredient-item {
+    margin-bottom: 20px !important;
+    padding: 15px !important;
+    border-bottom: 1px solid #333 !important;
+    background-color: #1a1a1a !important;
+    border-radius: 4px !important;
+}
+
+.ingredient-item:last-child {
+    border-bottom: none !important;
+}
+
+/* Ensure ingredient inputs maintain dark theme */
+.ingredient-item input[type="text"],
+.ingredient-item input[type="number"],
+.ingredient-item textarea,
+.ingredient-item select {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+.ingredient-item input[type="text"]:focus,
+.ingredient-item input[type="number"]:focus,
+.ingredient-item textarea:focus,
+.ingredient-item select:focus {
+    background-color: #3a3a3a !important;
+    border-color: #666 !important;
+    outline: none !important;
+}
+
+/* Ensure labels maintain dark theme */
+.ingredient-item label,
+.ingredient-item .input-label {
+    color: #ffffff !important;
+}
+
+/* Header buttons section (underneath radio buttons) */
+.ingredient-header-buttons {
+    margin: 12px 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+.header-buttons-grid {
+    display: flex !important;
+    gap: 12px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+}
+
+.header-buttons-grid .action-btn {
+    flex: 1 !important;
+    width: 50% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 38px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+.header-buttons-grid .action-btn:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+.header-buttons-grid .action-btn span {
+    margin-right: 5px !important;
+    font-size: 0.9em !important;
+}
+
+/* OVERRIDE CONFLICTING STYLES - Force 50/50 layout */
+.ingredient-header-buttons .header-buttons-grid {
+    display: flex !important;
+    gap: 12px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+}
+
+.ingredient-header-buttons .header-buttons-grid .action-btn {
+    flex: 1 !important;
+    width: calc(50% - 6px) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 38px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    font-size: 0.9em !important;
+    border-radius: 4px !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    font-weight: normal !important;
+    box-sizing: border-box !important;
+    transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+.ingredient-header-buttons .header-buttons-grid .action-btn:hover {
+    background-color: #3a3a3a !important;
+    color: #ffffff !important;
+}
+
+/* FORCE VISIBILITY - Override any hiding styles */
+.ingredient-header-buttons,
+.ingredient-header-buttons .header-buttons-grid,
+.ingredient-header-buttons .header-buttons-grid .action-btn {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    z-index: auto !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure buttons are never hidden by other scripts */
+.ingredient-header-buttons .toggle-detailed-nutrition,
+.ingredient-header-buttons .remove-ingredient-btn {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    z-index: auto !important;
+    pointer-events: auto !important;
+}

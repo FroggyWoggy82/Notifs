@@ -1,0 +1,185 @@
+/**
+ * Comprehensive Nutrition Layout
+ * Styles for the detailed nutrition panel with proper labels and units
+ */
+
+.detailed-nutrition-panel {
+    background-color: rgba(25, 25, 25, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 6px;
+    padding: 15px;
+    color: #e0e0e0 !important;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.nutrition-section {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nutrition-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.nutrition-section h4 {
+    color: #e0e0e0 !important;
+    font-size: 0.9em;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    padding: 0;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nutrition-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 8px !important;
+}
+
+.nutrition-item {
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative;
+}
+
+.nutrition-item label {
+    color: #aaaaaa !important;
+    font-size: 0.75em !important;
+    font-weight: 500;
+    margin-bottom: 3px !important;
+    line-height: 1.2;
+    text-transform: none;
+}
+
+.nutrition-item input {
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 3px;
+    color: #e0e0e0 !important;
+    font-size: 0.8em !important;
+    padding: 4px 6px !important;
+    height: 24px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.nutrition-item input:focus {
+    border-color: rgba(0, 230, 118, 0.5) !important;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.1);
+}
+
+.nutrition-item .unit {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666 !important;
+    font-size: 0.7em;
+    pointer-events: none;
+    margin-top: 12px; /* Account for label height */
+}
+
+/* Adjust input padding to make room for unit labels */
+.nutrition-item input {
+    padding-right: 30px !important;
+}
+
+/* Two-column layout for the main container */
+.detailed-nutrition-panel > div[style*="grid-template-columns"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20px !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .detailed-nutrition-panel > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    .nutrition-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+        gap: 6px !important;
+    }
+    
+    .nutrition-item input {
+        font-size: 0.75em !important;
+        padding: 3px 25px 3px 5px !important;
+        height: 22px !important;
+    }
+    
+    .nutrition-item label {
+        font-size: 0.7em !important;
+    }
+    
+    .nutrition-item .unit {
+        font-size: 0.65em !important;
+        right: 6px;
+    }
+}
+
+/* Compact mode for smaller screens */
+@media (max-width: 480px) {
+    .detailed-nutrition-panel {
+        padding: 10px;
+        max-height: 60vh;
+    }
+    
+    .nutrition-section {
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+    }
+    
+    .nutrition-section h4 {
+        font-size: 0.85em;
+        margin-bottom: 6px;
+    }
+    
+    .nutrition-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+        gap: 5px !important;
+    }
+    
+    .nutrition-item input {
+        font-size: 0.7em !important;
+        padding: 2px 22px 2px 4px !important;
+        height: 20px !important;
+    }
+    
+    .nutrition-item label {
+        font-size: 0.65em !important;
+        margin-bottom: 2px !important;
+    }
+    
+    .nutrition-item .unit {
+        font-size: 0.6em !important;
+        right: 5px;
+        margin-top: 10px;
+    }
+}
+
+/* Ensure proper scrolling */
+.detailed-nutrition-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.detailed-nutrition-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.detailed-nutrition-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.detailed-nutrition-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

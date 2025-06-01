@@ -1,0 +1,183 @@
+/**
+ * Bottom Buttons Horizontal Layout
+ * Makes bottom buttons take up equal horizontal space across the screen
+ */
+
+/* ===== BOTTOM BUTTON CONTAINER LAYOUT ===== */
+/* Create a horizontal layout container for all bottom buttons */
+.bottom-buttons-container {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-top: 10px !important;
+    padding: 0 !important;
+}
+
+/* ===== INDIVIDUAL BUTTON STYLING ===== */
+/* Make all bottom buttons equal width and take up available space */
+.bottom-buttons-container button,
+.bottom-buttons-container .primary-btn,
+.bottom-buttons-container .secondary-btn,
+.bottom-buttons-container input[type="submit"],
+.bottom-buttons-container button[type="submit"] {
+    flex: 1 !important;
+    min-width: 0 !important;
+    height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    border-radius: 4px !important;
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* ===== SPECIFIC CONTAINER ADJUSTMENTS ===== */
+/* Grocery list controls container */
+.grocery-list-controls {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-top: 10px !important;
+}
+
+.grocery-list-controls button {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+/* Form actions container */
+.form-actions {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-top: 10px !important;
+}
+
+.form-actions button {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+/* Button group container */
+.button-group {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-top: 10px !important;
+}
+
+.button-group button {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+/* ===== SAVE RECIPE BUTTON CONTAINER ===== */
+/* Create a container for the Save Recipe button to match other sections */
+#create-recipe-form {
+    position: relative !important;
+}
+
+#create-recipe-form button[type="submit"] {
+    width: 100% !important;
+    height: 36px !important;
+    margin-top: 10px !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    border-radius: 4px !important;
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+}
+
+/* ===== HOVER EFFECTS ===== */
+.bottom-buttons-container button:hover,
+.grocery-list-controls button:hover,
+.form-actions button:hover,
+.button-group button:hover,
+#create-recipe-form button[type="submit"]:hover {
+    background-color: rgba(40, 40, 40, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ===== DISABLED STATE ===== */
+.bottom-buttons-container button:disabled,
+.grocery-list-controls button:disabled,
+.form-actions button:disabled,
+.button-group button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background-color: rgba(20, 20, 20, 0.6) !important;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+    .bottom-buttons-container,
+    .grocery-list-controls,
+    .form-actions,
+    .button-group {
+        gap: 4px !important;
+    }
+    
+    .bottom-buttons-container button,
+    .grocery-list-controls button,
+    .form-actions button,
+    .button-group button,
+    #create-recipe-form button[type="submit"] {
+        font-size: 0.8rem !important;
+        padding: 6px 8px !important;
+        height: 32px !important;
+    }
+}
+
+/* ===== FORCE EQUAL DISTRIBUTION ===== */
+/* Ensure all button containers use the full width */
+.grocery-list-controls,
+.form-actions,
+.button-group {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Remove any fixed widths that might interfere */
+.grocery-list-controls button,
+.form-actions button,
+.button-group button {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+}
+
+/* ===== SECTION ALIGNMENT ===== */
+/* Ensure parent sections don't constrain button width */
+#grocery-list-section,
+#submit-meal-section,
+#recipe-creation-section {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.grocery-list-container,
+.meal-submission-form,
+#create-recipe-form {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}

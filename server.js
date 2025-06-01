@@ -500,7 +500,9 @@ app.get('/subscription-manager', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'subscription-manager.html'));
 });
 
-
+app.get('/food', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'food.html'));
+});
 
 app.get('/test-weekly-notification', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'test-weekly-notification.html'));

@@ -5,7 +5,7 @@
 
 (function() {
     function fixChartVisibility() {
-        console.log('[Chart Visibility Fix] Applying chart visibility fix...');
+        // console.log('[Chart Visibility Fix] Applying chart visibility fix...');
 
         // Get chart elements
         const weightGoalChartCanvas = document.getElementById('weight-goal-chart');
@@ -59,18 +59,18 @@
                             window.weightGoalChart.data.datasets[0].data &&
                             window.weightGoalChart.data.datasets[0].data.length > 0;
 
-            console.log('[Chart Visibility Fix] Chart data check:', {
-                hasChart: !!window.weightGoalChart,
-                hasData: hasData,
-                datasets: window.weightGoalChart?.data?.datasets?.length || 0,
-                firstDatasetLength: window.weightGoalChart?.data?.datasets?.[0]?.data?.length || 0
-            });
+            // console.log('[Chart Visibility Fix] Chart data check:', {
+            //     hasChart: !!window.weightGoalChart,
+            //     hasData: hasData,
+            //     datasets: window.weightGoalChart?.data?.datasets?.length || 0,
+            //     firstDatasetLength: window.weightGoalChart?.data?.datasets?.[0]?.data?.length || 0
+            // });
 
             if (hasData) {
-                console.log('[Chart Visibility Fix] Chart has data, hiding message');
+                // console.log('[Chart Visibility Fix] Chart has data, hiding message');
                 weightChartMessage.style.display = 'none';
             } else {
-                console.log('[Chart Visibility Fix] Chart has no data, showing message');
+                // console.log('[Chart Visibility Fix] Chart has no data, showing message');
                 // Don't override the message if it's already set by the main chart loading logic
                 if (!weightChartMessage.textContent || weightChartMessage.textContent === 'Loading chart data...') {
                     weightChartMessage.style.display = 'block';
@@ -85,19 +85,15 @@
 
         // Force chart redraw if Chart.js is available
         if (window.Chart && window.weightGoalChart) {
-            console.log('[Chart Visibility Fix] Forcing chart redraw');
             window.weightGoalChart.update();
 
             // Use our new tooltip fix function if available
             if (window.fixWeightChartTooltips && typeof window.fixWeightChartTooltips === 'function') {
-                console.log('[Chart Visibility Fix] Using tooltip fix function');
-
                 // Use multiple attempts with increasing delays to ensure tooltips are attached
                 const delays = [100, 300, 600, 1000];
                 delays.forEach((delay, index) => {
                     setTimeout(() => {
                         if (window.weightGoalChart) {
-                            console.log(`[Chart Visibility Fix] Attaching tooltips attempt ${index + 1}`);
                             window.fixWeightChartTooltips(window.weightGoalChart);
                         }
                     }, delay);
@@ -131,7 +127,7 @@
             }
         }
 
-        console.log('[Chart Visibility Fix] Chart visibility fix applied');
+        // console.log('[Chart Visibility Fix] Chart visibility fix applied');
     }
 
     function init() {

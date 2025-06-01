@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Form Submission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .ingredient-item {
+            border: 1px solid #555;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: #2a2a2a;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background-color: #28a745;
+        }
+        .status.error {
+            background-color: #dc3545;
+        }
+        .console-output {
+            background-color: #000;
+            color: #0f0;
+            padding: 10px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Form Submission</h1>
+    
+    <form id="create-recipe-form">
+        <div class="form-group">
+            <input type="text" id="recipeName" name="recipe-name" placeholder="Enter recipe name" value="Test Recipe" required>
+        </div>
+        
+        <div class="form-group">
+            <input type="text" id="groceryStore" name="grocery-store" placeholder="Grocery Store" value="Test Store">
+        </div>
+        
+        <div id="ingredients-list">
+            <div class="ingredient-item">
+                <input type="text" class="ingredient-name" placeholder="Ingredient Name" value="Test Ingredient" required>
+                <input type="number" class="ingredient-amount" placeholder="Amount (g)" value="100" step="0.1" required>
+                <input type="number" class="ingredient-package-amount" placeholder="Package Amount (g)" value="500" step="0.1">
+                <input type="number" class="ingredient-price" placeholder="Price ($)" value="2.99" step="0.01" required>
+                <input type="number" class="ingredient-calories" placeholder="Calories" value="200" step="0.1" required>
+                <input type="number" class="ingredient-protein" placeholder="Protein (g)" value="10" step="0.1" required>
+                <input type="number" class="ingredient-fat" placeholder="Fat (g)" value="5" step="0.1" required>
+                <input type="number" class="ingredient-carbs" placeholder="Carbs (g)" value="30" step="0.1" required>
+            </div>
+        </div>
+        
+        <button type="submit">Save Recipe</button>
+    </form>
+    
+    <div id="create-recipe-status" class="status"></div>
+    
+    <div class="console-output" id="console-output">
+        <strong>Console Output:</strong><br>
+    </div>
+
+    <script>
+        // Capture console logs
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput.innerHTML += `<div>[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole('log', ...args);
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole('error', ...args);
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsole('warn', ...args);
+        };
+        
+        // Test form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up form submission test');
+            
+            const form = document.getElementById('create-recipe-form');
+            if (!form) {
+                console.error('Form not found!');
+                return;
+            }
+            
+            console.log('Form found:', form);
+            
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                console.log('Form submitted!');
+                
+                const recipeName = document.getElementById('recipeName').value;
+                const groceryStore = document.getElementById('groceryStore').value;
+                
+                console.log('Recipe name:', recipeName);
+                console.log('Grocery store:', groceryStore);
+                
+                // Get ingredient data
+                const ingredientItems = document.querySelectorAll('.ingredient-item');
+                console.log('Found ingredient items:', ingredientItems.length);
+                
+                const ingredients = [];
+                
+                ingredientItems.forEach((item, index) => {
+                    const name = item.querySelector('.ingredient-name').value;
+                    const amount = parseFloat(item.querySelector('.ingredient-amount').value);
+                    const packageAmount = parseFloat(item.querySelector('.ingredient-package-amount').value);
+                    const price = parseFloat(item.querySelector('.ingredient-price').value);
+                    const calories = parseFloat(item.querySelector('.ingredient-calories').value);
+                    const protein = parseFloat(item.querySelector('.ingredient-protein').value);
+                    const fats = parseFloat(item.querySelector('.ingredient-fat').value);
+                    const carbs = parseFloat(item.querySelector('.ingredient-carbs').value);
+                    
+                    const ingredient = {
+                        name,
+                        amount,
+                        package_amount: packageAmount,
+                        price,
+                        calories,
+                        protein,
+                        fats,
+                        carbohydrates: carbs
+                    };
+                    
+                    console.log(`Ingredient ${index + 1}:`, ingredient);
+                    ingredients.push(ingredient);
+                });
+                
+                const payload = {
+                    name: recipeName,
+                    groceryStore,
+                    ingredients
+                };
+                
+                console.log('Sending payload:', payload);
+                
+                try {
+                    const response = await fetch('/api/recipes', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    console.log('Response ok:', response.ok);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Success result:', result);
+                    
+                    const status = document.getElementById('create-recipe-status');
+                    status.textContent = `Recipe '${result.name}' saved successfully!`;
+                    status.className = 'status success';
+                    
+                } catch (error) {
+                    console.error('Error saving recipe:', error);
+                    
+                    const status = document.getElementById('create-recipe-status');
+                    status.textContent = `Error: ${error.message}`;
+                    status.className = 'status error';
+                }
+            });
+            
+            // Test button click
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                console.log('Submit button found:', submitButton);
+                
+                submitButton.addEventListener('click', function(event) {
+                    console.log('Submit button clicked!');
+                });
+            } else {
+                console.error('Submit button not found!');
+            }
+        });
+    </script>
+</body>
+</html>

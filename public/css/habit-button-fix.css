@@ -1,26 +1,67 @@
 /**
  * Habit Button Fix
- * Changes the +1 button color to white to match the rest of the UI
+ * Changes the +1 button color to white and matches size to habit checkboxes
  */
 
 
 .habit-increment-btn {
+    /* Match exact size of habit checkboxes */
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+
+    /* Styling to match UI */
     background-color: rgba(33, 33, 33, 0.3) !important;
     border: 2px solid rgba(255, 255, 255, 0.3) !important;
     color: rgba(255, 255, 255, 0.9) !important;
     box-shadow: none !important;
+
+    /* Ensure consistent appearance */
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 
 .habit-increment-btn:hover {
+    /* Maintain consistent size on hover */
+    width: 32px !important;
+    height: 32px !important;
+
     background-color: rgba(255, 255, 255, 0.1) !important;
     border-color: rgba(255, 255, 255, 0.5) !important;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.2) !important;
+
+    /* Prevent any transform scaling */
+    transform: none !important;
 }
 
 
 .habit-increment-btn.completed {
+    /* Maintain consistent size when completed */
+    width: 32px !important;
+    height: 32px !important;
+
     background-color: rgba(0, 230, 118, 0.2) !important;
     border-color: rgba(0, 230, 118, 0.8) !important;
     color: #00E676 !important;
+
+    /* Prevent any transform scaling */
+    transform: none !important;
+}
+
+/* Prevent any active state scaling */
+.habit-increment-btn:active {
+    width: 32px !important;
+    height: 32px !important;
+    transform: none !important;
 }
