@@ -53,13 +53,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const calorieMatch = targetText.match(/(\d+)/);
                 if (calorieMatch && calorieMatch[1]) {
                     dailyCalorieTarget = parseInt(calorieMatch[1]);
-                    console.log(`Daily calorie target loaded: ${dailyCalorieTarget}`);
+                    
                 } else {
-                    console.log('No calorie target found in the UI');
+                    
                     dailyCalorieTarget = 0;
                 }
             } else {
-                console.log('Current calorie target element not found');
+                
                 dailyCalorieTarget = 0;
             }
 
@@ -70,19 +70,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const proteinMatch = proteinText.match(/(\d+)/);
                 if (proteinMatch && proteinMatch[1]) {
                     dailyProteinTarget = parseInt(proteinMatch[1]);
-                    console.log(`Daily protein target loaded: ${dailyProteinTarget}g`);
+                    
                 } else {
-                    console.log('No protein target found in the UI');
+                    
                     // If no protein target is set, calculate default based on calories (15% of calories)
                     if (dailyCalorieTarget > 0) {
                         dailyProteinTarget = Math.round((dailyCalorieTarget * 0.15) / 4);
-                        console.log(`Using default protein target: ${dailyProteinTarget}g (calculated from calories)`);
+                        
                     } else {
                         dailyProteinTarget = 0;
                     }
                 }
             } else {
-                console.log('Current protein target element not found');
+                
                 dailyProteinTarget = 0;
             }
 
@@ -93,26 +93,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const fatMatch = fatText.match(/(\d+)/);
                 if (fatMatch && fatMatch[1]) {
                     dailyFatTarget = parseInt(fatMatch[1]);
-                    console.log(`Daily fat target loaded: ${dailyFatTarget}g`);
+                    
                 } else {
-                    console.log('No fat target found in the UI');
+                    
                     dailyFatTarget = 0;
                 }
             } else {
-                console.log('Current fat target element not found');
+                
                 dailyFatTarget = 0;
             }
 
             // Update the micronutrient targets based on the user's daily targets
             if (typeof updateMicronutrientTargets === 'function' && dailyCalorieTarget > 0) {
                 updateMicronutrientTargets(dailyCalorieTarget, dailyProteinTarget);
-                console.log(`Updated micronutrient targets with calorie target: ${dailyCalorieTarget} and protein target: ${dailyProteinTarget}g`);
+                
             } else if (typeof updateMicronutrientCalorieTarget === 'function' && dailyCalorieTarget > 0) {
                 // Fall back to the old function if the new one isn't available
                 updateMicronutrientCalorieTarget(dailyCalorieTarget);
-                console.log(`Updated micronutrient targets with calorie target only: ${dailyCalorieTarget}`);
+                
             } else {
-                console.warn('Micronutrient target update functions not found');
+                
             }
         } catch (error) {
             console.error('Error loading daily nutrition targets:', error);
@@ -644,11 +644,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (recipeData && recipeData.success && recipeData.recipe) {
                         // New format: { success: true, recipe: {...} }
                         actualRecipe = recipeData.recipe;
-                        console.log(`Using new format for recipe ${recipe.id}`);
+                        
                     } else if (recipeData && recipeData.id) {
                         // Old format: direct recipe object
                         actualRecipe = recipeData;
-                        console.log(`Using old format for recipe ${recipe.id}`);
+                        
                     } else {
                         throw new Error(`Invalid recipe data received for recipe ID: ${recipe.id}`);
                     }
@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         throw new Error(`Invalid recipe data received for recipe ID: ${recipe.id}`);
                     }
                     if (!actualRecipe.ingredients) {
-                        console.warn(`Recipe "${actualRecipe.name || recipe.id}" has no ingredients property, adding empty array`);
+                        
                         actualRecipe.ingredients = [];
                     }
                     return actualRecipe;
@@ -689,22 +689,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (validRecipes.length < fullRecipes.length) {
                 const failedCount = fullRecipes.length - validRecipes.length;
-                console.warn(`${failedCount} recipe(s) failed to load or have no ingredients`);
+                
                 showStatus(`Warning: ${failedCount} recipe(s) could not be loaded properly`, 'warning');
             }
 
             // EMERGENCY FIX: Log the full recipe data to verify micronutrient data
-            console.log('Full recipe data for micronutrient calculations:');
+            
             fullRecipes.forEach(recipe => {
-                console.log(`Recipe: ${recipe.name}`);
+                
                 if (recipe.ingredients && recipe.ingredients.length > 0) {
-                    console.log(`  Ingredients: ${recipe.ingredients.length}`);
+                    
                     recipe.ingredients.forEach(ingredient => {
-                        console.log(`  - ${ingredient.name}`);
+                        
 
                         // Check for calcium specifically
                         if (ingredient.calcium !== undefined && ingredient.calcium !== null) {
-                            console.log(`    Calcium: ${ingredient.calcium}`);
+                            
                         }
 
                         // Count non-zero micronutrient fields
@@ -715,9 +715,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             ingredient[key] !== null && ingredient[key] !== 0
                         );
 
-                        console.log(`    Has ${micronutrientFields.length} non-zero micronutrient fields`);
+                        
                         if (micronutrientFields.length > 0) {
-                            console.log(`    Fields: ${micronutrientFields.join(', ')}`);
+                            
                         }
                     });
                 }
@@ -745,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (adjustedRecipes[index] && adjustedRecipes[index].total_calories !== undefined && fullRecipe.total_calories) {
                     scaleFactor = adjustedRecipes[index].total_calories / fullRecipe.total_calories;
                 }
-                console.log(`Using scale factor ${scaleFactor} for recipe ${fullRecipe.name || 'Unknown'}`);
+                
 
                 fullRecipe.ingredients.forEach(ingredient => {
                     // Validate ingredient data
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const saveAsTaskBtn = document.getElementById('save-as-task-btn');
             if (saveAsTaskBtn) {
                 saveAsTaskBtn.disabled = false;
-                console.log('Save as Task button enabled directly after grocery list generation');
+                
             }
 
             // Make the grocery list available globally for other functions
@@ -1079,11 +1079,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Ensure micronutrient targets are updated with the current daily targets
                 if (typeof updateMicronutrientTargets === 'function' && dailyCalorieTarget > 0) {
                     updateMicronutrientTargets(dailyCalorieTarget, dailyProteinTarget);
-                    console.log(`Updated micronutrient targets with calorie target: ${dailyCalorieTarget} and protein target: ${dailyProteinTarget}g before calculating percentages`);
+                    
                 } else if (typeof updateMicronutrientCalorieTarget === 'function' && dailyCalorieTarget > 0) {
                     // Fall back to the old function if the new one isn't available
                     updateMicronutrientCalorieTarget(dailyCalorieTarget);
-                    console.log(`Updated micronutrient targets with calorie target only: ${dailyCalorieTarget} before calculating percentages`);
+                    
                 }
 
                 // Calculate micronutrient totals and percentages
@@ -1126,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else {
             // Fallback if statusMessage element doesn't exist
-            console.log(`Status (${type}): ${message}`);
+            
 
             // Create a temporary status message
             const tempStatus = document.createElement('div');
@@ -1234,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             showStatus('Grocery list saved as task successfully!', 'success');
-            console.log('Task created:', data);
+            
         })
         .catch(error => {
             console.error('Error saving grocery list as task:', error);

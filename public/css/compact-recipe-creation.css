@@ -1,0 +1,281 @@
+/* Ultra Compact Recipe Creation Section - Force Override */
+
+/* Minimize all spacing with high specificity */
+#recipe-creation-section {
+    margin-bottom: 8px !important;
+    padding: 0 !important;
+}
+
+#recipe-creation-section .section-header-compact {
+    margin-bottom: 5px !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+}
+
+#recipe-creation-section .section-header-compact h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 1.1em !important;
+    line-height: 1.2 !important;
+}
+
+/* Ultra compact form group styling */
+#recipe-creation-section .form-group {
+    margin-bottom: 5px !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+}
+
+#recipe-creation-section .form-group input {
+    width: 100% !important;
+    padding: 4px 8px !important;
+    border: 1px solid #444 !important;
+    border-radius: 2px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    height: 28px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+/* Ultra compact textarea */
+.cronometer-text-paste-area {
+    resize: none !important;
+    overflow: hidden;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+}
+
+/* Ultra compact ingredient inputs - Force Override */
+#recipe-creation-section .ingredient-inputs-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    margin-bottom: 5px !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+}
+
+#recipe-creation-section .ingredient-inputs-container input,
+#recipe-creation-section .ingredient-inputs-container textarea {
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    border: 1px solid #444 !important;
+    border-radius: 2px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    height: 24px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+}
+
+/* Ultra compact button row - Force Override */
+#recipe-creation-section .buttons-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 3px !important;
+    margin-bottom: 4px !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+}
+
+#recipe-creation-section .buttons-row button {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    border: none !important;
+    border-radius: 2px !important;
+    background-color: #4a4a4a !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+    height: 22px !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+}
+
+#recipe-creation-section .buttons-row button:hover {
+    background-color: #5a5a5a !important;
+}
+
+/* Ultra compact ingredient item - Force Override */
+#recipe-creation-section .ingredient-item {
+    margin-bottom: 8px !important;
+    margin-top: 0 !important;
+    padding: 5px !important;
+    border: 1px solid #444 !important;
+    border-radius: 2px !important;
+    background-color: #1a1a1a !important;
+}
+
+/* Ultra compact status areas */
+.cronometer-parse-status {
+    margin-top: 2px;
+    font-size: 10px;
+    min-height: 0;
+    line-height: 1.2;
+}
+
+/* Ultra compact save button */
+#create-recipe-form button[type="submit"] {
+    padding: 5px 12px;
+    font-size: 11px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: 5px;
+    height: 26px;
+}
+
+#create-recipe-form button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Ultra compact status message */
+#create-recipe-status {
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+/* Additional compactness for detailed nutrition panel */
+.detailed-nutrition-panel {
+    margin-top: 3px !important;
+    padding: 3px !important;
+}
+
+.detailed-nutrition-panel h4 {
+    font-size: 11px !important;
+    margin: 2px 0 !important;
+}
+
+.nutrition-grid {
+    gap: 2px !important;
+}
+
+.nutrition-item label {
+    font-size: 9px !important;
+    margin-bottom: 1px !important;
+}
+
+.nutrition-item input {
+    height: 20px !important;
+    padding: 2px 4px !important;
+    font-size: 10px !important;
+}
+
+/* Ultra compact ingredient row */
+.ingredient-row {
+    margin-bottom: 3px !important;
+}
+
+/* Remove extra spacing from form elements */
+#create-recipe-form {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Compact grocery store input */
+.grocery-store-input {
+    height: 24px !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+}
+
+/* Make placeholders more compact */
+input::placeholder,
+textarea::placeholder {
+    font-size: 10px !important;
+    opacity: 0.7;
+}
+
+/* Ultra compact spacing for the entire section */
+#recipe-creation-section * {
+    margin-top: 0 !important;
+}
+
+/* Ensure consistent small heights */
+input[type="text"],
+input[type="number"],
+textarea {
+    line-height: 1.1 !important;
+}
+
+/* Compact the ingredient item container */
+#ingredients-list {
+    margin-top: 5px !important;
+}
+
+/* Target specific input fields by class name */
+#recipe-creation-section input.ingredient-name,
+#recipe-creation-section input.ingredient-amount,
+#recipe-creation-section input.ingredient-package-amount,
+#recipe-creation-section input.ingredient-price,
+#recipe-creation-section input.grocery-store-input {
+    height: 24px !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    margin: 0 !important;
+    border: 1px solid #444 !important;
+    border-radius: 2px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    line-height: 1.1 !important;
+    box-sizing: border-box !important;
+}
+
+/* Target the recipe name input specifically */
+#recipeName {
+    height: 28px !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    margin: 0 !important;
+    border: 1px solid #444 !important;
+    border-radius: 2px !important;
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    line-height: 1.1 !important;
+    box-sizing: border-box !important;
+}
+
+/* Force compact radio button area */
+#recipe-creation-section .ingredient-row {
+    margin: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 3px !important;
+}
+
+/* Make radio button text smaller */
+#recipe-creation-section label {
+    font-size: 11px !important;
+    margin: 0 !important;
+    padding: 0 2px !important;
+}
+
+/* Final aggressive overrides to ensure compactness */
+#recipe-creation-section * {
+    box-sizing: border-box !important;
+}
+
+#recipe-creation-section input,
+#recipe-creation-section textarea,
+#recipe-creation-section button {
+    margin: 0 !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    border-radius: 2px !important;
+}
+
+#recipe-creation-section h2 {
+    font-size: 1.1em !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+}

@@ -1,47 +1,10 @@
-console.error("FOOD.JS SCRIPT FILE LOADED - THIS SHOULD BE VISIBLE IMMEDIATELY");
-
 document.addEventListener('DOMContentLoaded', () => {
-    console.error("FOOD.JS SCRIPT STARTED - DOM CONTENT LOADED - THIS SHOULD BE VISIBLE");
-
-    console.error("ABOUT TO INITIALIZE VARIABLES - THIS SHOULD BE VISIBLE");
     const ingredientsList = document.getElementById('ingredients-list');
-    console.error("FINISHED INITIALIZING ingredientsList - THIS SHOULD BE VISIBLE");
     const createRecipeForm = document.getElementById('create-recipe-form');
-    console.error("FINISHED INITIALIZING createRecipeForm - THIS SHOULD BE VISIBLE");
     const recipeNameInput = document.getElementById('recipeName');
-    console.error("FINISHED INITIALIZING recipeNameInput - THIS SHOULD BE VISIBLE");
     const createRecipeStatus = document.getElementById('create-recipe-status');
-    console.error("FINISHED INITIALIZING createRecipeStatus - THIS SHOULD BE VISIBLE");
     const recipeListContainer = document.getElementById('recipe-list');
-    console.error("FINISHED INITIALIZING recipeListContainer - THIS SHOULD BE VISIBLE");
     const recipesDisplayStatus = document.getElementById('recipes-display-status');
-    console.error("FINISHED INITIALIZING recipesDisplayStatus - THIS SHOULD BE VISIBLE");
-
-    console.error("ABOUT TO CHECK initializeCronometerTextParser - THIS SHOULD BE VISIBLE");
-    // Temporarily commenting out initializeCronometerTextParser to debug the main script flow
-    /*
-    try {
-        if (typeof initializeCronometerTextParser === 'function') {
-            console.error("initializeCronometerTextParser FUNCTION FOUND - THIS SHOULD BE VISIBLE");
-            console.log('Initializing Cronometer text parser for all existing ingredient items');
-            const ingredientItems = document.querySelectorAll('.ingredient-item');
-            ingredientItems.forEach(item => {
-                try {
-                    initializeCronometerTextParser(item);
-                } catch (itemError) {
-                    console.error('Error initializing Cronometer text parser for item:', itemError);
-                }
-            });
-        } else {
-            console.error("initializeCronometerTextParser FUNCTION NOT FOUND - THIS SHOULD BE VISIBLE");
-            console.warn('Cronometer text parser not available on page load');
-        }
-    } catch (error) {
-        console.error('Error in initializeCronometerTextParser section:', error);
-    }
-    */
-    console.error("FINISHED CRONOMETER TEXT PARSER CHECK - THIS SHOULD BE VISIBLE");
-    console.error("ABOUT TO CONTINUE WITH VARIABLE INITIALIZATION - THIS SHOULD BE VISIBLE");
 
     const targetWeightInput = document.getElementById('targetWeight');
     const weeklyGainGoalInput = document.getElementById('weeklyGainGoal');
@@ -50,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const weightGoalChartCanvas = document.getElementById('weight-goal-chart');
     const weightChartMessage = document.getElementById('weight-chart-message');
     const userSelector = document.getElementById('user-selector');
-    console.error("FINISHED INITIALIZING CHART VARIABLES - THIS SHOULD BE VISIBLE");
     const resetScaleButton = document.getElementById('reset-scale-button');
     const xAxisScaleSlider = document.getElementById('x-axis-scale');
     const yAxisScaleSlider = document.getElementById('y-axis-scale');
@@ -400,17 +362,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (typeof initializeCronometerTextParser === 'function') {
                 initializeCronometerTextParser(ingredientItem);
-                console.log('Cronometer Text Parser initialized in new ingredient row');
             } else {
-                console.error('initializeCronometerTextParser function not found');
-
                 const scriptElement = document.createElement('script');
                 scriptElement.src = '/js/food/cronometer-text-parser.js';
                 scriptElement.onload = function() {
-                    console.log('Cronometer Text Parser script loaded');
                     if (typeof initializeCronometerTextParser === 'function') {
                         initializeCronometerTextParser(ingredientItem);
-                        console.log('Cronometer Text Parser initialized after script load');
                     }
                 };
                 document.head.appendChild(scriptElement);
@@ -422,55 +379,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (parseButton && textPasteArea && statusElement) {
                 parseButton.addEventListener('click', function() {
-                    console.log('Parse button clicked');
                     const text = textPasteArea.value.trim();
                     if (text) {
                         if (typeof processCronometerText === 'function') {
-                            console.log('Calling processCronometerText function');
                             processCronometerText(text, ingredientItem, statusElement);
+                        } else if (window.processCronometerText) {
+                            window.processCronometerText(text, ingredientItem, statusElement);
                         } else {
-                            console.error('processCronometerText function not found');
-
-                            if (window.processCronometerText) {
-                                console.log('Found processCronometerText in window scope');
-                                window.processCronometerText(text, ingredientItem, statusElement);
-                            } else {
-                                statusElement.textContent = 'Error: Nutrition parser not loaded';
-                                statusElement.className = 'cronometer-parse-status error';
-                            }
+                            statusElement.textContent = 'Error: Nutrition parser not loaded';
+                            statusElement.className = 'cronometer-parse-status error';
                         }
                     } else {
                         statusElement.textContent = 'Please paste Cronometer nutrition data first';
                         statusElement.className = 'cronometer-parse-status error';
                     }
                 });
-                console.log('Manual event listener added to parse button');
             }
-
 
             const event = new CustomEvent('ingredientAdded', {
                 detail: { ingredientItem: ingredientItem }
             });
             document.dispatchEvent(event);
-            console.log('Dispatched ingredientAdded event');
         }, 100); // Slightly longer timeout to ensure DOM is updated
 
     }
 
     // Function to handle radio button changes
     function setupRadioButtonListeners() {
-        console.log('Setting up radio button listeners');
         const radioButtons = document.querySelectorAll('.ingredient-selection-radio');
 
         radioButtons.forEach(radio => {
             radio.addEventListener('change', function() {
-                console.log('Radio button changed:', this.value);
                 const ingredientItem = this.closest('.ingredient-item');
                 const selectionDiv = ingredientItem.querySelector('.existing-ingredient-selection');
                 const inputsContainer = ingredientItem.querySelector('.ingredient-inputs-container');
 
                 if (this.value === 'existing') {
-                    console.log('Showing existing ingredient selection');
                     selectionDiv.style.display = 'block';
 
                     // Disable the manual input fields
@@ -489,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         }, 100);
                     }
                 } else {
-                    console.log('Showing new ingredient input');
                     selectionDiv.style.display = 'none';
 
                     // Enable the manual input fields
@@ -502,7 +445,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to load existing ingredients
     async function loadExistingIngredients() {
-        console.log('Loading existing ingredients');
         try {
             // Fetch all recipes to extract ingredients
             const response = await fetch('/api/recipes');
@@ -521,11 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // New format: object with success and recipes properties
                 recipes = responseData.recipes;
             } else {
-                console.error('Invalid response format:', responseData);
                 throw new Error('Invalid recipe data format');
             }
-
-            console.log(`Loaded ${recipes.length} recipes`);
 
             // Extract all ingredients from all recipes
             const allIngredients = [];
@@ -533,8 +472,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // First, try to get ingredients from the currently visible recipe details
             const visibleRecipeIngredients = document.querySelectorAll('.recipe-details-container table tbody tr');
             if (visibleRecipeIngredients && visibleRecipeIngredients.length > 0) {
-                console.log(`Found ${visibleRecipeIngredients.length} visible ingredients in the current view`);
-
                 visibleRecipeIngredients.forEach((row, index) => {
                     // Skip the header row
                     if (index === 0) return;
@@ -549,8 +486,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const fats = parseFloat(cells[5].textContent.trim());
                         const carbs = parseFloat(cells[6].textContent.trim());
                         const price = parseFloat(cells[7].textContent.trim());
-
-                        console.log(`Adding visible ingredient: ${name}`);
 
                         allIngredients.push({
                             id: `visible-${index}`,
@@ -573,22 +508,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Then add ingredients from all recipes
             recipes.forEach(recipe => {
-                console.log(`Processing recipe: ${recipe.name}`);
-
                 // Check if we need to fetch ingredients separately
                 if (!recipe.ingredients || !Array.isArray(recipe.ingredients)) {
-                    console.log(`No ingredients array found for recipe ${recipe.name}`);
-
                     // Try to fetch ingredients for this recipe
                     fetch(`/api/recipes/${recipe.id}`)
                         .then(response => response.json())
                         .then(recipeDetails => {
                             if (recipeDetails.ingredients && Array.isArray(recipeDetails.ingredients)) {
-                                console.log(`Fetched ${recipeDetails.ingredients.length} ingredients for recipe ${recipe.name}`);
-
                                 recipeDetails.ingredients.forEach(ingredient => {
-                                    console.log(`Adding ingredient: ${ingredient.name}`);
-
                                     allIngredients.push({
                                         id: ingredient.id,
                                         name: ingredient.name,
@@ -620,11 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return; // Skip this recipe in the main loop
                 }
 
-                console.log(`Recipe ${recipe.name} has ${recipe.ingredients.length} ingredients`);
-
                 recipe.ingredients.forEach(ingredient => {
-                    console.log(`Adding ingredient: ${ingredient.name}`);
-
                     allIngredients.push({
                         id: ingredient.id,
                         name: ingredient.name,
@@ -652,8 +575,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ];
 
             visibleIngredients.forEach((ingredient, index) => {
-                console.log(`Adding hardcoded ingredient: ${ingredient.name}`);
-
                 allIngredients.push({
                     id: `hardcoded-${index}`,
                     name: ingredient.name,
@@ -674,8 +595,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Sort ingredients alphabetically by name
             allIngredients.sort((a, b) => a.name.localeCompare(b.name));
 
-            console.log(`Loaded ${allIngredients.length} ingredients`);
-
             // Populate all dropdowns with the ingredients
             populateIngredientDropdowns(allIngredients);
 
@@ -688,7 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to populate ingredient dropdowns
     function populateIngredientDropdowns(ingredients) {
-        console.log('Populating ingredient dropdowns');
         const dropdowns = document.querySelectorAll('.existing-ingredient-select');
 
         dropdowns.forEach(dropdown => {
@@ -740,7 +658,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to set up ingredient search
     function setupIngredientSearch() {
-        console.log('Setting up ingredient search');
         const searchInputs = document.querySelectorAll('.ingredient-search-input');
 
         searchInputs.forEach(input => {
@@ -762,13 +679,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Call setupRadioButtonListeners when a new ingredient row is added
     document.addEventListener('ingredientAdded', function(e) {
-        console.log('Ingredient added event received');
         setupRadioButtonListeners();
     });
 
     // Initial setup for existing ingredient rows
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, setting up initial radio buttons');
         setupRadioButtonListeners();
     });
 
@@ -811,7 +726,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputsContainer = ingredientItem.querySelector('.ingredient-inputs-container');
 
             if (radio.value === 'existing') {
-                console.log('Radio clicked: Showing existing ingredient selection');
                 selectionDiv.style.display = 'block';
 
                 // Disable the manual input fields
@@ -830,7 +744,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 100);
                 }
             } else {
-                console.log('Radio clicked: Showing new ingredient input');
                 selectionDiv.style.display = 'none';
 
                 // Enable the manual input fields
@@ -848,7 +761,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Prevent duplicate submissions
         if (recipeSubmissionInProgress) {
-            console.log('Recipe submission already in progress, ignoring duplicate submission');
             return;
         }
 
@@ -862,14 +774,10 @@ document.addEventListener('DOMContentLoaded', () => {
             saveButton.textContent = 'Saving...';
         }
 
-        console.log('Recipe form submitted');
         showStatus(createRecipeStatus, 'Saving recipe...', 'info'); // Indicate processing
 
         const recipeName = recipeNameInput.value.trim();
-        console.log('Recipe name:', recipeName);
-
         const ingredientItems = ingredientsList.querySelectorAll('.ingredient-item');
-        console.log(`Found ${ingredientItems.length} ingredient items`);
 
         const ingredientsData = [];
         let formIsValid = true;
@@ -952,7 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const value = parseFloat(field.value);
                     if (!isNaN(value)) {
                         ingredientData[fieldName] = value;
-                        console.log(`Added micronutrient data from hidden field: ${fieldName} = ${value}`);
+                        
                     }
                 });
 
@@ -960,24 +868,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (const [key, value] of Object.entries(ingredientData)) {
                     if (!['name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount'].includes(key)) {
                         hasMicronutrients = true;
-                        console.log(`Found micronutrient data: ${key} = ${value}`);
+                        
                     }
                 }
 
                 if (!hasMicronutrients) {
-                    console.warn(`No micronutrient data found in hidden fields for ingredient ${ingredientData.name}`);
+                    
                 }
 
                 if (item.dataset.completeNutritionData) {
                     try {
 
                         const completeData = JSON.parse(item.dataset.completeNutritionData);
-                        console.log('Found complete nutrition data:', completeData);
+                        
 
                         if (window.NutritionFieldMapper) {
                             const dbFormatData = window.NutritionFieldMapper.toDbFormat(completeData);
 
-                            console.log('Database format data from Cronometer parser:', dbFormatData);
+                            
 
                             for (const [key, value] of Object.entries(dbFormatData)) {
 
@@ -988,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
 
                                 ingredientData[key] = value;
-                                console.log(`Added micronutrient data: ${key} = ${value}`);
+                                
                             }
                         } else {
 
@@ -1004,14 +912,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         ingredientData.carbohydrates = carbsVal;
                         ingredientData.price = priceVal;
 
-                        console.log('Final ingredient data with micronutrients:', ingredientData);
+                        
                     } catch (error) {
                         console.error('Error parsing complete nutrition data:', error);
                     }
                 }
 
 
-                console.log(`Adding ingredient ${ingredientData.name} to ingredientsData:`, ingredientData);
+                
 
                 let hasAnyMicronutrients = false;
                 for (const [key, value] of Object.entries(ingredientData)) {
@@ -1022,10 +930,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (!hasAnyMicronutrients) {
-                    console.warn(`No micronutrient data found for ingredient ${ingredientData.name}`);
+                    
 
                     if (item.dataset.completeNutritionData) {
-                        console.log('Found complete nutrition data, trying to add micronutrients again');
+                        
 
                         try {
 
@@ -1043,7 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
 
                                     ingredientData[key] = value;
-                                    console.log(`Added micronutrient data: ${key} = ${value}`);
+                                    
                                 }
                             }
                         } catch (error) {
@@ -1063,33 +971,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
 
-            console.log('Sending data to backend:', { name: recipeName, ingredients: ingredientsData });
-            console.log('JSON data:', JSON.stringify({ name: recipeName, ingredients: ingredientsData }, null, 2));
+            
+            
 
             ingredientsData.forEach((ingredient, index) => {
-                console.log(`Ingredient ${index + 1} (${ingredient.name}) micronutrient data:`);
+                
 
                 let micronutrientCount = 0;
 
                 for (const [key, value] of Object.entries(ingredient)) {
 
                     if (['name', 'calories', 'amount', 'protein', 'fats', 'carbohydrates', 'price', 'package_amount'].includes(key)) {
-                        console.log(`  Basic field: ${key}: ${value}`);
+                        
                         continue;
                     }
-                    console.log(`  Micronutrient: ${key}: ${value}`);
+                    
                     micronutrientCount++;
                 }
 
-                console.log(`Ingredient ${index + 1} (${ingredient.name}) has ${micronutrientCount} micronutrient fields`);
+                
 
                 if (micronutrientCount > 0) {
                     ingredient.has_micronutrients = true;
-                    console.log(`  Added has_micronutrients flag to ${ingredient.name}`);
+                    
                 }
             });
 
-            console.log('Sending POST request to /api/recipes...');
+            
             const response = await fetch('/api/recipes', {
                 method: 'POST',
                 headers: {
@@ -1099,8 +1007,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ name: recipeName, ingredients: ingredientsData })
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries([...response.headers.entries()]));
+            
+            
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -1114,9 +1022,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            console.log('Parsing response JSON...');
+            
             const newRecipe = await response.json();
-            console.log('Recipe saved successfully:', newRecipe);
+            
 
             showStatus(createRecipeStatus, `Recipe '${newRecipe.name}' saved successfully!`, 'success');
 
@@ -1185,11 +1093,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             createRecipeForm.reset(); // Clear form fields
 
-            console.log('Clearing ingredient list and adding empty row...');
+            
             ingredientsList.innerHTML = '';
             addIngredientRow(); // This will also initialize the paste area
 
-            console.log('Refreshing recipe list...');
+            
 
             setTimeout(() => {
                 loadRecipes(0, 3); // Refresh the recipe list with retry mechanism
@@ -1242,7 +1150,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // If goal data has start_weight and start_date, use those values
                 if (goalData.start_weight && goalData.start_date) {
-                    console.log(`Using existing goal start data: ${goalData.start_weight} lbs on ${goalData.start_date}`);
+                    
                     return {
                         startWeight: goalData.start_weight,
                         startDate: goalData.start_date
@@ -1264,12 +1172,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 logs.sort((a, b) => new Date(b.log_date || b.date) - new Date(a.log_date || a.date));
                 startWeight = logs[0].weight;
                 startDate = logs[0].log_date || logs[0].date;
-                console.log(`No goal start data available, using most recent weight log: ${startWeight} lbs on ${startDate}`);
+                
             } else {
                 startWeight = targetWeight || 0;
                 const today = new Date();
                 startDate = today.toISOString().split('T')[0];
-                console.log(`No weight logs found, using target weight (${startWeight} lbs) and today's date (${startDate})`);
+                
             }
 
             return { startWeight, startDate };
@@ -1346,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            console.log("Goals saved:", result);
+            
 
             // Update the input fields with the saved values
             targetWeightInput.value = result.target_weight || '';
@@ -1385,16 +1293,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (weightGoalChart) weightGoalChart.destroy(); // Clear previous chart immediately
 
         try {
-            console.log("Starting API calls for weight data...");
-            console.log("Current user ID:", currentUserId);
+            
+            
 
             const [logsResponse, goalResponse] = await Promise.all([
                 fetch(`/api/weight/logs?user_id=${currentUserId}`),
                 fetch(`/api/weight/goal?user_id=${currentUserId}`)
             ]);
 
-            console.log("Logs response status:", logsResponse.status, logsResponse.statusText);
-            console.log("Goal response status:", goalResponse.status, goalResponse.statusText);
+            
+            
 
             if (!logsResponse.ok) {
                 const errorText = await logsResponse.text();
@@ -1446,7 +1354,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     weight: null // No weight data for today yet
                 });
 
-                console.log(`Added today's date (${todayFormatted}) to the chart at position ${insertIndex}`);
+                
             }
 
             // Create standardized date objects and labels for Chart.js
@@ -1478,11 +1386,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         const year = date.getFullYear();
                         const formattedLabel = `${month}/${day}/${year}`;
 
-                        console.log(`Formatted date for weight log: ${log.log_date} -> ${formattedLabel}`);
+                        
                         histLabels.push(formattedLabel);
                         histDateObjects.push(date);
                     } else {
-                        console.warn(`Could not parse date: ${log.log_date}, using as-is`);
+                        
                         histLabels.push(log.log_date);
                         histDateObjects.push(new Date(log.log_date)); // Fallback
                     }
@@ -1514,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: mostRecentDate
             };
 
-            console.log(`Most recent weight: ${mostRecentWeight} lbs on ${mostRecentDate}`);
+            
 
             let goalStartDate;
 
@@ -1524,14 +1432,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const month = (goalStartDate.getMonth() + 1).toString().padStart(2, '0');
                 const day = goalStartDate.getDate().toString().padStart(2, '0');
                 const year = goalStartDate.getFullYear();
-                console.log("Using goal start date for projections:", `${month}/${day}/${year}`);
+                
             } else {
                 goalStartDate = new Date();
                 // Use consistent formatting
                 const month = (goalStartDate.getMonth() + 1).toString().padStart(2, '0');
                 const day = goalStartDate.getDate().toString().padStart(2, '0');
                 const year = goalStartDate.getFullYear();
-                console.log("No goal start date available, using today:", `${month}/${day}/${year}`);
+                
             }
 
             goalStartDate.setHours(0, 0, 0, 0);
@@ -1547,8 +1455,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (i === 0) {
-                    console.log("First future date:", futureDate);
-                    console.log("First future date ISO:", futureDate.toISOString());
+                    
+                    
                 }
 
                 // Use consistent MM/DD/YYYY format for future dates
@@ -1573,10 +1481,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     week: i
                 };
 
-                console.log(`Weekly increment date for week ${i}: ${dateObj.date} (${dateObj.fullDate})`);
+                
                 window.weeklyIncrementDates.push(dateObj);
 
-                console.log(`Added future date: ${formattedFutureLabel} (week ${i})`);
+                
             }
 
             // Combine labels and data
@@ -1601,13 +1509,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const labels = combinedData.map(item => item.label);
             const paddedActualWeightData = combinedData.map(item => item.actualWeight);
 
-            console.log("=== SORTING DEBUG ===");
-            console.log("First 10 sorted labels:");
+            
+            
             labels.slice(0, 10).forEach((label, i) => {
                 const date = parseDate(label);
-                console.log(`${i}: ${label} -> ${date.toDateString()}`);
+                
             });
-            console.log("=== END SORTING DEBUG ===");
+            
 
             // Helper function to parse dates consistently
             function parseDate(dateStr) {
@@ -1630,7 +1538,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (goalData.start_date && goalData.start_weight) {
                 startDate = new Date(goalData.start_date);
                 startWeight = goalData.start_weight;
-                console.log(`Using goal start date: ${goalData.start_date} and start weight: ${startWeight} lbs`);
+                
             } else {
                 // Fallback to most recent log only if goal data is not available
                 // This is a fallback mechanism, but the primary source should be the goal data
@@ -1645,26 +1553,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (mostRecentLog) {
                     startDate = new Date(mostRecentLog.log_date);
                     startWeight = mostRecentLog.weight;
-                    console.log(`No goal start data available, using most recent weight log as fallback: ${startWeight} lbs on ${mostRecentLog.log_date}`);
+                    
                 } else {
                     // Last resort fallback
                     startDate = new Date();
                     startWeight = goalData.target_weight;
-                    console.log(`No start data available at all, using today and target weight as fallback: ${startWeight} lbs`);
+                    
                 }
             }
 
             const targetWeight = goalData.target_weight;
             const weeklyGain = goalData.weekly_gain_goal;
 
-            console.log("Chart: Received goalData:", goalData);
-            console.log("Chart: Values for target line calculation:",
-                { targetWeight, weeklyGain, startDate, startWeight });
+            
+
 
 
             window.weeklyGoalWeights = [];
 
-            console.log("Weekly increment dates:", window.weeklyIncrementDates);
+            
 
             console.error("GOAL DATA VALUES:", {
                 targetWeight: targetWeight,
@@ -1677,16 +1584,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 targetWeightNaN: isNaN(targetWeight),
                 weeklyGainNaN: isNaN(weeklyGain)
             });
-            console.log("[WEEKLY TARGET DEBUG] Goal data check:", {
-                targetWeight: targetWeight,
-                weeklyGain: weeklyGain,
-                startWeight: startWeight,
-                startDate: startDate ? startDate.toLocaleDateString() : 'null'
-            });
+
 
             if (targetWeight !== null && weeklyGain !== null && weeklyGain !== 0 && !isNaN(targetWeight) && !isNaN(weeklyGain)) {
                 console.error("WEEKLY TARGET CALCULATION STARTING - THIS SHOULD BE VISIBLE");
-                console.log("[WEEKLY TARGET DEBUG] Chart: Condition to draw target line met."); // Log condition met
+                 // Log condition met
 
                 const filterDate = new Date(startDate);
                 filterDate.setHours(0, 0, 0, 0);
@@ -1729,27 +1631,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     weekCounter++;
                 }
 
-                console.log("[WEEKLY TARGET DEBUG] Weekly target dates and weights calculated:");
+                
                 weeklyTargetDates.forEach((date, i) => {
-                    console.log(`[WEEKLY TARGET DEBUG] Week ${i}: ${date.toLocaleDateString()} - ${weeklyTargetWeights[i].toFixed(2)} lbs`);
+                    
                 });
 
-                console.log("Chart labels (first 10):", labels.slice(0, 10));
-            console.log("Chart labels (last 10):", labels.slice(-10));
-                console.log("Goal start date:", startDate.toLocaleDateString());
-                console.log("Weekly target dates (first 5):", weeklyTargetDates.slice(0, 5).map(d => d.toLocaleDateString()));
+                
+            
+                
+                
 
             // Debug: Check if labels are in chronological order
-            console.log("=== DATE ORDER DEBUG ===");
+            
             for (let i = 0; i < Math.min(labels.length, 15); i++) {
                 const label = labels[i];
                 const parts = label.split('/');
                 if (parts.length === 3) {
                     const date = new Date(parts[2], parts[0] - 1, parts[1]);
-                    console.log(`Index ${i}: ${label} -> ${date.toDateString()}`);
+                    
                 }
             }
-            console.log("=== END DATE ORDER DEBUG ===");
+            
 
                 // Now process each label date and find the appropriate target weight
                 labels.forEach((labelStr, index) => {
@@ -1767,7 +1669,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (isNaN(currentDate.getTime())) {
-                        console.warn(`Could not parse date label for target line calculation: ${labelStr}`);
+                        
                         targetWeightLine.push(null); // Push null if date is invalid
                         return; // Skip to next iteration
                     }
@@ -1832,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         goalWeight = Math.max(goalWeight, targetWeight);
                     }
 
-                    console.log(`Date: ${labelStr}, Goal weight: ${goalWeight.toFixed(2)} lbs`);
+                    
                     targetWeightLine.push(goalWeight);
 
                     // Check if this date matches one of our weekly target dates
@@ -1861,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const existingWeek = window.weeklyGoalWeights.find(w => w.week === weekNum);
                             if (!existingWeek) {
                                 window.weeklyGoalWeights.push(weeklyGoalWeight);
-                                console.log(`[WEEKLY TARGET DEBUG] Added weekly goal weight: ${labelStr}, ${goalWeight.toFixed(2)} lbs (week ${weekNum})`);
+                                
                             }
 
                             break; // Found the matching week, no need to continue checking
@@ -1869,14 +1771,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             } else {
-                console.log("Goal not set or invalid, not drawing target line.");
+                
 
                 for (let i = 0; i < labels.length; i++) { targetWeightLine.push(null); }
             }
 
 
-            console.log("Final weekly goal weights before rendering chart:", window.weeklyGoalWeights);
-            console.log("Total weekly goal weights found:", window.weeklyGoalWeights ? window.weeklyGoalWeights.length : 0);
+            
+            
             renderWeightChart(labels, paddedActualWeightData, targetWeightLine, parseFloat(goalData.target_weight));
 
             // Ensure chart is visible
@@ -1936,7 +1838,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        console.log('Rendering weight chart with canvas:', weightGoalChartCanvas);
+        
 
         // Make sure the canvas is visible
         weightGoalChartCanvas.style.display = 'block';
@@ -1961,7 +1863,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = weightGoalChartCanvas.getContext('2d');
 
         if (weightGoalChart) {
-            console.log('Destroying previous chart instance');
+            
             weightGoalChart.destroy(); // Destroy previous instance
         }
 
@@ -1987,7 +1889,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        console.log('Most recent weight:', window.mostRecentWeight);
+        
 
         for (let i = 0; i < labels.length; i++) {
             formattedTargetData.push({
@@ -2050,10 +1952,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         if (formattedTargetData.length > 0) {
-             console.log("Adding goal weight path dataset");
-             console.log("Weekly goal weights array:", window.weeklyGoalWeights);
-             console.log("Target data length:", formattedTargetData.length);
-             console.log("First few target data points:", formattedTargetData.slice(0, 10));
+             
+             
+             
+             
              datasets.push({
                  label: 'Goal Weight Path (lbs)',
                  data: formattedTargetData,
@@ -2089,8 +1991,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const year = today.getFullYear();
         const todayFormatted = `${month}/${day}/${year}`;
 
-        console.log('Today formatted:', todayFormatted);
-        console.log('Available labels:', labels);
+        
+        
 
         let todayIndex = labels.findIndex(label => label === todayFormatted);
 
@@ -2122,11 +2024,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 } catch (e) {
-                    console.warn('Error parsing date label:', label, e);
+                    
                 }
             });
 
-            console.log('Found closest date at index:', todayIndex);
+            
         }
 
         const annotations = {};
@@ -2153,7 +2055,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
 
-            console.log(`Today indicator added at index ${todayIndex} (${labels[todayIndex]})`);
+            
         } else {
             let lastDataIndex = -1;
             for (let i = actualData.length - 1; i >= 0; i--) {
@@ -2185,9 +2087,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
 
-                console.log(`Today indicator added at last data point: ${lastDataIndex}`);
+                
             } else {
-                console.log('Could not find a suitable position for today indicator');
+                
             }
         }
 
@@ -2228,9 +2130,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     drawTime: 'beforeDatasetsDraw' // Draw behind the data
                 };
 
-                console.log(`Target weight indicator added at ${targetWeightValue} lbs`);
+                
             } else {
-                console.log('Could not parse target weight value');
+                
             }
         }
 
@@ -2244,16 +2146,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (!annotationPluginAvailable) {
-                console.warn('Annotation plugin not found in registry, trying to register manually');
+                
 
                 if (typeof ChartAnnotation !== 'undefined') {
                     Chart.register(ChartAnnotation);
-                    console.log('Registered annotation plugin from global ChartAnnotation');
+                    
                 }
 
                 else if (Chart.Annotation) {
                     Chart.register(Chart.Annotation);
-                    console.log('Registered annotation plugin from Chart.Annotation');
+                    
                 }
             }
         } catch (error) {
@@ -2490,14 +2392,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                         const weeklyPoint = window.weeklyGoalWeights.find(w => w.index === pointIndex && w.week === 0);
                                         if (weeklyPoint) {
 
-                                            console.log("Forcing first weekly point date to May 6, 2024 in chart tooltip");
+                                            
                                             return "May 6, 2024";
                                         }
 
 
                                         const firstWeeklyPointIndex = window.weeklyIncrementDates.find(w => w.week === 0)?.index;
                                         if (firstWeeklyPointIndex === pointIndex) {
-                                            console.log("Forcing date to May 6, 2024 based on index match");
+                                            
                                             return "May 6, 2024";
                                         }
                                     }
@@ -2573,7 +2475,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        console.log('Annotations disabled to prevent errors');
+        
 
 
 
@@ -2600,38 +2502,38 @@ document.addEventListener('DOMContentLoaded', () => {
             chartConfig.options.scales.y.min = Math.max(0, minValue - padding);
             chartConfig.options.scales.y.max = maxValue + padding;
 
-            console.log(`Setting initial Y-axis range: ${chartConfig.options.scales.y.min} to ${chartConfig.options.scales.y.max}`);
+            
         }
 
         chartConfig.options.targetWeight = parseFloat(targetWeight);
-        console.log('Setting target weight in chart options:', chartConfig.options.targetWeight);
+        
 
         try {
-            console.log('Creating new Chart.js instance');
+            
             weightGoalChart = new Chart(ctx, chartConfig);
             weightGoalChart._initialScaleApplied = false; // Mark as needing initial scale
 
             // Store the chart in the window object for access by other scripts
             window.weightGoalChart = weightGoalChart;
 
-            console.log('Weight goal chart created and stored in window.weightGoalChart');
+            
 
             // Use our new tooltip fix function if available
             if (window.fixWeightChartTooltips && typeof window.fixWeightChartTooltips === 'function') {
-                console.log('Using tooltip fix function');
+                
                 setTimeout(() => {
                     window.fixWeightChartTooltips(weightGoalChart);
                 }, 100);
             } else {
-                console.warn('Tooltip fix function not available, will try again');
+                
 
                 // Try again after a delay to allow scripts to load
                 setTimeout(() => {
                     if (window.fixWeightChartTooltips && typeof window.fixWeightChartTooltips === 'function') {
-                        console.log('Tooltip fix function now available');
+                        
                         window.fixWeightChartTooltips(weightGoalChart);
                     } else {
-                        console.warn('Tooltip fix function still not available');
+                        
                     }
                 }, 500);
             }
@@ -2639,7 +2541,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Force a resize to ensure the chart is properly rendered
             setTimeout(() => {
                 if (weightGoalChart) {
-                    console.log('Forcing chart resize');
+                    
                     weightGoalChart.resize();
                 }
             }, 500);
@@ -2663,7 +2565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (weightGoalChart && typeof updateChartYAxisScale === 'function') {
 
                 updateChartYAxisScale(weightGoalChart, 1.0, false);
-                console.log('Applied initial y-axis scale: 1.0x');
+                
 
                 if (xAxisScaleSlider) xAxisScaleSlider.value = 1.0;
                 if (yAxisScaleSlider) yAxisScaleSlider.value = 1.0;
@@ -2677,7 +2579,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     async function loadRecipes(retryCount = 0, maxRetries = 3) {
-        console.log(`Loading recipes... (attempt ${retryCount + 1} of ${maxRetries + 1})`);
+        
         showStatus(recipesDisplayStatus, 'Loading recipes...', 'info');
 
         recipeListContainer.innerHTML = `
@@ -2705,7 +2607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const timestamp = new Date().getTime();
             const random = Math.floor(Math.random() * 1000000);
             const url = `/api/recipes?timestamp=${timestamp}&random=${random}`;
-            console.log(`Fetching recipes from: ${url}`);
+            
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -2717,8 +2619,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cache: 'no-store' // Force fetch to bypass cache
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries([...response.headers.entries()]));
+            
+            
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -2727,7 +2629,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const responseText = await response.text();
-            console.log('Raw response text:', responseText);
+            
 
             if (!responseText.trim()) {
                 console.error('Empty response received');
@@ -2750,7 +2652,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('Invalid recipe data format');
                 }
 
-                console.log(`Loaded ${recipes.length} recipes:`, recipes);
+                
             } catch (jsonError) {
                 console.error('Error parsing JSON:', jsonError);
                 console.error('Response text that failed to parse:', responseText);
@@ -2821,7 +2723,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error loading recipes:', error);
 
             if (retryCount < maxRetries) {
-                console.log(`Retrying in ${(retryCount + 1) * 1000}ms...`);
+                
                 showStatus(recipesDisplayStatus, `Retrying to load recipes (${retryCount + 1}/${maxRetries})...`, 'info');
 
                 await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
@@ -2849,7 +2751,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             try {
-                console.log('Trying alternative approach to load recipes...');
+                
 
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', '/api/recipes', true);
@@ -2859,10 +2761,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 xhr.onload = function() {
                     if (xhr.status >= 200 && xhr.status < 300) {
-                        console.log('XHR response received:', xhr.responseText);
+                        
                         try {
                             const recipes = JSON.parse(xhr.responseText);
-                            console.log(`Alternative approach loaded ${recipes.length} recipes`);
+                            
                             renderRecipes(recipes);
                             showStatus(recipesDisplayStatus, '', ''); // Clear status on success
                         } catch (jsonError) {
@@ -3064,10 +2966,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchAndDisplayIngredients(recipeId, detailsDiv, viewButton, forceRefresh = false) {
-        console.log(`=== fetchAndDisplayIngredients called for recipe ${recipeId}${forceRefresh ? ' (FORCE REFRESH)' : ''} ===`);
+        
 
         if (forceRefresh) {
-            console.log('Force refresh parameter detected - will refresh ingredients');
+            
             detailsDiv.dataset.forceRefresh = 'true';
         }
 
@@ -3082,7 +2984,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (detailsDiv.style.display !== 'none' && !detailsDiv.dataset.forceRefresh) {
-            console.log('Toggling visibility - hiding ingredients');
+            
             detailsDiv.style.display = 'none';
             detailsDiv.innerHTML = ''; // Clear content
             if (viewButton) {
@@ -3093,7 +2995,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (detailsDiv.dataset.forceRefresh) {
-            console.log('Force refresh flag detected - will refresh ingredients');
+            
             delete detailsDiv.dataset.forceRefresh;
         }
 
@@ -3107,7 +3009,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
 
             const timestamp = new Date().getTime();
-            console.log(`Fetching recipe data with timestamp ${timestamp}`);
+            
 
             const response = await fetch(`/api/recipes/${recipeId}?timestamp=${timestamp}`, {
                 method: 'GET',
@@ -3118,7 +3020,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            console.log('API response status:', response.status);
+            
 
             if (!response.ok) {
                 let errorMessage = `Server returned ${response.status} ${response.statusText}`;
@@ -3134,25 +3036,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const responseData = await response.json();
 
-            console.log('Fetched response data:', responseData);
+            
 
             // Handle both wrapped and direct response formats
             let recipeData;
             if (responseData.success && responseData.recipe) {
                 // New MVC format: {success: true, recipe: {...}, message: "..."}
                 recipeData = responseData.recipe;
-                console.log('Using wrapped response format');
+                
             } else if (responseData.ingredients) {
                 // Old direct format: {id: 1, name: "...", ingredients: [...]}
                 recipeData = responseData;
-                console.log('Using direct response format');
+                
             } else {
                 console.error('Invalid response format:', responseData);
                 throw new Error('Invalid response format from server');
             }
 
-            console.log('Processed recipe data:', recipeData);
-            console.log(`Fetched ${recipeData.ingredients ? recipeData.ingredients.length : 0} ingredients`);
+            
+            
 
             if (!recipeData.ingredients || !Array.isArray(recipeData.ingredients)) {
                 console.error('No ingredients array in recipe data:', recipeData);
@@ -3160,18 +3062,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (recipeData.ingredients.length === 0) {
-                console.warn('Recipe has no ingredients');
+                
                 detailsDiv.innerHTML = '<p>This recipe has no ingredients.</p>';
                 return;
             }
 
             recipeData.ingredients.forEach(ing => {
-                console.log(`Ingredient ${ing.id} (${ing.name}) has package_amount:`, ing.package_amount, typeof ing.package_amount);
+                
             });
 
-            console.log('Rendering ingredient details');
+            
             renderIngredientDetails(recipeData.ingredients, detailsDiv);
-            console.log('Ingredient details rendered successfully');
+            
 
             // Ensure edit form is hidden after rendering ingredients (fix for unwanted edit modal)
             setTimeout(() => {
@@ -3180,10 +3082,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     editForm.style.display = 'none';
                     editForm.style.visibility = 'hidden';
                     editForm.classList.add('force-hidden');
-                    console.log('Ensured edit form is hidden after view');
+                    
                 }
                 detailsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                console.log('Scrolled to ingredient details');
+                
             }, 100);
 
             // Add CSS rule to force hide edit forms when viewing
@@ -3211,8 +3113,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function renderIngredientDetails(ingredients, container) {
-        console.log('=== renderIngredientDetails called ===');
-        console.log('Ingredients to render:', ingredients);
+        
+        
 
         if (!ingredients || ingredients.length === 0) {
             container.innerHTML = '<p>No ingredients found for this recipe.</p>';
@@ -3220,10 +3122,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const renderTimestamp = new Date().getTime();
-        console.log(`Rendering ingredients with timestamp: ${renderTimestamp}`);
+        
 
         if (ingredients && ingredients.length > 0 && window.OmegaStorage) {
-            console.log('Applying omega values from OmegaStorage to ingredients');
+            
 
             ingredients = window.OmegaStorage.applyOmegaValuesToAll(ingredients);
         }
@@ -3232,10 +3134,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (typeof ing.package_amount === 'string' && ing.package_amount.trim() !== '') {
                 ing.package_amount = Number(ing.package_amount);
-                console.log(`Converted package_amount for ${ing.name} from string to number:`, ing.package_amount);
+                
             }
 
-            console.log(`Rendering ingredient ${ing.id} (${ing.name}) package_amount:`, ing.package_amount, typeof ing.package_amount);
+            
         });
 
         let tableHtml = `
@@ -3275,7 +3177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const pricePerGram = ing.price_per_gram ? ing.price_per_gram.toFixed(3) :
                                 (ing.amount > 0 ? (ing.price / ing.amount).toFixed(3) : '0.000');
 
-            console.log(`Ingredient ${ing.name} package_amount:`, ing.package_amount, typeof ing.package_amount);
+            
 
             let packageAmountDisplay = '-';
 
@@ -3284,28 +3186,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.localStorageManager) {
                 const savedPackageAmount = window.localStorageManager.getPackageAmount(ing.id);
                 if (savedPackageAmount !== null) {
-                    console.debug(`Found saved package amount in local storage for ingredient ${ing.id}: ${savedPackageAmount}`);
+                    
                     packageAmountNum = savedPackageAmount;
                 }
             }
 
             if (typeof packageAmountNum === 'string' && packageAmountNum.trim() !== '') {
                 packageAmountNum = Number(packageAmountNum);
-                console.log(`Converted string package_amount to number for ${ing.name}:`, packageAmountNum);
+                
             }
 
             if (packageAmountNum !== null && packageAmountNum !== undefined) {
                 if (!isNaN(packageAmountNum)) {
                     packageAmountDisplay = packageAmountNum.toFixed(2);
-                    console.log(`Formatted package amount for ${ing.name}:`, packageAmountDisplay);
+                    
 
                     ing.package_amount = packageAmountNum;
                 }
             }
 
 
-            console.log(`Final package amount for ${ing.name} before rendering:`, ing.package_amount, typeof ing.package_amount);
-            console.log(`Final display value for ${ing.name}:`, packageAmountDisplay);
+            
+            
 
             const refreshTimestamp = new Date().getTime();
 
@@ -4026,10 +3928,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     addForm.style.display = 'block';
 
                     if (typeof initializeCronometerTextParser === 'function') {
-                        console.log('Initializing Cronometer text parser for add ingredient form');
+                        
                         initializeCronometerTextParser(addForm);
                     } else {
-                        console.warn('Cronometer text parser not available');
+                        
                     }
 
                     addForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -4057,7 +3959,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const nameInput = document.getElementById('add-ingredient-name');
 
                     if (this.value === 'new' && typeof initializeCronometerTextParser === 'function') {
-                        console.log('Re-initializing Cronometer text parser after switching to new ingredient');
+                        
                         const form = document.getElementById('add-ingredient-form');
                         if (form) {
                             initializeCronometerTextParser(form);
@@ -4065,7 +3967,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (this.value === 'existing') {
-                        console.log('Radio clicked: Showing existing ingredient selection');
+                        
                         existingIngredientSection.style.display = 'block';
                         nameInput.disabled = true;
 
@@ -4081,7 +3983,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }, 100);
                         }
                     } else {
-                        console.log('Radio clicked: Showing new ingredient input');
+                        
                         existingIngredientSection.style.display = 'none';
                         nameInput.disabled = false;
                         nameInput.value = '';
@@ -4095,7 +3997,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editForm.addEventListener('submit', handleEditIngredientSubmit);
 
             if (typeof initializeCronometerTextParser === 'function') {
-                console.log('Initializing Cronometer text parser for edit form');
+                
                 initializeCronometerTextParser(editForm);
             }
         }
@@ -4109,7 +4011,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const addForm = container.querySelector('#add-ingredient-form');
         if (addForm && typeof initializeCronometerTextParser === 'function') {
-            console.log('Initializing Cronometer text parser for add form');
+            
             initializeCronometerTextParser(addForm);
         }
     }
@@ -4117,7 +4019,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleEditIngredientClick(event) {
         // Don't show edit form if we're in view mode
         if (window._isViewingIngredients) {
-            console.log('Blocked edit form - currently viewing ingredients');
+            
             return;
         }
 
@@ -4131,10 +4033,10 @@ document.addEventListener('DOMContentLoaded', () => {
         editForm.style.display = 'block';
 
         if (typeof initializeCronometerTextParser === 'function') {
-            console.log('Initializing Cronometer text parser for edit ingredient form');
+            
             initializeCronometerTextParser(editForm);
         } else {
-            console.warn('Cronometer text parser not available');
+            
         }
 
 
@@ -4142,7 +4044,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let uiPackageAmount = null;
         if (packageAmountElement) {
             uiPackageAmount = packageAmountElement.getAttribute('data-value');
-            console.debug(`Found UI-updated package amount: ${uiPackageAmount}`);
+            
         }
 
         fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`)
@@ -4154,10 +4056,10 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(ingredient => {
 
-                console.debug('Ingredient data from API:', ingredient);
+                
 
                 if (uiPackageAmount !== null) {
-                    console.debug(`Overriding database package amount (${ingredient.package_amount}) with UI value (${uiPackageAmount})`);
+                    
                     ingredient.package_amount = parseFloat(uiPackageAmount);
                 }
 
@@ -4167,14 +4069,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('edit-ingredient-name').value = ingredient.name || '';
                 document.getElementById('edit-ingredient-amount').value = ingredient.amount || '';
 
-                console.debug('Package amount from API:', ingredient.package_amount, typeof ingredient.package_amount);
+                
 
                 let packageAmountForForm = '';
 
                 if (window.localStorageManager) {
                     const savedPackageAmount = window.localStorageManager.getPackageAmount(ingredientId);
                     if (savedPackageAmount !== null) {
-                        console.debug(`Found saved package amount in local storage for ingredient ${ingredientId}: ${savedPackageAmount}`);
+                        
                         packageAmountForForm = savedPackageAmount;
                     } else if (ingredient.package_amount !== null && ingredient.package_amount !== undefined) {
 
@@ -4194,7 +4096,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 document.getElementById('edit-ingredient-package-amount').value = packageAmountForForm;
-                console.debug('Package amount set in form:', packageAmountForForm);
+                
 
                 window._currentPackageAmount = packageAmountForForm;
                 document.getElementById('edit-ingredient-price').value = ingredient.price || '';
@@ -4218,16 +4120,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const omega3Value = ingredient.omega3 !== undefined ? ingredient.omega3 :
                                    (ingredient.omega_3 !== undefined ? ingredient.omega_3 : '');
                 document.getElementById('edit-ingredient-omega3').value = omega3Value;
-                console.log(`Setting omega3 input value to ${omega3Value} (from database: omega3=${ingredient.omega3}, omega_3=${ingredient.omega_3})`);
+                
 
                 const omega6Value = ingredient.omega6 !== undefined ? ingredient.omega6 :
                                    (ingredient.omega_6 !== undefined ? ingredient.omega_6 : '');
                 document.getElementById('edit-ingredient-omega6').value = omega6Value;
-                console.log(`Setting omega6 input value to ${omega6Value} (from database: omega6=${ingredient.omega6}, omega_6=${ingredient.omega_6})`);
+                
 
                 document.getElementById('edit-ingredient-saturated').value = ingredient.saturated || '';
                 document.getElementById('edit-ingredient-trans-fat').value = ingredient.trans_fat || '';
-                console.log('Setting trans_fat value in form:', ingredient.trans_fat);
+                
                 document.getElementById('edit-ingredient-cholesterol').value = ingredient.cholesterol || '';
 
                 document.getElementById('edit-ingredient-protein').value = ingredient.protein || '';
@@ -4302,10 +4204,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleEditIngredientSubmit(event) {
         event.preventDefault();
 
-        console.log('=== handleEditIngredientSubmit called ===');
+        
 
         if (!window.fieldUpdater) {
-            console.warn('Field updater not available. Some fields may not be saved correctly.');
+            
         }
 
         const form = event.target;
@@ -4322,7 +4224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const amount = parseFloat(document.getElementById('edit-ingredient-amount').value);
 
         const packageAmountInput = document.getElementById('edit-ingredient-package-amount').value;
-        console.log('Raw package amount input:', packageAmountInput);
+        
 
         const ingredientData = {
             name: document.getElementById('edit-ingredient-name').value.trim(),
@@ -4377,17 +4279,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isNaN(packageAmount)) {
                 packageAmount = null;
-                console.warn('Package amount input could not be converted to a number:', packageAmountInput);
+                
             }
         }
-        console.log('Package amount to send:', packageAmount, typeof packageAmount);
+        
 
-        console.log('Package amount value:', packageAmount, typeof packageAmount);
+        
 
         window._lastPackageAmount = packageAmount;
 
         const hasPackageAmountChanged = window._currentPackageAmount !== packageAmount;
-        console.debug(`Package amount changed: ${hasPackageAmountChanged} (from ${window._currentPackageAmount} to ${packageAmount})`);
+        
         window._packageAmountChanged = hasPackageAmountChanged;
 
         window._lastOmega3Value = undefined;
@@ -4397,7 +4299,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ingredientData.package_amount = packageAmount;
 
-        console.log('Package amount input:', packageAmountInput, 'Parsed value:', packageAmount, 'Type:', typeof packageAmount);
+        
         const price = parseFloat(document.getElementById('edit-ingredient-price').value);
 
         ingredientData.protein = parseFloat(document.getElementById('edit-ingredient-protein').value);
@@ -4417,10 +4319,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        console.log('Data being sent to API:', ingredientData);
+        
 
-        console.log('Sending ingredient data to API:', JSON.stringify(ingredientData, null, 2));
-        console.log('Package amount value:', packageAmount, typeof packageAmount);
+        
+        
 
 
         const omega3 = parseFloat(document.getElementById('edit-ingredient-omega3').value);
@@ -4444,7 +4346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window._transFatChanged = true;
 
             try {
-                console.log('Sending direct trans fat update request...');
+                
                 const directUpdateResponse = await fetch('/api/direct/update-trans-fat', {
                     method: 'POST',
                     headers: {
@@ -4458,7 +4360,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (directUpdateResponse.ok) {
                     const result = await directUpdateResponse.json();
-                    console.log('Direct trans fat update successful:', result);
+                    
                 } else {
                     console.error('Direct trans fat update failed:', await directUpdateResponse.text());
                 }
@@ -4471,13 +4373,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
 
             if (window._lastTransFatValue !== undefined && window._transFatChanged) {
-                console.debug('Storing trans fat value for main update:', window._lastTransFatValue);
+                
 
             }
 
 
             if (window._lastPackageAmount !== undefined && window._packageAmountChanged) {
-                console.debug('Updating package amount using direct endpoint:', window._lastPackageAmount);
+                
                 try {
 
 
@@ -4496,17 +4398,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (!packageResponse.ok) {
 
-                        console.debug('Server error updating package amount - will force UI update');
+                        
                     } else {
-                        console.log('Package amount updated successfully using direct endpoint');
+                        
 
                         const updateResult = await packageResponse.json();
-                        console.log('=== Response from direct package amount update ===');
-                        console.log('Update result:', updateResult);
+                        
+                        
 
                         if (updateResult.before && updateResult.after) {
-                            console.log('Before package_amount:', updateResult.before.package_amount);
-                            console.log('After package_amount:', updateResult.after.package_amount);
+                            
+                            
                         }
 
 
@@ -4518,17 +4420,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         const updatedRecipe = await recipeResponse.json();
-                        console.log('Updated recipe:', updatedRecipe);
+                        
 
                         const updatedIngredient = updatedRecipe.ingredients.find(ing => ing.id == ingredientId);
                         if (updatedIngredient) {
-                            console.log('Updated ingredient:', updatedIngredient);
-                            console.log('Updated package_amount:', updatedIngredient.package_amount);
+                            
+                            
                         }
 
 
                         try {
-                            console.log('Forcing a complete refresh of recipe data from server');
+                            
 
                             const freshResponse = await fetch(`/api/recipes/${recipeId}?nocache=${new Date().getTime()}`);
                             if (!freshResponse.ok) {
@@ -4536,33 +4438,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
 
                             const responseData = await freshResponse.json();
-                            console.log('Fresh response data from server:', responseData);
+                            
 
                             // Handle both wrapped and direct response formats
                             let freshRecipeData;
                             if (responseData.success && responseData.recipe) {
                                 // New MVC format: {success: true, recipe: {...}, message: "..."}
                                 freshRecipeData = responseData.recipe;
-                                console.log('Using wrapped response format for fresh data');
+                                
                             } else if (responseData.ingredients) {
                                 // Old direct format: {id: 1, name: "...", ingredients: [...]}
                                 freshRecipeData = responseData;
-                                console.log('Using direct response format for fresh data');
+                                
                             } else {
                                 console.error('Invalid fresh response format:', responseData);
                                 throw new Error('Invalid response format from server');
                             }
 
-                            console.log('Fresh recipe data processed:', freshRecipeData);
+                            
 
                             freshRecipeData.ingredients.forEach(ing => {
-                                console.log(`Fresh data - Ingredient ${ing.name} package_amount:`, ing.package_amount, typeof ing.package_amount);
+                                
                             });
 
                             const updatedIngredient = freshRecipeData.ingredients.find(ing => ing.id == ingredientId);
                             if (updatedIngredient) {
-                                console.log('Updated ingredient from fresh data:', updatedIngredient);
-                                console.log('Updated package_amount from fresh data:', updatedIngredient.package_amount);
+                                
+                                
                             }
 
                             if (recipeCard) {
@@ -4615,11 +4517,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-            console.log('Sending ingredient data to server:', ingredientData);
+            
 
 
             if (window._lastPackageAmount !== undefined && window._packageAmountChanged) {
-                console.debug('Updating package amount directly before main update:', window._lastPackageAmount);
+                
 
                 if (window.localStorageManager) {
                     window.localStorageManager.savePackageAmount(ingredientId, window._lastPackageAmount);
@@ -4640,17 +4542,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     if (packageResponse.ok) {
-                        console.debug('Package amount updated successfully before main update');
+                        
                         const updateResult = await packageResponse.json();
 
                         if (updateResult && updateResult.package_amount) {
-                            console.debug('Server confirmed package amount updated to:', updateResult.package_amount);
+                            
 
                             ingredientData.package_amount = updateResult.package_amount;
                         }
                     } else {
 
-                        console.debug('Server error updating package amount - will force UI update');
+                        
                     }
                 } catch (packageError) {
                     console.error('Error updating package amount before main update:', packageError);
@@ -4658,7 +4560,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (window.fieldUpdater) {
-                console.log('Using field updater to update all fields directly');
+                
 
                 const formData = {};
 
@@ -4725,25 +4627,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData['edit-ingredient-sodium'] = document.getElementById('edit-ingredient-sodium').value;
                 formData['edit-ingredient-zinc'] = document.getElementById('edit-ingredient-zinc').value;
 
-                console.log('Updating all fields for ingredient', ingredientId);
+                
                 const updateResults = await window.fieldUpdater.updateAllFields(recipeId, ingredientId, formData);
-                console.log('Field update results:', updateResults);
+                
             }
 
             if (window._lastTransFatValue !== undefined && window._transFatChanged) {
-                console.debug('Adding trans_fat to main update request:', window._lastTransFatValue);
+                
                 ingredientData.trans_fat = window._lastTransFatValue;
             }
 
             if (window._lastOmega3Value !== undefined && window._omega3Changed) {
 
-                console.debug('Adding omega3 to main update request:', window._lastOmega3Value);
+                
                 ingredientData.omega3 = window._lastOmega3Value;
             }
 
             if (window._lastOmega6Value !== undefined && window._omega6Changed) {
 
-                console.debug('Adding omega6 to main update request:', window._lastOmega6Value);
+                
                 ingredientData.omega6 = window._lastOmega6Value;
             }
 
@@ -4751,7 +4653,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 (window._lastOmega6Value !== undefined && window._omega6Changed)) {
                 try {
                     if (window.OmegaStorage) {
-                        console.log('Saving omega values to OmegaStorage...');
+                        
                         const omega3Value = window._lastOmega3Value;
                         const omega6Value = window._lastOmega6Value;
 
@@ -4762,7 +4664,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         );
 
                         if (saveResult) {
-                            console.log('Omega values saved successfully to OmegaStorage');
+                            
 
 
                             if (omega3Value !== undefined) {
@@ -4776,17 +4678,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Failed to save omega values to OmegaStorage');
                         }
                     } else {
-                        console.warn('OmegaStorage not available');
+                        
                     }
                 } catch (error) {
                     console.error('Error saving omega values to OmegaStorage:', error);
                 }
             }
 
-            console.log('Final ingredient data being sent to API:', ingredientData);
+            
 
-            console.log('Omega3 value in request:', ingredientData.omega3);
-            console.log('Omega6 value in request:', ingredientData.omega6);
+            
+            
 
             const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
                 method: 'PATCH',
@@ -4803,24 +4705,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const updatedRecipe = await response.json();
 
-            console.debug('=== Response from server ===');
-            console.debug('Updated recipe received');
+            
+            
 
             const updatedIngredient = updatedRecipe.ingredients.find(ing => ing.id == ingredientId);
             if (updatedIngredient) {
-                console.debug('Updated ingredient:', updatedIngredient.name);
-                console.debug('Updated package_amount:', updatedIngredient.package_amount);
+                
+                
 
 
                 if (updatedIngredient.package_amount !== window._lastPackageAmount && window._packageAmountChanged) {
-                    console.debug('Package amount mismatch! Sent:', window._lastPackageAmount, 'Received:', updatedIngredient.package_amount);
+                    
 
                     if (window.localStorageManager) {
                         window.localStorageManager.savePackageAmount(ingredientId, window._lastPackageAmount);
                     }
 
                     try {
-                        console.debug('Attempting final package amount correction...');
+                        
 
                         const fetchFunction = window.safeFetch || fetch;
                         const finalUpdateResponse = await fetchFunction(`/api/package-amount/update`, {
@@ -4835,18 +4737,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
 
                         if (finalUpdateResponse.ok) {
-                            console.debug('Final package amount correction successful');
+                            
                         }
                     } catch (finalUpdateError) {
 
-                        console.debug('Error during final package amount correction - will force UI update');
+                        
                     }
                 }
             }
 
 
             try {
-                console.debug('Forcing a complete refresh of recipe data from server');
+                
 
                 await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -4854,7 +4756,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     let freshRecipeData;
                     if (window._packageAmountChanged) {
-                        console.debug('Making final direct package amount update...');
+                        
 
                         if (window.localStorageManager) {
                             window.localStorageManager.savePackageAmount(ingredientId, window._lastPackageAmount);
@@ -4875,39 +4777,39 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
 
                             if (finalUpdateResponse.ok) {
-                                console.debug('Final direct package amount update successful');
+                                
 
                                 freshRecipeData = await finalUpdateResponse.json();
-                                console.debug('Fresh recipe data from direct update received');
+                                
                             } else {
 
-                                console.debug('Server error in final direct update - will force UI update');
+                                
                             }
                         } catch (error) {
 
-                            console.debug('Error in final direct update - will force UI update');
+                            
                         }
                     }
 
                     if (freshRecipeData && freshRecipeData.ingredients) {
 
                         freshRecipeData.ingredients.forEach(ing => {
-                            console.debug(`Fresh data - Ingredient ${ing.name} package_amount:`, ing.package_amount);
+                            
                         });
 
                         const updatedIngredient = freshRecipeData.ingredients.find(ing => ing.id == ingredientId);
                         if (updatedIngredient) {
-                            console.debug('Updated ingredient from fresh data:', updatedIngredient.name);
-                            console.debug('Updated package_amount from fresh data:', updatedIngredient.package_amount);
+                            
+                            
 
 
                             if (window._lastPackageAmount !== undefined) {
-                                console.debug('Forcing package amount in the UI to match what was entered:', window._lastPackageAmount);
+                                
                                 updatedIngredient.package_amount = window._lastPackageAmount;
 
                                 const packageAmountElements = document.querySelectorAll(`.ingredient-package-amount[data-ingredient-id="${ingredientId}"]`);
                                 if (packageAmountElements.length > 0) {
-                                    console.debug(`Found ${packageAmountElements.length} package amount elements to update directly`);
+                                    
                                     packageAmountElements.forEach(el => {
                                         el.textContent = window._lastPackageAmount;
                                         el.setAttribute('data-value', window._lastPackageAmount);
@@ -4917,20 +4819,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             if (window._lastOmega3Value !== undefined) {
 
-                                console.debug('Forcing omega3 in the UI to match what was entered:', window._lastOmega3Value);
+                                
                                 updatedIngredient.omega3 = window._lastOmega3Value;
                             }
 
                             if (window._lastOmega6Value !== undefined) {
 
-                                console.debug('Forcing omega6 in the UI to match what was entered:', window._lastOmega6Value);
+                                
                                 updatedIngredient.omega6 = window._lastOmega6Value;
                             }
 
                             if ((window._lastOmega3Value !== undefined) || (window._lastOmega6Value !== undefined)) {
                                 try {
                                     if (window.OmegaStorage) {
-                                        console.log('Ensuring omega values are saved to OmegaStorage...');
+                                        
                                         const omega3Value = window._lastOmega3Value;
                                         const omega6Value = window._lastOmega6Value;
 
@@ -4941,7 +4843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         );
 
                                         if (saveResult) {
-                                            console.log('Omega values saved successfully to OmegaStorage');
+                                            
 
 
                                             if (omega3Value !== undefined) {
@@ -4955,7 +4857,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             console.error('Failed to save omega values to OmegaStorage');
                                         }
                                     } else {
-                                        console.warn('OmegaStorage not available');
+                                        
                                     }
                                 } catch (error) {
                                     console.error('Error saving omega values to OmegaStorage:', error);
@@ -4990,7 +4892,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Error during final direct package amount update:', finalUpdateError);
                 }
 
-                console.debug('Falling back to fetching recipe data...');
+                
 
                 const fetchFunction = window.safeFetch || fetch;
                 const freshResponse = await fetchFunction(`/api/recipes/${recipeId}?nocache=${new Date().getTime()}&force=true`);
@@ -4999,42 +4901,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const responseData = await freshResponse.json();
-                console.debug('Fresh response data from server received');
+                
 
                 // Handle both wrapped and direct response formats
                 let freshRecipeData;
                 if (responseData.success && responseData.recipe) {
                     // New MVC format: {success: true, recipe: {...}, message: "..."}
                     freshRecipeData = responseData.recipe;
-                    console.debug('Using wrapped response format for fresh data');
+                    
                 } else if (responseData.ingredients) {
                     // Old direct format: {id: 1, name: "...", ingredients: [...]}
                     freshRecipeData = responseData;
-                    console.debug('Using direct response format for fresh data');
+                    
                 } else {
                     console.error('Invalid fresh response format:', responseData);
                     throw new Error('Invalid response format from server');
                 }
 
-                console.debug('Fresh recipe data processed');
+                
 
                 freshRecipeData.ingredients.forEach(ing => {
-                    console.debug(`Fresh data - Ingredient ${ing.name} package_amount:`, ing.package_amount);
+                    
                 });
 
                 const updatedIngredient = freshRecipeData.ingredients.find(ing => ing.id == ingredientId);
                 if (updatedIngredient) {
-                    console.debug('Updated ingredient from fresh data:', updatedIngredient.name);
-                    console.debug('Updated package_amount from fresh data:', updatedIngredient.package_amount);
+                    
+                    
 
 
                     if (window._lastPackageAmount !== undefined) {
-                        console.debug('Forcing package amount in the UI to match what was entered:', window._lastPackageAmount);
+                        
                         updatedIngredient.package_amount = window._lastPackageAmount;
 
                         const packageAmountElements = document.querySelectorAll(`.ingredient-package-amount[data-ingredient-id="${ingredientId}"]`);
                         if (packageAmountElements.length > 0) {
-                            console.debug(`Found ${packageAmountElements.length} package amount elements to update directly`);
+                            
                             packageAmountElements.forEach(el => {
                                 el.textContent = window._lastPackageAmount;
                                 el.setAttribute('data-value', window._lastPackageAmount);
@@ -5044,20 +4946,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (window._lastOmega3Value !== undefined) {
 
-                        console.debug('Forcing omega3 in the UI to match what was entered:', window._lastOmega3Value);
+                        
                         updatedIngredient.omega3 = window._lastOmega3Value;
                     }
 
                     if (window._lastOmega6Value !== undefined) {
 
-                        console.debug('Forcing omega6 in the UI to match what was entered:', window._lastOmega6Value);
+                        
                         updatedIngredient.omega6 = window._lastOmega6Value;
                     }
 
                     if ((window._lastOmega3Value !== undefined) || (window._lastOmega6Value !== undefined)) {
                         try {
                             if (window.OmegaStorage) {
-                                console.log('Ensuring omega values are saved to OmegaStorage...');
+                                
                                 const omega3Value = window._lastOmega3Value;
                                 const omega6Value = window._lastOmega6Value;
 
@@ -5068,7 +4970,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 );
 
                                 if (saveResult) {
-                                    console.log('Omega values saved successfully to OmegaStorage');
+                                    
 
 
                                     if (omega3Value !== undefined) {
@@ -5082,7 +4984,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     console.error('Failed to save omega values to OmegaStorage');
                                 }
                             } else {
-                                console.warn('OmegaStorage not available');
+                                
                             }
                         } catch (error) {
                             console.error('Error saving omega values to OmegaStorage:', error);
@@ -5111,7 +5013,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderIngredientDetails(freshRecipeData.ingredients, container);
                 }
             } catch (refreshError) {
-                console.debug('Error during forced refresh - falling back to existing data');
+                
 
                 renderIngredientDetails(updatedRecipe.ingredients, container);
             }
@@ -5135,7 +5037,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            console.debug('Error updating ingredient - UI update will still be applied');
+            
 
             // Show error notification
             if (window.NotificationSystem) {
@@ -5264,7 +5166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     editForm.style.display = 'none';
                     editForm.style.visibility = 'hidden';
                     editForm.classList.add('force-hidden');
-                    console.log('View button: Forcefully hid edit form');
+                    
                 }
             };
 
@@ -5285,7 +5187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add event listener for weight goal save button
     if (saveAllWeightGoalsBtn) {
         saveAllWeightGoalsBtn.addEventListener('click', saveAllWeightGoals);
-        console.log("Added event listener to save weight goals button");
+        
     } else {
         console.error("Could not find save weight goals button (#save-all-weight-goals-btn) to attach listener.");
     }
@@ -5293,7 +5195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userSelector) {
         userSelector.addEventListener('change', function() {
             currentUserId = this.value; // Update the current user ID
-            console.log(`Switched to user ID: ${currentUserId}`);
+            
 
             localStorage.setItem('weightUserPreference', currentUserId);
 
@@ -5304,7 +5206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 weightGoalChart = null;
             }
 
-            console.log(`Loading chart data for user ID: ${currentUserId}`);
+            
             loadAndRenderWeightChart();
 
             const userLabel = currentUserId == 1 ? 'My Data' : 'Mom\'s Data';
@@ -5320,7 +5222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         xAxisScaleSlider.addEventListener('input', function() {
             xAxisScale = parseFloat(this.value);
             xScaleValue.textContent = xAxisScale.toFixed(1) + 'x';
-            console.log(`X-axis scale set to ${xAxisScale}x`);
+            
             if (weightGoalChart) {
 
                 const chart = weightGoalChart;
@@ -5352,7 +5254,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 visiblePoints = Math.max(visiblePoints, 14);
 
-                console.log(`X-axis scale: ${xAxisScale}, Data length: ${dataLength}, Visible points: ${visiblePoints}`);
+                
 
                 let todayIndex = -1;
                 const today = new Date().toLocaleDateString();
@@ -5399,7 +5301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                console.log(`X-axis range: ${minIndex} to ${maxIndex} (${maxIndex - minIndex + 1} points)`);
+                
 
                 let adjustedMinIndex = minIndex - 1;
 
@@ -5461,7 +5363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                console.log(`X-axis scale finalized at ${xAxisScale}x`);
+                
 
 
 
@@ -5577,7 +5479,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (scale !== 1 && !chart._initialScaleApplied) {
-                console.log('Forcing initial scale to 1.0x for first render');
+                
                 scale = 1.0;
                 chart._initialScaleApplied = true;
             }
@@ -5610,7 +5512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (minDataPoint === Number.MAX_VALUE || validPoints.length === 0) {
-                console.warn('No valid data points found for y-axis scaling');
+                
                 return;
             }
 
@@ -5631,12 +5533,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
 
                 scaledRange = effectiveRange / scale;
-                console.log(`Y-axis zoom in: scale=${scale}, range=${effectiveRange}, scaledRange=${scaledRange}`);
+                
             }
 
             scaledRange = Math.max(scaledRange, 5);
 
-            console.log(`Y-axis scale: ${scale}, Data range: ${effectiveRange}, Scaled range: ${scaledRange}`);
+            
 
             const topPadding = effectiveRange * 0.05; // 5% padding at top
             const bottomPadding = effectiveRange * 0.15; // 15% padding at bottom
@@ -5718,7 +5620,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (weightGoalChart) {
 
                 updateChartYAxisScale(weightGoalChart, yAxisScale, false);
-                console.log(`Y-axis scale set to ${yAxisScale}x`);
+                
             }
         });
 
@@ -5726,7 +5628,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (weightGoalChart) {
 
                 updateChartYAxisScale(weightGoalChart, yAxisScale, true);
-                console.log(`Y-axis scale finalized at ${yAxisScale}x`);
+                
             }
         });
     } else {
@@ -5882,7 +5784,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                console.log('Chart scales reset to default (1.0x)');
+                
             }
         });
     } else {
@@ -5943,7 +5845,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentFatTarget = currentTargetsData.fat_target || null;
                 }
             } catch (error) {
-                console.warn('Failed to fetch current targets:', error);
+                
             }
 
             // Use provided values or current values if not provided
@@ -5951,7 +5853,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const finalProteinTarget = proteinTarget !== null ? proteinTarget : currentProteinTarget;
             const finalFatTarget = fatTarget !== null ? fatTarget : currentFatTarget;
 
-            console.log(`Attempting to save targets for user ${userId}: ${finalCalorieTarget} calories, ${finalProteinTarget || 'default'} g protein, ${finalFatTarget || 'default'} g fat`);
+            
 
             let response = await fetch('/api/calorie-targets', {
                 method: 'POST',
@@ -5965,10 +5867,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     fat_target: finalFatTarget
                 })
             });
-            console.log(`Received response with status: ${response.status}`);
+            
 
             if (response.status === 404) {
-                console.log('Calorie targets API not found, trying weight API endpoint');
+                
                 response = await fetch('/api/weight/calorie-targets', {
                     method: 'POST',
                     headers: {
@@ -5981,7 +5883,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         fat_target: finalFatTarget
                     })
                 });
-                console.log(`Received response from weight API with status: ${response.status}`);
+                
             }
 
             if (!response.ok) {
@@ -5996,7 +5898,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            console.log('Save result:', result);
+            
 
             // Show appropriate success message based on which fields were updated
             let successMessage = 'Nutrition targets saved successfully!';
@@ -6094,7 +5996,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentFatTarget = currentTargetsData.fat_target || null;
                 }
             } catch (error) {
-                console.warn('Failed to fetch current targets:', error);
+                
             }
 
             // Set the target values based on what we're updating
@@ -6110,7 +6012,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalFatTarget = parsedValue;
             }
 
-            console.log(`Attempting to save ${targetType} target for user ${userId}: ${parsedValue}`);
+            
 
             let response = await fetch('/api/calorie-targets', {
                 method: 'POST',
@@ -6126,7 +6028,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.status === 404) {
-                console.log('Calorie targets API not found, trying weight API endpoint');
+                
                 response = await fetch('/api/weight/calorie-targets', {
                     method: 'POST',
                     headers: {
@@ -6153,7 +6055,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            console.log(`Save ${targetType} result:`, result);
+            
 
             showStatus(statusElement, `${targetType.charAt(0).toUpperCase() + targetType.slice(1)} target saved successfully!`, 'success');
 
@@ -6171,23 +6073,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadCalorieTarget(userId) {
         try {
-            console.log(`Attempting to fetch nutrition targets for user ${userId}`);
+            
 
             let response = await fetch(`/api/calorie-targets/${userId}`);
-            console.log(`Received response with status: ${response.status}`);
+            
 
             if (response.status === 404) {
                 try {
-                    console.log('Calorie targets API not found or no target, trying weight API endpoint');
+                    
                     response = await fetch(`/api/weight/calorie-targets/${userId}`);
-                    console.log(`Received response from weight API with status: ${response.status}`);
+                    
                 } catch (weightApiError) {
                     console.error('Error fetching from weight API:', weightApiError);
                 }
             }
 
             if (response.status === 404) {
-                console.log('No nutrition targets found for this user');
+                
                 currentCalorieTarget.textContent = 'Not set';
                 currentProteinTarget.textContent = 'Not set';
                 currentFatTarget.textContent = 'Not set';
@@ -6206,26 +6108,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            console.log('Nutrition target data:', data);
+            
 
             // Handle calorie target
             const dailyTarget = data.daily_target || data.target || data.calories || data.value;
             if (dailyTarget) {
                 currentCalorieTarget.textContent = `${dailyTarget} calories`;
             } else {
-                console.warn('Unexpected calorie target data format:', data);
+                
                 currentCalorieTarget.textContent = 'Not set';
             }
 
             // Handle protein target
             // Check for protein_target in the API response
             const proteinTarget = data.protein_target || null;
-            console.log('Protein target from API:', proteinTarget);
+            
 
             // Handle fat target
             // Check for fat_target in the API response
             const fatTarget = data.fat_target || null;
-            console.log('Fat target from API:', fatTarget);
+            
 
             // Calculate default values if not set
             const defaultProteinTarget = Math.round((dailyTarget * 0.15) / 4); // 15% of calories
@@ -6266,7 +6168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add event listener for the save button (legacy)
     if (saveAllTargetsBtn) {
         saveAllTargetsBtn.addEventListener('click', saveAllTargets);
-        console.log("Added event listener to save targets button");
+        
     } else {
         console.error("Could not find save targets button (#save-all-targets-btn) to attach listener.");
     }
@@ -6280,21 +6182,21 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCalorieTargetBtn.addEventListener('click', function() {
             saveIndividualTarget('calorie');
         });
-        console.log("Added event listener to save calorie target button");
+        
     }
 
     if (saveProteinTargetBtn) {
         saveProteinTargetBtn.addEventListener('click', function() {
             saveIndividualTarget('protein');
         });
-        console.log("Added event listener to save protein target button");
+        
     }
 
     if (saveFatTargetBtn) {
         saveFatTargetBtn.addEventListener('click', function() {
             saveIndividualTarget('fat');
         });
-        console.log("Added event listener to save fat target button");
+        
     }
 
     if (calorieUserSelector) {
@@ -6328,7 +6230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setTimeout(fixTooltips, 1000);
 
-            console.log(`Switched to user ID: ${currentUserId}`);
+            
         });
     }
 
@@ -6337,7 +6239,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (window.attachWeightChartTooltipEvents) {
             window.attachWeightChartTooltipEvents(weightGoalChart);
-            console.log('Re-attached custom tooltip events to chart');
+            
         } else {
             console.error('Custom tooltip functions not available');
         }
@@ -6354,7 +6256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(fixTooltips, 1000);
 
     window.showAddIngredientForm = function(recipeId, container) {
-        console.log(`Showing add ingredient form for recipe ${recipeId}`);
+        
 
         if (!container) {
             console.error('Container not provided to showAddIngredientForm');
@@ -6379,26 +6281,26 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (typeof window.loadExistingIngredients === 'function') {
             window.loadExistingIngredients();
         } else {
-            console.warn('loadExistingIngredients function not available');
+            
         }
 
         ingredientAddForm.style.display = 'block';
 
         if (typeof initializeCronometerTextParser === 'function') {
-            console.log('Initializing Cronometer text parser for add ingredient form');
+            
             initializeCronometerTextParser(ingredientAddForm);
         } else if (typeof window.initializeCronometerTextParser === 'function') {
-            console.log('Initializing Cronometer text parser for add ingredient form (using window scope)');
+            
             window.initializeCronometerTextParser(ingredientAddForm);
         } else {
-            console.warn('Cronometer text parser not available for add form');
+            
         }
 
         ingredientAddForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     window.showEditIngredientForm = function(recipeId, ingredientId, container) {
-        console.log(`Showing edit ingredient form for ingredient ${ingredientId} in recipe ${recipeId}`);
+        
 
         if (!container) {
             console.error('Container not provided to showEditIngredientForm');
@@ -6416,13 +6318,13 @@ document.addEventListener('DOMContentLoaded', () => {
         editForm.style.display = 'block';
 
         if (typeof initializeCronometerTextParser === 'function') {
-            console.log('Initializing Cronometer text parser for edit ingredient form');
+            
             initializeCronometerTextParser(editForm);
         } else if (typeof window.initializeCronometerTextParser === 'function') {
-            console.log('Initializing Cronometer text parser for edit ingredient form (using window scope)');
+            
             window.initializeCronometerTextParser(editForm);
         } else {
-            console.warn('Cronometer text parser not available for edit form');
+            
         }
 
 
@@ -6430,7 +6332,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let uiPackageAmount = null;
         if (packageAmountElement) {
             uiPackageAmount = packageAmountElement.getAttribute('data-value');
-            console.debug(`Found UI-updated package amount: ${uiPackageAmount}`);
+            
         }
 
         fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`)
@@ -6442,10 +6344,10 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(ingredient => {
 
-                console.debug('Ingredient data from API:', ingredient);
+                
 
                 if (uiPackageAmount !== null) {
-                    console.debug(`Overriding database package amount (${ingredient.package_amount}) with UI value (${uiPackageAmount})`);
+                    
                     ingredient.package_amount = parseFloat(uiPackageAmount);
                 }
 
@@ -6558,7 +6460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const ingredient = await response.json();
-            console.log('Fetched ingredient details:', ingredient);
+            
 
             document.getElementById('add-ingredient-name').value = ingredient.name;
             document.getElementById('add-ingredient-amount').value = ingredient.amount;
@@ -6596,13 +6498,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleAddIngredientSubmit(event) {
         event.preventDefault();
 
-        console.log('=== handleAddIngredientSubmit called ===');
+        
 
         const form = event.target;
         const recipeId = document.getElementById('add-ingredient-recipe-id').value;
         const statusElement = document.querySelector('.add-ingredient-status');
 
-        console.log('Form submitted for recipe ID:', recipeId);
+        
 
         if (!recipeId) {
             console.error('Recipe ID is missing');
@@ -6614,10 +6516,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
 
-            console.log('Form fields:');
+            
             const formFields = form.querySelectorAll('input, select, textarea');
             formFields.forEach(field => {
-                console.log(`- ${field.id || 'unnamed field'}: ${field.value}`);
+                
             });
 
             const nameInput = document.getElementById('add-ingredient-name');
@@ -6666,19 +6568,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formElement = document.getElementById(fieldId);
                 const cronometerElement = form.querySelector(cronometerClass);
 
-                console.log(`Getting value for ${fieldId} / ${cronometerClass}`);
+                
 
                 if (formElement && formElement.value) {
-                    console.log(`- Found value in form field: ${formElement.value}`);
+                    
                     return parseFloat(formElement.value);
                 }
 
                 else if (cronometerElement && cronometerElement.value) {
-                    console.log(`- Found value in Cronometer element: ${cronometerElement.value}`);
+                    
                     return parseFloat(cronometerElement.value);
                 }
 
-                console.log(`- No value found, defaulting to 0`);
+                
                 return 0;
             };
 
@@ -6687,11 +6589,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ingredientData.fats = getValueFromFormOrCronometer('add-ingredient-fats', '.ingredient-fat');
             ingredientData.carbohydrates = getValueFromFormOrCronometer('add-ingredient-carbs', '.ingredient-carbs');
 
-            console.log('Required nutrition fields:');
-            console.log('- calories:', ingredientData.calories);
-            console.log('- protein:', ingredientData.protein);
-            console.log('- fats:', ingredientData.fats);
-            console.log('- carbohydrates:', ingredientData.carbohydrates);
+            
+            
+            
+            
+            
 
             const optionalFields = [
                 'fiber', 'starch', 'sugars', 'added_sugars', 'net_carbs',
@@ -6713,7 +6615,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (form.dataset.completeNutritionData) {
                 try {
                     const nutritionData = JSON.parse(form.dataset.completeNutritionData);
-                    console.log('Found complete nutrition data:', nutritionData);
+                    
 
                     const fieldMappings = {
                         calories: 'calories',
@@ -6811,7 +6713,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ingredientData.fats = ingredientData.fats || 0;
             ingredientData.carbohydrates = ingredientData.carbohydrates || 0;
 
-            console.log('Sending ingredient data to server:', JSON.stringify(ingredientData, null, 2));
+            
 
             let response;
             try {
@@ -6824,8 +6726,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify(ingredientData)
                 });
 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
+                
+                
 
                 if (!response.ok) {
                     let errorMessage = `Server returned ${response.status} ${response.statusText}`;
@@ -6847,13 +6749,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let result;
             try {
                 result = await response.json();
-                console.log('Ingredient added successfully. Server response:', result);
+                
 
                 if (result.ingredients && result.ingredients.length > 0) {
                     const lastIngredient = result.ingredients[result.ingredients.length - 1];
-                    console.log('Last ingredient in recipe:', lastIngredient);
+                    
                 } else {
-                    console.warn('No ingredients returned in response');
+                    
                 }
             } catch (jsonError) {
                 console.error('Error parsing response JSON:', jsonError);
@@ -6872,9 +6774,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const addIngredientForm = document.querySelector('.add-ingredient-form');
                 if (addIngredientForm) {
                     addIngredientForm.style.display = 'none';
-                    console.log('Hid the add ingredient form');
+                    
                 } else {
-                    console.warn('Could not find add ingredient form to hide');
+                    
                 }
 
                 const recipeCard = document.querySelector(`.recipe-card[data-id="${recipeId}"]`);
@@ -6883,7 +6785,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (detailsDiv) {
 
                         detailsDiv.dataset.forceRefresh = 'true';
-                        console.log(`Refreshing ingredients for recipe ${recipeId}`);
+                        
 
 
                         if (detailsDiv.style.display === 'block') {
@@ -6891,7 +6793,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             detailsDiv.style.display = 'none';
 
                             setTimeout(() => {
-                                console.log('Performing forced refresh of ingredient details');
+                                
                                 fetchAndDisplayIngredients(recipeId, detailsDiv, null, true);
                             }, 300);
                         } else {
@@ -6899,10 +6801,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             fetchAndDisplayIngredients(recipeId, detailsDiv, null, true);
                         }
                     } else {
-                        console.warn('Could not find ingredient details div to refresh');
+                        
                     }
                 } else {
-                    console.warn(`Could not find recipe card with ID ${recipeId} to refresh`);
+                    
                 }
             }, 1000);
 
@@ -6923,14 +6825,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-ingredient-name').value = ingredient.name || '';
         document.getElementById('edit-ingredient-amount').value = ingredient.amount || '';
 
-        console.debug('Package amount from API:', ingredient.package_amount, typeof ingredient.package_amount);
+        
 
         let packageAmountForForm = '';
 
         if (window.localStorageManager) {
             const savedPackageAmount = window.localStorageManager.getPackageAmount(ingredient.id);
             if (savedPackageAmount !== null) {
-                console.debug(`Found saved package amount in local storage for ingredient ${ingredient.id}: ${savedPackageAmount}`);
+                
                 packageAmountForForm = savedPackageAmount;
             } else if (ingredient.package_amount !== null && ingredient.package_amount !== undefined) {
 
@@ -6950,7 +6852,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         document.getElementById('edit-ingredient-package-amount').value = packageAmountForForm;
-        console.debug('Package amount set in form:', packageAmountForForm);
+        
 
         window._currentPackageAmount = packageAmountForForm;
         document.getElementById('edit-ingredient-price').value = ingredient.price || '';
@@ -6974,12 +6876,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const omega3Value = ingredient.omega3 !== undefined ? ingredient.omega3 :
                            (ingredient.omega_3 !== undefined ? ingredient.omega_3 : '');
         document.getElementById('edit-ingredient-omega3').value = omega3Value;
-        console.log(`Setting omega3 input value to ${omega3Value} (from database: omega3=${ingredient.omega3}, omega_3=${ingredient.omega_3})`);
+        
 
         const omega6Value = ingredient.omega6 !== undefined ? ingredient.omega6 :
                            (ingredient.omega_6 !== undefined ? ingredient.omega_6 : '');
         document.getElementById('edit-ingredient-omega6').value = omega6Value;
-        console.log(`Setting omega6 input value to ${omega6Value} (from database: omega6=${ingredient.omega6}, omega_6=${ingredient.omega_6})`);
+        
 
         document.getElementById('edit-ingredient-saturated').value = ingredient.saturated || '';
         document.getElementById('edit-ingredient-trans-fat').value = ingredient.trans_fat || '';
@@ -7024,7 +6926,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.removeIngredientFromRecipe = async function(recipeId, ingredientId, container) {
-        console.log(`Removing ingredient ${ingredientId} from recipe ${recipeId}`);
+        
 
         if (!recipeId || !ingredientId) {
             console.error('Recipe ID and ingredient ID are required');
@@ -7062,7 +6964,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            console.log('Ingredient removed successfully:', result);
+            
 
             statusElement.textContent = 'Ingredient removed successfully!';
             statusElement.className = 'status success';

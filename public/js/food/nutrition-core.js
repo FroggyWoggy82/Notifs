@@ -122,7 +122,7 @@ window.NutritionCore = (function() {
      * @returns {Object} - Object with database column names as keys
      */
     function toDbFormat(data) {
-        console.log('[NutritionCore] Converting to DB format:', data);
+        
         const result = {};
 
         for (const [key, value] of Object.entries(data)) {
@@ -325,7 +325,7 @@ window.NutritionCore = (function() {
 
 // Initialize when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[NutritionCore] Initializing...');
+    
     
     // Add form submission handlers
     const forms = document.querySelectorAll('form');
@@ -336,5 +336,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    console.log('[NutritionCore] Initialized');
+    
 });

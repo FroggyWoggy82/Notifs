@@ -105,13 +105,49 @@
      * @param {TouchEvent} event - The touch event
      */
     function handleHabitTouch(event) {
-
         const habitItem = event.currentTarget;
+        const touch = event.touches[0];
 
-        habitItem.classList.toggle('show-actions');
+        // Don't show edit buttons if touching interactive elements
+        const target = event.target;
+        if (target.closest('.habit-checkbox') ||
+            target.closest('.habit-increment-btn') ||
+            target.closest('.habit-level') ||
+            target.closest('.habit-progress') ||
+            target.closest('.habit-actions')) {
+            return;
+        }
 
-        setTimeout(() => {
-            habitItem.classList.remove('show-actions');
-        }, 3000);
+        // Check if we're on mobile (screen width <= 768px)
+        const isMobile = window.innerWidth <= 768;
+
+        if (isMobile) {
+            // On mobile, only show edit buttons if touching the far right edge (last 15% of the habit item)
+            const habitRect = habitItem.getBoundingClientRect();
+            const touchX = touch.clientX;
+            const habitRightEdge = habitRect.right - (habitRect.width * 0.15);
+
+            // Only trigger edit buttons if touching the far right edge
+            if (touchX >= habitRightEdge) {
+                habitItem.classList.add('show-actions');
+
+                setTimeout(() => {
+                    habitItem.classList.remove('show-actions');
+                }, 2000); // Shorter timeout on mobile
+            }
+        } else {
+            // On desktop, use the original behavior (right 30%)
+            const habitRect = habitItem.getBoundingClientRect();
+            const touchX = touch.clientX;
+            const habitRightThird = habitRect.right - (habitRect.width * 0.3);
+
+            if (touchX >= habitRightThird) {
+                habitItem.classList.toggle('show-actions');
+
+                setTimeout(() => {
+                    habitItem.classList.remove('show-actions');
+                }, 3000);
+            }
+        }
     }
 })();

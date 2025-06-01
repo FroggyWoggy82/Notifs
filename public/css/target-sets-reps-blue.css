@@ -1,11 +1,16 @@
 /**
  * Target Sets×Reps Blue
  * Changes the "Target Sets×Reps: 3×12" element to electric blue
+ * Override any other styling with high specificity
  */
 
-/* Target the element with the target-sets-reps class */
-.target-sets-reps {
+/* Target the element with the target-sets-reps class with high specificity */
+.target-sets-reps,
+.exercise-item .target-sets-reps,
+div.target-sets-reps {
     color: #00BFFF !important; /* Electric blue color */
     font-weight: bold !important; /* Make it bold for better visibility */
     text-shadow: 0 0 5px rgba(0, 191, 255, 0.5) !important; /* Add a subtle glow effect */
+    background: none !important; /* Remove any background */
+    border: none !important; /* Remove any border */
 }

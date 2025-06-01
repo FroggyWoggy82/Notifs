@@ -3,7 +3,7 @@
  * Provides enhanced autocomplete search functionality for ingredients
  */
 
-console.log('Ingredient Search Autocomplete script loaded!');
+
 
 // Store the list of ingredients
 let searchableIngredients = []; // All ingredients from the database
@@ -84,7 +84,7 @@ const hardcodedIngredients = [
 // Function to fetch all ingredients from the database
 async function fetchRecentIngredients() {
     try {
-        console.log('Fetching all ingredients from database');
+        
 
         // Use the existing recipes API to get all recipes
         const recipesResponse = await fetch('/api/recipes');
@@ -110,7 +110,7 @@ async function fetchRecentIngredients() {
             return hardcodedIngredients;
         }
 
-        console.log(`Fetched ${recipes.length} recipes`);
+        
 
         // Extract all ingredients from all recipes
         const extractedIngredients = [];
@@ -139,7 +139,7 @@ async function fetchRecentIngredients() {
                     continue;
                 }
 
-                console.log(`Fetched details for recipe ${recipe.name} (ID: ${recipe.id})`);
+                
 
                 if (recipeDetail.ingredients && Array.isArray(recipeDetail.ingredients)) {
                     recipeDetail.ingredients.forEach(ingredient => {
@@ -174,13 +174,13 @@ async function fetchRecentIngredients() {
                              'recipe_id', 'recipe_name', 'display', 'value', 'created_at', 'updated_at'].includes(key)
                         );
 
-                        console.log(`Ingredient ${ingredient.name} has ${micronutrientFields.length} micronutrient fields`);
+                        
 
                         extractedIngredients.push(ingredientObj);
                     });
-                    console.log(`Added ${recipeDetail.ingredients.length} ingredients from recipe ${recipe.name}`);
+                    
                 } else {
-                    console.log(`No ingredients found for recipe ${recipe.name}`);
+                    
                 }
             } catch (error) {
                 console.error(`Error fetching details for recipe ${recipe.id}:`, error);
@@ -203,15 +203,15 @@ async function fetchRecentIngredients() {
 
         // Store all unique ingredients for later use
         searchableIngredients = uniqueIngredients;
-        console.log(`Stored ${searchableIngredients.length} unique ingredients for searching`);
+        
 
         // Return only the 5 most recent unique ingredients for initial display
         const recentIngredientsToShow = uniqueIngredients.slice(0, 5);
-        console.log(`Returning ${recentIngredientsToShow.length} recent ingredients for initial display`);
+        
 
         // If no ingredients found, return hardcoded ingredients
         if (recentIngredientsToShow.length === 0) {
-            console.log('No ingredients found in recipes, using hardcoded ingredients');
+            
             searchableIngredients = hardcodedIngredients;
             return hardcodedIngredients;
         }
@@ -231,7 +231,7 @@ async function searchIngredients(searchTerm) {
     }
 
     try {
-        console.log(`Searching for ingredients with term: ${searchTerm}`);
+        
 
         // Search through all ingredients if available
         if (searchableIngredients.length > 0 && searchableIngredients !== hardcodedIngredients) {
@@ -240,7 +240,7 @@ async function searchIngredients(searchTerm) {
                 ingredient.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
 
-            console.log(`Found ${filteredIngredients.length} ingredients matching '${searchTerm}' in all ingredients`);
+            
 
             if (filteredIngredients.length > 0) {
                 return filteredIngredients;
@@ -251,7 +251,7 @@ async function searchIngredients(searchTerm) {
         const filteredHardcoded = hardcodedIngredients.filter(ingredient =>
             ingredient.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        console.log(`Found ${filteredHardcoded.length} ingredients matching '${searchTerm}' in hardcoded ingredients`);
+        
         return filteredHardcoded;
     } catch (error) {
         console.error('Error searching for ingredients:', error);
@@ -259,7 +259,7 @@ async function searchIngredients(searchTerm) {
         const filteredHardcoded = hardcodedIngredients.filter(ingredient =>
             ingredient.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        console.log(`Found ${filteredHardcoded.length} ingredients matching '${searchTerm}' in hardcoded ingredients (after error)`);
+        
         return filteredHardcoded;
     }
 }
@@ -269,7 +269,7 @@ function createAutocompleteDropdown(searchInput) {
     // First, check if there's already a dropdown for this input
     const existingDropdown = searchInput.nextElementSibling;
     if (existingDropdown && existingDropdown.classList.contains('autocomplete-dropdown')) {
-        console.log('Using existing dropdown');
+        
         return existingDropdown;
     }
 
@@ -277,13 +277,13 @@ function createAutocompleteDropdown(searchInput) {
     if (!searchInput.id) {
         // Generate a unique ID based on timestamp
         searchInput.id = `ingredient-search-${Date.now()}`;
-        console.log(`Added ID "${searchInput.id}" to search input`);
+        
     }
 
     if (!searchInput.name) {
         // Use the ID as the name, but remove any timestamp suffix
         searchInput.name = searchInput.id.replace(/-\d+$/, '');
-        console.log(`Added name "${searchInput.name}" to search input`);
+        
     }
 
     // Create dropdown container
@@ -321,14 +321,14 @@ function createAutocompleteDropdown(searchInput) {
     // Insert the dropdown right after the search input
     searchInput.insertAdjacentElement('afterend', dropdownContainer);
 
-    console.log('Created new autocomplete dropdown for:', searchInput);
+    
 
     return dropdownContainer;
 }
 
 // Function to update the autocomplete dropdown with search results
 function updateAutocompleteDropdown(dropdown, results) {
-    console.log(`Updating dropdown with ${results ? results.length : 0} results`);
+    
 
     // Get the associated search input
     const searchInput = dropdown.previousElementSibling;
@@ -365,7 +365,7 @@ function updateAutocompleteDropdown(dropdown, results) {
         noResults.setAttribute('aria-selected', 'false');
         list.appendChild(noResults);
 
-        console.log('No results found, showing message');
+        
     } else {
         // Create a list item for each result
         results.forEach((ingredient, index) => {
@@ -396,7 +396,7 @@ function updateAutocompleteDropdown(dropdown, results) {
             );
 
             if (micronutrientFields.length > 0) {
-                console.log(`Ingredient ${ingredient.name} has ${micronutrientFields.length} micronutrient fields in dropdown item`);
+                
             }
 
             // Add click event listener
@@ -407,7 +407,7 @@ function updateAutocompleteDropdown(dropdown, results) {
             list.appendChild(item);
         });
 
-        console.log(`Added ${results.length} items to dropdown`);
+        
     }
 
     // Add the list to the dropdown
@@ -419,30 +419,30 @@ function updateAutocompleteDropdown(dropdown, results) {
     // Double-check that the dropdown is visible
     setTimeout(() => {
         if (getComputedStyle(dropdown).display !== 'block') {
-            console.log('Dropdown still not visible, forcing display again');
+            
             dropdown.style.cssText += 'display: block !important; visibility: visible !important;';
         }
     }, 10);
 
-    console.log('Dropdown updated and displayed');
+    
 }
 
 // Function to select an ingredient from the dropdown
 function selectIngredient(ingredient) {
     if (!activeSearchInput) return;
 
-    console.log('Selecting ingredient:', ingredient);
+    
 
     // Find the ingredient item container
     const ingredientItem = activeSearchInput.closest('.ingredient-item');
     if (!ingredientItem) {
-        console.log('Could not find ingredient item container');
+        
         return;
     }
 
     // Check if we're in the recipe editing interface
     const isRecipeEditInterface = ingredientItem.id === 'add-ingredient-form';
-    console.log('Is recipe edit interface:', isRecipeEditInterface);
+    
 
     // Find all the input fields
     let nameInput, caloriesInput, amountInput, proteinInput, fatInput, carbsInput, packageAmountInput, priceInput;
@@ -472,40 +472,40 @@ function selectIngredient(ingredient) {
     // Populate the fields with the ingredient data
     if (nameInput) {
         nameInput.value = ingredient.name;
-        console.log('Set name input value:', nameInput.value);
+        
     }
     if (caloriesInput) {
         caloriesInput.value = ingredient.calories;
-        console.log('Set calories input value:', caloriesInput.value);
+        
     }
     if (amountInput) {
         // Default to 100g if not specified
         amountInput.value = ingredient.amount || 100;
-        console.log('Set amount input value:', amountInput.value);
+        
     }
     if (proteinInput) {
         proteinInput.value = ingredient.protein;
-        console.log('Set protein input value:', proteinInput.value);
+        
     }
     if (fatInput) {
         fatInput.value = ingredient.fats;
-        console.log('Set fat input value:', fatInput.value);
+        
     }
     if (carbsInput) {
         carbsInput.value = ingredient.carbohydrates;
-        console.log('Set carbs input value:', carbsInput.value);
+        
     }
     if (packageAmountInput) {
         packageAmountInput.value = ingredient.package_amount;
-        console.log('Set package amount input value:', packageAmountInput.value);
+        
     }
     if (priceInput) {
         priceInput.value = ingredient.price;
-        console.log('Set price input value:', priceInput.value);
+        
     }
 
     // Populate micronutrient fields
-    console.log('Populating micronutrient fields...');
+    
 
     // Define micronutrient field mappings
     const micronutrientMappings = {
@@ -619,7 +619,7 @@ function selectIngredient(ingredient) {
             // If we found the input field, set its value
             if (inputField) {
                 inputField.value = value;
-                console.log(`Set ${key} input value:`, value);
+                
                 micronutrientFieldsPopulated++;
 
                 // Mark this field as populated
@@ -628,7 +628,7 @@ function selectIngredient(ingredient) {
             }
         } else {
             // Handle special cases or fields that don't follow the standard naming convention
-            console.log(`No mapping found for micronutrient field: ${key} with value: ${value}`);
+            
         }
     }
 
@@ -641,7 +641,7 @@ function selectIngredient(ingredient) {
         { name: 'B5 (Pantothenic Acid)', id: 'add-ingredient-pantothenic-acid', class: '.ingredient-pantothenic-acid' }
     ];
 
-    console.log('Setting default zero values for critical fields...');
+    
 
     // Force set these critical fields to zero regardless of current state
     setTimeout(() => {
@@ -661,10 +661,10 @@ function selectIngredient(ingredient) {
             if (inputField) {
                 // Always set to zero for these critical fields
                 inputField.value = '0';
-                console.log(`Force set zero value for ${field.name} field (ID: ${field.id})`);
+                
                 micronutrientFieldsPopulated++;
             } else {
-                console.log(`Could not find input field for ${field.name} (ID: ${field.id}, Class: ${field.class})`);
+                
             }
         }
     }, 100); // Small delay to ensure DOM is ready
@@ -696,24 +696,24 @@ function selectIngredient(ingredient) {
                 // This ensures these specific fields always have a value
                 if (inputField) {
                     inputField.value = '0';
-                    console.log(`Set default zero value for ${fieldKey} input (ID: ${mapping.id}, Class: ${mapping.class})`);
+                    
                     micronutrientFieldsPopulated++;
 
                     // Mark this field as populated
                     populatedFields.add(mapping.id);
                     populatedFields.add(mapping.class);
                 } else {
-                    console.log(`Could not find input field for ${fieldKey} (ID: ${mapping.id}, Class: ${mapping.class})`);
+                    
                 }
             }
         }
     }
 
-    console.log(`Populated ${micronutrientFieldsPopulated} micronutrient fields`);
+    
 
     // Update the search input value
     activeSearchInput.value = ingredient.name;
-    console.log('Set search input value:', activeSearchInput.value);
+    
 
     // Hide the dropdown and update ARIA attributes
     if (activeDropdown) {
@@ -730,7 +730,7 @@ function selectIngredient(ingredient) {
 function initializeIngredientSearchAutocomplete(searchInput) {
     if (!searchInput) return;
 
-    console.log('Initializing ingredient search autocomplete for:', searchInput);
+    
 
     // Create the autocomplete dropdown
     const dropdown = createAutocompleteDropdown(searchInput);
@@ -746,18 +746,18 @@ function initializeIngredientSearchAutocomplete(searchInput) {
             dropdown.style.display = 'block';
         }
 
-        console.log('Updated dropdown position for:', searchInput);
+        
     }
 
     // Add event listeners
     searchInput.addEventListener('focus', async () => {
-        console.log('Search input focused:', searchInput);
+        
         activeSearchInput = searchInput;
         activeDropdown = dropdown;
 
         // Make sure we have ingredients to show
         if (recentIngredients.length === 0) {
-            console.log('No recent ingredients available, fetching...');
+            
             recentIngredients = await fetchRecentIngredients();
         }
 
@@ -770,19 +770,19 @@ function initializeIngredientSearchAutocomplete(searchInput) {
         // Force the dropdown to be visible with !important
         dropdown.style.cssText += 'display: block !important; visibility: visible !important;';
 
-        console.log('Dropdown should be visible now on focus');
+        
 
         // Double-check that the dropdown is visible after a short delay
         setTimeout(() => {
             if (getComputedStyle(dropdown).display !== 'block') {
-                console.log('Dropdown still not visible after focus, forcing display again');
+                
                 dropdown.style.cssText += 'display: block !important; visibility: visible !important;';
             }
         }, 50);
     });
 
     searchInput.addEventListener('input', async () => {
-        console.log('Search input changed:', searchInput.value);
+        
         const searchTerm = searchInput.value.trim();
 
         // Set active elements
@@ -794,7 +794,7 @@ function initializeIngredientSearchAutocomplete(searchInput) {
 
         // Search for ingredients
         searchResults = await searchIngredients(searchTerm);
-        console.log(`Found ${searchResults.length} results for "${searchTerm}"`);
+        
 
         // Update the dropdown
         updateAutocompleteDropdown(dropdown, searchResults);
@@ -837,14 +837,14 @@ function setupIngredientSearchAutocomplete() {
         initializeIngredientSearchAutocomplete(input);
     });
 
-    console.log(`Initialized autocomplete for ${searchInputs.length} ingredient search inputs`);
+    
 
     // If no search inputs found, wait a bit and try again
     if (searchInputs.length === 0) {
-        console.log('No ingredient search inputs found, waiting for DOM updates...');
+        
         setTimeout(() => {
             const newSearchInputs = document.querySelectorAll('.ingredient-search-input');
-            console.log(`Found ${newSearchInputs.length} ingredient search inputs after waiting`);
+            
 
             newSearchInputs.forEach(input => {
                 initializeIngredientSearchAutocomplete(input);
@@ -860,7 +860,7 @@ function setupIngredientSearchAutocomplete() {
                 mutation.addedNodes.forEach((node) => {
                     // Check if the node itself is a search input
                     if (node.classList && node.classList.contains('ingredient-search-input')) {
-                        console.log('New search input added to DOM:', node);
+                        
                         initializeIngredientSearchAutocomplete(node);
                     }
 
@@ -868,7 +868,7 @@ function setupIngredientSearchAutocomplete() {
                     if (node.querySelectorAll) {
                         const newInputs = node.querySelectorAll('.ingredient-search-input');
                         if (newInputs.length > 0) {
-                            console.log(`Found ${newInputs.length} new search inputs in added DOM node`);
+                            
                             newInputs.forEach(input => {
                                 initializeIngredientSearchAutocomplete(input);
                             });
@@ -881,12 +881,12 @@ function setupIngredientSearchAutocomplete() {
 
     // Start observing the document body for changes
     observer.observe(document.body, { childList: true, subtree: true });
-    console.log('Set up MutationObserver to watch for new search inputs');
+    
 }
 
 // Initialize when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOM loaded, setting up ingredient search autocomplete');
+    
 
     // Add CSS if not already added
     if (!document.querySelector('link[href*="ingredient-autocomplete.css"]')) {
@@ -894,15 +894,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         cssLink.rel = 'stylesheet';
         cssLink.href = '../css/ingredient-autocomplete.css';
         document.head.appendChild(cssLink);
-        console.log('Added ingredient-autocomplete.css to the page');
+        
     }
 
     try {
         // Fetch recent ingredients from the database immediately
-        console.log('Fetching recent ingredients...');
+        
         const ingredients = await fetchRecentIngredients();
         recentIngredients = ingredients;
-        console.log(`Loaded ${recentIngredients.length} recent ingredients`);
+        
 
         // Setup autocomplete for all search inputs
         setupIngredientSearchAutocomplete();
@@ -928,12 +928,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Listen for new ingredient rows being added
 document.addEventListener('ingredientAdded', (event) => {
-    console.log('New ingredient added, setting up search autocomplete');
+    
 
     // Find the new ingredient search input
     const newIngredientItem = event.detail.ingredientItem;
     if (!newIngredientItem) {
-        console.warn('New ingredient item not found in event details');
+        
         return;
     }
 
@@ -941,11 +941,11 @@ document.addEventListener('ingredientAdded', (event) => {
     setTimeout(() => {
         const searchInput = newIngredientItem.querySelector('.ingredient-search-input');
         if (searchInput) {
-            console.log('Found search input in new ingredient item, initializing autocomplete');
+            
             initializeIngredientSearchAutocomplete(searchInput);
         } else {
-            console.warn('Search input not found in new ingredient item');
-            console.log('New ingredient item HTML:', newIngredientItem.innerHTML);
+            
+            
         }
     }, 100);
 });

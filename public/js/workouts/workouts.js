@@ -5808,10 +5808,31 @@ document.addEventListener('DOMContentLoaded', function() {
         // Re-render the exercise to update the display
         const exerciseItem = document.querySelector(`[data-workout-index="${exerciseIndex}"]`);
         if (exerciseItem) {
-            // Update the target sets×reps display
-            const targetSetsRepsElement = exerciseItem.querySelector('.target-sets-reps');
+            // Update or create the target sets×reps display
+            let targetSetsRepsElement = exerciseItem.querySelector('.target-sets-reps');
+
             if (targetSetsRepsElement) {
+                // Update existing element
                 targetSetsRepsElement.textContent = `Target Sets×Reps: ${newSets}×${newReps}`;
+                console.log("[Update Target Sets×Reps] Updated existing target display");
+            } else {
+                // Create new element if it doesn't exist
+                targetSetsRepsElement = document.createElement('div');
+                targetSetsRepsElement.className = 'target-sets-reps';
+                targetSetsRepsElement.textContent = `Target Sets×Reps: ${newSets}×${newReps}`;
+
+                // Insert it after the exercise header but before the notes
+                const exerciseHeader = exerciseItem.querySelector('.exercise-item-header');
+                const notesGroup = exerciseItem.querySelector('.exercise-notes-group');
+
+                if (exerciseHeader && notesGroup) {
+                    exerciseHeader.parentNode.insertBefore(targetSetsRepsElement, notesGroup);
+                    console.log("[Update Target Sets×Reps] Created new target display element");
+                } else {
+                    // Fallback: append to the exercise item
+                    exerciseItem.appendChild(targetSetsRepsElement);
+                    console.log("[Update Target Sets×Reps] Created new target display element (fallback)");
+                }
             }
 
             // Recalculate and update goals with new target reps

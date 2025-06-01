@@ -4,7 +4,7 @@
  */
 
 (function() {
-    console.log('[Weekly Goal Points Fix] Initializing...');
+    
 
     // Add CSS for weekly goal points
     function addWeeklyGoalPointStyles() {
@@ -47,18 +47,18 @@
                 }
             `;
             document.head.appendChild(style);
-            console.log('[Weekly Goal Points Fix] Added weekly goal point styles');
+            
         }
     }
 
     // Function to add week number labels to goal points
     function addWeekNumberLabels() {
         try {
-            console.log('[Weekly Goal Points Fix] Adding week number labels');
+            
 
             // Check if we have a chart instance
             if (!window.weightGoalChart) {
-                console.warn('[Weekly Goal Points Fix] Weight chart not available');
+                
                 return;
             }
 
@@ -70,26 +70,26 @@
 
             // If we still don't have weekly goal weights, exit
             if (!window.weeklyGoalWeights || window.weeklyGoalWeights.length === 0) {
-                console.log('[Weekly Goal Points Fix] No weekly goal weights found after extraction attempt');
+                
                 return;
             }
 
             // Get the chart canvas
             const chartCanvas = document.getElementById('weight-goal-chart');
             if (!chartCanvas) {
-                console.warn('[Weekly Goal Points Fix] Chart canvas not found');
+                
                 return;
             }
 
             // Get the chart container
             const chartContainer = chartCanvas.parentElement;
             if (!chartContainer) {
-                console.warn('[Weekly Goal Points Fix] Chart container not found');
+                
                 return;
             }
 
             // Log all weekly goal weights for debugging
-            console.log('[Weekly Goal Points Fix] All weekly goal weights:', JSON.stringify(window.weeklyGoalWeights));
+            
 
             // Add week number labels for each weekly goal weight
             window.weeklyGoalWeights.forEach(weeklyPoint => {
@@ -97,13 +97,13 @@
                     // Get the point position from the chart
                     const meta = window.weightGoalChart.getDatasetMeta(1);
                     if (!meta || !meta.data) {
-                        console.warn(`[Weekly Goal Points Fix] Meta data not available for week ${weeklyPoint.week}`);
+                        
                         return;
                     }
 
                     // Find the point in the dataset
                     if (!meta.data[weeklyPoint.index]) {
-                        console.warn(`[Weekly Goal Points Fix] Point not found at index ${weeklyPoint.index} for week ${weeklyPoint.week}`);
+                        
                         return;
                     }
 
@@ -136,13 +136,13 @@
                     // Add the label to the chart container
                     chartContainer.appendChild(weekLabel);
 
-                    console.log(`[Weekly Goal Points Fix] Added week number label: Week ${weeklyPoint.week} at position (${point.x}, ${point.y})`);
+                    
                 } catch (e) {
                     console.error(`[Weekly Goal Points Fix] Error adding label for week ${weeklyPoint.week}:`, e);
                 }
             });
 
-            console.log('[Weekly Goal Points Fix] Week number labels added');
+            
         } catch (error) {
             console.error('[Weekly Goal Points Fix] Error adding week number labels:', error);
         }
@@ -151,30 +151,30 @@
     // Function to extract weekly goal weights from chart data
     function extractWeeklyGoalWeights() {
         try {
-            console.log('[Weekly Goal Points Fix] Extracting weekly goal weights');
+            
 
             // Check if we have a chart instance
             if (!window.weightGoalChart) {
-                console.warn('[Weekly Goal Points Fix] Weight chart not available for extraction');
+                
                 return;
             }
 
             // Get the goal dataset
             if (!window.weightGoalChart.data || !window.weightGoalChart.data.datasets || window.weightGoalChart.data.datasets.length < 2) {
-                console.warn('[Weekly Goal Points Fix] Goal dataset not available');
+                
                 return;
             }
 
             const goalDataset = window.weightGoalChart.data.datasets[1];
             if (!goalDataset || !goalDataset.data) {
-                console.warn('[Weekly Goal Points Fix] Goal dataset data not available');
+                
                 return;
             }
 
             // Get the chart labels
             const labels = window.weightGoalChart.data.labels;
             if (!labels || labels.length === 0) {
-                console.warn('[Weekly Goal Points Fix] Chart labels not available');
+                
                 return;
             }
 
@@ -185,14 +185,14 @@
 
             // Get the weekly increment dates
             const weeklyDates = window.weeklyIncrementDates || [];
-            console.log('[Weekly Goal Points Fix] Weekly increment dates:', weeklyDates);
+            
 
             // Process each point in the dataset
             let weekCounter = 0;
 
             // First, check if we have weekly increment dates
             if (weeklyDates && weeklyDates.length > 0) {
-                console.log('[Weekly Goal Points Fix] Using weekly increment dates for extraction');
+                
 
                 // For each label in the chart, check if it's in the weekly increment dates
                 labels.forEach((label, index) => {
@@ -212,7 +212,7 @@
                                 date: label
                             });
 
-                            console.log(`[Weekly Goal Points Fix] Added weekly goal weight from dates: ${label}, week ${actualWeekNumber}, index ${index}`);
+                            
                         }
                     }
                 });
@@ -228,14 +228,14 @@
             }
 
             if (startIndex === -1) {
-                console.warn('[Weekly Goal Points Fix] No valid start index found');
+                
                 return;
             }
 
             // Get the start date
             const startDate = new Date(labels[startIndex]);
             if (isNaN(startDate.getTime())) {
-                console.warn('[Weekly Goal Points Fix] Invalid start date');
+                
                 return;
             }
 
@@ -261,7 +261,7 @@
                                     date: labels[i]
                                 });
 
-                                console.log(`[Weekly Goal Points Fix] Added weekly goal weight by day count: ${labels[i]}, week ${weekNum}, index ${i}`);
+                                
                             }
                         }
                     }
@@ -287,14 +287,14 @@
                             date: labels[i]
                         });
 
-                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from 7th point: ${labels[i]}, week ${weekNum}, index ${i}`);
+                        
                     }
                 }
             }
 
             // If we still don't have weekly goal weights, try using all points in the goal dataset
             if (window.weeklyGoalWeights.length === 0) {
-                console.log('[Weekly Goal Points Fix] Using all goal points for extraction');
+                
 
                 // Process each point in the dataset
                 goalDataset.data.forEach((point, index) => {
@@ -306,7 +306,7 @@
                             date: labels[index]
                         });
 
-                        console.log(`[Weekly Goal Points Fix] Added weekly goal weight from all points: ${labels[index]}, week ${weekCounter + 1}, index ${index}`);
+                        
                         weekCounter++;
                     }
                 });
@@ -315,7 +315,7 @@
             // Sort weekly goal weights by week number
             window.weeklyGoalWeights.sort((a, b) => a.week - b.week);
 
-            console.log(`[Weekly Goal Points Fix] Extracted ${window.weeklyGoalWeights.length} weekly goal weights:`, window.weeklyGoalWeights);
+            
         } catch (error) {
             console.error('[Weekly Goal Points Fix] Error extracting weekly goal weights:', error);
         }
@@ -350,19 +350,19 @@
 
                         // Make sure we have weekly goal weights
                         if (!window.weeklyGoalWeights || window.weeklyGoalWeights.length === 0) {
-                            console.warn('[Weekly Goal Points Fix] No weekly goal weights available for enhancement');
+                            
                             return;
                         }
 
                         // Log the weekly goal weights for debugging
-                        console.log(`[Weekly Goal Points Fix] Enhancing ${window.weeklyGoalWeights.length} weekly goal points`);
+                        
 
                         // Enhance each weekly goal point
                         window.weeklyGoalWeights.forEach(weeklyPoint => {
                             try {
                                 // Check if the point exists in the dataset
                                 if (!dataset.data[weeklyPoint.index]) {
-                                    console.warn(`[Weekly Goal Points Fix] Point not found at index ${weeklyPoint.index} for week ${weeklyPoint.week}`);
+                                    
                                     return;
                                 }
 
@@ -409,7 +409,7 @@
                                     point.element.classList.add('goal-weight-point');
                                 }
 
-                                console.log(`[Weekly Goal Points Fix] Enhanced weekly goal point for week ${weeklyPoint.week} at index ${weeklyPoint.index}`);
+                                
                             } catch (e) {
                                 console.error(`[Weekly Goal Points Fix] Error enhancing point for week ${weeklyPoint.week}:`, e);
                             }
@@ -443,7 +443,7 @@
 
                     goalDataset.pointBorderWidth = 2;
 
-                    console.log('[Weekly Goal Points Fix] Modified goal dataset point styling');
+                    
                 } catch (e) {
                     console.error('[Weekly Goal Points Fix] Error modifying goal dataset:', e);
                 }
@@ -468,13 +468,13 @@
                 if (!pluginAlreadyRegistered) {
                     try {
                         window.Chart.register(weeklyGoalPointsPlugin);
-                        console.log('[Weekly Goal Points Fix] Registered weeklyGoalPoints plugin');
+                        
                     } catch (e) {
                         console.error('[Weekly Goal Points Fix] Error registering plugin:', e);
                     }
                 }
             } else {
-                console.warn('[Weekly Goal Points Fix] Chart.register not available');
+                
             }
 
             // If we have a chart instance, add the plugin directly to it
@@ -507,13 +507,13 @@
                             const originalPlugins = window.weightGoalChart.plugins || [];
                             window.weightGoalChart.plugins = [...originalPlugins, weeklyGoalPointsPlugin];
                             window._chartPluginsPatched = true;
-                            console.log('[Weekly Goal Points Fix] Added plugin directly to chart');
+                            
                         }
 
                         // Update the chart to apply the plugin
                         try {
                             window.weightGoalChart.update('none'); // Use 'none' mode to prevent animation issues
-                            console.log('[Weekly Goal Points Fix] Updated chart with plugin');
+                            
                         } catch (updateError) {
                             console.error('[Weekly Goal Points Fix] Error updating chart:', updateError);
                         }
@@ -532,7 +532,7 @@
     function ensureWeeklyGoalPoints() {
         try {
             if (!window.weightGoalChart) {
-                console.warn('[Weekly Goal Points Fix] Weight chart not available');
+                
                 return;
             }
 
@@ -554,7 +554,7 @@
                     // Check if we have weekly increment dates in the chart options
                     if (chart.options && chart.options.weeklyIncrementDates) {
                         window.weeklyIncrementDates = chart.options.weeklyIncrementDates;
-                        console.log('[Weekly Goal Points Fix] Found weekly increment dates in chart options:', window.weeklyIncrementDates);
+                        
                     } else {
                         // Try to extract weekly increment dates from the chart data
                         const allDates = chart.data.labels;
@@ -582,7 +582,7 @@
                                     window.weeklyIncrementDates.push(allDates[i]);
                                 }
 
-                                console.log('[Weekly Goal Points Fix] Extracted weekly increment dates:', window.weeklyIncrementDates);
+                                
                             }
                         }
                     }
@@ -601,7 +601,7 @@
             try {
                 // Use a safer update mode to prevent animation issues
                 chart.update('none');
-                console.log('[Weekly Goal Points Fix] Chart updated');
+                
             } catch (e) {
                 console.error('[Weekly Goal Points Fix] Error updating chart:', e);
 
@@ -620,7 +620,7 @@
 
                         // Try updating again
                         chart.update('none');
-                        console.log('[Weekly Goal Points Fix] Chart updated with direct dataset modification');
+                        
                     }
                 } catch (retryError) {
                     console.error('[Weekly Goal Points Fix] Error in retry update:', retryError);
@@ -684,7 +684,7 @@
 
     // Add a listener for chart updates
     document.addEventListener('weightChartUpdated', function() {
-        console.log('[Weekly Goal Points Fix] Chart update detected');
+        
         setTimeout(ensureWeeklyGoalPoints, 100);
     });
 
@@ -713,9 +713,9 @@
                         childList: true,
                         subtree: true
                     });
-                    console.log('[Weekly Goal Points Fix] Added MutationObserver to chart canvas');
+                    
                 } else {
-                    console.warn('[Weekly Goal Points Fix] Chart canvas not found for MutationObserver');
+                    
                 }
             }, 1000);
 
@@ -725,5 +725,5 @@
         }
     }
 
-    console.log('[Weekly Goal Points Fix] Initialization complete');
+    
 })();

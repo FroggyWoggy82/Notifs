@@ -5,7 +5,7 @@
 
 async function fetchIngredientDetails(ingredientName) {
     try {
-        console.log(`Fetching details for ingredient: ${ingredientName}`);
+        
 
         const fetchFunction = window.safeFetch || fetch;
 
@@ -28,34 +28,34 @@ async function fetchIngredientDetails(ingredientName) {
                         );
 
                         if (matchingIngredient) {
-                            console.log('Found matching ingredient in recipe:', recipe.name);
+                            
                             return matchingIngredient;
                         }
                     }
                 }
             }
         } catch (searchError) {
-            console.warn('Error searching recipes for ingredient:', searchError);
+            
         }
 
         try {
             // Use relative URL to ensure correct port is used
             const baseUrl = window.location.origin;
             const apiUrl = `${baseUrl}/api/ingredient-details/${encodedName}`;
-            console.log(`Fetching ingredient details from: ${apiUrl}`);
+            
 
             const response = await fetchFunction(apiUrl);
 
             if (!response.ok) {
-                console.warn(`API endpoint not available: ${response.status}`);
+                
                 return null;
             }
 
             const data = await response.json();
-            console.log('Ingredient details fetched from API:', data);
+            
             return data;
         } catch (apiError) {
-            console.warn('API endpoint error:', apiError);
+            
             return null;
         }
     } catch (error) {
@@ -67,13 +67,13 @@ async function fetchIngredientDetails(ingredientName) {
 function fillIngredientFields(ingredientData, event) {
     if (!ingredientData) return;
 
-    console.log('Filling ingredient fields with:', ingredientData);
+    
 
     let ingredientItem;
 
     if (event && event.target) {
         ingredientItem = event.target.closest('.ingredient-item');
-        console.log('Found ingredient item from event:', ingredientItem);
+        
     }
 
     if (!ingredientItem) {
@@ -85,7 +85,7 @@ function fillIngredientFields(ingredientData, event) {
             const nameInput = item.querySelector('.ingredient-name');
             if (nameInput && nameInput.value === ingredientName) {
                 ingredientItem = item;
-                console.log('Found ingredient item by name match:', ingredientItem);
+                
                 break;
             }
         }
@@ -93,7 +93,7 @@ function fillIngredientFields(ingredientData, event) {
 
     if (!ingredientItem) {
         ingredientItem = document.querySelector('.ingredient-item');
-        console.log('Using first ingredient item as fallback:', ingredientItem);
+        
     }
 
     if (!ingredientItem) {
@@ -182,7 +182,7 @@ function fillIngredientFields(ingredientData, event) {
                 const event = new Event('change', { bubbles: true });
                 inputField.dispatchEvent(event);
 
-                console.log(`Set ${dbField} (${singleSelector}) to ${ingredientData[dbField]}`);
+                
 
                 if (inputField.type === 'hidden') {
 
@@ -191,7 +191,7 @@ function fillIngredientFields(ingredientData, event) {
                     if (visibleField) {
                         visibleField.value = ingredientData[dbField];
                         visibleField.dispatchEvent(new Event('change', { bubbles: true }));
-                        console.log(`Also set ${visibleFieldClass} to ${ingredientData[dbField]}`);
+                        
                     }
                 }
             }
@@ -203,7 +203,7 @@ async function handleIngredientNameChange(event) {
     const ingredientName = event.target.value.trim();
     if (!ingredientName) return;
 
-    console.log(`Ingredient name changed to: ${ingredientName}`);
+    
 
     const ingredientData = await fetchIngredientDetails(ingredientName);
 
@@ -222,7 +222,7 @@ function initializeIngredientAutofill() {
 
         input.addEventListener('change', handleIngredientNameChange);
 
-        console.log('Added autofill to ingredient input:', input);
+        
     });
 }
 
@@ -234,7 +234,7 @@ document.addEventListener('ingredientAdded', function(e) {
         if (newInput) {
 
             newInput.addEventListener('change', handleIngredientNameChange);
-            console.log('Added autofill to new ingredient input');
+            
         }
     }
 });
@@ -243,11 +243,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initializeIngredientAutofill();
 
-    console.log('Ingredient autofill initialized');
+    
 });
 
 document.addEventListener('editFormOpened', function() {
 
     setTimeout(initializeIngredientAutofill, 500); // Wait for the form to be fully rendered
-    console.log('Ingredient autofill initialized for edit form');
+    
 });
