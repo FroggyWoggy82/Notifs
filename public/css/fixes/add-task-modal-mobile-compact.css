@@ -1,0 +1,282 @@
+/**
+ * Add Task Modal Mobile Compact Fix
+ * Makes the add task modal extremely compact for mobile devices to eliminate scrolling
+ */
+
+/* Mobile-specific optimizations for add task modal */
+@media (max-width: 768px) {
+    /* Modal takes full screen height and width */
+    #addTaskModal .modal-content,
+    #editTaskModal .modal-content {
+        width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        margin: 0 !important;
+        padding: 8px !important;
+        border-radius: 0 !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        transform: none !important;
+        overflow-y: auto !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Compact modal header */
+    #addTaskModal .modal-header,
+    #editTaskModal .modal-header {
+        padding: 4px 0 !important;
+        margin-bottom: 6px !important;
+        border-bottom: 1px solid #333 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    #addTaskModal .modal-header h2,
+    #editTaskModal .modal-header h2 {
+        font-size: 1.1rem !important;
+        margin: 0 !important;
+        color: #00e676 !important;
+    }
+
+    /* Compact close button */
+    #addTaskModal .close-button,
+    #editTaskModal .close-button {
+        position: static !important;
+        margin: 0 !important;
+        padding: 4px !important;
+        font-size: 1rem !important;
+    }
+
+    /* Ultra-compact form layout */
+    #addTaskModal form,
+    #editTaskModal form {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Minimal form groups */
+    #addTaskModal .form-group,
+    #editTaskModal .form-group {
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+    }
+
+    /* Compact labels */
+    #addTaskModal .form-label,
+    #editTaskModal .form-label {
+        font-size: 0.8rem !important;
+        margin-bottom: 2px !important;
+        display: block !important;
+        color: #ccc !important;
+        font-weight: 500 !important;
+    }
+
+    /* Compact form controls */
+    #addTaskModal .form-control,
+    #editTaskModal .form-control {
+        padding: 6px 8px !important;
+        font-size: 0.85rem !important;
+        border-radius: 4px !important;
+        border: 1px solid #444 !important;
+        background-color: #1a1a1a !important;
+        color: #fff !important;
+        min-height: 32px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Compact textarea */
+    #addTaskModal textarea,
+    #editTaskModal textarea {
+        min-height: 40px !important;
+        max-height: 60px !important;
+        resize: vertical !important;
+    }
+
+    /* Compact reminder checkboxes in 2x2 grid */
+    #addTaskModal .reminder-checkboxes,
+    #editTaskModal .reminder-checkboxes {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4px !important;
+        margin-top: 4px !important;
+    }
+
+    #addTaskModal .form-check,
+    #editTaskModal .form-check {
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 2px !important;
+    }
+
+    #addTaskModal .form-check-input,
+    #editTaskModal .form-check-input {
+        margin-right: 4px !important;
+        margin-top: 0 !important;
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    #addTaskModal .form-check-label,
+    #editTaskModal .form-check-label {
+        font-size: 0.75rem !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Compact form rows - side by side layout */
+    #addTaskModal .form-row,
+    #editTaskModal .form-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+        margin-bottom: 4px !important;
+    }
+
+    #addTaskModal .form-group-half,
+    #editTaskModal .form-group-half {
+        margin-bottom: 0 !important;
+    }
+
+    /* Compact subtasks section */
+    #addTaskModal .subtasks-header,
+    #editTaskModal .subtasks-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 4px !important;
+    }
+
+    #addTaskModal #addSubtaskBtn,
+    #editTaskModal #editAddSubtaskBtn {
+        padding: 4px 8px !important;
+        font-size: 0.7rem !important;
+        border-radius: 3px !important;
+        background-color: #333 !important;
+        color: #fff !important;
+        border: 1px solid #555 !important;
+    }
+
+    #addTaskModal .subtasks-list,
+    #editTaskModal .subtasks-list {
+        max-height: 80px !important;
+        overflow-y: auto !important;
+        border: 1px solid #333 !important;
+        border-radius: 4px !important;
+        padding: 4px !important;
+        background-color: #1a1a1a !important;
+    }
+
+    /* Hide "no subtasks" message to save space */
+    #addTaskModal .no-subtasks-message,
+    #editTaskModal .no-subtasks-message {
+        display: none !important;
+    }
+
+    /* Compact button container */
+    #addTaskModal .button-container,
+    #editTaskModal .button-container {
+        margin: 8px 0 4px 0 !important;
+        text-align: center !important;
+    }
+
+    #addTaskModal button[type="submit"],
+    #editTaskModal button[type="submit"] {
+        padding: 8px 16px !important;
+        font-size: 0.9rem !important;
+        border-radius: 4px !important;
+        background-color: #00e676 !important;
+        color: #000 !important;
+        border: none !important;
+        font-weight: 600 !important;
+        min-width: 100px !important;
+    }
+
+    /* Compact status messages */
+    #addTaskModal .status,
+    #editTaskModal .status {
+        margin-top: 4px !important;
+        padding: 4px !important;
+        font-size: 0.75rem !important;
+        border-radius: 3px !important;
+    }
+
+    /* Compact modal controls */
+    #addTaskModal .modal-controls,
+    #editTaskModal .modal-controls {
+        margin: 0 !important;
+    }
+
+    #addTaskModal .toggle-container,
+    #editTaskModal .toggle-container {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+
+    #addTaskModal .toggle-label,
+    #editTaskModal .toggle-label {
+        font-size: 0.7rem !important;
+        color: #ccc !important;
+    }
+
+    #addTaskModal .toggle-switch,
+    #editTaskModal .toggle-switch {
+        transform: scale(0.8) !important;
+    }
+
+    /* Compact input groups */
+    #addTaskModal .input-group,
+    #editTaskModal .input-group {
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    #addTaskModal .input-group-text,
+    #editTaskModal .input-group-text {
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+        background-color: #333 !important;
+        border: 1px solid #444 !important;
+        border-left: none !important;
+        color: #ccc !important;
+        border-radius: 0 4px 4px 0 !important;
+    }
+
+    #addTaskModal .input-group .form-control,
+    #editTaskModal .input-group .form-control {
+        border-radius: 4px 0 0 4px !important;
+        border-right: none !important;
+    }
+}
+
+/* Extra compact for very small screens */
+@media (max-width: 480px) {
+    #addTaskModal .modal-content,
+    #editTaskModal .modal-content {
+        padding: 6px !important;
+    }
+
+    #addTaskModal .form-control,
+    #editTaskModal .form-control {
+        padding: 4px 6px !important;
+        font-size: 0.8rem !important;
+        min-height: 28px !important;
+    }
+
+    #addTaskModal textarea,
+    #editTaskModal textarea {
+        min-height: 35px !important;
+        max-height: 50px !important;
+    }
+
+    #addTaskModal .form-check-label,
+    #editTaskModal .form-check-label {
+        font-size: 0.7rem !important;
+    }
+}

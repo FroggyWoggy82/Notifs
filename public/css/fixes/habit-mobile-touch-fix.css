@@ -3,58 +3,90 @@
  * Prevents edit buttons from interfering with habit completion on mobile devices
  */
 
-/* On mobile devices, ensure habit actions don't interfere with normal interactions */
+/* On mobile devices, aggressively hide habit actions to prevent interference */
 @media screen and (max-width: 768px) {
-    /* Make sure habit actions are positioned correctly and don't block other elements */
+    /* Completely hide habit actions by default on mobile */
+    .habit-actions {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    /* Override any other CSS that might show habit actions */
+    .habit-item:hover .habit-actions,
+    .habit-item:focus .habit-actions,
+    .habit-item:active .habit-actions,
     .habit-item.show-actions .habit-actions {
-        position: absolute !important;
-        right: 8px !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        z-index: 10 !important;
-        background-color: rgba(0, 0, 0, 0.9) !important;
-        border-radius: 8px !important;
-        padding: 4px !important;
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    /* Only show edit buttons when explicitly triggered by our touch handler */
+    .habit-item.mobile-edit-mode .habit-actions {
         display: flex !important;
         opacity: 1 !important;
+        visibility: visible !important;
         pointer-events: auto !important;
+        position: absolute !important;
+        right: 4px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 15 !important;
+        background-color: rgba(0, 0, 0, 0.95) !important;
+        border-radius: 6px !important;
+        padding: 2px !important;
+        border: 1px solid #333 !important;
     }
-    
-    /* Ensure habit content area doesn't get blocked by edit buttons */
-    .habit-item.show-actions .habit-content {
-        pointer-events: auto !important;
+
+    /* Make edit buttons very small and unobtrusive */
+    .habit-item.mobile-edit-mode .habit-actions .icon-btn,
+    .habit-item.mobile-edit-mode .habit-actions .edit-habit-icon-btn,
+    .habit-item.mobile-edit-mode .habit-actions .delete-habit-icon-btn {
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        font-size: 10px !important;
+        padding: 2px !important;
+        margin: 1px !important;
+        background-color: transparent !important;
+        border: none !important;
+        color: #ccc !important;
     }
-    
-    /* Ensure interactive elements remain clickable even when edit buttons are shown */
-    .habit-item.show-actions .habit-checkbox,
-    .habit-item.show-actions .habit-increment-btn,
-    .habit-item.show-actions .habit-level,
-    .habit-item.show-actions .habit-progress {
+
+    /* Ensure habit content area is fully clickable */
+    .habit-item .habit-content {
         pointer-events: auto !important;
-        z-index: 11 !important;
+        z-index: 1 !important;
         position: relative !important;
     }
-    
-    /* Make edit buttons smaller on mobile to reduce interference */
-    .habit-item.show-actions .habit-actions .icon-btn {
-        width: 24px !important;
-        height: 24px !important;
-        min-width: 24px !important;
-        font-size: 12px !important;
+
+    /* Ensure interactive elements are always clickable */
+    .habit-item .habit-checkbox,
+    .habit-item .habit-increment-btn,
+    .habit-item .habit-level,
+    .habit-item .habit-progress {
+        pointer-events: auto !important;
+        z-index: 5 !important;
+        position: relative !important;
     }
 }
 
 /* Very small screens - make edit buttons even more compact */
 @media screen and (max-width: 480px) {
-    .habit-item.show-actions .habit-actions {
-        right: 4px !important;
-        padding: 2px !important;
+    .habit-item.mobile-edit-mode .habit-actions {
+        right: 2px !important;
+        padding: 1px !important;
     }
-    
-    .habit-item.show-actions .habit-actions .icon-btn {
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 20px !important;
-        font-size: 10px !important;
+
+    .habit-item.mobile-edit-mode .habit-actions .icon-btn,
+    .habit-item.mobile-edit-mode .habit-actions .edit-habit-icon-btn,
+    .habit-item.mobile-edit-mode .habit-actions .delete-habit-icon-btn {
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        font-size: 9px !important;
     }
 }

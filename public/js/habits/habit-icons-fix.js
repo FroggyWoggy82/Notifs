@@ -122,18 +122,23 @@
         const isMobile = window.innerWidth <= 768;
 
         if (isMobile) {
-            // On mobile, only show edit buttons if touching the far right edge (last 15% of the habit item)
+            // On mobile, only show edit buttons if touching the far right edge (last 10% of the habit item)
             const habitRect = habitItem.getBoundingClientRect();
             const touchX = touch.clientX;
-            const habitRightEdge = habitRect.right - (habitRect.width * 0.15);
+            const habitRightEdge = habitRect.right - (habitRect.width * 0.1);
 
-            // Only trigger edit buttons if touching the far right edge
+            // Only trigger edit buttons if touching the very far right edge
             if (touchX >= habitRightEdge) {
-                habitItem.classList.add('show-actions');
+                // Remove any existing mobile edit mode from other habits
+                document.querySelectorAll('.habit-item.mobile-edit-mode').forEach(item => {
+                    item.classList.remove('mobile-edit-mode');
+                });
+
+                habitItem.classList.add('mobile-edit-mode');
 
                 setTimeout(() => {
-                    habitItem.classList.remove('show-actions');
-                }, 2000); // Shorter timeout on mobile
+                    habitItem.classList.remove('mobile-edit-mode');
+                }, 1500); // Even shorter timeout on mobile
             }
         } else {
             // On desktop, use the original behavior (right 30%)
