@@ -232,27 +232,7 @@ router.get('/debug-routes', (req, res) => {
     res.json(routes);
 });
 
-/**
- * @swagger
- * /api/tasks/{id}:
- *   get:
- *     summary: Get a task by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Task ID
- *     responses:
- *       200:
- *         description: Task details
- *       404:
- *         description: Task not found
- *       500:
- *         description: Server error
- */
-router.get('/:id', TaskController.getTaskById);
+
 
 /**
  * @swagger
@@ -348,5 +328,27 @@ router.get('/:id/subtasks', TaskController.getSubtasks);
  *         description: Server error
  */
 router.get('/weekly-complete-list', TaskController.getWeeklyCompleteList);
+
+/**
+ * @swagger
+ * /api/tasks/{id}:
+ *   get:
+ *     summary: Get a task by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Task ID
+ *     responses:
+ *       200:
+ *         description: Task details
+ *       404:
+ *         description: Task not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id', TaskController.getTaskById);
 
 module.exports = router;

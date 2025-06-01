@@ -53,11 +53,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Move banners from metadata to title right section
             const banners = metadata.querySelectorAll('.due-date-indicator, .recurrence-indicator, .next-occurrence-indicator, .notification-indicator');
-            
+
             banners.forEach(banner => {
                 // Clone the banner to avoid moving issues
                 const clonedBanner = banner.cloneNode(true);
                 titleRight.appendChild(clonedBanner);
+                // Remove the original banner to prevent duplicates
+                banner.remove();
             });
             
             // Mark as processed

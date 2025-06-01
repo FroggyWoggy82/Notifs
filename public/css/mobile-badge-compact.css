@@ -1,0 +1,131 @@
+/**
+ * Mobile Badge Compact Styling
+ * Makes task badges significantly more compact on mobile devices to reduce vertical space
+ */
+
+/* Apply to all mobile devices */
+@media (max-width: 768px) {
+    /* Ultra-compact badge styling for all task indicators */
+    .due-date-indicator,
+    .next-occurrence-indicator,
+    .recurrence-indicator,
+    .notification-indicator,
+    .overdue-badge {
+        font-size: 0.6em !important;
+        padding: 1px 3px !important;
+        margin: 0 1px !important;
+        line-height: 1.0 !important;
+        border-radius: 2px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        min-height: 14px !important;
+        max-height: 16px !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.2px !important;
+    }
+
+    /* Make badge containers more compact */
+    .task-title-right {
+        gap: 1px !important;
+        margin-left: 3px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* Reduce task metadata spacing */
+    .task-metadata {
+        margin-top: 0px !important;
+        margin-bottom: 1px !important;
+        line-height: 1.0 !important;
+    }
+
+    /* Make task title container more compact */
+    .task-title-container {
+        gap: 3px !important;
+        align-items: center !important;
+        line-height: 1.1 !important;
+        margin-bottom: 1px !important;
+    }
+
+    /* Reduce overall task item padding to save vertical space */
+    .task-item {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Make recurring task badges even more compact */
+    .recurrence-indicator.weekly,
+    .recurrence-indicator.daily,
+    .recurrence-indicator.monthly,
+    .recurrence-indicator.yearly {
+        font-size: 0.55em !important;
+        padding: 1px 2px !important;
+        min-height: 12px !important;
+        max-height: 14px !important;
+    }
+}
+
+/* Extra small screens - even more compact */
+@media (max-width: 480px) {
+    .due-date-indicator,
+    .next-occurrence-indicator,
+    .recurrence-indicator,
+    .notification-indicator,
+    .overdue-badge {
+        font-size: 0.55em !important;
+        padding: 0px 2px !important;
+        margin: 0 0.5px !important;
+        line-height: 0.9 !important;
+        min-height: 12px !important;
+        max-height: 14px !important;
+        border-radius: 1px !important;
+    }
+
+    /* Ultra-compact task items */
+    .task-item {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+        margin-bottom: 1px !important;
+    }
+
+    /* Minimize gaps between badges */
+    .task-title-right {
+        gap: 0px !important;
+        margin-left: 2px !important;
+    }
+
+    /* Compact task title container */
+    .task-title-container {
+        gap: 2px !important;
+        line-height: 1.0 !important;
+        margin-bottom: 0px !important;
+    }
+
+    /* Make recurring badges ultra-compact */
+    .recurrence-indicator.weekly,
+    .recurrence-indicator.daily,
+    .recurrence-indicator.monthly,
+    .recurrence-indicator.yearly {
+        font-size: 0.5em !important;
+        padding: 0px 1px !important;
+        min-height: 10px !important;
+        max-height: 12px !important;
+        letter-spacing: 0px !important;
+    }
+}
+
+/* Ensure badges don't wrap to new lines unnecessarily */
+@media (max-width: 768px) {
+    .task-title-right {
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
+
+    /* If badges must wrap, minimize the line height */
+    .task-title-right.wrapped {
+        line-height: 1.0 !important;
+        gap: 1px !important;
+    }
+}

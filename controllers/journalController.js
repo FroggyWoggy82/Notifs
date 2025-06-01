@@ -1,5 +1,6 @@
 const JournalModel = require('../models/journalModel');
 const aiService = require('../services/aiService');
+const PersonAnalysisService = require('../services/personAnalysisService');
 
 /**
  * Journal Controller
@@ -98,6 +99,18 @@ class JournalController {
             }
 
             const entry = await JournalModel.saveEntry(date, content, analysis);
+
+            // Extract and analyze people mentioned in the journal entry
+            try {
+                if (content && content.trim().length > 0) {
+                    const extractedPeople = await PersonAnalysisService.extractAndAnalyzePeople(content, entry.id);
+                    console.log(`Extracted ${extractedPeople.length} people from journal entry ${entry.id}`);
+                }
+            } catch (personError) {
+                console.error('Error extracting people from journal entry:', personError);
+                // Don't fail the entire request if person extraction fails
+            }
+
             res.status(201).json(entry);
         } catch (err) {
             console.error('Error saving journal entry:', err);

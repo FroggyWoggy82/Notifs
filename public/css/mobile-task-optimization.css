@@ -134,6 +134,42 @@
     align-items: center !important;
   }
 
+  /* Mobile badge optimization - make all task badges more compact */
+  .due-date-indicator,
+  .next-occurrence-indicator,
+  .recurrence-indicator,
+  .notification-indicator {
+    font-size: 0.65em !important;
+    padding: 1px 4px !important;
+    margin: 0 2px !important;
+    line-height: 1.1 !important;
+    border-radius: 2px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 16px !important;
+    max-height: 18px !important;
+  }
+
+  /* Make badge container more compact */
+  .task-title-right {
+    gap: 2px !important;
+    margin-left: 4px !important;
+  }
+
+  /* Reduce spacing in task metadata */
+  .task-metadata {
+    margin-top: 1px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Make task title container more compact */
+  .task-title-container {
+    gap: 4px !important;
+    align-items: center !important;
+    line-height: 1.2 !important;
+  }
+
   /* Subtasks */
   .subtask-item {
     padding: 4px 6px !important; /* Increased padding to prevent text cutoff */

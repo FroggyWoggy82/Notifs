@@ -1345,5 +1345,207 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    /**
+     * Initialize people tracking functionality
+     */
+    function initializePeopleSection() {
+        const peopleList = document.getElementById('people-list');
+        const personSearch = document.getElementById('person-search');
+        const searchPersonBtn = document.getElementById('search-person-btn');
+        const personAnalysis = document.getElementById('person-analysis');
+        const personAnalysisName = document.getElementById('person-analysis-name');
+        const personAnalysisContent = document.getElementById('person-analysis-content');
+        const closePersonAnalysis = document.getElementById('close-person-analysis');
+
+        if (!peopleList || !personSearch || !searchPersonBtn) {
+            console.log('People section elements not found');
+            return;
+        }
+
+        // Load people on initialization
+        loadPeople();
+
+        // Search person functionality
+        searchPersonBtn.addEventListener('click', searchPerson);
+        personSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchPerson();
+            }
+        });
+
+        // Close person analysis
+        if (closePersonAnalysis) {
+            closePersonAnalysis.addEventListener('click', () => {
+                personAnalysis.style.display = 'none';
+            });
+        }
+
+        /**
+         * Load and display all people mentioned in journal entries
+         */
+        async function loadPeople() {
+            try {
+                const response = await fetch('/api/journal/people');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const people = await response.json();
+                renderPeopleList(people);
+            } catch (error) {
+                console.error('Error loading people:', error);
+                peopleList.innerHTML = '<p class="people-placeholder">Failed to load people. Please try again.</p>';
+            }
+        }
+
+        /**
+         * Render the list of people
+         * @param {Array} people - Array of people objects
+         */
+        function renderPeopleList(people) {
+            if (!people || people.length === 0) {
+                peopleList.innerHTML = '<p class="people-placeholder">People you mention in your journal will appear here...</p>';
+                return;
+            }
+
+            peopleList.innerHTML = '';
+
+            people.forEach(person => {
+                const personElement = document.createElement('div');
+                personElement.className = 'person-item';
+                personElement.innerHTML = `
+                    <div class="person-name">${person.name}</div>
+                    <div class="person-details">
+                        <span class="person-relationship">${person.relationship_type || 'Unknown'}</span>
+                        <span class="person-mentions">${person.total_mentions || person.mention_count || 0} mentions</span>
+                        <span class="person-sentiment ${person.overall_sentiment || 'neutral'}">${person.overall_sentiment || 'neutral'}</span>
+                    </div>
+                `;
+
+                personElement.addEventListener('click', () => {
+                    showPersonAnalysis(person.id, person.name);
+                });
+
+                peopleList.appendChild(personElement);
+            });
+        }
+
+        /**
+         * Search for a person and show their analysis
+         */
+        async function searchPerson() {
+            const searchTerm = personSearch.value.trim();
+            if (!searchTerm) {
+                showStatus('Please enter a name to search for', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Searching for person...', 'info');
+                const response = await fetch(`/api/journal/people/search?name=${encodeURIComponent(searchTerm)}`);
+
+                if (response.status === 404) {
+                    showStatus(`No person found matching "${searchTerm}"`, 'error');
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const analysis = await response.json();
+                displayPersonAnalysis(analysis.person.name, analysis.analysis);
+                showStatus('Person analysis loaded!', 'success');
+
+                // Clear search input
+                personSearch.value = '';
+            } catch (error) {
+                console.error('Error searching for person:', error);
+                showStatus(`Error searching for person: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Show analysis for a specific person
+         * @param {number} personId - Person ID
+         * @param {string} personName - Person name
+         */
+        async function showPersonAnalysis(personId, personName) {
+            try {
+                showStatus('Loading person analysis...', 'info');
+                const response = await fetch(`/api/journal/people/${personId}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const analysis = await response.json();
+                displayPersonAnalysis(personName, analysis.analysis);
+                showStatus('Person analysis loaded!', 'success');
+            } catch (error) {
+                console.error('Error loading person analysis:', error);
+                showStatus(`Error loading analysis: ${error.message}`, 'error');
+            }
+        }
+
+        /**
+         * Display person analysis in the UI
+         * @param {string} personName - Person name
+         * @param {string} analysisText - Analysis text
+         */
+        function displayPersonAnalysis(personName, analysisText) {
+            if (!personAnalysis || !personAnalysisName || !personAnalysisContent) {
+                console.error('Person analysis elements not found');
+                return;
+            }
+
+            personAnalysisName.textContent = personName;
+
+            // Format the analysis text (convert markdown-like formatting to HTML)
+            const formattedAnalysis = formatAnalysisText(analysisText);
+            personAnalysisContent.innerHTML = formattedAnalysis;
+
+            personAnalysis.style.display = 'block';
+
+            // Scroll to the analysis
+            personAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        /**
+         * Format analysis text for display
+         * @param {string} text - Raw analysis text
+         * @returns {string} Formatted HTML
+         */
+        function formatAnalysisText(text) {
+            if (!text) return '<p>No analysis available.</p>';
+
+            // Convert markdown-like formatting to HTML
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+                .replace(/^### (.*$)/gim, '<h5>$1</h5>') // H3 headers
+                .replace(/^## (.*$)/gim, '<h4>$1</h4>') // H2 headers
+                .replace(/^# (.*$)/gim, '<h3>$1</h3>') // H1 headers
+                .replace(/\n\n/g, '</p><p>') // Paragraphs
+                .replace(/\n- /g, '</p><ul><li>') // Lists
+                .replace(/\n/g, '<br>'); // Line breaks
+
+            // Wrap in paragraph tags if not already wrapped
+            if (!formatted.startsWith('<')) {
+                formatted = '<p>' + formatted + '</p>';
+            }
+
+            // Fix list formatting
+            formatted = formatted.replace(/<\/p><ul><li>/g, '</p><ul><li>');
+            formatted = formatted.replace(/<li>(.*?)(<br>|<\/p>)/g, '<li>$1</li>');
+            formatted = formatted.replace(/<\/li><li>/g, '</li><li>');
+            formatted = formatted.replace(/<li>(.*?)$/, '<li>$1</li></ul>');
+
+            return formatted;
+        }
+    }
+
+    // Initialize people section
+    initializePeopleSection();
 
 });

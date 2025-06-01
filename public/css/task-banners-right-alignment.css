@@ -83,8 +83,12 @@ html body .task-item .task-metadata {
     .task-title-right .recurrence-indicator,
     .task-title-right .next-occurrence-indicator,
     .task-title-right .notification-indicator {
-        font-size: 0.6em !important;
-        padding: 1px 4px !important;
+        font-size: 0.55em !important;
+        padding: 1px 3px !important;
+        margin: 0 1px !important;
+        line-height: 1.0 !important;
+        min-height: 14px !important;
+        max-height: 16px !important;
     }
 
     /* Maintain expanded layout on mobile */

@@ -579,6 +579,16 @@
       "date": "2025-06-01T02:03:29.051Z",
       "text": "what",
       "summary": "]"
+    },
+    {
+      "date": "2025-06-01T03:51:47.073Z",
+      "text": "This is a test message to see how the chat scrolling works. I want to make sure that when I send multiple messages, the chat area properly scrolls and doesn't overflow.",
+      "summary": "]"
+    },
+    {
+      "date": "2025-06-01T03:52:03.517Z",
+      "text": "Let me send another message to test the scrolling behavior. This should help us see if the chat area properly handles multiple messages and maintains proper scrolling.",
+      "summary": "]"
     }
   ]
 }

@@ -500,9 +500,7 @@ app.get('/subscription-manager', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'subscription-manager.html'));
 });
 
-app.get('/weekly-task-list', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'pages', 'weekly-task-list.html'));
-});
+
 
 app.get('/test-weekly-notification', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'test-weekly-notification.html'));
@@ -536,6 +534,7 @@ app.get('*', (req, res) => {
 
 // Import models that need initialization
 const JournalModel = require('./models/journalModel');
+const PersonModel = require('./models/personModel');
 
 // Initialize database and start the server
 const initializeAndStart = async () => {
@@ -586,6 +585,9 @@ const initializeAndStart = async () => {
     try {
       await JournalModel.initialize();
       console.log('Journal model initialized successfully');
+
+      await PersonModel.init();
+      console.log('Person model initialized successfully');
 
       try {
         // Initialize the calorie target model

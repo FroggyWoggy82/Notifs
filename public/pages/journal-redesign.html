@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/base/index.css">
     <link rel="stylesheet" href="../css/layout/sidebar.css">
     <link rel="stylesheet" href="../css/pages/journal-redesign.css">
+    <link rel="stylesheet" href="../css/components/people-section.css">
     <link rel="stylesheet" href="../css/layout/bottom-nav-fix.css">
     <link rel="stylesheet" href="../css/white-checkbox-fill.css">
     <!-- Font Awesome for icons -->
@@ -143,6 +144,27 @@
                     <!-- Entries will be populated here -->
                     <li class="no-entries">No journal entries yet. Write your first entry and click "Save Entry".</li>
                 </ul>
+            </div>
+
+            <!-- People section -->
+            <div class="people-section">
+                <div class="people-header">
+                    <h3 class="people-title">People in Your Journal</h3>
+                    <div class="people-search">
+                        <input type="text" id="person-search" placeholder="Ask about someone..." class="person-search-input">
+                        <button id="search-person-btn" class="search-person-btn">Ask</button>
+                    </div>
+                </div>
+                <div id="people-list" class="people-list">
+                    <p class="people-placeholder">People you mention in your journal will appear here...</p>
+                </div>
+                <div id="person-analysis" class="person-analysis" style="display: none;">
+                    <div class="person-analysis-header">
+                        <h4 id="person-analysis-name"></h4>
+                        <button id="close-person-analysis" class="close-btn">×</button>
+                    </div>
+                    <div id="person-analysis-content" class="person-analysis-content"></div>
+                </div>
             </div>
         </div>
 
