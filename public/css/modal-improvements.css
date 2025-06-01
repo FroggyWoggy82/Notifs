@@ -264,33 +264,35 @@
     scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Compact modal layout to reduce scrolling */
+/* ULTRA COMPACT modal layout to reduce scrolling */
 #addTaskModal .modal-content,
 #editTaskModal .modal-content,
 #addHabitModal .modal-content,
 #editHabitModal .modal-content {
-    padding: 12px !important; /* Further reduce padding */
-    max-height: 85vh !important; /* Slightly shorter to ensure it fits better */
+    padding: 4px 8px !important; /* Ultra reduced padding */
+    max-height: 90vh !important; /* Taller to fit more content */
     width: 90% !important; /* Make modal wider to fit more content horizontally */
-    max-width: 600px !important; /* Increase max width */
+    max-width: 500px !important; /* Smaller max width for compactness */
 }
 
-/* Reduce spacing between form elements */
+/* ULTRA COMPACT spacing between form elements */
 #addTaskModal .form-group,
 #editTaskModal .form-group,
 #addHabitModal .form-group,
 #editHabitModal .form-group {
-    margin-bottom: 10px !important; /* Reduced from 15px */
+    margin-bottom: 0px !important; /* No margin between form groups */
+    margin-top: 0px !important;
+    padding: 0px !important;
 }
 
-/* Optimize form layout with grid for side-by-side elements */
+/* ULTRA COMPACT form layout with grid for side-by-side elements */
 #addTaskModal form,
 #editTaskModal form,
 #addHabitModal form,
 #editHabitModal form {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    gap: 8px !important; /* Further reduced from 10px */
+    gap: 0px !important; /* No gap between form elements */
 }
 
 /* Ensure title and description are stacked vertically */

@@ -12,7 +12,7 @@
         height: 100vh !important;
         max-height: 100vh !important;
         margin: 0 !important;
-        padding: 8px !important;
+        padding: 4px 8px !important; /* Reduced top/bottom padding from 8px to 4px */
         border-radius: 0 !important;
         position: fixed !important;
         top: 0 !important;
@@ -25,8 +25,8 @@
     /* Compact modal header */
     #addTaskModal .modal-header,
     #editTaskModal .modal-header {
-        padding: 4px 0 !important;
-        margin-bottom: 6px !important;
+        padding: 2px 0 !important; /* Reduced from 4px to 2px */
+        margin-bottom: 4px !important; /* Reduced from 6px to 4px */
         border-bottom: 1px solid #333 !important;
         display: flex !important;
         justify-content: space-between !important;
@@ -59,34 +59,40 @@
         margin: 0 !important;
     }
 
-    /* Minimal form groups */
+    /* Minimal form groups - ULTRA COMPACT */
     #addTaskModal .form-group,
     #editTaskModal .form-group {
-        margin-bottom: 4px !important;
+        margin-bottom: 0px !important;
+        margin-top: 0px !important;
         padding: 0 !important;
     }
 
-    /* Compact labels */
+    /* Compact labels - ULTRA COMPACT */
     #addTaskModal .form-label,
     #editTaskModal .form-label {
-        font-size: 0.8rem !important;
-        margin-bottom: 2px !important;
+        font-size: 0.75rem !important;
+        margin-bottom: 0px !important;
+        margin-top: 0px !important;
         display: block !important;
         color: #ccc !important;
         font-weight: 500 !important;
+        line-height: 1.1 !important;
     }
 
-    /* Compact form controls */
+    /* Compact form controls - ULTRA COMPACT */
     #addTaskModal .form-control,
     #editTaskModal .form-control {
-        padding: 6px 8px !important;
-        font-size: 0.85rem !important;
+        padding: 3px 5px !important;
+        font-size: 0.8rem !important;
         border-radius: 4px !important;
         border: 1px solid #444 !important;
         background-color: #1a1a1a !important;
         color: #fff !important;
-        min-height: 32px !important;
+        min-height: 26px !important;
         box-sizing: border-box !important;
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+        line-height: 1.2 !important;
     }
 
     /* Compact textarea */

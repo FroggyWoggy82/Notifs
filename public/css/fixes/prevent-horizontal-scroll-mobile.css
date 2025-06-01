@@ -1,0 +1,210 @@
+/**
+ * Prevent Horizontal Scroll Mobile Fix
+ * Prevents horizontal dragging/scrolling on mobile devices across all pages
+ */
+
+/* Prevent horizontal scrolling on all elements */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure all containers don't exceed viewport width */
+* {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Prevent horizontal overflow on main containers */
+.container,
+.main-content,
+.content,
+.page-content,
+.wrapper {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+}
+
+/* Prevent horizontal scrolling on specific mobile breakpoints */
+@media (max-width: 768px) {
+    /* Force all elements to stay within viewport */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        position: relative !important;
+    }
+    
+    /* Prevent any element from causing horizontal overflow */
+    * {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Specific fixes for common overflow causes */
+    .container {
+        width: 100% !important;
+        max-width: 100vw !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Fix for cards and sections */
+    .card,
+    .section,
+    .task-item,
+    .habit-item,
+    .modal-content {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Fix for tables and wide content */
+    table,
+    .table-responsive,
+    .wide-content {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Fix for forms and inputs */
+    form,
+    .form-group,
+    .form-control,
+    input,
+    textarea,
+    select {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Fix for navigation elements */
+    .sidebar,
+    .bottom-nav,
+    .nav-item {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Fix for text content that might overflow */
+    p, h1, h2, h3, h4, h5, h6,
+    .task-title,
+    .habit-title,
+    .description {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        hyphens: auto !important;
+        max-width: 100% !important;
+    }
+    
+    /* Fix for images and media */
+    img,
+    video,
+    iframe,
+    embed,
+    object {
+        max-width: 100% !important;
+        height: auto !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Fix for flex containers */
+    .flex,
+    .d-flex,
+    .form-row,
+    .button-group {
+        flex-wrap: wrap !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Fix for grid containers */
+    .grid,
+    .d-grid {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Prevent horizontal scrolling on modals */
+    .modal,
+    .modal-content {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Fix for any absolutely positioned elements */
+    .position-absolute,
+    .absolute {
+        max-width: calc(100vw - 16px) !important;
+    }
+    
+    /* Fix for floating elements */
+    .float-left,
+    .float-right {
+        max-width: 50% !important;
+    }
+    
+    /* Prevent pre and code blocks from causing overflow */
+    pre,
+    code {
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-x: auto !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Extra small screens - even more restrictive */
+@media (max-width: 480px) {
+    .container {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+    
+    /* Ensure no element can cause horizontal scroll */
+    * {
+        max-width: calc(100vw - 8px) !important;
+    }
+    
+    /* Fix for any remaining overflow issues */
+    body {
+        position: relative !important;
+        overflow-x: hidden !important;
+    }
+}
+
+/* Landscape orientation fixes */
+@media (max-width: 768px) and (orientation: landscape) {
+    html, body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    
+    .container {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+}
+
+/* Prevent touch-action that might cause horizontal panning */
+@media (max-width: 768px) {
+    html, body {
+        touch-action: pan-y pinch-zoom !important;
+    }
+    
+    /* Allow vertical scrolling but prevent horizontal */
+    .scrollable-content {
+        touch-action: pan-y !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+}

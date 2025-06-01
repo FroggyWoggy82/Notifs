@@ -2362,10 +2362,10 @@ input:checked + .toggle-slider:before {
 #editTaskModal select {
     width: 100% !important;
     padding: 8px 12px !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid #333 !important;
     border-radius: 4px !important;
-    background-color: #fff !important;
-    color: #333 !important;
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
     font-size: 14px !important;
 }
 
@@ -2407,10 +2407,11 @@ input:checked + .toggle-slider:before {
 
 
 #editTaskModal .reminder-checkboxes {
-    display: flex !important;
-    flex-direction: column !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
-    margin-top: 5px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
 }
 
 #editTaskModal .reminder-checkbox-item {
@@ -4763,6 +4764,32 @@ textarea.form-control {
     font-size: 0.9rem !important;
 }
 
+/* Force dark background for all input types in modals with highest specificity */
+html body #editTaskModal input[type="text"],
+html body #editTaskModal input[type="date"],
+html body #editTaskModal input[type="number"],
+html body #addTaskModal input[type="text"],
+html body #addTaskModal input[type="date"],
+html body #addTaskModal input[type="number"] {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+}
+
+/* Override any webkit autofill styles */
+#editTaskModal input:-webkit-autofill,
+#editTaskModal input:-webkit-autofill:hover,
+#editTaskModal input:-webkit-autofill:focus,
+#addTaskModal input:-webkit-autofill,
+#addTaskModal input:-webkit-autofill:hover,
+#addTaskModal input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #1e1e1e inset !important;
+    -webkit-text-fill-color: #e0e0e0 !important;
+    background-color: #1e1e1e !important;
+}
+
 #editTaskModal input:focus,
 #editTaskModal textarea:focus,
 #editTaskModal select:focus,
@@ -4783,16 +4810,23 @@ textarea.form-control {
 #editTaskModal .form-check {
     display: flex !important;
     align-items: center !important;
-    margin-bottom: 8px !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    gap: 6px !important;
 }
 
 #editTaskModal .form-check-input {
-    margin-right: 8px !important;
+    margin: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
 }
 
 #editTaskModal .form-check-label {
-    color: #ccc !important;
-    font-size: 0.9rem !important;
+    margin: 0 !important;
+    font-size: 0.85rem !important;
+    line-height: 1.2 !important;
+    color: #e0e0e0 !important;
 }
 
 #editTaskModal .form-row {
@@ -5919,16 +5953,23 @@ h1 {
 #editTaskModal .form-check {
     display: flex !important;
     align-items: center !important;
-    margin-bottom: 8px !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    gap: 6px !important;
 }
 
 #editTaskModal .form-check-input {
-    margin-right: 8px !important;
+    margin: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
 }
 
 #editTaskModal .form-check-label {
-    color: #ccc !important;
-    font-size: 0.9rem !important;
+    margin: 0 !important;
+    font-size: 0.85rem !important;
+    line-height: 1.2 !important;
+    color: #e0e0e0 !important;
 }
 
 #editTaskModal .form-row {
@@ -8048,7 +8089,7 @@ html body .task-item > *:last-child {
     margin-top: 4px !important;
     padding: 3px 6px !important;
     border-radius: 3px !important;
-    font-size: 0.7em !important;
+    font-size: 0.8em !important;
     background-color: rgba(0, 0, 0, 0.3) !important;
     box-shadow: none !important;
     font-weight: 500 !important;
@@ -10521,7 +10562,7 @@ body.dark-theme .grocery-info span {
   .due-date-indicator,
   .next-occurrence-indicator,
   .recurrence-indicator {
-    font-size: 0.7em !important;
+    font-size: 0.8em !important;
     padding: 0px 3px !important;
     border-radius: 2px !important;
     line-height: 1.2 !important;
@@ -10561,7 +10602,7 @@ body.dark-theme .grocery-info span {
   /* Overdue badge */
   .overdue-badge {
     padding: 0px 3px !important;
-    font-size: 0.65em !important;
+    font-size: 0.8em !important;
     margin-left: 2px !important;
     line-height: 1.2 !important;
     display: inline-flex !important;
@@ -11076,11 +11117,11 @@ body.dark-theme .grocery-info span {
 #addTaskModal input:focus,
 #addTaskModal textarea:focus,
 #addTaskModal select:focus {
-    background-color: #ffffff !important;
-    color: #121212 !important;
-    border-color: #ffffff !important;
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-color: #00e676 !important;
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.2) !important;
 }
 
 /* Checkbox styling */
@@ -12758,7 +12799,7 @@ html body .task-item .task-title {
 .task-title-right .notification-indicator {
     margin-top: 0 !important;
     margin-left: 0 !important;
-    font-size: 0.65em !important;
+    font-size: 0.8em !important;
     padding: 2px 6px !important;
     border-radius: 3px !important;
     white-space: nowrap !important;
@@ -13410,7 +13451,9 @@ body {
 #editTaskModal .reminder-checkboxes {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 5px !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
 }
 
 /* Reduce spacing in modal header */

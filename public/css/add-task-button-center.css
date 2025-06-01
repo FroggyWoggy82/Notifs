@@ -3,20 +3,22 @@
  * Centers the Add Task button in the modal and ensures consistent styling
  */
 
-/* Center the Add Task button in the modal */
+/* Center the Add Task button in the modal - COMPACT VERSION */
 #addTaskModal button[type="submit"],
 #addTaskModal #addTaskBtn,
 #editTaskModal button[type="submit"],
 #editTaskModal #saveTaskBtn {
     display: block !important;
-    margin: 15px auto !important;
+    margin: 2px auto !important;
     text-align: center !important;
     width: auto !important;
-    min-width: 120px !important;
-    max-width: 200px !important;
+    min-width: 80px !important;
+    max-width: 150px !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
 }
 
-/* Ensure the button container is centered */
+/* Ensure the button container is centered - COMPACT VERSION */
 #addTaskModal .button-container,
 #editTaskModal .button-container,
 #addTaskModal form > div:last-child,
@@ -25,18 +27,20 @@
     justify-content: center !important;
     align-items: center !important;
     width: 100% !important;
-    margin: 15px 0 !important;
+    margin: 2px 0 !important;
     text-align: center !important;
 }
 
-/* Override any conflicting inline styles */
+/* Override any conflicting inline styles - COMPACT VERSION */
 #addTaskModal button[type="submit"][style],
 #addTaskModal #addTaskBtn[style],
 #editTaskModal button[type="submit"][style],
 #editTaskModal #saveTaskBtn[style] {
     display: block !important;
-    margin: 15px auto !important;
+    margin: 2px auto !important;
     text-align: center !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
 }
 
 /* Ensure consistent button styling */

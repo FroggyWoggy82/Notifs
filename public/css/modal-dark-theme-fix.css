@@ -100,7 +100,7 @@
     font-size: 0.9rem !important;
 }
 
-/* Form inputs */
+/* Form inputs - ensure all fields have consistent dark background */
 #editTaskModal input,
 #editTaskModal textarea,
 #editTaskModal select,
@@ -114,6 +114,44 @@
     border-radius: 4px !important;
     font-size: 0.9rem !important;
     transition: all 0.2s ease !important;
+}
+
+/* Specifically target title, due date, and duration fields to ensure consistent styling */
+#editTaskModal #editTaskTitle,
+#editTaskModal #editTaskDueDate,
+#editTaskModal #editTaskDuration,
+#addTaskModal #taskTitle,
+#addTaskModal #taskDueDate,
+#addTaskModal #taskDuration {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #333 !important;
+}
+
+/* Force dark background for all input types in modals with highest specificity */
+html body #editTaskModal input[type="text"],
+html body #editTaskModal input[type="date"],
+html body #editTaskModal input[type="number"],
+html body #addTaskModal input[type="text"],
+html body #addTaskModal input[type="date"],
+html body #addTaskModal input[type="number"] {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    padding: 10px !important;
+}
+
+/* Override any webkit autofill styles */
+#editTaskModal input:-webkit-autofill,
+#editTaskModal input:-webkit-autofill:hover,
+#editTaskModal input:-webkit-autofill:focus,
+#addTaskModal input:-webkit-autofill,
+#addTaskModal input:-webkit-autofill:hover,
+#addTaskModal input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #1e1e1e inset !important;
+    -webkit-text-fill-color: #e0e0e0 !important;
+    background-color: #1e1e1e !important;
 }
 
 /* Input focus state */
@@ -134,6 +172,41 @@
 #editTaskModal input[type="checkbox"],
 #addTaskModal input[type="checkbox"] {
     margin-right: 8px !important;
+}
+
+/* Fix reminder checkbox spacing and layout */
+#editTaskModal .reminder-checkboxes,
+#addTaskModal .reminder-checkboxes {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+#editTaskModal .form-check,
+#addTaskModal .form-check {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    gap: 6px !important;
+}
+
+#editTaskModal .form-check-input,
+#addTaskModal .form-check-input {
+    margin: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
+}
+
+#editTaskModal .form-check-label,
+#addTaskModal .form-check-label {
+    margin: 0 !important;
+    font-size: 0.85rem !important;
+    line-height: 1.2 !important;
+    color: #e0e0e0 !important;
 }
 
 /* Button styling - standardized white buttons */

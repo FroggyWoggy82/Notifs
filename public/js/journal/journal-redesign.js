@@ -23,8 +23,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Chat conversation state
     let currentConversation = [];
 
+    // Auto-save state
+    let autoSaveTimeout = null;
+    let lastSavedContent = '';
+    let isAutoSaving = false;
+
     // Set today's date as default - Enhanced to ensure it always works
-    function setTodaysDate() {
+    function setTodaysDate(skipLoadEntry = false) {
         if (!journalDateInput) {
             console.error('Journal date input not found');
             return;
@@ -36,18 +41,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const day = String(today.getDate()).padStart(2, '0');
         const formattedDate = `${year}-${month}-${day}`;
 
-        journalDateInput.value = formattedDate;
-        console.log('Setting journal date to local date:', formattedDate);
+        // Only set if it's different to avoid unnecessary triggers
+        if (journalDateInput.value !== formattedDate) {
+            journalDateInput.value = formattedDate;
+            console.log('Setting journal date to local date:', formattedDate);
 
-        // Force the input to update by triggering change event
-        journalDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+            // Only trigger change event if we want to load entry for this date
+            if (!skipLoadEntry) {
+                // Use a small delay to ensure the value is set
+                setTimeout(() => {
+                    journalDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }, 10);
+            }
+        }
     }
 
-    // Set today's date immediately
-    setTodaysDate();
+    // Set today's date immediately (skip loading entry on initial set)
+    setTodaysDate(true);
 
     // Also set it after a short delay to ensure DOM is fully ready
-    setTimeout(setTodaysDate, 100);
+    setTimeout(() => setTodaysDate(true), 100);
+
+    // Set it again after page load to ensure it sticks, and load today's entry
+    window.addEventListener('load', () => {
+        setTodaysDate(false); // This time, load the entry for today
+    });
 
     // Initialize
     loadEntries();
@@ -77,10 +95,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event Listeners
-    saveEntryButton.addEventListener('click', saveEntry);
-    analyzeEntryButton.addEventListener('click', analyzeEntry);
+    // saveEntryButton.addEventListener('click', saveEntry); // Removed - using auto-save now
+    // analyzeEntryButton.addEventListener('click', analyzeEntry); // Removed - confer button removed
     sendMessageButton.addEventListener('click', sendMessage);
-    journalDateInput.addEventListener('change', loadEntryForDate);
+
+    // Enhanced date change listener with debugging
+    journalDateInput.addEventListener('change', function(e) {
+        console.log('Date changed to:', e.target.value);
+        loadEntryForDate();
+    });
+
+    // Also listen for input events (for manual typing)
+    journalDateInput.addEventListener('input', function(e) {
+        console.log('Date input changed to:', e.target.value);
+        // Validate date format before loading
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (dateRegex.test(e.target.value)) {
+            loadEntryForDate();
+        }
+    });
 
     // Enter key to send message
     journalContentTextarea.addEventListener('keydown', function(e) {
@@ -133,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /**
      * Handles input in the textarea
-     * Triggers word count update and real-time analysis
+     * Triggers word count update and auto-save
      */
     function handleTextareaInput() {
         // Update word count immediately
@@ -153,6 +186,139 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sendMessageButton) {
             sendMessageButton.disabled = !text.trim();
         }
+
+        // Trigger auto-save
+        scheduleAutoSave();
+    }
+
+    /**
+     * Schedules an auto-save after a delay
+     */
+    function scheduleAutoSave() {
+        // Clear any existing timeout
+        if (autoSaveTimeout) {
+            clearTimeout(autoSaveTimeout);
+        }
+
+        // Schedule auto-save after 2 seconds of inactivity
+        autoSaveTimeout = setTimeout(() => {
+            performAutoSave();
+        }, 2000);
+    }
+
+    /**
+     * Performs automatic save of current content
+     */
+    async function performAutoSave() {
+        if (isAutoSaving) {
+            return; // Prevent multiple simultaneous saves
+        }
+
+        const currentContent = getCurrentContent();
+
+        // Only save if content has changed
+        if (currentContent === lastSavedContent || !currentContent.trim()) {
+            return;
+        }
+
+        isAutoSaving = true;
+
+        try {
+            const date = journalDateInput.value;
+            const mood = moodSelector ? moodSelector.value : 'neutral';
+
+            console.log('Auto-saving content...');
+
+            const response = await fetch('/api/journal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    date: date,
+                    content: currentContent,
+                    mood: mood,
+                    conversation: currentConversation
+                })
+            });
+
+            if (response.ok) {
+                lastSavedContent = currentContent;
+                console.log('Auto-save successful');
+
+                // Show subtle save indicator
+                showAutoSaveIndicator();
+
+                // Refresh entry list
+                loadEntries();
+            } else {
+                console.error('Auto-save failed:', response.status);
+            }
+        } catch (error) {
+            console.error('Auto-save error:', error);
+        } finally {
+            isAutoSaving = false;
+        }
+    }
+
+    /**
+     * Gets the current content to save (textarea + conversation)
+     */
+    function getCurrentContent() {
+        let content = journalContentTextarea.value.trim();
+
+        // If there's no content in textarea but we have a conversation, save the conversation
+        if (!content && currentConversation.length > 0) {
+            content = currentConversation
+                .map(msg => `${msg.role}: ${msg.content}`)
+                .join('\n\n');
+        }
+
+        // If there's content in textarea and a conversation, combine them
+        if (content && currentConversation.length > 0) {
+            const conversationText = currentConversation
+                .map(msg => `${msg.role}: ${msg.content}`)
+                .join('\n\n');
+
+            // If the textarea content isn't already part of the conversation, add it
+            if (!conversationText.includes(content)) {
+                content = conversationText + '\n\nCurrent input: ' + content;
+            } else {
+                content = conversationText;
+            }
+        }
+
+        return content;
+    }
+
+    /**
+     * Shows a subtle auto-save indicator
+     */
+    function showAutoSaveIndicator() {
+        // Create or update auto-save indicator
+        let indicator = document.getElementById('auto-save-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'auto-save-indicator';
+            indicator.className = 'auto-save-indicator';
+            indicator.textContent = 'Saved';
+
+            // Add it near the word count
+            const wordCountElement = document.getElementById('word-count');
+            if (wordCountElement && wordCountElement.parentNode) {
+                wordCountElement.parentNode.appendChild(indicator);
+            }
+        }
+
+        // Show the indicator
+        indicator.style.opacity = '1';
+        indicator.style.transform = 'translateY(0)';
+
+        // Hide it after 2 seconds
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+            indicator.style.transform = 'translateY(-10px)';
+        }, 2000);
     }
 
     /**
@@ -278,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Saves the current conversation
+     * Saves the current conversation (now handled by auto-save)
      */
     async function saveConversation() {
         try {
@@ -290,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .map(msg => `${msg.role}: ${msg.content}`)
                 .join('\n\n');
 
-            await fetch('/api/journal', {
+            const response = await fetch('/api/journal', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -303,8 +469,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
-            // Refresh entry list
-            loadEntries();
+            if (response.ok) {
+                // Update the last saved content to prevent duplicate auto-saves
+                lastSavedContent = conversationText;
+                console.log('Conversation saved successfully');
+
+                // Show save indicator
+                showAutoSaveIndicator();
+
+                // Refresh entry list
+                loadEntries();
+            }
 
         } catch (error) {
             console.error('Error saving conversation:', error);
@@ -545,11 +720,34 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function saveEntry() {
         const date = journalDateInput.value;
-        const content = journalContentTextarea.value.trim();
         const mood = moodSelector ? moodSelector.value : 'neutral';
 
+        // Get content from either the textarea or the conversation
+        let content = journalContentTextarea.value.trim();
+
+        // If there's no content in textarea but we have a conversation, save the conversation
+        if (!content && currentConversation.length > 0) {
+            content = currentConversation
+                .map(msg => `${msg.role}: ${msg.content}`)
+                .join('\n\n');
+        }
+
+        // If there's content in textarea and a conversation, combine them
+        if (content && currentConversation.length > 0) {
+            const conversationText = currentConversation
+                .map(msg => `${msg.role}: ${msg.content}`)
+                .join('\n\n');
+
+            // If the textarea content isn't already part of the conversation, add it
+            if (!conversationText.includes(content)) {
+                content = conversationText + '\n\nCurrent input: ' + content;
+            } else {
+                content = conversationText;
+            }
+        }
+
         if (!content) {
-            showStatus('Please write something in your journal entry.', 'error');
+            showStatus('Please write something or have a conversation to save.', 'error');
             return;
         }
 
@@ -564,7 +762,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     date: date,
                     content: content,
-                    mood: mood
+                    mood: mood,
+                    conversation: currentConversation
                 })
             });
 
@@ -577,10 +776,13 @@ document.addEventListener('DOMContentLoaded', function() {
             showStatus('Journal entry saved successfully!', 'success');
 
             // Add animation effect to indicate successful save
-            journalContentTextarea.classList.add('saved-animation');
-            setTimeout(() => {
-                journalContentTextarea.classList.remove('saved-animation');
-            }, 1000);
+            const chatContainer = document.querySelector('.chat-container');
+            if (chatContainer) {
+                chatContainer.classList.add('saved-animation');
+                setTimeout(() => {
+                    chatContainer.classList.remove('saved-animation');
+                }, 1000);
+            }
 
             loadEntries();
         } catch (error) {
@@ -876,9 +1078,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         recentEntries.forEach(entry => {
             const li = document.createElement('li');
+
+            // Store the original date for data attributes and API calls
             li.dataset.date = entry.date;
             li.dataset.id = entry.id;
 
+            // Format date for display
             const entryDate = new Date(entry.date);
             const formattedDate = entryDate.toLocaleDateString('en-US', {
                 weekday: 'short',
@@ -899,7 +1104,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${moodIndicator}
             `;
 
-            li.addEventListener('click', () => loadEntry(entry));
+            li.addEventListener('click', () => {
+                console.log('Clicking entry with date:', entry.date);
+                loadEntry(entry);
+            });
 
             entryListElement.appendChild(li);
         });
@@ -910,7 +1118,21 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {Object} entry - The journal entry object
      */
     function loadEntry(entry) {
-        journalDateInput.value = entry.date;
+        // Convert date to proper format for date input (YYYY-MM-DD)
+        let formattedDate = entry.date;
+        if (entry.date) {
+            // Handle both ISO format and regular date strings
+            const date = new Date(entry.date);
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                formattedDate = `${year}-${month}-${day}`;
+            }
+        }
+
+        journalDateInput.value = formattedDate;
+        console.log('Loading entry with formatted date:', formattedDate, 'from original:', entry.date);
 
         if (moodSelector && entry.mood) {
             moodSelector.value = entry.mood;
@@ -963,10 +1185,20 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadEntryForDate() {
         const selectedDate = journalDateInput.value;
 
+        if (!selectedDate) {
+            console.log('No date selected, skipping load');
+            return;
+        }
+
+        console.log('Loading entry for date:', selectedDate);
+
         try {
+            showStatus('Loading entry for selected date...', 'info');
+
             const response = await fetch(`/api/journal/date/${selectedDate}`);
 
             if (response.status === 404) {
+                console.log('No entry found for date:', selectedDate);
                 // No entry for this date - clear everything and show welcome
                 journalContentTextarea.value = '';
                 if (moodSelector) {
@@ -983,6 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
                 updateWordCount();
+                showStatus('', ''); // Clear status
                 return;
             }
 
@@ -992,13 +1225,32 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const entry = await response.json();
+            console.log('Loaded entry for date:', selectedDate, entry);
 
             // Load the entry using the existing loadEntry function
             loadEntry(entry);
+            showStatus('Entry loaded successfully!', 'success');
 
         } catch (error) {
             console.error('Error loading entry for date:', error);
             showStatus(`Error loading entry: ${error.message}`, 'error');
+
+            // Clear the interface on error
+            journalContentTextarea.value = '';
+            if (moodSelector) {
+                moodSelector.value = 'neutral';
+            }
+            currentConversation = [];
+            chatMessagesElement.innerHTML = `
+                <div class="welcome-message">
+                    <div class="message ai-message">
+                        <div class="message-content">
+                            <p>Hello! I'm Gibiti, your AI journaling companion. Share your thoughts with me and I'll help you reflect and gain insights. What's on your mind today?</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            updateWordCount();
         }
     }
 

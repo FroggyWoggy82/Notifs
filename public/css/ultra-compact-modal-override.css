@@ -1,0 +1,239 @@
+/**
+ * Ultra Compact Modal Override
+ * Final override to ensure maximum compactness for add task modal
+ * This file has the highest priority and should override all other modal styles
+ */
+
+/* ULTIMATE OVERRIDE - HIGHEST SPECIFICITY - OVERRIDE BUNDLE.CSS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content,
+html body #addTaskModal.modal-content,
+html body #editTaskModal.modal-content,
+html body #addTaskModal .modal-content,
+html body #editTaskModal .modal-content {
+    padding: 2px 6px !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+}
+
+/* ULTIMATE HEADER COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-header,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-header,
+html body #addTaskModal .modal-header,
+html body #editTaskModal .modal-header {
+    padding: 1px 0 !important;
+    margin: 0 0 1px 0 !important;
+    border-bottom: 1px solid #333 !important;
+    min-height: auto !important;
+}
+
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-header h2,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-header h2 {
+    font-size: 0.85rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    color: #00e676 !important;
+}
+
+/* ULTIMATE BODY COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body,
+html body #addTaskModal .modal-body,
+html body #editTaskModal .modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* ULTIMATE FORM COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body form,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ULTIMATE FORM GROUP COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-group,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-group {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* ULTIMATE LABEL COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body label,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body label {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    font-size: 0.65rem !important;
+    display: block !important;
+    color: #ccc !important;
+    font-weight: 500 !important;
+}
+
+/* ULTIMATE INPUT COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body input,
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body textarea,
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body select,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body input,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body textarea,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body select {
+    margin: 0 !important;
+    padding: 1px 3px !important;
+    min-height: 20px !important;
+    font-size: 0.7rem !important;
+    line-height: 1.1 !important;
+    border: 1px solid #444 !important;
+    background-color: #1a1a1a !important;
+    color: #fff !important;
+    border-radius: 3px !important;
+}
+
+/* ULTIMATE TEXTAREA COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body textarea,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body textarea {
+    min-height: 25px !important;
+    max-height: 35px !important;
+    resize: none !important;
+}
+
+/* ULTIMATE CHECKBOX COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1px !important;
+}
+
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options .form-check,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options .form-check {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options .form-check-label,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options .form-check-label {
+    font-size: 0.6rem !important;
+    margin: 0 !important;
+    padding: 0 0 0 1px !important;
+    line-height: 1 !important;
+}
+
+/* ULTIMATE FORM ROW COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-row,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-row {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2px !important;
+}
+
+/* ULTIMATE SUBTASKS COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .subtasks-section,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .subtasks-section {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .subtasks-header,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .subtasks-header {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .subtasks-header button,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .subtasks-header button {
+    padding: 1px 3px !important;
+    font-size: 0.6rem !important;
+    margin: 0 !important;
+    min-height: 18px !important;
+}
+
+/* ULTIMATE BUTTON COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content button[type="submit"],
+html body div#editTaskModal.modal.show .modal-dialog .modal-content button[type="submit"] {
+    margin: 1px auto 0 auto !important;
+    padding: 3px 6px !important;
+    font-size: 0.7rem !important;
+    display: block !important;
+    min-height: 22px !important;
+    min-width: 60px !important;
+    max-width: 120px !important;
+}
+
+/* ULTIMATE CHECKBOX CONTAINER COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .checkbox-container,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .checkbox-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+}
+
+/* ULTIMATE CLOSE BUTTON COMPACTNESS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-header .close-button,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-header .close-button {
+    position: static !important;
+    margin: 0 !important;
+    padding: 1px 3px !important;
+    font-size: 0.8rem !important;
+    line-height: 1 !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* ULTIMATE MOBILE COMPACTNESS */
+@media (max-width: 768px) {
+    html body div#addTaskModal.modal.show .modal-dialog .modal-content,
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content {
+        padding: 1px 4px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        transform: none !important;
+        overflow-y: auto !important;
+        box-sizing: border-box !important;
+    }
+    
+    html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-header h2,
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-header h2 {
+        font-size: 0.8rem !important;
+    }
+    
+    html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body input,
+    html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body textarea,
+    html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body select,
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body input,
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body textarea,
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body select {
+        min-height: 18px !important;
+        font-size: 0.65rem !important;
+    }
+}
+
+/* ULTIMATE OVERRIDE - REMOVE ALL SPACING */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body > *,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}

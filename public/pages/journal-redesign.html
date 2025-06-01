@@ -81,15 +81,12 @@
             <div class="journal-controls">
                 <div class="date-selector">
                     <label for="journal-date">Date:</label>
-                    <input type="date" id="journal-date">
+                    <input type="date" id="journal-date" value="">
                 </div>
                 <div class="journal-actions">
-                    <button id="save-entry" class="primary-button">
-                        Save Entry
-                    </button>
-                    <button id="analyze-entry" class="secondary-button">
-                        Confer
-                    </button>
+                    <div class="auto-save-status">
+                        <span class="auto-save-text">Auto-saving enabled</span>
+                    </div>
                 </div>
             </div>
 
@@ -188,8 +185,24 @@
     <script src="../js/tasks/checkbox-redesign.js"></script>
     <script src="../js/tasks/recurrence-indicator-redesign.js"></script>
 
-    <!-- Force word count update on page load -->
+    <!-- Set today's date immediately -->
     <script>
+        // Set today's date as soon as the script runs
+        (function() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+
+            // Try to set the date immediately
+            const dateInput = document.getElementById('journal-date');
+            if (dateInput) {
+                dateInput.value = formattedDate;
+                console.log('Set date immediately:', formattedDate);
+            }
+        })();
+
         window.addEventListener('load', function() {
             // Word count functionality
             const wordCountElement = document.getElementById('word-count');

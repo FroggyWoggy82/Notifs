@@ -1,0 +1,391 @@
+/**
+ * Modal Top Spacing Fix
+ * Emergency fix to eliminate excessive spacing at the top of modals
+ */
+
+/* Force minimal top spacing for all modal content */
+html body #addTaskModal.modal.show,
+html body #editTaskModal.modal.show {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+html body #addTaskModal .modal-content,
+html body #editTaskModal .modal-content {
+  margin: 0 !important;
+  padding-top: 1px !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  width: 90% !important;
+  max-width: 500px !important;
+}
+
+/* Force minimal header spacing */
+html body #addTaskModal .modal-header,
+html body #editTaskModal .modal-header {
+  padding-top: 2px !important;
+  padding-bottom: 0px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0px !important;
+}
+
+html body #addTaskModal .modal-header h2,
+html body #editTaskModal .modal-header h2 {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* Force close button positioning */
+html body #addTaskModal .close-button,
+html body #editTaskModal .close-button {
+  position: static !important;
+  margin: 0 !important;
+  padding: 2px !important;
+  top: auto !important;
+  right: auto !important;
+}
+
+/* Force modal controls to be compact */
+html body #addTaskModal .modal-controls,
+html body #editTaskModal .modal-controls {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body #addTaskModal .toggle-container,
+html body #editTaskModal .toggle-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Compact modal body and form elements */
+html body #addTaskModal .modal-body,
+html body #editTaskModal .modal-body {
+  padding: 2px 8px !important;
+  margin: 0 !important;
+}
+
+/* SUPER AGGRESSIVE FORM GROUP SPACING - Override mobile compact CSS */
+html body div#addTaskModal.modal .form-group,
+html body div#editTaskModal.modal .form-group,
+html body #addTaskModal .form-group,
+html body #editTaskModal .form-group {
+  margin-bottom: 1px !important;
+  padding-bottom: 1px !important;
+}
+
+html body div#addTaskModal.modal .form-group:last-child,
+html body div#editTaskModal.modal .form-group:last-child,
+html body #addTaskModal .form-group:last-child,
+html body #editTaskModal .form-group:last-child {
+  margin-bottom: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+/* Compact reuse inputs toggle */
+html body #addTaskModal .reuse-inputs-container,
+html body #editTaskModal .reuse-inputs-container,
+html body #addTaskModal .toggle-container,
+html body #editTaskModal .toggle-container {
+  margin: 0 !important;
+  padding: 0 !important;
+  margin-top: 3px !important;
+  margin-bottom: 3px !important;
+}
+
+/* Target the specific reuse inputs toggle */
+html body #addTaskModal .modal-controls,
+html body #editTaskModal .modal-controls {
+  margin: 0 !important;
+  padding: 0 !important;
+  margin-top: 3px !important;
+}
+
+/* Target any div containing the reuse toggle */
+html body #addTaskModal .modal-body > div:first-child,
+html body #editTaskModal .modal-body > div:first-child {
+  margin-top: 3px !important;
+  margin-bottom: 3px !important;
+}
+
+/* REDUCE space between Title: label and top - move Title: closer to top */
+html body #addTaskModal .modal-body,
+html body #editTaskModal .modal-body {
+  padding: 0px 8px !important;
+  margin: 0 !important;
+}
+
+/* Compact reminder checkboxes */
+html body #addTaskModal .reminder-options,
+html body #editTaskModal .reminder-options {
+  margin: 1px 0 !important;
+}
+
+html body #addTaskModal .reminder-options .form-check,
+html body #editTaskModal .reminder-options .form-check {
+  margin-bottom: 0px !important;
+}
+
+/* Compact subtasks section */
+html body #addTaskModal .subtasks-section,
+html body #editTaskModal .subtasks-section {
+  margin: 1px 0 !important;
+}
+
+/* Compact footer */
+html body #addTaskModal .modal-footer,
+html body #editTaskModal .modal-footer {
+  padding: 2px 8px !important;
+  margin: 0 !important;
+  border-top: none !important;
+}
+
+/* SUPER AGGRESSIVE INPUT SPACING - Override mobile compact CSS */
+html body div#addTaskModal.modal label,
+html body div#editTaskModal.modal label,
+html body #addTaskModal label,
+html body #editTaskModal label {
+  margin-bottom: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+html body div#addTaskModal.modal input,
+html body div#addTaskModal.modal textarea,
+html body div#addTaskModal.modal select,
+html body div#editTaskModal.modal input,
+html body div#editTaskModal.modal textarea,
+html body div#editTaskModal.modal select,
+html body #addTaskModal input,
+html body #addTaskModal textarea,
+html body #addTaskModal select,
+html body #editTaskModal input,
+html body #editTaskModal textarea,
+html body #editTaskModal select {
+  margin-bottom: 1px !important;
+  padding: 4px 6px !important;
+  min-height: 28px !important;
+}
+
+/* Mobile specific overrides */
+@media (max-width: 768px) {
+  html body #addTaskModal.modal.show,
+  html body #editTaskModal.modal.show {
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  html body #addTaskModal .modal-content,
+  html body #editTaskModal .modal-content {
+    padding: 2px 6px !important; /* Even more compact on mobile */
+    margin: 0 !important;
+    height: 100vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+  
+  html body #addTaskModal .modal-header,
+  html body #editTaskModal .modal-header {
+    padding: 1px 0 !important;
+    margin-bottom: 3px !important;
+  }
+  
+  html body #addTaskModal .modal-header h2,
+  html body #editTaskModal .modal-header h2 {
+    font-size: 1rem !important;
+    line-height: 1.1 !important;
+  }
+}
+
+/* Override any potential conflicting styles */
+html body div#addTaskModal.modal .modal-content,
+html body div#editTaskModal.modal .modal-content {
+  padding-top: 2px !important;
+  margin-top: 0 !important;
+}
+
+html body div#addTaskModal.modal .modal-header,
+html body div#editTaskModal.modal .modal-header {
+  padding-top: 1px !important;
+  margin-top: 0 !important;
+}
+
+/* FINAL OVERRIDE - MAXIMUM COMPACTNESS */
+/* These rules have the highest specificity and should override everything */
+
+/* ULTRA AGGRESSIVE MODAL CONTENT SPACING */
+html body div#addTaskModal.modal.show .modal-content,
+html body div#editTaskModal.modal.show .modal-content {
+  padding: 4px 8px !important;
+  margin: 0 !important;
+}
+
+/* ULTRA AGGRESSIVE MODAL HEADER */
+html body div#addTaskModal.modal.show .modal-header,
+html body div#editTaskModal.modal.show .modal-header {
+  padding: 2px 0 !important;
+  margin: 0 0 2px 0 !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+html body div#addTaskModal.modal.show .modal-header h2,
+html body div#editTaskModal.modal.show .modal-header h2 {
+  font-size: 0.9rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+/* ULTRA AGGRESSIVE MODAL BODY */
+html body div#addTaskModal.modal.show .modal-body,
+html body div#editTaskModal.modal.show .modal-body {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ULTRA AGGRESSIVE FORM GROUPS */
+html body div#addTaskModal.modal.show .modal-content .modal-body .form-group,
+html body div#editTaskModal.modal.show .modal-content .modal-body .form-group {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ULTRA AGGRESSIVE LABELS */
+html body div#addTaskModal.modal.show .modal-content .modal-body label,
+html body div#editTaskModal.modal.show .modal-content .modal-body label {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-size: 0.7rem !important;
+  display: block !important;
+}
+
+/* ULTRA AGGRESSIVE INPUTS */
+html body div#addTaskModal.modal.show .modal-content .modal-body input,
+html body div#addTaskModal.modal.show .modal-content .modal-body textarea,
+html body div#addTaskModal.modal.show .modal-content .modal-body select,
+html body div#editTaskModal.modal.show .modal-content .modal-body input,
+html body div#editTaskModal.modal.show .modal-content .modal-body textarea,
+html body div#editTaskModal.modal.show .modal-content .modal-body select {
+  margin: 0 !important;
+  padding: 2px 4px !important;
+  min-height: 22px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.1 !important;
+  border: 1px solid #444 !important;
+  background-color: #1a1a1a !important;
+  color: #fff !important;
+}
+
+/* ULTRA AGGRESSIVE TEXTAREA */
+html body div#addTaskModal.modal.show .modal-content .modal-body textarea,
+html body div#editTaskModal.modal.show .modal-content .modal-body textarea {
+  min-height: 30px !important;
+  max-height: 40px !important;
+  resize: none !important;
+}
+
+/* ULTRA AGGRESSIVE CHECKBOXES */
+html body div#addTaskModal.modal.show .modal-content .modal-body .reminder-options,
+html body div#editTaskModal.modal.show .modal-content .modal-body .reminder-options {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 2px !important;
+}
+
+html body div#addTaskModal.modal.show .modal-content .modal-body .reminder-options .form-check,
+html body div#editTaskModal.modal.show .modal-content .modal-body .reminder-options .form-check {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+html body div#addTaskModal.modal.show .modal-content .modal-body .reminder-options .form-check-label,
+html body div#editTaskModal.modal.show .modal-content .modal-body .reminder-options .form-check-label {
+  font-size: 0.65rem !important;
+  margin: 0 !important;
+  padding: 0 0 0 2px !important;
+  line-height: 1 !important;
+}
+
+/* ULTRA AGGRESSIVE FORM ROWS */
+html body div#addTaskModal.modal.show .modal-content .modal-body .form-row,
+html body div#editTaskModal.modal.show .modal-content .modal-body .form-row {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 4px !important;
+}
+
+/* ULTRA AGGRESSIVE SUBTASKS */
+html body div#addTaskModal.modal.show .modal-content .modal-body .subtasks-section,
+html body div#editTaskModal.modal.show .modal-content .modal-body .subtasks-section {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body div#addTaskModal.modal.show .modal-content .modal-body .subtasks-header,
+html body div#editTaskModal.modal.show .modal-content .modal-body .subtasks-header {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+html body div#addTaskModal.modal.show .modal-content .modal-body .subtasks-header label,
+html body div#editTaskModal.modal.show .modal-content .modal-body .subtasks-header label {
+  font-size: 0.7rem !important;
+}
+
+html body div#addTaskModal.modal.show .modal-content .modal-body .subtasks-header button,
+html body div#editTaskModal.modal.show .modal-content .modal-body .subtasks-header button {
+  padding: 1px 4px !important;
+  font-size: 0.65rem !important;
+  margin: 0 !important;
+}
+
+/* ULTRA AGGRESSIVE BUTTON */
+html body div#addTaskModal.modal.show .modal-content button[type="submit"],
+html body div#editTaskModal.modal.show .modal-content button[type="submit"] {
+  margin: 2px auto 0 auto !important;
+  padding: 4px 8px !important;
+  font-size: 0.75rem !important;
+  display: block !important;
+}
+
+/* ULTRA AGGRESSIVE - REMOVE ALL SPACING BETWEEN ELEMENTS */
+html body div#addTaskModal.modal.show .modal-content .modal-body > *,
+html body div#editTaskModal.modal.show .modal-content .modal-body > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* ULTRA AGGRESSIVE - CHECKBOX CONTAINER */
+html body div#addTaskModal.modal.show .modal-content .modal-body .checkbox-container,
+html body div#editTaskModal.modal.show .modal-content .modal-body .checkbox-container {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}

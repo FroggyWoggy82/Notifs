@@ -1,0 +1,186 @@
+/**
+ * Mobile Layout Spacing Fix
+ * Fixes habit circle cutoff, removes container borders, and reduces left padding/margins
+ */
+
+/* Remove container borders and reduce padding for habit list section */
+.habit-list-section {
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding: 8px 0 !important;
+    margin-top: 20px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Remove any card styling from habit section */
+.habit-list-section .card,
+.habit-list-section .card__body,
+.habit-list-section .card__content {
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Reduce left padding for the main container */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+    
+    /* Reduce left padding for task sections */
+    .task-list-section,
+    .completed-tasks-section {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+    
+    /* Reduce left padding for task items */
+    .task-item {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    /* Fix habit item padding to prevent circle cutoff */
+    .habit-item {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Ensure habit control container has proper spacing */
+    .habit-control-container {
+        margin-left: 0 !important;
+        margin-right: 8px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* Adjust task checkbox container spacing */
+    .task-checkbox-container {
+        margin-left: 0 !important;
+        margin-right: 8px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* Special handling for tasks with subtasks */
+    .task-item.has-subtasks {
+        padding-left: 12px !important;
+    }
+    
+    .task-item.has-subtasks .task-checkbox-container {
+        margin-left: 4px !important;
+    }
+}
+
+/* Extra small screens - even more compact */
+@media (max-width: 480px) {
+    .container {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+    
+    .task-item,
+    .habit-item {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+    
+    .habit-control-container,
+    .task-checkbox-container {
+        margin-right: 6px !important;
+    }
+}
+
+/* Override any existing expanded layout that might be causing issues */
+html body .habit-list-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+/* Ensure habit list itself has no extra padding */
+#habitList {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Fix habit item layout to prevent circle cutoff */
+html body .habit-item {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+}
+
+/* Ensure habit content doesn't push elements off screen */
+html body .habit-content {
+    flex: 1 !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* Fix habit indicators positioning */
+.habit-indicators-row {
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+}
+
+/* Remove any background styling that creates visible containers */
+.habit-list-section h2 {
+    border-bottom: none !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+}
+
+/* Ensure task content has proper spacing */
+.task-content {
+    flex: 1 !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* Fix any card body padding that might be adding extra space */
+.card__body {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Override any existing alignment fixes that might conflict */
+html body .habit-control-container {
+    margin-left: 0 !important;
+}
+
+html body .task-checkbox-container {
+    margin-left: 0 !important;
+}
+
+/* Ensure proper spacing for habit increment buttons */
+.habit-increment-btn {
+    margin-left: 4px !important;
+    margin-right: 4px !important;
+}
+
+/* Fix level and progress indicators spacing */
+.habit-level-container,
+.habit-progress-container {
+    margin-left: 4px !important;
+    margin-right: 4px !important;
+}

@@ -6,11 +6,33 @@
 
 /* Apply mobile optimizations only on smaller screens */
 @media (max-width: 768px) {
+
+  /* CRITICAL FIX: Prevent text cutoff with higher specificity */
+  html body .task-item,
+  html body .task-item *,
+  html body .subtask-item,
+  html body .subtask-item * {
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  /* Force proper line height for all text elements */
+  html body .task-item .task-title,
+  html body .task-item .task-description,
+  html body .task-item .task-content,
+  html body .task-item .task-content *,
+  html body .subtask-item .subtask-title,
+  html body .subtask-item .subtask-content,
+  html body .subtask-item .subtask-content * {
+    line-height: 1.4 !important;
+    padding-bottom: 3px !important;
+    margin-bottom: 2px !important;
+  }
   /* Task item container */
   .task-item {
-    padding: 4px 8px !important; /* Reduced padding */
+    padding: 6px 8px !important; /* Increased padding to prevent text cutoff */
     margin-bottom: 4px !important; /* Reduced margin between tasks */
-    min-height: 32px !important; /* Reduced minimum height */
+    min-height: 40px !important; /* Increased minimum height to accommodate text */
     border-radius: 4px !important; /* Smaller border radius */
   }
 
@@ -24,23 +46,26 @@
   /* Task content area */
   .task-content {
     gap: 0 !important; /* Remove gap between elements */
-    padding-top: 0 !important; /* Remove top padding */
+    padding-top: 2px !important; /* Small top padding to prevent cutoff */
+    padding-bottom: 2px !important; /* Small bottom padding to prevent cutoff */
   }
 
   /* Task title */
   .task-title {
     font-size: 0.95em !important; /* Slightly smaller font */
-    line-height: 1.1 !important; /* Tighter line height */
-    margin-bottom: 0 !important;
+    line-height: 1.3 !important; /* Increased line height to prevent cutoff */
+    margin-bottom: 2px !important; /* Small margin for spacing */
+    padding-bottom: 1px !important; /* Extra padding to prevent cutoff */
   }
 
   /* Task description */
   .task-description {
     font-size: 0.75em !important; /* Smaller description text */
-    line-height: 1.1 !important;
-    margin-top: 1px !important;
-    margin-bottom: 0 !important;
-    max-height: 2.2em !important; /* Limit height to 2 lines */
+    line-height: 1.3 !important; /* Increased line height to prevent cutoff */
+    margin-top: 2px !important;
+    margin-bottom: 2px !important; /* Small margin to prevent cutoff */
+    padding-bottom: 1px !important; /* Extra padding to prevent cutoff */
+    max-height: 3em !important; /* Increased height to accommodate better line spacing */
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     display: -webkit-box !important;
@@ -102,7 +127,7 @@
   /* Overdue badge */
   .overdue-badge {
     padding: 0px 3px !important;
-    font-size: 0.65em !important;
+    font-size: 0.8em !important;
     margin-left: 2px !important;
     line-height: 1.2 !important;
     display: inline-flex !important;
@@ -111,10 +136,11 @@
 
   /* Subtasks */
   .subtask-item {
-    padding: 2px 6px !important;
+    padding: 4px 6px !important; /* Increased padding to prevent text cutoff */
     margin-bottom: 2px !important;
     margin-left: 8px !important; /* Reduced indentation */
-    min-height: 28px !important; /* Even smaller height for subtasks */
+    min-height: 32px !important; /* Increased height for subtasks to accommodate text */
+    line-height: 1.3 !important; /* Better line height for subtask text */
   }
 
   /* Optimize task list container */
@@ -222,15 +248,15 @@
   /* Ensure task content takes available space */
   .task-content {
     width: 100% !important;
-    overflow: hidden !important; /* Prevent content from overflowing */
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    overflow: visible !important; /* Allow content to be visible instead of hidden */
+    padding-top: 2px !important; /* Small padding to prevent cutoff */
+    padding-bottom: 2px !important; /* Small padding to prevent cutoff */
   }
 
-  /* Optimize task content layout */
+  /* Optimize task content layout - allow some margin for text breathing room */
   .task-content > * {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    margin-top: 1px !important; /* Small margin to prevent text cutoff */
+    margin-bottom: 1px !important; /* Small margin to prevent text cutoff */
   }
 
   /* Specific optimizations for mobile-task class */
@@ -291,5 +317,46 @@
   /* Optimize habit level */
   .habit-level {
     font-size: 0.7em !important;
+  }
+}
+
+/* EMERGENCY FIX: Force text visibility with maximum specificity */
+@media (max-width: 768px) {
+  html body div.task-item,
+  html body li.task-item,
+  html body .task-item.task-item {
+    min-height: 45px !important;
+    padding: 8px !important;
+    line-height: 1.4 !important;
+  }
+
+  html body .task-item .task-title,
+  html body .task-item .task-description,
+  html body .task-item .task-content div,
+  html body .task-item .task-content span {
+    line-height: 1.4 !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 3px !important;
+    overflow: visible !important;
+    text-overflow: visible !important;
+    white-space: normal !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  html body .subtask-item,
+  html body .subtask-item.subtask-item {
+    min-height: 35px !important;
+    padding: 6px !important;
+    line-height: 1.4 !important;
+  }
+
+  html body .subtask-item .subtask-title,
+  html body .subtask-item .subtask-content,
+  html body .subtask-item .subtask-content * {
+    line-height: 1.4 !important;
+    padding-bottom: 3px !important;
+    margin-bottom: 2px !important;
+    overflow: visible !important;
   }
 }

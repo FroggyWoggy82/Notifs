@@ -28,8 +28,23 @@
     <!-- Add task modal mobile compact fix to eliminate scrolling on mobile -->
     <link rel="stylesheet" href="css/fixes/add-task-modal-mobile-compact.css">
 
+    <!-- Prevent horizontal scrolling/dragging on mobile devices -->
+    <link rel="stylesheet" href="css/fixes/prevent-horizontal-scroll-mobile.css">
+
+    <!-- Mobile layout spacing fix - removes container borders and fixes spacing -->
+    <link rel="stylesheet" href="css/fixes/mobile-layout-spacing-fix.css">
+
     <!-- Mobile grocery badges optimization for better mobile fit -->
     <link rel="stylesheet" href="css/mobile-grocery-badges.css">
+
+    <!-- Text cutoff fix - Emergency fix for text being cut off at bottom -->
+    <link rel="stylesheet" href="css/text-cutoff-fix.css">
+
+    <!-- Modal top spacing fix - Emergency fix for excessive top spacing in modals -->
+    <link rel="stylesheet" href="css/modal-top-spacing-fix.css">
+
+    <!-- Ultra compact modal override - Final override for maximum compactness -->
+    <link rel="stylesheet" href="css/ultra-compact-modal-override.css?v=3">
 
     <!-- Dynamic theme color for status bar - updated for dark theme -->
     <meta name="theme-color" content="#121212">
@@ -58,6 +73,101 @@
             height: auto !important;
             padding: 2px 6px !important;
             font-size: 0.75rem !important;
+        }
+
+        /* ULTIMATE MODAL COMPACTNESS - INLINE OVERRIDE */
+        #addTaskModal .modal-content,
+        #editTaskModal .modal-content {
+            padding: 2px 6px !important;
+            margin: 0 !important;
+            border-radius: 6px !important;
+            max-height: 95vh !important;
+            overflow-y: auto !important;
+        }
+
+        #addTaskModal .modal-header,
+        #editTaskModal .modal-header {
+            padding: 1px 0 !important;
+            margin: 0 0 1px 0 !important;
+            border-bottom: 1px solid #333 !important;
+            min-height: auto !important;
+        }
+
+        #addTaskModal .modal-header h2,
+        #editTaskModal .modal-header h2 {
+            font-size: 0.85rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            color: #00e676 !important;
+        }
+
+        #addTaskModal .modal-body,
+        #editTaskModal .modal-body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        #addTaskModal form,
+        #editTaskModal form {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        #addTaskModal .form-group,
+        #editTaskModal .form-group {
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        #addTaskModal label,
+        #editTaskModal label {
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            font-size: 0.65rem !important;
+            display: block !important;
+            color: #ccc !important;
+            font-weight: 500 !important;
+        }
+
+        #addTaskModal input,
+        #addTaskModal textarea,
+        #addTaskModal select,
+        #editTaskModal input,
+        #editTaskModal textarea,
+        #editTaskModal select {
+            margin: 0 !important;
+            padding: 1px 3px !important;
+            min-height: 20px !important;
+            font-size: 0.7rem !important;
+            line-height: 1.1 !important;
+            border: 1px solid #444 !important;
+            background-color: #1a1a1a !important;
+            color: #fff !important;
+            border-radius: 3px !important;
+        }
+
+        #addTaskModal textarea,
+        #editTaskModal textarea {
+            min-height: 25px !important;
+            max-height: 35px !important;
+            resize: none !important;
+        }
+
+        #addTaskModal button[type="submit"],
+        #editTaskModal button[type="submit"] {
+            margin: 1px auto 0 auto !important;
+            padding: 3px 6px !important;
+            font-size: 0.7rem !important;
+            display: block !important;
+            min-height: 22px !important;
+            min-width: 60px !important;
+            max-width: 120px !important;
         }
     </style>
 </head>

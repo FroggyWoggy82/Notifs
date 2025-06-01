@@ -1,0 +1,90 @@
+/**
+ * Text Cutoff Fix - Emergency CSS to prevent text being cut off at bottom
+ * This file has maximum specificity to override all other styles
+ */
+
+/* Force proper text display on mobile devices */
+@media (max-width: 768px) {
+  /* Maximum specificity selectors for task items */
+  html body div.task-item,
+  html body li.task-item,
+  html body .task-item.task-item.task-item {
+    min-height: 50px !important;
+    padding: 10px 8px !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  
+  /* Force proper text display for all task text elements */
+  html body .task-item .task-title,
+  html body .task-item .task-description,
+  html body .task-item .task-content,
+  html body .task-item .task-content div,
+  html body .task-item .task-content span,
+  html body .task-item .task-content p {
+    line-height: 1.5 !important;
+    padding-bottom: 5px !important;
+    margin-bottom: 3px !important;
+    overflow: visible !important;
+    text-overflow: visible !important;
+    white-space: normal !important;
+    height: auto !important;
+    max-height: none !important;
+    -webkit-line-clamp: none !important;
+    display: block !important;
+    -webkit-box-orient: initial !important;
+  }
+  
+  /* Force proper display for subtasks */
+  html body .subtask-item,
+  html body .subtask-item.subtask-item {
+    min-height: 40px !important;
+    padding: 8px 6px !important;
+    line-height: 1.5 !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  
+  html body .subtask-item .subtask-title,
+  html body .subtask-item .subtask-content,
+  html body .subtask-item .subtask-content *,
+  html body .subtask-item div,
+  html body .subtask-item span {
+    line-height: 1.5 !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 2px !important;
+    overflow: visible !important;
+    text-overflow: visible !important;
+    white-space: normal !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  
+  /* Force proper content area display */
+  html body .task-content,
+  html body .subtask-content {
+    overflow: visible !important;
+    padding-top: 3px !important;
+    padding-bottom: 5px !important;
+    margin-bottom: 3px !important;
+  }
+  
+  /* Override any webkit line clamp restrictions */
+  html body .task-item *,
+  html body .subtask-item * {
+    -webkit-line-clamp: none !important;
+    -webkit-box-orient: initial !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+}
+
+/* Apply to all screen sizes as backup */
+html body .task-item .task-title,
+html body .task-item .task-description,
+html body .subtask-item .subtask-title {
+  line-height: 1.4 !important;
+  padding-bottom: 3px !important;
+  overflow: visible !important;
+}

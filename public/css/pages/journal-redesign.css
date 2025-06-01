@@ -146,9 +146,80 @@ body::before {
     box-shadow: 0 0 0 3px var(--flow-accent-soft);
 }
 
+/* Make calendar icon white */
+.date-selector input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+/* Firefox calendar icon styling */
+.date-selector input[type="date"]::-moz-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+/* Saved animation for chat container */
+.chat-container.saved-animation {
+    animation: saveFlash 1s ease-in-out;
+}
+
+@keyframes saveFlash {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(0, 230, 118, 0.1); }
+    100% { background-color: transparent; }
+}
+
+/* Auto-save indicator */
+.auto-save-indicator {
+    position: absolute;
+    top: -25px;
+    right: 0;
+    background: rgba(0, 230, 118, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.input-controls {
+    position: relative;
+}
+
 .journal-actions {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 12px;
+}
+
+.auto-save-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.auto-save-text {
+    font-size: 13px;
+    color: var(--flow-text-secondary);
+    font-weight: 500;
+}
+
+.auto-save-text::before {
+    content: "●";
+    color: rgba(0, 230, 118, 0.8);
+    margin-right: 4px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
     opacity: 1;
     transition: var(--flow-transition);
 }
