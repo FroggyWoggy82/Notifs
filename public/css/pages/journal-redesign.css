@@ -250,16 +250,23 @@ body::before {
     text-align: center;
 }
 
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+/* Force fixed height for chat messages to enable scrolling */
+.journal-main .chat-container #chat-messages,
+.chat-container .chat-messages,
+#chat-messages {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
     padding: 0 8px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    min-height: 0;
-    max-height: 100%;
+    height: 400px !important;
+    max-height: 400px !important;
+    min-height: 400px !important;
+    flex: none !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    flex-basis: auto !important;
     scroll-behavior: smooth;
 }
 

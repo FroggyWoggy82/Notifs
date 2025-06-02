@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
             buttonsContainer.appendChild(saveButton);
             buttonsContainer.appendChild(cancelButton);
 
-            panel.appendChild(buttonsContainer);
+            // Insert buttons at the top of the panel instead of bottom
+            panel.insertBefore(buttonsContainer, panel.firstChild);
 
             const originalValues = {};
 

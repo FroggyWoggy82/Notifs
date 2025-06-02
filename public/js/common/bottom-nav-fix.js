@@ -49,16 +49,39 @@ function createUnifiedBottomNav() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+// Prevent multiple executions
+let bottomNavCreated = false;
 
+function ensureBottomNavExists() {
+    if (bottomNavCreated) {
+        console.log('[Bottom Nav Fix] Already created, skipping...');
+        return;
+    }
+
+    console.log('[Bottom Nav Fix] Creating bottom navigation...');
     createUnifiedBottomNav();
+    bottomNavCreated = true;
+}
 
-    setTimeout(createUnifiedBottomNav, 100);
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[Bottom Nav Fix] DOM loaded');
+    ensureBottomNavExists();
+
+    // Try again after delays to ensure it's created
+    setTimeout(ensureBottomNavExists, 100);
+    setTimeout(ensureBottomNavExists, 500);
+    setTimeout(ensureBottomNavExists, 1000);
 });
 
 window.addEventListener('load', function() {
+    console.log('[Bottom Nav Fix] Window loaded');
+    ensureBottomNavExists();
 
-    createUnifiedBottomNav();
-
-    setTimeout(createUnifiedBottomNav, 500);
+    setTimeout(ensureBottomNavExists, 500);
 });
+
+// Expose global function for manual creation
+window.createBottomNav = function() {
+    bottomNavCreated = false;
+    ensureBottomNavExists();
+};

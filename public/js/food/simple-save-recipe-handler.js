@@ -17,6 +17,21 @@
     // Flag to prevent duplicate submissions
     let isSubmitting = false;
 
+    // Safety check: Only run the main logic if we're on a page that should have the recipe form
+    function initializeIfFormExists() {
+        const form = document.getElementById('create-recipe-form');
+        if (!form) {
+            console.log('[Simple Save Recipe Handler] Recipe form not found on this page, script will not run');
+            return;
+        }
+        console.log('[Simple Save Recipe Handler] Recipe form found, continuing initialization');
+
+        // Run the main initialization logic
+        runMainLogic();
+    }
+
+    function runMainLogic() {
+
     function initializeHandler() {
         console.log('[Simple Save Recipe Handler] Initializing...');
 
@@ -310,7 +325,13 @@
     function forceAttachHandler() {
         // console.log('[Simple Save Recipe Handler] Force attaching handler...');
 
-        const button = document.querySelector('#create-recipe-form button[type="submit"], .submit-btn');
+        // Only target buttons specifically within the recipe form
+        const form = document.getElementById('create-recipe-form');
+        if (!form) {
+            return false;
+        }
+
+        const button = form.querySelector('button[type="submit"]') || document.querySelector('#create-recipe-form button[type="submit"]');
 
         if (button) {
             // Force enable the button
@@ -389,11 +410,6 @@
     // Try to initialize immediately
     tryInitialize();
 
-    // Also try when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', tryInitialize);
-    }
-
     // Retry with delays to handle dynamic content
     setTimeout(tryInitialize, 100);
     setTimeout(tryInitialize, 500);
@@ -424,14 +440,22 @@
     setTimeout(forceEnableButton, 10000);
     setInterval(forceEnableButton, 5000); // Keep enabling every 5 seconds
 
-    // Global click interceptor as ultimate backup
+    // Global click interceptor as ultimate backup - MUCH MORE SPECIFIC
     document.addEventListener('click', async function(e) {
         const target = e.target;
+
+        // Only intercept if it's specifically the recipe form submit button
         if (target && (
             target.matches('#create-recipe-form button[type="submit"]') ||
-            target.matches('.submit-btn') ||
-            target.textContent?.includes('Save Recipe')
+            target.matches('.submit-btn')
         )) {
+            // Additional check: make sure we're actually in the recipe form context
+            const form = document.getElementById('create-recipe-form');
+            if (!form || !form.contains(target)) {
+                // Not in the recipe form, don't intercept
+                return;
+            }
+
             console.log('[Simple Save Recipe Handler] 🎯 GLOBAL CLICK INTERCEPTED!');
             e.preventDefault();
             e.stopPropagation();
@@ -443,19 +467,30 @@
             target.textContent = 'Processing...';
 
             // Call our handler
-            const form = document.getElementById('create-recipe-form');
-            if (form) {
-                const fakeEvent = {
-                    target: form,
-                    preventDefault: () => {},
-                    stopPropagation: () => {}
-                };
-                await handleFormSubmission(fakeEvent);
-            }
+            const fakeEvent = {
+                target: form,
+                preventDefault: () => {},
+                stopPropagation: () => {}
+            };
+            await handleFormSubmission(fakeEvent);
 
             return false;
         }
     }, { capture: true, passive: false });
 
     console.log('[Simple Save Recipe Handler] Loaded');
+
+    } // End of runMainLogic()
+
+    // Initialize with safety check
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeIfFormExists);
+    } else {
+        // DOM is already loaded
+        setTimeout(initializeIfFormExists, 100);
+    }
+
+    // Also try with delays to handle dynamic content
+    setTimeout(initializeIfFormExists, 500);
+    setTimeout(initializeIfFormExists, 1000);
 })();

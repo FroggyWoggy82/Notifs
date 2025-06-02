@@ -71,7 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
     loadEntries();
     loadMemoryEntries();
     initializeAnimations();
-    initializeChatInterface();
+
+    // Initialize chat interface with a delay to ensure DOM is ready
+    setTimeout(() => {
+        initializeChatInterface();
+    }, 100);
 
     // Make sure word count is initialized
     console.log('Initializing word count');
@@ -375,10 +379,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
         chatMessagesElement.appendChild(messageDiv);
 
-        // Scroll to bottom
-        chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+        // Improved scroll to bottom with multiple fallbacks
+        scrollToBottom();
 
         return messageDiv;
+    }
+
+    /**
+     * Scrolls the chat messages container to the bottom
+     * Uses multiple methods to ensure reliable scrolling
+     */
+    function scrollToBottom() {
+        if (!chatMessagesElement) {
+            return;
+        }
+
+        // Method 1: Immediate scroll
+        chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+
+        // Method 2: RequestAnimationFrame for next paint cycle
+        requestAnimationFrame(() => {
+            chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+        });
+
+        // Method 3: Timeout fallback for complex layouts
+        setTimeout(() => {
+            chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
+        }, 50);
+
+        // Method 4: Force scroll using scrollIntoView on last message
+        setTimeout(() => {
+            const lastMessage = chatMessagesElement.lastElementChild;
+            if (lastMessage) {
+                lastMessage.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end',
+                    inline: 'nearest'
+                });
+            }
+        }, 100);
     }
 
     /**
@@ -420,7 +459,12 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingMessage.remove();
 
             // Add AI response
-            addMessageToChat('ai', analysis);
+            const aiMessage = addMessageToChat('ai', analysis);
+
+            // Ensure scrolling happens after the message is fully rendered
+            setTimeout(() => {
+                scrollToBottom();
+            }, 150);
 
             // Add to conversation history
             currentConversation.push({
@@ -439,7 +483,12 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingMessage.remove();
 
             // Add error message
-            addMessageToChat('ai', 'I apologize, but I\'m having trouble responding right now. Please try again in a moment.');
+            const errorMessage = addMessageToChat('ai', 'I apologize, but I\'m having trouble responding right now. Please try again in a moment.');
+
+            // Ensure scrolling happens for error message too
+            setTimeout(() => {
+                scrollToBottom();
+            }, 150);
         }
     }
 
@@ -627,9 +676,12 @@ document.addEventListener('DOMContentLoaded', function() {
      * Initializes the chat interface
      */
     function initializeChatInterface() {
+        console.log('Starting initializeChatInterface...');
+
         // Initialize send button state
         if (sendMessageButton) {
             sendMessageButton.disabled = true;
+            console.log('Send button initialized');
         }
 
         // Auto-resize textarea
@@ -643,9 +695,31 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 journalContentTextarea.focus();
             }, 500);
+            console.log('Textarea auto-resize initialized');
+        }
+
+        // Fix chat messages container height to enable scrolling
+        console.log('About to fix chat container height...');
+        console.log('Checking chatMessagesElement:', !!chatMessagesElement);
+        const chatElement = chatMessagesElement || document.getElementById('chat-messages');
+        console.log('Chat element found:', !!chatElement);
+
+        if (chatElement) {
+            console.log('Applying height fix...');
+            chatElement.style.height = '400px';
+            chatElement.style.maxHeight = '400px';
+            chatElement.style.minHeight = '400px';
+            chatElement.style.flex = 'none';
+            chatElement.style.flexGrow = '0';
+            chatElement.style.flexShrink = '0';
+            chatElement.style.overflowY = 'auto';
+            console.log('Fixed chat container height for scrolling');
+        } else {
+            console.error('Could not find chat messages element for height fix');
         }
 
         // Load today's conversation if it exists
+        console.log('About to load entry for date...');
         loadEntryForDate();
 
         console.log('Chat interface initialized');

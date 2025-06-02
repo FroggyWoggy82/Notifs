@@ -22,6 +22,35 @@
     <link rel="stylesheet" href="../css/sidebar-style-fix.css">
     <link rel="manifest" href="../manifest.json">
     <link rel="icon" type="image/png" href="../icon-192x192.png">
+
+    <!-- JavaScript fix for chat scrolling -->
+    <script>
+        // Apply chat scrolling fix as soon as possible
+        document.addEventListener('DOMContentLoaded', function() {
+            function applyChatScrollFix() {
+                const chatMessages = document.getElementById('chat-messages');
+                if (chatMessages) {
+                    chatMessages.style.setProperty('height', '400px', 'important');
+                    chatMessages.style.setProperty('max-height', '400px', 'important');
+                    chatMessages.style.setProperty('min-height', '400px', 'important');
+                    chatMessages.style.setProperty('flex', 'none', 'important');
+                    chatMessages.style.setProperty('flex-grow', '0', 'important');
+                    chatMessages.style.setProperty('flex-shrink', '0', 'important');
+                    chatMessages.style.setProperty('flex-basis', 'auto', 'important');
+                    chatMessages.style.setProperty('overflow-y', 'auto', 'important');
+                    chatMessages.style.setProperty('overflow-x', 'hidden', 'important');
+                    console.log('Chat scrolling fix applied successfully');
+                }
+            }
+
+            // Apply immediately
+            applyChatScrollFix();
+
+            // Apply again after a short delay to ensure it sticks
+            setTimeout(applyChatScrollFix, 100);
+            setTimeout(applyChatScrollFix, 500);
+        });
+    </script>
 </head>
 <body>
     <div class="sidebar">
