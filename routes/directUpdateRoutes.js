@@ -72,4 +72,31 @@ router.post('/package-amount', async (req, res) => {
     }
 });
 
+/**
+ * DELETE ingredient from recipe - WORKING ROUTE
+ */
+router.delete('/recipe/:recipeId/ingredient/:ingredientId', async (req, res) => {
+    console.log('=== DELETE INGREDIENT FROM RECIPE (DIRECT UPDATE ROUTE) ===');
+    console.log('Route params:', req.params);
+    console.log('Full URL:', req.originalUrl);
+
+    const { recipeId, ingredientId } = req.params;
+
+    try {
+        const RecipeModel = require('../models/recipeModel');
+        const result = await RecipeModel.deleteIngredientFromRecipe(recipeId, ingredientId);
+
+        res.json({
+            message: `Ingredient deleted successfully from recipe`,
+            success: true,
+            recipeId: parseInt(recipeId),
+            ingredientId: parseInt(ingredientId),
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error in delete ingredient route:', error);
+        res.status(500).json({ error: 'Failed to delete ingredient from recipe' });
+    }
+});
+
 module.exports = router;

@@ -44,10 +44,10 @@
 
     function addNewIngredientRow() {
         log('Adding new ingredient row...');
-        
+
         const ingredientsList = document.getElementById('ingredients-list');
         if (!ingredientsList) {
-            log('Ingredients list not found', 'error');
+            log('Ingredients list not found - this is normal for recipe card buttons', 'warn');
             return;
         }
 
@@ -265,6 +265,12 @@
         const button = event.target.closest('.add-ingredient-btn-inline, .add-ingredient-btn, [class*="add-ingredient"]');
         if (!button) return;
 
+        // IMPORTANT: Skip buttons that are part of recipe cards (handled by direct-recipe-button-fix.js)
+        if (button.closest('.recipe-card') || button.dataset.recipeId) {
+            log('Skipping recipe card add ingredient button - handled by direct-recipe-button-fix.js');
+            return;
+        }
+
         // Check if this is actually an "Add Ingredient" button
         const buttonText = button.textContent.trim();
         if (!buttonText.includes('Add Ingredient') && !buttonText.includes('➕')) {
@@ -273,7 +279,13 @@
 
         // Check if we already have the maximum number of ingredient rows to prevent spam
         const ingredientsList = document.getElementById('ingredients-list');
-        const existingRows = ingredientsList ? ingredientsList.querySelectorAll('.ingredient-item').length : 0;
+
+        if (!ingredientsList) {
+            log('Ingredients list not found - this might be a recipe card button');
+            return;
+        }
+
+        const existingRows = ingredientsList.querySelectorAll('.ingredient-item').length;
 
         if (existingRows >= 10) {
             log('Maximum number of ingredient rows reached', 'warn');

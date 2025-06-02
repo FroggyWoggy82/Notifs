@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         canvas.addEventListener('mousemove', handleMouseMoveFunction);
         canvas.addEventListener('mouseout', handleMouseOutFunction);
 
-        console.log('Tooltip events attached to chart');
+        // Tooltip events attached to chart
 
         function isOverGoalLine(event, chart) {
             // Comprehensive check for all required chart properties

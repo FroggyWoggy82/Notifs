@@ -19,6 +19,11 @@
 
         window.fetch = function(url, options) {
 
+            // Skip DELETE requests - let direct-recipe-button-fix.js handle them
+            if (options && options.method === 'DELETE') {
+                return originalFetch.apply(this, arguments);
+            }
+
             if (typeof url === 'string' &&
                 url.match(/\/api\/recipes\/\d+\/ingredients\/\d+$/) &&
                 options && options.method === 'GET') {

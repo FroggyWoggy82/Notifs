@@ -159,7 +159,7 @@ router.put('/:id', RecipeController.updateRecipeCalories);
  *       500:
  *         description: Server error
  */
-router.delete('/:id', RecipeController.deleteRecipe);
+// NOTE: Moved to end of file to avoid route conflicts with ingredient delete
 
 /**
  * @swagger
@@ -397,5 +397,62 @@ router.patch('/:recipeId/ingredients/:ingredientId/omega-values', RecipeControll
  *         description: Server error
  */
 router.post('/:recipeId/ingredients', RecipeController.addIngredientToRecipe);
+
+/**
+ * @swagger
+ * /api/recipes/{recipeId}/ingredients/{ingredientId}:
+ *   delete:
+ *     summary: Delete an ingredient from a recipe
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The recipe ID
+ *       - in: path
+ *         name: ingredientId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ingredient ID
+ *     responses:
+ *       200:
+ *         description: Ingredient deleted successfully
+ *       404:
+ *         description: Recipe or ingredient not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/:recipeId/ingredients/:ingredientId', (req, res, next) => {
+    console.log('=== INGREDIENT DELETE ROUTE HIT ===');
+    console.log('Route params:', req.params);
+    console.log('Full URL:', req.originalUrl);
+    RecipeController.deleteIngredientFromRecipe(req, res, next);
+});
+
+/**
+ * @swagger
+ * /api/recipes/{id}:
+ *   delete:
+ *     summary: Delete a recipe and its ingredients
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The recipe ID
+ *     responses:
+ *       200:
+ *         description: Recipe deleted successfully
+ *       404:
+ *         description: Recipe not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/:id', RecipeController.deleteRecipe);
 
 module.exports = router;

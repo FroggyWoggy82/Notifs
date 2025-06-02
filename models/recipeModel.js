@@ -1113,6 +1113,100 @@ async function addIngredientToRecipe(recipeId, ingredientData) {
     }
 }
 
+/**
+ * Delete an ingredient from a recipe
+ * @param {number} recipeId - The recipe ID
+ * @param {number} ingredientId - The ingredient ID
+ * @returns {Promise<Object>} - Promise resolving to the updated recipe with ingredients
+ */
+async function deleteIngredientFromRecipe(recipeId, ingredientId) {
+    console.log('=== deleteIngredientFromRecipe called ===');
+    console.log('recipeId:', recipeId);
+    console.log('ingredientId:', ingredientId);
+
+    // Validate inputs
+    if (!recipeId || !ingredientId) {
+        throw new Error('Recipe ID and ingredient ID are required');
+    }
+
+    // Use pool.connect() directly to avoid db.getClient() issues
+    const { pool } = require('../utils/db');
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        // Check if recipe exists
+        const recipeResult = await client.query('SELECT * FROM recipes WHERE id = $1', [recipeId]);
+        if (recipeResult.rowCount === 0) {
+            throw new Error('Recipe not found');
+        }
+
+        // Debug: Check what ingredients exist for this recipe
+        const allIngredientsResult = await client.query(
+            'SELECT id, name FROM ingredients WHERE recipe_id = $1',
+            [recipeId]
+        );
+        console.log(`Recipe ${recipeId} has ingredients:`, allIngredientsResult.rows.map(r => `${r.id}: ${r.name}`));
+
+        // Check if ingredient exists and belongs to the recipe
+        const ingredientResult = await client.query(
+            'SELECT * FROM ingredients WHERE id = $1 AND recipe_id = $2',
+            [ingredientId, recipeId]
+        );
+        if (ingredientResult.rowCount === 0) {
+            console.log(`Ingredient ${ingredientId} not found in recipe ${recipeId} - treating as already deleted`);
+            // Don't throw error - just return success since ingredient is already gone
+            await client.query('COMMIT');
+            return getRecipeById(recipeId);
+        }
+
+        const deletedIngredient = ingredientResult.rows[0];
+        console.log('Deleting ingredient:', deletedIngredient.name);
+
+        // Delete the ingredient
+        await client.query('DELETE FROM ingredients WHERE id = $1', [ingredientId]);
+
+        // Recalculate recipe calories
+        const remainingIngredientsResult = await client.query(
+            'SELECT * FROM ingredients WHERE recipe_id = $1',
+            [recipeId]
+        );
+
+        const totalCalories = remainingIngredientsResult.rows.reduce((sum, ingredient) => {
+            return sum + (parseFloat(ingredient.calories) || 0);
+        }, 0);
+
+        // Update recipe total calories
+        await client.query(
+            'UPDATE recipes SET total_calories = $1 WHERE id = $2',
+            [totalCalories, recipeId]
+        );
+
+        await client.query('COMMIT');
+        console.log(`Ingredient ${ingredientId} deleted from recipe ${recipeId} successfully`);
+
+        // Return the updated recipe (this will use its own database connection)
+        return getRecipeById(recipeId);
+
+    } catch (error) {
+        console.error('Error in deleteIngredientFromRecipe:', error);
+        try {
+            await client.query('ROLLBACK');
+        } catch (rollbackError) {
+            console.error('Error during rollback:', rollbackError);
+        }
+        throw error;
+    } finally {
+        // Always release the client in the finally block
+        try {
+            client.release();
+        } catch (releaseError) {
+            console.error('Error releasing client:', releaseError);
+        }
+    }
+}
+
 module.exports = {
     getAllRecipes,
     getRecipeById,
@@ -1123,5 +1217,6 @@ module.exports = {
     getIngredientById,
     updateIngredientPackageAmount,
     updateIngredientOmegaValues,
-    addIngredientToRecipe
+    addIngredientToRecipe,
+    deleteIngredientFromRecipe
 };

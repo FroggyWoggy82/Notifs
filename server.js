@@ -381,6 +381,31 @@ app.get('/api/subscription-count', (req, res) => {
     }
 });
 
+// WORKING: Direct route for ingredient deletion - MUST come BEFORE catch-all
+app.delete('/api/recipes/:recipeId/ingredients/:ingredientId', async (req, res) => {
+    console.log('=== INGREDIENT DELETE ROUTE HIT ===');
+    console.log('Route params:', req.params);
+    console.log('Full URL:', req.originalUrl);
+
+    const { recipeId, ingredientId } = req.params;
+
+    try {
+        const RecipeModel = require('./models/recipeModel');
+        const recipe = await RecipeModel.deleteIngredientFromRecipe(recipeId, ingredientId);
+
+        res.json({
+            message: `Ingredient deleted successfully from recipe`,
+            success: true,
+            recipeId: parseInt(recipeId),
+            ingredientId: parseInt(ingredientId),
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error in direct delete route:', error);
+        res.status(500).json({ error: 'Failed to delete ingredient from recipe' });
+    }
+});
+
 // Catch-all for API routes to prevent returning HTML for non-existent API endpoints
 app.use('/api/*', (req, res) => {
     res.status(404).json({ error: `API endpoint not found: ${req.originalUrl}` });

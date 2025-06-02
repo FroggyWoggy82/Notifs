@@ -184,17 +184,27 @@
             }
 
             const recipeData = await response.json();
-            const ingredients = recipeData.ingredients || [];
+            console.log('[Recipe Button Fix] Raw API response:', recipeData);
+
+            // Handle both possible response structures
+            let ingredients = [];
+            if (recipeData.recipe && recipeData.recipe.ingredients) {
+                ingredients = recipeData.recipe.ingredients;
+            } else if (recipeData.ingredients) {
+                ingredients = recipeData.ingredients;
+            } else if (Array.isArray(recipeData)) {
+                ingredients = recipeData;
+            }
+
             console.log('[Recipe Button Fix] Fetched ingredients:', ingredients.length);
 
             // Display ingredients in READ-ONLY format (no edit buttons or modals)
             console.log('[Recipe Button Fix] Processing ingredients array:', ingredients);
 
             if (!ingredients || ingredients.length === 0) {
-                detailsDiv.innerHTML = '<p style="color: #888; text-align: center; padding: 10px;">No ingredients found for this recipe.</p>';
+                detailsDiv.innerHTML = '<p style="color: #888; text-align: center; padding: 5px; font-size: 12px;">No ingredients found.</p>';
             } else {
-                let html = '<div class="ingredients-list-readonly" style="background: #2a2a2a; border-radius: 6px; padding: 10px; margin-top: 10px;">';
-                html += `<h4 style="color: #e0e0e0; margin: 0 0 15px 0; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 8px;">Ingredients (${ingredients.length}):</h4>`;
+                let html = '<div class="ingredients-list-readonly" style="margin-top: 5px;">';
 
                 ingredients.forEach((ingredient, index) => {
                     const calories = ingredient.calories ? Math.round(ingredient.calories) : 0;
@@ -203,71 +213,56 @@
                     const carbs = ingredient.carbohydrates ? Math.round(ingredient.carbohydrates * 10) / 10 : 0;
                     const price = ingredient.price ? `$${ingredient.price.toFixed(2)}` : '';
 
-                    // Key micronutrients to display
-                    const micronutrients = [];
-                    if (ingredient.fiber && parseFloat(ingredient.fiber) > 0) micronutrients.push(`Fiber: ${ingredient.fiber}g`);
-                    if (ingredient.sodium && parseFloat(ingredient.sodium) > 0) micronutrients.push(`Sodium: ${ingredient.sodium}mg`);
-                    if (ingredient.vitamin_c && parseFloat(ingredient.vitamin_c) > 0) micronutrients.push(`Vitamin C: ${ingredient.vitamin_c}mg`);
-                    if (ingredient.calcium && parseFloat(ingredient.calcium) > 0) micronutrients.push(`Calcium: ${ingredient.calcium}mg`);
-                    if (ingredient.iron && parseFloat(ingredient.iron) > 0) micronutrients.push(`Iron: ${ingredient.iron}mg`);
-                    if (ingredient.potassium && parseFloat(ingredient.potassium) > 0) micronutrients.push(`Potassium: ${ingredient.potassium}mg`);
-                    if (ingredient.omega3 && parseFloat(ingredient.omega3) > 0) micronutrients.push(`Omega-3: ${ingredient.omega3}g`);
-                    if (ingredient.omega6 && parseFloat(ingredient.omega6) > 0) micronutrients.push(`Omega-6: ${ingredient.omega6}g`);
-
                     html += `
-                        <div class="ingredient-item-readonly" style="
-                            padding: 12px 15px;
-                            margin-bottom: 10px;
-                            background: #333;
-                            border-radius: 6px;
-                            border-left: 3px solid #4CAF50;
-                            color: #e0e0e0;
-                            font-size: 13px;
+                        <div style="
+                            padding: 3px 0;
+                            margin-bottom: 2px;
+                            font-size: 11px;
+                            line-height: 1.2;
+                            border-bottom: 1px solid #333;
                         ">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <div style="flex: 1;">
-                                    <strong style="color: #fff; font-size: 14px;">${escapeHtml(ingredient.name)}</strong>
-                                </div>
-                                <div style="text-align: right; color: #4CAF50; font-weight: bold;">
-                                    ${ingredient.amount}g
-                                </div>
-                            </div>
-
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin-bottom: 8px;">
-                                <div style="background: #2a2a2a; padding: 4px 8px; border-radius: 3px; text-align: center;">
-                                    <div style="color: #ff9800; font-weight: bold; font-size: 12px;">${calories}</div>
-                                    <div style="color: #aaa; font-size: 10px;">cal</div>
-                                </div>
-                                <div style="background: #2a2a2a; padding: 4px 8px; border-radius: 3px; text-align: center;">
-                                    <div style="color: #2196F3; font-weight: bold; font-size: 12px;">${protein}</div>
-                                    <div style="color: #aaa; font-size: 10px;">protein</div>
-                                </div>
-                                <div style="background: #2a2a2a; padding: 4px 8px; border-radius: 3px; text-align: center;">
-                                    <div style="color: #9C27B0; font-weight: bold; font-size: 12px;">${fats}</div>
-                                    <div style="color: #aaa; font-size: 10px;">fats</div>
-                                </div>
-                                <div style="background: #2a2a2a; padding: 4px 8px; border-radius: 3px; text-align: center;">
-                                    <div style="color: #4CAF50; font-weight: bold; font-size: 12px;">${carbs}</div>
-                                    <div style="color: #aaa; font-size: 10px;">carbs</div>
-                                </div>
-                                ${price ? `
-                                <div style="background: #2a2a2a; padding: 4px 8px; border-radius: 3px; text-align: center;">
-                                    <div style="color: #FFC107; font-weight: bold; font-size: 12px;">${price}</div>
-                                    <div style="color: #aaa; font-size: 10px;">price</div>
-                                </div>
-                                ` : ''}
-                            </div>
-
-                            ${micronutrients.length > 0 ? `
-                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #444;">
-                                <div style="color: #aaa; font-size: 11px; line-height: 1.4;">
-                                    ${micronutrients.slice(0, 6).join(' • ')}
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1px;">
+                                <span style="color: #fff; font-weight: bold; font-size: 12px;">${escapeHtml(ingredient.name)}</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="color: #ccc; font-size: 11px;">${ingredient.amount}g</span>
+                                    <button class="delete-ingredient-btn" data-recipe-id="${recipeId}" data-ingredient-id="${ingredient.id}" style="
+                                        background: #666;
+                                        color: #fff;
+                                        border: none;
+                                        border-radius: 2px;
+                                        padding: 2px 6px;
+                                        font-size: 10px;
+                                        cursor: pointer;
+                                        line-height: 1;
+                                    " title="Delete ingredient">×</button>
                                 </div>
                             </div>
-                            ` : ''}
+                            <div style="display: flex; gap: 8px; color: #aaa; font-size: 10px;">
+                                <span>${calories}cal</span>
+                                <span>${protein}p</span>
+                                <span>${fats}f</span>
+                                <span>${carbs}c</span>
+                                ${price ? `<span>${price}</span>` : ''}
+                            </div>
                         </div>
                     `;
                 });
+
+                // Add "Add Ingredient" button
+                html += `
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #444;">
+                        <button class="add-ingredient-btn" data-recipe-id="${recipeId}" style="
+                            background: #333;
+                            color: #fff;
+                            border: 1px solid #555;
+                            border-radius: 3px;
+                            padding: 4px 8px;
+                            font-size: 11px;
+                            cursor: pointer;
+                            width: 100%;
+                        ">+ Add Ingredient</button>
+                    </div>
+                `;
 
                 html += '</div>';
                 detailsDiv.innerHTML = html;
@@ -310,6 +305,415 @@
         div.textContent = text;
         return div.innerHTML;
     }
+
+    // Cronometer parser function for popup
+    function parseCronometerData(text) {
+        if (!text || typeof text !== 'string') {
+            return null;
+        }
+
+        // Use existing parser if available
+        if (typeof window.parseCronometerText === 'function') {
+            try {
+                const result = window.parseCronometerText(text);
+                if (result && result.success) {
+                    return {
+                        calories: result.calories || 0,
+                        protein: result.protein || 0,
+                        fats: result.fat || result.fats || 0,
+                        carbohydrates: result.carbs || result.carbohydrates || 0,
+                        fiber: result.fiber || 0,
+                        sodium: result.sodium || 0,
+                        vitamin_c: result.vitaminC || result.vitamin_c || 0,
+                        calcium: result.calcium || 0,
+                        iron: result.iron || 0,
+                        potassium: result.potassium || 0,
+                        omega3: result.omega3 || 0,
+                        omega6: result.omega6 || 0
+                    };
+                }
+            } catch (error) {
+                console.warn('[Recipe Button Fix] Error using existing parser:', error);
+            }
+        }
+
+        // Fallback parser using patterns
+        function extractValue(text, pattern) {
+            const match = text.match(pattern);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        const patterns = {
+            ENERGY: /Energy\s*(\d+\.?\d*)\s*kcal/i,
+            PROTEIN: /Protein\s*(\d+\.?\d*)\s*g/i,
+            FAT: /Fat\s*(\d+\.?\d*)\s*g/i,
+            CARBS: /Carbs\s*(\d+\.?\d*)\s*g/i,
+            FIBER: /Fiber\s*(\d+\.?\d*)\s*g/i,
+            SODIUM: /Sodium\s*(\d+\.?\d*)\s*mg/i,
+            VITAMIN_C: /Vitamin C\s*(\d+\.?\d*)\s*mg/i,
+            CALCIUM: /Calcium\s*(\d+\.?\d*)\s*mg/i,
+            IRON: /Iron\s*(\d+\.?\d*)\s*mg/i,
+            POTASSIUM: /Potassium\s*(\d+\.?\d*)\s*mg/i,
+            OMEGA3: /Omega-3\s*(\d+\.?\d*)\s*g/i,
+            OMEGA6: /Omega-6\s*(\d+\.?\d*)\s*g/i
+        };
+
+        return {
+            calories: extractValue(text, patterns.ENERGY),
+            protein: extractValue(text, patterns.PROTEIN),
+            fats: extractValue(text, patterns.FAT),
+            carbohydrates: extractValue(text, patterns.CARBS),
+            fiber: extractValue(text, patterns.FIBER),
+            sodium: extractValue(text, patterns.SODIUM),
+            vitamin_c: extractValue(text, patterns.VITAMIN_C),
+            calcium: extractValue(text, patterns.CALCIUM),
+            iron: extractValue(text, patterns.IRON),
+            potassium: extractValue(text, patterns.POTASSIUM),
+            omega3: extractValue(text, patterns.OMEGA3),
+            omega6: extractValue(text, patterns.OMEGA6)
+        };
+    }
+
+    // Function to show add ingredient popup for existing recipes
+    window.showAddIngredientPopup = function(recipeId) {
+        console.log('[Recipe Button Fix] Showing add ingredient popup for recipe:', recipeId);
+
+        // Remove any existing popup
+        const existingPopup = document.getElementById('add-ingredient-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        // Create popup modal
+        const popupHtml = `
+            <div id="add-ingredient-popup" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            ">
+                <div style="
+                    background: #1a1a1a;
+                    border: 1px solid #444;
+                    border-radius: 8px;
+                    padding: 20px;
+                    width: 90%;
+                    max-width: 400px;
+                    color: #fff;
+                ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 15px;
+                        border-bottom: 1px solid #333;
+                        padding-bottom: 10px;
+                    ">
+                        <h3 style="margin: 0; font-size: 16px;">Add Ingredient</h3>
+                        <button class="close-popup-btn" style="
+                            background: none;
+                            border: none;
+                            color: #ccc;
+                            font-size: 20px;
+                            cursor: pointer;
+                            padding: 0;
+                            width: 24px;
+                            height: 24px;
+                        ">×</button>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Ingredient Name</label>
+                        <input type="text" id="popup-ingredient-name" placeholder="Enter ingredient name" style="
+                            width: 100%;
+                            background: #222;
+                            border: 1px solid #555;
+                            color: #fff;
+                            padding: 8px 10px;
+                            font-size: 13px;
+                            border-radius: 4px;
+                            box-sizing: border-box;
+                        " />
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Cronometer Data (Optional)</label>
+                        <textarea id="popup-cronometer-data" placeholder="Paste Cronometer nutrition data here..." style="
+                            width: 100%;
+                            background: #222;
+                            border: 1px solid #555;
+                            color: #fff;
+                            padding: 8px 10px;
+                            font-size: 13px;
+                            border-radius: 4px;
+                            box-sizing: border-box;
+                            min-height: 60px;
+                            resize: vertical;
+                        "></textarea>
+                        <div style="font-size: 11px; color: #888; margin-top: 4px;">
+                            Paste nutrition data from Cronometer to auto-fill nutrition values
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Amount (g)</label>
+                            <input type="number" id="popup-ingredient-amount" placeholder="0" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Package Amount (g)</label>
+                            <input type="number" id="popup-package-amount" placeholder="0" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Price ($)</label>
+                            <input type="number" id="popup-ingredient-price" placeholder="0.00" step="0.01" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Grocery Store</label>
+                            <input type="text" id="popup-grocery-store" placeholder="Store name" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="popup-add-ingredient-btn" data-recipe-id="${recipeId}" style="
+                            background: #4CAF50;
+                            color: #fff;
+                            border: none;
+                            border-radius: 4px;
+                            padding: 10px 20px;
+                            font-size: 13px;
+                            cursor: pointer;
+                            flex: 1;
+                        ">Add Ingredient</button>
+                        <button class="close-popup-btn" style="
+                            background: #666;
+                            color: #fff;
+                            border: none;
+                            border-radius: 4px;
+                            padding: 10px 20px;
+                            font-size: 13px;
+                            cursor: pointer;
+                            flex: 1;
+                        ">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add popup to body
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+
+        // Focus on the ingredient name input
+        const nameInput = document.getElementById('popup-ingredient-name');
+        if (nameInput) {
+            nameInput.focus();
+        }
+    };
+
+    // Function to add ingredient to recipe from popup
+    window.addIngredientFromPopup = async function(recipeId) {
+        const nameInput = document.getElementById('popup-ingredient-name');
+        const amountInput = document.getElementById('popup-ingredient-amount');
+        const priceInput = document.getElementById('popup-ingredient-price');
+        const packageAmountInput = document.getElementById('popup-package-amount');
+        const groceryStoreInput = document.getElementById('popup-grocery-store');
+        const cronometerDataInput = document.getElementById('popup-cronometer-data');
+
+        const name = nameInput?.value.trim();
+        const amount = parseFloat(amountInput?.value) || 0;
+        const price = parseFloat(priceInput?.value) || 0;
+        const packageAmount = parseFloat(packageAmountInput?.value) || amount;
+        const groceryStore = groceryStoreInput?.value.trim() || '';
+        const cronometerData = cronometerDataInput?.value.trim() || '';
+
+        if (!name || amount <= 0) {
+            alert('Please enter a valid ingredient name and amount.');
+            return;
+        }
+
+        try {
+            console.log('[Recipe Button Fix] Adding ingredient to recipe:', recipeId);
+
+            // Start with default nutrition values
+            let nutritionData = {
+                calories: 0,
+                protein: 0,
+                fats: 0,
+                carbohydrates: 0,
+                fiber: 0,
+                sodium: 0,
+                vitamin_c: 0,
+                calcium: 0,
+                iron: 0,
+                potassium: 0,
+                omega3: 0,
+                omega6: 0
+            };
+
+            // Parse Cronometer data if provided
+            if (cronometerData) {
+                console.log('[Recipe Button Fix] Parsing Cronometer data...');
+                try {
+                    const parsedData = parseCronometerData(cronometerData);
+                    if (parsedData) {
+                        nutritionData = { ...nutritionData, ...parsedData };
+                        console.log('[Recipe Button Fix] Cronometer data parsed successfully:', parsedData);
+                    }
+                } catch (parseError) {
+                    console.warn('[Recipe Button Fix] Error parsing Cronometer data:', parseError);
+                    // Continue with default values if parsing fails
+                }
+            }
+
+            // Create ingredient data with all fields
+            const ingredientData = {
+                name: name,
+                amount: amount,
+                price: price > 0 ? price : 0,
+                package_amount: packageAmount,
+                grocery_store: groceryStore,
+                ...nutritionData
+            };
+
+            console.log('[Recipe Button Fix] Sending ingredient data:', ingredientData);
+
+            const response = await fetch(`/api/recipes/${recipeId}/ingredients`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                },
+                body: JSON.stringify(ingredientData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('[Recipe Button Fix] Server error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('[Recipe Button Fix] Ingredient added successfully:', result);
+
+            // Close the popup
+            closeAddIngredientPopup();
+
+            // Refresh the ingredients display
+            const recipeCard = document.querySelector(`.recipe-card[data-id="${recipeId}"]`);
+            const detailsDiv = recipeCard?.querySelector('.ingredient-details');
+            const viewButton = recipeCard?.querySelector('.view-ingredients-btn');
+
+            if (detailsDiv && viewButton) {
+                // Re-fetch and display ingredients
+                fetchIngredientsDirectly(recipeId, detailsDiv, viewButton);
+            }
+
+            // Show success message
+            alert(`Ingredient "${name}" added successfully to recipe!`);
+
+        } catch (error) {
+            console.error('[Recipe Button Fix] Error adding ingredient:', error);
+            alert(`Error adding ingredient: ${error.message}`);
+        }
+    };
+
+    // Function to close add ingredient popup
+    window.closeAddIngredientPopup = function() {
+        const popup = document.getElementById('add-ingredient-popup');
+        if (popup) {
+            popup.remove();
+        }
+    };
+
+    // Function to delete ingredient from recipe
+    window.deleteIngredientFromRecipe = async function(recipeId, ingredientId) {
+        if (!confirm('Are you sure you want to delete this ingredient?')) {
+            return;
+        }
+
+        try {
+            console.log('[Recipe Button Fix] Deleting ingredient:', ingredientId, 'from recipe:', recipeId);
+
+            const response = await fetch(`/api/direct-update/recipe/${recipeId}/ingredient/${ingredientId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('[Recipe Button Fix] Server error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('[Recipe Button Fix] Ingredient deleted successfully:', result);
+
+            // Refresh the ingredients display
+            const recipeCard = document.querySelector(`.recipe-card[data-id="${recipeId}"]`);
+            const detailsDiv = recipeCard?.querySelector('.ingredient-details');
+            const viewButton = recipeCard?.querySelector('.view-ingredients-btn');
+
+            if (detailsDiv && viewButton) {
+                // Re-fetch and display ingredients
+                fetchIngredientsDirectly(recipeId, detailsDiv, viewButton);
+            }
+
+            // Show success message
+            alert('Ingredient deleted successfully!');
+
+        } catch (error) {
+            console.error('[Recipe Button Fix] Error deleting ingredient:', error);
+            alert(`Error deleting ingredient: ${error.message}`);
+        }
+    };
 
     // Fallback function to delete recipe directly
     async function deleteRecipeDirectly(recipeId, recipeCard) {
@@ -356,6 +760,54 @@
 
         // Add our unified event listener using event delegation
         document.addEventListener('click', handleRecipeButtonClick, true);
+
+        // Add event delegation for add ingredient buttons and popup
+        document.addEventListener('click', function(event) {
+            // Check for add ingredient button (including text-based detection)
+            const button = event.target.closest('button');
+            if (button && button.textContent.includes('+ Add Ingredient')) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const recipeCard = button.closest('.recipe-card');
+                const recipeId = recipeCard ? recipeCard.dataset.id : button.dataset.recipeId;
+
+                if (recipeId) {
+                    console.log('[Recipe Button Fix] Add ingredient button clicked for recipe:', recipeId);
+                    showAddIngredientPopup(recipeId);
+                }
+                return;
+            }
+
+            // Handle popup buttons
+            if (event.target.classList.contains('popup-add-ingredient-btn')) {
+                event.preventDefault();
+                event.stopPropagation();
+                const recipeId = event.target.dataset.recipeId;
+                if (recipeId) {
+                    addIngredientFromPopup(recipeId);
+                }
+            } else if (event.target.classList.contains('close-popup-btn')) {
+                event.preventDefault();
+                event.stopPropagation();
+                closeAddIngredientPopup();
+            } else if (event.target.classList.contains('delete-ingredient-btn')) {
+                event.preventDefault();
+                event.stopPropagation();
+                const recipeId = event.target.dataset.recipeId;
+                const ingredientId = event.target.dataset.ingredientId;
+                if (recipeId && ingredientId) {
+                    deleteIngredientFromRecipe(recipeId, ingredientId);
+                }
+            }
+        }, true);
+
+        // Close popup when clicking outside of it
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'add-ingredient-popup') {
+                closeAddIngredientPopup();
+            }
+        });
 
         console.log('[Recipe Button Fix v2.0] Event listener attached to document');
 

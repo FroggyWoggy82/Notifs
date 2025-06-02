@@ -285,7 +285,7 @@
             return;
         }
 
-        console.log('[Tooltip Fix] Attaching tooltip events to chart');
+        // Attaching tooltip events to chart
 
         const canvas = chart.canvas;
 
@@ -306,7 +306,7 @@
             canvas.addEventListener('mousemove', canvas._tooltipMouseMoveHandler);
             canvas.addEventListener('mouseout', canvas._tooltipMouseOutHandler);
 
-            console.log('[Tooltip Fix] Tooltip events attached successfully');
+            // Tooltip events attached successfully
         } catch (error) {
             console.error('[Tooltip Fix] Error attaching tooltip events:', error);
         }
@@ -327,7 +327,7 @@
                         console.log('[Tooltip Fix] Using weekly goal points fix');
                         window.customGoalWeights.ensureWeeklyGoalPoints();
                     } else {
-                        console.log('[Tooltip Fix] Weekly goal points fix not available');
+                        // Weekly goal points fix not available
                     }
                 }, 200);
             } else if (window.weightGoalChart) {
@@ -339,7 +339,7 @@
                         console.log('[Tooltip Fix] Using weekly goal points fix');
                         window.customGoalWeights.ensureWeeklyGoalPoints();
                     } else {
-                        console.log('[Tooltip Fix] Weekly goal points fix not available');
+                        // Weekly goal points fix not available
                     }
                 }, 200);
             } else {

@@ -4,7 +4,10 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
     "start": "node server.js",
     "migrate": "node apply-migrations.js",
     "postinstall": "node ./scripts/postinstall.js"
@@ -26,7 +29,6 @@
   },
   "dependencies": {
     "@ngrok/ngrok": "^1.5.1",
-    "@ngrok/ngrok-win32-x64-msvc": "^1.5.1",
     "@smithery/cli": "^1.2.4",
     "acorn": "^8.14.1",
     "acorn-walk": "^8.3.4",

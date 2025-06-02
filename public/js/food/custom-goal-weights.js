@@ -1347,7 +1347,7 @@ function addWeekNumbersToPoints() {
 
             const goalPoints = canvas.parentElement.querySelectorAll('.goal-weight-point');
 
-            console.log(`Found ${goalPoints.length} goal weight points to add week numbers to`);
+            // Found goal weight points to add week numbers to
 
             if (window.weeklyGoalWeights && window.weeklyGoalWeights.length > 0) {
                 goalPoints.forEach((point, index) => {

@@ -547,6 +547,41 @@ async function addIngredientToRecipe(req, res) {
     }
 }
 
+/**
+ * Delete an ingredient from a recipe
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function deleteIngredientFromRecipe(req, res) {
+    const { recipeId, ingredientId } = req.params;
+    console.log(`Received DELETE /api/recipes/${recipeId}/ingredients/${ingredientId}`);
+
+    try {
+        const recipe = await RecipeModel.deleteIngredientFromRecipe(recipeId, ingredientId);
+        console.log(`Ingredient ${ingredientId} deleted from recipe ${recipeId} successfully`);
+
+        // Set cache control headers to prevent caching
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        res.json({
+            ...recipe,
+            message: `Ingredient deleted successfully from recipe`,
+            success: true,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error(`Error deleting ingredient ${ingredientId} from recipe ${recipeId}:`, error);
+
+        if (error.message.includes('not found')) {
+            return res.status(404).json({ error: error.message });
+        }
+
+        res.status(500).json({ error: 'Failed to delete ingredient from recipe' });
+    }
+}
+
 module.exports = {
     getAllRecipes,
     getRecipeById,
@@ -557,5 +592,6 @@ module.exports = {
     getIngredientById,
     updateIngredientPackageAmount,
     updateIngredientOmegaValues,
-    addIngredientToRecipe
+    addIngredientToRecipe,
+    deleteIngredientFromRecipe
 };

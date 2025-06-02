@@ -3198,8 +3198,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (recipeData.ingredients.length === 0) {
-                
-                detailsDiv.innerHTML = '<p>This recipe has no ingredients.</p>';
+
+                detailsDiv.innerHTML = `
+                    <p>No ingredients found.</p>
+                    <button type="button" class="action-btn action-btn-primary" onclick="showAddIngredientModal(${recipeId})">
+                        <span>➕</span> Add Ingredient
+                    </button>
+                `;
                 return;
             }
 
@@ -7219,7 +7224,174 @@ document.addEventListener('DOMContentLoaded', () => {
         button.classList.toggle('active', !isVisible);
     }
 
+    // Function to show add ingredient modal for existing recipes
+    window.showAddIngredientModal = function(recipeId) {
+        console.log('Showing add ingredient modal for recipe:', recipeId);
+
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+        // Create modal content
+        const modal = document.createElement('div');
+        modal.className = 'add-ingredient-modal';
+        modal.style.cssText = `
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: white;
+        `;
+
+        modal.innerHTML = `
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: white;">Add Ingredient to Recipe</h3>
+                <button type="button" class="close-modal-btn" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-content">
+                <form id="add-ingredient-to-recipe-form">
+                    <input type="hidden" name="recipe-id" value="${recipeId}">
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: white;">Ingredient Name:</label>
+                        <input type="text" name="ingredient-name" required style="width: 100%; padding: 8px; border: 1px solid #555; background-color: #333; color: white; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: white;">Amount (g):</label>
+                        <input type="number" name="ingredient-amount" step="0.01" required style="width: 100%; padding: 8px; border: 1px solid #555; background-color: #333; color: white; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: white;">Package Price:</label>
+                        <input type="number" name="ingredient-price" step="0.01" required style="width: 100%; padding: 8px; border: 1px solid #555; background-color: #333; color: white; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: white;">Package Amount (g):</label>
+                        <input type="number" name="package-amount" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #555; background-color: #333; color: white; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: white;">Grocery Store:</label>
+                        <input type="text" name="grocery-store" style="width: 100%; padding: 8px; border: 1px solid #555; background-color: #333; color: white; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: white;">Cronometer Data (optional):</label>
+                        <textarea name="cronometer-data" placeholder="Paste Cronometer nutrition data here..." style="width: 100%; height: 100px; padding: 8px; border: 1px solid #555; background-color: #333; color: white; border-radius: 4px; resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="cancel-btn" style="padding: 10px 20px; background-color: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        <button type="submit" class="add-btn" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Ingredient</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        // Add event listeners
+        const closeBtn = modal.querySelector('.close-modal-btn');
+        const cancelBtn = modal.querySelector('.cancel-btn');
+        const form = modal.querySelector('#add-ingredient-to-recipe-form');
+
+        function closeModal() {
+            document.body.removeChild(overlay);
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const ingredientData = {
+                name: formData.get('ingredient-name'),
+                amount: parseFloat(formData.get('ingredient-amount')),
+                price: parseFloat(formData.get('ingredient-price')),
+                package_amount: formData.get('package-amount') ? parseFloat(formData.get('package-amount')) : null,
+                grocery_store: formData.get('grocery-store') || null,
+                calories: 0, // Will be updated if Cronometer data is provided
+                protein: 0,
+                fats: 0,
+                carbohydrates: 0
+            };
+
+            // Parse Cronometer data if provided
+            const cronometerData = formData.get('cronometer-data');
+            if (cronometerData && cronometerData.trim()) {
+                try {
+                    if (typeof window.parseCronometerText === 'function') {
+                        const parsed = window.parseCronometerText(cronometerData);
+                        if (parsed) {
+                            ingredientData.calories = parsed.calories || 0;
+                            ingredientData.protein = parsed.protein || 0;
+                            ingredientData.fats = parsed.fat || 0;
+                            ingredientData.carbohydrates = parsed.carbs || 0;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error parsing Cronometer data:', error);
+                }
+            }
+
+            try {
+                const response = await fetch(`/api/recipes/${recipeId}/ingredients`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(ingredientData)
+                });
+
+                if (response.ok) {
+                    console.log('Ingredient added successfully');
+                    closeModal();
+
+                    // Refresh the recipe display
+                    const recipeCard = document.querySelector(`.recipe-card[data-id="${recipeId}"]`);
+                    if (recipeCard) {
+                        const detailsDiv = recipeCard.querySelector('.ingredient-details');
+                        const viewButton = recipeCard.querySelector('.view-ingredients-btn');
+                        if (detailsDiv) {
+                            fetchAndDisplayIngredients(recipeId, detailsDiv, viewButton, true);
+                        }
+                    }
+                } else {
+                    const errorData = await response.json();
+                    alert('Error adding ingredient: ' + (errorData.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error adding ingredient:', error);
+                alert('Error adding ingredient: ' + error.message);
+            }
+        });
+    };
+
     // Export functions globally for use by direct-recipe-button-fix.js
     window.fetchAndDisplayIngredients = fetchAndDisplayIngredients;
     window.deleteRecipe = deleteRecipe;
+    window.showAddIngredientModal = window.showAddIngredientModal;
 });

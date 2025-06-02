@@ -325,7 +325,81 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// DELETE /api/recipes/:recipeId/ingredients/:ingredientId - Delete an ingredient from a recipe
+// NOTE: This route MUST come BEFORE the /:id route to avoid conflicts
+router.delete('/:recipeId/ingredients/:ingredientId', async (req, res) => {
+    console.log('=== DELETE INGREDIENT ROUTE HIT IN RECIPES.JS ===');
+    console.log('Route params:', req.params);
+    console.log('Full URL:', req.originalUrl);
+    console.log('Method:', req.method);
+    const { recipeId, ingredientId } = req.params;
+    console.log(`Received DELETE /api/recipes/${recipeId}/ingredients/${ingredientId}`);
+
+    const client = await db.getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // Check if recipe exists
+        const recipeResult = await client.query('SELECT * FROM recipes WHERE id = $1', [recipeId]);
+        if (recipeResult.rowCount === 0) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+
+        // Check if ingredient exists and belongs to the recipe
+        const ingredientResult = await client.query(
+            'SELECT * FROM ingredients WHERE id = $1 AND recipe_id = $2',
+            [ingredientId, recipeId]
+        );
+        if (ingredientResult.rowCount === 0) {
+            return res.status(404).json({ error: 'Ingredient not found or does not belong to this recipe' });
+        }
+
+        const deletedIngredient = ingredientResult.rows[0];
+        console.log('Deleting ingredient:', deletedIngredient.name);
+
+        // Delete the ingredient
+        await client.query('DELETE FROM ingredients WHERE id = $1', [ingredientId]);
+
+        // Recalculate recipe calories
+        const remainingIngredientsResult = await client.query(
+            'SELECT * FROM ingredients WHERE recipe_id = $1',
+            [recipeId]
+        );
+
+        const totalCalories = remainingIngredientsResult.rows.reduce((sum, ingredient) => {
+            return sum + (parseFloat(ingredient.calories) || 0);
+        }, 0);
+
+        // Update recipe total calories
+        await client.query(
+            'UPDATE recipes SET total_calories = $1 WHERE id = $2',
+            [totalCalories, recipeId]
+        );
+
+        await client.query('COMMIT');
+        console.log(`Ingredient ${ingredientId} deleted from recipe ${recipeId} successfully`);
+
+        res.json({
+            message: `Ingredient deleted successfully from recipe`,
+            success: true,
+            recipeId: parseInt(recipeId),
+            ingredientId: parseInt(ingredientId),
+            deletedIngredient: deletedIngredient.name,
+            newTotalCalories: totalCalories
+        });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(`Error deleting ingredient ${ingredientId} from recipe ${recipeId}:`, err);
+        res.status(500).json({ error: 'Failed to delete ingredient from recipe' });
+    } finally {
+        client.release();
+    }
+});
+
 // DELETE /api/recipes/:id - Delete a recipe and its ingredients
+// NOTE: This route comes AFTER the ingredient delete route to avoid conflicts
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     console.log(`Received DELETE /api/recipes/${id}`);
