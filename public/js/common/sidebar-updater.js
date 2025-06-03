@@ -126,7 +126,10 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             window.sidebarFunctions.sidebarClick = function(e) {
-                e.stopPropagation();
+                // Don't stop propagation for navigation links - let them navigate
+                if (!e.target.closest('.sidebar-nav-item')) {
+                    e.stopPropagation();
+                }
             };
 
             window.sidebarFunctions.keydownHandler = function(e) {
@@ -164,9 +167,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Handle navigation items
             const updatedNavItems = document.querySelectorAll('.sidebar-nav-item');
             updatedNavItems.forEach(item => {
-                item.addEventListener('click', () => {
+                item.addEventListener('click', (e) => {
+                    // Allow navigation to proceed normally
+                    console.log('[Sidebar Updater] Navigation item clicked:', item.getAttribute('href'));
+
+                    // Close sidebar on mobile after a short delay to allow navigation
                     if (window.innerWidth <= 768) {
-                        window.sidebarFunctions.closeSidebar();
+                        setTimeout(() => {
+                            window.sidebarFunctions.closeSidebar();
+                        }, 100);
                     }
                 });
             });

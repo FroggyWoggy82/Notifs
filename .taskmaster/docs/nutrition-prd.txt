@@ -1,0 +1,55 @@
+# Nutrition Field Debugging and Fixing Project
+
+## Project Overview
+Fix all problematic nutrition fields in the food tracking application to ensure comprehensive nutrition data can be saved and persisted correctly.
+
+## Problem Statement
+Several nutrition fields are not working correctly:
+
+### Critical Issues
+1. **Vitamin B1 (Thiamine)** - causes 500 API errors when saving
+2. **Vitamin B2 (Riboflavin)** - causes 500 API errors when saving  
+3. **Vitamin B3 (Niacin)** - causes 500 API errors when saving
+4. **Vitamin B5 (Pantothenic Acid)** - has API issues, values don't persist
+5. **Trans Fat** - loads correctly but doesn't save new values
+6. **Selenium** - user reported that changing selenium to 200 for chicken thighs didn't save
+
+### Current Status
+- 47 out of 49 nutrition fields are working (96% success rate)
+- Need to achieve 100% functionality for all nutrition fields
+- User expects all fields to work reliably
+
+## Technical Context
+- Frontend: HTML forms with JavaScript
+- Backend: Node.js API with database
+- Current implementation has comprehensive field mapping but some API endpoint issues
+- Some fields may have database schema mismatches or validation issues
+
+## Success Criteria
+1. All vitamin B fields (B1, B2, B3, B5) save and persist correctly
+2. Trans fat field saves new values and persists
+3. Selenium field saves and persists correctly for all ingredients
+4. No 500 errors when saving any nutrition field
+5. All nutrition values persist when reopening edit forms
+6. Comprehensive testing confirms 100% field functionality
+
+## Technical Requirements
+1. Investigate API endpoint issues for problematic fields
+2. Check database schema for field name mismatches
+3. Implement proper error handling and validation
+4. Test each problematic field individually
+5. Verify field mapping between frontend and backend
+6. Ensure consistent behavior across all ingredients
+
+## Constraints
+- Must maintain existing functionality for working fields
+- Cannot break current nutrition editing system
+- Must be backwards compatible with existing data
+- Should handle edge cases and validation errors gracefully
+
+## Deliverables
+1. Fixed API endpoints for all vitamin B fields
+2. Working trans fat save functionality
+3. Reliable selenium field persistence
+4. Comprehensive test suite for all nutrition fields
+5. Documentation of field mappings and API requirements

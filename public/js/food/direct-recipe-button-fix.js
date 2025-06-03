@@ -9,6 +9,9 @@
 
     console.log('[Recipe Button Fix v2.0] Initializing comprehensive recipe button handler...');
 
+    // Flag to prevent multiple initializations
+    let isInitialized = false;
+
     // Remove any existing event listeners to prevent conflicts
     function removeConflictingHandlers() {
         // Remove any existing click handlers on recipe buttons
@@ -175,8 +178,6 @@
     // Fallback function to fetch ingredients directly (READ-ONLY VIEW)
     async function fetchIngredientsDirectly(recipeId, detailsDiv, button) {
         try {
-            console.log('[Recipe Button Fix] Fetching ingredients for recipe:', recipeId);
-
             // Use the correct API endpoint that returns recipe with ingredients
             const response = await fetch(`/api/recipes/${recipeId}`);
             if (!response.ok) {
@@ -184,7 +185,6 @@
             }
 
             const recipeData = await response.json();
-            console.log('[Recipe Button Fix] Raw API response:', recipeData);
 
             // Handle both possible response structures
             let ingredients = [];
@@ -196,10 +196,7 @@
                 ingredients = recipeData;
             }
 
-            console.log('[Recipe Button Fix] Fetched ingredients:', ingredients.length);
-
             // Display ingredients in READ-ONLY format (no edit buttons or modals)
-            console.log('[Recipe Button Fix] Processing ingredients array:', ingredients);
 
             if (!ingredients || ingredients.length === 0) {
                 detailsDiv.innerHTML = '<p style="color: #888; text-align: center; padding: 5px; font-size: 12px;">No ingredients found.</p>';
@@ -229,11 +226,16 @@
                                         background: #666;
                                         color: #fff;
                                         border: none;
-                                        border-radius: 2px;
-                                        padding: 2px 6px;
-                                        font-size: 10px;
+                                        border-radius: 1px;
+                                        padding: 1px 3px;
+                                        font-size: 8px;
                                         cursor: pointer;
                                         line-height: 1;
+                                        width: 12px;
+                                        height: 12px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
                                     " title="Delete ingredient">×</button>
                                 </div>
                             </div>
@@ -281,7 +283,6 @@
             }, 100);
 
         } catch (error) {
-            console.error('[Recipe Button Fix] Error fetching ingredients:', error);
             detailsDiv.innerHTML = `
                 <div style="background: #2a2a2a; border-radius: 6px; padding: 15px; margin-top: 10px; text-align: center;">
                     <p style="color: #ff6b6b; margin: 0 0 10px 0;">
@@ -376,8 +377,6 @@
 
     // Function to show add ingredient popup for existing recipes
     window.showAddIngredientPopup = function(recipeId) {
-        console.log('[Recipe Button Fix] Showing add ingredient popup for recipe:', recipeId);
-
         // Remove any existing popup
         const existingPopup = document.getElementById('add-ingredient-popup');
         if (existingPopup) {
@@ -555,29 +554,37 @@
         }
     };
 
+    // Debounce flag to prevent duplicate submissions
+    let isSubmittingIngredient = false;
+
     // Function to add ingredient to recipe from popup
     window.addIngredientFromPopup = async function(recipeId) {
-        const nameInput = document.getElementById('popup-ingredient-name');
-        const amountInput = document.getElementById('popup-ingredient-amount');
-        const priceInput = document.getElementById('popup-ingredient-price');
-        const packageAmountInput = document.getElementById('popup-package-amount');
-        const groceryStoreInput = document.getElementById('popup-grocery-store');
-        const cronometerDataInput = document.getElementById('popup-cronometer-data');
-
-        const name = nameInput?.value.trim();
-        const amount = parseFloat(amountInput?.value) || 0;
-        const price = parseFloat(priceInput?.value) || 0;
-        const packageAmount = parseFloat(packageAmountInput?.value) || amount;
-        const groceryStore = groceryStoreInput?.value.trim() || '';
-        const cronometerData = cronometerDataInput?.value.trim() || '';
-
-        if (!name || amount <= 0) {
-            alert('Please enter a valid ingredient name and amount.');
+        // Prevent duplicate submissions
+        if (isSubmittingIngredient) {
             return;
         }
 
+        isSubmittingIngredient = true;
+
         try {
-            console.log('[Recipe Button Fix] Adding ingredient to recipe:', recipeId);
+            const nameInput = document.getElementById('popup-ingredient-name');
+            const amountInput = document.getElementById('popup-ingredient-amount');
+            const priceInput = document.getElementById('popup-ingredient-price');
+            const packageAmountInput = document.getElementById('popup-package-amount');
+            const groceryStoreInput = document.getElementById('popup-grocery-store');
+            const cronometerDataInput = document.getElementById('popup-cronometer-data');
+
+            const name = nameInput?.value.trim();
+            const amount = parseFloat(amountInput?.value) || 0;
+            const price = parseFloat(priceInput?.value) || 0;
+            const packageAmount = parseFloat(packageAmountInput?.value) || amount;
+            const groceryStore = groceryStoreInput?.value.trim() || '';
+            const cronometerData = cronometerDataInput?.value.trim() || '';
+
+            if (!name || amount <= 0) {
+                alert('Please enter a valid ingredient name and amount.');
+                return;
+            }
 
             // Start with default nutrition values
             let nutritionData = {
@@ -597,15 +604,12 @@
 
             // Parse Cronometer data if provided
             if (cronometerData) {
-                console.log('[Recipe Button Fix] Parsing Cronometer data...');
                 try {
                     const parsedData = parseCronometerData(cronometerData);
                     if (parsedData) {
                         nutritionData = { ...nutritionData, ...parsedData };
-                        console.log('[Recipe Button Fix] Cronometer data parsed successfully:', parsedData);
                     }
                 } catch (parseError) {
-                    console.warn('[Recipe Button Fix] Error parsing Cronometer data:', parseError);
                     // Continue with default values if parsing fails
                 }
             }
@@ -620,8 +624,6 @@
                 ...nutritionData
             };
 
-            console.log('[Recipe Button Fix] Sending ingredient data:', ingredientData);
-
             const response = await fetch(`/api/recipes/${recipeId}/ingredients`, {
                 method: 'POST',
                 headers: {
@@ -633,12 +635,10 @@
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('[Recipe Button Fix] Server error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
 
             const result = await response.json();
-            console.log('[Recipe Button Fix] Ingredient added successfully:', result);
 
             // Close the popup
             closeAddIngredientPopup();
@@ -650,15 +650,17 @@
 
             if (detailsDiv && viewButton) {
                 // Re-fetch and display ingredients
-                fetchIngredientsDirectly(recipeId, detailsDiv, viewButton);
+                await fetchIngredientsDirectly(recipeId, detailsDiv, viewButton);
             }
 
-            // Show success message
-            alert(`Ingredient "${name}" added successfully to recipe!`);
+            // Show visual success notification
+            showNotification(`Ingredient "${name}" added successfully!`, 'success');
 
         } catch (error) {
-            console.error('[Recipe Button Fix] Error adding ingredient:', error);
-            alert(`Error adding ingredient: ${error.message}`);
+            showNotification(`Error adding ingredient: ${error.message}`, 'error');
+        } finally {
+            // Reset the debounce flag
+            isSubmittingIngredient = false;
         }
     };
 
@@ -670,15 +672,79 @@
         }
     };
 
+    // Visual notification system (make it globally accessible)
+    window.showNotification = function(message, type = 'success') {
+        // Remove any existing notifications
+        const existingNotification = document.getElementById('ingredient-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.id = 'ingredient-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            max-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+        // Add CSS animation
+        if (!document.getElementById('notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, 3000);
+    };
+
+    // Debounce flag to prevent duplicate refresh calls
+    let isRefreshing = false;
+
     // Function to delete ingredient from recipe
     window.deleteIngredientFromRecipe = async function(recipeId, ingredientId) {
-        if (!confirm('Are you sure you want to delete this ingredient?')) {
+        // Direct delete without confirmation dialog
+
+        // Prevent duplicate refresh calls
+        if (isRefreshing) {
             return;
         }
 
         try {
-            console.log('[Recipe Button Fix] Deleting ingredient:', ingredientId, 'from recipe:', recipeId);
-
             const response = await fetch(`/api/direct-update/recipe/${recipeId}/ingredient/${ingredientId}`, {
                 method: 'DELETE',
                 headers: {
@@ -689,12 +755,13 @@
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('[Recipe Button Fix] Server error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
 
             const result = await response.json();
-            console.log('[Recipe Button Fix] Ingredient deleted successfully:', result);
+
+            // Set refresh flag to prevent duplicates
+            isRefreshing = true;
 
             // Refresh the ingredients display
             const recipeCard = document.querySelector(`.recipe-card[data-id="${recipeId}"]`);
@@ -703,15 +770,19 @@
 
             if (detailsDiv && viewButton) {
                 // Re-fetch and display ingredients
-                fetchIngredientsDirectly(recipeId, detailsDiv, viewButton);
+                await fetchIngredientsDirectly(recipeId, detailsDiv, viewButton);
             }
 
-            // Show success message
-            alert('Ingredient deleted successfully!');
+            // Show visual success notification
+            showNotification('Ingredient deleted successfully!', 'success');
 
         } catch (error) {
-            console.error('[Recipe Button Fix] Error deleting ingredient:', error);
-            alert(`Error deleting ingredient: ${error.message}`);
+            showNotification(`Error deleting ingredient: ${error.message}`, 'error');
+        } finally {
+            // Reset refresh flag after a short delay
+            setTimeout(() => {
+                isRefreshing = false;
+            }, 1000);
         }
     };
 
@@ -753,7 +824,13 @@
 
     // Initialize the fix
     function init() {
+        if (isInitialized) {
+            console.log('[Recipe Button Fix v2.0] Already initialized, skipping...');
+            return;
+        }
+
         console.log('[Recipe Button Fix v2.0] Initializing...');
+        isInitialized = true;
 
         // Remove conflicting handlers first
         removeConflictingHandlers();
@@ -773,7 +850,6 @@
                 const recipeId = recipeCard ? recipeCard.dataset.id : button.dataset.recipeId;
 
                 if (recipeId) {
-                    console.log('[Recipe Button Fix] Add ingredient button clicked for recipe:', recipeId);
                     showAddIngredientPopup(recipeId);
                 }
                 return;

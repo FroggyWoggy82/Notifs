@@ -134,21 +134,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function createNutritionSection(title, fields) {
         const section = document.createElement('div');
         section.className = 'nutrition-section';
-        section.style.marginBottom = '8px';
-        section.style.paddingBottom = '6px';
+        section.style.marginBottom = '4px'; // Reduced from 8px
+        section.style.paddingBottom = '2px'; // Reduced from 6px
 
         const header = document.createElement('h4');
         header.textContent = title;
-        header.style.fontSize = '0.8em';
-        header.style.marginBottom = '4px';
-        header.style.paddingBottom = '2px';
+        header.style.fontSize = '0.75em'; // Reduced from 0.8em
+        header.style.marginBottom = '2px'; // Reduced from 4px
+        header.style.paddingBottom = '1px'; // Reduced from 2px
+        header.style.fontWeight = '600'; // Make header slightly bolder for readability
         section.appendChild(header);
 
         const grid = document.createElement('div');
         grid.className = 'nutrition-grid';
         grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(90px, 1fr))';
-        grid.style.gap = '4px';
+        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(80px, 1fr))'; // Reduced from 90px
+        grid.style.gap = '2px'; // Reduced from 4px
 
         fields.sort((a, b) => {
             if (a.primary && !b.primary) return -1;
@@ -161,21 +162,21 @@ document.addEventListener('DOMContentLoaded', function() {
             item.className = 'nutrition-item';
             item.style.display = 'flex';
             item.style.flexDirection = 'column';
-            item.style.marginBottom = '2px';
+            item.style.marginBottom = '1px'; // Reduced from 2px
             if (field.primary) {
                 item.classList.add('primary');
             }
 
             const label = document.createElement('label');
             label.setAttribute('for', field.id);
-            label.style.fontSize = '0.65em';
-            label.style.marginBottom = '1px';
+            label.style.fontSize = '0.6em'; // Reduced from 0.65em
+            label.style.marginBottom = '0px'; // Reduced from 1px
             label.style.whiteSpace = 'nowrap';
             label.style.overflow = 'hidden';
             label.style.textOverflow = 'ellipsis';
             label.style.display = 'flex';
             label.style.justifyContent = 'space-between';
-            label.style.lineHeight = '1.2';
+            label.style.lineHeight = '1.1'; // Reduced from 1.2
 
             const labelText = document.createElement('span');
             labelText.textContent = field.label;
@@ -195,13 +196,14 @@ document.addEventListener('DOMContentLoaded', function() {
             input.step = '0.1';
             input.min = '0';
             input.style.width = '100%';
-            input.style.padding = '1px 3px';
-            input.style.height = '18px';
-            input.style.fontSize = '0.7em';
+            input.style.padding = '1px 2px'; // Reduced horizontal padding
+            input.style.height = '16px'; // Reduced from 18px
+            input.style.fontSize = '0.65em'; // Reduced from 0.7em
             input.style.border = '1px solid rgba(255, 255, 255, 0.1)';
             input.style.borderRadius = '2px';
             input.style.backgroundColor = 'rgba(20, 20, 20, 0.8)';
             input.style.color = '#e0e0e0';
+            input.style.boxSizing = 'border-box'; // Ensure consistent sizing
             if (field.required) {
                 input.required = true;
             }

@@ -112,6 +112,9 @@
     <!-- Unified button alignment - fixes Add Ingredient button alignment and prevents duplicate modals -->
     <link rel="stylesheet" href="../css/unified-button-alignment.css"> <!-- Unified button alignment and styling -->
 
+    <!-- Comprehensive edit modal compact styling -->
+    <link rel="stylesheet" href="../css/comprehensive-edit-modal-compact.css"> <!-- Compact styling for comprehensive edit modal -->
+
     <!-- CRITICAL: Force header buttons visible - must load immediately after CSS -->
     <script src="../js/food/force-header-buttons-visible.js"></script> <!-- Forces header buttons to be visible -->
 
@@ -474,11 +477,11 @@
                         <div class="ingredient-type-selector">
                             <div class="ingredient-type-option active" data-type="new">
                                 <input type="radio" name="ingredient-selection-type-initial" value="new" class="ingredient-selection-radio" checked>
-                                <span>✨ Create New</span>
+                                <span>Create New</span>
                             </div>
                             <div class="ingredient-type-option" data-type="existing">
                                 <input type="radio" name="ingredient-selection-type-initial" value="existing" class="ingredient-selection-radio">
-                                <span>📋 Use Existing</span>
+                                <span>Use Existing</span>
                             </div>
                         </div>
                     </div>
@@ -839,6 +842,31 @@
                     }
                 });
 
+                // Handle navigation links - ensure they work properly
+                const navItems = document.querySelectorAll('.sidebar-nav-item');
+                navItems.forEach(item => {
+                    // Remove any existing event listeners by cloning the element
+                    const newItem = item.cloneNode(true);
+                    item.parentNode.replaceChild(newItem, item);
+
+                    // Add a direct click handler that forces navigation
+                    newItem.addEventListener('click', function(e) {
+                        console.log('[Ultimate Sidebar] Navigation item clicked:', newItem.getAttribute('href'));
+
+                        // Force navigation by directly setting window.location
+                        const href = newItem.getAttribute('href');
+                        if (href && href !== '#') {
+                            console.log('[Ultimate Sidebar] Forcing navigation to:', href);
+                            window.location.href = href;
+                        }
+
+                        // Close sidebar on mobile
+                        if (window.innerWidth <= 768) {
+                            window.ultimateSidebarControl.closeSidebar();
+                        }
+                    });
+                });
+
                 console.log('[Ultimate Sidebar] Setup complete');
                 return true;
             } else {
@@ -851,21 +879,24 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('[Ultimate Sidebar] DOM loaded, starting initialization...');
 
-            // Try immediately
-            if (!initializeSidebar()) {
-                // Try after 500ms
-                setTimeout(function() {
-                    if (!initializeSidebar()) {
-                        // Try after 1 second
-                        setTimeout(function() {
-                            if (!initializeSidebar()) {
-                                // Try after 2 seconds
-                                setTimeout(initializeSidebar, 2000);
-                            }
-                        }, 1000);
-                    }
-                }, 500);
-            }
+            // Wait for sidebar-updater.js to finish replacing the sidebar HTML
+            setTimeout(function() {
+                // Try immediately
+                if (!initializeSidebar()) {
+                    // Try after 500ms
+                    setTimeout(function() {
+                        if (!initializeSidebar()) {
+                            // Try after 1 second
+                            setTimeout(function() {
+                                if (!initializeSidebar()) {
+                                    // Try after 2 seconds
+                                    setTimeout(initializeSidebar, 2000);
+                                }
+                            }, 1000);
+                        }
+                    }, 500);
+                }
+            }, 200); // Wait 200ms for sidebar-updater.js to finish
         });
 
         // Also try when window loads
@@ -879,6 +910,52 @@
             console.log('[Ultimate Sidebar] Manual test triggered');
             return window.ultimateSidebarControl.toggleSidebar();
         };
+
+        // Global click interceptor for sidebar navigation - highest priority
+        document.addEventListener('click', function(e) {
+            // Check if the click is on a sidebar navigation item
+            const navItem = e.target.closest('.sidebar-nav-item');
+            if (navItem && navItem.closest('.sidebar')) {
+                console.log('[Ultimate Sidebar] GLOBAL interceptor caught navigation click:', navItem.getAttribute('href'));
+
+                // Stop all other event handlers immediately
+                e.stopImmediatePropagation();
+                e.preventDefault();
+
+                // Force navigation
+                const href = navItem.getAttribute('href');
+                if (href && href !== '#') {
+                    console.log('[Ultimate Sidebar] GLOBAL interceptor navigating to:', href);
+                    window.location.href = href;
+                }
+
+                return false;
+            }
+        }, true); // Use capture phase to run before all other handlers
+
+        // Force navigation fix - runs after all other scripts
+        setTimeout(function() {
+            console.log('[Ultimate Sidebar] Applying force navigation fix...');
+            const navItems = document.querySelectorAll('.sidebar-nav-item');
+            navItems.forEach(item => {
+                // Add a high-priority click handler
+                item.addEventListener('click', function(e) {
+                    console.log('[Ultimate Sidebar] FORCE Navigation item clicked:', item.getAttribute('href'));
+
+                    // Stop all other event handlers
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+
+                    // Force navigation
+                    const href = item.getAttribute('href');
+                    if (href && href !== '#') {
+                        console.log('[Ultimate Sidebar] FORCE Navigating to:', href);
+                        window.location.href = href;
+                    }
+                }, true); // Use capture phase with high priority
+            });
+            console.log('[Ultimate Sidebar] Force navigation fix applied to', navItems.length, 'items');
+        }, 1000); // Run after 1 second to ensure all other scripts have loaded
     </script>
     <script src="../js/common/chart-config.js"></script>
     <script src="../js/common/bottom-nav-fix.js"></script> <!-- Bottom navigation fix -->
@@ -928,7 +1005,185 @@
     <script src="../js/food/shorter-button-text.js"></script> <!-- Shorter button text -->
     <script src="../js/food/fix-vertical-alignment.js"></script> <!-- Fix vertical alignment -->
     <script src="../js/food/exact-position-match.js"></script> <!-- Exact position match -->
-    <script src="../js/food/nutrition-edit-buttons.js"></script> <!-- Add Save and Cancel buttons to nutrition panel -->
+    <script src="../js/food/nutrition-edit-buttons.js?v=5.0"></script> <!-- Add Save and Cancel buttons to nutrition panel -->
+
+    <!-- Fallback comprehensive nutrition save functionality -->
+    <script>
+    // Ensure comprehensive nutrition save functionality works
+    setTimeout(function() {
+        console.log('[Fallback] Checking if comprehensive save functionality is available...');
+
+        // Check if the save button exists and doesn't have the comprehensive functionality
+        const saveBtn = document.querySelector('.save-nutrition');
+        if (saveBtn) {
+            console.log('[Fallback] Save button found, ensuring comprehensive functionality...');
+
+            // Add a flag to prevent duplicate event listeners
+            if (!saveBtn.hasComprehensiveSave) {
+                saveBtn.hasComprehensiveSave = true;
+
+                // Remove existing event listeners by cloning the button
+                const newSaveBtn = saveBtn.cloneNode(true);
+                saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+                newSaveBtn.hasComprehensiveSave = true;
+
+                // Add comprehensive save event listener
+                newSaveBtn.addEventListener('click', function() {
+                    console.log('[Fallback Save] Comprehensive save triggered');
+
+                    const panel = newSaveBtn.closest('.detailed-nutrition-panel');
+                    if (!panel) {
+                        console.error('[Fallback Save] Could not find nutrition panel');
+                        return;
+                    }
+
+                    // Helper function to safely get value from an element
+                    const getElementValue = (id) => {
+                        const element = document.getElementById(id);
+                        const value = element ? (parseFloat(element.value) || 0) : 0;
+                        return value;
+                    };
+
+                    // Collect ALL comprehensive nutrition data
+                    const nutritionData = {
+                        // Basic nutrition
+                        calories: getElementValue('edit-nutrition-calories'),
+                        protein: getElementValue('edit-nutrition-protein'),
+                        fats: getElementValue('edit-nutrition-fat'),
+                        carbohydrates: getElementValue('edit-nutrition-carbs'),
+
+                        // Carbohydrates
+                        fiber: getElementValue('edit-nutrition-fiber'),
+                        sugars: getElementValue('edit-nutrition-sugars'),
+                        starch: getElementValue('edit-nutrition-starch'),
+                        added_sugars: getElementValue('edit-nutrition-added-sugars'),
+                        net_carbs: getElementValue('edit-nutrition-net-carbs'),
+
+                        // B Vitamins (using actual database column names)
+                        vitamin_b1: getElementValue('edit-nutrition-b1'),
+                        vitamin_b2: getElementValue('edit-nutrition-b2'),
+                        vitamin_b3: getElementValue('edit-nutrition-b3'),
+                        vitamin_b5: getElementValue('edit-nutrition-b5'),
+                        vitamin_b6: getElementValue('edit-nutrition-b6'),
+                        vitamin_b12: getElementValue('edit-nutrition-b12'),
+                        folate: getElementValue('edit-nutrition-folate'),
+
+                        // Other Vitamins
+                        vitamin_a: getElementValue('edit-nutrition-vitamin-a'),
+                        vitamin_c: getElementValue('edit-nutrition-vitamin-c'),
+                        vitamin_d: getElementValue('edit-nutrition-vitamin-d'),
+                        vitamin_e: getElementValue('edit-nutrition-vitamin-e'),
+                        vitamin_k: getElementValue('edit-nutrition-vitamin-k'),
+
+                        // Minerals
+                        calcium: getElementValue('edit-nutrition-calcium'),
+                        copper: getElementValue('edit-nutrition-copper'),
+                        iron: getElementValue('edit-nutrition-iron'),
+                        magnesium: getElementValue('edit-nutrition-magnesium'),
+                        manganese: getElementValue('edit-nutrition-manganese'),
+                        phosphorus: getElementValue('edit-nutrition-phosphorus'),
+                        potassium: getElementValue('edit-nutrition-potassium'),
+                        selenium: getElementValue('edit-nutrition-selenium'),
+                        sodium: getElementValue('edit-nutrition-sodium'),
+                        zinc: getElementValue('edit-nutrition-zinc'),
+
+                        // Lipids
+                        monounsaturated: getElementValue('edit-nutrition-monounsaturated'),
+                        polyunsaturated: getElementValue('edit-nutrition-polyunsaturated'),
+                        omega3: getElementValue('edit-nutrition-omega3'),
+                        omega6: getElementValue('edit-nutrition-omega6'),
+                        saturated: getElementValue('edit-nutrition-saturated'),
+                        trans: getElementValue('edit-nutrition-trans'),
+                        cholesterol: getElementValue('edit-nutrition-cholesterol'),
+
+                        // Amino Acids (all exist in database schema)
+                        cystine: getElementValue('edit-nutrition-cystine'),
+                        histidine: getElementValue('edit-nutrition-histidine'),
+                        isoleucine: getElementValue('edit-nutrition-isoleucine'),
+                        leucine: getElementValue('edit-nutrition-leucine'),
+                        lysine: getElementValue('edit-nutrition-lysine'),
+                        methionine: getElementValue('edit-nutrition-methionine'),
+                        phenylalanine: getElementValue('edit-nutrition-phenylalanine'),
+                        threonine: getElementValue('edit-nutrition-threonine'),
+                        tryptophan: getElementValue('edit-nutrition-tryptophan'),
+                        tyrosine: getElementValue('edit-nutrition-tyrosine'),
+                        valine: getElementValue('edit-nutrition-valine'),
+
+                        // Other
+                        alcohol: getElementValue('edit-nutrition-alcohol'),
+                        caffeine: getElementValue('edit-nutrition-caffeine'),
+                        water: getElementValue('edit-nutrition-water'),
+
+                        // Basic ingredient data
+                        name: document.getElementById('edit-popup-ingredient-name')?.value || '',
+                        amount: parseFloat(document.getElementById('edit-popup-ingredient-amount')?.value) || 0,
+                        package_amount: parseFloat(document.getElementById('edit-popup-package-amount')?.value) || 0,
+                        price: parseFloat(document.getElementById('edit-popup-price')?.value) || 0,
+                        grocery_store: document.getElementById('edit-popup-grocery-store')?.value || ''
+                    };
+
+                    console.log('[Fallback Save] Collected comprehensive nutrition data');
+
+                    // Get recipe ID
+                    const recipeSelector = document.getElementById('recipe-selector');
+                    const recipeId = recipeSelector ? recipeSelector.value : null;
+
+                    if (!recipeId) {
+                        console.error('[Fallback Save] No recipe ID found');
+                        alert('Error: No recipe selected');
+                        return;
+                    }
+
+                    // Get ingredient ID and save
+                    fetch(`/api/recipes/${recipeId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.recipe && data.recipe.ingredients && data.recipe.ingredients[0]) {
+                                const ingredientId = data.recipe.ingredients[0].id;
+                                console.log('[Fallback Save] Saving comprehensive nutrition data...');
+
+                                return fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+                                    method: 'PATCH',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(nutritionData)
+                                });
+                            } else {
+                                throw new Error('Could not get ingredient data');
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('[Fallback Save] ✅ Comprehensive nutrition data saved successfully');
+                            alert('All nutrition data saved successfully!');
+
+                            // Hide the panel
+                            panel.style.display = 'none';
+
+                            // Update toggle button
+                            const toggleButton = panel.previousElementSibling?.querySelector('.toggle-detailed-nutrition');
+                            if (toggleButton) {
+                                toggleButton.textContent = 'Show Nutrition';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('[Fallback Save] ❌ Error saving nutrition data:', error);
+                            alert('Error saving nutrition data: ' + error.message);
+                        });
+                });
+
+                console.log('[Fallback] ✅ Comprehensive save functionality ensured');
+            }
+        }
+    }, 3000); // Wait 3 seconds for other scripts to load
+    </script>
+
     <script src="../js/food/remove-top-buttons.js"></script> <!-- Remove any duplicate top buttons -->
     <!-- Removed conflicting scripts that were causing cancel button issues -->
 
@@ -1032,6 +1287,2632 @@
     <!-- Meal submission functionality -->
     <script src="../js/food/meal-submission.js"></script> <!-- Meal submission functionality -->
 
+    <!-- Micronutrients toggle fix -->
+    <script>
+        // Global click interceptor for micronutrients toggle - highest priority
+        document.addEventListener('click', function(e) {
+            // Check if the click is on the micronutrients toggle button
+            const toggleButton = e.target.closest('#toggle-micronutrients');
+            if (toggleButton) {
+                console.log('[Micronutrients Toggle Fix] GLOBAL interceptor caught toggle click');
+
+                // Stop all other event handlers immediately
+                e.stopImmediatePropagation();
+                e.preventDefault();
+
+                const micronutrientsDetails = document.getElementById('micronutrients-details');
+                if (micronutrientsDetails) {
+                    const isExpanded = micronutrientsDetails.style.display !== 'none';
+
+                    if (isExpanded) {
+                        micronutrientsDetails.style.display = 'none';
+                        toggleButton.classList.remove('expanded');
+                        toggleButton.innerHTML = '<i class="fas fa-chevron-down"></i> Show Detailed Micronutrients';
+                        console.log('[Micronutrients Toggle Fix] Micronutrients hidden');
+                    } else {
+                        micronutrientsDetails.style.display = 'block';
+                        toggleButton.classList.add('expanded');
+                        toggleButton.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Detailed Micronutrients';
+                        console.log('[Micronutrients Toggle Fix] Micronutrients shown');
+                    }
+                }
+
+                return false;
+            }
+        }, true); // Use capture phase to run before all other handlers
+
+        console.log('[Micronutrients Toggle Fix] Global click interceptor initialized');
+
+        // Global click interceptor for meal submission "Edit Ingredient" buttons
+        document.addEventListener('click', function(e) {
+            // Check if the click is on an edit ingredient button
+            const editIngredientBtn = e.target.closest('.edit-ingredient-btn');
+            if (editIngredientBtn && editIngredientBtn.closest('#submit-meal-section')) {
+                console.log('[Meal Edit Ingredient Fix] GLOBAL interceptor caught edit ingredient click');
+
+                // Stop all other event handlers
+                e.stopImmediatePropagation();
+                e.preventDefault();
+
+                // Get the index from the button
+                const index = parseInt(editIngredientBtn.getAttribute('data-index'));
+                console.log('[Meal Edit Ingredient Fix] Edit ingredient index:', index);
+
+                // Call the comprehensive edit function first, then fall back to meal submission
+                if (typeof window.showEditIngredientForm === 'function') {
+                    console.log('[Meal Edit Ingredient Fix] Using comprehensive edit function');
+
+                    // Get the ingredient element to extract data for comprehensive edit
+                    const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+                    if (ingredientElement) {
+                        // Try to get ingredient ID from data attribute or currentIngredients
+                        let ingredientId = ingredientElement.getAttribute('data-ingredient-id');
+                        if (!ingredientId && window.currentIngredients && window.currentIngredients[index]) {
+                            ingredientId = window.currentIngredients[index].id;
+                        }
+
+                        // Get recipe ID from recipe selector
+                        const recipeSelector = document.getElementById('recipe-selector');
+                        const recipeId = recipeSelector ? recipeSelector.value : null;
+
+                        if (ingredientId && recipeId && !ingredientId.toString().startsWith('manual_')) {
+                            // Use comprehensive edit modal for database ingredients
+                            console.log('[Meal Edit Ingredient Fix] Showing comprehensive edit modal for ingredient:', ingredientId);
+                            showComprehensiveEditModal(ingredientId, recipeId, index);
+                        } else {
+                            // Fall back to meal submission edit for manual ingredients
+                            if (typeof window.editIngredientFromMealSubmission === 'function') {
+                                window.editIngredientFromMealSubmission(index);
+                            } else {
+                                console.error('[Meal Edit Ingredient Fix] No suitable edit function found');
+                            }
+                        }
+                    } else {
+                        console.error('[Meal Edit Ingredient Fix] Ingredient element not found');
+                    }
+                } else if (typeof window.editIngredientFromMealSubmission === 'function') {
+                    console.log('[Meal Edit Ingredient Fix] Using meal submission edit function');
+                    window.editIngredientFromMealSubmission(index);
+                } else if (typeof window.editIngredient === 'function') {
+                    console.log('[Meal Edit Ingredient Fix] Falling back to generic edit function');
+                    window.editIngredient(index);
+                } else {
+                    console.error('[Meal Edit Ingredient Fix] No edit ingredient function found');
+                }
+
+                return false;
+            }
+        }, true); // Use capture phase to run before all other handlers
+
+        // Global click interceptor for meal submission "Add Ingredient" button
+        document.addEventListener('click', function(e) {
+            // Check if the click is on the meal submission add ingredient button
+            const addIngredientBtn = e.target.closest('.add-ingredient-btn');
+            if (addIngredientBtn && addIngredientBtn.closest('#submit-meal-section')) {
+                console.log('[Meal Add Ingredient Fix] GLOBAL interceptor caught add ingredient click');
+
+                // Stop all other event handlers immediately
+                e.stopImmediatePropagation();
+                e.preventDefault();
+
+                // Show the popup modal
+                showMealAddIngredientPopupDirect();
+
+                return false;
+            }
+        }, true); // Use capture phase to run before all other handlers
+
+        // Direct popup function
+        function showMealAddIngredientPopupDirect() {
+            console.log('[Meal Add Ingredient Fix] Showing popup modal...');
+
+            // Remove any existing popup
+            const existingPopup = document.getElementById('meal-add-ingredient-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+
+            // Create popup HTML
+            const popupHtml = `
+                <div id="meal-add-ingredient-popup" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                ">
+                    <div style="
+                        background-color: rgba(20, 20, 20, 0.95);
+                        border: 1px solid #333;
+                        border-radius: 8px;
+                        padding: 20px;
+                        width: 90%;
+                        max-width: 600px;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                        color: #ffffff;
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0; color: #ffffff;">Add Ingredient</h3>
+                            <button onclick="document.getElementById('meal-add-ingredient-popup').remove()" style="
+                                background: none;
+                                border: none;
+                                color: #ffffff;
+                                font-size: 24px;
+                                cursor: pointer;
+                                padding: 0;
+                                width: 30px;
+                                height: 30px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">&times;</button>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #ffffff;">Ingredient Name</label>
+                            <input type="text" id="meal-popup-ingredient-name" placeholder="Enter ingredient name" style="
+                                width: 100%;
+                                padding: 8px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(40, 40, 40, 0.8);
+                                color: #ffffff;
+                                box-sizing: border-box;
+                            ">
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #ffffff;">Cronometer Data (Optional)</label>
+                            <textarea id="meal-popup-cronometer-data" placeholder="Paste Cronometer nutrition data here..."
+                                oninput="autoParseNutritionData()"
+                                onpaste="setTimeout(autoParseNutritionData, 100)"
+                                style="
+                                width: 100%;
+                                height: 80px;
+                                padding: 8px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(40, 40, 40, 0.8);
+                                color: #ffffff;
+                                box-sizing: border-box;
+                                resize: vertical;
+                                font-family: monospace;
+                                font-size: 12px;
+                            "></textarea>
+                            <div style="font-size: 12px; color: #888; margin-top: 5px;">
+                                Nutrition data will be automatically parsed when you paste or type
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Amount (g)</label>
+                                <input type="number" id="meal-popup-ingredient-amount" placeholder="0" min="0" step="0.01" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Package Amount (g)</label>
+                                <input type="number" id="meal-popup-package-amount" placeholder="Optional" min="0" step="0.01" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Price ($)</label>
+                                <input type="number" id="meal-popup-ingredient-price" placeholder="0.00" min="0" step="0.01" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Grocery Store</label>
+                                <input type="text" id="meal-popup-grocery-store" placeholder="Store name" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <button type="button" onclick="parseCronometerDataForMeal()" style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(70, 130, 180, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Parse Nutrition Data</button>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="document.getElementById('meal-add-ingredient-popup').remove()" style="
+                                padding: 10px 20px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(60, 60, 60, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Cancel</button>
+                            <button onclick="addIngredientFromMealPopupDirect()" style="
+                                padding: 10px 20px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(40, 120, 40, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Add Ingredient</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add popup to body
+            document.body.insertAdjacentHTML('beforeend', popupHtml);
+
+            // Focus on the ingredient name input
+            const nameInput = document.getElementById('meal-popup-ingredient-name');
+            if (nameInput) {
+                nameInput.focus();
+            }
+        }
+
+        // Cronometer parsing function for meal popup
+        window.parseCronometerDataForMeal = function() {
+            console.log('[Meal Add Ingredient Fix] Parsing Cronometer data...');
+
+            const cronometerData = document.getElementById('meal-popup-cronometer-data').value.trim();
+
+            if (!cronometerData) {
+                alert('Please paste Cronometer nutrition data first.');
+                return;
+            }
+
+            try {
+                // Use basic parsing to extract nutrition data
+                const lines = cronometerData.split('\n');
+                const nutritionData = {};
+
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+
+                    // Look for nutrition patterns
+                    if (trimmed.includes('Calories') || trimmed.includes('Energy')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.calories = parseFloat(match[1]);
+                    }
+                    if (trimmed.includes('Protein')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.protein = parseFloat(match[1]);
+                    }
+                    if (trimmed.includes('Fat') && !trimmed.includes('Saturated')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.fat = parseFloat(match[1]);
+                    }
+                    if (trimmed.includes('Carbohydrate') || trimmed.includes('Carbs')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.carbohydrates = parseFloat(match[1]);
+                    }
+                });
+
+                console.log('[Meal Add Ingredient Fix] Cronometer data parsed:', nutritionData);
+
+                // Store the parsed data for use when creating the ingredient
+                window.parsedNutritionData = nutritionData;
+
+                if (Object.keys(nutritionData).length > 0) {
+                    alert(`Nutrition data parsed successfully!\nCalories: ${nutritionData.calories || 'N/A'}\nProtein: ${nutritionData.protein || 'N/A'}g\nFat: ${nutritionData.fat || 'N/A'}g\nCarbs: ${nutritionData.carbohydrates || 'N/A'}g`);
+                } else {
+                    alert('No nutrition data found. Please check the format and try again.');
+                }
+            } catch (error) {
+                console.error('[Meal Add Ingredient Fix] Error parsing Cronometer data:', error);
+                alert('Error parsing nutrition data. Please check the format and try again.');
+            }
+        };
+
+        // Auto-parse Cronometer data when user types or pastes
+        window.autoParseNutritionData = function() {
+            const cronometerData = document.getElementById('meal-popup-cronometer-data').value.trim();
+
+            if (!cronometerData) {
+                // Clear nutrition data if no input
+                window.parsedNutritionData = null;
+                return;
+            }
+
+            try {
+                // Use the same parsing logic as the manual parse function
+                const lines = cronometerData.split('\n');
+                const nutritionData = {};
+
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+
+                    // Look for nutrition patterns
+                    if (trimmed.includes('Calories') || trimmed.includes('Energy')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.calories = parseFloat(match[1]);
+                    }
+                    if (trimmed.includes('Protein')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.protein = parseFloat(match[1]);
+                    }
+                    if (trimmed.includes('Fat') && !trimmed.includes('Saturated')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.fat = parseFloat(match[1]);
+                    }
+                    if (trimmed.includes('Carbohydrate') || trimmed.includes('Carbs')) {
+                        const match = trimmed.match(/(\d+(?:\.\d+)?)/);
+                        if (match) nutritionData.carbohydrates = parseFloat(match[1]);
+                    }
+                });
+
+                console.log('[Meal Add Ingredient Fix] Auto-parsed Cronometer data:', nutritionData);
+
+                // Store the parsed data for use when creating the ingredient
+                window.parsedNutritionData = nutritionData;
+
+            } catch (error) {
+                console.error('[Meal Add Ingredient Fix] Error auto-parsing Cronometer data:', error);
+                window.parsedNutritionData = null;
+            }
+        };
+
+        // Direct add ingredient function
+        window.addIngredientFromMealPopupDirect = function() {
+            console.log('[Meal Add Ingredient Fix] Adding ingredient from popup...');
+
+            // Get values from the popup
+            const name = document.getElementById('meal-popup-ingredient-name').value.trim();
+            const amount = parseFloat(document.getElementById('meal-popup-ingredient-amount').value) || 0;
+            const packageAmount = parseFloat(document.getElementById('meal-popup-package-amount').value) || null;
+            const price = parseFloat(document.getElementById('meal-popup-ingredient-price').value) || 0; // Default to 0 for NOT NULL constraint
+            const groceryStore = document.getElementById('meal-popup-grocery-store').value.trim() || null;
+
+            // Validate inputs
+            if (!name) {
+                alert('Please enter an ingredient name.');
+                return;
+            }
+
+            if (amount <= 0) {
+                alert('Please enter a valid amount greater than 0.');
+                return;
+            }
+
+            // Get parsed nutrition data if available
+            const parsedData = window.parsedNutritionData || {};
+
+            // Calculate nutrition values based on the amount and parsed per-100g data
+            const caloriesPer100g = parsedData.calories || 0;
+            const proteinPer100g = parsedData.protein || 0;
+            const fatPer100g = parsedData.fat || 0;
+            const carbsPer100g = parsedData.carbohydrates || 0;
+
+            const calories = caloriesPer100g * (amount / 100);
+            const protein = proteinPer100g * (amount / 100);
+            const fat = fatPer100g * (amount / 100);
+            const carbs = carbsPer100g * (amount / 100);
+
+            // Create new ingredient object with parsed nutrition data
+            const newIngredient = {
+                id: `manual_${Date.now()}`,  // Temporary ID for manual ingredients
+                isNew: false,                // Don't create in ingredients table, just use in meal_ingredients
+                name: name,
+                amount: amount,
+                package_amount: packageAmount,
+                price: price,
+                grocery_store: groceryStore,
+                // Calculated nutrition values based on amount
+                calories: calories,
+                protein: protein,
+                // Include both field name formats for compatibility
+                fat: fat,                    // For meal database compatibility
+                fats: fat,                   // For meal submission UI compatibility
+                carbs: carbs,                // For meal database compatibility
+                carbohydrates: carbs,        // For meal submission UI compatibility
+                // Store per-100g values for reference
+                calories_per_100g: caloriesPer100g,
+                protein_per_100g: proteinPer100g,
+                fat_per_100g: fatPer100g,
+                carbohydrates_per_100g: carbsPer100g
+            };
+
+            console.log('[Meal Add Ingredient Fix] New ingredient created:', newIngredient);
+
+            // Add ingredient directly to meal (no database save needed for meal ingredients)
+            if (typeof window.addIngredientToMeal === 'function') {
+                window.addIngredientToMeal(newIngredient);
+                console.log('[Meal Add Ingredient Fix] Ingredient added to meal successfully');
+            } else {
+                console.log('[Meal Add Ingredient Fix] Meal submission function not available, ingredient created but not added');
+                alert(`Ingredient "${name}" created but could not be added to meal. Please refresh the page and try again.`);
+            }
+
+            // Clear parsed nutrition data for next use
+            window.parsedNutritionData = null;
+
+            // Close popup
+            document.getElementById('meal-add-ingredient-popup').remove();
+        };
+
+        // Comprehensive edit modal function
+        function showComprehensiveEditModal(ingredientId, recipeId, index) {
+            console.log('[Comprehensive Edit Modal] Creating modal for ingredient:', ingredientId, 'in recipe:', recipeId);
+
+            // Remove any existing modal
+            const existingModal = document.getElementById('comprehensive-edit-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Create modal HTML with loading state
+            const modalHtml = `
+                <div id="comprehensive-edit-modal" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                ">
+                    <div style="
+                        background-color: rgba(20, 20, 20, 0.95);
+                        border: 1px solid #333;
+                        border-radius: 8px;
+                        padding: 20px;
+                        width: 90%;
+                        max-width: 800px;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                        color: #ffffff;
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0; color: #ffffff;">Edit Ingredient (Comprehensive)</h3>
+                            <button onclick="closeComprehensiveEditModal()" style="
+                                background: none;
+                                border: none;
+                                color: #ffffff;
+                                font-size: 24px;
+                                cursor: pointer;
+                                padding: 0;
+                                width: 30px;
+                                height: 30px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">&times;</button>
+                        </div>
+
+                        <div id="comprehensive-edit-content">
+                            <div style="text-align: center; padding: 40px;">
+                                <div style="color: #888;">Loading ingredient data...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Fetch ingredient data and populate the form
+            fetchIngredientDataForModal(ingredientId, recipeId, index);
+        }
+
+        // Function to fetch ingredient data and create comprehensive form
+        async function fetchIngredientDataForModal(ingredientId, recipeId, index) {
+            try {
+                console.log('[Comprehensive Edit Modal] Fetching ingredient data...');
+
+                const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const ingredient = await response.json();
+                console.log('[Comprehensive Edit Modal] Ingredient data received:', ingredient);
+
+                // Create comprehensive form content
+                createComprehensiveEditForm(ingredient, recipeId, index);
+
+            } catch (error) {
+                console.error('[Comprehensive Edit Modal] Error fetching ingredient data:', error);
+
+                const content = document.getElementById('comprehensive-edit-content');
+                if (content) {
+                    content.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #ff6b6b;">
+                            <div>Error loading ingredient data: ${error.message}</div>
+                            <button onclick="closeComprehensiveEditModal()" style="
+                                margin-top: 20px;
+                                padding: 10px 20px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(60, 60, 60, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Close</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Function to create comprehensive edit form content using the proper comprehensive form
+        function createComprehensiveEditForm(ingredient, recipeId, index) {
+            console.log('[Comprehensive Edit Modal] Creating comprehensive form...');
+
+            const content = document.getElementById('comprehensive-edit-content');
+            if (!content) return;
+
+            // Create the form structure that matches the complete-edit-form-replacement.js
+            content.innerHTML = `
+                <form id="comprehensive-edit-form" style="margin: 0; padding: 0;">
+                    <input type="hidden" id="edit-ingredient-id" value="${ingredient.id}">
+                    <input type="hidden" id="edit-recipe-id" value="${recipeId}">
+                    <input type="hidden" id="comp-edit-index" value="${index}">
+
+                    <!-- Form content will be added here by createFormSections -->
+
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button type="submit" class="save-ingredient-btn" style="
+                            padding: 10px 20px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 120, 40, 0.8);
+                            color: #ffffff;
+                            cursor: pointer;
+                            margin-right: 10px;
+                        ">Save Changes</button>
+                        <button type="button" class="cancel-edit-btn" onclick="closeComprehensiveEditModal()" style="
+                            padding: 10px 20px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(60, 60, 60, 0.8);
+                            color: #ffffff;
+                            cursor: pointer;
+                        ">Cancel</button>
+                    </div>
+                </form>
+            `;
+
+            const form = document.getElementById('comprehensive-edit-form');
+            if (form) {
+                // Add form submit handler
+                form.addEventListener('submit', handleComprehensiveEditSubmit);
+
+                // Use the proper comprehensive form creation function
+                if (typeof createFormSections === 'function') {
+                    console.log('[Comprehensive Edit Modal] Using createFormSections function');
+                    createFormSections(form, ingredient);
+                } else {
+                    console.log('[Comprehensive Edit Modal] createFormSections not available, creating manual sections');
+                    createManualComprehensiveForm(form, ingredient);
+                }
+            }
+        }
+
+        // Global functions for comprehensive edit modal
+        window.closeComprehensiveEditModal = function() {
+            const modal = document.getElementById('comprehensive-edit-modal');
+            if (modal) {
+                modal.remove();
+            }
+        };
+
+        window.toggleMicronutrientsSection = function() {
+            const section = document.getElementById('micronutrients-section');
+            const button = document.getElementById('toggle-micronutrients');
+
+            if (section && button) {
+                if (section.style.display === 'none') {
+                    section.style.display = 'block';
+                    button.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Detailed Micronutrients';
+                } else {
+                    section.style.display = 'none';
+                    button.innerHTML = '<i class="fas fa-chevron-down"></i> Show Detailed Micronutrients';
+                }
+            }
+        };
+
+        // Manual comprehensive form creation (fallback) - simplified since we have the proper functions
+        function createManualComprehensiveForm(formElement, ingredient) {
+            console.log('[Comprehensive Edit Modal] createFormSections not available, falling back to basic form');
+
+            // Create a basic form as fallback
+            const basicSection = document.createElement('div');
+            basicSection.innerHTML = `
+                <div class="nutrition-section" style="margin-bottom: 15px; padding: 10px; background-color: rgba(25, 25, 25, 0.7); border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4 style="color: #e0e0e0; margin-bottom: 10px;">Basic Information</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 3px; font-size: 0.75em; color: #aaa;">Name:</label>
+                            <input type="text" id="edit-ingredient-name" value="${ingredient.name || ''}" required style="width: 100%; padding: 4px 6px; font-size: 0.8em; background-color: rgba(20, 20, 20, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 2px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 3px; font-size: 0.75em; color: #aaa;">Amount (g):</label>
+                            <input type="number" id="edit-ingredient-amount" value="${ingredient.amount || ''}" required min="0" step="0.01" style="width: 100%; padding: 4px 6px; font-size: 0.8em; background-color: rgba(20, 20, 20, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 2px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 3px; font-size: 0.75em; color: #aaa;">Calories:</label>
+                            <input type="number" id="edit-ingredient-calories" value="${ingredient.calories || ''}" required min="0" step="0.1" style="width: 100%; padding: 4px 6px; font-size: 0.8em; background-color: rgba(20, 20, 20, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 2px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 3px; font-size: 0.75em; color: #aaa;">Protein (g):</label>
+                            <input type="number" id="edit-ingredient-protein" value="${ingredient.protein || ''}" required min="0" step="0.1" style="width: 100%; padding: 4px 6px; font-size: 0.8em; background-color: rgba(20, 20, 20, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 2px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 3px; font-size: 0.75em; color: #aaa;">Fat (g):</label>
+                            <input type="number" id="edit-ingredient-fats" value="${ingredient.fats || ''}" required min="0" step="0.1" style="width: 100%; padding: 4px 6px; font-size: 0.8em; background-color: rgba(20, 20, 20, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 2px;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 3px; font-size: 0.75em; color: #aaa;">Carbs (g):</label>
+                            <input type="number" id="edit-ingredient-carbs" value="${ingredient.carbohydrates || ''}" required min="0" step="0.1" style="width: 100%; padding: 4px 6px; font-size: 0.8em; background-color: rgba(20, 20, 20, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #e0e0e0; border-radius: 2px;">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const formActions = formElement.querySelector('.form-actions');
+            formElement.insertBefore(basicSection, formActions);
+        }
+
+        // Function to create micronutrients HTML
+        function createMicronutrientsHTML(ingredient) {
+            const micronutrients = [
+                // Vitamins
+                { id: 'vitamin_a', label: 'Vitamin A (μg)', value: ingredient.vitamin_a },
+                { id: 'vitamin_c', label: 'Vitamin C (mg)', value: ingredient.vitamin_c },
+                { id: 'vitamin_d', label: 'Vitamin D (μg)', value: ingredient.vitamin_d },
+                { id: 'vitamin_e', label: 'Vitamin E (mg)', value: ingredient.vitamin_e },
+                { id: 'vitamin_k', label: 'Vitamin K (μg)', value: ingredient.vitamin_k },
+                { id: 'thiamin', label: 'Thiamin (mg)', value: ingredient.thiamin },
+                { id: 'riboflavin', label: 'Riboflavin (mg)', value: ingredient.riboflavin },
+                { id: 'niacin', label: 'Niacin (mg)', value: ingredient.niacin },
+                { id: 'vitamin_b6', label: 'Vitamin B6 (mg)', value: ingredient.vitamin_b6 },
+                { id: 'folate', label: 'Folate (μg)', value: ingredient.folate },
+                { id: 'vitamin_b12', label: 'Vitamin B12 (μg)', value: ingredient.vitamin_b12 },
+                { id: 'biotin', label: 'Biotin (μg)', value: ingredient.biotin },
+                { id: 'pantothenic_acid', label: 'Pantothenic Acid (mg)', value: ingredient.pantothenic_acid },
+                { id: 'choline', label: 'Choline (mg)', value: ingredient.choline },
+
+                // Minerals
+                { id: 'calcium', label: 'Calcium (mg)', value: ingredient.calcium },
+                { id: 'iron', label: 'Iron (mg)', value: ingredient.iron },
+                { id: 'magnesium', label: 'Magnesium (mg)', value: ingredient.magnesium },
+                { id: 'phosphorus', label: 'Phosphorus (mg)', value: ingredient.phosphorus },
+                { id: 'potassium', label: 'Potassium (mg)', value: ingredient.potassium },
+                { id: 'sodium', label: 'Sodium (mg)', value: ingredient.sodium },
+                { id: 'zinc', label: 'Zinc (mg)', value: ingredient.zinc },
+                { id: 'copper', label: 'Copper (mg)', value: ingredient.copper },
+                { id: 'manganese', label: 'Manganese (mg)', value: ingredient.manganese },
+                { id: 'selenium', label: 'Selenium (μg)', value: ingredient.selenium },
+
+                // Lipids
+                { id: 'saturated_fat', label: 'Saturated Fat (g)', value: ingredient.saturated_fat },
+                { id: 'monounsaturated_fat', label: 'Monounsaturated Fat (g)', value: ingredient.monounsaturated_fat },
+                { id: 'polyunsaturated_fat', label: 'Polyunsaturated Fat (g)', value: ingredient.polyunsaturated_fat },
+                { id: 'trans_fat', label: 'Trans Fat (g)', value: ingredient.trans_fat },
+                { id: 'cholesterol', label: 'Cholesterol (mg)', value: ingredient.cholesterol },
+                { id: 'omega_3', label: 'Omega-3 (g)', value: ingredient.omega_3 },
+                { id: 'omega_6', label: 'Omega-6 (g)', value: ingredient.omega_6 },
+
+                // Carbohydrates
+                { id: 'fiber', label: 'Fiber (g)', value: ingredient.fiber },
+                { id: 'sugar', label: 'Sugar (g)', value: ingredient.sugar },
+
+                // Amino Acids
+                { id: 'histidine', label: 'Histidine (g)', value: ingredient.histidine },
+                { id: 'isoleucine', label: 'Isoleucine (g)', value: ingredient.isoleucine },
+                { id: 'leucine', label: 'Leucine (g)', value: ingredient.leucine },
+                { id: 'lysine', label: 'Lysine (g)', value: ingredient.lysine },
+                { id: 'methionine', label: 'Methionine (g)', value: ingredient.methionine },
+                { id: 'phenylalanine', label: 'Phenylalanine (g)', value: ingredient.phenylalanine },
+                { id: 'threonine', label: 'Threonine (g)', value: ingredient.threonine },
+                { id: 'tryptophan', label: 'Tryptophan (g)', value: ingredient.tryptophan },
+                { id: 'tyrosine', label: 'Tyrosine (g)', value: ingredient.tyrosine },
+                { id: 'valine', label: 'Valine (g)', value: ingredient.valine },
+
+                // Other
+                { id: 'alcohol', label: 'Alcohol (g)', value: ingredient.alcohol },
+                { id: 'caffeine', label: 'Caffeine (mg)', value: ingredient.caffeine },
+                { id: 'water', label: 'Water (g)', value: ingredient.water }
+            ];
+
+            let html = '';
+
+            // Group micronutrients by category
+            const categories = [
+                { name: 'Vitamins', start: 0, end: 14 },
+                { name: 'Minerals', start: 14, end: 24 },
+                { name: 'Lipids', start: 24, end: 31 },
+                { name: 'Carbohydrates', start: 31, end: 33 },
+                { name: 'Amino Acids', start: 33, end: 43 },
+                { name: 'Other', start: 43, end: 46 }
+            ];
+
+            categories.forEach(category => {
+                html += `
+                    <div class="nutrition-section" style="margin-bottom: 20px;">
+                        <h4 style="color: #ffffff; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">${category.name}</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                `;
+
+                for (let i = category.start; i < category.end && i < micronutrients.length; i++) {
+                    const nutrient = micronutrients[i];
+                    html += `
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #ffffff;">${nutrient.label}:</label>
+                            <input type="number" id="comp-edit-${nutrient.id}" value="${nutrient.value || ''}" min="0" step="0.001" style="
+                                width: 100%;
+                                padding: 8px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(40, 40, 40, 0.8);
+                                color: #ffffff;
+                                box-sizing: border-box;
+                            ">
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            return html;
+        }
+
+        // Function to handle comprehensive edit form submission
+        async function handleComprehensiveEditSubmit(event) {
+            event.preventDefault();
+
+            console.log('[Comprehensive Edit Modal] Submitting form...');
+
+            const ingredientId = document.getElementById('edit-ingredient-id').value;
+            const recipeId = document.getElementById('edit-recipe-id').value;
+            const index = document.getElementById('comp-edit-index').value;
+
+            // Helper function to safely get field value
+            function getFieldValue(id, defaultValue = 0) {
+                const element = document.getElementById(id);
+                if (!element) {
+                    console.warn(`Field with ID '${id}' not found`);
+                    return defaultValue;
+                }
+                const value = element.value.trim();
+                return value === '' ? defaultValue : (typeof defaultValue === 'number' ? parseFloat(value) || defaultValue : value);
+            }
+
+            // Collect basic form data
+            const formData = {
+                name: getFieldValue('edit-ingredient-name', ''),
+                amount: getFieldValue('edit-ingredient-amount', 0),
+                package_amount: getFieldValue('edit-ingredient-package-amount', null),
+                price: getFieldValue('edit-ingredient-price', 0),
+                calories: getFieldValue('edit-ingredient-calories', 0),
+                protein: getFieldValue('edit-ingredient-protein', 0),
+                fats: getFieldValue('edit-ingredient-fats', 0),
+                carbohydrates: getFieldValue('edit-ingredient-carbs', 0)
+            };
+
+            // Collect all comprehensive nutrition data with correct field mappings
+            const nutritionFieldMappings = [
+                // General - direct mapping
+                { field: 'alcohol', id: 'edit-ingredient-alcohol' },
+                { field: 'caffeine', id: 'edit-ingredient-caffeine' },
+                { field: 'water', id: 'edit-ingredient-water' },
+                // Carbohydrates - direct mapping
+                { field: 'fiber', id: 'edit-ingredient-fiber' },
+                { field: 'starch', id: 'edit-ingredient-starch' },
+                { field: 'sugar', id: 'edit-ingredient-sugar' },
+                { field: 'added_sugar', id: 'edit-ingredient-added-sugar' },
+                { field: 'net_carbs', id: 'edit-ingredient-net-carbs' },
+                // Lipids - direct mapping
+                { field: 'saturated_fat', id: 'edit-ingredient-saturated-fat' },
+                { field: 'monounsaturated_fat', id: 'edit-ingredient-monounsaturated-fat' },
+                { field: 'polyunsaturated_fat', id: 'edit-ingredient-polyunsaturated-fat' },
+                { field: 'trans_fat', id: 'edit-ingredient-trans-fat' },
+                { field: 'cholesterol', id: 'edit-ingredient-cholesterol' },
+                { field: 'omega_3', id: 'edit-ingredient-omega-3' },
+                { field: 'omega_6', id: 'edit-ingredient-omega-6' },
+                // Protein & Amino Acids - direct mapping
+                { field: 'cystine', id: 'edit-ingredient-cystine' },
+                { field: 'histidine', id: 'edit-ingredient-histidine' },
+                { field: 'isoleucine', id: 'edit-ingredient-isoleucine' },
+                { field: 'leucine', id: 'edit-ingredient-leucine' },
+                { field: 'lysine', id: 'edit-ingredient-lysine' },
+                { field: 'methionine', id: 'edit-ingredient-methionine' },
+                { field: 'phenylalanine', id: 'edit-ingredient-phenylalanine' },
+                { field: 'threonine', id: 'edit-ingredient-threonine' },
+                { field: 'tryptophan', id: 'edit-ingredient-tryptophan' },
+                { field: 'tyrosine', id: 'edit-ingredient-tyrosine' },
+                { field: 'valine', id: 'edit-ingredient-valine' },
+                // Vitamins - special mapping with hyphens
+                { field: 'vitamin_a', id: 'edit-ingredient-vitamin-a' },
+                { field: 'vitamin_c', id: 'edit-ingredient-vitamin-c' },
+                { field: 'vitamin_d', id: 'edit-ingredient-vitamin-d' },
+                { field: 'vitamin_e', id: 'edit-ingredient-vitamin-e' },
+                { field: 'vitamin_k', id: 'edit-ingredient-vitamin-k' },
+                { field: 'thiamin', id: 'edit-ingredient-vitamin-b1' },
+                { field: 'riboflavin', id: 'edit-ingredient-vitamin-b2' },
+                { field: 'niacin', id: 'edit-ingredient-vitamin-b3' },
+                { field: 'pantothenic_acid', id: 'edit-ingredient-vitamin-b5' },
+                { field: 'vitamin_b6', id: 'edit-ingredient-vitamin-b6' },
+                { field: 'folate', id: 'edit-ingredient-vitamin-b12-folate' },
+                { field: 'vitamin_b12', id: 'edit-ingredient-vitamin-b12' },
+                { field: 'biotin', id: 'edit-ingredient-vitamin-biotin' },
+                { field: 'choline', id: 'edit-ingredient-vitamin-choline' },
+                // Minerals - direct mapping
+                { field: 'calcium', id: 'edit-ingredient-calcium' },
+                { field: 'iron', id: 'edit-ingredient-iron' },
+                { field: 'magnesium', id: 'edit-ingredient-magnesium' },
+                { field: 'phosphorus', id: 'edit-ingredient-phosphorus' },
+                { field: 'potassium', id: 'edit-ingredient-potassium' },
+                { field: 'sodium', id: 'edit-ingredient-sodium' },
+                { field: 'zinc', id: 'edit-ingredient-zinc' },
+                { field: 'copper', id: 'edit-ingredient-copper' },
+                { field: 'manganese', id: 'edit-ingredient-manganese' },
+                { field: 'selenium', id: 'edit-ingredient-selenium' }
+            ];
+
+            // Collect all nutrition field values using the correct ID mappings
+            nutritionFieldMappings.forEach(mapping => {
+                const element = document.getElementById(mapping.id);
+                if (element && element.value !== '') {
+                    const value = parseFloat(element.value);
+                    if (!isNaN(value)) {
+                        formData[mapping.field] = value;
+                    }
+                }
+            });
+
+            try {
+                console.log('[Comprehensive Edit Modal] Submitting data:', formData);
+
+                // Submit to API
+                const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('[Comprehensive Edit Modal] Ingredient updated successfully:', result);
+
+                // Update the ingredient in the meal submission if available
+                if (window.currentIngredients && window.currentIngredients[index]) {
+                    // Update the ingredient data
+                    Object.assign(window.currentIngredients[index], formData);
+
+                    // Refresh the display if functions are available
+                    if (typeof window.displayIngredients === 'function') {
+                        window.displayIngredients();
+                    }
+                    if (typeof window.calculateNutrition === 'function') {
+                        window.calculateNutrition();
+                    }
+                }
+
+                // Show success message and close modal
+                alert('Ingredient updated successfully!');
+                window.closeComprehensiveEditModal();
+
+            } catch (error) {
+                console.error('[Comprehensive Edit Modal] Error updating ingredient:', error);
+                alert(`Error updating ingredient: ${error.message}`);
+            }
+        }
+
+        // Edit ingredient functionality
+        window.editIngredient = function(index) {
+            console.log('[Meal Edit] Editing ingredient at index:', index);
+
+            // Check if meal submission module is available (optional, not required)
+            const mealSubmissionAvailable = typeof window.addIngredientToMeal === 'function';
+            console.log('[Meal Edit] Meal submission module available:', mealSubmissionAvailable);
+
+            // Get the ingredient element
+            const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+            if (!ingredientElement) {
+                alert('Ingredient not found.');
+                return;
+            }
+
+            // Extract current values from the ingredient element
+            const nameElement = ingredientElement.querySelector('.ingredient-name');
+            const amountInput = ingredientElement.querySelector(`#ingredient-amount-${index}`);
+            const calValue = ingredientElement.querySelector('.cal-value');
+            const proteinValue = ingredientElement.querySelector('.protein-value');
+            const fatValue = ingredientElement.querySelector('.fat-value');
+            const carbsValue = ingredientElement.querySelector('.carbs-value');
+
+            if (!nameElement || !amountInput) {
+                alert('Could not extract ingredient data.');
+                return;
+            }
+
+            const currentName = nameElement.textContent;
+            const currentAmount = parseFloat(amountInput.value) || 0;
+            const currentCalories = parseFloat(calValue.textContent) || 0;
+            const currentProtein = parseFloat(proteinValue.textContent) || 0;
+            const currentFat = parseFloat(fatValue.textContent) || 0;
+            const currentCarbs = parseFloat(carbsValue.textContent) || 0;
+
+            // Calculate per-100g values
+            const caloriesPer100g = currentAmount > 0 ? (currentCalories / currentAmount * 100) : 0;
+            const proteinPer100g = currentAmount > 0 ? (currentProtein / currentAmount * 100) : 0;
+            const fatPer100g = currentAmount > 0 ? (currentFat / currentAmount * 100) : 0;
+            const carbsPer100g = currentAmount > 0 ? (currentCarbs / currentAmount * 100) : 0;
+
+            showEditIngredientPopup(currentName, currentAmount, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g, index);
+        };
+
+        function showEditIngredientPopup(name, amount, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g, index) {
+            // Remove any existing popup
+            const existingPopup = document.getElementById('meal-edit-ingredient-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+
+            // Create popup HTML matching the Add Ingredient form
+            const popupHtml = `
+                <div id="meal-edit-ingredient-popup" style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                ">
+                    <div style="
+                        background-color: rgba(20, 20, 20, 0.95);
+                        border: 1px solid #333;
+                        border-radius: 8px;
+                        padding: 20px;
+                        width: 90%;
+                        max-width: 500px;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                        color: #ffffff;
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0; color: #ffffff;">Edit Ingredient</h3>
+                            <button onclick="closeEditIngredientPopup()" style="
+                                background: none;
+                                border: none;
+                                color: #ffffff;
+                                font-size: 24px;
+                                cursor: pointer;
+                                padding: 0;
+                                width: 30px;
+                                height: 30px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">&times;</button>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #ffffff;">Ingredient Name</label>
+                            <input type="text" id="edit-popup-ingredient-name" value="${name}" placeholder="Enter ingredient name" style="
+                                width: 100%;
+                                padding: 8px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(40, 40, 40, 0.8);
+                                color: #ffffff;
+                                box-sizing: border-box;
+                            ">
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #ffffff;">Cronometer Data (Optional)</label>
+                            <textarea id="edit-popup-cronometer-data" placeholder="Paste Cronometer nutrition data here..." style="
+                                width: 100%;
+                                height: 80px;
+                                padding: 8px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(40, 40, 40, 0.8);
+                                color: #ffffff;
+                                box-sizing: border-box;
+                                resize: vertical;
+                            "></textarea>
+                            <small style="color: #aaa; font-size: 0.8em;">Nutrition data will be automatically parsed when you paste or type</small>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Amount (g)</label>
+                                <input type="number" id="edit-popup-ingredient-amount" value="${amount}" min="0" step="0.1" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Package Amount (g)</label>
+                                <input type="number" id="edit-popup-package-amount" placeholder="Optional" min="0" step="0.1" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Price ($)</label>
+                                <input type="number" id="edit-popup-price" placeholder="0.00" min="0" step="0.01" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 5px; color: #ffffff;">Grocery Store</label>
+                                <input type="text" id="edit-popup-grocery-store" placeholder="Store name" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <button type="button" onclick="parseEditCronometerData()" style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(70, 130, 180, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Parse Nutrition Data</button>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <button type="button" id="edit-toggle-nutrition" onclick="toggleEditNutritionFields()" style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(60, 60, 60, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Show Nutrition</button>
+                        </div>
+
+                        <div id="edit-nutrition-fields" style="display: none; margin-bottom: 20px;">
+                            <h4 style="color: #ffffff; margin-bottom: 15px; border-bottom: 1px solid #555; padding-bottom: 5px;">Detailed Nutrition (per 100g)</h4>
+
+                            <!-- General Nutrition -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">GENERAL</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Calories</label>
+                                        <input type="number" id="edit-nutrition-calories" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Protein (g)</label>
+                                        <input type="number" id="edit-nutrition-protein" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Fat (g)</label>
+                                        <input type="number" id="edit-nutrition-fat" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Carbs (g)</label>
+                                        <input type="number" id="edit-nutrition-carbs" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Carbohydrates -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">CARBOHYDRATES</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Fiber (g)</label>
+                                        <input type="number" id="edit-nutrition-fiber" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Sugars (g)</label>
+                                        <input type="number" id="edit-nutrition-sugars" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vitamins -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">VITAMINS</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">B1 (Thiamine) (mg)</label>
+                                        <input type="number" id="edit-nutrition-b1" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">B2 (Riboflavin) (mg)</label>
+                                        <input type="number" id="edit-nutrition-b2" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">B3 (Niacin) (mg)</label>
+                                        <input type="number" id="edit-nutrition-b3" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">B5 (Pantothenic Acid) (mg)</label>
+                                        <input type="number" id="edit-nutrition-b5" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">B6 (Pyridoxine) (mg)</label>
+                                        <input type="number" id="edit-nutrition-b6" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">B12 (Cobalamin) (μg)</label>
+                                        <input type="number" id="edit-nutrition-b12" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Folate (μg)</label>
+                                        <input type="number" id="edit-nutrition-folate" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Vitamin A (μg)</label>
+                                        <input type="number" id="edit-nutrition-vitamin-a" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Vitamin C (mg)</label>
+                                        <input type="number" id="edit-nutrition-vitamin-c" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Vitamin D (IU)</label>
+                                        <input type="number" id="edit-nutrition-vitamin-d" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Vitamin E (mg)</label>
+                                        <input type="number" id="edit-nutrition-vitamin-e" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Vitamin K (μg)</label>
+                                        <input type="number" id="edit-nutrition-vitamin-k" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Minerals -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">MINERALS</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Calcium (mg)</label>
+                                        <input type="number" id="edit-nutrition-calcium" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Copper (mg)</label>
+                                        <input type="number" id="edit-nutrition-copper" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Iron (mg)</label>
+                                        <input type="number" id="edit-nutrition-iron" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Magnesium (mg)</label>
+                                        <input type="number" id="edit-nutrition-magnesium" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Manganese (mg)</label>
+                                        <input type="number" id="edit-nutrition-manganese" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Phosphorus (mg)</label>
+                                        <input type="number" id="edit-nutrition-phosphorus" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Potassium (mg)</label>
+                                        <input type="number" id="edit-nutrition-potassium" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Selenium (μg)</label>
+                                        <input type="number" id="edit-nutrition-selenium" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Sodium (mg)</label>
+                                        <input type="number" id="edit-nutrition-sodium" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Zinc (mg)</label>
+                                        <input type="number" id="edit-nutrition-zinc" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lipids -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">LIPIDS</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Monounsaturated (g)</label>
+                                        <input type="number" id="edit-nutrition-monounsaturated" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Polyunsaturated (g)</label>
+                                        <input type="number" id="edit-nutrition-polyunsaturated" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Omega 3 (g)</label>
+                                        <input type="number" id="edit-nutrition-omega3" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Omega 6 (g)</label>
+                                        <input type="number" id="edit-nutrition-omega6" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Saturated (g)</label>
+                                        <input type="number" id="edit-nutrition-saturated" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Trans-Fats (g)</label>
+                                        <input type="number" id="edit-nutrition-trans" placeholder="0" min="0" step="0.01" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Cholesterol (mg)</label>
+                                        <input type="number" id="edit-nutrition-cholesterol" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Carbohydrates -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">ADDITIONAL CARBOHYDRATES</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Starch (g)</label>
+                                        <input type="number" id="edit-nutrition-starch" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Added Sugars (g)</label>
+                                        <input type="number" id="edit-nutrition-added-sugars" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Net Carbs (g)</label>
+                                        <input type="number" id="edit-nutrition-net-carbs" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Amino Acids -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">AMINO ACIDS</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Cystine (g)</label>
+                                        <input type="number" id="edit-nutrition-cystine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Histidine (g)</label>
+                                        <input type="number" id="edit-nutrition-histidine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Isoleucine (g)</label>
+                                        <input type="number" id="edit-nutrition-isoleucine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Leucine (g)</label>
+                                        <input type="number" id="edit-nutrition-leucine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Lysine (g)</label>
+                                        <input type="number" id="edit-nutrition-lysine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Methionine (g)</label>
+                                        <input type="number" id="edit-nutrition-methionine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Phenylalanine (g)</label>
+                                        <input type="number" id="edit-nutrition-phenylalanine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Threonine (g)</label>
+                                        <input type="number" id="edit-nutrition-threonine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Tryptophan (g)</label>
+                                        <input type="number" id="edit-nutrition-tryptophan" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Tyrosine (g)</label>
+                                        <input type="number" id="edit-nutrition-tyrosine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Valine (g)</label>
+                                        <input type="number" id="edit-nutrition-valine" placeholder="0" min="0" step="0.001" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Other -->
+                            <div style="margin-bottom: 15px;">
+                                <h5 style="color: #aaa; margin-bottom: 10px;">OTHER</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Alcohol (g)</label>
+                                        <input type="number" id="edit-nutrition-alcohol" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Caffeine (mg)</label>
+                                        <input type="number" id="edit-nutrition-caffeine" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; color: #ffffff; font-size: 0.9em;">Water (g)</label>
+                                        <input type="number" id="edit-nutrition-water" placeholder="0" min="0" step="0.1" style="
+                                            width: 100%;
+                                            padding: 6px;
+                                            border: 1px solid #555;
+                                            border-radius: 4px;
+                                            background-color: rgba(40, 40, 40, 0.8);
+                                            color: #ffffff;
+                                            box-sizing: border-box;
+                                            font-size: 0.9em;
+                                        ">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="closeEditIngredientPopup()" style="
+                                padding: 10px 20px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(60, 60, 60, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Cancel</button>
+                            <button onclick="saveEditedIngredient(${index})" style="
+                                padding: 10px 20px;
+                                border: 1px solid #555;
+                                border-radius: 4px;
+                                background-color: rgba(40, 120, 40, 0.8);
+                                color: #ffffff;
+                                cursor: pointer;
+                            ">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add popup to body
+            document.body.insertAdjacentHTML('beforeend', popupHtml);
+
+            // Fetch fresh ingredient data from database and populate fields
+            fetchAndPopulateEditForm(index, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g);
+
+            // Focus on the ingredient name input (will be done after data is loaded)
+        }
+
+        // Function to fetch fresh ingredient data from database and populate edit form
+        function fetchAndPopulateEditForm(index, fallbackCalories, fallbackProtein, fallbackFat, fallbackCarbs) {
+            console.log('[Edit Form] Fetching fresh ingredient data for index:', index);
+
+            // Get recipe ID
+            const recipeSelector = document.getElementById('recipe-selector');
+            const recipeId = recipeSelector ? recipeSelector.value : null;
+
+            if (!recipeId) {
+                console.warn('[Edit Form] No recipe ID found, using fallback values');
+                populateFormWithFallbackValues(fallbackCalories, fallbackProtein, fallbackFat, fallbackCarbs);
+                return;
+            }
+
+            // First, try to get the ingredient ID from the current ingredients array
+            let ingredientId = null;
+            if (window.currentIngredients && window.currentIngredients[index] && window.currentIngredients[index].id) {
+                ingredientId = window.currentIngredients[index].id;
+                console.log('[Edit Form] Found ingredient ID from currentIngredients:', ingredientId);
+
+                // Check if this is a manually added ingredient (temporary ID)
+                if (typeof ingredientId === 'string' && ingredientId.startsWith('manual_')) {
+                    console.log('[Edit Form] This is a manually added ingredient, using data from currentIngredients array');
+                    const ingredient = window.currentIngredients[index];
+                    populateFormWithIngredientData(ingredient);
+                } else {
+                    // Fetch specific ingredient data using the ingredient ID for database ingredients
+                    fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(ingredient => {
+                            console.log('[Edit Form] Fresh ingredient data received from specific endpoint:', ingredient);
+                            populateFormWithIngredientData(ingredient);
+                        })
+                        .catch(error => {
+                            console.error('[Edit Form] Error fetching specific ingredient data:', error);
+                            // Fallback to recipe-based fetch
+                            fetchIngredientFromRecipe(recipeId, index, fallbackCalories, fallbackProtein, fallbackFat, fallbackCarbs);
+                        });
+                }
+            } else {
+                // Fallback to recipe-based fetch
+                fetchIngredientFromRecipe(recipeId, index, fallbackCalories, fallbackProtein, fallbackFat, fallbackCarbs);
+            }
+        }
+
+        // Helper function to fetch ingredient from recipe data (fallback method)
+        function fetchIngredientFromRecipe(recipeId, index, fallbackCalories, fallbackProtein, fallbackFat, fallbackCarbs) {
+            console.log('[Edit Form] Fetching ingredient from recipe data as fallback');
+
+            fetch(`/api/recipes/${recipeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.recipe && data.recipe.ingredients && data.recipe.ingredients[index]) {
+                        const ingredient = data.recipe.ingredients[index];
+                        console.log('[Edit Form] Fresh ingredient data received from recipe:', ingredient);
+
+                        // Populate form with fresh database values
+                        populateFormWithIngredientData(ingredient);
+                    } else {
+                        console.warn('[Edit Form] Could not get ingredient data from API, using fallback values');
+                        populateFormWithFallbackValues(fallbackCalories, fallbackProtein, fallbackFat, fallbackCarbs);
+                    }
+                })
+                .catch(error => {
+                    console.error('[Edit Form] Error fetching ingredient data:', error);
+                    populateFormWithFallbackValues(fallbackCalories, fallbackProtein, fallbackFat, fallbackCarbs);
+                });
+        }
+
+        // Function to populate form with fresh ingredient data from database
+        function populateFormWithIngredientData(ingredient) {
+            console.log('[Edit Form] Populating form with fresh ingredient data');
+
+            // Helper function to safely set field value
+            const setFieldValue = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = value || '0';
+                    console.log(`[Edit Form] Set ${id} = ${value || '0'}`);
+                }
+            };
+
+            // Populate basic nutrition fields (these are per 100g values from database)
+            setFieldValue('edit-nutrition-calories', ingredient.calories);
+            setFieldValue('edit-nutrition-protein', ingredient.protein);
+            setFieldValue('edit-nutrition-fat', ingredient.fats);
+            setFieldValue('edit-nutrition-carbs', ingredient.carbohydrates);
+
+            // Populate ALL comprehensive nutrition fields with fresh database values
+            // Map database field names to form field IDs
+            const nutritionFieldMapping = {
+                // Carbohydrates
+                'edit-nutrition-fiber': ingredient.fiber,
+                'edit-nutrition-sugars': ingredient.sugars,
+                'edit-nutrition-starch': ingredient.starch,
+                'edit-nutrition-added-sugars': ingredient.added_sugars,
+                'edit-nutrition-net-carbs': ingredient.net_carbs,
+
+                // B Vitamins (using actual database column names)
+                'edit-nutrition-b1': ingredient.vitamin_b1,
+                'edit-nutrition-b2': ingredient.vitamin_b2,
+                'edit-nutrition-b3': ingredient.vitamin_b3,
+                'edit-nutrition-b5': ingredient.vitamin_b5,
+                'edit-nutrition-b6': ingredient.vitamin_b6,
+                'edit-nutrition-b12': ingredient.vitamin_b12,
+                'edit-nutrition-folate': ingredient.folate,
+
+                // Other Vitamins
+                'edit-nutrition-vitamin-a': ingredient.vitamin_a,
+                'edit-nutrition-vitamin-c': ingredient.vitamin_c,
+                'edit-nutrition-vitamin-d': ingredient.vitamin_d,
+                'edit-nutrition-vitamin-e': ingredient.vitamin_e,
+                'edit-nutrition-vitamin-k': ingredient.vitamin_k,
+
+                // Minerals
+                'edit-nutrition-calcium': ingredient.calcium,
+                'edit-nutrition-copper': ingredient.copper,
+                'edit-nutrition-iron': ingredient.iron,
+                'edit-nutrition-magnesium': ingredient.magnesium,
+                'edit-nutrition-manganese': ingredient.manganese,
+                'edit-nutrition-phosphorus': ingredient.phosphorus,
+                'edit-nutrition-potassium': ingredient.potassium,
+                'edit-nutrition-selenium': ingredient.selenium,
+                'edit-nutrition-sodium': ingredient.sodium,
+                'edit-nutrition-zinc': ingredient.zinc,
+
+                // Lipids
+                'edit-nutrition-monounsaturated': ingredient.monounsaturated,
+                'edit-nutrition-polyunsaturated': ingredient.polyunsaturated,
+                'edit-nutrition-omega3': ingredient.omega3,
+                'edit-nutrition-omega6': ingredient.omega6,
+                'edit-nutrition-saturated': ingredient.saturated,
+                'edit-nutrition-trans': ingredient.trans || ingredient.trans_fat,
+                'edit-nutrition-cholesterol': ingredient.cholesterol,
+
+                // Amino Acids
+                'edit-nutrition-cystine': ingredient.cystine,
+                'edit-nutrition-histidine': ingredient.histidine,
+                'edit-nutrition-isoleucine': ingredient.isoleucine,
+                'edit-nutrition-leucine': ingredient.leucine,
+                'edit-nutrition-lysine': ingredient.lysine,
+                'edit-nutrition-methionine': ingredient.methionine,
+                'edit-nutrition-phenylalanine': ingredient.phenylalanine,
+                'edit-nutrition-threonine': ingredient.threonine,
+                'edit-nutrition-tryptophan': ingredient.tryptophan,
+                'edit-nutrition-tyrosine': ingredient.tyrosine,
+                'edit-nutrition-valine': ingredient.valine,
+
+                // Other
+                'edit-nutrition-alcohol': ingredient.alcohol,
+                'edit-nutrition-caffeine': ingredient.caffeine,
+                'edit-nutrition-water': ingredient.water
+            };
+
+            // Set all nutrition fields with their corresponding database values
+            Object.entries(nutritionFieldMapping).forEach(([fieldId, value]) => {
+                setFieldValue(fieldId, value);
+            });
+
+            // Focus on the ingredient name input
+            const nameInput = document.getElementById('edit-popup-ingredient-name');
+            if (nameInput) {
+                nameInput.focus();
+            }
+
+            console.log('[Edit Form] ✅ Form populated with ALL fresh database values');
+        }
+
+        // Function to populate form with fallback values (when database fetch fails)
+        function populateFormWithFallbackValues(calories, protein, fat, carbs) {
+            console.log('[Edit Form] Populating form with fallback values');
+
+            // Helper function to safely set field value
+            const setFieldValue = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.value = value || '0';
+                }
+            };
+
+            // Populate basic nutrition fields with fallback values
+            setFieldValue('edit-nutrition-calories', calories.toFixed(1));
+            setFieldValue('edit-nutrition-protein', protein.toFixed(1));
+            setFieldValue('edit-nutrition-fat', fat.toFixed(1));
+            setFieldValue('edit-nutrition-carbs', carbs.toFixed(1));
+
+            // Set all other fields to 0
+            const allOtherFields = [
+                'edit-nutrition-fiber', 'edit-nutrition-sugars', 'edit-nutrition-b1', 'edit-nutrition-b2',
+                'edit-nutrition-b3', 'edit-nutrition-b5', 'edit-nutrition-b6', 'edit-nutrition-b12',
+                'edit-nutrition-folate', 'edit-nutrition-vitamin-a', 'edit-nutrition-vitamin-c',
+                'edit-nutrition-vitamin-d', 'edit-nutrition-vitamin-e', 'edit-nutrition-vitamin-k',
+                'edit-nutrition-calcium', 'edit-nutrition-copper', 'edit-nutrition-iron',
+                'edit-nutrition-magnesium', 'edit-nutrition-manganese', 'edit-nutrition-phosphorus',
+                'edit-nutrition-potassium', 'edit-nutrition-selenium', 'edit-nutrition-sodium',
+                'edit-nutrition-zinc', 'edit-nutrition-monounsaturated', 'edit-nutrition-polyunsaturated',
+                'edit-nutrition-omega3', 'edit-nutrition-omega6', 'edit-nutrition-saturated',
+                'edit-nutrition-trans', 'edit-nutrition-cholesterol', 'edit-nutrition-starch',
+                'edit-nutrition-added-sugars', 'edit-nutrition-net-carbs', 'edit-nutrition-cystine',
+                'edit-nutrition-histidine', 'edit-nutrition-isoleucine', 'edit-nutrition-leucine',
+                'edit-nutrition-lysine', 'edit-nutrition-methionine', 'edit-nutrition-phenylalanine',
+                'edit-nutrition-threonine', 'edit-nutrition-tryptophan', 'edit-nutrition-tyrosine',
+                'edit-nutrition-valine', 'edit-nutrition-alcohol', 'edit-nutrition-caffeine',
+                'edit-nutrition-water'
+            ];
+
+            allOtherFields.forEach(fieldId => setFieldValue(fieldId, '0'));
+
+            // Focus on the ingredient name input
+            const nameInput = document.getElementById('edit-popup-ingredient-name');
+            if (nameInput) {
+                nameInput.focus();
+            }
+
+            console.log('[Edit Form] Form populated with fallback values');
+        }
+
+        window.closeEditIngredientPopup = function() {
+            const popup = document.getElementById('meal-edit-ingredient-popup');
+            if (popup) {
+                popup.remove();
+            }
+        };
+
+        window.toggleEditNutritionFields = function() {
+            const nutritionFields = document.getElementById('edit-nutrition-fields');
+            const toggleButton = document.getElementById('edit-toggle-nutrition');
+
+            if (nutritionFields && toggleButton) {
+                if (nutritionFields.style.display === 'none') {
+                    nutritionFields.style.display = 'block';
+                    toggleButton.textContent = 'Hide Nutrition';
+                } else {
+                    nutritionFields.style.display = 'none';
+                    toggleButton.textContent = 'Show Nutrition';
+                }
+            }
+        };
+
+        window.parseEditCronometerData = function() {
+            const cronometerData = document.getElementById('edit-popup-cronometer-data').value.trim();
+
+            if (!cronometerData) {
+                alert('Please paste Cronometer nutrition data first.');
+                return;
+            }
+
+            // Parse comprehensive nutrition data
+            const lines = cronometerData.split('\n');
+            let parsedData = {};
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line || line.endsWith(':')) continue;
+
+                // Extract value and unit from lines like "Energy: 68.4 kcal" or "B1 (Thiamine): 0.1 mg"
+                const match = line.match(/^([^:]+):\s*([0-9.]+)\s*([a-zA-Z]+)?/);
+                if (match) {
+                    const name = match[1].trim();
+                    const value = parseFloat(match[2]);
+                    const unit = match[3] || '';
+
+                    // Map nutrition names to field IDs
+                    const fieldMap = {
+                        'Energy': 'edit-nutrition-calories',
+                        'Protein': 'edit-nutrition-protein',
+                        'Fat': 'edit-nutrition-fat',
+                        'Carbs': 'edit-nutrition-carbs',
+                        'Fiber': 'edit-nutrition-fiber',
+                        'Sugars': 'edit-nutrition-sugars',
+                        'Starch': 'edit-nutrition-starch',
+                        'Added Sugars': 'edit-nutrition-added-sugars',
+                        'Net Carbs': 'edit-nutrition-net-carbs',
+                        'B1 (Thiamine)': 'edit-nutrition-b1',
+                        'B2 (Riboflavin)': 'edit-nutrition-b2',
+                        'B3 (Niacin)': 'edit-nutrition-b3',
+                        'B5 (Pantothenic Acid)': 'edit-nutrition-b5',
+                        'B6 (Pyridoxine)': 'edit-nutrition-b6',
+                        'B12 (Cobalamin)': 'edit-nutrition-b12',
+                        'Folate': 'edit-nutrition-folate',
+                        'Vitamin A': 'edit-nutrition-vitamin-a',
+                        'Vitamin C': 'edit-nutrition-vitamin-c',
+                        'Vitamin D': 'edit-nutrition-vitamin-d',
+                        'Vitamin E': 'edit-nutrition-vitamin-e',
+                        'Vitamin K': 'edit-nutrition-vitamin-k',
+                        'Calcium': 'edit-nutrition-calcium',
+                        'Copper': 'edit-nutrition-copper',
+                        'Iron': 'edit-nutrition-iron',
+                        'Magnesium': 'edit-nutrition-magnesium',
+                        'Manganese': 'edit-nutrition-manganese',
+                        'Phosphorus': 'edit-nutrition-phosphorus',
+                        'Potassium': 'edit-nutrition-potassium',
+                        'Selenium': 'edit-nutrition-selenium',
+                        'Sodium': 'edit-nutrition-sodium',
+                        'Zinc': 'edit-nutrition-zinc',
+                        'Monounsaturated': 'edit-nutrition-monounsaturated',
+                        'Polyunsaturated': 'edit-nutrition-polyunsaturated',
+                        'Omega 3': 'edit-nutrition-omega3',
+                        'Omega 6': 'edit-nutrition-omega6',
+                        'Saturated': 'edit-nutrition-saturated',
+                        'Trans-Fats': 'edit-nutrition-trans',
+                        'Cholesterol': 'edit-nutrition-cholesterol',
+                        'Cystine': 'edit-nutrition-cystine',
+                        'Histidine': 'edit-nutrition-histidine',
+                        'Isoleucine': 'edit-nutrition-isoleucine',
+                        'Leucine': 'edit-nutrition-leucine',
+                        'Lysine': 'edit-nutrition-lysine',
+                        'Methionine': 'edit-nutrition-methionine',
+                        'Phenylalanine': 'edit-nutrition-phenylalanine',
+                        'Threonine': 'edit-nutrition-threonine',
+                        'Tryptophan': 'edit-nutrition-tryptophan',
+                        'Tyrosine': 'edit-nutrition-tyrosine',
+                        'Valine': 'edit-nutrition-valine',
+                        'Alcohol': 'edit-nutrition-alcohol',
+                        'Caffeine': 'edit-nutrition-caffeine',
+                        'Water': 'edit-nutrition-water'
+                    };
+
+                    const fieldId = fieldMap[name];
+                    if (fieldId) {
+                        const field = document.getElementById(fieldId);
+                        if (field) {
+                            field.value = value.toString();
+                            parsedData[name] = value;
+                        }
+                    }
+                }
+            }
+
+            // Show nutrition fields if they're hidden
+            const nutritionFields = document.getElementById('edit-nutrition-fields');
+            const toggleButton = document.getElementById('edit-toggle-nutrition');
+            if (nutritionFields && nutritionFields.style.display === 'none') {
+                nutritionFields.style.display = 'block';
+                if (toggleButton) {
+                    toggleButton.textContent = 'Hide Nutrition';
+                }
+            }
+
+            const parsedCount = Object.keys(parsedData).length;
+            alert(`Comprehensive nutrition data parsed successfully! ${parsedCount} nutrition values were populated.`);
+        };
+
+        window.saveEditedIngredient = function(index) {
+            console.log('[Meal Edit] Saving edited ingredient at index:', index);
+
+            // Get values from the popup
+            const name = document.getElementById('edit-popup-ingredient-name').value.trim();
+            const amount = parseFloat(document.getElementById('edit-popup-ingredient-amount').value) || 0;
+            const packageAmount = parseFloat(document.getElementById('edit-popup-package-amount').value) || 0;
+            const price = parseFloat(document.getElementById('edit-popup-price').value) || 0;
+            const groceryStore = document.getElementById('edit-popup-grocery-store').value.trim();
+
+            // Validate inputs
+            if (!name) {
+                alert('Please enter an ingredient name.');
+                return;
+            }
+
+            if (amount <= 0) {
+                alert('Please enter a valid amount greater than 0.');
+                return;
+            }
+
+            // Get the current ingredient element to preserve existing nutrition ratios
+            const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+            if (!ingredientElement) {
+                alert('Ingredient not found.');
+                return;
+            }
+
+            // Get current nutrition values to calculate per-gram ratios
+            const currentAmountInput = ingredientElement.querySelector(`#ingredient-amount-${index}`);
+            const currentAmount = parseFloat(currentAmountInput?.value) || 0;
+            const currentCalories = parseFloat(ingredientElement.querySelector('.cal-value')?.textContent) || 0;
+            const currentProtein = parseFloat(ingredientElement.querySelector('.protein-value')?.textContent) || 0;
+            const currentFat = parseFloat(ingredientElement.querySelector('.fat-value')?.textContent) || 0;
+            const currentCarbs = parseFloat(ingredientElement.querySelector('.carbs-value')?.textContent) || 0;
+
+            // Calculate nutrition values based on the new amount
+            let calories, protein, fat, carbs;
+            let comprehensiveNutrition = {};
+
+            // Check if nutrition fields are visible and have values
+            const nutritionFields = document.getElementById('edit-nutrition-fields');
+            const nutritionFieldsVisible = nutritionFields && nutritionFields.style.display !== 'none';
+
+            if (nutritionFieldsVisible) {
+                // Use values from nutrition fields (per 100g)
+                const caloriesPer100g = parseFloat(document.getElementById('edit-nutrition-calories').value) || 0;
+                const proteinPer100g = parseFloat(document.getElementById('edit-nutrition-protein').value) || 0;
+                const fatPer100g = parseFloat(document.getElementById('edit-nutrition-fat').value) || 0;
+                const carbsPer100g = parseFloat(document.getElementById('edit-nutrition-carbs').value) || 0;
+
+                // Calculate nutrition values based on the amount
+                calories = caloriesPer100g * (amount / 100);
+                protein = proteinPer100g * (amount / 100);
+                fat = fatPer100g * (amount / 100);
+                carbs = carbsPer100g * (amount / 100);
+
+                // Collect comprehensive nutrition data (per 100g values for database storage)
+                // Helper function to safely get value from an element
+                const getElementValue = (id) => {
+                    const element = document.getElementById(id);
+                    return element ? (parseFloat(element.value) || 0) : 0;
+                };
+
+                comprehensiveNutrition = {
+                    // Basic nutrition (per 100g)
+                    calories: caloriesPer100g,
+                    protein: proteinPer100g,
+                    fats: fatPer100g,
+                    carbohydrates: carbsPer100g,
+
+                    // General
+                    energy: getElementValue('edit-nutrition-energy'),
+                    alcohol: getElementValue('edit-nutrition-alcohol'),
+                    caffeine: getElementValue('edit-nutrition-caffeine'),
+                    water: getElementValue('edit-nutrition-water'),
+
+                    // Carbohydrates
+                    fiber: getElementValue('edit-nutrition-fiber'),
+                    starch: getElementValue('edit-nutrition-starch'),
+                    sugars: getElementValue('edit-nutrition-sugars'),
+                    added_sugars: getElementValue('edit-nutrition-added-sugars'),
+                    net_carbs: getElementValue('edit-nutrition-net-carbs'),
+
+                    // Lipids
+                    monounsaturated: getElementValue('edit-nutrition-monounsaturated-fat'),
+                    polyunsaturated: getElementValue('edit-nutrition-polyunsaturated-fat'),
+                    omega3: getElementValue('edit-nutrition-omega-3'),
+                    omega6: getElementValue('edit-nutrition-omega-6'),
+                    saturated: getElementValue('edit-nutrition-saturated-fat'),
+                    trans_fat: getElementValue('edit-nutrition-trans-fat'),
+                    cholesterol: getElementValue('edit-nutrition-cholesterol'),
+
+                    // Amino acids (Protein components)
+                    cystine: getElementValue('edit-nutrition-cystine'),
+                    histidine: getElementValue('edit-nutrition-histidine'),
+                    isoleucine: getElementValue('edit-nutrition-isoleucine'),
+                    leucine: getElementValue('edit-nutrition-leucine'),
+                    lysine: getElementValue('edit-nutrition-lysine'),
+                    methionine: getElementValue('edit-nutrition-methionine'),
+                    phenylalanine: getElementValue('edit-nutrition-phenylalanine'),
+                    threonine: getElementValue('edit-nutrition-threonine'),
+                    tryptophan: getElementValue('edit-nutrition-tryptophan'),
+                    tyrosine: getElementValue('edit-nutrition-tyrosine'),
+                    valine: getElementValue('edit-nutrition-valine'),
+
+                    // Vitamins
+                    vitamin_b1: getElementValue('edit-nutrition-b1'),
+                    vitamin_b2: getElementValue('edit-nutrition-b2'),
+                    vitamin_b3: getElementValue('edit-nutrition-b3'),
+                    vitamin_b5: getElementValue('edit-nutrition-b5'),
+                    vitamin_b6: getElementValue('edit-nutrition-b6'),
+                    vitamin_b12: getElementValue('edit-nutrition-b12'),
+                    folate: getElementValue('edit-nutrition-folate'),
+                    vitamin_a: getElementValue('edit-nutrition-vitamin-a'),
+                    vitamin_c: getElementValue('edit-nutrition-vitamin-c'),
+                    vitamin_d: getElementValue('edit-nutrition-vitamin-d'),
+                    vitamin_e: getElementValue('edit-nutrition-vitamin-e'),
+                    vitamin_k: getElementValue('edit-nutrition-vitamin-k'),
+
+                    // Minerals
+                    calcium: getElementValue('edit-nutrition-calcium'),
+                    copper: getElementValue('edit-nutrition-copper'),
+                    iron: getElementValue('edit-nutrition-iron'),
+                    magnesium: getElementValue('edit-nutrition-magnesium'),
+                    manganese: getElementValue('edit-nutrition-manganese'),
+                    phosphorus: getElementValue('edit-nutrition-phosphorus'),
+                    potassium: getElementValue('edit-nutrition-potassium'),
+                    selenium: getElementValue('edit-nutrition-selenium'),
+                    sodium: getElementValue('edit-nutrition-sodium'),
+                    zinc: getElementValue('edit-nutrition-zinc'),
+                };
+            } else if (currentAmount > 0) {
+                // Calculate per-gram values from current data (preserve ratios)
+                const caloriesPerGram = currentCalories / currentAmount;
+                const proteinPerGram = currentProtein / currentAmount;
+                const fatPerGram = currentFat / currentAmount;
+                const carbsPerGram = currentCarbs / currentAmount;
+
+                // Apply to new amount
+                calories = caloriesPerGram * amount;
+                protein = proteinPerGram * amount;
+                fat = fatPerGram * amount;
+                carbs = carbsPerGram * amount;
+            } else {
+                // Fallback to zero if no current data
+                calories = protein = fat = carbs = 0;
+            }
+
+            // If comprehensive nutrition data is available, save it to the database
+            if (nutritionFieldsVisible && Object.keys(comprehensiveNutrition).length > 0) {
+                // Get the ingredient ID from the data attribute or from the current ingredients array
+                let ingredientId = ingredientElement.getAttribute('data-ingredient-id');
+
+                // If no data-ingredient-id attribute, try to get it from the currentIngredients array
+                if (!ingredientId && typeof window.currentIngredients !== 'undefined' && window.currentIngredients[index]) {
+                    ingredientId = window.currentIngredients[index].id;
+                    console.log('[Meal Edit] Got ingredient ID from currentIngredients array:', ingredientId);
+                }
+
+                // If still no ingredient ID, try to get it from the recipe API
+                if (!ingredientId) {
+                    const recipeSelector = document.getElementById('recipe-selector');
+                    const recipeId = recipeSelector ? recipeSelector.value : null;
+
+                    if (recipeId) {
+                        console.log('[Meal Edit] Fetching ingredient ID from recipe API...');
+
+                        // Fetch recipe data to get ingredient IDs
+                        fetch(`/api/recipes/${recipeId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success && data.recipe && data.recipe.ingredients && data.recipe.ingredients[index]) {
+                                    const ingredientFromAPI = data.recipe.ingredients[index];
+                                    ingredientId = ingredientFromAPI.id;
+
+                                    console.log('[Meal Edit] Got ingredient ID from API:', ingredientId);
+
+                                    // Now save the comprehensive nutrition data
+                                    if (ingredientId && !ingredientId.toString().startsWith('manual_')) {
+                                        saveComprehensiveNutritionData(ingredientId, comprehensiveNutrition, name, amount, packageAmount, price, groceryStore);
+                                    } else {
+                                        console.warn('[Meal Edit] Invalid ingredient ID from API, skipping database update. ID:', ingredientId);
+                                    }
+                                } else {
+                                    console.warn('[Meal Edit] Could not get ingredient data from API');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('[Meal Edit] Error fetching recipe data:', error);
+                            });
+                    } else {
+                        console.warn('[Meal Edit] No recipe ID found, skipping database update');
+                    }
+                } else if (ingredientId && !ingredientId.toString().startsWith('manual_')) {
+                    // Save directly if we have a valid ingredient ID
+                    saveComprehensiveNutritionData(ingredientId, comprehensiveNutrition, name, amount, packageAmount, price, groceryStore);
+                } else {
+                    console.warn('[Meal Edit] No valid ingredient ID found or ingredient is manual, skipping database update. ID:', ingredientId);
+
+                    // For manual ingredients, update the local array with comprehensive nutrition data
+                    if (ingredientId && ingredientId.toString().startsWith('manual_') && Object.keys(comprehensiveNutrition).length > 0) {
+                        console.log('[Meal Edit] Manual ingredient detected, updating local array with comprehensive nutrition data');
+                        updateManualIngredientInArray(ingredientId, comprehensiveNutrition, name, amount, packageAmount, price, groceryStore);
+                    }
+                }
+            }
+
+            // Update the ingredient element directly
+            // Update name
+            const nameElement = ingredientElement.querySelector('.ingredient-name');
+            if (nameElement) {
+                nameElement.textContent = name;
+            }
+
+            // Update amount input
+            const amountInput = ingredientElement.querySelector(`#ingredient-amount-${index}`);
+            if (amountInput) {
+                amountInput.value = amount;
+            }
+
+            // Update nutrition values
+            const calValue = ingredientElement.querySelector('.cal-value');
+            const proteinValue = ingredientElement.querySelector('.protein-value');
+            const fatValue = ingredientElement.querySelector('.fat-value');
+            const carbsValue = ingredientElement.querySelector('.carbs-value');
+
+            if (calValue) calValue.textContent = Math.round(calories);
+            if (proteinValue) proteinValue.textContent = Math.round(protein * 10) / 10;
+            if (fatValue) fatValue.textContent = Math.round(fat * 10) / 10;
+            if (carbsValue) carbsValue.textContent = Math.round(carbs * 10) / 10;
+
+            // Update original amount display
+            const originalAmountElement = ingredientElement.querySelector('.ingredient-original-amount');
+            if (originalAmountElement) {
+                originalAmountElement.textContent = `Recipe amount: ${amount}g`;
+            }
+
+            // Trigger nutrition recalculation if the function exists
+            if (typeof window.calculateNutrition === 'function') {
+                window.calculateNutrition();
+            }
+
+            // Close popup
+            window.closeEditIngredientPopup();
+
+            // Success - no console logs or alert messages needed
+        };
+
+        // Helper function to save comprehensive nutrition data to database
+        function saveComprehensiveNutritionData(ingredientId, comprehensiveNutrition, name, amount, packageAmount, price, groceryStore) {
+            // Check if this is a manually added ingredient (temporary ID)
+            if (typeof ingredientId === 'string' && ingredientId.startsWith('manual_')) {
+                console.log('[Meal Edit] This is a manually added ingredient, updating local array instead of database');
+                updateManualIngredientInArray(ingredientId, comprehensiveNutrition, name, amount, packageAmount, price, groceryStore);
+                return;
+            }
+
+            // Get the recipe ID from the recipe selector
+            const recipeSelector = document.getElementById('recipe-selector');
+            const recipeId = recipeSelector ? recipeSelector.value : null;
+
+            if (!recipeId) {
+                console.error('[Meal Edit] No recipe ID found, cannot save to database');
+                alert(`Ingredient "${name}" updated in the interface, but could not save to database (no recipe ID).`);
+                return;
+            }
+
+            // Prepare the update data
+            const updateData = {
+                ...comprehensiveNutrition,
+                name: name,
+                amount: amount,
+                package_amount: packageAmount,
+                price: price,
+                grocery_store: groceryStore
+            };
+
+            // Removed console logs for cleaner output
+
+            // Make API call to update ingredient in database using the correct endpoint
+            fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the currentIngredients array if it exists (for meal submission)
+                if (window.currentIngredients && Array.isArray(window.currentIngredients)) {
+                    const ingredientIndex = window.currentIngredients.findIndex(ing => ing.id == ingredientId);
+                    if (ingredientIndex !== -1) {
+                        // Update the ingredient in the currentIngredients array with fresh data
+                        const updatedIngredient = data.ingredients ? data.ingredients.find(ing => ing.id == ingredientId) : null;
+                        if (updatedIngredient) {
+                            window.currentIngredients[ingredientIndex] = {
+                                ...window.currentIngredients[ingredientIndex],
+                                ...updatedIngredient
+                            };
+                        }
+                    }
+                }
+                // Success - no alert message needed
+            })
+            .catch(error => {
+                console.error('[Meal Edit] Database update failed:', error);
+                alert(`Ingredient "${name}" updated in the interface, but there was an error saving comprehensive nutrition data to the database.`);
+            });
+        }
+
+        // Helper function to update manually added ingredients in the currentIngredients array
+        function updateManualIngredientInArray(ingredientId, comprehensiveNutrition, name, amount, packageAmount, price, groceryStore) {
+            if (!window.currentIngredients || !Array.isArray(window.currentIngredients)) {
+                return;
+            }
+
+            // Find the ingredient in the array
+            const ingredientIndex = window.currentIngredients.findIndex(ing => ing.id === ingredientId);
+            if (ingredientIndex === -1) {
+                return;
+            }
+
+            // Update the ingredient with comprehensive nutrition data
+            const updatedIngredient = {
+                ...window.currentIngredients[ingredientIndex],
+                ...comprehensiveNutrition,
+                name: name,
+                amount: amount,
+                package_amount: packageAmount,
+                price: price,
+                grocery_store: groceryStore
+            };
+
+            // Update the array
+            window.currentIngredients[ingredientIndex] = updatedIngredient;
+
+            // Trigger UI updates if the functions exist
+            if (typeof window.displayIngredients === 'function') {
+                window.displayIngredients();
+            }
+            if (typeof window.calculateNutrition === 'function') {
+                window.calculateNutrition();
+            }
+            // Success - no alert message needed
+        }
+    </script>
+
     <!-- Meal calendar functionality -->
     <script src="../js/food/meal-calendar.js"></script> <!-- Meal calendar functionality -->
 
@@ -1054,35 +3935,11 @@
     <!-- Disable conflicting Add Ingredient scripts - must load before unified handler -->
     <script src="../js/food/disable-conflicting-add-ingredient.js"></script> <!-- Disables conflicting Add Ingredient functionality -->
 
-    <!-- Unified Add Ingredient Handler - prevents duplicate modals and ensures proper button alignment -->
-    <script src="../js/food/unified-add-ingredient-handler.js"></script> <!-- Unified Add Ingredient functionality -->
+    <!-- Unified Add Ingredient Handler - DISABLED to allow meal submission popup modal -->
+    <!-- <script src="../js/food/unified-add-ingredient-handler.js"></script> --> <!-- Unified Add Ingredient functionality -->
 
     <!-- Direct Recipe Button Fix - simple fix for View/Adjust/Delete buttons -->
     <script src="../js/food/direct-recipe-button-fix.js?v=2.2&t=1748820100"></script> <!-- Direct fix for recipe buttons -->
-
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <a href="../index.html" class="nav-item" data-page="home-page">
-            <div class="nav-icon"><i class="fas fa-check"></i></div>
-            <span>Tasks</span>
-        </a>
-        <a href="goals.html" class="nav-item" data-page="goal-page">
-            <div class="nav-icon"><i class="fas fa-star"></i></div>
-            <span>Goals</span>
-        </a>
-        <a href="workouts.html" class="nav-item" data-page="workout-page">
-            <div class="nav-icon"><i class="fas fa-dumbbell"></i></div>
-            <span>Workouts</span>
-        </a>
-        <a href="calendar.html" class="nav-item" data-page="calendar-page">
-            <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
-            <span>Calendar</span>
-        </a>
-        <a href="food.html" class="nav-item active" data-page="food-page">
-            <div class="nav-icon"><i class="fas fa-utensils"></i></div>
-            <span>Food</span>
-        </a>
-    </div>
 
 </body>
 </html>

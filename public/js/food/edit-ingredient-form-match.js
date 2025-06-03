@@ -123,9 +123,9 @@
 
         // Apply styling to each nutrition section
         sections.forEach(section => {
-            section.style.marginBottom = '5px'; // Reduced margin
-            section.style.paddingBottom = '3px'; // Reduced padding
-            section.style.marginTop = '5px'; // Reduced margin
+            section.style.marginBottom = '2px'; // Further reduced from 5px
+            section.style.paddingBottom = '1px'; // Further reduced from 3px
+            section.style.marginTop = '2px'; // Further reduced from 5px
         });
 
         // Find all direct child divs using children property
@@ -134,7 +134,7 @@
         // Apply spacing to each div
         for (let i = 0; i < divs.length; i++) {
             if (divs[i].tagName === 'DIV') {
-                divs[i].style.marginBottom = '5px';
+                divs[i].style.marginBottom = '2px'; // Further reduced from 5px
             }
         }
 

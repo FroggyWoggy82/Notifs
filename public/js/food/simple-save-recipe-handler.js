@@ -119,11 +119,12 @@
             ingredientItems.forEach((item, index) => {
                 console.log(`[Simple Save Recipe Handler] Processing ingredient ${index + 1}:`, item);
 
-                const nameInput = item.querySelector('.ingredient-name');
-                const amountInput = item.querySelector('.ingredient-amount');
-                const packageAmountInput = item.querySelector('.ingredient-package-amount');
-                const groceryStoreInput = item.querySelector('.grocery-store-input');
-                const priceInput = item.querySelector('.ingredient-price');
+                // Updated selectors to match the actual form structure
+                const nameInput = item.querySelector('input[placeholder*="ingredient name"], input[placeholder*="Enter ingredient name"]');
+                const amountInput = item.querySelector('input[placeholder="0"]');
+                const packageAmountInput = item.querySelector('input[placeholder*="Package Amount"]');
+                const groceryStoreInput = item.querySelector('input[placeholder*="Grocery Store"]');
+                const priceInput = item.querySelector('input[placeholder*="Package Price"]');
 
                 // These are hidden fields that get populated by the Cronometer parser
                 // Make sure we're getting the hidden fields within this specific ingredient item
@@ -289,12 +290,81 @@
 
         } catch (error) {
             console.error('[Simple Save Recipe Handler] Error saving recipe:', error);
-            
-            // Show error message
+
+            // Show error message in status element if it exists
             if (statusElement) {
                 statusElement.textContent = `Error saving recipe: ${error.message}`;
                 statusElement.className = 'status error';
             }
+
+            // Also show a prominent error notification popup
+            const errorNotification = document.createElement('div');
+            errorNotification.className = 'error-notification';
+            errorNotification.innerHTML = `
+                <div class="error-notification-content">
+                    <span class="error-notification-icon">⚠️</span>
+                    <span class="error-notification-text">Error: ${error.message}</span>
+                </div>
+            `;
+            document.body.appendChild(errorNotification);
+
+            // Add styles for the error notification
+            const errorStyle = document.createElement('style');
+            errorStyle.textContent = `
+                .error-notification {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: #000;
+                    color: white;
+                    padding: 25px 30px;
+                    border-radius: 5px;
+                    z-index: 9999;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                    border: 2px solid #ff0000;
+                    animation: errorPulseAndFade 5s forwards;
+                    min-width: 300px;
+                    text-align: center;
+                    max-width: 80%;
+                }
+                .error-notification-content {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+                .error-notification-icon {
+                    color: #ff0000;
+                    font-size: 30px;
+                    margin-right: 15px;
+                    animation: errorPulse 1s infinite;
+                }
+                .error-notification-text {
+                    font-size: 18px;
+                    font-weight: bold;
+                    word-wrap: break-word;
+                }
+                @keyframes errorPulseAndFade {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    10% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                    20% { transform: translate(-50%, -50%) scale(1); }
+                    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+                @keyframes errorPulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.2); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(errorStyle);
+
+            // Remove the notification after 5 seconds
+            setTimeout(() => {
+                errorNotification.remove();
+                errorStyle.remove();
+            }, 5000);
         } finally {
             // Reset submission flag and button state
             console.log('[Simple Save Recipe Handler] Resetting submission state...');
@@ -449,10 +519,12 @@
             target.matches('#create-recipe-form button[type="submit"]') ||
             target.matches('.submit-btn')
         )) {
-            // Additional check: make sure we're actually in the recipe form context
+            // Check if the button is associated with the recipe form
             const form = document.getElementById('create-recipe-form');
-            if (!form || !form.contains(target)) {
-                // Not in the recipe form, don't intercept
+            const buttonForm = target.form;
+
+            if (!form || (buttonForm && buttonForm.id !== 'create-recipe-form')) {
+                // Not the recipe form button, don't intercept
                 return;
             }
 

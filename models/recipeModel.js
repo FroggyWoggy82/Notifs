@@ -530,25 +530,29 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
             saturated: 'saturated',
             monounsaturated: 'monounsaturated',
             polyunsaturated: 'polyunsaturated',
-            omega3: 'omega3',
+            omega3: 'omega3', // Map to actual database column
             omega_3: 'omega3', // Alias for omega3
-            omega6: 'omega6',
+            omega6: 'omega6', // Map to actual database column
             omega_6: 'omega6', // Alias for omega6
             transFat: 'trans',
-            trans_fat: 'trans', // Alias for trans
+            trans_fat: 'trans', // Map to trans column
             cholesterol: 'cholesterol',
 
             // Vitamins
             vitaminA: 'vitamin_a',
             vitamin_a: 'vitamin_a', // Alias
-            vitaminB1: 'thiamine',
-            thiamine: 'thiamine', // Alias
-            vitaminB2: 'riboflavin',
-            riboflavin: 'riboflavin', // Alias
-            vitaminB3: 'niacin',
-            niacin: 'niacin', // Alias
-            vitaminB5: 'pantothenic_acid',
-            pantothenic_acid: 'pantothenic_acid', // Alias
+            vitaminB1: 'vitamin_b1',
+            thiamine: 'vitamin_b1', // Alias - map to actual database column
+            vitamin_b1: 'vitamin_b1', // Direct mapping
+            vitaminB2: 'vitamin_b2',
+            riboflavin: 'vitamin_b2', // Alias - map to actual database column
+            vitamin_b2: 'vitamin_b2', // Direct mapping
+            vitaminB3: 'vitamin_b3',
+            niacin: 'vitamin_b3', // Alias - map to actual database column
+            vitamin_b3: 'vitamin_b3', // Direct mapping
+            vitaminB5: 'vitamin_b5',
+            pantothenic_acid: 'vitamin_b5', // Alias - map to actual database column
+            vitamin_b5: 'vitamin_b5', // Direct mapping
             vitaminB6: 'vitamin_b6',
             vitamin_b6: 'vitamin_b6', // Alias
             vitaminB12: 'vitamin_b12',
@@ -576,7 +580,7 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
             sodium: 'sodium',
             zinc: 'zinc',
 
-            // Amino acids
+            // Amino acids (all exist in database schema)
             histidine: 'histidine',
             isoleucine: 'isoleucine',
             leucine: 'leucine',
@@ -593,18 +597,34 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
         // Process all fields from ingredientData
         const processedFields = new Set(); // To track which database fields we've already processed
 
+        console.log('=== DEBUGGING FIELD PROCESSING ===');
+        console.log('ingredientData keys:', Object.keys(ingredientData));
+        console.log('ingredientData:', JSON.stringify(ingredientData, null, 2));
+
         for (const [key, value] of Object.entries(ingredientData)) {
+            console.log(`Processing field: ${key} = ${value} (${typeof value})`);
+
             // Skip undefined values
-            if (value === undefined) continue;
+            if (value === undefined) {
+                console.log(`  Skipping ${key}: undefined value`);
+                continue;
+            }
 
             // Get the corresponding database column name
             const columnName = fieldMappings[key];
+            console.log(`  Field mapping: ${key} -> ${columnName}`);
 
             // Skip if no mapping exists
-            if (!columnName) continue;
+            if (!columnName) {
+                console.log(`  Skipping ${key}: no mapping exists`);
+                continue;
+            }
 
             // Skip duplicate fields (e.g., if both omega3 and omega_3 are present)
-            if (processedFields.has(columnName)) continue;
+            if (processedFields.has(columnName)) {
+                console.log(`  Skipping ${key}: duplicate field (${columnName} already processed)`);
+                continue;
+            }
 
             // Mark this field as processed
             processedFields.add(columnName);
@@ -616,11 +636,17 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
             let finalValue = value;
             if (typeof finalValue === 'string' && !isNaN(parseFloat(finalValue))) {
                 finalValue = parseFloat(finalValue);
+                console.log(`  Converted string to number: ${value} -> ${finalValue}`);
             }
 
             updateValues.push(finalValue);
+            console.log(`  Added to update: ${columnName} = ${finalValue} (param $${paramIndex})`);
             paramIndex++;
         }
+
+        console.log('=== FINAL UPDATE QUERY INFO ===');
+        console.log('updateFields:', updateFields);
+        console.log('updateValues:', updateValues);
 
         // Add the WHERE clause
         updateValues.push(ingredientId);
@@ -650,10 +676,10 @@ async function updateIngredient(recipeId, ingredientId, ingredientData) {
 
         console.log('Verified updated ingredient:', verifyResult.rows[0]);
         console.log('Verified package_amount:', verifyResult.rows[0].package_amount);
-        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+        // Use correct database column names
         console.log('Verified omega3:', verifyResult.rows[0].omega3);
         console.log('Verified omega6:', verifyResult.rows[0].omega6);
-        console.log('Verified trans_fat:', verifyResult.rows[0].trans_fat);
+        console.log('Verified trans:', verifyResult.rows[0].trans);
 
         // Calculate the difference in calories
         const caloriesDifference = ingredientData.calories - oldIngredient.calories;
@@ -840,8 +866,7 @@ async function updateIngredientOmegaValues(recipeId, ingredientId, omegaData) {
             throw new Error('Ingredient not found or does not belong to this recipe');
         }
 
-        // Log the current omega values
-        // CRITICAL FIX: Use omega3 and omega6 (without underscores) to match database column names
+        // Log the current omega values using correct database column names
         console.log('Current omega3:', ingredientResult.rows[0].omega3);
         console.log('Current omega6:', ingredientResult.rows[0].omega6);
 
@@ -975,15 +1000,15 @@ async function addIngredientToRecipe(recipeId, ingredientData) {
         addFieldIfExists('saturated');
         addFieldIfExists('monounsaturated');
         addFieldIfExists('polyunsaturated');
-        addFieldIfExists('omega3', 'omega3');
-        addFieldIfExists('omega_3', 'omega3');
-        addFieldIfExists('omega6', 'omega6');
-        addFieldIfExists('omega_6', 'omega6');
+        addFieldIfExists('omega3', 'omega3'); // Map to actual database column
+        addFieldIfExists('omega_3', 'omega3'); // Alias for omega3
+        addFieldIfExists('omega6', 'omega6'); // Map to actual database column
+        addFieldIfExists('omega_6', 'omega6'); // Alias for omega6
         addFieldIfExists('transFat', 'trans');
         addFieldIfExists('trans_fat', 'trans');
         addFieldIfExists('cholesterol');
 
-        // Add Protein section fields
+        // Add Protein section fields (all exist in database schema)
         addFieldIfExists('histidine');
         addFieldIfExists('isoleucine');
         addFieldIfExists('leucine');
@@ -997,20 +1022,20 @@ async function addIngredientToRecipe(recipeId, ingredientData) {
         addFieldIfExists('cystine');
 
         // Add Vitamins section fields
-        addFieldIfExists('thiamine');
-        addFieldIfExists('vitamin_b1', 'thiamine');
-        addFieldIfExists('riboflavin');
-        addFieldIfExists('vitamin_b2', 'riboflavin');
-        addFieldIfExists('niacin');
-        addFieldIfExists('vitamin_b3', 'niacin');
+        addFieldIfExists('thiamine', 'vitamin_b1'); // Map to actual database column
+        addFieldIfExists('vitamin_b1', 'vitamin_b1'); // Direct mapping
+        addFieldIfExists('riboflavin', 'vitamin_b2'); // Map to actual database column
+        addFieldIfExists('vitamin_b2', 'vitamin_b2'); // Direct mapping
+        addFieldIfExists('niacin', 'vitamin_b3'); // Map to actual database column
+        addFieldIfExists('vitamin_b3', 'vitamin_b3'); // Direct mapping
         addFieldIfExists('vitaminB6', 'vitamin_b6');
         addFieldIfExists('vitamin_b6');
         addFieldIfExists('folate');
         addFieldIfExists('vitaminB12', 'vitamin_b12');
         addFieldIfExists('vitamin_b12');
-        addFieldIfExists('vitaminB5', 'pantothenic_acid');
-        addFieldIfExists('vitamin_b5', 'pantothenic_acid');
-        addFieldIfExists('pantothenic_acid');
+        addFieldIfExists('vitaminB5', 'vitamin_b5'); // Map to actual database column
+        addFieldIfExists('vitamin_b5', 'vitamin_b5'); // Direct mapping
+        addFieldIfExists('pantothenic_acid', 'vitamin_b5'); // Map to actual database column
         addFieldIfExists('biotin');
         addFieldIfExists('vitaminA', 'vitamin_a');
         addFieldIfExists('vitamin_a');
@@ -1076,9 +1101,20 @@ async function addIngredientToRecipe(recipeId, ingredientData) {
         await client.query('COMMIT');
         console.log('Transaction committed successfully');
 
-        // Fetch the updated recipe with ingredients to return it
+        // Fetch the updated recipe with ingredients using the same client to avoid connection issues
         console.log(`Fetching complete recipe with ID: ${recipeId}`);
-        const updatedRecipe = await getRecipeById(recipeId);
+        const finalRecipeResult = await client.query('SELECT * FROM recipes WHERE id = $1', [recipeId]);
+        if (finalRecipeResult.rowCount === 0) {
+            throw new Error('Recipe not found after update');
+        }
+
+        const ingredientsResult = await client.query(
+            'SELECT * FROM ingredients WHERE recipe_id = $1 ORDER BY id ASC',
+            [recipeId]
+        );
+
+        const updatedRecipe = finalRecipeResult.rows[0];
+        updatedRecipe.ingredients = ingredientsResult.rows;
 
         // Verify the ingredients were fetched correctly
         console.log(`Recipe has ${updatedRecipe.ingredients ? updatedRecipe.ingredients.length : 0} ingredients`);

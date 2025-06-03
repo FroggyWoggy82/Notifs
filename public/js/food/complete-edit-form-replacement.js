@@ -580,7 +580,8 @@
             'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'saturated', 'trans_fat', 'cholesterol',
             'cystine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine',
             'threonine', 'tryptophan', 'tyrosine', 'valine',
-            'thiamine', 'riboflavin', 'niacin', 'pantothenic_acid', 'vitamin_b6', 'vitamin_b12',
+            // 'thiamine', 'riboflavin', // DISABLED: cause 500 errors due to database column issues
+            'niacin', 'pantothenic_acid', 'vitamin_b6', 'vitamin_b12',
             'folate', 'vitamin_a', 'vitamin_c', 'vitamin_d', 'vitamin_e', 'vitamin_k',
             'calcium', 'copper', 'iron', 'magnesium', 'manganese', 'phosphorus', 'potassium',
             'selenium', 'sodium', 'zinc'
@@ -596,7 +597,7 @@
         });
 
         fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -729,4 +730,16 @@
     } else {
         init();
     }
+
+    // Expose functions globally for use by comprehensive edit modal
+    window.createFormSections = createFormSections;
+    window.createSection = createSection;
+    window.createBasicInfoSection = createBasicInfoSection;
+    window.createGeneralSection = createGeneralSection;
+    window.createCarbohydratesSection = createCarbohydratesSection;
+    window.createLipidsSection = createLipidsSection;
+    window.createProteinSection = createProteinSection;
+    window.createVitaminsSection = createVitaminsSection;
+    window.createMineralsSection = createMineralsSection;
+
 })();

@@ -1,0 +1,154 @@
+/**
+ * Comprehensive Edit Modal Compact Styling
+ * Makes the comprehensive edit modal more vertically compact with visible labels
+ */
+
+/* Modal container adjustments */
+#comprehensive-edit-modal {
+    z-index: 10000 !important;
+}
+
+#comprehensive-edit-modal > div {
+    max-height: 95vh !important;
+    padding: 15px !important;
+}
+
+/* Form sections - ultra compact */
+#comprehensive-edit-form .nutrition-section {
+    margin-bottom: 8px !important;
+    padding-bottom: 4px !important;
+}
+
+/* Section headers - more compact */
+#comprehensive-edit-form .nutrition-section h4 {
+    font-size: 0.75em !important;
+    margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    padding-bottom: 2px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    font-weight: 600 !important;
+}
+
+/* Nutrition grid - more compact layout */
+#comprehensive-edit-form .nutrition-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 6px !important;
+    margin-bottom: 0 !important;
+}
+
+/* Nutrition items - compact with visible labels */
+#comprehensive-edit-form .nutrition-item {
+    margin-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Labels - make them visible and compact */
+#comprehensive-edit-form .nutrition-item label {
+    font-size: 0.7em !important;
+    margin-bottom: 3px !important;
+    color: #ccc !important;
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+}
+
+/* Input fields - ultra compact */
+#comprehensive-edit-form .nutrition-item input {
+    width: 100% !important;
+    padding: 3px 5px !important;
+    height: 24px !important;
+    font-size: 0.75em !important;
+    background-color: rgba(20, 20, 20, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    border-radius: 3px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+/* Special handling for name field */
+#comprehensive-edit-form #edit-ingredient-name {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 120px !important;
+}
+
+/* Form actions - compact */
+#comprehensive-edit-form .form-actions {
+    margin-top: 15px !important;
+    display: flex !important;
+    gap: 10px !important;
+    justify-content: flex-end !important;
+}
+
+#comprehensive-edit-form .form-actions button {
+    padding: 8px 16px !important;
+    font-size: 0.8em !important;
+    border-radius: 4px !important;
+    border: 1px solid #555 !important;
+    cursor: pointer !important;
+}
+
+/* Scrollbar styling for modal */
+#comprehensive-edit-modal > div::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+#comprehensive-edit-modal > div::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 4px !important;
+}
+
+#comprehensive-edit-modal > div::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 4px !important;
+}
+
+#comprehensive-edit-modal > div::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #comprehensive-edit-modal > div {
+        width: 95% !important;
+        padding: 10px !important;
+        max-height: 90vh !important;
+    }
+    
+    #comprehensive-edit-form .nutrition-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+        gap: 4px !important;
+    }
+    
+    #comprehensive-edit-form .nutrition-item label {
+        font-size: 0.6em !important;
+    }
+    
+    #comprehensive-edit-form .nutrition-item input {
+        height: 20px !important;
+        font-size: 0.65em !important;
+    }
+}
+
+/* Override any existing styles that might interfere */
+#comprehensive-edit-form .nutrition-section .nutrition-grid .nutrition-item {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+
+#comprehensive-edit-form .nutrition-section .nutrition-grid .nutrition-item label {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+#comprehensive-edit-form .nutrition-section .nutrition-grid .nutrition-item input {
+    margin-bottom: 0 !important;
+    padding-bottom: 2px !important;
+}

@@ -190,9 +190,23 @@
         div.className = 'meal-ingredient-item';
         div.dataset.index = index;
 
+        // Add ingredient ID if available (for database updates)
+        if (ingredient.id) {
+            div.dataset.ingredientId = ingredient.id;
+        }
+
         div.innerHTML = `
             <div class="ingredient-info">
-                <div class="ingredient-name">${ingredient.name}</div>
+                <div class="ingredient-name-container">
+                    <div class="ingredient-name-display">${ingredient.name}</div>
+                    <div class="ingredient-search-container" style="display: none;">
+                        <input type="text" class="ingredient-search-input" placeholder="Search for ingredient..." value="${ingredient.name}">
+                        <div class="ingredient-search-dropdown" style="display: none;"></div>
+                    </div>
+                    <button type="button" class="ingredient-dropdown-btn" data-index="${index}" title="Replace ingredient">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
                 <div class="ingredient-original-amount">Recipe amount: ${ingredient.amount}g</div>
             </div>
             <div class="amount-input-group">
@@ -213,6 +227,7 @@
                 <div class="carbs">Carbs: <span class="carbs-value">${ingredient.carbohydrates || 0}</span>g</div>
             </div>
             <div class="ingredient-actions">
+                <button type="button" class="edit-ingredient-btn" data-index="${index}">Edit</button>
                 <button type="button" class="remove-ingredient-btn" data-index="${index}">Remove</button>
             </div>
         `;
@@ -224,10 +239,36 @@
             calculateNutrition();
         });
 
+        // Add event listener for edit button
+        const editBtn = div.querySelector('.edit-ingredient-btn');
+        editBtn.addEventListener('click', () => {
+            editIngredient(index);
+        });
+
         // Add event listener for remove button
         const removeBtn = div.querySelector('.remove-ingredient-btn');
         removeBtn.addEventListener('click', () => {
             removeIngredient(index);
+        });
+
+        // Add event listener for dropdown button
+        const dropdownBtn = div.querySelector('.ingredient-dropdown-btn');
+        dropdownBtn.addEventListener('click', () => {
+            toggleIngredientSearch(index);
+        });
+
+        // Add event listener for search input
+        const searchInput = div.querySelector('.ingredient-search-input');
+        searchInput.addEventListener('input', (e) => {
+            handleIngredientSearch(e, index);
+        });
+
+        // Add event listener to close search when clicking outside
+        searchInput.addEventListener('blur', (e) => {
+            // Delay hiding to allow for dropdown clicks
+            setTimeout(() => {
+                hideIngredientSearch(index);
+            }, 200);
         });
 
         return div;
@@ -450,196 +491,422 @@
         console.log(`[Meal Submission] Removed ingredient at index ${index}`);
     }
 
+    function editIngredient(index) {
+        const ingredient = currentIngredients[index];
+        if (!ingredient) {
+            console.error(`[Meal Submission] Ingredient at index ${index} not found`);
+            return;
+        }
+
+        console.log(`[Meal Submission] Editing ingredient at index ${index}:`, ingredient);
+
+        // Store the ingredient ID for later use
+        if (ingredient.id) {
+            console.log(`[Meal Submission] Ingredient has database ID: ${ingredient.id}`);
+        }
+
+        showEditIngredientPopup(ingredient, index);
+    }
+
     function showAddIngredientForm() {
-        // DISABLED - This function is now handled by unified-add-ingredient-handler.js
-        console.log('[Meal Submission] showAddIngredientForm disabled to prevent duplicate modals');
-        return;
+        console.log('[Meal Submission] Showing add ingredient popup modal...');
+        showMealAddIngredientPopup();
+    }
 
-        // Create modal overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'add-ingredient-modal-overlay';
-        overlay.innerHTML = `
-            <div class="add-ingredient-modal">
-                <div class="modal-header">
-                    <h3>Add Ingredient</h3>
-                    <button type="button" class="close-modal-btn">&times;</button>
+    // Ingredient search and replacement functions
+    function toggleIngredientSearch(index) {
+        const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+        if (!ingredientElement) return;
+
+        const nameDisplay = ingredientElement.querySelector('.ingredient-name-display');
+        const searchContainer = ingredientElement.querySelector('.ingredient-search-container');
+        const dropdownBtn = ingredientElement.querySelector('.ingredient-dropdown-btn');
+        const searchInput = ingredientElement.querySelector('.ingredient-search-input');
+
+        if (searchContainer.style.display === 'none') {
+            // Show search
+            nameDisplay.style.display = 'none';
+            searchContainer.style.display = 'block';
+            dropdownBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+            searchInput.focus();
+            searchInput.select();
+        } else {
+            // Hide search
+            hideIngredientSearch(index);
+        }
+    }
+
+    function hideIngredientSearch(index) {
+        const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+        if (!ingredientElement) return;
+
+        const nameDisplay = ingredientElement.querySelector('.ingredient-name-display');
+        const searchContainer = ingredientElement.querySelector('.ingredient-search-container');
+        const dropdownBtn = ingredientElement.querySelector('.ingredient-dropdown-btn');
+        const dropdown = ingredientElement.querySelector('.ingredient-search-dropdown');
+
+        nameDisplay.style.display = 'block';
+        searchContainer.style.display = 'none';
+        dropdown.style.display = 'none';
+        dropdownBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+    }
+
+    async function handleIngredientSearch(event, index) {
+        const searchTerm = event.target.value.trim();
+        const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+        const dropdown = ingredientElement.querySelector('.ingredient-search-dropdown');
+
+        if (searchTerm.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        try {
+            // Use the same approach as the existing ingredient search functionality
+            // Search through all recipes to find matching ingredients
+            const recipesResponse = await fetch('/api/recipes');
+            if (!recipesResponse.ok) {
+                throw new Error('Failed to fetch recipes');
+            }
+
+            const responseData = await recipesResponse.json();
+            let recipes;
+            if (Array.isArray(responseData)) {
+                recipes = responseData;
+            } else if (responseData && responseData.success && Array.isArray(responseData.recipes)) {
+                recipes = responseData.recipes;
+            } else {
+                throw new Error('Invalid recipe data format');
+            }
+
+            // Extract all ingredients from all recipes
+            const allIngredients = [];
+            for (const recipe of recipes) {
+                try {
+                    const recipeDetailResponse = await fetch(`/api/recipes/${recipe.id}`);
+                    if (recipeDetailResponse.ok) {
+                        const recipeDetailData = await recipeDetailResponse.json();
+
+                        // Handle different response formats
+                        let recipeDetail;
+                        if (recipeDetailData.success && recipeDetailData.recipe) {
+                            // New format: {success: true, recipe: {...}}
+                            recipeDetail = recipeDetailData.recipe;
+                        } else if (recipeDetailData.ingredients) {
+                            // Old format: direct recipe object
+                            recipeDetail = recipeDetailData;
+                        } else {
+                            console.warn(`No ingredients found in recipe ${recipe.id}`);
+                            continue;
+                        }
+
+                        if (recipeDetail.ingredients && Array.isArray(recipeDetail.ingredients)) {
+                            recipeDetail.ingredients.forEach(ingredient => {
+                                allIngredients.push({
+                                    ...ingredient,
+                                    recipe_name: recipe.name,
+                                    recipe_id: recipe.id
+                                });
+                            });
+                        }
+                    }
+                } catch (recipeError) {
+                    console.warn(`Failed to fetch recipe ${recipe.id}:`, recipeError);
+                }
+            }
+
+            // Filter ingredients by search term
+            const filteredIngredients = allIngredients.filter(ingredient =>
+                ingredient.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            // Remove duplicates by name (keep the most recent)
+            const uniqueIngredients = [];
+            const seenNames = new Set();
+            for (const ingredient of filteredIngredients) {
+                if (!seenNames.has(ingredient.name.toLowerCase())) {
+                    seenNames.add(ingredient.name.toLowerCase());
+                    uniqueIngredients.push(ingredient);
+                }
+            }
+
+            // Update dropdown with results
+            updateIngredientSearchDropdown(dropdown, uniqueIngredients.slice(0, 10), index);
+            dropdown.style.display = 'block';
+        } catch (error) {
+            console.error('Error searching ingredients:', error);
+            dropdown.innerHTML = '<div class="search-result-item no-results">Search error occurred</div>';
+            dropdown.style.display = 'block';
+        }
+    }
+
+    function updateIngredientSearchDropdown(dropdown, ingredients, index) {
+        dropdown.innerHTML = '';
+
+        if (!Array.isArray(ingredients) || ingredients.length === 0) {
+            dropdown.innerHTML = '<div class="search-result-item no-results">No ingredients found</div>';
+            return;
+        }
+
+        ingredients.forEach(ingredient => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerHTML = `
+                <div class="result-name">${ingredient.name}</div>
+                <div class="result-nutrition">
+                    ${ingredient.calories || 0} cal,
+                    ${ingredient.protein || 0}g protein,
+                    ${ingredient.fats || 0}g fat,
+                    ${ingredient.carbohydrates || 0}g carbs
                 </div>
-                <div class="modal-content">
-                    <div class="ingredient-selection-type">
-                        <label>
-                            <input type="radio" name="ingredient-type" value="existing" checked>
-                            Select from existing ingredients
-                        </label>
-                        <label>
-                            <input type="radio" name="ingredient-type" value="manual">
-                            Enter manually
-                        </label>
+            `;
+
+            item.addEventListener('click', () => {
+                replaceIngredient(index, ingredient);
+            });
+
+            dropdown.appendChild(item);
+        });
+    }
+
+    function replaceIngredient(index, newIngredient) {
+        console.log(`[Meal Submission] Replacing ingredient at index ${index} with:`, newIngredient);
+
+        // Get the current amount from the input
+        const amountInput = document.getElementById(`ingredient-amount-${index}`);
+        const currentAmount = parseFloat(amountInput?.value) || 100;
+
+        // Create new ingredient object with the current amount
+        const replacementIngredient = {
+            ...newIngredient,
+            amount: currentAmount,
+            // Calculate nutrition based on the current amount
+            calories: (newIngredient.calories || 0) * (currentAmount / 100),
+            protein: (newIngredient.protein || 0) * (currentAmount / 100),
+            fats: (newIngredient.fats || 0) * (currentAmount / 100),
+            carbohydrates: (newIngredient.carbohydrates || 0) * (currentAmount / 100),
+            // Store per-100g values for future calculations
+            calories_per_100g: newIngredient.calories || 0,
+            protein_per_100g: newIngredient.protein || 0,
+            fat_per_100g: newIngredient.fats || 0,
+            carbohydrates_per_100g: newIngredient.carbohydrates || 0
+        };
+
+        // Update the ingredient in the array
+        currentIngredients[index] = replacementIngredient;
+
+        // Re-display ingredients to update the UI
+        displayIngredients();
+
+        // Recalculate nutrition
+        calculateNutrition();
+
+        console.log(`[Meal Submission] Ingredient replaced successfully`);
+    }
+
+    function showMealAddIngredientPopup() {
+        // Remove any existing popup
+        const existingPopup = document.getElementById('meal-add-ingredient-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        // Create popup HTML
+        const popupHtml = `
+            <div id="meal-add-ingredient-popup" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            ">
+                <div style="
+                    background-color: rgba(20, 20, 20, 0.95);
+                    border: 1px solid #333;
+                    border-radius: 8px;
+                    padding: 20px;
+                    width: 90%;
+                    max-width: 500px;
+                    color: #ffffff;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: #ffffff;">Add Ingredient to Meal</h3>
+                        <button onclick="closeMealAddIngredientPopup()" style="
+                            background: none;
+                            border: none;
+                            color: #ffffff;
+                            font-size: 24px;
+                            cursor: pointer;
+                            padding: 0;
+                            width: 30px;
+                            height: 30px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">&times;</button>
                     </div>
 
-                    <div id="existing-ingredient-section">
-                        <label for="existing-ingredient-select">Choose ingredient:</label>
-                        <select id="existing-ingredient-select">
-                            <option value="">-- Select an ingredient --</option>
-                        </select>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Ingredient Name:</label>
+                        <input type="text" id="meal-popup-ingredient-name" placeholder="Enter ingredient name" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
                     </div>
 
-                    <div id="manual-ingredient-section" style="display: none;">
-                        <div class="form-group">
-                            <label for="manual-ingredient-name">Ingredient Name:</label>
-                            <input type="text" id="manual-ingredient-name" placeholder="Enter ingredient name">
-                        </div>
-                        <div class="form-group">
-                            <label for="manual-ingredient-calories">Calories per 100g:</label>
-                            <input type="number" id="manual-ingredient-calories" min="0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="manual-ingredient-protein">Protein per 100g:</label>
-                            <input type="number" id="manual-ingredient-protein" min="0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="manual-ingredient-fat">Fat per 100g:</label>
-                            <input type="number" id="manual-ingredient-fat" min="0" step="0.1">
-                        </div>
-                        <div class="form-group">
-                            <label for="manual-ingredient-carbs">Carbs per 100g:</label>
-                            <input type="number" id="manual-ingredient-carbs" min="0" step="0.1">
-                        </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Amount (g):</label>
+                        <input type="number" id="meal-popup-ingredient-amount" placeholder="100" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
                     </div>
 
-                    <div class="form-group">
-                        <label for="ingredient-amount">Amount (g):</label>
-                        <input type="number" id="ingredient-amount" min="0" step="0.1" value="100">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Calories per 100g:</label>
+                        <input type="number" id="meal-popup-ingredient-calories" placeholder="0" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
                     </div>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="add-ingredient-confirm-btn">Add Ingredient</button>
-                    <button type="button" class="cancel-add-ingredient-btn">Cancel</button>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Protein per 100g (g):</label>
+                        <input type="number" id="meal-popup-ingredient-protein" placeholder="0" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Fat per 100g (g):</label>
+                        <input type="number" id="meal-popup-ingredient-fat" placeholder="0" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Carbs per 100g (g):</label>
+                        <input type="number" id="meal-popup-ingredient-carbs" placeholder="0" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button onclick="closeMealAddIngredientPopup()" style="
+                            padding: 10px 20px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(60, 60, 60, 0.8);
+                            color: #ffffff;
+                            cursor: pointer;
+                        ">Cancel</button>
+                        <button onclick="addIngredientFromMealPopup()" style="
+                            padding: 10px 20px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 120, 40, 0.8);
+                            color: #ffffff;
+                            cursor: pointer;
+                        ">Add Ingredient</button>
+                    </div>
                 </div>
             </div>
         `;
 
-        document.body.appendChild(overlay);
+        // Add popup to body
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
 
-        // Load existing ingredients
-        loadExistingIngredients();
-
-        // Add event listeners
-        setupAddIngredientModalEvents(overlay);
-    }
-
-    async function loadExistingIngredients() {
-        try {
-            const response = await fetch('/api/ingredients');
-            const data = await response.json();
-
-            if (data.success && data.ingredients) {
-                const select = document.getElementById('existing-ingredient-select');
-                data.ingredients.forEach(ingredient => {
-                    const option = document.createElement('option');
-                    option.value = ingredient.id;
-                    option.textContent = ingredient.name;
-                    option.dataset.ingredient = JSON.stringify(ingredient);
-                    select.appendChild(option);
-                });
-            }
-        } catch (error) {
-            console.error('[Meal Submission] Error loading ingredients:', error);
+        // Focus on the ingredient name input
+        const nameInput = document.getElementById('meal-popup-ingredient-name');
+        if (nameInput) {
+            nameInput.focus();
         }
     }
 
-    function setupAddIngredientModalEvents(overlay) {
-        const modal = overlay.querySelector('.add-ingredient-modal');
-        const closeBtn = overlay.querySelector('.close-modal-btn');
-        const cancelBtn = overlay.querySelector('.cancel-add-ingredient-btn');
-        const confirmBtn = overlay.querySelector('.add-ingredient-confirm-btn');
-        const typeRadios = overlay.querySelectorAll('input[name="ingredient-type"]');
-        const existingSection = overlay.querySelector('#existing-ingredient-section');
-        const manualSection = overlay.querySelector('#manual-ingredient-section');
+    // Global functions for the popup modal
+    window.closeMealAddIngredientPopup = function() {
+        const popup = document.getElementById('meal-add-ingredient-popup');
+        if (popup) {
+            popup.remove();
+        }
+    };
 
-        // Close modal events
-        closeBtn.addEventListener('click', () => closeAddIngredientModal(overlay));
-        cancelBtn.addEventListener('click', () => closeAddIngredientModal(overlay));
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) closeAddIngredientModal(overlay);
-        });
+    window.addIngredientFromMealPopup = function() {
+        console.log('[Meal Submission] Adding ingredient from popup...');
 
-        // Toggle between existing and manual ingredient entry
-        typeRadios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                if (radio.value === 'existing') {
-                    existingSection.style.display = 'block';
-                    manualSection.style.display = 'none';
-                } else {
-                    existingSection.style.display = 'none';
-                    manualSection.style.display = 'block';
-                }
-            });
-        });
+        // Get values from the popup
+        const name = document.getElementById('meal-popup-ingredient-name').value.trim();
+        const amount = parseFloat(document.getElementById('meal-popup-ingredient-amount').value) || 0;
+        const caloriesPer100g = parseFloat(document.getElementById('meal-popup-ingredient-calories').value) || 0;
+        const proteinPer100g = parseFloat(document.getElementById('meal-popup-ingredient-protein').value) || 0;
+        const fatPer100g = parseFloat(document.getElementById('meal-popup-ingredient-fat').value) || 0;
+        const carbsPer100g = parseFloat(document.getElementById('meal-popup-ingredient-carbs').value) || 0;
 
-        // Confirm add ingredient
-        confirmBtn.addEventListener('click', () => addNewIngredient(overlay));
-
-        // Prevent modal from closing when clicking inside
-        modal.addEventListener('click', (e) => e.stopPropagation());
-    }
-
-    function closeAddIngredientModal(overlay) {
-        document.body.removeChild(overlay);
-    }
-
-    function addNewIngredient(overlay) {
-        const typeRadio = overlay.querySelector('input[name="ingredient-type"]:checked');
-        const amount = parseFloat(overlay.querySelector('#ingredient-amount').value) || 0;
-
-        if (amount <= 0) {
-            alert('Please enter a valid amount.');
+        // Validate inputs
+        if (!name) {
+            alert('Please enter an ingredient name.');
             return;
         }
 
-        let newIngredient;
-
-        if (typeRadio.value === 'existing') {
-            const select = overlay.querySelector('#existing-ingredient-select');
-            const selectedOption = select.options[select.selectedIndex];
-
-            if (!selectedOption.value) {
-                alert('Please select an ingredient.');
-                return;
-            }
-
-            const ingredientData = JSON.parse(selectedOption.dataset.ingredient);
-            newIngredient = {
-                id: ingredientData.id,
-                name: ingredientData.name,
-                amount: amount,
-                calories: (ingredientData.calories || 0) * (amount / 100),
-                protein: (ingredientData.protein || 0) * (amount / 100),
-                fats: (ingredientData.fats || 0) * (amount / 100),
-                carbohydrates: (ingredientData.carbohydrates || 0) * (amount / 100)
-            };
-        } else {
-            // Manual entry
-            const name = overlay.querySelector('#manual-ingredient-name').value.trim();
-            const caloriesPer100g = parseFloat(overlay.querySelector('#manual-ingredient-calories').value) || 0;
-            const proteinPer100g = parseFloat(overlay.querySelector('#manual-ingredient-protein').value) || 0;
-            const fatPer100g = parseFloat(overlay.querySelector('#manual-ingredient-fat').value) || 0;
-            const carbsPer100g = parseFloat(overlay.querySelector('#manual-ingredient-carbs').value) || 0;
-
-            if (!name) {
-                alert('Please enter an ingredient name.');
-                return;
-            }
-
-            newIngredient = {
-                id: `manual_${Date.now()}`, // Temporary ID for manual ingredients
-                name: name,
-                amount: amount,
-                calories: caloriesPer100g * (amount / 100),
-                protein: proteinPer100g * (amount / 100),
-                fats: fatPer100g * (amount / 100),
-                carbohydrates: carbsPer100g * (amount / 100)
-            };
+        if (amount <= 0) {
+            alert('Please enter a valid amount greater than 0.');
+            return;
         }
+
+        // Calculate nutrition values based on the amount
+        const calories = caloriesPer100g * (amount / 100);
+        const protein = proteinPer100g * (amount / 100);
+        const fat = fatPer100g * (amount / 100);
+        const carbs = carbsPer100g * (amount / 100);
+
+        // Create new ingredient object
+        const newIngredient = {
+            id: `manual_${Date.now()}`, // Temporary ID for manual ingredients
+            name: name,
+            amount: amount,
+            calories: calories,
+            protein: protein,
+            fats: fat,
+            carbohydrates: carbs
+        };
 
         // Add to current ingredients
         currentIngredients.push(newIngredient);
@@ -650,11 +917,289 @@
         // Recalculate nutrition
         calculateNutrition();
 
-        // Close modal
-        closeAddIngredientModal(overlay);
+        // Close popup
+        window.closeMealAddIngredientPopup();
 
         console.log(`[Meal Submission] Added ingredient: ${newIngredient.name}`);
+        showStatus(`Ingredient "${name}" added successfully!`, 'success');
+    };
+
+    function showEditIngredientPopup(ingredient, index) {
+        // Remove any existing popup
+        const existingPopup = document.getElementById('meal-edit-ingredient-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        console.log(`[Meal Submission] Creating edit popup for ingredient:`, ingredient);
+
+        // Ensure we have all the necessary data
+        if (!ingredient) {
+            console.error('[Meal Submission] No ingredient data provided');
+            alert('Could not extract ingredient data. Please try again.');
+            return;
+        }
+
+        // Calculate per-100g values from the current ingredient with safe fallbacks
+        const currentAmount = ingredient.amount || 100;
+        const safeAmount = currentAmount > 0 ? currentAmount : 100;
+
+        const caloriesPer100g = ingredient.calories_per_100g ||
+            (ingredient.calories && safeAmount ? (ingredient.calories / safeAmount * 100) : 0);
+        const proteinPer100g = ingredient.protein_per_100g ||
+            (ingredient.protein && safeAmount ? (ingredient.protein / safeAmount * 100) : 0);
+        const fatPer100g = ingredient.fat_per_100g ||
+            ((ingredient.fats || ingredient.fat) && safeAmount ? ((ingredient.fats || ingredient.fat) / safeAmount * 100) : 0);
+        const carbsPer100g = ingredient.carbohydrates_per_100g ||
+            ((ingredient.carbohydrates || ingredient.carbs) && safeAmount ? ((ingredient.carbohydrates || ingredient.carbs) / safeAmount * 100) : 0);
+
+        // Create popup HTML
+        const popupHtml = `
+            <div id="meal-edit-ingredient-popup" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            ">
+                <div style="
+                    background-color: rgba(20, 20, 20, 0.95);
+                    border: 1px solid #333;
+                    border-radius: 8px;
+                    padding: 20px;
+                    width: 90%;
+                    max-width: 500px;
+                    color: #ffffff;
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: #ffffff;">Edit Ingredient</h3>
+                        <button onclick="closeEditIngredientPopup()" style="
+                            background: none;
+                            border: none;
+                            color: #ffffff;
+                            font-size: 24px;
+                            cursor: pointer;
+                            padding: 0;
+                            width: 30px;
+                            height: 30px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">&times;</button>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Ingredient Name:</label>
+                        <input type="text" id="edit-popup-ingredient-name" value="${ingredient.name}" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Amount (g):</label>
+                        <input type="number" id="edit-popup-ingredient-amount" value="${ingredient.amount}" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Calories per 100g:</label>
+                        <input type="number" id="edit-popup-ingredient-calories" value="${caloriesPer100g}" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Protein per 100g (g):</label>
+                        <input type="number" id="edit-popup-ingredient-protein" value="${proteinPer100g}" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Fat per 100g (g):</label>
+                        <input type="number" id="edit-popup-ingredient-fat" value="${fatPer100g}" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ffffff;">Carbs per 100g (g):</label>
+                        <input type="number" id="edit-popup-ingredient-carbs" value="${carbsPer100g}" min="0" step="0.1" style="
+                            width: 100%;
+                            padding: 8px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 40, 40, 0.8);
+                            color: #ffffff;
+                            box-sizing: border-box;
+                        ">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button onclick="closeEditIngredientPopup()" style="
+                            padding: 10px 20px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(60, 60, 60, 0.8);
+                            color: #ffffff;
+                            cursor: pointer;
+                        ">Cancel</button>
+                        <button onclick="saveEditedIngredient(${index})" style="
+                            padding: 10px 20px;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            background-color: rgba(40, 120, 40, 0.8);
+                            color: #ffffff;
+                            cursor: pointer;
+                        ">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add popup to body
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+
+        // Focus on the ingredient name input
+        const nameInput = document.getElementById('edit-popup-ingredient-name');
+        if (nameInput) {
+            nameInput.focus();
+        }
     }
+
+    // Global functions for the edit popup modal
+    window.closeEditIngredientPopup = function() {
+        const popup = document.getElementById('meal-edit-ingredient-popup');
+        if (popup) {
+            popup.remove();
+        }
+    };
+
+    window.saveEditedIngredient = function(index) {
+        console.log(`[Meal Submission] Saving edited ingredient at index ${index}...`);
+
+        // Get values from the popup
+        const name = document.getElementById('edit-popup-ingredient-name').value.trim();
+        const amount = parseFloat(document.getElementById('edit-popup-ingredient-amount').value) || 0;
+        const caloriesPer100g = parseFloat(document.getElementById('edit-popup-ingredient-calories').value) || 0;
+        const proteinPer100g = parseFloat(document.getElementById('edit-popup-ingredient-protein').value) || 0;
+        const fatPer100g = parseFloat(document.getElementById('edit-popup-ingredient-fat').value) || 0;
+        const carbsPer100g = parseFloat(document.getElementById('edit-popup-ingredient-carbs').value) || 0;
+
+        // Check if comprehensive nutrition fields are available (from the comprehensive edit popup)
+        const comprehensiveNutrition = {};
+        const nutritionFields = [
+            'fiber', 'sugar', 'sodium', 'potassium', 'calcium', 'iron', 'magnesium', 'phosphorus', 'zinc',
+            'vitamin-a', 'vitamin-c', 'vitamin-d', 'vitamin-e', 'vitamin-k', 'thiamin', 'riboflavin', 'niacin',
+            'vitamin-b6', 'folate', 'vitamin-b12', 'biotin', 'pantothenic-acid', 'choline', 'omega-3', 'omega-6',
+            'saturated-fat', 'monounsaturated-fat', 'polyunsaturated-fat', 'trans-fat', 'cholesterol',
+            'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine',
+            'tryptophan', 'tyrosine', 'valine', 'alcohol', 'caffeine', 'water'
+        ];
+
+        let hasComprehensiveData = false;
+        nutritionFields.forEach(field => {
+            const element = document.getElementById(`edit-nutrition-${field}`);
+            if (element) {
+                const value = parseFloat(element.value) || 0;
+                if (value > 0) {
+                    hasComprehensiveData = true;
+                }
+                comprehensiveNutrition[field.replace('-', '_')] = value;
+            }
+        });
+
+        if (hasComprehensiveData) {
+            console.log(`[Meal Submission] Found comprehensive nutrition data, saving ${Object.keys(comprehensiveNutrition).length} fields`);
+        }
+
+        // Validate inputs
+        if (!name) {
+            alert('Please enter an ingredient name.');
+            return;
+        }
+
+        if (amount <= 0) {
+            alert('Please enter a valid amount greater than 0.');
+            return;
+        }
+
+        // Calculate nutrition values based on the amount
+        const calories = caloriesPer100g * (amount / 100);
+        const protein = proteinPer100g * (amount / 100);
+        const fat = fatPer100g * (amount / 100);
+        const carbs = carbsPer100g * (amount / 100);
+
+        // Update the ingredient in the array
+        const updatedIngredient = {
+            ...currentIngredients[index],
+            name: name,
+            amount: amount,
+            calories: calories,
+            protein: protein,
+            fats: fat,
+            fat: fat,  // Include both formats for compatibility
+            carbohydrates: carbs,
+            carbs: carbs,  // Include both formats for compatibility
+            // Store per-100g values for future edits
+            calories_per_100g: caloriesPer100g,
+            protein_per_100g: proteinPer100g,
+            fat_per_100g: fatPer100g,
+            carbohydrates_per_100g: carbsPer100g,
+            // Include comprehensive nutrition data if available
+            ...comprehensiveNutrition
+        };
+
+        currentIngredients[index] = updatedIngredient;
+
+        // Re-display ingredients
+        displayIngredients();
+
+        // Recalculate nutrition
+        calculateNutrition();
+
+        // Close popup
+        window.closeEditIngredientPopup();
+
+        console.log(`[Meal Submission] Updated ingredient: ${updatedIngredient.name}`);
+        showStatus(`Ingredient "${name}" updated successfully!`, 'success');
+    };
 
     function validateForm() {
         const isValid = elements.mealDate.value && elements.recipeSelector.value;
@@ -791,6 +1336,44 @@
         elements.status.style.display = 'none';
         elements.status.className = 'status';
     }
+
+    // Expose functions globally for external access
+    window.showAddIngredientForm = function(container) {
+        console.log('[Meal Submission] showAddIngredientForm called globally');
+        showAddIngredientForm();
+    };
+
+    // Function to add ingredient to meal from external popup
+    window.addIngredientToMeal = function(newIngredient) {
+        console.log('[Meal Submission] Adding ingredient to meal:', newIngredient);
+
+        // Add to current ingredients
+        currentIngredients.push(newIngredient);
+
+        // Re-display ingredients
+        displayIngredients();
+
+        // Recalculate nutrition
+        calculateNutrition();
+
+        console.log(`[Meal Submission] Added ingredient: ${newIngredient.name}`);
+        showStatus(`Ingredient "${newIngredient.name}" added successfully!`, 'success');
+    };
+
+    // Make edit ingredient function globally accessible
+    window.editIngredientFromMealSubmission = function(index) {
+        editIngredient(index);
+    };
+
+    // Expose currentIngredients globally for other modules to access
+    Object.defineProperty(window, 'currentIngredients', {
+        get: function() {
+            return currentIngredients;
+        },
+        set: function(value) {
+            currentIngredients = value;
+        }
+    });
 
     console.log('[Meal Submission] Module loaded');
 

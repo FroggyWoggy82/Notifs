@@ -116,10 +116,10 @@ async function createMeal(mealData, userId = 1) {
             if (ingredient.isNew) {
                 // Create a new ingredient in the ingredients table
                 const newIngredientResult = await client.query(
-                    `INSERT INTO ingredients (name, calories, protein, fats, carbohydrates, amount)
-                     VALUES ($1, $2, $3, $4, $5, 100)
+                    `INSERT INTO ingredients (name, calories, protein, fats, carbohydrates, amount, price)
+                     VALUES ($1, $2, $3, $4, $5, 100, $6)
                      RETURNING id`,
-                    [ingredient.name.trim(), ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs]
+                    [ingredient.name.trim(), ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs, ingredient.price || 0]
                 );
 
                 ingredientId = newIngredientResult.rows[0].id;
@@ -192,10 +192,10 @@ async function updateMeal(id, mealData, userId = 1) {
             if (ingredient.isNew) {
                 // Create a new ingredient in the ingredients table
                 const newIngredientResult = await client.query(
-                    `INSERT INTO ingredients (name, calories, protein, fats, carbohydrates, amount)
-                     VALUES ($1, $2, $3, $4, $5, 100)
+                    `INSERT INTO ingredients (name, calories, protein, fats, carbohydrates, amount, price)
+                     VALUES ($1, $2, $3, $4, $5, 100, $6)
                      RETURNING id`,
-                    [ingredient.name.trim(), ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs]
+                    [ingredient.name.trim(), ingredient.calories, ingredient.protein, ingredient.fat, ingredient.carbs, ingredient.price || 0]
                 );
 
                 ingredientId = newIngredientResult.rows[0].id;

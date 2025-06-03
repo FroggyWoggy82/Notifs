@@ -4,16 +4,30 @@
  */
 
 function createUnifiedBottomNav() {
-
-    const standardNavItems = [
-        { href: '/index.html', icon: 'fas fa-check', text: 'Tasks', dataPage: 'home-page' },
-        { href: '/pages/goals.html', icon: 'fas fa-star', text: 'Goals', dataPage: 'goal-page' },
-        { href: '/pages/workouts.html', icon: 'fas fa-dumbbell', text: 'Workouts', dataPage: 'workout-page' },
-        { href: '/pages/calendar.html', icon: 'fas fa-calendar-alt', text: 'Calendar', dataPage: 'calendar-page' },
-        { href: '/pages/food.html', icon: 'fas fa-utensils', text: 'Food', dataPage: 'food-page' }
-    ];
-
     const currentPath = window.location.pathname;
+    const isInPagesFolder = currentPath.includes('/pages/');
+
+    // Determine correct relative paths based on current location
+    let standardNavItems;
+    if (isInPagesFolder) {
+        // We're in a pages subfolder, so go up one level for index.html and stay in current folder for other pages
+        standardNavItems = [
+            { href: '../index.html', icon: 'fas fa-check', text: 'Tasks', dataPage: 'home-page' },
+            { href: 'goals.html', icon: 'fas fa-star', text: 'Goals', dataPage: 'goal-page' },
+            { href: 'workouts.html', icon: 'fas fa-dumbbell', text: 'Workouts', dataPage: 'workout-page' },
+            { href: 'calendar.html', icon: 'fas fa-calendar-alt', text: 'Calendar', dataPage: 'calendar-page' },
+            { href: 'food.html', icon: 'fas fa-utensils', text: 'Food', dataPage: 'food-page' }
+        ];
+    } else {
+        // We're in the root folder
+        standardNavItems = [
+            { href: 'index.html', icon: 'fas fa-check', text: 'Tasks', dataPage: 'home-page' },
+            { href: 'pages/goals.html', icon: 'fas fa-star', text: 'Goals', dataPage: 'goal-page' },
+            { href: 'pages/workouts.html', icon: 'fas fa-dumbbell', text: 'Workouts', dataPage: 'workout-page' },
+            { href: 'pages/calendar.html', icon: 'fas fa-calendar-alt', text: 'Calendar', dataPage: 'calendar-page' },
+            { href: 'pages/food.html', icon: 'fas fa-utensils', text: 'Food', dataPage: 'food-page' }
+        ];
+    }
 
     const existingBottomNav = document.querySelector('.bottom-nav');
     if (existingBottomNav) {
@@ -26,15 +40,37 @@ function createUnifiedBottomNav() {
     document.body.appendChild(bottomNav);
 
     standardNavItems.forEach(item => {
+        // Determine if this nav item is active based on current path
+        let isActive = false;
 
-        const isActive = currentPath === item.href ||
-                         (currentPath.endsWith('/') && item.href === '/index.html') ||
-                         (currentPath !== '/' && currentPath !== '/index.html' && item.href !== '/index.html' && currentPath.includes(item.href));
+        if (item.dataPage === 'home-page') {
+            // Tasks page - active for index.html or root
+            isActive = currentPath === '/' || currentPath === '/index.html' || currentPath.endsWith('/index.html');
+        } else {
+            // Other pages - check if current path contains the page name
+            // Map dataPage to actual filename
+            const pageFileMap = {
+                'goal-page': 'goals.html',
+                'workout-page': 'workouts.html',
+                'calendar-page': 'calendar.html',
+                'food-page': 'food.html'
+            };
+            const fileName = pageFileMap[item.dataPage];
+            isActive = fileName && currentPath.includes(fileName);
+        }
 
         const navItem = document.createElement('a');
         navItem.href = item.href;
         navItem.className = `nav-item${isActive ? ' active' : ''}`;
         navItem.setAttribute('data-page', item.dataPage);
+
+        // Add click handler to ensure navigation works even if other scripts interfere
+        // Use capture phase to ensure this runs before other handlers
+        navItem.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            window.location.href = item.href;
+        }, true);
 
         const navIcon = document.createElement('div');
         navIcon.className = 'nav-icon';
@@ -47,6 +83,19 @@ function createUnifiedBottomNav() {
         navItem.appendChild(navText);
         bottomNav.appendChild(navItem);
     });
+
+    // Add global click handler for bottom navigation as a fallback
+    document.addEventListener('click', function(event) {
+        const navItem = event.target.closest('.bottom-nav .nav-item');
+        if (navItem && navItem.href) {
+            event.preventDefault();
+            event.stopPropagation();
+            // Use setTimeout to bypass any interference from other scripts
+            setTimeout(function() {
+                window.location.href = navItem.href;
+            }, 10);
+        }
+    }, true);
 }
 
 // Prevent multiple executions
