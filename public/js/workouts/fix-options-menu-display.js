@@ -14,18 +14,29 @@
     // Initialize the fix
     function init() {
         log('Initializing...');
-        
+
+        // Detect if we're on a mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                         ('ontouchstart' in window);
+
         // Add event listener for ellipsis button clicks
         document.addEventListener('click', function(event) {
             const target = event.target;
-            
+
             // Check if the clicked element is an ellipsis button
             if (target.classList.contains('btn-exercise-options')) {
                 log('Ellipsis button clicked');
-                
+
+                // Prevent default behavior and stop propagation for mobile
+                if (isMobile) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                }
+
                 // Get the workout index from the button
                 let workoutIndex = target.dataset.workoutIndex || target.dataset.index;
-                
+
                 // If no workout index on the button, try to get it from the parent exercise item
                 if (!workoutIndex) {
                     const exerciseItem = target.closest('.exercise-item');
@@ -78,7 +89,71 @@
                 });
             }
         });
-        
+
+        // Add touch event handling for mobile devices
+        if (isMobile) {
+            log('Adding mobile touch event handlers...');
+
+            document.addEventListener('touchend', function(event) {
+                const target = event.target;
+
+                // Check if the touched element is an ellipsis button
+                if (target.classList.contains('btn-exercise-options')) {
+                    log('Ellipsis button touched on mobile');
+
+                    // Prevent the click event from firing
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+
+                    // Get the workout index from the button
+                    let workoutIndex = target.dataset.workoutIndex || target.dataset.index;
+
+                    // If no workout index on the button, try to get it from the parent exercise item
+                    if (!workoutIndex) {
+                        const exerciseItem = target.closest('.exercise-item');
+                        if (exerciseItem) {
+                            workoutIndex = exerciseItem.dataset.workoutIndex || exerciseItem.dataset.index;
+                        }
+                    }
+
+                    if (!workoutIndex) {
+                        log('Could not find workout index for ellipsis button');
+                        return;
+                    }
+
+                    log(`Found workout index: ${workoutIndex}`);
+
+                    // Find the corresponding options menu
+                    const menu = document.getElementById(`options-menu-${workoutIndex}`);
+                    if (!menu) {
+                        log(`Could not find options menu with ID: options-menu-${workoutIndex}`);
+                        return;
+                    }
+
+                    log('Found options menu, toggling...');
+
+                    // Close all other menus first
+                    document.querySelectorAll('.exercise-options-menu.show').forEach(otherMenu => {
+                        if (otherMenu !== menu) {
+                            otherMenu.classList.remove('show');
+                        }
+                    });
+
+                    // Toggle this menu with a slight delay to ensure proper rendering
+                    setTimeout(() => {
+                        menu.classList.toggle('show');
+
+                        // If the menu is now shown, ensure it's properly positioned
+                        if (menu.classList.contains('show')) {
+                            ensureMenuIsVisible(menu);
+                            ensureButtonsAreVisible(menu);
+                        }
+                    }, 10);
+                }
+            }, { passive: false });
+        }
+
         // Ensure the menu is visible within the viewport
         function ensureMenuIsVisible(menu) {
             const rect = menu.getBoundingClientRect();

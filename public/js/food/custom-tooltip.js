@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Check if the weight chart canvas has been added to the DOM
                 const chartCanvas = document.getElementById('weight-goal-chart');
                 if (chartCanvas && window.weightGoalChart && typeof window.attachWeightChartTooltipEvents === 'function') {
-                    console.log('[Custom Tooltip] Chart canvas detected, attaching tooltip events');
                     window.attachWeightChartTooltipEvents(window.weightGoalChart);
                 }
             }
@@ -52,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Always use the pre-formatted fullDate if available for weekly points
                     if (weeklyPoint.fullDate) {
                         formattedDate = weeklyPoint.fullDate;
-                        console.log(`Using pre-formatted fullDate for week ${weeklyPoint.week}: ${formattedDate}`);
                     }
                     // Otherwise try to format the date field
                     else if (weeklyPoint.date) {
@@ -75,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     day: 'numeric',
                                     year: 'numeric'
                                 });
-                                console.log(`Using formatted date for week ${weeklyPoint.week}: ${formattedDate}`);
                             }
                         } catch (e) {
                             console.error(`Error formatting week ${weeklyPoint.week} date:`, e);
@@ -142,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add actual weight information if available
         if (hasActualWeight) {
-            const actualWeight = parseFloat(actualDataset.data[pointIndex].y).toFixed(2);
+            const actualWeight = Math.round(parseFloat(actualDataset.data[pointIndex].y));
             actualWeightInfo = `<div style="color: #3498db; font-weight: bold;">Actual Weight: ${actualWeight} lbs</div>`;
 
             // Add comparison to target weight if available
@@ -173,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 goalWeightInfo = `
                     ${weeklyInfo}
-                    <div style="color: ${pointColor}; font-weight: bold;">Target Weight: ${goalWeight} lbs</div>
+                    <div style="color: ${pointColor}; font-weight: bold;">Target Weight: ${Math.round(goalWeight)} lbs</div>
                 `;
             }
             // Don't show goal weight info for interpolated points between weekly goals
@@ -184,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const diff = parseFloat(goalWeight) - targetWeight;
                 const sign = diff >= 0 ? '+' : '';
                 if (!targetWeightInfo) { // Only add if not already added from actual weight
-                    targetWeightInfo = `<div>${sign}${diff.toFixed(2)} lbs from final target</div>`;
+                    targetWeightInfo = `<div>${sign}${Math.round(Math.abs(diff))} lbs ${diff >= 0 ? 'above' : 'below'} final target</div>`;
                 }
             }
         }
@@ -203,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add comparison section
             const comparisonInfo = `
                 <div style="margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.2);">
-                    <div style="color: ${diffColor}; font-weight: bold;">${sign}${Math.abs(diff).toFixed(2)} lbs ${diff >= 0 ? 'above' : 'below'} target</div>
+                    <div style="color: ${diffColor}; font-weight: bold;">${sign}${Math.round(Math.abs(diff))} lbs ${diff >= 0 ? 'above' : 'below'} target</div>
                 </div>
             `;
 

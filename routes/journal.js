@@ -73,28 +73,6 @@ router.post('/memory', JournalController.saveMemoryEntry);
 
 /**
  * @swagger
- * /api/journal/{id}:
- *   get:
- *     summary: Get a journal entry by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Journal entry ID
- *     responses:
- *       200:
- *         description: Journal entry
- *       404:
- *         description: Entry not found
- *       500:
- *         description: Server error
- */
-router.get('/:id', JournalController.getEntryById);
-
-/**
- * @swagger
  * /api/journal/date/{date}:
  *   get:
  *     summary: Get a journal entry by date
@@ -115,6 +93,146 @@ router.get('/:id', JournalController.getEntryById);
  *         description: Server error
  */
 router.get('/date/:date', JournalController.getEntryByDate);
+
+/**
+ * @swagger
+ * /api/journal/people:
+ *   get:
+ *     summary: Get all people mentioned in journal entries
+ *     responses:
+ *       200:
+ *         description: List of people with mention counts
+ *       500:
+ *         description: Server error
+ */
+router.get('/people', async (req, res) => {
+    try {
+        const PersonAnalysisService = require('../services/personAnalysisService');
+        const people = await PersonAnalysisService.getPeopleOverview();
+        res.json(people);
+    } catch (error) {
+        console.error('Error getting people overview:', error);
+        res.status(500).json({ error: 'Failed to retrieve people' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/journal/people/search:
+ *   get:
+ *     summary: Search for a person by name and get their analysis
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Name to search for
+ *     responses:
+ *       200:
+ *         description: Person analysis
+ *       404:
+ *         description: Person not found
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.get('/people/search', async (req, res) => {
+    try {
+        const { name } = req.query;
+
+        if (!name) {
+            return res.status(400).json({ error: 'Name parameter is required' });
+        }
+
+        const PersonModel = require('../models/personModel');
+        const PersonAnalysisService = require('../services/personAnalysisService');
+
+        // Find person by name (case-insensitive)
+        const people = await PersonModel.getAllPeople();
+        const person = people.find(p =>
+            p.name.toLowerCase().includes(name.toLowerCase()) ||
+            name.toLowerCase().includes(p.name.toLowerCase())
+        );
+
+        if (!person) {
+            return res.status(404).json({ error: `No person found matching "${name}"` });
+        }
+
+        // Get full analysis for the found person
+        const analysis = await PersonAnalysisService.generatePersonAnalysis(person.id);
+        res.json(analysis);
+    } catch (error) {
+        console.error('Error searching for person:', error);
+        res.status(500).json({ error: 'Failed to search for person' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/journal/people/{id}:
+ *   get:
+ *     summary: Get detailed analysis for a specific person
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Person ID
+ *     responses:
+ *       200:
+ *         description: Comprehensive person analysis
+ *       404:
+ *         description: Person not found
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.get('/people/:id', async (req, res) => {
+    try {
+        const personId = parseInt(req.params.id);
+
+        if (isNaN(personId)) {
+            return res.status(400).json({ error: 'Invalid person ID' });
+        }
+
+        const PersonAnalysisService = require('../services/personAnalysisService');
+        const analysis = await PersonAnalysisService.generatePersonAnalysis(personId);
+        res.json(analysis);
+    } catch (error) {
+        console.error('Error getting person analysis:', error);
+        if (error.message === 'Person not found') {
+            res.status(404).json({ error: 'Person not found' });
+        } else {
+            res.status(500).json({ error: 'Failed to generate person analysis' });
+        }
+    }
+});
+
+/**
+ * @swagger
+ * /api/journal/{id}:
+ *   get:
+ *     summary: Get a journal entry by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Journal entry ID
+ *     responses:
+ *       200:
+ *         description: Journal entry
+ *       404:
+ *         description: Entry not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id', JournalController.getEntryById);
 
 /**
  * @swagger
@@ -245,124 +363,6 @@ router.post('/insights', JournalController.saveInsights);
  *         description: Server error
  */
 router.get('/:id/insights', JournalController.getInsightsByEntryId);
-
-/**
- * @swagger
- * /api/journal/people:
- *   get:
- *     summary: Get all people mentioned in journal entries
- *     responses:
- *       200:
- *         description: List of people with mention counts
- *       500:
- *         description: Server error
- */
-router.get('/people', async (req, res) => {
-    try {
-        const PersonAnalysisService = require('../services/personAnalysisService');
-        const people = await PersonAnalysisService.getPeopleOverview();
-        res.json(people);
-    } catch (error) {
-        console.error('Error getting people overview:', error);
-        res.status(500).json({ error: 'Failed to retrieve people' });
-    }
-});
-
-/**
- * @swagger
- * /api/journal/people/search:
- *   get:
- *     summary: Search for a person by name and get their analysis
- *     parameters:
- *       - in: query
- *         name: name
- *         schema:
- *           type: string
- *         required: true
- *         description: Name to search for
- *     responses:
- *       200:
- *         description: Person analysis
- *       404:
- *         description: Person not found
- *       400:
- *         description: Invalid input
- *       500:
- *         description: Server error
- */
-router.get('/people/search', async (req, res) => {
-    try {
-        const { name } = req.query;
-
-        if (!name) {
-            return res.status(400).json({ error: 'Name parameter is required' });
-        }
-
-        const PersonModel = require('../models/personModel');
-        const PersonAnalysisService = require('../services/personAnalysisService');
-
-        // Find person by name (case-insensitive)
-        const people = await PersonModel.getAllPeople();
-        const person = people.find(p =>
-            p.name.toLowerCase().includes(name.toLowerCase()) ||
-            name.toLowerCase().includes(p.name.toLowerCase())
-        );
-
-        if (!person) {
-            return res.status(404).json({ error: `No person found matching "${name}"` });
-        }
-
-        // Get full analysis for the found person
-        const analysis = await PersonAnalysisService.generatePersonAnalysis(person.id);
-        res.json(analysis);
-    } catch (error) {
-        console.error('Error searching for person:', error);
-        res.status(500).json({ error: 'Failed to search for person' });
-    }
-});
-
-/**
- * @swagger
- * /api/journal/people/{id}:
- *   get:
- *     summary: Get detailed analysis for a specific person
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: Person ID
- *     responses:
- *       200:
- *         description: Comprehensive person analysis
- *       404:
- *         description: Person not found
- *       400:
- *         description: Invalid input
- *       500:
- *         description: Server error
- */
-router.get('/people/:id', async (req, res) => {
-    try {
-        const personId = parseInt(req.params.id);
-
-        if (isNaN(personId)) {
-            return res.status(400).json({ error: 'Invalid person ID' });
-        }
-
-        const PersonAnalysisService = require('../services/personAnalysisService');
-        const analysis = await PersonAnalysisService.generatePersonAnalysis(personId);
-        res.json(analysis);
-    } catch (error) {
-        console.error('Error getting person analysis:', error);
-        if (error.message === 'Person not found') {
-            res.status(404).json({ error: 'Person not found' });
-        } else {
-            res.status(500).json({ error: 'Failed to generate person analysis' });
-        }
-    }
-});
 
 /**
  * @swagger

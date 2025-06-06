@@ -27,14 +27,13 @@ router.get('/', async (req, res) => {
                 i.package_amount,
                 i.price,
                 r.name as recipe_name,
-                r.id as recipe_id,
-                i.created_at
+                r.id as recipe_id
             FROM
                 ingredients i
             JOIN
                 recipes r ON i.recipe_id = r.id
             ORDER BY
-                i.name, i.created_at DESC
+                i.name, i.id DESC
             LIMIT $1
         `, [limit]);
 
@@ -65,8 +64,7 @@ router.get('/search', async (req, res) => {
                 i.package_amount,
                 i.price,
                 r.name as recipe_name,
-                r.id as recipe_id,
-                i.created_at
+                r.id as recipe_id
             FROM
                 ingredients i
             JOIN
@@ -74,7 +72,7 @@ router.get('/search', async (req, res) => {
             WHERE
                 i.name ILIKE $1
             ORDER BY
-                i.name, i.created_at DESC
+                i.name, i.id DESC
             LIMIT 10
         `, [`%${searchTerm}%`]);
 

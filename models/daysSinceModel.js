@@ -4,6 +4,7 @@
  */
 
 const db = require('../utils/db');
+const EventResetModel = require('./eventResetModel');
 
 /**
  * Get all days since events
@@ -25,8 +26,21 @@ async function createEvent(eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
-    let parsedDate = new Date(startDate);
+    // Parse the incoming datetime string and handle timezone properly
+    let parsedDate;
+
+    // Check if this is a datetime-local string (no timezone info)
+    if (startDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+        // This is a datetime-local string, treat it as if it's already in the desired display timezone
+        // We want the database to store a UTC time that, when converted to Central Time, shows the original local time
+        // So we need to store it as UTC time that's 5 hours behind the local time
+        const localDate = new Date(startDate + ':00');
+        // Subtract 5 hours to get the UTC time that will display correctly in Central Time
+        parsedDate = new Date(localDate.getTime() - (5 * 60 * 60 * 1000));
+    } else {
+        // This already has timezone info or is in a different format
+        parsedDate = new Date(startDate);
+    }
 
     // Validate the parsed date
     if (isNaN(parsedDate.getTime())) {
@@ -39,9 +53,6 @@ async function createEvent(eventName, startDate) {
         // Use the alternatively parsed date if valid
         parsedDate = alternativeDate;
     }
-
-    // Add 5 hours to compensate for timezone difference
-    parsedDate.setHours(parsedDate.getHours() + 5);
 
 
     // Store the date object in the database
@@ -65,8 +76,33 @@ async function updateEvent(id, eventName, startDate) {
         throw new Error('Event name and start date are required');
     }
 
-    // Parse the incoming local datetime string (YYYY-MM-DDTHH:MM)
-    let parsedDate = new Date(startDate);
+    // Get the current event to check if it's being reset
+    const currentEventResult = await db.query(
+        'SELECT * FROM days_since_events WHERE id = $1',
+        [id]
+    );
+
+    if (currentEventResult.rowCount === 0) {
+        throw new Error('Event not found');
+    }
+
+    const currentEvent = currentEventResult.rows[0];
+
+    // Parse the incoming datetime string and handle timezone properly
+    let parsedDate;
+
+    // Check if this is a datetime-local string (no timezone info)
+    if (startDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+        // This is a datetime-local string, treat it as if it's already in the desired display timezone
+        // We want the database to store a UTC time that, when converted to Central Time, shows the original local time
+        // So we need to store it as UTC time that's 5 hours behind the local time
+        const localDate = new Date(startDate + ':00');
+        // Subtract 5 hours to get the UTC time that will display correctly in Central Time
+        parsedDate = new Date(localDate.getTime() - (5 * 60 * 60 * 1000));
+    } else {
+        // This already has timezone info or is in a different format
+        parsedDate = new Date(startDate);
+    }
 
     // Validate the parsed date
     if (isNaN(parsedDate.getTime())) {
@@ -80,18 +116,20 @@ async function updateEvent(id, eventName, startDate) {
         parsedDate = alternativeDate;
     }
 
-    // Add 5 hours to compensate for timezone difference
-    parsedDate.setHours(parsedDate.getHours() + 5);
+    // Check if this is a reset (new start date is more recent than current start date)
+    const currentStartDate = new Date(currentEvent.start_date);
+    const isReset = parsedDate > currentStartDate;
 
+    // If it's a reset and the event name contains "Goon", increment the reset count
+    if (isReset && (eventName.toLowerCase().includes('goon') || currentEvent.event_name.toLowerCase().includes('goon'))) {
+        console.log(`Detected reset for event: ${eventName}`);
+        await EventResetModel.incrementResetCount(eventName.trim());
+    }
 
     const result = await db.query(
         'UPDATE days_since_events SET event_name = $1, start_date = $2 WHERE id = $3 RETURNING *',
         [eventName.trim(), parsedDate, id] // Pass the Date object directly
     );
-
-    if (result.rowCount === 0) {
-        throw new Error('Event not found');
-    }
 
     return result.rows[0];
 }

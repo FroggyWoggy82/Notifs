@@ -6,11 +6,8 @@
     <title>Food & Recipes - Task List</title>
     <meta name="description" content="Create and manage recipes">
 
-    <!-- Console log suppressor - temporarily disabled to reduce spam -->
-    <!-- <script src="../js/console-log-suppressor.js"></script> -->
-    <!-- <script src="../js/food/console-log-suppressor.js?v=1737073900"></script> --> <!-- Food-specific log suppressor -->
-    <!-- <script src="../js/console-log-helper.js"></script> -->
-    <!-- <script src="../js/log-throttle.js"></script> --> <!-- Throttle repeated log messages -->
+    <!-- Console log suppressor - enabled to reduce spam -->
+    <script src="../js/food/console-log-suppressor.js?v=1737073900"></script> <!-- Food-specific log suppressor -->
 
     <link rel="stylesheet" href="../css/index.css"> <!-- Global styles -->
     <link rel="stylesheet" href="../css/food.css">   <!-- Food specific styles -->
@@ -511,9 +508,22 @@
 
                             <!-- Input Grid -->
                             <div class="ingredient-inputs-grid">
-                                <div class="input-group">
+                                <div class="input-group" style="position: relative;">
                                     <label class="input-label">Ingredient Name</label>
-                                    <input type="text" class="form-input ingredient-name" placeholder="Enter ingredient name" required>
+                                    <input type="text" class="form-input ingredient-name" placeholder="Search or enter ingredient name" required>
+                                    <div id="recipe-ingredient-dropdown" style="
+                                        position: absolute;
+                                        top: 100%;
+                                        left: 0;
+                                        right: 0;
+                                        background: #2a2a2a;
+                                        border: 1px solid #444;
+                                        border-radius: 4px;
+                                        max-height: 200px;
+                                        overflow-y: auto;
+                                        z-index: 1000;
+                                        display: none;
+                                    "></div>
                                 </div>
                                 <div class="input-group">
                                     <label class="input-label">Amount (g)</label>
@@ -794,15 +804,7 @@
                 const newMenuButton = menuButton.cloneNode(true);
                 menuButton.parentNode.replaceChild(newMenuButton, menuButton);
 
-                // Add mousedown handler (primary method - click events seem to be blocked)
-                newMenuButton.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('[Ultimate Sidebar] Menu button mousedown!');
-                    window.ultimateSidebarControl.toggleSidebar();
-                });
-
-                // Add click handler as fallback
+                // Add click handler only (remove conflicting mousedown and touchstart)
                 newMenuButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -810,23 +812,7 @@
                     window.ultimateSidebarControl.toggleSidebar();
                 });
 
-                // Add touchstart for mobile
-                newMenuButton.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('[Ultimate Sidebar] Menu button touchstart!');
-                    window.ultimateSidebarControl.toggleSidebar();
-                });
-
-                // Add overlay mousedown handler (primary method)
-                overlay.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('[Ultimate Sidebar] Overlay mousedown!');
-                    window.ultimateSidebarControl.closeSidebar();
-                });
-
-                // Add overlay click handler as fallback
+                // Add overlay click handler only (remove conflicting mousedown)
                 overlay.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1355,18 +1341,9 @@
                         const recipeSelector = document.getElementById('recipe-selector');
                         const recipeId = recipeSelector ? recipeSelector.value : null;
 
-                        if (ingredientId && recipeId && !ingredientId.toString().startsWith('manual_')) {
-                            // Use comprehensive edit modal for database ingredients
-                            console.log('[Meal Edit Ingredient Fix] Showing comprehensive edit modal for ingredient:', ingredientId);
-                            showComprehensiveEditModal(ingredientId, recipeId, index);
-                        } else {
-                            // Fall back to meal submission edit for manual ingredients
-                            if (typeof window.editIngredientFromMealSubmission === 'function') {
-                                window.editIngredientFromMealSubmission(index);
-                            } else {
-                                console.error('[Meal Edit Ingredient Fix] No suitable edit function found');
-                            }
-                        }
+                        // Always use comprehensive edit modal for meal submission ingredients
+                        console.log('[Meal Edit Ingredient Fix] Showing comprehensive edit modal for ingredient:', ingredientId);
+                        showComprehensiveEditModal(ingredientId, recipeId, index);
                     } else {
                         console.error('[Meal Edit Ingredient Fix] Ingredient element not found');
                     }
@@ -1456,15 +1433,31 @@
 
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; margin-bottom: 5px; color: #ffffff;">Ingredient Name</label>
-                            <input type="text" id="meal-popup-ingredient-name" placeholder="Enter ingredient name" style="
-                                width: 100%;
-                                padding: 8px;
-                                border: 1px solid #555;
-                                border-radius: 4px;
-                                background-color: rgba(40, 40, 40, 0.8);
-                                color: #ffffff;
-                                box-sizing: border-box;
-                            ">
+                            <div style="position: relative;">
+                                <input type="text" id="meal-popup-ingredient-name" placeholder="Search or enter ingredient name" style="
+                                    width: 100%;
+                                    padding: 8px;
+                                    border: 1px solid #555;
+                                    border-radius: 4px;
+                                    background-color: rgba(40, 40, 40, 0.8);
+                                    color: #ffffff;
+                                    box-sizing: border-box;
+                                ">
+                                <div id="meal-popup-ingredient-dropdown" style="
+                                    position: absolute;
+                                    top: 100%;
+                                    left: 0;
+                                    right: 0;
+                                    background-color: rgba(30, 30, 30, 0.95);
+                                    border: 1px solid #555;
+                                    border-top: none;
+                                    border-radius: 0 0 4px 4px;
+                                    max-height: 200px;
+                                    overflow-y: auto;
+                                    z-index: 1000;
+                                    display: none;
+                                "></div>
+                            </div>
                         </div>
 
                         <div style="margin-bottom: 15px;">
@@ -1585,7 +1578,210 @@
             const nameInput = document.getElementById('meal-popup-ingredient-name');
             if (nameInput) {
                 nameInput.focus();
+
+                // Initialize ingredient search functionality
+                initializeIngredientSearch();
             }
+        }
+
+        // Initialize ingredient search functionality
+        function initializeIngredientSearch() {
+            const nameInput = document.getElementById('meal-popup-ingredient-name');
+            const dropdown = document.getElementById('meal-popup-ingredient-dropdown');
+
+            if (!nameInput || !dropdown) return;
+
+            let searchTimeout;
+            let allIngredients = [];
+
+            // Fetch all unique ingredients from the database
+            async function fetchAllIngredients() {
+                try {
+                    const response = await fetch('/api/unique-ingredients');
+                    if (response.ok) {
+                        allIngredients = await response.json();
+                        console.log('[Ingredient Search] Loaded', allIngredients.length, 'ingredients');
+                    } else {
+                        console.warn('[Ingredient Search] Failed to fetch ingredients, using fallback');
+                        allIngredients = [
+                            'Chicken Breast', 'Eggs', 'Milk', 'Butter', 'Olive Oil', 'Rice', 'Pasta',
+                            'Bread', 'Cheese', 'Tomato', 'Onion', 'Garlic', 'Potato', 'Carrot'
+                        ];
+                    }
+                } catch (error) {
+                    console.error('[Ingredient Search] Error fetching ingredients:', error);
+                    allIngredients = [];
+                }
+            }
+
+            // Search ingredients based on input
+            function searchIngredients(query) {
+                if (!query || query.length < 1) return [];
+
+                const lowerQuery = query.toLowerCase();
+                return allIngredients.filter(ingredient => {
+                    // Handle both string and object formats
+                    const ingredientName = typeof ingredient === 'string' ? ingredient : ingredient.name;
+                    return ingredientName && ingredientName.toLowerCase().includes(lowerQuery);
+                }).slice(0, 10); // Limit to 10 results
+            }
+
+            // Create dropdown item
+            function createDropdownItem(ingredient) {
+                const ingredientName = typeof ingredient === 'string' ? ingredient : ingredient.name;
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    color: #ffffff;
+                    font-size: 14px;
+                `;
+                item.textContent = ingredientName;
+
+                // Hover effects
+                item.addEventListener('mouseenter', () => {
+                    item.style.backgroundColor = 'rgba(60, 60, 60, 0.8)';
+                });
+                item.addEventListener('mouseleave', () => {
+                    item.style.backgroundColor = 'transparent';
+                });
+
+                // Click to select
+                item.addEventListener('click', () => {
+                    selectIngredient(ingredientName);
+                });
+
+                return item;
+            }
+
+            // Select an ingredient and autofill data
+            async function selectIngredient(ingredientName) {
+                nameInput.value = ingredientName;
+                dropdown.style.display = 'none';
+
+                console.log('[Ingredient Search] Selected:', ingredientName);
+
+                // Try to fetch ingredient data and autofill
+                await autofillIngredientData(ingredientName);
+            }
+
+            // Autofill ingredient data from database
+            async function autofillIngredientData(ingredientName) {
+                try {
+                    console.log('[Ingredient Autofill] Searching for:', ingredientName);
+
+                    // Search through all recipes to find this ingredient
+                    const recipesResponse = await fetch('/api/recipes');
+                    if (!recipesResponse.ok) return;
+
+                    const recipesData = await recipesResponse.json();
+                    const recipes = recipesData.recipes || recipesData;
+                    if (!Array.isArray(recipes)) {
+                        console.warn('[Ingredient Autofill] Invalid recipes response');
+                        return;
+                    }
+
+                    for (const recipe of recipes) {
+                        const recipeResponse = await fetch(`/api/recipes/${recipe.id}`);
+                        if (!recipeResponse.ok) continue;
+
+                        const recipeDetail = await recipeResponse.json();
+                        if (!recipeDetail || !recipeDetail.ingredients || !Array.isArray(recipeDetail.ingredients)) {
+                            continue;
+                        }
+
+                        const matchingIngredient = recipeDetail.ingredients.find(
+                            ing => ing.name && ing.name.toLowerCase() === ingredientName.toLowerCase()
+                        );
+
+                        if (matchingIngredient) {
+                            console.log('[Ingredient Autofill] Found data:', matchingIngredient);
+
+                            // Autofill the form fields
+                            const packageAmountField = document.getElementById('meal-popup-package-amount');
+                            const priceField = document.getElementById('meal-popup-ingredient-price');
+                            const groceryStoreField = document.getElementById('meal-popup-grocery-store');
+
+                            if (packageAmountField && matchingIngredient.package_amount) {
+                                packageAmountField.value = matchingIngredient.package_amount;
+                            }
+                            if (priceField && matchingIngredient.price) {
+                                priceField.value = matchingIngredient.price;
+                            }
+                            if (groceryStoreField && matchingIngredient.grocery_store) {
+                                groceryStoreField.value = matchingIngredient.grocery_store;
+                            }
+
+                            // Create Cronometer-style data for nutrition fields
+                            const nutritionData = [];
+                            if (matchingIngredient.calories) nutritionData.push(`Energy: ${matchingIngredient.calories} kcal`);
+                            if (matchingIngredient.protein) nutritionData.push(`Protein: ${matchingIngredient.protein} g`);
+                            if (matchingIngredient.fats) nutritionData.push(`Fat: ${matchingIngredient.fats} g`);
+                            if (matchingIngredient.carbohydrates) nutritionData.push(`Carbohydrate: ${matchingIngredient.carbohydrates} g`);
+                            if (matchingIngredient.fiber) nutritionData.push(`Fiber: ${matchingIngredient.fiber} g`);
+                            if (matchingIngredient.sugars) nutritionData.push(`Sugars: ${matchingIngredient.sugars} g`);
+
+                            if (nutritionData.length > 0) {
+                                const cronometerField = document.getElementById('meal-popup-cronometer-data');
+                                if (cronometerField) {
+                                    cronometerField.value = nutritionData.join('\n');
+                                    // Trigger auto-parsing
+                                    setTimeout(() => {
+                                        if (typeof autoParseNutritionData === 'function') {
+                                            autoParseNutritionData();
+                                        }
+                                    }, 100);
+                                }
+                            }
+
+                            console.log('[Ingredient Autofill] ✅ Successfully autofilled data');
+                            return;
+                        }
+                    }
+
+                    console.log('[Ingredient Autofill] No existing data found for:', ingredientName);
+                } catch (error) {
+                    console.error('[Ingredient Autofill] Error:', error);
+                }
+            }
+
+            // Update dropdown with search results
+            function updateDropdown(results) {
+                dropdown.innerHTML = '';
+
+                if (results.length === 0) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+
+                results.forEach(ingredient => {
+                    dropdown.appendChild(createDropdownItem(ingredient));
+                });
+
+                dropdown.style.display = 'block';
+            }
+
+            // Input event listener
+            nameInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const results = searchIngredients(query);
+                    updateDropdown(results);
+                }, 200);
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!nameInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Load ingredients on initialization
+            fetchAllIngredients();
         }
 
         // Cronometer parsing function for meal popup
@@ -1841,13 +2037,30 @@
             try {
                 console.log('[Comprehensive Edit Modal] Fetching ingredient data...');
 
-                const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                let ingredient;
 
-                const ingredient = await response.json();
-                console.log('[Comprehensive Edit Modal] Ingredient data received:', ingredient);
+                // Check if this is a manual ingredient (starts with "manual_")
+                if (ingredientId.toString().startsWith('manual_')) {
+                    console.log('[Comprehensive Edit Modal] Manual ingredient detected, getting data from meal submission');
+
+                    // Get ingredient data from current meal submission
+                    if (window.currentIngredients && window.currentIngredients[index]) {
+                        ingredient = window.currentIngredients[index];
+                        console.log('[Comprehensive Edit Modal] Manual ingredient data:', ingredient);
+                    } else {
+                        throw new Error('Manual ingredient data not found in meal submission');
+                    }
+                } else {
+                    console.log('[Comprehensive Edit Modal] Database ingredient detected, fetching from API');
+
+                    // Fetch from API for database ingredients
+                    const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    ingredient = await response.json();
+                    console.log('[Comprehensive Edit Modal] Database ingredient data received:', ingredient);
+                }
 
                 // Create comprehensive form content
                 createComprehensiveEditForm(ingredient, recipeId, index);
@@ -1918,8 +2131,11 @@
                 // Add form submit handler
                 form.addEventListener('submit', handleComprehensiveEditSubmit);
 
-                // Use the proper comprehensive form creation function
-                if (typeof createFormSections === 'function') {
+                // Use the comprehensive form creation function with show/hide functionality
+                if (typeof createComprehensiveFormSections === 'function') {
+                    console.log('[Comprehensive Edit Modal] Using createComprehensiveFormSections function');
+                    createComprehensiveFormSections(form, ingredient);
+                } else if (typeof createFormSections === 'function') {
                     console.log('[Comprehensive Edit Modal] Using createFormSections function');
                     createFormSections(form, ingredient);
                 } else {
@@ -2129,6 +2345,7 @@
                 amount: getFieldValue('edit-ingredient-amount', 0),
                 package_amount: getFieldValue('edit-ingredient-package-amount', null),
                 price: getFieldValue('edit-ingredient-price', 0),
+                grocery_store: getFieldValue('edit-ingredient-grocery-store', ''),
                 calories: getFieldValue('edit-ingredient-calories', 0),
                 protein: getFieldValue('edit-ingredient-protein', 0),
                 fats: getFieldValue('edit-ingredient-fats', 0),
@@ -2209,33 +2426,58 @@
             try {
                 console.log('[Comprehensive Edit Modal] Submitting data:', formData);
 
-                // Submit to API
-                const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
+                // Check if this is a manual ingredient
+                if (ingredientId.toString().startsWith('manual_')) {
+                    console.log('[Comprehensive Edit Modal] Manual ingredient - updating locally only');
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                    // Update the ingredient in the meal submission directly
+                    if (window.currentIngredients && window.currentIngredients[index]) {
+                        // Update the ingredient data
+                        Object.assign(window.currentIngredients[index], formData);
 
-                const result = await response.json();
-                console.log('[Comprehensive Edit Modal] Ingredient updated successfully:', result);
+                        // Refresh the display if functions are available
+                        if (typeof window.displayIngredients === 'function') {
+                            window.displayIngredients();
+                        }
+                        if (typeof window.calculateNutrition === 'function') {
+                            window.calculateNutrition();
+                        }
 
-                // Update the ingredient in the meal submission if available
-                if (window.currentIngredients && window.currentIngredients[index]) {
-                    // Update the ingredient data
-                    Object.assign(window.currentIngredients[index], formData);
-
-                    // Refresh the display if functions are available
-                    if (typeof window.displayIngredients === 'function') {
-                        window.displayIngredients();
+                        console.log('[Comprehensive Edit Modal] Manual ingredient updated locally:', window.currentIngredients[index]);
+                    } else {
+                        throw new Error('Manual ingredient not found in meal submission');
                     }
-                    if (typeof window.calculateNutrition === 'function') {
-                        window.calculateNutrition();
+                } else {
+                    console.log('[Comprehensive Edit Modal] Database ingredient - submitting to API');
+
+                    // Submit to API for database ingredients
+                    const response = await fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('[Comprehensive Edit Modal] Database ingredient updated successfully:', result);
+
+                    // Update the ingredient in the meal submission if available
+                    if (window.currentIngredients && window.currentIngredients[index]) {
+                        // Update the ingredient data
+                        Object.assign(window.currentIngredients[index], formData);
+
+                        // Refresh the display if functions are available
+                        if (typeof window.displayIngredients === 'function') {
+                            window.displayIngredients();
+                        }
+                        if (typeof window.calculateNutrition === 'function') {
+                            window.calculateNutrition();
+                        }
                     }
                 }
 
@@ -3932,14 +4174,167 @@
     <!-- DISABLED: Conflicts with unified button alignment -->
     <!-- <script src="../js/food/button-layout-reorganizer.js"></script> --> <!-- Reorganizes buttons to be side-by-side -->
 
-    <!-- Disable conflicting Add Ingredient scripts - must load before unified handler -->
-    <script src="../js/food/disable-conflicting-add-ingredient.js"></script> <!-- Disables conflicting Add Ingredient functionality -->
+    <!-- Disable conflicting Add Ingredient scripts - DISABLED to allow enhanced add ingredient functionality -->
+    <!-- <script src="../js/food/disable-conflicting-add-ingredient.js"></script> --> <!-- Disables conflicting Add Ingredient functionality -->
 
     <!-- Unified Add Ingredient Handler - DISABLED to allow meal submission popup modal -->
     <!-- <script src="../js/food/unified-add-ingredient-handler.js"></script> --> <!-- Unified Add Ingredient functionality -->
 
     <!-- Direct Recipe Button Fix - simple fix for View/Adjust/Delete buttons -->
     <script src="../js/food/direct-recipe-button-fix.js?v=2.2&t=1748820100"></script> <!-- Direct fix for recipe buttons -->
+
+    <!-- Add Ingredient Button Fix - adds search functionality to existing recipe add ingredient forms -->
+    <script src="../js/food/add-ingredient-button-fix.js"></script> <!-- Enhanced Add Ingredient functionality with search -->
+
+    <!-- Recipe Ingredient Search Functionality -->
+    <script>
+        // Initialize recipe ingredient search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRecipeIngredientSearch();
+        });
+
+        function initializeRecipeIngredientSearch() {
+            const ingredientInput = document.querySelector('.ingredient-name');
+            const dropdown = document.getElementById('recipe-ingredient-dropdown');
+
+            if (!ingredientInput || !dropdown) return;
+
+            let searchTimeout;
+            let allIngredients = [];
+
+            // Load ingredients from API
+            async function loadIngredients() {
+                try {
+                    const response = await fetch('/api/unique-ingredients');
+                    if (response.ok) {
+                        const data = await response.json();
+                        allIngredients = Array.isArray(data) ? data : (data.ingredients || []);
+                        console.log('[Recipe Ingredient Search] Loaded', allIngredients.length, 'ingredients');
+                    }
+                } catch (error) {
+                    console.error('[Recipe Ingredient Search] Error loading ingredients:', error);
+                    // Fallback ingredients
+                    allIngredients = ['Chicken Breast', 'Rice', 'Broccoli', 'Eggs', 'Milk', 'Bread'];
+                }
+            }
+
+            // Search and display results
+            function searchIngredients(query) {
+                if (!query || query.length < 2) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+
+                const filtered = allIngredients.filter(ingredient => {
+                    const name = typeof ingredient === 'string' ? ingredient : ingredient.name;
+                    return name && name.toLowerCase().includes(query.toLowerCase());
+                }).slice(0, 10);
+
+                if (filtered.length === 0) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+
+                dropdown.innerHTML = filtered.map(ingredient => {
+                    const name = typeof ingredient === 'string' ? ingredient : ingredient.name;
+                    return `<div style="
+                        padding: 8px 12px;
+                        cursor: pointer;
+                        border-bottom: 1px solid #333;
+                        color: #fff;
+                    " onmouseover="this.style.backgroundColor='#444'"
+                       onmouseout="this.style.backgroundColor='transparent'"
+                       onclick="selectRecipeIngredient('${name.replace(/'/g, "\\'")}')">
+                        ${name}
+                    </div>`;
+                }).join('');
+
+                dropdown.style.display = 'block';
+            }
+
+            // Handle input events
+            ingredientInput.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchIngredients(e.target.value);
+                }, 200);
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!ingredientInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Load ingredients on initialization
+            loadIngredients();
+        }
+
+        // Select ingredient function
+        window.selectRecipeIngredient = function(ingredientName) {
+            const ingredientInput = document.querySelector('.ingredient-name');
+            const dropdown = document.getElementById('recipe-ingredient-dropdown');
+
+            if (ingredientInput) {
+                ingredientInput.value = ingredientName;
+                dropdown.style.display = 'none';
+
+                console.log('[Recipe Ingredient Search] Selected:', ingredientName);
+
+                // Try to autofill data if available
+                autofillRecipeIngredientData(ingredientName);
+            }
+        };
+
+        // Autofill ingredient data
+        async function autofillRecipeIngredientData(ingredientName) {
+            try {
+                console.log('[Recipe Ingredient Autofill] Searching for:', ingredientName);
+
+                // Search through all recipes to find this ingredient
+                const recipesResponse = await fetch('/api/recipes');
+                if (!recipesResponse.ok) return;
+
+                const recipesData = await recipesResponse.json();
+                const recipes = recipesData.recipes || recipesData;
+                if (!Array.isArray(recipes)) {
+                    console.warn('[Recipe Ingredient Autofill] Invalid recipes response');
+                    return;
+                }
+
+                for (const recipe of recipes) {
+                    const recipeResponse = await fetch(`/api/recipes/${recipe.id}`);
+                    if (!recipeResponse.ok) continue;
+
+                    const recipeDetail = await recipeResponse.json();
+                    if (!recipeDetail || !recipeDetail.ingredients || !Array.isArray(recipeDetail.ingredients)) {
+                        continue;
+                    }
+
+                    const matchingIngredient = recipeDetail.ingredients.find(
+                        ing => ing.name && ing.name.toLowerCase() === ingredientName.toLowerCase()
+                    );
+
+                    if (matchingIngredient) {
+                        console.log('[Recipe Ingredient Autofill] Found data:', matchingIngredient);
+
+                        // Fill in the form fields
+                        const priceField = document.querySelector('.ingredient-price');
+                        if (priceField && matchingIngredient.price) {
+                            priceField.value = matchingIngredient.price;
+                        }
+
+                        return; // Found data, stop searching
+                    }
+                }
+
+                console.log('[Recipe Ingredient Autofill] No existing data found for:', ingredientName);
+            } catch (error) {
+                console.error('[Recipe Ingredient Autofill] Error:', error);
+            }
+        }
+    </script>
 
 </body>
 </html>

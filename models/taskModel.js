@@ -401,10 +401,10 @@ class Task {
     /**
      * Create the next occurrence of a recurring task
      * @param {number} id - The task ID
-     * @param {string} baseDate - Optional base date to calculate from (YYYY-MM-DD)
+     * @param {string} providedBaseDate - Optional base date to calculate from (YYYY-MM-DD)
      * @returns {Promise<Object>} The newly created task
      */
-    static async createNextOccurrence(id, baseDate = null) {
+    static async createNextOccurrence(id, providedBaseDate = null) {
         // 1. Get the task details
         const taskResult = await db.query(
             `SELECT id, title, description, due_date, reminder_time, reminder_type,
@@ -425,35 +425,51 @@ class Task {
         }
 
         // 3. Calculate the next occurrence date
-        if (!task.due_date && !baseDate) {
+        if (!task.due_date && !providedBaseDate) {
             throw new Error('Task has no due date');
         }
 
         // Use the provided base date if available, otherwise use the task's due date
         let startDate;
-        if (baseDate) {
-            console.log(`Using provided base date: ${baseDate} instead of task due date: ${task.due_date}`);
-            startDate = new Date(baseDate);
+        if (providedBaseDate) {
+            console.log(`Using provided base date: ${providedBaseDate} instead of task due date: ${task.due_date}`);
+            startDate = new Date(providedBaseDate);
         } else {
             startDate = new Date(task.due_date);
         }
 
         const interval = task.recurrence_interval || 1;
-        let nextDueDate = new Date(startDate);
+
+        // Parse the start date as a local date to avoid timezone issues
+        let parsedBaseDate;
+        if (startDate.toString().includes('T')) {
+            // If it's a full datetime string, parse it normally
+            parsedBaseDate = new Date(startDate);
+        } else {
+            // If it's just a date string (YYYY-MM-DD), parse it as local date
+            const [year, month, day] = startDate.toString().split('-').map(Number);
+            parsedBaseDate = new Date(year, month - 1, day); // month is 0-indexed
+        }
+
+        // Create next date using the same approach to avoid timezone issues
+        let nextDueDate;
+        const year = parsedBaseDate.getFullYear();
+        const month = parsedBaseDate.getMonth();
+        const day = parsedBaseDate.getDate();
 
         // Calculate the next occurrence based on recurrence type
         switch (task.recurrence_type) {
             case 'daily':
-                nextDueDate.setDate(nextDueDate.getDate() + interval);
+                nextDueDate = new Date(year, month, day + interval);
                 break;
             case 'weekly':
-                nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
+                nextDueDate = new Date(year, month, day + (interval * 7));
                 break;
             case 'monthly':
-                nextDueDate.setMonth(nextDueDate.getMonth() + interval);
+                nextDueDate = new Date(year, month + interval, day);
                 break;
             case 'yearly':
-                nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
+                nextDueDate = new Date(year + interval, month, day);
                 break;
             default:
                 throw new Error('Invalid recurrence type');

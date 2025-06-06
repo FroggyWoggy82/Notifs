@@ -119,4 +119,39 @@ router.put('/:id', DaysSinceController.updateEvent);
  */
 router.delete('/:id', DaysSinceController.deleteEvent);
 
+/**
+ * @swagger
+ * /api/days-since/reset-counts:
+ *   get:
+ *     summary: Get all event reset counts
+ *     tags: [Days Since]
+ *     responses:
+ *       200:
+ *         description: List of event reset counts
+ *       500:
+ *         description: Server error
+ */
+router.get('/reset-counts', DaysSinceController.getAllResetCounts);
+
+/**
+ * @swagger
+ * /api/days-since/reset-count/{eventName}:
+ *   get:
+ *     summary: Get reset count for a specific event
+ *     tags: [Days Since]
+ *     parameters:
+ *       - in: path
+ *         name: eventName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the event
+ *     responses:
+ *       200:
+ *         description: Reset count for the event
+ *       500:
+ *         description: Server error
+ */
+router.get('/reset-count/:eventName', DaysSinceController.getResetCount);
+
 module.exports = router;

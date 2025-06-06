@@ -87,15 +87,15 @@
 
         // Add actual weight if available
         if (hasActualWeight) {
-            const actualWeight = parseFloat(actualDataset.data[pointIndex].y).toFixed(2);
+            const actualWeight = Math.round(parseFloat(actualDataset.data[pointIndex].y));
             tooltipContent += `<div style="color: #3498db; font-weight: bold;">Actual Weight: ${actualWeight} lbs</div>`;
         }
 
         // Add goal weight if available
         if (hasGoalWeight || (isGoalLine && goalValue !== null)) {
             const goalWeight = hasGoalWeight
-                ? parseFloat(goalDataset.data[pointIndex].y).toFixed(2)
-                : parseFloat(goalValue).toFixed(2);
+                ? Math.round(parseFloat(goalDataset.data[pointIndex].y))
+                : Math.round(parseFloat(goalValue));
             tooltipContent += `<div style="color: #e74c3c; font-weight: bold;">Target Weight: ${goalWeight} lbs</div>`;
         }
 

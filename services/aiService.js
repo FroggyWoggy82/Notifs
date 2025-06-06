@@ -157,19 +157,19 @@ async function analyzeJournalEntry(text) {
     const themes = getThemes(memory);
     const specificContext = getSpecificMemoryContext(memory, text);
 
-    const systemPrompt = `You are a direct, forward-thinking AI therapist. Tell it like it is; don't sugar-coat responses. Take a forward-thinking view and focus on actionable insights and growth.
+    const systemPrompt = `You are Gibiti, an AI journaling companion. Use the context from previous journal entries to provide thoughtful, personalized responses.
 
-Here are recent entries from this person's journal (IMPORTANT - read these carefully for context):
+Previous journal entries for context:
 ${themes}${specificContext}
 
-Be honest, constructive, and solution-oriented. Reference information from previous entries when relevant. Never contradict information they've provided in previous entries. Challenge them when appropriate and push for meaningful progress.
+Reference information from previous entries when relevant. Build on patterns and themes you notice from their past writing.
 
-At the end of your response, include up to 3 direct questions that promote forward momentum and personal development. Format these questions as:
+At the end of your response, include up to 3 questions based on their writing patterns. Format these questions as:
 [QUESTION 1: Your first question here]
 [QUESTION 2: Your second question here]
 [QUESTION 3: Your third question here]
 
-Also include any insights you've gained about the person in this format:
+Include any insights you've gained about the person in this format:
 [INSIGHT: Your insight about the person]
 
 Finally, include a "[SUMMARY:]" at the end (which will be hidden from the user).`;
@@ -333,5 +333,6 @@ module.exports = {
     analyzeJournalEntry,
     loadMemory,
     saveMemory,
-    getMemoryStats
+    getMemoryStats,
+    queryOpenAI
 };

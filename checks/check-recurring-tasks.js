@@ -28,24 +28,40 @@ async function checkRecurringTasks() {
             
             // Calculate next occurrence
             if (task.recurrence_type && task.recurrence_type !== 'none' && task.due_date) {
-                const dueDate = new Date(task.due_date);
+                // Parse the due date as a local date to avoid timezone issues
+                const dueDateStr = task.due_date;
+                let dueDate;
+
+                if (dueDateStr.includes('T')) {
+                    // If it's a full datetime string, parse it normally
+                    dueDate = new Date(dueDateStr);
+                } else {
+                    // If it's just a date string (YYYY-MM-DD), parse it as local date
+                    const [year, month, day] = dueDateStr.split('-').map(Number);
+                    dueDate = new Date(year, month - 1, day); // month is 0-indexed
+                }
+
                 const interval = task.recurrence_interval || 1;
-                
-                let nextDueDate = new Date(dueDate);
-                
+
+                // Create next date using the same approach to avoid timezone issues
+                let nextDueDate;
+                const year = dueDate.getFullYear();
+                const month = dueDate.getMonth();
+                const day = dueDate.getDate();
+
                 // Calculate the next occurrence based on recurrence type
                 switch (task.recurrence_type) {
                     case 'daily':
-                        nextDueDate.setDate(nextDueDate.getDate() + interval);
+                        nextDueDate = new Date(year, month, day + interval);
                         break;
                     case 'weekly':
-                        nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
+                        nextDueDate = new Date(year, month, day + (interval * 7));
                         break;
                     case 'monthly':
-                        nextDueDate.setMonth(nextDueDate.getMonth() + interval);
+                        nextDueDate = new Date(year, month + interval, day);
                         break;
                     case 'yearly':
-                        nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
+                        nextDueDate = new Date(year + interval, month, day);
                         break;
                 }
                 

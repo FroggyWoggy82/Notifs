@@ -426,9 +426,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function addIngredientRow() {
-        console.log('[Food.js] addIngredientRow() called');
-        console.log('[Food.js] ingredientsList:', ingredientsList);
-
         if (!ingredientsList) {
             console.error('[Food.js] ingredientsList is null or undefined');
             return;
@@ -438,9 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ingredientItem.classList.add('ingredient-item');
         ingredientItem.innerHTML = createIngredientRowHtml();
         ingredientsList.appendChild(ingredientItem);
-
-        console.log('[Food.js] New ingredient item added to DOM');
-        console.log('[Food.js] Total ingredient items now:', ingredientsList.children.length);
 
         setTimeout(() => {
 
@@ -828,7 +822,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (event.target.classList.contains('add-ingredient-btn-inline')) {
-            console.log('[Food.js] Add Ingredient button clicked (ingredientsList listener)');
             event.preventDefault();
             event.stopPropagation(); // Prevent event bubbling
             addIngredientRow();
@@ -843,7 +836,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (event.target.closest('#ingredients-list')) {
                 return; // Already handled by ingredientsList listener
             }
-            console.log('[Food.js] Add Ingredient button clicked (document listener - fallback)');
             event.preventDefault();
             event.stopPropagation();
             addIngredientRow();
@@ -886,7 +878,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if unified form submission handler is already loaded
     if (window.unifiedFormSubmissionInitialized) {
-        console.log('[Food.js] Unified form submission handler detected, skipping form handler initialization');
+        // Skip form handler initialization if unified handler is loaded
     } else {
         // Flag to track if a recipe submission is in progress
         let recipeSubmissionInProgress = false;
@@ -1416,10 +1408,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     async function loadAndRenderWeightChart() {
-        console.error("LOAD AND RENDER WEIGHT CHART FUNCTION CALLED - THIS SHOULD BE VISIBLE");
-
         if (!weightGoalChartCanvas) {
-            console.error("WEIGHT GOAL CHART CANVAS NOT FOUND - RETURNING");
+            console.error("Weight goal chart canvas not found");
             return;
         }
 
@@ -1447,7 +1437,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (!goalResponse.ok) {
                 const errorText = await goalResponse.text();
-                console.error("Goal response error:", errorText);
                 throw new Error(`Failed to fetch weight goal: ${goalResponse.status} ${goalResponse.statusText} - ${errorText}`);
             }
 
@@ -1709,21 +1698,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             
 
-            console.error("GOAL DATA VALUES:", {
-                targetWeight: targetWeight,
-                weeklyGain: weeklyGain,
-                startWeight: startWeight,
-                startDate: startDate ? startDate.toLocaleDateString() : 'null',
-                targetWeightNull: targetWeight === null,
-                weeklyGainNull: weeklyGain === null,
-                weeklyGainZero: weeklyGain === 0,
-                targetWeightNaN: isNaN(targetWeight),
-                weeklyGainNaN: isNaN(weeklyGain)
-            });
-
-
             if (targetWeight !== null && weeklyGain !== null && weeklyGain !== 0 && !isNaN(targetWeight) && !isNaN(weeklyGain)) {
-                console.error("WEEKLY TARGET CALCULATION STARTING - THIS SHOULD BE VISIBLE");
                  // Log condition met
 
                 const filterDate = new Date(startDate);
@@ -2075,14 +2050,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     mode: 'nearest',
                     axis: 'xy',
                     intersect: false
-                },
-                segment: {
-                    borderColor: ctx => {
-
-                        const p0 = ctx.p0.parsed;
-                        const p1 = ctx.p1.parsed;
-                        return (p0.y === null || p1.y === null) ? 'transparent' : '#3498db';
-                    }
                 }
             }
         ];
@@ -2243,7 +2210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     borderDash: [5, 5],
                     label: {
                         display: true,
-                        content: `TARGET: ${targetWeightValue.toFixed(2)} lbs`,
+                        content: `TARGET: ${Math.round(targetWeightValue)} lbs`,
                         position: 'end',
                         backgroundColor: '#9b59b6',
                         color: '#fff',
@@ -2565,7 +2532,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         return 'No data available';
                                     }
 
-                                    const weightValue = parseFloat(context.parsed.y).toFixed(2);
+                                    const weightValue = Math.round(parseFloat(context.parsed.y));
 
                                     const datasetLabel = context.dataset.label || '';
 
@@ -2597,7 +2564,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         if (targetWeight && !isNaN(targetWeight)) {
                                             const diff = context.parsed.y - targetWeight;
                                             const sign = diff >= 0 ? '+' : '';
-                                            return `${sign}${diff.toFixed(2)} lbs from target`;
+                                            return `${sign}${Math.abs(diff).toFixed(2)} lbs ${diff >= 0 ? 'above' : 'below'} target`;
                                         }
                                     }
                                 } catch (error) {
@@ -5390,8 +5357,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveAllWeightGoalsBtn) {
         saveAllWeightGoalsBtn.addEventListener('click', saveAllWeightGoals);
         
-    } else {
-        console.error("Could not find save weight goals button (#save-all-weight-goals-btn) to attach listener.");
     }
 
     if (userSelector) {
@@ -5415,8 +5380,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus(weightGoalStatus, `Switched to ${userLabel}`, 'info');
             setTimeout(() => showStatus(weightGoalStatus, '', ''), 2000); // Clear after 2 seconds
         });
-    } else {
-        console.error("Could not find user selector element (#user-selector) to attach listener.");
     }
 
 
@@ -5424,253 +5387,70 @@ document.addEventListener('DOMContentLoaded', () => {
         xAxisScaleSlider.addEventListener('input', function() {
             xAxisScale = parseFloat(this.value);
             xScaleValue.textContent = xAxisScale.toFixed(1) + 'x';
-            
+
             if (weightGoalChart) {
+                updateChartXAxisScale(weightGoalChart, xAxisScale, false);
+            }
+        });
 
-                const chart = weightGoalChart;
-                const dataLength = chart.data.labels.length;
+        function updateChartXAxisScale(chart, scale, animate = false) {
+            const dataLength = chart.data.labels.length;
 
-                if (dataLength <= 1) {
+            if (dataLength <= 1) {
+                return; // Not enough data to scale
+            }
 
-                    return;
-                }
+            // Simple scaling logic: smaller scale = more zoomed in, larger scale = more zoomed out
+            const zoomFactor = 1 / scale; // Invert scale for intuitive behavior
+            const visiblePoints = Math.max(5, Math.min(dataLength, Math.round(dataLength * zoomFactor)));
 
+            // Find today's index to center the view
+            let todayIndex = dataLength - 1; // Default to last point
+            const today = new Date().toLocaleDateString();
 
-
-                let visiblePoints;
-
-                if (xAxisScale <= 1) {
-
-
-
-                    const extraPoints = Math.round((1 - xAxisScale) * 10); // Add extra points as scale decreases
-                    visiblePoints = Math.min(dataLength * 2, Math.round(dataLength / xAxisScale) + extraPoints);
-                } else {
-
-                    visiblePoints = Math.max(5, Math.round(dataLength / xAxisScale));
-                }
-
-                if (xAxisScale === 0.1) {
-                    visiblePoints = dataLength * 2; // Show twice as many points as we have data
-                }
-
-                visiblePoints = Math.max(visiblePoints, 14);
-
-                
-
-                let todayIndex = -1;
-                const today = new Date().toLocaleDateString();
-
-                for (let i = 0; i < chart.data.labels.length; i++) {
+            for (let i = 0; i < chart.data.labels.length; i++) {
+                try {
                     const labelDate = new Date(chart.data.labels[i]).toLocaleDateString();
                     if (labelDate === today) {
                         todayIndex = i;
                         break;
                     }
-                }
-
-                if (todayIndex === -1) {
-                    todayIndex = dataLength - 1;
-                }
-
-                const centerIndex = todayIndex;
-
-
-                let minIndex = centerIndex - Math.floor(visiblePoints / 2);
-                let maxIndex = minIndex + visiblePoints - 1;
-
-
-                if (xAxisScale < 1) {
-
-
-
-                    minIndex = centerIndex - Math.floor(visiblePoints / 2);
-                    maxIndex = minIndex + visiblePoints - 1;
-
-                    const futurePadding = Math.round((1 - xAxisScale) * 10);
-                    maxIndex += futurePadding;
-                } else {
-
-                    minIndex = Math.max(0, minIndex);
-                    maxIndex = Math.min(dataLength - 1, maxIndex);
-
-                    if (maxIndex === dataLength - 1 && minIndex > 0) {
-                        minIndex = Math.max(0, dataLength - visiblePoints);
-                    }
-
-                    if (minIndex === 0 && maxIndex < dataLength - 1) {
-                        maxIndex = Math.min(dataLength - 1, visiblePoints - 1);
-                    }
-                }
-
-                
-
-                let adjustedMinIndex = minIndex - 1;
-
-                chart.options.scales.x.min = adjustedMinIndex;
-                chart.options.scales.x.max = maxIndex;
-
-                let originalAnnotationConfig = null;
-
-                if (chart.options.plugins && chart.options.plugins.annotation) {
-                    try {
-
-                        originalAnnotationConfig = chart.options.plugins.annotation;
-
-                        delete chart.options.plugins.annotation;
-                    } catch (error) {
-                        console.error('Error backing up annotations during x-axis scaling:', error);
-
-                        delete chart.options.plugins.annotation;
-                    }
-                }
-
-                chart.options.animation = false;
-
-                try {
-
-                    chart.update('none');
-
-                    if (originalAnnotationConfig) {
-
-                        setTimeout(() => {
-                            try {
-
-                                chart.options.plugins.annotation = originalAnnotationConfig;
-
-                                chart.update('none');
-                            } catch (annotationError) {
-                                console.error('Error restoring annotations after x-axis scaling:', annotationError);
-
-                            }
-                        }, 300); // Increased timeout to ensure chart is fully updated first
-                    }
-                } catch (error) {
-                    console.error('Error updating chart during x-axis scaling:', error);
-
-                    chart.update();
+                } catch (e) {
+                    // Continue if date parsing fails
                 }
             }
-        });
+
+            // Center the visible range around today
+            const halfVisible = Math.floor(visiblePoints / 2);
+            let minIndex = Math.max(0, todayIndex - halfVisible);
+            let maxIndex = Math.min(dataLength - 1, minIndex + visiblePoints - 1);
+
+            // Adjust if we hit the boundaries
+            if (maxIndex === dataLength - 1) {
+                minIndex = Math.max(0, maxIndex - visiblePoints + 1);
+            }
+
+            // Apply the new scale
+            chart.options.scales.x.min = minIndex;
+            chart.options.scales.x.max = maxIndex;
+
+            // Update the chart
+            chart.options.animation = animate ? { duration: 200 } : false;
+
+            try {
+                chart.update(animate ? 'active' : 'none');
+            } catch (error) {
+                console.error('Error updating X-axis scale:', error);
+                // Fallback to basic update
+                chart.update('none');
+            }
+        }
 
         xAxisScaleSlider.addEventListener('change', function() {
-
-
             if (weightGoalChart) {
-                const chart = weightGoalChart;
-                const dataLength = chart.data.labels.length;
-
-                if (dataLength <= 1) {
-
-                    return;
-                }
-
-                
-
-
-
-                let visiblePoints;
-                if (xAxisScale <= 1) {
-                    const extraPoints = Math.round((1 - xAxisScale) * 10);
-                    visiblePoints = Math.min(dataLength * 2, Math.round(dataLength / xAxisScale) + extraPoints);
-                } else {
-                    visiblePoints = Math.max(5, Math.round(dataLength / xAxisScale));
-                }
-
-                if (xAxisScale === 0.1) {
-                    visiblePoints = dataLength * 2;
-                }
-
-                visiblePoints = Math.max(visiblePoints, 14);
-
-                let todayIndex = -1;
-                const today = new Date().toLocaleDateString();
-
-                for (let i = 0; i < chart.data.labels.length; i++) {
-                    const labelDate = new Date(chart.data.labels[i]).toLocaleDateString();
-                    if (labelDate === today) {
-                        todayIndex = i;
-                        break;
-                    }
-                }
-
-                if (todayIndex === -1) {
-                    todayIndex = dataLength - 1;
-                }
-
-                const centerIndex = todayIndex;
-
-                let minIndex = centerIndex - Math.floor(visiblePoints / 2);
-                let maxIndex = minIndex + visiblePoints - 1;
-
-                if (xAxisScale < 1) {
-                    minIndex = centerIndex - Math.floor(visiblePoints / 2);
-                    maxIndex = minIndex + visiblePoints - 1;
-
-                    const futurePadding = Math.round((1 - xAxisScale) * 10);
-                    maxIndex += futurePadding;
-                } else {
-                    minIndex = Math.max(0, minIndex);
-                    maxIndex = Math.min(dataLength - 1, maxIndex);
-
-                    if (maxIndex === dataLength - 1 && minIndex > 0) {
-                        minIndex = Math.max(0, dataLength - visiblePoints);
-                    }
-
-                    if (minIndex === 0 && maxIndex < dataLength - 1) {
-                        maxIndex = Math.min(dataLength - 1, visiblePoints - 1);
-                    }
-                }
-
-                let adjustedMinIndex = minIndex - 1;
-
-                chart.options.scales.x.min = adjustedMinIndex;
-                chart.options.scales.x.max = maxIndex;
-
-                let originalAnnotationConfig = null;
-
-                if (chart.options.plugins && chart.options.plugins.annotation) {
-                    try {
-
-                        originalAnnotationConfig = chart.options.plugins.annotation;
-
-                        delete chart.options.plugins.annotation;
-                    } catch (error) {
-                        console.error('Error backing up annotations during x-axis scaling:', error);
-
-                        delete chart.options.plugins.annotation;
-                    }
-                }
-
-                chart.options.animation = false;
-
-                try {
-
-                    chart.update('none');
-
-                    if (originalAnnotationConfig) {
-
-                        setTimeout(() => {
-                            try {
-
-                                chart.options.plugins.annotation = originalAnnotationConfig;
-
-                                chart.update('none');
-                            } catch (annotationError) {
-                                console.error('Error restoring annotations after x-axis scaling:', annotationError);
-
-                            }
-                        }, 300); // Increased timeout to ensure chart is fully updated first
-                    }
-                } catch (error) {
-                    console.error('Error updating chart during x-axis scaling:', error);
-
-                    chart.update();
-                }
+                updateChartXAxisScale(weightGoalChart, xAxisScale, true);
             }
         });
-    } else {
-        console.error("Could not find x-axis scale slider element (#x-axis-scale) to attach listener.");
     }
 
     if (yAxisScaleSlider) {
@@ -5680,32 +5460,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (scale !== 1 && !chart._initialScaleApplied) {
-                
-                scale = 1.0;
-                chart._initialScaleApplied = true;
-            }
-
+            // Find all data points to determine the range
             let minDataPoint = Number.MAX_VALUE;
             let maxDataPoint = Number.MIN_VALUE;
-            const validPoints = [];
 
             chart.data.datasets.forEach(dataset => {
                 if (dataset.data && Array.isArray(dataset.data)) {
                     dataset.data.forEach(point => {
-
                         let yValue = null;
 
                         if (typeof point === 'number') {
-
                             yValue = point;
                         } else if (point && typeof point === 'object') {
-
                             yValue = point.y;
                         }
 
                         if (yValue !== null && yValue !== undefined && !isNaN(yValue)) {
-                            validPoints.push(yValue);
                             if (yValue < minDataPoint) minDataPoint = yValue;
                             if (yValue > maxDataPoint) maxDataPoint = yValue;
                         }
@@ -5713,105 +5483,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            if (minDataPoint === Number.MAX_VALUE || validPoints.length === 0) {
-                
-                return;
+            if (minDataPoint === Number.MAX_VALUE) {
+                return; // No valid data points
             }
 
+            // Calculate the data range and center
             const dataRange = maxDataPoint - minDataPoint;
-
-            const effectiveRange = Math.max(dataRange, 0.1);
-
             const dataCenter = (maxDataPoint + minDataPoint) / 2;
 
-            let scaledRange;
+            // Simple scaling logic: smaller scale = more zoomed in, larger scale = more zoomed out
+            const zoomFactor = 1 / scale; // Invert scale for intuitive behavior
+            const scaledRange = Math.max(dataRange * zoomFactor, 5); // Minimum 5 lb range
 
-            if (scale <= 1) {
+            // Calculate new min/max with the scaled range centered on data
+            const halfRange = scaledRange / 2;
+            const newMin = dataCenter - halfRange;
+            const newMax = dataCenter + halfRange;
 
-                scaledRange = effectiveRange / scale;
+            // Apply the new scale
+            chart.options.scales.y.min = newMin;
+            chart.options.scales.y.max = newMax;
 
-                const extraPadding = effectiveRange * (1 - scale) * 0.5;
-                scaledRange += extraPadding;
-            } else {
-
-                scaledRange = effectiveRange / scale;
-                
-            }
-
-            scaledRange = Math.max(scaledRange, 5);
-
-            
-
-            const topPadding = effectiveRange * 0.05; // 5% padding at top
-            const bottomPadding = effectiveRange * 0.15; // 15% padding at bottom
-
-            const calculatedMin = dataCenter - (scaledRange / 2) - bottomPadding;
-            const calculatedMax = dataCenter + (scaledRange / 2) + topPadding;
-
-            const extraBottomPadding = effectiveRange * 0.15; // 15% extra padding at bottom
-            const finalMin = calculatedMin - extraBottomPadding;
-
-            const minVisibleRange = maxDataPoint * 0.1; // At least 10% of max value
-            const adjustedMin = (calculatedMax - finalMin < minVisibleRange) ?
-                calculatedMax - minVisibleRange : finalMin;
-
-
-            let originalAnnotationConfig = null;
-
-            if (chart.options.plugins && chart.options.plugins.annotation) {
-                try {
-
-                    originalAnnotationConfig = chart.options.plugins.annotation;
-
-                    delete chart.options.plugins.annotation;
-                } catch (error) {
-                    console.error('Error backing up annotations:', error);
-
-                    delete chart.options.plugins.annotation;
-                }
-            }
-
-            chart.options.scales.y.min = adjustedMin; // Use adjustedMin with extra bottom padding
-            chart.options.scales.y.max = calculatedMax;
-
-            chart.options.animation = false;
+            // Update the chart
+            chart.options.animation = animate ? { duration: 200 } : false;
 
             try {
-
-                chart.update('none');
-
-                if (originalAnnotationConfig) {
-
-                    setTimeout(() => {
-                        try {
-
-                            chart.options.plugins.annotation = originalAnnotationConfig;
-
-                            chart.update('none');
-                        } catch (annotationError) {
-                            console.error('Error restoring annotations:', annotationError);
-
-                        }
-                    }, 300); // Increased timeout to ensure chart is fully updated first
-                }
+                chart.update(animate ? 'active' : 'none');
             } catch (error) {
-                console.error('Error updating chart:', error);
-
-                try {
-
-                    const originalPlugins = {...chart.options.plugins};
-                    chart.options.plugins = {};
-
-                    chart.update('none');
-
-                    const cleanPlugins = {...originalPlugins};
-                    delete cleanPlugins.annotation; // Ensure annotation is removed
-                    chart.options.plugins = cleanPlugins;
-
-                    chart.update('none');
-                } catch (fallbackError) {
-                    console.error('Fallback update also failed:', fallbackError);
-                }
+                console.error('Error updating Y-axis scale:', error);
+                // Fallback to basic update
+                chart.update('none');
             }
         }
 
@@ -5833,13 +5534,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             }
         });
-    } else {
-        console.error("Could not find y-axis scale slider element (#y-axis-scale) to attach listener.");
     }
 
     if (resetScaleButton) {
         resetScaleButton.addEventListener('click', function() {
-
+            // Reset slider values
             xAxisScaleSlider.value = 1;
             yAxisScaleSlider.value = 1;
             xAxisScale = 1;
@@ -5848,149 +5547,31 @@ document.addEventListener('DOMContentLoaded', () => {
             yScaleValue.textContent = '1.0x';
 
             if (weightGoalChart) {
-
                 const chart = weightGoalChart;
 
-                if (chart.options.scales.x) {
-                    chart.options.scales.x.min = 0;
-                    chart.options.scales.x.max = chart.data.labels.length - 1;
-                }
+                // Reset X-axis to show all data
+                chart.options.scales.x.min = undefined;
+                chart.options.scales.x.max = undefined;
 
-                let minDataPoint = Number.MAX_VALUE;
-                let maxDataPoint = Number.MIN_VALUE;
+                // Reset Y-axis to auto-scale
+                chart.options.scales.y.min = undefined;
+                chart.options.scales.y.max = undefined;
 
-                chart.data.datasets.forEach(dataset => {
-                    dataset.data.forEach(point => {
-                        if (point && point.y !== null && point.y !== undefined && !isNaN(point.y)) {
-                            if (point.y < minDataPoint) minDataPoint = point.y;
-                            if (point.y > maxDataPoint) maxDataPoint = point.y;
-                        }
-                    });
-                });
-
-                if (minDataPoint !== Number.MAX_VALUE && maxDataPoint !== Number.MIN_VALUE) {
-                    const dataRange = maxDataPoint - minDataPoint;
-                    const topPadding = dataRange * 0.05; // 5% padding at top
-                    const bottomPadding = dataRange * 0.15; // 15% padding at bottom
-
-                    const extraBottomPadding = dataRange * 0.15; // 15% extra padding
-
-                    const calculatedMin = minDataPoint - bottomPadding - extraBottomPadding;
-                    const calculatedMax = maxDataPoint + topPadding;
-
-                    const minVisibleRange = maxDataPoint * 0.1; // At least 10% of max value
-                    const adjustedMin = (calculatedMax - calculatedMin < minVisibleRange) ?
-                        calculatedMax - minVisibleRange : calculatedMin;
-
-                    chart.options.scales.y.min = adjustedMin;
-                    chart.options.scales.y.max = calculatedMax;
-                } else {
-
-                    chart.options.scales.y.min = undefined;
-                    chart.options.scales.y.max = undefined;
-                }
-
+                // Enable smooth animation for reset
                 chart.options.animation = {
                     duration: 500,
                     easing: 'easeOutQuad'
                 };
 
-                let hasAnnotations = false;
-                let safeAnnotations = null;
-
-                if (chart.options.plugins && chart.options.plugins.annotation &&
-                    chart.options.plugins.annotation.annotations) {
-                    hasAnnotations = true;
-
-                    safeAnnotations = {};
-                    const originalAnnotations = chart.options.plugins.annotation.annotations;
-
-                    if (originalAnnotations.todayIndicator) {
-                        safeAnnotations.todayIndicator = {
-                            type: 'line',
-                            scaleID: 'x',
-                            value: originalAnnotations.todayIndicator.value,
-                            borderColor: 'rgba(255, 99, 132, 0.8)',
-                            borderWidth: 2,
-                            borderDash: [6, 6],
-                            label: {
-                                display: true,
-                                content: 'Today',
-                                position: 'start',
-                                backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                                font: { weight: 'bold' }
-                            }
-                        };
-                    }
-
-                    if (originalAnnotations.targetWeightLine) {
-                        safeAnnotations.targetWeightLine = {
-                            type: 'line',
-                            scaleID: 'y',
-                            value: originalAnnotations.targetWeightLine.value,
-                            borderColor: 'rgba(54, 162, 235, 0.8)',
-                            borderWidth: 2,
-                            borderDash: [6, 6],
-                            label: {
-                                display: true,
-                                content: 'Target: ' + originalAnnotations.targetWeightLine.value + ' lbs',
-                                position: 'end',
-                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                                font: { weight: 'bold' }
-                            }
-                        };
-                    }
-
-                    chart.options.plugins.annotation = false;
+                // Update the chart
+                try {
+                    chart.update('active');
+                } catch (error) {
+                    console.error('Error resetting chart scale:', error);
+                    chart.update('none');
                 }
-
-                let originalAnnotationConfig = null;
-
-                if (chart.options.plugins && chart.options.plugins.annotation) {
-                    try {
-
-                        originalAnnotationConfig = chart.options.plugins.annotation;
-
-                        delete chart.options.plugins.annotation;
-                    } catch (error) {
-                        console.error('Error backing up annotations during reset:', error);
-
-                        delete chart.options.plugins.annotation;
-                    }
-                }
-
-                chart.reset();
-                chart.update('none');
-
-                if (hasAnnotations && safeAnnotations) {
-                    try {
-
-                        setTimeout(() => {
-                            try {
-
-                                chart.options.plugins.annotation = {
-                                    annotations: safeAnnotations,
-                                    clip: false,
-                                    interaction: { mode: 'nearest' },
-                                    animations: { duration: 0 }
-                                };
-
-                                chart.update('none');
-                            } catch (annotationError) {
-                                console.error('Error re-enabling annotations during reset:', annotationError);
-
-                            }
-                        }, 100);
-                    } catch (annotationError) {
-                        console.error('Error scheduling annotation update during reset:', annotationError);
-                    }
-                }
-
-                
             }
         });
-    } else {
-        console.error("Could not find reset scale button element (#reset-scale-button) to attach listener.");
     }
 
 
@@ -6371,8 +5952,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveAllTargetsBtn) {
         saveAllTargetsBtn.addEventListener('click', saveAllTargets);
         
-    } else {
-        console.error("Could not find save targets button (#save-all-targets-btn) to attach listener.");
     }
 
     // Add event listeners for individual save buttons in the new unified dashboard
@@ -6442,16 +6021,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.attachWeightChartTooltipEvents) {
             window.attachWeightChartTooltipEvents(weightGoalChart);
             
-        } else {
-            console.error('Custom tooltip functions not available');
         }
     }
 
-    console.error("ABOUT TO CALL loadWeightGoal - THIS SHOULD BE VISIBLE");
     loadWeightGoal(); // Load saved goal
-    console.error("ABOUT TO CALL loadAndRenderWeightChart - THIS SHOULD BE VISIBLE");
     loadAndRenderWeightChart(); // Attempt to load chart data
-    console.error("FINISHED CALLING loadAndRenderWeightChart - THIS SHOULD BE VISIBLE");
     loadRecipes();
     loadCalorieTarget(calorieUserSelector.value); // Load calorie target for the default user
 
@@ -6474,8 +6048,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const recipeIdInput = document.getElementById('add-ingredient-recipe-id');
         if (recipeIdInput) {
             recipeIdInput.value = recipeId;
-        } else {
-            console.error('Recipe ID input not found in add ingredient form');
         }
 
         if (typeof loadExistingIngredients === 'function') {
@@ -6560,8 +6132,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     populateEditForm(ingredient);
                 } else if (typeof window.populateEditForm === 'function') {
                     window.populateEditForm(ingredient);
-                } else {
-                    console.error('populateEditForm function not available');
                 }
 
                 if (statusElement) {
@@ -6709,7 +6279,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
 
         if (!recipeId) {
-            console.error('Recipe ID is missing');
             showStatus(statusElement, 'Recipe ID is missing', 'error');
             return;
         }
@@ -6730,7 +6299,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const priceInput = document.getElementById('add-ingredient-price');
 
             if (!nameInput || !amountInput || !priceInput) {
-                console.error('Required form fields are missing');
                 showStatus(statusElement, 'Required form fields are missing', 'error');
                 return;
             }
@@ -6742,19 +6310,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const price = priceInput.value ? parseFloat(priceInput.value) : null;
 
             if (!name) {
-                console.error('Ingredient name is required');
                 showStatus(statusElement, 'Ingredient name is required', 'error');
                 return;
             }
 
             if (amount === null || isNaN(amount) || amount <= 0) {
-                console.error('Invalid amount value:', amount);
                 showStatus(statusElement, 'Amount must be a positive number', 'error');
                 return;
             }
 
             if (price === null || isNaN(price) || price < 0) {
-                console.error('Invalid price value:', price);
                 showStatus(statusElement, 'Price must be a non-negative number', 'error');
                 return;
             }
@@ -7183,7 +6748,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (typeof window.fetchAndDisplayIngredients === 'function') {
                         window.fetchAndDisplayIngredients(recipeId, detailsDiv);
                     } else {
-                        console.error('fetchAndDisplayIngredients function not found');
                         alert('Error: Could not refresh ingredients (function not available)');
                     }
                 }
@@ -7207,13 +6771,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const form = button.closest('form') || document.getElementById('add-ingredient-form');
         if (!form) {
-            console.error('Could not find form for toggleNutritionPanel');
             return;
         }
 
         const panel = form.querySelector('.detailed-nutrition-panel');
         if (!panel) {
-            console.error('Could not find detailed nutrition panel');
             return;
         }
 
@@ -7226,7 +6788,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to show add ingredient modal for existing recipes
     window.showAddIngredientModal = function(recipeId) {
-        console.log('Showing add ingredient modal for recipe:', recipeId);
 
         // Create modal overlay
         const overlay = document.createElement('div');
@@ -7367,7 +6928,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    console.log('Ingredient added successfully');
                     closeModal();
 
                     // Refresh the recipe display

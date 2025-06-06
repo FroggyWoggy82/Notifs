@@ -97,7 +97,7 @@ const PhotoLoader = {
         const cacheBustSrc = this.addCacheBustingParam(src);
 
         // Show placeholder while loading
-        imgElement.style.opacity = '0';
+        imgElement.style.opacity = '1'; // Changed from '0' to '1' to ensure images are visible
         imgElement.src = this.placeholderImage;
 
         // First attempt with cache busting

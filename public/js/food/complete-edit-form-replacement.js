@@ -133,6 +133,61 @@
         });
     }
 
+    // Comprehensive form sections with show/hide functionality for micronutrients
+    function createComprehensiveFormSections(formElement, ingredient) {
+        // Create basic info section (always visible)
+        const basicInfoSection = createBasicInfoSection(ingredient);
+
+        // Create show/hide button for micronutrients
+        const toggleButton = document.createElement('button');
+        toggleButton.type = 'button';
+        toggleButton.id = 'toggle-micronutrients-btn';
+        toggleButton.textContent = 'Show Micronutrients';
+        toggleButton.style.cssText = `
+            width: 100%;
+            padding: 8px 16px;
+            margin: 10px 0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: rgba(60, 60, 60, 0.8);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 0.9em;
+        `;
+
+        // Create micronutrients container (initially hidden)
+        const micronutrientsContainer = document.createElement('div');
+        micronutrientsContainer.id = 'micronutrients-container';
+        micronutrientsContainer.style.display = 'none';
+
+        // Add micronutrient sections to container
+        const micronutrientSections = [
+            createGeneralSection(ingredient),
+            createCarbohydratesSection(ingredient),
+            createLipidsSection(ingredient),
+            createProteinSection(ingredient),
+            createVitaminsSection(ingredient),
+            createMineralsSection(ingredient)
+        ];
+
+        micronutrientSections.forEach(section => {
+            micronutrientsContainer.appendChild(section);
+        });
+
+        // Add toggle functionality
+        toggleButton.addEventListener('click', function() {
+            const isHidden = micronutrientsContainer.style.display === 'none';
+            micronutrientsContainer.style.display = isHidden ? 'block' : 'none';
+            toggleButton.textContent = isHidden ? 'Hide Micronutrients' : 'Show Micronutrients';
+        });
+
+        // Insert sections into form
+        const formActions = formElement.querySelector('.form-actions');
+        formElement.insertBefore(basicInfoSection, formActions);
+        formElement.insertBefore(toggleButton, formActions);
+        formElement.insertBefore(micronutrientsContainer, formActions);
+    }
+
     function createSection(title, fields) {
         const section = document.createElement('div');
         section.className = 'nutrition-section';
@@ -235,6 +290,12 @@
                 label: 'Package Price:',
                 value: ingredient.price || '',
                 required: true
+            },
+            {
+                id: 'edit-ingredient-grocery-store',
+                label: 'Grocery Store:',
+                value: ingredient.grocery_store || '',
+                type: 'text'
             }
         ]);
     }
@@ -569,6 +630,7 @@
             amount: parseFloat(form.querySelector('#edit-ingredient-amount').value),
             package_amount: parseFloat(form.querySelector('#edit-ingredient-package-amount').value) || null,
             price: parseFloat(form.querySelector('#edit-ingredient-price').value) || 0,
+            grocery_store: form.querySelector('#edit-ingredient-grocery-store')?.value || '',
             calories: parseFloat(form.querySelector('#edit-ingredient-calories').value) || 0,
             protein: parseFloat(form.querySelector('#edit-ingredient-protein').value) || 0,
             fats: parseFloat(form.querySelector('#edit-ingredient-fats').value) || 0,
@@ -733,6 +795,7 @@
 
     // Expose functions globally for use by comprehensive edit modal
     window.createFormSections = createFormSections;
+    window.createComprehensiveFormSections = createComprehensiveFormSections;
     window.createSection = createSection;
     window.createBasicInfoSection = createBasicInfoSection;
     window.createGeneralSection = createGeneralSection;

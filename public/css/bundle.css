@@ -12337,12 +12337,12 @@ body.dark-theme .grocery-info span {
 /* ========================================== */
 
 /**
- * Fix Yuvi's Bday Overdue Date
+ * Fix Yuvi's Bday Overdue Date - DISABLED TO PREVENT INTERFERENCE WITH ROBERT'S TASK
  * This CSS file uses a direct approach to change the "Overdue: 5/16/2025" text to "Overdue: 5/15/2025"
  * for the Yuvi's Bday task.
  */
 
-/* Target the specific task by its position in the DOM */
+/* DISABLED - These rules were interfering with Robert's task
 #taskList > div:first-child .due-date-indicator.overdue span {
     font-size: 0;
 }
@@ -12353,7 +12353,6 @@ body.dark-theme .grocery-info span {
     color: #ff5252;
 }
 
-/* Backup approach using attribute selector */
 [data-task-id="134"] .due-date-indicator.overdue span {
     font-size: 0;
 }
@@ -12364,7 +12363,6 @@ body.dark-theme .grocery-info span {
     color: #ff5252;
 }
 
-/* Another backup approach */
 .task-item:has(.task-title:contains("Yuvi")) .due-date-indicator.overdue span {
     font-size: 0;
 }
@@ -12374,6 +12372,7 @@ body.dark-theme .grocery-info span {
     font-size: 14px;
     color: #ff5252;
 }
+*/
 
 
 
@@ -12388,6 +12387,7 @@ body.dark-theme .grocery-info span {
 
 /* DISABLED: Target the first task item in the task list */
 /*
+/* DISABLED - This was interfering with Robert's task
 #taskList > div:first-child .due-date-indicator.overdue span {
     color: transparent !important;
     position: relative !important;
@@ -12400,6 +12400,7 @@ body.dark-theme .grocery-info span {
     top: 0 !important;
     color: #ff5252 !important;
 }
+*/
 */
 
 
@@ -12487,6 +12488,7 @@ body.dark-theme .grocery-info span {
     color: transparent !important;
 }
 
+/* DISABLED - Yuvi-specific rule that was interfering
 .task-item:has(.task-title:contains("Yuvi")) .due-date-indicator.overdue::after {
     content: "Overdue: 5/15/2025" !important;
     position: absolute !important;
@@ -12501,8 +12503,9 @@ body.dark-theme .grocery-info span {
     border-radius: 4px !important;
     padding: 0 8px !important;
 }
+*/
 
-/* Fix Overdue date for completed tasks */
+/* DISABLED - ALL YUVI CSS RULES TO PREVENT INTERFERENCE WITH ROBERT'S TASK
 .task-item.completed:has(.task-title:contains("Yuvi")) .due-date-indicator span {
     position: relative !important;
     color: transparent !important;
@@ -12520,8 +12523,9 @@ body.dark-theme .grocery-info span {
     display: flex !important;
     align-items: center !important;
 }
+*/
 
-/* Direct approach for specific elements */
+/* DISABLED - Direct approach for specific elements
 .task-item .task-title:contains("Yuvi") ~ .task-details .next-occurrence-date {
     position: relative !important;
     color: transparent !important;
@@ -12559,24 +12563,27 @@ body.dark-theme .grocery-info span {
     border-radius: 4px !important;
     padding: 0 8px !important;
 }
+*/
 
 
 
 /* ========================================== */
-/* File: css/fix-yuvi-bday-important.css */
+/* File: css/fix-yuvi-bday-important.css - DISABLED */
 /* ========================================== */
+
+/* DISABLED - ALL YUVI CSS RULES BELOW ARE COMMENTED OUT
 
 /**
  * Fix Yuvi's Bday dates - Simple CSS approach
  * This CSS file uses simple CSS selectors to fix the dates
  */
 
-/* Target all Yuvi's Bday tasks */
+/* Target all Yuvi's Bday tasks
 .task-item .task-title {
     position: relative;
 }
 
-/* Fix all next-occurrence-date elements in Yuvi's Bday tasks */
+/* Fix all next-occurrence-date elements in Yuvi's Bday tasks
 .next-occurrence-date {
     position: relative;
 }
@@ -12598,7 +12605,7 @@ body.dark-theme .grocery-info span {
     opacity: 1;
 }
 
-/* Fix all due-date-indicator.overdue elements in Yuvi's Bday tasks */
+/* Fix all due-date-indicator.overdue elements in Yuvi's Bday tasks
 .due-date-indicator.overdue {
     position: relative;
 }
@@ -12623,7 +12630,7 @@ body.dark-theme .grocery-info span {
     opacity: 1;
 }
 
-/* Fix all due-date-indicator span elements in completed Yuvi's Bday tasks */
+/* Fix all due-date-indicator span elements in completed Yuvi's Bday tasks
 .task-item.completed:has(.task-title:contains("Yuvi")) .due-date-indicator span {
     opacity: 0;
     position: relative;
@@ -12642,6 +12649,7 @@ body.dark-theme .grocery-info span {
     opacity: 1;
 }
 
+END OF DISABLED YUVI CSS RULES - ALL RULES ABOVE THIS LINE ARE DISABLED */
 
 
 /* ========================================== */

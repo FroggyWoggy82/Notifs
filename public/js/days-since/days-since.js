@@ -150,8 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-
-
+            // Simply send the datetime-local value as-is
+            // The backend will handle timezone conversion properly
             const response = await fetch('/api/days-since', {
                 method: 'POST',
                 headers: {
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     eventName,
-                    startDate: startDate // Send the datetime-local value directly
+                    startDate: startDate
                 })
             });
 
@@ -182,6 +182,7 @@ window.editEvent = function(id, currentName, currentDate) {
     const eventElement = document.querySelector(`.days-since-event[data-id="${id}"]`);
     if (!eventElement) return;
 
+    // Use current time as default for editing (common use case is resetting to now)
     const now = new Date();
 
     const year = now.getFullYear();
@@ -226,6 +227,8 @@ window.editEvent = function(id, currentName, currentDate) {
         }
 
         try {
+            // Simply send the datetime-local value as-is
+            // The backend will handle timezone conversion properly
             const response = await fetch(`/api/days-since/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },

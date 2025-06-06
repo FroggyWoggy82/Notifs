@@ -4,6 +4,7 @@
  */
 
 const DaysSinceModel = require('../models/daysSinceModel');
+const EventResetModel = require('../models/eventResetModel');
 
 /**
  * Get all days since events
@@ -110,9 +111,47 @@ async function deleteEvent(req, res) {
     }
 }
 
+/**
+ * Get all event reset counts
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getAllResetCounts(req, res) {
+    console.log("Received GET /api/days-since/reset-counts request");
+    try {
+        const resetCounts = await EventResetModel.getAllResetCounts();
+        console.log("GET /api/days-since/reset-counts response:", resetCounts);
+        res.json(resetCounts);
+    } catch (error) {
+        console.error('Error fetching event reset counts:', error);
+        res.status(500).json({ error: 'Failed to fetch reset counts' });
+    }
+}
+
+/**
+ * Get reset count for a specific event
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function getResetCount(req, res) {
+    const { eventName } = req.params;
+    console.log(`Received GET /api/days-since/reset-count/${eventName} request`);
+
+    try {
+        const resetCount = await EventResetModel.getResetCount(eventName);
+        console.log(`Reset count for ${eventName}:`, resetCount);
+        res.json({ eventName, resetCount });
+    } catch (error) {
+        console.error('Error fetching event reset count:', error);
+        res.status(500).json({ error: 'Failed to fetch reset count' });
+    }
+}
+
 module.exports = {
     getAllEvents,
     createEvent,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    getAllResetCounts,
+    getResetCount
 };

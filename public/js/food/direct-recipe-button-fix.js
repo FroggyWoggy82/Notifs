@@ -403,7 +403,7 @@
                     border-radius: 8px;
                     padding: 20px;
                     width: 90%;
-                    max-width: 400px;
+                    max-width: 480px;
                     color: #fff;
                 ">
                     <div style="
@@ -427,9 +427,9 @@
                         ">×</button>
                     </div>
 
-                    <div style="margin-bottom: 12px;">
+                    <div style="margin-bottom: 12px; position: relative;">
                         <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Ingredient Name</label>
-                        <input type="text" id="popup-ingredient-name" placeholder="Enter ingredient name" style="
+                        <input type="text" id="popup-ingredient-name" placeholder="Search existing ingredients or enter new name" style="
                             width: 100%;
                             background: #222;
                             border: 1px solid #555;
@@ -439,6 +439,22 @@
                             border-radius: 4px;
                             box-sizing: border-box;
                         " />
+                        <div id="ingredient-search-dropdown" style="
+                            position: absolute;
+                            top: 100%;
+                            left: 0;
+                            right: 0;
+                            background: #1a1a1a;
+                            border: 1px solid #555;
+                            border-top: none;
+                            border-radius: 0 0 4px 4px;
+                            max-height: 300px;
+                            overflow-y: auto;
+                            z-index: 10001;
+                            display: none;
+                            scrollbar-width: thin;
+                            scrollbar-color: #555 #1a1a1a;
+                        "></div>
                     </div>
 
                     <div style="margin-bottom: 12px;">
@@ -518,26 +534,30 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
                         <button class="popup-add-ingredient-btn" data-recipe-id="${recipeId}" style="
                             background: #4CAF50;
                             color: #fff;
                             border: none;
                             border-radius: 4px;
-                            padding: 10px 20px;
-                            font-size: 13px;
+                            padding: 12px 20px;
+                            font-size: 14px;
                             cursor: pointer;
                             flex: 1;
+                            font-weight: 500;
+                            transition: background-color 0.2s;
                         ">Add Ingredient</button>
                         <button class="close-popup-btn" style="
                             background: #666;
                             color: #fff;
                             border: none;
                             border-radius: 4px;
-                            padding: 10px 20px;
-                            font-size: 13px;
+                            padding: 12px 20px;
+                            font-size: 14px;
                             cursor: pointer;
                             flex: 1;
+                            font-weight: 500;
+                            transition: background-color 0.2s;
                         ">Cancel</button>
                     </div>
                 </div>
@@ -552,7 +572,284 @@
         if (nameInput) {
             nameInput.focus();
         }
+
+        // Set up ingredient search functionality
+        setupIngredientSearchForPopup();
+
+        // Add hover effects to buttons
+        const addButton = document.querySelector('.popup-add-ingredient-btn');
+        const cancelButton = document.querySelector('.close-popup-btn');
+
+        if (addButton) {
+            addButton.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#45a049';
+            });
+            addButton.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '#4CAF50';
+            });
+        }
+
+        if (cancelButton) {
+            cancelButton.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#777';
+            });
+            cancelButton.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '#666';
+            });
+        }
     };
+
+    // Function to setup ingredient search functionality for the popup
+    function setupIngredientSearchForPopup() {
+        const nameInput = document.getElementById('popup-ingredient-name');
+        const dropdown = document.getElementById('ingredient-search-dropdown');
+
+        if (!nameInput || !dropdown) {
+            console.error('Ingredient search elements not found');
+            return;
+        }
+
+        let searchTimeout;
+        let selectedIngredient = null;
+
+        // Handle input changes
+        nameInput.addEventListener('input', function() {
+            const query = this.value.trim();
+
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            // Reset selected ingredient when user types
+            selectedIngredient = null;
+
+            if (query.length === 0) {
+                hideDropdown();
+                return;
+            }
+
+            if (query.length < 2) {
+                // Show all ingredients if less than 2 characters but not empty
+                showAllIngredients();
+                return;
+            }
+
+            // Debounce search
+            searchTimeout = setTimeout(() => {
+                searchIngredients(query);
+            }, 300);
+        });
+
+        // Handle click to show all ingredients
+        nameInput.addEventListener('click', function() {
+            if (this.value.trim().length === 0) {
+                showAllIngredients();
+            }
+        });
+
+        // Handle focus to show all ingredients if empty
+        nameInput.addEventListener('focus', function() {
+            if (this.value.trim().length === 0) {
+                showAllIngredients();
+            }
+        });
+
+        // Handle keyboard navigation
+        nameInput.addEventListener('keydown', function(e) {
+            const items = dropdown.querySelectorAll('.dropdown-item');
+            const activeItem = dropdown.querySelector('.dropdown-item.active');
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (activeItem) {
+                    activeItem.classList.remove('active');
+                    const next = activeItem.nextElementSibling;
+                    if (next) {
+                        next.classList.add('active');
+                    } else {
+                        items[0]?.classList.add('active');
+                    }
+                } else {
+                    items[0]?.classList.add('active');
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (activeItem) {
+                    activeItem.classList.remove('active');
+                    const prev = activeItem.previousElementSibling;
+                    if (prev) {
+                        prev.classList.add('active');
+                    } else {
+                        items[items.length - 1]?.classList.add('active');
+                    }
+                } else {
+                    items[items.length - 1]?.classList.add('active');
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeItem) {
+                    selectIngredientFromDropdown(activeItem);
+                }
+            } else if (e.key === 'Escape') {
+                hideDropdown();
+            }
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!nameInput.contains(e.target) && !dropdown.contains(e.target)) {
+                hideDropdown();
+            }
+        });
+
+        // Search for ingredients
+        async function searchIngredients(query) {
+            try {
+                const response = await fetch(`/api/recent-ingredients/search?q=${encodeURIComponent(query)}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const ingredients = await response.json();
+                showSearchResults(ingredients);
+            } catch (error) {
+                console.error('Error searching ingredients:', error);
+                hideDropdown();
+            }
+        }
+
+        // Show all ingredients (for browsing)
+        async function showAllIngredients() {
+            try {
+                const response = await fetch('/api/recent-ingredients');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const ingredients = await response.json();
+                showSearchResults(ingredients, true); // Pass true to indicate this is showing all ingredients
+            } catch (error) {
+                console.error('Error loading all ingredients:', error);
+                hideDropdown();
+            }
+        }
+
+        // Show search results in dropdown
+        function showSearchResults(ingredients, isShowingAll = false) {
+            if (ingredients.length === 0) {
+                if (isShowingAll) {
+                    // Show a message when no ingredients exist at all
+                    dropdown.innerHTML = `
+                        <div style="
+                            padding: 12px;
+                            color: #888;
+                            font-size: 13px;
+                            text-align: center;
+                        ">
+                            No ingredients found. Start typing to create a new one.
+                        </div>
+                    `;
+                    dropdown.style.display = 'block';
+                } else {
+                    hideDropdown();
+                }
+                return;
+            }
+
+            // Limit display to first 50 ingredients for performance when showing all
+            const displayIngredients = isShowingAll ? ingredients.slice(0, 50) : ingredients;
+
+            dropdown.innerHTML = displayIngredients.map(ingredient => `
+                <div class="dropdown-item" data-ingredient='${JSON.stringify(ingredient)}' style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #333;
+                    color: #fff;
+                    font-size: 13px;
+                    transition: background-color 0.2s;
+                ">
+                    <div style="font-weight: bold;">${ingredient.name}</div>
+                    <div style="font-size: 11px; color: #888;">
+                        ${ingredient.calories} cal, ${ingredient.protein}g protein, ${ingredient.fats}g fat, ${ingredient.carbohydrates}g carbs
+                    </div>
+                </div>
+            `).join('');
+
+            // Add a note if we're showing a limited set
+            if (isShowingAll && ingredients.length > 50) {
+                dropdown.innerHTML += `
+                    <div style="
+                        padding: 8px 12px;
+                        color: #666;
+                        font-size: 11px;
+                        text-align: center;
+                        border-top: 1px solid #333;
+                        background: #111;
+                    ">
+                        Showing first 50 of ${ingredients.length} ingredients. Type to search for more.
+                    </div>
+                `;
+            }
+
+            // Add hover and click events
+            dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    dropdown.querySelectorAll('.dropdown-item').forEach(i => {
+                        i.classList.remove('active');
+                        i.style.backgroundColor = '';
+                    });
+                    this.classList.add('active');
+                    this.style.backgroundColor = '#333';
+                });
+
+                item.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.backgroundColor = '';
+                    }
+                });
+
+                item.addEventListener('click', function() {
+                    selectIngredientFromDropdown(this);
+                });
+            });
+
+            dropdown.style.display = 'block';
+        }
+
+        // Select ingredient from dropdown
+        function selectIngredientFromDropdown(item) {
+            const ingredientData = JSON.parse(item.dataset.ingredient);
+            selectedIngredient = ingredientData;
+
+            // Fill the form with ingredient data
+            nameInput.value = ingredientData.name;
+
+            // Fill other fields if they exist
+            const amountInput = document.getElementById('popup-ingredient-amount');
+            const packageAmountInput = document.getElementById('popup-package-amount');
+            const priceInput = document.getElementById('popup-ingredient-price');
+            const groceryStoreInput = document.getElementById('popup-grocery-store');
+
+            if (amountInput) amountInput.value = ingredientData.amount || '';
+            if (packageAmountInput) packageAmountInput.value = ingredientData.package_amount || ingredientData.amount || '';
+            if (priceInput) priceInput.value = ingredientData.price || '';
+            if (groceryStoreInput) groceryStoreInput.value = ingredientData.grocery_store || '';
+
+            hideDropdown();
+        }
+
+        // Hide dropdown
+        function hideDropdown() {
+            dropdown.style.display = 'none';
+            dropdown.innerHTML = '';
+        }
+
+        // Store selected ingredient data for use in form submission
+        window.getSelectedIngredientData = function() {
+            return selectedIngredient;
+        };
+    }
 
     // Debounce flag to prevent duplicate submissions
     let isSubmittingIngredient = false;
@@ -602,8 +899,27 @@
                 omega6: 0
             };
 
-            // Parse Cronometer data if provided
-            if (cronometerData) {
+            // Check if an ingredient was selected from the dropdown
+            const selectedIngredient = window.getSelectedIngredientData ? window.getSelectedIngredientData() : null;
+
+            if (selectedIngredient) {
+                // Use nutrition data from selected ingredient
+                nutritionData = {
+                    calories: selectedIngredient.calories || 0,
+                    protein: selectedIngredient.protein || 0,
+                    fats: selectedIngredient.fats || 0,
+                    carbohydrates: selectedIngredient.carbohydrates || 0,
+                    fiber: selectedIngredient.fiber || 0,
+                    sodium: selectedIngredient.sodium || 0,
+                    vitamin_c: selectedIngredient.vitamin_c || 0,
+                    calcium: selectedIngredient.calcium || 0,
+                    iron: selectedIngredient.iron || 0,
+                    potassium: selectedIngredient.potassium || 0,
+                    omega3: selectedIngredient.omega3 || 0,
+                    omega6: selectedIngredient.omega6 || 0
+                };
+            } else if (cronometerData) {
+                // Parse Cronometer data if provided and no ingredient selected
                 try {
                     const parsedData = parseCronometerData(cronometerData);
                     if (parsedData) {

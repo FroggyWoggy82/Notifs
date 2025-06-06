@@ -1356,11 +1356,39 @@ input:checked + .toggle-slider:before {
 }
 
 .habit-level.level-10 {
-    background-color: #00796b; 
+    background-color: #00796b;
     box-shadow: 0 2px 5px rgba(0,0,0,0.4), 0 0 10px rgba(0,137,123,0.5);
     padding: 4px 10px;
     font-size: 0.8em;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Ratio Badge Styles */
+.habit-ratio-container {
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+}
+
+.habit-ratio-badge {
+    background-color: #ff6b35;
+    color: white;
+    font-size: 0.7em;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    min-width: 40px;
+    cursor: help;
+    transition: all 0.2s ease;
+}
+
+.habit-ratio-badge:hover {
+    background-color: #e55a2b;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
 }
 
 

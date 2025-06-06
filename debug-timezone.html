@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timezone Debug</title>
+</head>
+<body>
+    <h1>Timezone Debug</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.innerHTML += message + '<br>';
+            console.log(message);
+        }
+        
+        // Current time
+        const now = new Date();
+        log('Current time: ' + now.toString());
+        log('Current time ISO: ' + now.toISOString());
+        log('Current time Central: ' + now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+        
+        // Create a datetime-local string for current time
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const datetimeLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
+        
+        log('Datetime-local string: ' + datetimeLocal);
+        
+        // Parse it back
+        const parsed = new Date(datetimeLocal);
+        log('Parsed back: ' + parsed.toString());
+        log('Parsed back ISO: ' + parsed.toISOString());
+        log('Parsed back Central: ' + parsed.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+        
+        // What happens when we format it like the app does?
+        const formatted = parsed.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'America/Chicago'
+        });
+        log('Formatted like app: ' + formatted);
+    </script>
+</body>
+</html>

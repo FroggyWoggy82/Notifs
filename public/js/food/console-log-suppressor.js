@@ -98,7 +98,30 @@
         '[Grocery List Full Width] Expanded grocery list',
         '[Custom Tooltip] Chart canvas detected',
         'Tooltip events attached to chart',
-        'Added event listener to apply button'
+        'Added event listener to apply button',
+        'Using pre-formatted fullDate for week',
+        'Using formatted date for week',
+        'Chart canvas detected, attaching tooltip events',
+        'Error checking/registering annotation plugin:',
+        'Error in tooltip label callback:',
+        'Error in tooltip afterLabel callback:',
+        'Error updating X-axis scale:',
+        'Error updating Y-axis scale:',
+        'Error resetting chart scale:',
+        'Could not parse error response:',
+        'Error parsing complete nutrition data:',
+        'Error adding micronutrient data:',
+        'Error parsing Cronometer data:',
+        'Error saving omega values to OmegaStorage:',
+        'Failed to save omega values to OmegaStorage',
+        'Error during final direct package amount update:',
+        'Error during forced refresh:',
+        'Error updating package amount:',
+        'Error updating package amount before main update:',
+        'populateEditForm function not available',
+        'fetchAndDisplayIngredients function not found',
+        'Could not find form for toggleNutritionPanel',
+        'Could not find detailed nutrition panel'
     ];
 
     // List of patterns to limit frequency (show first occurrence, then suppress duplicates)

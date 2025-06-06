@@ -1,6 +1,7 @@
 // routes/daysSince.js
 const express = require('express');
 const db = require('../utils/db');
+const EventResetModel = require('../models/eventResetModel');
 const router = express.Router();
 
 // GET /api/days-since - Fetch all events
@@ -27,8 +28,22 @@ router.post('/', async (req, res) => {
     }
 
     try {
-        // Parse the ISO string into a Date object
-        const parsedDate = new Date(startDate);
+        // Parse the datetime string and handle timezone properly
+        let parsedDate;
+
+        // Check if this is a datetime-local string (no timezone info)
+        if (startDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+            // This is a datetime-local string, treat it as if it's already in the desired display timezone
+            // We want the database to store a UTC time that, when converted to Central Time, shows the original local time
+            // So we need to store it as UTC time that's 5 hours behind the local time
+            const localDate = new Date(startDate + ':00');
+            // Subtract 5 hours to get the UTC time that will display correctly in Central Time
+            parsedDate = new Date(localDate.getTime() - (5 * 60 * 60 * 1000));
+        } else {
+            // This already has timezone info or is in a different format
+            parsedDate = new Date(startDate);
+        }
+
         if (isNaN(parsedDate.getTime())) {
             console.log('Invalid date format:', startDate);
             return res.status(400).json({ error: 'Invalid date format' });
@@ -58,8 +73,22 @@ router.put('/:id', async (req, res) => {
     }
 
     try {
-        // Parse the ISO string into a Date object
-        const parsedDate = new Date(startDate);
+        // Parse the datetime string and handle timezone properly
+        let parsedDate;
+
+        // Check if this is a datetime-local string (no timezone info)
+        if (startDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+            // This is a datetime-local string, treat it as if it's already in the desired display timezone
+            // We want the database to store a UTC time that, when converted to Central Time, shows the original local time
+            // So we need to store it as UTC time that's 5 hours behind the local time
+            const localDate = new Date(startDate + ':00');
+            // Subtract 5 hours to get the UTC time that will display correctly in Central Time
+            parsedDate = new Date(localDate.getTime() - (5 * 60 * 60 * 1000));
+        } else {
+            // This already has timezone info or is in a different format
+            parsedDate = new Date(startDate);
+        }
+
         if (isNaN(parsedDate.getTime())) {
             return res.status(400).json({ error: 'Invalid date format' });
         }
@@ -98,6 +127,34 @@ router.delete('/:id', async (req, res) => {
     } catch (err) {
         console.error('Error deleting event:', err);
         res.status(500).json({ error: 'Failed to delete event' });
+    }
+});
+
+// GET /api/days-since/reset-counts - Get all event reset counts
+router.get('/reset-counts', async (req, res) => {
+    console.log("Received GET /api/days-since/reset-counts request");
+    try {
+        const resetCounts = await EventResetModel.getAllResetCounts();
+        console.log("GET /api/days-since/reset-counts response:", resetCounts);
+        res.json(resetCounts);
+    } catch (err) {
+        console.error('Error fetching event reset counts:', err);
+        res.status(500).json({ error: 'Failed to fetch reset counts' });
+    }
+});
+
+// GET /api/days-since/reset-count/:eventName - Get reset count for specific event
+router.get('/reset-count/:eventName', async (req, res) => {
+    const { eventName } = req.params;
+    console.log(`Received GET /api/days-since/reset-count/${eventName} request`);
+
+    try {
+        const resetCount = await EventResetModel.getResetCount(eventName);
+        console.log(`Reset count for ${eventName}:`, resetCount);
+        res.json({ eventName, resetCount });
+    } catch (err) {
+        console.error('Error fetching event reset count:', err);
+        res.status(500).json({ error: 'Failed to fetch reset count' });
     }
 });
 

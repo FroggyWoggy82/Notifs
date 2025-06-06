@@ -21,6 +21,15 @@
     margin-left: auto !important;
     order: 2 !important;
     align-self: center !important;
+    /* Mobile touch fixes */
+    touch-action: manipulation !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    position: relative !important;
+    z-index: 10 !important;
 }
 
 .btn-exercise-options:hover {
@@ -31,6 +40,51 @@
 .btn-exercise-options {
     font-size: 1.2rem !important;
     content: "..." !important;
+}
+
+/* Mobile-specific improvements for ellipsis button */
+@media screen and (max-width: 768px) {
+    .btn-exercise-options {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        font-size: 1.4rem !important;
+        /* Ensure it's above other elements */
+        z-index: 15 !important;
+        /* Add a subtle background for better visibility */
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 4px !important;
+        /* Ensure proper positioning */
+        position: relative !important;
+        /* Prevent text selection */
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        /* Optimize for touch */
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2) !important;
+        /* Ensure it's clickable */
+        pointer-events: auto !important;
+    }
+
+    .btn-exercise-options:active,
+    .btn-exercise-options:focus {
+        background: rgba(255, 255, 255, 0.2) !important;
+        transform: scale(0.95) !important;
+        outline: none !important;
+    }
+
+    /* Ensure the exercise item header doesn't interfere */
+    .exercise-item-header {
+        position: relative !important;
+    }
+
+    /* Make sure the button is always visible and clickable */
+    .exercise-item .btn-exercise-options {
+        flex-shrink: 0 !important;
+        margin-left: 8px !important;
+    }
 }
 
 
