@@ -7,6 +7,21 @@ const fs = require('fs');
 const path = require('path');
 const webpush = require('web-push');
 
+// Configure VAPID keys for web push
+// These keys are used to identify your application to push services
+const VAPID_KEYS = {
+    publicKey: process.env.VAPID_PUBLIC_KEY || 'BLpE5Lrq_snZV96O6Cyg0H6BGZCY9hfBTeZvqIW-NgxoIcXIpdSUFMuEyFP5hGt_SI3RkpuJpwE86JVOtj4YkSY',
+    privateKey: process.env.VAPID_PRIVATE_KEY || 'your-private-key-here',
+    subject: process.env.VAPID_SUBJECT || 'mailto:kevinguyen022@gmail.com'
+};
+
+// Set VAPID details for web-push
+webpush.setVapidDetails(
+    VAPID_KEYS.subject,
+    VAPID_KEYS.publicKey,
+    VAPID_KEYS.privateKey
+);
+
 // File paths for persistent storage
 const SUBSCRIPTIONS_FILE = path.join(__dirname, '..', 'data', 'subscriptions.json');
 const NOTIFICATIONS_FILE = path.join(__dirname, '..', 'data', 'notifications.json');
@@ -50,6 +65,7 @@ async function initialize() {
 
             // Filter out subscriptions with invalid endpoints
             // Only the /wp/ format is valid, /fcm/send/ is no longer valid
+            const beforeFilterCount = subscriptions.length;
             subscriptions = subscriptions.filter(sub => {
                 // Check if the endpoint format is valid - ONLY /wp/ format is valid now
                 const isValidEndpoint = sub.endpoint &&
@@ -60,13 +76,27 @@ async function initialize() {
                     sub.keys.p256dh &&
                     sub.keys.auth;
 
-                return isValidEndpoint && hasRequiredKeys;
+                const isValid = isValidEndpoint && hasRequiredKeys;
+
+                if (!isValid) {
+                    console.log(`Filtering out invalid subscription: ${sub.endpoint ? sub.endpoint.substring(0, 50) + '...' : 'no endpoint'}`);
+                    if (!isValidEndpoint) {
+                        console.log('  Reason: Invalid endpoint format (must use /wp/ format)');
+                    }
+                    if (!hasRequiredKeys) {
+                        console.log('  Reason: Missing required keys (p256dh or auth)');
+                    }
+                }
+
+                return isValid;
             });
 
-            const removedCount = initialCount - subscriptions.length;
+            const removedCount = beforeFilterCount - subscriptions.length;
             if (removedCount > 0) {
-                console.log(`Removed ${removedCount} invalid subscriptions during startup`);
+                console.log(`Removed ${removedCount} invalid subscriptions during startup (${subscriptions.length} valid subscriptions remaining)`);
                 saveSubscriptionsToFile();
+            } else {
+                console.log(`All ${subscriptions.length} subscriptions are valid`);
             }
         }
     } catch (error) {
@@ -141,7 +171,20 @@ function saveNotificationsToFile() {
  */
 function saveSubscription(subscription) {
     if (!subscription || !subscription.endpoint) {
-        throw new Error('Invalid subscription data');
+        throw new Error('Invalid subscription data: missing subscription or endpoint');
+    }
+
+    // Validate endpoint format
+    const isValidEndpoint = subscription.endpoint.includes('https://fcm.googleapis.com/wp/');
+    if (!isValidEndpoint) {
+        console.warn(`Warning: Subscription endpoint uses deprecated format: ${subscription.endpoint.substring(0, 50)}...`);
+        console.warn('Expected format: https://fcm.googleapis.com/wp/...');
+        // Still save it, but log the warning
+    }
+
+    // Validate required keys
+    if (!subscription.keys || !subscription.keys.p256dh || !subscription.keys.auth) {
+        throw new Error('Invalid subscription data: missing required keys (p256dh or auth)');
     }
 
     // Add timestamp to track when the subscription was added/updated
@@ -153,13 +196,14 @@ function saveSubscription(subscription) {
     const existingIndex = subscriptions.findIndex(s => s.endpoint === subscription.endpoint);
     if (existingIndex !== -1) {
         subscriptions[existingIndex] = subscriptionWithTimestamp;
-        console.log('Updated existing subscription');
+        console.log(`Updated existing subscription: ${subscription.endpoint.substring(0, 50)}...`);
     } else {
         subscriptions.push(subscriptionWithTimestamp);
-        console.log('Added new subscription');
+        console.log(`Added new subscription: ${subscription.endpoint.substring(0, 50)}...`);
     }
 
     saveSubscriptionsToFile();
+    console.log(`Total subscriptions: ${subscriptions.length}`);
     return { success: true, message: 'Subscription saved' };
 }
 
@@ -736,6 +780,14 @@ function getSubscriptions() {
 }
 
 /**
+ * Get the VAPID public key for client-side subscription
+ * @returns {string} - The VAPID public key
+ */
+function getVapidPublicKey() {
+    return VAPID_KEYS.publicKey;
+}
+
+/**
  * Get subscription count
  * @returns {Object} - Count of subscriptions
  */
@@ -797,5 +849,6 @@ module.exports = {
     clearAllSubscriptions,
     getSubscriptions,
     getSubscriptionCount,
-    rescheduleAllNotifications
+    rescheduleAllNotifications,
+    getVapidPublicKey
 };

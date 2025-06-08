@@ -148,8 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Create a new subscription with the current VAPID key
-            // Using properly generated VAPID key on the P-256 curve
-            const applicationServerKey = urlBase64ToUint8Array('BIErgrKRpDGw2XoFq1vhgowolKyleAgJxC_DcZlyIUASuTUHi0SlWZQ-e2p2ctskva52qii0a36uS5CqTprMxRE'); // Your public VAPID key
+            // Fetch the VAPID public key from the server
+            updateStatus('Getting security keys from server...', false);
+            const vapidResponse = await fetch('/api/vapid-public-key');
+            const vapidData = await vapidResponse.json();
+
+            if (!vapidData.success) {
+                throw new Error('Failed to get VAPID public key from server');
+            }
+
+            const applicationServerKey = urlBase64ToUint8Array(vapidData.publicKey);
             subscription = await swRegistration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: applicationServerKey

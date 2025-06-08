@@ -30,6 +30,62 @@
         '[Recipe Adjust Buttons Fix] Updated field',
         '[Recipe Adjust Buttons Fix] Created/updated hidden field',
         '[Recipe API Endpoints Fix] Intercepted fetch to:',
+        '[Add Ingredient Button Fix] No Add Ingredient buttons found. Will retry when DOM changes.',
+        '[Add Ingredient Button Fix] Looking for Add Ingredient buttons in recipe cards',
+        '[Add Ingredient Button Fix] Overrode showAddIngredientForm function with enhanced version',
+        '[Add Ingredient Button Fix] Button already fixed',
+        '[Fix Create Recipe Add Ingredient] Aggressive fix applied at',
+        '[Fix Create Recipe Add Ingredient] Button already fixed',
+        '[Grocery List Full Width] Window resized',
+        '[Log Reducer] Summary: Suppressed',
+        'Fixed 56 attributes on form fields',
+        'Fixed 1 attributes on form fields',
+        '[PackageAmountCore] Fixed validation for new input:',
+        '[Ingredient Edit Dark Fix] Fixing ingredient edit modal styling',
+        '[Ingredient Edit Dark Fix] Found ingredient edit modal:',
+        '[Ingredient Edit Dark Fix] Ingredient edit modal styling fixed',
+        '[Add Ingredient Button Fix] Found 0 add ingredient forms to enhance',
+        '[Add Ingredient Button Fix] Enhanced',
+        '[Chart Visibility Fix] Attaching tooltips attempt',
+        '[Chart Visibility Fix] Tooltip fix function not available',
+        '[Chart Visibility Fix] Attempting to load tooltip fix script',
+        'Stored 7 recipes for searching',
+        '[Recipe Button Size Equalizer] Equalized',
+        '[Simple Save Recipe Handler] Initializing',
+        '[Simple Save Recipe Handler] Found form and button',
+        '[Simple Save Recipe Handler] Event listener attached',
+        '[Simple Save Recipe Handler] Successfully initialized',
+        '[Tooltip Fix] Initializing tooltip fix',
+        '[Tooltip Fix] Tooltip fix initialized',
+        '[Chart Visibility Fix] Tooltip fix script loaded',
+        '[Meal Submission] Loaded',
+        '[Fallback] Checking if comprehensive save functionality is available',
+        '[Fallback] Save button found, ensuring comprehensive functionality',
+        '[Fallback] ✅ Comprehensive save functionality ensured',
+        'Fixed 21 attributes on form fields',
+        'Fixed 56 attributes on form fields',
+        'Updated micronutrient calorie target to',
+        'Updated carbs target to',
+        'Updated protein target to',
+        'Invalid fat target:',
+        '[Bottom Nav Fix] A',
+        'Ingredient] Successfully attached event handler',
+        'Unchecked runtime.lastError: The message port closed before a response was received',
+        'Recipe card body collapsed',
+        '[Grocery List Full Width] Adding event listener to new checkbox',
+        'Recipes updated, refreshing search data',
+        'Loaded custom goal weights:',
+        '[Ultimate Sidebar] Applying force navigation fix',
+        '[Ultimate Sidebar] Force navigation fix applied to',
+        '[Simple Save Recipe Handler] Recipe form found, continuing initialization',
+        '[Simple Save Recipe Handler] Loaded',
+        '[Recipe Button Fix v2.0] Removed existing conflicting handlers',
+        '[Recipe Button Fix v2.0] New recipe card detected, removing conflicting handlers',
+        '[Recipe Button Fix v2.0] Already initialized, skipping',
+        '[Chart Config] Configuring global Chart.js defaults',
+        '[Chart Config] Chart.js global defaults configured successfully',
+        '[Meal Calendar] No weight data for',
+        '[Recipe Button Size Equalizer] New recipe cards detected, equalizing buttons',
         // Ingredient-related console messages to suppress
         'Fetched ingredients:',
         'Processing ingredients array:',
@@ -166,6 +222,18 @@
             return originalConsoleLog.apply(console, arguments);
         }
 
+        // Always allow important error/success messages through (but be specific)
+        if (message.includes('Error') && !message.includes('Error checking/registering') ||
+            message.includes('Failed') && !message.includes('Failed to save omega values') ||
+            message.includes('Updated') && message.includes('fields with Cronometer data') ||
+            message.includes('Parse button clicked') ||
+            message.includes('Successfully parsed nutrition data') ||
+            message.includes('Recipe saved successfully') ||
+            message.includes('Ingredient added successfully') ||
+            message.includes('Ingredient deleted successfully')) {
+            return originalConsoleLog.apply(console, arguments);
+        }
+
         // Check if message matches any filter patterns
         for (const pattern of filterPatterns) {
             if (message.includes(pattern)) {
@@ -213,10 +281,50 @@
 
     // Keep debug messages but at reduced frequency
     console.debug = function() {
-        // Only show every 5th debug message
-        if (Math.random() < 0.2) {
+        // Only show every 10th debug message
+        if (Math.random() < 0.1) {
             originalConsoleDebug.apply(console, arguments);
         }
+    };
+
+    // Store original console.warn
+    const originalConsoleWarn = console.warn;
+
+    // Replace console.warn with a filtered version
+    console.warn = function() {
+        // Skip if no arguments
+        if (arguments.length === 0) {
+            return originalConsoleWarn.apply(console, arguments);
+        }
+
+        // Get the message
+        const message = arguments[0];
+
+        // Only process string messages
+        if (typeof message !== 'string') {
+            return originalConsoleWarn.apply(console, arguments);
+        }
+
+        // Check if message matches any filter patterns
+        for (const pattern of filterPatterns) {
+            if (message.includes(pattern)) {
+                // Count suppressed warnings by pattern
+                suppressedCounts[pattern] = (suppressedCounts[pattern] || 0) + 1;
+
+                // Show notifications less frequently for warnings
+                const warningNotificationInterval = suppressedCounts[pattern] < 100 ? 50 :
+                                                   suppressedCounts[pattern] < 500 ? 100 : 200;
+
+                if (suppressedCounts[pattern] % warningNotificationInterval === 0) {
+                    originalConsoleLog.call(console, `[Log Reducer] Suppressed ${suppressedCounts[pattern]} warnings containing: "${pattern}"`);
+                }
+
+                return; // Skip this warning
+            }
+        }
+
+        // Call the original console.warn for non-filtered messages
+        originalConsoleWarn.apply(console, arguments);
     };
 
     // Network error patterns to suppress
@@ -227,13 +335,22 @@
         'PUT http://127.0.0.1:3000/api/recipes/'
     ];
 
+    // JavaScript error patterns to suppress (non-critical errors)
+    const jsErrorPatterns = [
+        'Cannot read properties of undefined (reading \'rawDomain\')',
+        'The message port closed before a response was received',
+        'main.tsx-',
+        'client-C_EdVDW8.js:'
+    ];
+
     // Replace console.error with a filtered version
     console.error = function() {
         // Check if the first argument is a string and matches any of the network error patterns
         if (arguments.length > 0 &&
             typeof arguments[0] === 'string' &&
-            networkErrorPatterns.some(pattern => arguments[0].includes(pattern))) {
-            // Skip logging for filtered network errors
+            (networkErrorPatterns.some(pattern => arguments[0].includes(pattern)) ||
+             jsErrorPatterns.some(pattern => arguments[0].includes(pattern)))) {
+            // Skip logging for filtered network and JS errors
             return;
         }
 
@@ -263,13 +380,48 @@
         return promise;
     };
 
-    // Print summary every 30 seconds
+    // Print summary every 2 minutes (less frequent)
     setInterval(() => {
         const totalSuppressed = Object.values(suppressedCounts).reduce((sum, count) => sum + count, 0);
-        if (totalSuppressed > 0) {
+        if (totalSuppressed > 100) { // Only show if we've suppressed a significant number
             originalConsoleLog.call(console, `[Log Reducer] Summary: Suppressed ${totalSuppressed} logs total`);
         }
-    }, 30000);
+    }, 120000);
+
+    // Add global error handler to suppress uncaught errors that match our patterns
+    const originalErrorHandler = window.onerror;
+    window.onerror = function(message, source, lineno, colno, error) {
+        // Check if this is one of our filtered error patterns
+        if (typeof message === 'string' &&
+            jsErrorPatterns.some(pattern => message.includes(pattern))) {
+            // Suppress this error
+            return true; // Prevents the error from being logged
+        }
+
+        // Call original error handler if it exists
+        if (originalErrorHandler) {
+            return originalErrorHandler.apply(this, arguments);
+        }
+
+        return false; // Let other errors through
+    };
+
+    // Add unhandled promise rejection handler
+    const originalUnhandledRejection = window.onunhandledrejection;
+    window.onunhandledrejection = function(event) {
+        // Check if this is one of our filtered error patterns
+        if (event.reason && typeof event.reason.message === 'string' &&
+            jsErrorPatterns.some(pattern => event.reason.message.includes(pattern))) {
+            // Suppress this error
+            event.preventDefault();
+            return;
+        }
+
+        // Call original handler if it exists
+        if (originalUnhandledRejection) {
+            return originalUnhandledRejection.apply(this, arguments);
+        }
+    };
 
     originalConsoleLog.call(console, '[Log Reducer] Initialized - reducing repetitive logs while keeping important ones');
 })();

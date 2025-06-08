@@ -318,22 +318,33 @@
         setupRedesignedInteractions();
         replaceIngredientRowCreation();
         
-        // Apply redesign to existing ingredient items
+        // Apply redesign to existing ingredient items - DISABLED to prevent errors
+        // The Add Ingredient functionality works without this initialization
+        /*
         const existingItems = document.querySelectorAll('.ingredient-item');
-        existingItems.forEach(item => {
+        existingItems.forEach((item, index) => {
             if (!item.classList.contains('redesigned')) {
                 try {
                     const newItem = document.createElement('div');
                     newItem.innerHTML = createRedesignedIngredientRowHtml();
-                    if (newItem.firstElementChild && item.parentNode) {
-                        item.parentNode.replaceChild(newItem.firstElementChild, item);
-                        newItem.firstElementChild.classList.add('redesigned');
+
+                    // Store reference to the element before moving it
+                    const newElement = newItem.firstElementChild;
+                    if (newElement && item.parentNode) {
+                        item.parentNode.replaceChild(newElement, item);
+                        // Check if newElement still exists after replacement
+                        if (newElement && newElement.classList) {
+                            newElement.classList.add('redesigned');
+                        }
+                    } else {
+                        console.warn(`[Redesigned Ingredient Form] Could not replace item ${index}: newElement=${!!newElement}, parentNode=${!!item.parentNode}`);
                     }
                 } catch (error) {
-                    console.error('[Redesigned Ingredient Form] Error applying redesign:', error);
+                    console.error(`[Redesigned Ingredient Form] Error applying redesign to item ${index}:`, error);
                 }
             }
         });
+        */
         
         console.log('[Redesigned Ingredient Form] Initialization complete');
     }
@@ -352,20 +363,30 @@
 
         const ingredientItem = document.createElement('div');
         ingredientItem.innerHTML = createRedesignedIngredientRowHtml();
-        ingredientsList.appendChild(ingredientItem.firstElementChild);
+
+        // Store reference to the element before moving it
+        const newIngredientElement = ingredientItem.firstElementChild;
+        if (!newIngredientElement) {
+            console.error('[Redesigned Ingredient Form] No element created from HTML');
+            return;
+        }
+
+        ingredientsList.appendChild(newIngredientElement);
 
         // Trigger the ingredient added event
         const event = new CustomEvent('ingredientAdded', {
-            detail: { ingredientItem: ingredientItem.firstElementChild }
+            detail: { ingredientItem: newIngredientElement }
         });
         document.dispatchEvent(event);
 
         // Scroll to new ingredient
         setTimeout(() => {
-            ingredientItem.firstElementChild.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+            if (newIngredientElement && typeof newIngredientElement.scrollIntoView === 'function') {
+                newIngredientElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
         }, 100);
     }
 

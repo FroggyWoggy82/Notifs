@@ -362,6 +362,48 @@ app.post('/api/clear-all-subscriptions', (req, res) => {
     }
 });
 
+// Add endpoint to create test reminder
+app.post('/api/test-reminder', async (req, res) => {
+    try {
+        const TaskReminderService = require('./models/taskReminderService');
+        const { title, delayMinutes } = req.body;
+
+        console.log('Creating test reminder:', { title, delayMinutes });
+        const notification = await TaskReminderService.createTestReminder(title, delayMinutes);
+
+        res.json({
+            success: true,
+            message: 'Test reminder created',
+            notification: notification
+        });
+    } catch (error) {
+        console.error('Error creating test reminder:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error creating test reminder',
+            error: error.message
+        });
+    }
+});
+
+// Add endpoint to get VAPID public key
+app.get('/api/vapid-public-key', (req, res) => {
+    try {
+        const publicKey = NotificationModel.getVapidPublicKey();
+        res.json({
+            success: true,
+            publicKey: publicKey
+        });
+    } catch (error) {
+        console.error('Error getting VAPID public key:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error getting VAPID public key',
+            error: error.message
+        });
+    }
+});
+
 // Add endpoint to get subscription count
 app.get('/api/subscription-count', (req, res) => {
     try {

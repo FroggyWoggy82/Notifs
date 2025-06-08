@@ -579,7 +579,7 @@
 
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Cronometer Data (Optional)</label>
-                        <textarea id="edit-popup-cronometer-data" placeholder="Paste Cronometer nutrition data here to update values..." style="
+                        <textarea id="edit-popup-cronometer-data" class="cronometer-text-paste-area" placeholder="Paste Cronometer nutrition data here to update values..." style="
                             width: 100%;
                             background: #222;
                             border: 1px solid #555;
@@ -591,6 +591,22 @@
                             min-height: 60px;
                             resize: vertical;
                         "></textarea>
+                        <button type="button" class="cronometer-parse-button" style="
+                            background: #4CAF50;
+                            color: #fff;
+                            border: none;
+                            border-radius: 4px;
+                            padding: 8px 16px;
+                            font-size: 12px;
+                            cursor: pointer;
+                            margin-top: 8px;
+                            transition: background-color 0.2s;
+                        ">Parse Nutrition Data</button>
+                        <div class="cronometer-parse-status" style="
+                            font-size: 11px;
+                            margin-top: 4px;
+                            min-height: 16px;
+                        "></div>
                         <div style="font-size: 11px; color: #888; margin-top: 4px;">
                             Paste nutrition data from Cronometer to auto-fill nutrition values
                         </div>
@@ -1001,19 +1017,164 @@
 
         // Set up Cronometer parsing for edit popup
         const cronometerTextarea = document.getElementById('edit-popup-cronometer-data');
-        if (cronometerTextarea) {
-            cronometerTextarea.addEventListener('input', function() {
-                const text = this.value.trim();
-                if (text) {
-                    const parsed = parseCronometerData(text);
-                    if (parsed) {
-                        // Update form fields with parsed data
-                        if (parsed.calories) document.getElementById('edit-popup-ingredient-calories').value = parsed.calories;
-                        if (parsed.protein) document.getElementById('edit-popup-ingredient-protein').value = parsed.protein;
-                        if (parsed.fats) document.getElementById('edit-popup-ingredient-fats').value = parsed.fats;
-                        if (parsed.carbohydrates) document.getElementById('edit-popup-ingredient-carbs').value = parsed.carbohydrates;
+        const cronometerButton = document.querySelector('.cronometer-parse-button');
+        const cronometerStatus = document.querySelector('.cronometer-parse-status');
+
+        if (cronometerTextarea && cronometerButton && cronometerStatus) {
+            // Add hover effect to parse button
+            cronometerButton.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#45a049';
+            });
+            cronometerButton.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '#4CAF50';
+            });
+
+            // Custom Cronometer parser function for edit popup
+            function parseEditPopupCronometerData(text) {
+                try {
+                    cronometerStatus.textContent = 'Processing Cronometer data...';
+                    cronometerStatus.style.color = '#4CAF50';
+
+                    // Use the existing Cronometer parser if available
+                    let nutritionData;
+                    if (typeof window.parseCronometerText === 'function') {
+                        nutritionData = window.parseCronometerText(text);
+                    } else if (typeof window.CRONOMETER_PATTERNS !== 'undefined') {
+                        // Fallback to manual parsing
+                        nutritionData = parseManualCronometer(text);
+                    } else {
+                        throw new Error('Cronometer parser not available');
+                    }
+
+                    if (nutritionData && nutritionData.success) {
+                        updateEditPopupFields(nutritionData);
+                        cronometerStatus.textContent = 'Successfully parsed nutrition data!';
+                        cronometerStatus.style.color = '#4CAF50';
+                    } else {
+                        throw new Error('Failed to parse nutrition data');
+                    }
+                } catch (error) {
+                    console.error('Error parsing Cronometer data:', error);
+                    cronometerStatus.textContent = `Error: ${error.message}`;
+                    cronometerStatus.style.color = '#ff6b6b';
+                }
+            }
+
+            // Function to update edit popup fields with parsed data
+            function updateEditPopupFields(data) {
+                const fieldMappings = {
+                    calories: 'edit-popup-ingredient-calories',
+                    protein: 'edit-popup-ingredient-protein',
+                    fats: 'edit-popup-ingredient-fats',
+                    carbohydrates: 'edit-popup-ingredient-carbs',
+                    alcohol: 'edit-popup-alcohol',
+                    caffeine: 'edit-popup-caffeine',
+                    water: 'edit-popup-water',
+                    fiber: 'edit-popup-fiber',
+                    starch: 'edit-popup-starch',
+                    sugars: 'edit-popup-sugars',
+                    addedSugars: 'edit-popup-added-sugars',
+                    monounsaturated: 'edit-popup-monounsaturated',
+                    polyunsaturated: 'edit-popup-polyunsaturated',
+                    omega3: 'edit-popup-omega3',
+                    omega6: 'edit-popup-omega6',
+                    saturated: 'edit-popup-saturated',
+                    transFat: 'edit-popup-trans-fat',
+                    cholesterol: 'edit-popup-cholesterol',
+                    cystine: 'edit-popup-cystine',
+                    histidine: 'edit-popup-histidine',
+                    isoleucine: 'edit-popup-isoleucine',
+                    leucine: 'edit-popup-leucine',
+                    lysine: 'edit-popup-lysine',
+                    methionine: 'edit-popup-methionine',
+                    phenylalanine: 'edit-popup-phenylalanine',
+                    threonine: 'edit-popup-threonine',
+                    tryptophan: 'edit-popup-tryptophan',
+                    tyrosine: 'edit-popup-tyrosine',
+                    valine: 'edit-popup-valine',
+                    b1Thiamin: 'edit-popup-b1-thiamin',
+                    b2Riboflavin: 'edit-popup-b2-riboflavin',
+                    b3Niacin: 'edit-popup-b3-niacin',
+                    b5PantothenicAcid: 'edit-popup-b5-pantothenic',
+                    b6Pyridoxine: 'edit-popup-b6-pyridoxine',
+                    b12Cobalamin: 'edit-popup-b12-cobalamin',
+                    folate: 'edit-popup-folate',
+                    vitaminA: 'edit-popup-vitamin-a',
+                    vitaminC: 'edit-popup-vitamin-c',
+                    vitaminD: 'edit-popup-vitamin-d',
+                    vitaminE: 'edit-popup-vitamin-e',
+                    vitaminK: 'edit-popup-vitamin-k',
+                    calcium: 'edit-popup-calcium',
+                    copper: 'edit-popup-copper',
+                    iron: 'edit-popup-iron',
+                    magnesium: 'edit-popup-magnesium',
+                    manganese: 'edit-popup-manganese',
+                    phosphorus: 'edit-popup-phosphorus',
+                    potassium: 'edit-popup-potassium',
+                    selenium: 'edit-popup-selenium',
+                    sodium: 'edit-popup-sodium',
+                    zinc: 'edit-popup-zinc'
+                };
+
+                let fieldsUpdated = 0;
+                for (const [key, fieldId] of Object.entries(fieldMappings)) {
+                    if (data[key] !== null && data[key] !== undefined) {
+                        const field = document.getElementById(fieldId);
+                        if (field) {
+                            field.value = data[key];
+                            field.classList.add('cronometer-updated');
+                            fieldsUpdated++;
+                        }
                     }
                 }
+
+                console.log(`Updated ${fieldsUpdated} fields with Cronometer data`);
+            }
+
+            // Manual parser fallback
+            function parseManualCronometer(text) {
+                const extractValue = (text, pattern) => {
+                    const match = text.match(pattern);
+                    return match ? parseFloat(match[1]) : null;
+                };
+
+                return {
+                    success: true,
+                    calories: extractValue(text, /Energy[:\s]+(\d+(?:\.\d+)?)/i),
+                    protein: extractValue(text, /Protein[:\s]+(\d+(?:\.\d+)?)/i),
+                    fats: extractValue(text, /Fat[:\s]+(\d+(?:\.\d+)?)/i),
+                    carbohydrates: extractValue(text, /Carbs[:\s]+(\d+(?:\.\d+)?)/i),
+                    fiber: extractValue(text, /Fiber[:\s]+(\d+(?:\.\d+)?)/i),
+                    vitaminC: extractValue(text, /Vitamin C[:\s]+(\d+(?:\.\d+)?)/i),
+                    calcium: extractValue(text, /Calcium[:\s]+(\d+(?:\.\d+)?)/i),
+                    iron: extractValue(text, /Iron[:\s]+(\d+(?:\.\d+)?)/i),
+                    potassium: extractValue(text, /Potassium[:\s]+(\d+(?:\.\d+)?)/i)
+                };
+            }
+
+            // Set up parse button click handler
+            cronometerButton.addEventListener('click', function() {
+                const text = cronometerTextarea.value.trim();
+                if (text) {
+                    parseEditPopupCronometerData(text);
+                } else {
+                    cronometerStatus.textContent = 'Please paste Cronometer nutrition data first';
+                    cronometerStatus.style.color = '#ff6b6b';
+                }
+            });
+
+            // Auto-parse on paste with delay
+            cronometerTextarea.addEventListener('paste', function() {
+                cronometerStatus.textContent = '';
+                cronometerStatus.style.color = '';
+
+                // Auto-parse after a short delay to allow paste to complete
+                setTimeout(() => {
+                    const text = this.value.trim();
+                    if (text) {
+                        parseEditPopupCronometerData(text);
+                    }
+                }, 100);
             });
         }
 

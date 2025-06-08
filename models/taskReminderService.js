@@ -190,9 +190,36 @@ async function scheduleReminderForTask(taskId) {
     }
 }
 
+/**
+ * Create a test task reminder notification (for debugging)
+ * @param {string} title - The notification title
+ * @param {number} delayMinutes - Minutes from now to schedule the notification
+ */
+async function createTestReminder(title = 'Test Task Reminder', delayMinutes = 1) {
+    const scheduledTime = new Date();
+    scheduledTime.setMinutes(scheduledTime.getMinutes() + delayMinutes);
+
+    const notificationData = {
+        title: `🔔 ${title}`,
+        body: `This is a test reminder scheduled for ${scheduledTime.toLocaleTimeString()}`,
+        scheduledTime: scheduledTime.toISOString(),
+        repeat: 'none',
+        data: {
+            type: 'test_reminder',
+            testId: Date.now()
+        }
+    };
+
+    console.log(`Creating test reminder: "${title}" for ${scheduledTime.toLocaleString()}`);
+    const notification = NotificationModel.scheduleNotification(notificationData);
+    console.log(`Test reminder created with ID: ${notification.id}`);
+    return notification;
+}
+
 module.exports = {
     scheduleTaskReminder,
     scheduleAllTaskReminders,
     scheduleReminderForTask,
-    sendOverdueReminder
+    sendOverdueReminder,
+    createTestReminder
 };
