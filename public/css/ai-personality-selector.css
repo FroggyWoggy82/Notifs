@@ -1,0 +1,181 @@
+/**
+ * AI Personality Selector Styling
+ * Styles for the AI personality selection interface
+ */
+
+.personality-selector-container {
+    background: rgba(42, 42, 42, 0.95);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+}
+
+.personality-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.personality-selector-wrapper label {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 60px;
+}
+
+.personality-selector {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 6px;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    min-width: 180px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.personality-selector:hover {
+    border-color: #666;
+    background: #3a3a3a;
+}
+
+.personality-selector:focus {
+    outline: none;
+    border-color: #03dac6;
+    box-shadow: 0 0 0 2px rgba(3, 218, 198, 0.2);
+}
+
+.personality-description {
+    color: #ccc;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    font-style: italic;
+    margin-top: 4px;
+    padding-left: 72px; /* Align with selector */
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 768px) {
+    .personality-selector-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .personality-selector-wrapper label {
+        min-width: auto;
+        text-align: left;
+    }
+    
+    .personality-selector {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .personality-description {
+        padding-left: 0;
+        margin-top: 8px;
+    }
+}
+
+/* Dark theme integration */
+.dark-theme .personality-selector-container {
+    background: rgba(26, 26, 26, 0.95);
+    border-color: #333;
+}
+
+.dark-theme .personality-selector {
+    background: #1a1a1a;
+    border-color: #444;
+}
+
+.dark-theme .personality-selector:hover {
+    background: #222;
+    border-color: #555;
+}
+
+/* Animation for personality change */
+.personality-selector-container.changing {
+    animation: personalityChange 0.3s ease;
+}
+
+@keyframes personalityChange {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Compact mode for smaller screens */
+@media screen and (max-width: 480px) {
+    .personality-selector-container {
+        padding: 8px 12px;
+        margin-bottom: 12px;
+    }
+    
+    .personality-selector-wrapper label {
+        font-size: 0.85rem;
+    }
+    
+    .personality-selector {
+        font-size: 0.85rem;
+        padding: 5px 10px;
+    }
+    
+    .personality-description {
+        font-size: 0.75rem;
+    }
+}
+
+/* Integration with chat interface */
+.chat-interface .personality-selector-container {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 16px;
+}
+
+/* Hover effect for better UX */
+.personality-selector-container:hover {
+    border-color: #555;
+    background: rgba(42, 42, 42, 1);
+}
+
+/* Focus states for accessibility */
+.personality-selector:focus-visible {
+    outline: 2px solid #03dac6;
+    outline-offset: 2px;
+}
+
+/* Status indicator for active personality */
+.personality-selector-wrapper::before {
+    content: "🤖";
+    font-size: 1.1rem;
+    margin-right: 4px;
+    opacity: 0.7;
+}
+
+/* Smooth transitions */
+.personality-selector-container * {
+    transition: all 0.2s ease;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .personality-selector {
+        border-width: 2px;
+        border-color: #fff;
+    }
+    
+    .personality-selector-wrapper label {
+        color: #fff;
+        font-weight: 600;
+    }
+    
+    .personality-description {
+        color: #fff;
+    }
+}

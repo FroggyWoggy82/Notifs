@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const OpenAI = require('openai');
+const aiPersonality = require('../config/aiPersonality');
 
 // Constants
 const DATA_DIR = path.join(__dirname, '..', 'data');
@@ -144,7 +145,7 @@ function getSpecificMemoryContext(memory, text) {
 }
 
 /**
- * Analyze journal entry with AI
+ * Analyze journal entry with AI (for single entries)
  * @param {string} text - Journal entry text
  * @returns {Promise<Object>} Analysis result with analysis text and summary
  */
@@ -274,6 +275,91 @@ Finally, include a "[SUMMARY:]" at the end (which will be hidden from the user).
 }
 
 /**
+ * Generate conversational response for chat interface (ChatGPT-4o style)
+ * @param {string} userMessage - Current user message
+ * @param {Array} conversation - Previous conversation history
+ * @param {string} personalityType - Type of AI personality to use
+ * @returns {Promise<string>} AI response
+ */
+async function generateConversationalResponse(userMessage, conversation = [], personalityType = 'CHATGPT_4O') {
+    if (!userMessage || userMessage.trim() === '') {
+        throw new Error('User message is required for conversation');
+    }
+
+    const memory = loadMemory();
+    const themes = getThemes(memory);
+    const specificContext = getSpecificMemoryContext(memory, userMessage);
+
+    // Build conversation context from recent messages
+    const recentConversation = conversation.slice(-10); // Last 10 messages for context
+    const conversationContext = recentConversation.map(msg =>
+        `${msg.role === 'user' ? 'User' : 'Gibiti'}: ${msg.content}`
+    ).join('\n');
+
+    // Build memory context
+    const memoryContext = `${themes}${specificContext}`;
+
+    // Get personality configuration and build system prompt
+    const systemPrompt = aiPersonality.buildSystemPrompt(personalityType, memoryContext, conversationContext);
+    const aiParams = aiPersonality.getAIParameters(personalityType);
+
+    // Prepare messages for the API call
+    const messages = [
+        {
+            role: "system",
+            content: systemPrompt
+        }
+    ];
+
+    // Add recent conversation history
+    recentConversation.forEach(msg => {
+        messages.push({
+            role: msg.role === 'ai' ? 'assistant' : 'user',
+            content: msg.content
+        });
+    });
+
+    // Add current user message
+    messages.push({
+        role: "user",
+        content: userMessage
+    });
+
+    try {
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4o-mini', // Using the same model but with better prompting
+            messages: messages,
+            temperature: aiParams.temperature,
+            max_tokens: aiParams.maxTokens,
+            presence_penalty: aiParams.presencePenalty,
+            frequency_penalty: aiParams.frequencyPenalty
+        });
+
+        const response = completion.choices[0].message.content;
+
+        // Save this interaction to memory if it's substantial
+        if (userMessage.length > 50 && response.length > 100) {
+            const conversationSummary = `User discussed: ${userMessage.substring(0, 100)}${userMessage.length > 100 ? '...' : ''}. Gibiti responded with insights about ${response.substring(0, 100)}${response.length > 100 ? '...' : ''}`;
+
+            memory.entries.push({
+                date: new Date().toISOString(),
+                text: `Conversation: ${userMessage}`,
+                summary: conversationSummary,
+                isConversation: true
+            });
+
+            saveMemory(memory);
+        }
+
+        return response;
+
+    } catch (error) {
+        console.error('Error generating conversational response:', error);
+        throw error;
+    }
+}
+
+/**
  * Get memory usage statistics
  * @returns {Object} Memory usage statistics
  */
@@ -331,6 +417,7 @@ function getMemoryStats() {
 
 module.exports = {
     analyzeJournalEntry,
+    generateConversationalResponse,
     loadMemory,
     saveMemory,
     getMemoryStats,

@@ -22,6 +22,9 @@
     }
 
     /* Force all exercise option buttons to be visible */
+    .exercise-options-menu .btn-view-exercise,
+    .exercise-options-menu .view-history-btn,
+    .exercise-options-menu .btn-edit-target-sets-reps,
     .exercise-options-menu .btn-edit-exercise-name,
     .exercise-options-menu .btn-replace-exercise,
     .exercise-options-menu .btn-replace-exercise-global,
@@ -62,7 +65,26 @@
         transition: all 0.2s ease !important;
     }
 
-    /* Specific styling for each button type */
+    /* Specific styling for main action buttons */
+    .exercise-options-menu .btn-view-exercise {
+        background-color: #ffffff !important;
+        color: #121212 !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .exercise-options-menu .view-history-btn {
+        background-color: #ffffff !important;
+        color: #121212 !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .exercise-options-menu .btn-edit-target-sets-reps {
+        background-color: #007bff !important;
+        color: white !important;
+        border: 1px solid #007bff !important;
+    }
+
+    /* Specific styling for exercise management buttons */
     .exercise-options-menu .btn-edit-exercise-name {
         background-color: #4CAF50 !important;
         color: white !important;
@@ -84,7 +106,23 @@
         font-weight: bold !important;
     }
 
-    /* Hover effects for mobile (touch devices) */
+    /* Hover effects for mobile (touch devices) - Main action buttons */
+    .exercise-options-menu .btn-view-exercise:active {
+        background-color: #f0f0f0 !important;
+        transform: scale(0.95) !important;
+    }
+
+    .exercise-options-menu .view-history-btn:active {
+        background-color: #f0f0f0 !important;
+        transform: scale(0.95) !important;
+    }
+
+    .exercise-options-menu .btn-edit-target-sets-reps:active {
+        background-color: #0056b3 !important;
+        transform: scale(0.95) !important;
+    }
+
+    /* Hover effects for mobile (touch devices) - Exercise management buttons */
     .exercise-options-menu .btn-edit-exercise-name:active {
         background-color: #45a049 !important;
         transform: scale(0.95) !important;
@@ -114,10 +152,15 @@
         align-items: stretch !important;
     }
 
-    /* First row: main action buttons */
-    .exercise-options-menu .exercise-options-menu-row.buttons-row > button:not(.btn-edit-exercise-name):not(.btn-replace-exercise):not(.btn-replace-exercise-global):not(.btn-delete-exercise) {
+    /* First row: main action buttons (Add Video, History, Target) */
+    .exercise-options-menu .btn-view-exercise,
+    .exercise-options-menu .view-history-btn,
+    .exercise-options-menu .btn-edit-target-sets-reps {
         order: 1 !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 4px !important;
+        flex: 1 !important;
+        min-width: 80px !important;
+        max-width: 120px !important;
     }
 
     /* Second row: exercise management buttons */
@@ -153,6 +196,9 @@
     }
 
     /* Specific overrides for commonly hidden elements */
+    .exercise-options-menu .btn-view-exercise[style*="display: none"],
+    .exercise-options-menu .view-history-btn[style*="display: none"],
+    .exercise-options-menu .btn-edit-target-sets-reps[style*="display: none"],
     .exercise-options-menu .btn-replace-exercise[style*="display: none"],
     .exercise-options-menu .btn-replace-exercise-global[style*="display: none"],
     .exercise-options-menu .btn-delete-exercise[style*="display: none"],
@@ -206,6 +252,9 @@
 }
 
 /* High specificity override for any conflicting styles */
+.exercise-options-menu.show .btn-view-exercise,
+.exercise-options-menu.show .view-history-btn,
+.exercise-options-menu.show .btn-edit-target-sets-reps,
 .exercise-options-menu.show .button-group-right .btn-edit-exercise-name,
 .exercise-options-menu.show .button-group-right .btn-replace-exercise,
 .exercise-options-menu.show .button-group-right .btn-replace-exercise-global,

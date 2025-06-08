@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Chat conversation state
     let currentConversation = [];
+    let currentPersonality = 'CONCISE'; // Default to concise, warm responses
 
     // Auto-save state
     let autoSaveTimeout = null;
@@ -444,7 +445,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     content: userMessage,
-                    conversation: currentConversation
+                    conversation: currentConversation,
+                    personalityType: currentPersonality
                 })
             });
 
@@ -1619,7 +1621,90 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    /**
+     * Load available AI personalities
+     */
+    async function loadAIPersonalities() {
+        try {
+            const response = await fetch('/api/journal/personalities');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const personalities = data.personalities;
+
+            // Create personality selector if it doesn't exist
+            let personalitySelector = document.getElementById('personality-selector');
+            if (!personalitySelector) {
+                // Create the selector and add it to the page
+                const selectorContainer = document.createElement('div');
+                selectorContainer.className = 'personality-selector-container';
+                selectorContainer.innerHTML = `
+                    <div class="personality-selector-wrapper">
+                        <label for="personality-selector">AI Style:</label>
+                        <select id="personality-selector" class="personality-selector">
+                            ${personalities.map(p =>
+                                `<option value="${p.key}" ${p.key === currentPersonality ? 'selected' : ''}>${p.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="personality-description" id="personality-description"></div>
+                `;
+
+                // Add to the chat interface area
+                const chatInterface = document.querySelector('.chat-interface');
+                if (chatInterface) {
+                    chatInterface.insertBefore(selectorContainer, chatInterface.firstChild);
+                }
+
+                personalitySelector = document.getElementById('personality-selector');
+            }
+
+            // Set up change handler
+            if (personalitySelector) {
+                personalitySelector.addEventListener('change', function() {
+                    currentPersonality = this.value;
+                    updatePersonalityDescription(personalities);
+                    localStorage.setItem('gibiti-personality', currentPersonality);
+                    console.log(`[Journal Redesign] Changed personality to: ${currentPersonality}`);
+
+                    // Show a brief notification
+                    showStatus(`AI style changed to ${personalities.find(p => p.key === currentPersonality)?.name}`, 'success');
+                });
+
+                // Load saved personality preference
+                const savedPersonality = localStorage.getItem('gibiti-personality');
+                if (savedPersonality && personalities.find(p => p.key === savedPersonality)) {
+                    currentPersonality = savedPersonality;
+                    personalitySelector.value = currentPersonality;
+                }
+
+                updatePersonalityDescription(personalities);
+            }
+
+        } catch (error) {
+            console.error('[Journal Redesign] Error loading AI personalities:', error);
+        }
+    }
+
+    /**
+     * Update personality description
+     */
+    function updatePersonalityDescription(personalities) {
+        const descriptionElement = document.getElementById('personality-description');
+        if (descriptionElement) {
+            const personality = personalities.find(p => p.key === currentPersonality);
+            if (personality) {
+                descriptionElement.textContent = personality.description;
+            }
+        }
+    }
+
     // Initialize people section
     initializePeopleSection();
+
+    // Load AI personalities
+    loadAIPersonalities();
 
 });

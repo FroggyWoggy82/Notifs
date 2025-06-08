@@ -1,6 +1,7 @@
 const JournalModel = require('../models/journalModel');
 const aiService = require('../services/aiService');
 const PersonAnalysisService = require('../services/personAnalysisService');
+const aiPersonality = require('../config/aiPersonality');
 
 /**
  * Journal Controller
@@ -119,19 +120,35 @@ class JournalController {
     }
 
     /**
-     * Analyze a journal entry
+     * Analyze a journal entry or handle conversation
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object
      */
     static async analyzeEntry(req, res) {
         try {
-            const { content, date } = req.body;
+            const { content, date, conversation, personalityType } = req.body;
 
             if (!content) {
                 return res.status(400).json({ error: 'Content is required for analysis.' });
             }
 
-            // Call the AI service to analyze the journal entry
+            // Check if this is a conversation-based request
+            if (conversation && Array.isArray(conversation)) {
+                // Handle as conversation with specified personality
+                const response = await aiService.generateConversationalResponse(
+                    content,
+                    conversation,
+                    personalityType || 'CHATGPT_4O'
+                );
+                return res.json({
+                    analysis: response,
+                    summary: null,
+                    questions: [],
+                    insights: []
+                });
+            }
+
+            // Handle as traditional journal entry analysis
             const result = await aiService.analyzeJournalEntry(content);
 
             // If a date was provided, save the analysis to the journal entry
@@ -322,6 +339,24 @@ class JournalController {
         } catch (err) {
             console.error('Error fetching insights by type:', err);
             res.status(500).json({ error: `Failed to fetch insights by type: ${err.message}` });
+        }
+    }
+
+    /**
+     * Get available AI personalities
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getAIPersonalities(req, res) {
+        try {
+            const personalities = aiPersonality.getAvailablePersonalities();
+            res.json({
+                personalities,
+                default: aiPersonality.DEFAULT_PERSONALITY
+            });
+        } catch (err) {
+            console.error('Error fetching AI personalities:', err);
+            res.status(500).json({ error: `Failed to fetch AI personalities: ${err.message}` });
         }
     }
 }

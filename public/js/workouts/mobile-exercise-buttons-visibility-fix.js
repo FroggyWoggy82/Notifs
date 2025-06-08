@@ -18,6 +18,9 @@
         
         exerciseMenus.forEach(menu => {
             // Find all the buttons that should be visible
+            const addVideoButton = menu.querySelector('.btn-view-exercise');
+            const historyButton = menu.querySelector('.view-history-btn');
+            const targetButton = menu.querySelector('.btn-edit-target-sets-reps');
             const editButton = menu.querySelector('.btn-edit-exercise-name');
             const replaceButton = menu.querySelector('.btn-replace-exercise');
             const replaceGlobalButton = menu.querySelector('.btn-replace-exercise-global');
@@ -34,7 +37,7 @@
             }
 
             // Force visibility for individual buttons
-            [editButton, replaceButton, replaceGlobalButton, deleteButton].forEach(button => {
+            [addVideoButton, historyButton, targetButton, editButton, replaceButton, replaceGlobalButton, deleteButton].forEach(button => {
                 if (button) {
                     button.style.display = 'inline-flex';
                     button.style.visibility = 'visible';

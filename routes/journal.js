@@ -386,6 +386,19 @@ router.get('/:id/insights', JournalController.getInsightsByEntryId);
  */
 router.get('/insights/type/:type', JournalController.getInsightsByType);
 
+/**
+ * @swagger
+ * /api/journal/personalities:
+ *   get:
+ *     summary: Get available AI personalities
+ *     responses:
+ *       200:
+ *         description: List of available AI personalities
+ *       500:
+ *         description: Server error
+ */
+router.get('/personalities', JournalController.getAIPersonalities);
+
 // Log all routes for debugging
 console.log('Journal Routes:');
 router.stack.forEach((r) => {
