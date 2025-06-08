@@ -16,6 +16,19 @@ async function scheduleTaskReminder(task) {
         return;
     }
 
+    // Check if a notification for this task already exists
+    const existingNotifications = NotificationModel.getScheduledNotifications();
+    const existingNotification = existingNotifications.find(notification =>
+        notification.data &&
+        notification.data.taskId === task.id &&
+        notification.data.type === 'task_reminder'
+    );
+
+    if (existingNotification) {
+        console.log(`[TaskReminder] Notification already exists for task ${task.id}, skipping`);
+        return;
+    }
+
     const reminderTime = new Date(task.reminder_time);
     const dueDate = task.due_date ? new Date(task.due_date) : null;
 
@@ -32,7 +45,11 @@ async function scheduleTaskReminder(task) {
             title: `Reminder: ${task.title}`,
             body: `Task reminder`,
             scheduledTime: reminderTime.toISOString(),
-            repeat: 'none'
+            repeat: 'none',
+            data: {
+                taskId: task.id,
+                type: 'task_reminder'
+            }
         };
 
         NotificationModel.scheduleNotification(notificationData);
@@ -70,7 +87,11 @@ async function scheduleTaskReminder(task) {
         title: `Reminder: ${task.title}`,
         body: `Due ${dueText} (${dueDate.toLocaleDateString()})`,
         scheduledTime: reminderTime.toISOString(),
-        repeat: 'none'
+        repeat: 'none',
+        data: {
+            taskId: task.id,
+            type: 'task_reminder'
+        }
     };
 
     // Removed scheduling log
@@ -114,7 +135,11 @@ async function sendOverdueReminder(task) {
             ? `Reminder was ${overdueText} - Due ${dueDate.toLocaleDateString()}`
             : `Reminder was ${overdueText}`,
         scheduledTime: now.toISOString(), // Send immediately
-        repeat: 'none'
+        repeat: 'none',
+        data: {
+            taskId: task.id,
+            type: 'overdue_reminder'
+        }
     };
 
     console.log(`Sending overdue reminder for task ${task.id} (${task.title}) - ${overdueText}`);

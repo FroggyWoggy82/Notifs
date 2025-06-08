@@ -133,6 +133,9 @@ async function initialize() {
         scheduledNotifications = [];
     }
 
+    // Clean up old notifications before scheduling
+    cleanupOldNotifications();
+
     // Schedule all notifications on startup
     scheduledNotifications.forEach(notification => {
         scheduleNotificationJob(notification);
@@ -788,6 +791,29 @@ function getVapidPublicKey() {
 }
 
 /**
+ * Clean up old notifications (older than 24 hours)
+ * @returns {number} - Number of notifications removed
+ */
+function cleanupOldNotifications() {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const initialCount = notifications.length;
+    notifications = notifications.filter(notification => {
+        const scheduledTime = new Date(notification.scheduledTime);
+        return scheduledTime > oneDayAgo;
+    });
+
+    const removedCount = initialCount - notifications.length;
+    if (removedCount > 0) {
+        console.log(`Cleaned up ${removedCount} old notifications`);
+        saveNotificationsToFile();
+    }
+
+    return removedCount;
+}
+
+/**
  * Get subscription count
  * @returns {Object} - Count of subscriptions
  */
@@ -850,5 +876,6 @@ module.exports = {
     getSubscriptions,
     getSubscriptionCount,
     rescheduleAllNotifications,
-    getVapidPublicKey
+    getVapidPublicKey,
+    cleanupOldNotifications
 };
