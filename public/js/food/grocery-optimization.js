@@ -70,14 +70,19 @@
 
         console.log(`Current totals - Protein: ${currentTotalProtein.toFixed(1)}g, Fat: ${currentTotalFat.toFixed(1)}g, Carbs: ${currentTotalCarbs.toFixed(1)}g, Calories: ${currentTotalCalories.toFixed(1)}`);
 
-        // Check if optimization is needed for any macronutrient
+        // Check if optimization is needed - focus on fats and carbs
         const proteinDeficit = Math.max(0, dailyProteinTarget - currentTotalProtein);
         const fatDeficit = Math.max(0, dailyFatTarget - currentTotalFat);
         const remainingCalories = Math.max(0, dailyCalorieTarget - currentTotalCalories);
 
-        if ((proteinDeficit > 0 || fatDeficit > 0 || remainingCalories > 50) && (dailyProteinTarget > 0 || dailyFatTarget > 0) && !optimizationApplied) {
-            console.log('Grocery list optimization needed - calculating optimizations');
-            console.log(`Deficits - Protein: ${proteinDeficit.toFixed(1)}g, Fat: ${fatDeficit.toFixed(1)}g, Remaining calories: ${remainingCalories.toFixed(1)}`);
+        // Calculate current fat surplus (if any) to ensure we don't exceed fat target
+        const fatSurplus = Math.max(0, currentTotalFat - dailyFatTarget);
+
+        if ((remainingCalories > 50 || fatDeficit > 0 || proteinDeficit > 0) && (dailyCalorieTarget > 0) && !optimizationApplied) {
+            console.log('Grocery list optimization needed - Priority: Calories > Fats > Proteins');
+            console.log(`Remaining calories: ${remainingCalories.toFixed(1)} (PRIMARY FOCUS)`);
+            console.log(`Fat: ${currentTotalFat.toFixed(1)}g / ${dailyFatTarget.toFixed(1)}g (deficit: ${fatDeficit.toFixed(1)}g, surplus: ${fatSurplus.toFixed(1)}g)`);
+            console.log(`Protein: ${currentTotalProtein.toFixed(1)}g / ${dailyProteinTarget.toFixed(1)}g (deficit: ${proteinDeficit.toFixed(1)}g)`);
 
             // Calculate grocery list optimizations
             calculateGroceryOptimizations();
@@ -173,13 +178,19 @@
         // Reset optimizations
         ingredientOptimizations = [];
 
-        // Calculate deficits
+        // Calculate deficits and constraints - focus on fats and carbs
         const proteinDeficit = Math.max(0, dailyProteinTarget - currentTotalProtein);
         const fatDeficit = Math.max(0, dailyFatTarget - currentTotalFat);
         const remainingCalories = Math.max(0, dailyCalorieTarget - currentTotalCalories);
 
-        console.log(`Deficits - Protein: ${proteinDeficit.toFixed(1)}g, Fat: ${fatDeficit.toFixed(1)}g`);
-        console.log(`Remaining calories: ${remainingCalories.toFixed(1)}`);
+        // Calculate fat constraints - don't exceed fat target
+        const fatSurplus = Math.max(0, currentTotalFat - dailyFatTarget);
+        const maxFatIncrease = fatDeficit; // Only increase fat up to the target, no more
+
+        console.log(`CALORIE-PRIORITY OPTIMIZATION:`);
+        console.log(`  🎯 PRIMARY: Remaining calories: ${remainingCalories.toFixed(1)}`);
+        console.log(`  🥑 SECONDARY: Fat: ${currentTotalFat.toFixed(1)}g / ${dailyFatTarget.toFixed(1)}g (deficit: ${fatDeficit.toFixed(1)}g, max increase: ${maxFatIncrease.toFixed(1)}g)`);
+        console.log(`  🥩 TERTIARY: Protein: ${currentTotalProtein.toFixed(1)}g / ${dailyProteinTarget.toFixed(1)}g (deficit: ${proteinDeficit.toFixed(1)}g)`);
 
         // Calculate the maximum allowed calorie increase
         const maxCalorieIncrease = Math.min(
@@ -233,28 +244,31 @@
                 const fatCalorieRatio = fat / calories;
                 const carbCalorieRatio = carbs / calories;
 
-                // Determine optimization priority based on deficits
-                let optimizationType = 'carbs'; // Default to carbs for filling remaining calories
+                // NEW OPTIMIZATION STRATEGY: Priority order - Calories > Fats > Proteins
+                // Priority: 1) Fill remaining calories, 2) Include fats (but don't exceed target), 3) Proteins last
+                let optimizationType = 'carbs'; // Default to carbs for filling calories
                 let primaryRatio = carbCalorieRatio;
 
-                if (proteinDeficit > 0 && fatDeficit > 0) {
-                    // Both protein and fat needed - choose the one with higher deficit relative to target
-                    const proteinDeficitPercent = proteinDeficit / dailyProteinTarget;
-                    const fatDeficitPercent = fatDeficit / dailyFatTarget;
-
-                    if (proteinDeficitPercent > fatDeficitPercent) {
-                        optimizationType = 'protein';
-                        primaryRatio = proteinCalorieRatio;
-                    } else {
+                // Always prioritize filling remaining calories first
+                if (remainingCalories > 50) {
+                    // If we have remaining calories to fill, choose the best macro strategy
+                    if (fatDeficit > 0 && fatCalorieRatio > carbCalorieRatio) {
+                        // Use fat-rich ingredients if we need fat and they're efficient
                         optimizationType = 'fat';
                         primaryRatio = fatCalorieRatio;
+                    } else {
+                        // Otherwise use carbs to fill calories
+                        optimizationType = 'carbs';
+                        primaryRatio = carbCalorieRatio;
                     }
-                } else if (proteinDeficit > 0) {
-                    optimizationType = 'protein';
-                    primaryRatio = proteinCalorieRatio;
                 } else if (fatDeficit > 0) {
+                    // If calories are mostly filled but we still need fat
                     optimizationType = 'fat';
                     primaryRatio = fatCalorieRatio;
+                } else if (proteinDeficit > 0) {
+                    // Lowest priority: protein (only if calories and fats are handled)
+                    optimizationType = 'protein';
+                    primaryRatio = proteinCalorieRatio;
                 }
 
                 console.log(`Ingredient ${ingredient.name}: P:${protein.toFixed(1)}g, F:${fat.toFixed(1)}g, C:${carbs.toFixed(1)}g, Cal:${calories.toFixed(1)}, Type:${optimizationType}, Ratio:${primaryRatio.toFixed(3)}`);
@@ -290,17 +304,19 @@
             console.log(`${index + 1}. ${ingredient.name}: ${ingredient.optimizationType} ratio ${ingredient.primaryRatio.toFixed(3)} (P:${ingredient.protein.toFixed(1)}g, F:${ingredient.fat.toFixed(1)}g, C:${ingredient.carbs.toFixed(1)}g / ${ingredient.calories.toFixed(1)} cal)`);
         });
 
-        // Calculate how much to increase each ingredient
+        // Calculate how much to increase each ingredient - CALORIE PRIORITY FOCUS
         let remainingProteinNeeded = proteinDeficit;
-        let remainingFatNeeded = fatDeficit;
+        let remainingFatNeeded = fatDeficit; // Only increase fat up to target
         let remainingCaloriesAvailable = maxCalorieIncrease;
         let totalCalorieIncrease = 0;
+        let totalFatIncrease = 0; // Track fat increases to ensure we don't exceed target
+
+        console.log(`Starting optimization - Priority: Fill ${remainingCaloriesAvailable.toFixed(1)} calories, then ${maxFatIncrease.toFixed(1)}g fat, then ${remainingProteinNeeded.toFixed(1)}g protein`);
 
         ingredientsWithRatios.forEach(ingredient => {
-            // Skip if we've exceeded calorie limit or no more optimization needed
-            if (totalCalorieIncrease >= maxCalorieIncrease ||
-                (remainingProteinNeeded <= 0 && remainingFatNeeded <= 0 && remainingCaloriesAvailable <= 50)) {
-                console.log(`Skipping ${ingredient.name} - calorie limit reached or all targets met`);
+            // Skip if we've exceeded calorie limit
+            if (totalCalorieIncrease >= maxCalorieIncrease || remainingCaloriesAvailable <= 50) {
+                console.log(`Skipping ${ingredient.name} - calorie limit reached`);
                 return;
             }
 
@@ -310,24 +326,34 @@
             const carbPerGram = ingredient.carbs / ingredient.amount;
             const caloriesPerGram = ingredient.calories / ingredient.amount;
 
-            // Determine how much to increase based on optimization type
+            // Determine how much to increase based on optimization type - PRIORITY ORDER
             let amountIncrease = 0;
             let limitingFactor = '';
 
-            if (ingredient.optimizationType === 'protein' && remainingProteinNeeded > 0) {
-                const maxIncreaseByProtein = remainingProteinNeeded / proteinPerGram;
-                const maxIncreaseByCalories = (maxCalorieIncrease - totalCalorieIncrease) / caloriesPerGram;
-                amountIncrease = Math.min(maxIncreaseByProtein, maxIncreaseByCalories);
-                limitingFactor = maxIncreaseByProtein < maxIncreaseByCalories ? 'protein needed' : 'calorie limit';
+            if (ingredient.optimizationType === 'carbs' && remainingCaloriesAvailable > 50) {
+                // PRIORITY 1: Fill remaining calories with carb-rich ingredients
+                amountIncrease = (maxCalorieIncrease - totalCalorieIncrease) / caloriesPerGram;
+                limitingFactor = 'remaining calories (priority 1)';
+
+                console.log(`${ingredient.name} (CALORIES): Can increase by ${amountIncrease.toFixed(1)}g (${(amountIncrease * carbPerGram).toFixed(1)}g carbs, limited by ${limitingFactor})`);
             } else if (ingredient.optimizationType === 'fat' && remainingFatNeeded > 0) {
+                // PRIORITY 2: Increase fat-rich ingredients, but don't exceed fat target
                 const maxIncreaseByFat = remainingFatNeeded / fatPerGram;
                 const maxIncreaseByCalories = (maxCalorieIncrease - totalCalorieIncrease) / caloriesPerGram;
+
                 amountIncrease = Math.min(maxIncreaseByFat, maxIncreaseByCalories);
-                limitingFactor = maxIncreaseByFat < maxIncreaseByCalories ? 'fat needed' : 'calorie limit';
-            } else if (ingredient.optimizationType === 'carbs' && remainingCaloriesAvailable > 50) {
-                // Fill remaining calories with carbs
-                amountIncrease = (maxCalorieIncrease - totalCalorieIncrease) / caloriesPerGram;
-                limitingFactor = 'remaining calories';
+                limitingFactor = maxIncreaseByFat < maxIncreaseByCalories ? 'fat target limit (priority 2)' : 'calorie limit';
+
+                console.log(`${ingredient.name} (FAT): Can increase by ${amountIncrease.toFixed(1)}g (${(amountIncrease * fatPerGram).toFixed(1)}g fat, limited by ${limitingFactor})`);
+            } else if (ingredient.optimizationType === 'protein' && remainingProteinNeeded > 0) {
+                // PRIORITY 3: Protein (lowest priority)
+                const maxIncreaseByProtein = remainingProteinNeeded / proteinPerGram;
+                const maxIncreaseByCalories = (maxCalorieIncrease - totalCalorieIncrease) / caloriesPerGram;
+
+                amountIncrease = Math.min(maxIncreaseByProtein, maxIncreaseByCalories);
+                limitingFactor = maxIncreaseByProtein < maxIncreaseByCalories ? 'protein needed (priority 3)' : 'calorie limit';
+
+                console.log(`${ingredient.name} (PROTEIN): Can increase by ${amountIncrease.toFixed(1)}g (${(amountIncrease * proteinPerGram).toFixed(1)}g protein, limited by ${limitingFactor})`);
             }
 
             if (amountIncrease <= 0.1) {
@@ -335,19 +361,26 @@
                 return;
             }
 
-            console.log(`${ingredient.name}: Can increase by ${amountIncrease.toFixed(1)}g (limited by ${limitingFactor})`);
-
             // Calculate the resulting macro and calorie increases
             const proteinIncrease = amountIncrease * proteinPerGram;
             const fatIncrease = amountIncrease * fatPerGram;
             const carbIncrease = amountIncrease * carbPerGram;
             const calorieIncrease = amountIncrease * caloriesPerGram;
 
+            // SAFETY CHECK: Ensure we don't exceed fat target
+            if (ingredient.optimizationType === 'fat' && (totalFatIncrease + fatIncrease) > maxFatIncrease) {
+                console.log(`⚠️  ${ingredient.name}: Would exceed fat target, skipping`);
+                return;
+            }
+
+            console.log(`✓ ${ingredient.name}: +${amountIncrease.toFixed(1)}g → +${calorieIncrease.toFixed(1)} cal, +${fatIncrease.toFixed(1)}g fat, +${carbIncrease.toFixed(1)}g carbs, +${proteinIncrease.toFixed(1)}g protein`);
+
             // Update the remaining values
             remainingProteinNeeded = Math.max(0, remainingProteinNeeded - proteinIncrease);
             remainingFatNeeded = Math.max(0, remainingFatNeeded - fatIncrease);
             remainingCaloriesAvailable = Math.max(0, remainingCaloriesAvailable - calorieIncrease);
             totalCalorieIncrease += calorieIncrease;
+            totalFatIncrease += fatIncrease;
 
             // Add to optimizations
             ingredientOptimizations.push({
@@ -364,13 +397,14 @@
             });
         });
 
-        console.log(`🎯 OPTIMIZATION SUMMARY:`);
+        console.log(`🎯 CALORIE-PRIORITY OPTIMIZATION SUMMARY:`);
         ingredientOptimizations.forEach(opt => {
-            console.log(`  ${opt.name}: ${opt.currentAmount.toFixed(1)}g → ${opt.newAmount.toFixed(1)}g (+${opt.suggestedIncrease.toFixed(1)}g)`);
+            console.log(`  ${opt.name}: ${opt.currentAmount.toFixed(1)}g → ${opt.newAmount.toFixed(1)}g (+${opt.suggestedIncrease.toFixed(1)}g) [${opt.optimizationType.toUpperCase()}]`);
+            console.log(`    +${opt.calorieIncrease.toFixed(1)} cal, +${opt.fatIncrease.toFixed(1)}g fat, +${opt.carbIncrease.toFixed(1)}g carbs, +${opt.proteinIncrease.toFixed(1)}g protein`);
         });
-        console.log(`Remaining protein needed: ${remainingProteinNeeded.toFixed(1)}g`);
-        console.log(`Remaining fat needed: ${remainingFatNeeded.toFixed(1)}g`);
-        console.log(`Total calorie increase: ${totalCalorieIncrease.toFixed(1)} calories`);
+        console.log(`🎯 PRIMARY - Calories: ${totalCalorieIncrease.toFixed(1)} added (${remainingCaloriesAvailable.toFixed(1)} remaining)`);
+        console.log(`🥑 SECONDARY - Fat: ${totalFatIncrease.toFixed(1)}g added, ${remainingFatNeeded.toFixed(1)}g still needed (final: ${(currentTotalFat + totalFatIncrease).toFixed(1)}g / ${dailyFatTarget.toFixed(1)}g)`);
+        console.log(`🥩 TERTIARY - Protein: ${remainingProteinNeeded.toFixed(1)}g still needed`);
     }
 
     // Initialize when the DOM is loaded
@@ -413,36 +447,36 @@
 
             // Create a simple message explaining why no optimizations are available
             let html = `
-                <h3>Grocery List Optimization</h3>
+                <h3>Calorie & Macro Optimizer</h3>
                 <div class="status-comparison">
                     <div class="status-box">
                         <h4>Current Status</h4>
                         <div class="macro-item">
-                            <span>Protein:</span>
-                            <span class="macro-value">${currentTotalProtein.toFixed(1)}g (${proteinPercent}%)</span>
+                            <span>Calories:</span>
+                            <span class="macro-value">${currentTotalCalories.toFixed(1)} (${caloriePercent}%)</span>
                         </div>
                         <div class="macro-item">
                             <span>Fat:</span>
                             <span class="macro-value">${currentTotalFat.toFixed(1)}g (${fatPercent}%)</span>
                         </div>
                         <div class="macro-item">
-                            <span>Carbs:</span>
-                            <span class="macro-value">${currentTotalCarbs.toFixed(1)}g</span>
+                            <span>Protein:</span>
+                            <span class="macro-value">${currentTotalProtein.toFixed(1)}g (${proteinPercent}%)</span>
                         </div>
                         <div class="macro-item">
-                            <span>Calories:</span>
-                            <span class="macro-value">${currentTotalCalories.toFixed(1)} (${caloriePercent}%)</span>
+                            <span>Carbs:</span>
+                            <span class="macro-value">${currentTotalCarbs.toFixed(1)}g</span>
                         </div>
                     </div>
                 </div>
                 <div class="grocery-optimization-info">
-                    <p>No optimizations are available. This could be because:</p>
+                    <p><strong>Priority Order:</strong> No optimizations available. This could be because:</p>
                     <ul>
-                        <li>Your targets are already met or nearly met</li>
-                        <li>The calorie limit would be exceeded by increasing any ingredients</li>
-                        <li>The selected recipes don't have ingredients suitable for optimization</li>
+                        <li>Your calorie target is already met (primary focus)</li>
+                        <li>Your fat target is already met (won't exceed fat goal)</li>
+                        <li>The selected recipes don't have suitable ingredients</li>
                     </ul>
-                    <p>Try selecting different recipes or manually adjust ingredient amounts.</p>
+                    <p><strong>Strategy:</strong> 1) Fill remaining calories, 2) Include fats (without exceeding target), 3) Proteins last.</p>
                 </div>
             `;
 
@@ -469,47 +503,47 @@
         console.log(`Increases - Protein: ${totalProteinIncrease.toFixed(1)}g, Fat: ${totalFatIncrease.toFixed(1)}g, Carbs: ${totalCarbIncrease.toFixed(1)}g, Calories: ${totalCalorieIncrease.toFixed(1)}`);
         console.log(`New totals - Protein: ${newTotalProtein.toFixed(1)}g, Fat: ${newTotalFat.toFixed(1)}g, Carbs: ${newTotalCarbs.toFixed(1)}g, Calories: ${newTotalCalories.toFixed(1)}`);
 
-        // Create the HTML content with new combined layout
+        // Create the HTML content with new combined layout - CALORIE PRIORITY FOCUS
         let html = `
-            <h3>Grocery List Optimization</h3>
+            <h3>Calorie & Macro Optimizer</h3>
             <div class="status-comparison">
                 <div class="status-box">
                     <h4>Current Status</h4>
                     <div class="macro-item">
-                        <span>Protein:</span>
-                        <span class="macro-value">${currentTotalProtein.toFixed(1)}g (${dailyProteinTarget > 0 ? ((currentTotalProtein / dailyProteinTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
+                        <span>Calories:</span>
+                        <span class="macro-value">${currentTotalCalories.toFixed(1)} (${dailyCalorieTarget > 0 ? ((currentTotalCalories / dailyCalorieTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
                     </div>
                     <div class="macro-item">
                         <span>Fat:</span>
                         <span class="macro-value">${currentTotalFat.toFixed(1)}g (${dailyFatTarget > 0 ? ((currentTotalFat / dailyFatTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
                     </div>
                     <div class="macro-item">
-                        <span>Carbs:</span>
-                        <span class="macro-value">${currentTotalCarbs.toFixed(1)}g</span>
+                        <span>Protein:</span>
+                        <span class="macro-value">${currentTotalProtein.toFixed(1)}g (${dailyProteinTarget > 0 ? ((currentTotalProtein / dailyProteinTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
                     </div>
                     <div class="macro-item">
-                        <span>Calories:</span>
-                        <span class="macro-value">${currentTotalCalories.toFixed(1)} (${dailyCalorieTarget > 0 ? ((currentTotalCalories / dailyCalorieTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
+                        <span>Carbs:</span>
+                        <span class="macro-value">${currentTotalCarbs.toFixed(1)}g</span>
                     </div>
                 </div>
                 <div class="status-arrow">→</div>
                 <div class="status-box">
                     <h4>After Optimization</h4>
                     <div class="macro-item">
-                        <span>Protein:</span>
-                        <span class="macro-value">${newTotalProtein.toFixed(1)}g (${dailyProteinTarget > 0 ? ((newTotalProtein / dailyProteinTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
+                        <span>Calories:</span>
+                        <span class="macro-value">${newTotalCalories.toFixed(1)} (${dailyCalorieTarget > 0 ? ((newTotalCalories / dailyCalorieTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
                     </div>
                     <div class="macro-item">
                         <span>Fat:</span>
                         <span class="macro-value">${newTotalFat.toFixed(1)}g (${dailyFatTarget > 0 ? ((newTotalFat / dailyFatTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
                     </div>
                     <div class="macro-item">
-                        <span>Carbs:</span>
-                        <span class="macro-value">${newTotalCarbs.toFixed(1)}g</span>
+                        <span>Protein:</span>
+                        <span class="macro-value">${newTotalProtein.toFixed(1)}g (${dailyProteinTarget > 0 ? ((newTotalProtein / dailyProteinTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
                     </div>
                     <div class="macro-item">
-                        <span>Calories:</span>
-                        <span class="macro-value">${newTotalCalories.toFixed(1)} (${dailyCalorieTarget > 0 ? ((newTotalCalories / dailyCalorieTarget) * 100).toFixed(1) + '%' : 'no target'})</span>
+                        <span>Carbs:</span>
+                        <span class="macro-value">${newTotalCarbs.toFixed(1)}g</span>
                     </div>
                 </div>
             </div>
@@ -563,10 +597,11 @@
         </table>
         `;
 
-        // Add apply button
+        // Add apply button with updated text
         html += `
             <div class="grocery-optimization-summary">
-                <button id="apply-grocery-optimization" class="apply-optimization-btn">Apply Grocery List Optimization</button>
+                <p><strong>Priority Strategy:</strong> 1) Fill remaining calories, 2) Include fats (without exceeding target), 3) Proteins last.</p>
+                <button id="apply-grocery-optimization" class="apply-optimization-btn">Apply Calorie & Macro Optimization</button>
             </div>
         `;
 
@@ -870,7 +905,7 @@
     function resetApplyButton() {
         if (applyChangesBtn) {
             applyChangesBtn.disabled = false;
-            applyChangesBtn.textContent = 'Apply Grocery List Optimization';
+            applyChangesBtn.textContent = 'Apply Calorie & Macro Optimization';
         }
     }
 

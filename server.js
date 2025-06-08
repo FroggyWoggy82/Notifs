@@ -73,6 +73,7 @@ const cronometerNutritionRoutes = require('./routes/cronometer-nutrition'); // C
 const mealRoutes = require('./routes/mealRoutes'); // NEW: Meal routes
 const habitResetRoutes = require('./routes/habitResetRoutes'); // New route for habit reset
 const socialMediaRejectionRoutes = require('./routes/socialMediaRejectionRoutes'); // NEW: Social Media Rejection habit routes
+const micronutrientGoalsRoutes = require('./routes/micronutrientGoalsRoutes'); // NEW: Micronutrient goals routes
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -245,6 +246,7 @@ app.use('/api/journal', journalRoutes); // NEW: Journal entries route
 app.use('/api/habit-reset', habitResetRoutes); // NEW: Habit reset route
 app.use('/api/meals', mealRoutes); // NEW: Meal routes
 app.use('/api', socialMediaRejectionRoutes); // NEW: Social Media Rejection habit routes
+app.use('/api/micronutrient-goals', micronutrientGoalsRoutes); // NEW: Micronutrient goals routes
 console.log('Registering Google Cloud Vision OCR routes...');
 app.use('/api/vision-ocr', visionOcrRoutes); // Google Cloud Vision OCR implementation
 console.log('Google Cloud Vision OCR routes registered successfully!');

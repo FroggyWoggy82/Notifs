@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="../css/detailed-nutrition-view.css"> <!-- Detailed nutrition view styling -->
     <link rel="stylesheet" href="../css/micronutrient-display.css"> <!-- Micronutrient display styling -->
     <link rel="stylesheet" href="../css/micronutrient-percentage.css"> <!-- Micronutrient percentage display styling -->
+    <link rel="stylesheet" href="../css/micronutrient-goals-modal.css"> <!-- Micronutrient goals modal styling -->
     <!-- <link rel="stylesheet" href="../css/custom-goal-weights.css"> Custom goal weights styling - disabled -->
     <link rel="stylesheet" href="../css/section-separator.css"> <!-- Section separator styling -->
 
@@ -257,14 +258,14 @@
                 </div>
             </div>
 
-            <!-- Action buttons and help text -->
+            <!-- Action buttons -->
             <div class="action-section">
-                <div class="help-text-container">
-                    <small class="help-text">Weight: Use positive values for gain, negative for loss</small>
-                </div>
                 <div class="button-group">
                     <button type="button" id="save-all-weight-goals-btn" class="save-goal-btn">Save Weight Goals</button>
                     <button id="save-all-targets-btn" class="save-btn">Save All Targets</button>
+                    <button type="button" id="edit-micronutrient-goals-btn" class="edit-micronutrient-btn">
+                        <i class="fas fa-pills"></i> Edit Micronutrient Goals
+                    </button>
                 </div>
             </div>
 
@@ -4157,6 +4158,9 @@
 
     <!-- Meal calendar functionality -->
     <script src="../js/food/meal-calendar.js"></script> <!-- Meal calendar functionality -->
+
+    <!-- Micronutrient goals modal functionality -->
+    <script src="../js/food/micronutrient-goals-modal.js"></script> <!-- Micronutrient goals editing modal -->
 
     <!-- Recipe card body fix - eliminates empty space under buttons -->
     <script src="../js/food/recipe-card-body-fix.js"></script> <!-- Eliminates empty space under View/Adjust/Delete buttons -->

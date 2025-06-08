@@ -1,0 +1,260 @@
+/**
+ * Micronutrient Goals Modal Styling
+ * Consistent with existing modal patterns in the app
+ */
+
+/* Button styling */
+.edit-micronutrient-btn {
+    background-color: #6c5ce7;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.edit-micronutrient-btn:hover {
+    background-color: #5a4fcf;
+}
+
+.edit-micronutrient-btn i {
+    font-size: 0.8rem;
+}
+
+/* Modal overlay */
+.micronutrient-goals-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Modal container */
+.micronutrient-goals-modal {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    color: white;
+}
+
+/* Modal header */
+.micronutrient-goals-modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.micronutrient-goals-modal-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+}
+
+.micronutrient-goals-modal-close {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.micronutrient-goals-modal-close:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Modal content */
+.micronutrient-goals-modal-content {
+    padding: 24px;
+}
+
+/* Form sections */
+.micronutrient-section {
+    margin-bottom: 24px;
+}
+
+.micronutrient-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #444;
+}
+
+
+
+/* Form grid */
+.micronutrient-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+/* Form groups */
+.micronutrient-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.micronutrient-form-group label {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.micronutrient-form-group input {
+    background-color: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.micronutrient-form-group input:focus {
+    outline: none;
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+}
+
+.micronutrient-form-group input::placeholder {
+    color: #666;
+}
+
+/* Unit labels */
+.micronutrient-unit {
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: 4px;
+}
+
+/* Modal actions */
+.micronutrient-goals-modal-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #444;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.micronutrient-goals-modal-actions button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 140px;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.2;
+    font-weight: 500;
+}
+
+.micronutrient-save-btn {
+    background-color: #00b894;
+    color: white;
+}
+
+.micronutrient-save-btn:hover {
+    background-color: #00a085;
+}
+
+.micronutrient-cancel-btn {
+    background-color: #636e72;
+    color: white;
+}
+
+.micronutrient-cancel-btn:hover {
+    background-color: #555;
+}
+
+.micronutrient-reset-btn {
+    background-color: #e17055;
+    color: white;
+}
+
+.micronutrient-reset-btn:hover {
+    background-color: #d63031;
+}
+
+/* Status message */
+.micronutrient-status {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.micronutrient-status.success {
+    background-color: rgba(0, 184, 148, 0.2);
+    color: #00b894;
+    border: 1px solid rgba(0, 184, 148, 0.3);
+}
+
+.micronutrient-status.error {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .micronutrient-goals-modal-overlay {
+        padding: 10px;
+    }
+    
+    .micronutrient-goals-modal {
+        max-height: 95vh;
+    }
+    
+    .micronutrient-form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .micronutrient-goals-modal-header,
+    .micronutrient-goals-modal-content,
+    .micronutrient-goals-modal-actions {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .micronutrient-goals-modal-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .micronutrient-goals-modal-actions button {
+        min-width: 100%;
+        padding: 14px 20px;
+        font-size: 1rem;
+    }
+}

@@ -55,23 +55,25 @@ async function getResetCountForEvent(eventName) {
 
 /**
  * Calculate ratio for a habit
+ * NOTE: We no longer simplify the ratio - we show actual level:reset count
  */
 function calculateHabitRatio(habitLevel, resetCount) {
-    if (resetCount === 0) {
-        return habitLevel; // If no resets, just show the level
-    }
-    return Math.round(habitLevel / resetCount);
+    // Return the actual values without simplification
+    return {
+        level: habitLevel,
+        resets: resetCount
+    };
 }
 
 /**
  * Create ratio badge HTML
  */
 function createRatioBadgeHTML(habitLevel, resetCount) {
-    const ratio = calculateHabitRatio(habitLevel, resetCount);
-    const displayText = resetCount === 0 ? `${habitLevel}:0` : `${ratio}:1`;
-    
+    // Show the actual level and reset count without simplifying
+    const displayText = `${habitLevel}:${resetCount}`;
+
     return `
-        <div class="habit-ratio-badge" title="Level to Reset Ratio: ${habitLevel} level / ${resetCount} resets = ${ratio}">
+        <div class="habit-ratio-badge" title="Level to Reset Ratio: ${habitLevel} level : ${resetCount} resets (no simplification)">
             ${displayText}
         </div>
     `;
@@ -106,7 +108,7 @@ async function addRatioBadgeToHabit(habitElement, habit) {
             </div>
         `);
 
-        console.log(`Added ratio badge to ${habit.title}: ${habitLevel}:${resetCount}`);
+        console.log(`Added ratio badge to ${habit.title}: ${habitLevel}:${resetCount} (unsimplified)`);
     }
 }
 
@@ -126,7 +128,7 @@ async function updateRatioBadgeForHabit(habitElement, habit) {
         const ratioBadgeHTML = createRatioBadgeHTML(habitLevel, resetCount);
         ratioContainer.innerHTML = ratioBadgeHTML;
         
-        console.log(`Updated ratio badge for ${habit.title}: ${habitLevel}:${resetCount}`);
+        console.log(`Updated ratio badge for ${habit.title}: ${habitLevel}:${resetCount} (unsimplified)`);
     }
 }
 

@@ -220,8 +220,22 @@
                         ">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1px;">
                                 <span style="color: #fff; font-weight: bold; font-size: 12px;">${escapeHtml(ingredient.name)}</span>
-                                <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 4px;">
                                     <span style="color: #ccc; font-size: 11px;">${ingredient.amount}g</span>
+                                    <button class="edit-ingredient-btn-compact" data-recipe-id="${recipeId}" data-ingredient-id="${ingredient.id}" style="
+                                        background: #007bff;
+                                        color: #fff;
+                                        border: none;
+                                        border-radius: 2px;
+                                        padding: 2px 6px;
+                                        font-size: 9px;
+                                        cursor: pointer;
+                                        line-height: 1;
+                                        height: 16px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                    " title="Edit ingredient">Edit</button>
                                     <button class="delete-ingredient-btn" data-recipe-id="${recipeId}" data-ingredient-id="${ingredient.id}" style="
                                         background: #666;
                                         color: #fff;
@@ -373,6 +387,672 @@
             omega3: extractValue(text, patterns.OMEGA3),
             omega6: extractValue(text, patterns.OMEGA6)
         };
+    }
+
+    // Function to show edit ingredient popup
+    window.showEditIngredientPopup = function(recipeId, ingredientId) {
+        console.log('[Recipe Button Fix] Showing edit ingredient popup for recipe:', recipeId, 'ingredient:', ingredientId);
+
+        // First fetch the ingredient data
+        fetch(`/api/recipes/${recipeId}/ingredients/${ingredientId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(ingredient => {
+                showEditIngredientPopupWithData(recipeId, ingredient);
+            })
+            .catch(error => {
+                console.error('Error fetching ingredient data:', error);
+                alert('Error loading ingredient data. Please try again.');
+            });
+    };
+
+    // Function to show edit ingredient popup with data
+    function showEditIngredientPopupWithData(recipeId, ingredient) {
+        // Remove any existing popup
+        const existingPopup = document.getElementById('edit-ingredient-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        // Create edit popup modal
+        const popupHtml = `
+            <div id="edit-ingredient-popup" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            ">
+                <div style="
+                    background: #1a1a1a;
+                    border: 1px solid #444;
+                    border-radius: 8px;
+                    padding: 20px;
+                    width: 90%;
+                    max-width: 600px;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    color: #fff;
+                ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 15px;
+                        border-bottom: 1px solid #333;
+                        padding-bottom: 10px;
+                    ">
+                        <h3 style="margin: 0; font-size: 16px;">Edit Ingredient: ${ingredient.name}</h3>
+                        <button class="close-edit-popup-btn" style="
+                            background: none;
+                            border: none;
+                            color: #ccc;
+                            font-size: 20px;
+                            cursor: pointer;
+                            padding: 0;
+                            width: 24px;
+                            height: 24px;
+                        ">×</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Ingredient Name</label>
+                            <input type="text" id="edit-popup-ingredient-name" value="${ingredient.name || ''}" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Amount (g)</label>
+                            <input type="number" id="edit-popup-ingredient-amount" value="${ingredient.amount || ''}" step="0.1" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Package Amount (g)</label>
+                            <input type="number" id="edit-popup-package-amount" value="${ingredient.package_amount || ''}" step="0.1" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Price ($)</label>
+                            <input type="number" id="edit-popup-ingredient-price" value="${ingredient.price || ''}" step="0.01" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Calories</label>
+                            <input type="number" id="edit-popup-ingredient-calories" value="${ingredient.calories || ''}" step="0.1" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Protein (g)</label>
+                            <input type="number" id="edit-popup-ingredient-protein" value="${ingredient.protein || ''}" step="0.1" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Fat (g)</label>
+                            <input type="number" id="edit-popup-ingredient-fats" value="${ingredient.fats || ''}" step="0.1" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Carbs (g)</label>
+                            <input type="number" id="edit-popup-ingredient-carbs" value="${ingredient.carbohydrates || ''}" step="0.1" style="
+                                width: 100%;
+                                background: #222;
+                                border: 1px solid #555;
+                                color: #fff;
+                                padding: 8px 10px;
+                                font-size: 13px;
+                                border-radius: 4px;
+                                box-sizing: border-box;
+                            " />
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #ccc;">Cronometer Data (Optional)</label>
+                        <textarea id="edit-popup-cronometer-data" placeholder="Paste Cronometer nutrition data here to update values..." style="
+                            width: 100%;
+                            background: #222;
+                            border: 1px solid #555;
+                            color: #fff;
+                            padding: 8px 10px;
+                            font-size: 13px;
+                            border-radius: 4px;
+                            box-sizing: border-box;
+                            min-height: 60px;
+                            resize: vertical;
+                        "></textarea>
+                        <div style="font-size: 11px; color: #888; margin-top: 4px;">
+                            Paste nutrition data from Cronometer to auto-fill nutrition values
+                        </div>
+                    </div>
+
+                    <!-- Show/Hide Micronutrients Toggle -->
+                    <div style="margin-bottom: 15px; text-align: center;">
+                        <button type="button" id="toggle-micronutrients-btn" style="
+                            background: #444;
+                            color: #fff;
+                            border: 1px solid #666;
+                            border-radius: 4px;
+                            padding: 8px 16px;
+                            font-size: 12px;
+                            cursor: pointer;
+                            transition: background-color 0.2s;
+                        ">Show Micronutrients</button>
+                    </div>
+
+                    <!-- Micronutrients Section (Initially Hidden) -->
+                    <div id="micronutrients-section" style="display: none; margin-bottom: 15px;">
+                        <!-- General Section -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #ccc; border-bottom: 1px solid #444; padding-bottom: 4px;">GENERAL</h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Alcohol (g):</label>
+                                    <input type="number" id="edit-popup-alcohol" value="${ingredient.alcohol || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Caffeine (mg):</label>
+                                    <input type="number" id="edit-popup-caffeine" value="${ingredient.caffeine || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Water (g):</label>
+                                    <input type="number" id="edit-popup-water" value="${ingredient.water || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carbohydrates Section -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #ccc; border-bottom: 1px solid #444; padding-bottom: 4px;">CARBOHYDRATES</h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Fiber (g):</label>
+                                    <input type="number" id="edit-popup-fiber" value="${ingredient.fiber || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Starch (g):</label>
+                                    <input type="number" id="edit-popup-starch" value="${ingredient.starch || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Sugars (g):</label>
+                                    <input type="number" id="edit-popup-sugars" value="${ingredient.sugars || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Added Sugars (g):</label>
+                                    <input type="number" id="edit-popup-added-sugars" value="${ingredient.added_sugars || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lipids Section -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #ccc; border-bottom: 1px solid #444; padding-bottom: 4px;">LIPIDS</h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Monounsaturated (g):</label>
+                                    <input type="number" id="edit-popup-monounsaturated" value="${ingredient.monounsaturated || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Polyunsaturated (g):</label>
+                                    <input type="number" id="edit-popup-polyunsaturated" value="${ingredient.polyunsaturated || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Omega 3 (g):</label>
+                                    <input type="number" id="edit-popup-omega3" value="${ingredient.omega3 || ingredient.omega_3 || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Omega 6 (g):</label>
+                                    <input type="number" id="edit-popup-omega6" value="${ingredient.omega6 || ingredient.omega_6 || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Saturated (g):</label>
+                                    <input type="number" id="edit-popup-saturated" value="${ingredient.saturated || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Trans Fat (g):</label>
+                                    <input type="number" id="edit-popup-trans-fat" value="${ingredient.trans_fat || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Cholesterol (mg):</label>
+                                    <input type="number" id="edit-popup-cholesterol" value="${ingredient.cholesterol || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Protein Section -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #ccc; border-bottom: 1px solid #444; padding-bottom: 4px;">PROTEIN</h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Cystine (g):</label>
+                                    <input type="number" id="edit-popup-cystine" value="${ingredient.cystine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Histidine (g):</label>
+                                    <input type="number" id="edit-popup-histidine" value="${ingredient.histidine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Isoleucine (g):</label>
+                                    <input type="number" id="edit-popup-isoleucine" value="${ingredient.isoleucine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Leucine (g):</label>
+                                    <input type="number" id="edit-popup-leucine" value="${ingredient.leucine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Lysine (g):</label>
+                                    <input type="number" id="edit-popup-lysine" value="${ingredient.lysine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Methionine (g):</label>
+                                    <input type="number" id="edit-popup-methionine" value="${ingredient.methionine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Phenylalanine (g):</label>
+                                    <input type="number" id="edit-popup-phenylalanine" value="${ingredient.phenylalanine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Threonine (g):</label>
+                                    <input type="number" id="edit-popup-threonine" value="${ingredient.threonine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Tryptophan (g):</label>
+                                    <input type="number" id="edit-popup-tryptophan" value="${ingredient.tryptophan || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Tyrosine (g):</label>
+                                    <input type="number" id="edit-popup-tyrosine" value="${ingredient.tyrosine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Valine (g):</label>
+                                    <input type="number" id="edit-popup-valine" value="${ingredient.valine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vitamins Section -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #ccc; border-bottom: 1px solid #444; padding-bottom: 4px;">VITAMINS</h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">B1 (Thiamin) (mg):</label>
+                                    <input type="number" id="edit-popup-b1-thiamin" value="${ingredient.b1_thiamin || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">B2 (Riboflavin) (mg):</label>
+                                    <input type="number" id="edit-popup-b2-riboflavin" value="${ingredient.b2_riboflavin || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">B3 (Niacin) (mg):</label>
+                                    <input type="number" id="edit-popup-b3-niacin" value="${ingredient.b3_niacin || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">B5 (Pantothenic Acid) (mg):</label>
+                                    <input type="number" id="edit-popup-b5-pantothenic" value="${ingredient.b5_pantothenic_acid || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">B6 (Pyridoxine) (mg):</label>
+                                    <input type="number" id="edit-popup-b6-pyridoxine" value="${ingredient.b6_pyridoxine || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">B12 (Cobalamin) (μg):</label>
+                                    <input type="number" id="edit-popup-b12-cobalamin" value="${ingredient.b12_cobalamin || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Folate (μg):</label>
+                                    <input type="number" id="edit-popup-folate" value="${ingredient.folate || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Vitamin A (μg):</label>
+                                    <input type="number" id="edit-popup-vitamin-a" value="${ingredient.vitamin_a || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Vitamin C (mg):</label>
+                                    <input type="number" id="edit-popup-vitamin-c" value="${ingredient.vitamin_c || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Vitamin D (IU):</label>
+                                    <input type="number" id="edit-popup-vitamin-d" value="${ingredient.vitamin_d || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Vitamin E (mg):</label>
+                                    <input type="number" id="edit-popup-vitamin-e" value="${ingredient.vitamin_e || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Vitamin K (μg):</label>
+                                    <input type="number" id="edit-popup-vitamin-k" value="${ingredient.vitamin_k || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Minerals Section -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #ccc; border-bottom: 1px solid #444; padding-bottom: 4px;">MINERALS</h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Calcium (mg):</label>
+                                    <input type="number" id="edit-popup-calcium" value="${ingredient.calcium || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Copper (mg):</label>
+                                    <input type="number" id="edit-popup-copper" value="${ingredient.copper || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Iron (mg):</label>
+                                    <input type="number" id="edit-popup-iron" value="${ingredient.iron || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Magnesium (mg):</label>
+                                    <input type="number" id="edit-popup-magnesium" value="${ingredient.magnesium || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Manganese (mg):</label>
+                                    <input type="number" id="edit-popup-manganese" value="${ingredient.manganese || ''}" step="0.001" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Phosphorus (mg):</label>
+                                    <input type="number" id="edit-popup-phosphorus" value="${ingredient.phosphorus || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Potassium (mg):</label>
+                                    <input type="number" id="edit-popup-potassium" value="${ingredient.potassium || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Selenium (μg):</label>
+                                    <input type="number" id="edit-popup-selenium" value="${ingredient.selenium || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Sodium (mg):</label>
+                                    <input type="number" id="edit-popup-sodium" value="${ingredient.sodium || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 2px; font-size: 10px; color: #aaa;">Zinc (mg):</label>
+                                    <input type="number" id="edit-popup-zinc" value="${ingredient.zinc || ''}" step="0.1" style="
+                                        width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; box-sizing: border-box;
+                                    " />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button class="popup-save-ingredient-btn" data-recipe-id="${recipeId}" data-ingredient-id="${ingredient.id}" style="
+                            background: #4CAF50;
+                            color: #fff;
+                            border: none;
+                            border-radius: 4px;
+                            padding: 12px 20px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            flex: 1;
+                            font-weight: 500;
+                            transition: background-color 0.2s;
+                        ">Save Changes</button>
+                        <button class="close-edit-popup-btn" style="
+                            background: #666;
+                            color: #fff;
+                            border: none;
+                            border-radius: 4px;
+                            padding: 12px 20px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            flex: 1;
+                            font-weight: 500;
+                            transition: background-color 0.2s;
+                        ">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add popup to body
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+
+        // Focus on the ingredient name input
+        const nameInput = document.getElementById('edit-popup-ingredient-name');
+        if (nameInput) {
+            nameInput.focus();
+        }
+
+        // Add hover effects to buttons
+        const saveButton = document.querySelector('.popup-save-ingredient-btn');
+        const cancelButton = document.querySelector('.close-edit-popup-btn');
+
+        if (saveButton) {
+            saveButton.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#45a049';
+            });
+            saveButton.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '#4CAF50';
+            });
+        }
+
+        if (cancelButton) {
+            cancelButton.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#777';
+            });
+            cancelButton.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '#666';
+            });
+        }
+
+        // Set up Cronometer parsing for edit popup
+        const cronometerTextarea = document.getElementById('edit-popup-cronometer-data');
+        if (cronometerTextarea) {
+            cronometerTextarea.addEventListener('input', function() {
+                const text = this.value.trim();
+                if (text) {
+                    const parsed = parseCronometerData(text);
+                    if (parsed) {
+                        // Update form fields with parsed data
+                        if (parsed.calories) document.getElementById('edit-popup-ingredient-calories').value = parsed.calories;
+                        if (parsed.protein) document.getElementById('edit-popup-ingredient-protein').value = parsed.protein;
+                        if (parsed.fats) document.getElementById('edit-popup-ingredient-fats').value = parsed.fats;
+                        if (parsed.carbohydrates) document.getElementById('edit-popup-ingredient-carbs').value = parsed.carbohydrates;
+                    }
+                }
+            });
+        }
+
+        // Set up micronutrients toggle functionality
+        const toggleBtn = document.getElementById('toggle-micronutrients-btn');
+        const micronutrientsSection = document.getElementById('micronutrients-section');
+
+        if (toggleBtn && micronutrientsSection) {
+            toggleBtn.addEventListener('click', function() {
+                const isHidden = micronutrientsSection.style.display === 'none';
+
+                if (isHidden) {
+                    micronutrientsSection.style.display = 'block';
+                    toggleBtn.textContent = 'Hide Micronutrients';
+                    toggleBtn.style.backgroundColor = '#555';
+                } else {
+                    micronutrientsSection.style.display = 'none';
+                    toggleBtn.textContent = 'Show Micronutrients';
+                    toggleBtn.style.backgroundColor = '#444';
+                }
+            });
+
+            // Add hover effects to toggle button
+            toggleBtn.addEventListener('mouseenter', function() {
+                if (micronutrientsSection.style.display === 'none') {
+                    this.style.backgroundColor = '#555';
+                } else {
+                    this.style.backgroundColor = '#666';
+                }
+            });
+
+            toggleBtn.addEventListener('mouseleave', function() {
+                if (micronutrientsSection.style.display === 'none') {
+                    this.style.backgroundColor = '#444';
+                } else {
+                    this.style.backgroundColor = '#555';
+                }
+            });
+        }
     }
 
     // Function to show add ingredient popup for existing recipes
@@ -1138,6 +1818,121 @@
         }
     }
 
+    // Function to save edited ingredient
+    async function saveEditedIngredient(recipeId, ingredientId) {
+        console.log('[Recipe Button Fix] Saving edited ingredient:', recipeId, ingredientId);
+
+        try {
+            // Collect form data
+            const ingredientData = {
+                name: document.getElementById('edit-popup-ingredient-name').value.trim(),
+                amount: parseFloat(document.getElementById('edit-popup-ingredient-amount').value) || 0,
+                package_amount: parseFloat(document.getElementById('edit-popup-package-amount').value) || null,
+                price: parseFloat(document.getElementById('edit-popup-ingredient-price').value) || 0,
+                calories: parseFloat(document.getElementById('edit-popup-ingredient-calories').value) || 0,
+                protein: parseFloat(document.getElementById('edit-popup-ingredient-protein').value) || 0,
+                fats: parseFloat(document.getElementById('edit-popup-ingredient-fats').value) || 0,
+                carbohydrates: parseFloat(document.getElementById('edit-popup-ingredient-carbs').value) || 0
+            };
+
+            // Collect micronutrient data if available
+            const micronutrientFields = [
+                // General
+                'alcohol', 'caffeine', 'water',
+                // Carbohydrates
+                'fiber', 'starch', 'sugars', 'added-sugars',
+                // Lipids
+                'monounsaturated', 'polyunsaturated', 'omega3', 'omega6', 'saturated', 'trans-fat', 'cholesterol',
+                // Protein (amino acids)
+                'cystine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'threonine', 'tryptophan', 'tyrosine', 'valine',
+                // Vitamins
+                'b1-thiamin', 'b2-riboflavin', 'b3-niacin', 'b5-pantothenic', 'b6-pyridoxine', 'b12-cobalamin', 'folate', 'vitamin-a', 'vitamin-c', 'vitamin-d', 'vitamin-e', 'vitamin-k',
+                // Minerals
+                'calcium', 'copper', 'iron', 'magnesium', 'manganese', 'phosphorus', 'potassium', 'selenium', 'sodium', 'zinc'
+            ];
+
+            micronutrientFields.forEach(field => {
+                const element = document.getElementById(`edit-popup-${field}`);
+                if (element && element.value.trim() !== '') {
+                    const value = parseFloat(element.value);
+                    if (!isNaN(value)) {
+                        // Convert field names to match database schema
+                        let dbField = field.replace(/-/g, '_');
+
+                        // Handle special cases
+                        if (field === 'added-sugars') dbField = 'added_sugars';
+                        if (field === 'trans-fat') dbField = 'trans_fat';
+                        if (field === 'b1-thiamin') dbField = 'b1_thiamin';
+                        if (field === 'b2-riboflavin') dbField = 'b2_riboflavin';
+                        if (field === 'b3-niacin') dbField = 'b3_niacin';
+                        if (field === 'b5-pantothenic') dbField = 'b5_pantothenic_acid';
+                        if (field === 'b6-pyridoxine') dbField = 'b6_pyridoxine';
+                        if (field === 'b12-cobalamin') dbField = 'b12_cobalamin';
+                        if (field === 'vitamin-a') dbField = 'vitamin_a';
+                        if (field === 'vitamin-c') dbField = 'vitamin_c';
+                        if (field === 'vitamin-d') dbField = 'vitamin_d';
+                        if (field === 'vitamin-e') dbField = 'vitamin_e';
+                        if (field === 'vitamin-k') dbField = 'vitamin_k';
+
+                        ingredientData[dbField] = value;
+                    }
+                }
+            });
+
+            // Validate required fields
+            if (!ingredientData.name || ingredientData.amount <= 0) {
+                alert('Please provide a valid ingredient name and amount.');
+                return;
+            }
+
+            // Send update request
+            const response = await fetch(`/api/recipe-ingredients/${recipeId}/ingredients/${ingredientId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate'
+                },
+                body: JSON.stringify(ingredientData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('[Recipe Button Fix] Ingredient updated successfully:', result);
+
+            // Close the popup
+            closeEditIngredientPopup();
+
+            // Refresh the ingredients display
+            const recipeCard = document.querySelector(`.recipe-card[data-id="${recipeId}"]`);
+            const detailsDiv = recipeCard?.querySelector('.ingredient-details');
+            const viewButton = recipeCard?.querySelector('.view-ingredients-btn');
+
+            if (detailsDiv && viewButton) {
+                // Re-fetch and display ingredients
+                await fetchIngredientsDirectly(recipeId, detailsDiv, viewButton);
+            }
+
+            // Show success notification
+            showNotification('Ingredient updated successfully!', 'success');
+
+        } catch (error) {
+            console.error('[Recipe Button Fix] Error updating ingredient:', error);
+            alert(`Error updating ingredient: ${error.message}`);
+        }
+    }
+
+    // Function to close edit ingredient popup
+    function closeEditIngredientPopup() {
+        const popup = document.getElementById('edit-ingredient-popup');
+        if (popup) {
+            popup.remove();
+        }
+    }
+
     // Initialize the fix
     function init() {
         if (isInitialized) {
@@ -1183,6 +1978,18 @@
                 event.preventDefault();
                 event.stopPropagation();
                 closeAddIngredientPopup();
+            } else if (event.target.classList.contains('popup-save-ingredient-btn')) {
+                event.preventDefault();
+                event.stopPropagation();
+                const recipeId = event.target.dataset.recipeId;
+                const ingredientId = event.target.dataset.ingredientId;
+                if (recipeId && ingredientId) {
+                    saveEditedIngredient(recipeId, ingredientId);
+                }
+            } else if (event.target.classList.contains('close-edit-popup-btn')) {
+                event.preventDefault();
+                event.stopPropagation();
+                closeEditIngredientPopup();
             } else if (event.target.classList.contains('delete-ingredient-btn')) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1191,6 +1998,14 @@
                 if (recipeId && ingredientId) {
                     deleteIngredientFromRecipe(recipeId, ingredientId);
                 }
+            } else if (event.target.classList.contains('edit-ingredient-btn-compact')) {
+                event.preventDefault();
+                event.stopPropagation();
+                const recipeId = event.target.dataset.recipeId;
+                const ingredientId = event.target.dataset.ingredientId;
+                if (recipeId && ingredientId) {
+                    showEditIngredientPopup(recipeId, ingredientId);
+                }
             }
         }, true);
 
@@ -1198,6 +2013,8 @@
         document.addEventListener('click', function(event) {
             if (event.target.id === 'add-ingredient-popup') {
                 closeAddIngredientPopup();
+            } else if (event.target.id === 'edit-ingredient-popup') {
+                closeEditIngredientPopup();
             }
         });
 

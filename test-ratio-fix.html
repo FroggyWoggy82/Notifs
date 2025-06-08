@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratio Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            background-color: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .ratio-example {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #3a3a3a;
+            border-radius: 4px;
+        }
+        .habit-ratio-badge {
+            background-color: #ff6b35;
+            color: white;
+            font-size: 0.7em;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            min-width: 40px;
+            cursor: help;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+        .habit-ratio-badge:hover {
+            background-color: #e55a2b;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
+        }
+        .old-way {
+            color: #ff6b6b;
+        }
+        .new-way {
+            color: #51cf66;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ratio Fix Test</h1>
+    
+    <div class="test-section">
+        <h2>Problem Explanation</h2>
+        <p>The issue was that ratios were being simplified (like fractions), so:</p>
+        <ul>
+            <li>Level 40 with 2 resets would show as <span class="old-way">20:1</span> (simplified)</li>
+            <li>Level 60 with 3 resets would show as <span class="old-way">20:1</span> (simplified)</li>
+            <li>This made different achievements look the same!</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Examples - Old vs New</h2>
+        
+        <div class="ratio-example">
+            <span>Level 40, 2 resets:</span>
+            <div class="habit-ratio-badge old-way" title="Old way: simplified">20:1</div>
+            <span style="margin: 0 10px;">→</span>
+            <div class="habit-ratio-badge new-way" title="New way: actual values">40:2</div>
+        </div>
+        
+        <div class="ratio-example">
+            <span>Level 60, 3 resets:</span>
+            <div class="habit-ratio-badge old-way" title="Old way: simplified">20:1</div>
+            <span style="margin: 0 10px;">→</span>
+            <div class="habit-ratio-badge new-way" title="New way: actual values">60:3</div>
+        </div>
+        
+        <div class="ratio-example">
+            <span>Level 100, 5 resets:</span>
+            <div class="habit-ratio-badge old-way" title="Old way: simplified">20:1</div>
+            <span style="margin: 0 10px;">→</span>
+            <div class="habit-ratio-badge new-way" title="New way: actual values">100:5</div>
+        </div>
+        
+        <div class="ratio-example">
+            <span>Level 7, 1 reset:</span>
+            <div class="habit-ratio-badge old-way" title="Old way: simplified">7:1</div>
+            <span style="margin: 0 10px;">→</span>
+            <div class="habit-ratio-badge new-way" title="New way: actual values">7:1</div>
+        </div>
+        
+        <div class="ratio-example">
+            <span>Level 50, 0 resets:</span>
+            <div class="habit-ratio-badge old-way" title="Old way">50:0</div>
+            <span style="margin: 0 10px;">→</span>
+            <div class="habit-ratio-badge new-way" title="New way: actual values">50:0</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Fix Applied</h2>
+        <p>Now the ratio shows the <strong>actual level and reset count</strong> without simplification:</p>
+        <ul>
+            <li>✅ Level 40 with 2 resets = <span class="new-way">40:2</span></li>
+            <li>✅ Level 60 with 3 resets = <span class="new-way">60:3</span></li>
+            <li>✅ Each achievement is unique and meaningful</li>
+            <li>✅ You can see your actual progress and reset history</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Code Changes</h2>
+        <p>Modified <code>public/js/habits/habit-ratio-badge.js</code>:</p>
+        <pre style="background-color: #1a1a1a; padding: 10px; border-radius: 4px; overflow-x: auto;">
+<span class="old-way">// OLD CODE (simplified ratio)
+function createRatioBadgeHTML(habitLevel, resetCount) {
+    const ratio = calculateHabitRatio(habitLevel, resetCount);
+    const displayText = resetCount === 0 ? `${habitLevel}:0` : `${ratio}:1`;
+    return `&lt;div class="habit-ratio-badge"&gt;${displayText}&lt;/div&gt;`;
+}</span>
+
+<span class="new-way">// NEW CODE (actual values)
+function createRatioBadgeHTML(habitLevel, resetCount) {
+    const displayText = `${habitLevel}:${resetCount}`;
+    return `&lt;div class="habit-ratio-badge"&gt;${displayText}&lt;/div&gt;`;
+}</span>
+        </pre>
+    </div>
+
+    <script>
+        console.log('Ratio fix test page loaded');
+        console.log('The fix ensures ratios show actual level:reset count without simplification');
+    </script>
+</body>
+</html>

@@ -45,16 +45,17 @@
 /* Mobile-specific improvements for ellipsis button */
 @media screen and (max-width: 768px) {
     .btn-exercise-options {
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px !important;
-        min-height: 36px !important;
-        font-size: 1.4rem !important;
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        font-size: 1.6rem !important;
         /* Ensure it's above other elements */
-        z-index: 15 !important;
+        z-index: 20 !important;
         /* Add a subtle background for better visibility */
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 4px !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 6px !important;
         /* Ensure proper positioning */
         position: relative !important;
         /* Prevent text selection */
@@ -63,14 +64,26 @@
         -ms-user-select: none !important;
         user-select: none !important;
         /* Optimize for touch */
-        -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2) !important;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0.3) !important;
         /* Ensure it's clickable */
         pointer-events: auto !important;
+        /* Better touch handling */
+        touch-action: manipulation !important;
+        /* Center the content */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        /* Ensure proper cursor */
+        cursor: pointer !important;
+        /* Add transition for better feedback */
+        transition: all 0.2s ease !important;
     }
 
     .btn-exercise-options:active,
-    .btn-exercise-options:focus {
-        background: rgba(255, 255, 255, 0.2) !important;
+    .btn-exercise-options:focus,
+    .btn-exercise-options:hover {
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
         transform: scale(0.95) !important;
         outline: none !important;
     }
@@ -78,12 +91,25 @@
     /* Ensure the exercise item header doesn't interfere */
     .exercise-item-header {
         position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
     }
 
     /* Make sure the button is always visible and clickable */
     .exercise-item .btn-exercise-options {
         flex-shrink: 0 !important;
-        margin-left: 8px !important;
+        margin-left: 12px !important;
+        order: 999 !important; /* Ensure it's always on the right */
+    }
+
+    /* Ensure the exercise name doesn't overlap the button */
+    .exercise-item-header h4 {
+        flex: 1 !important;
+        margin-right: 12px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
     }
 }
 

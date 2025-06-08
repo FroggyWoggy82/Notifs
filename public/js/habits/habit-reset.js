@@ -442,9 +442,12 @@ async function checkForDayChange() {
             console.error('Error resetting habits on day change:', error);
         }
     } else {
-        console.log('Same day as last reset, checking if habits need reset anyway...');
+        console.log('Same day as last reset - no action needed.');
+        console.log('Habits will only be reset at midnight by the server-side cron job.');
 
-
+        // DISABLED: We no longer check if habits need reset during the same day
+        // This was causing habits to be incorrectly reset during the day
+        /*
         const needsReset = checkIfHabitsNeedReset();
 
         if (needsReset) {
@@ -453,6 +456,7 @@ async function checkForDayChange() {
         } else {
             console.log('All habits appear to be properly reset. No action needed.');
         }
+        */
     }
 }
 
@@ -464,6 +468,15 @@ async function checkForDayChange() {
 function checkIfHabitsNeedReset() {
     console.log('Checking if any habits need to be reset...');
 
+    // IMPORTANT: We no longer automatically reset habits based on time of day or completion status
+    // Habits should only be reset by the server-side cron job at midnight
+    // This prevents habits from being incorrectly reset during the day
+
+    console.log('Auto-reset logic disabled - habits will only reset via server cron job at midnight');
+    return false;
+
+    // The following code has been disabled to prevent premature habit resets:
+    /*
     const habitItems = document.querySelectorAll('.habit-item');
     if (!habitItems || habitItems.length === 0) {
         console.log('No habit items found in the UI');
@@ -474,7 +487,6 @@ function checkIfHabitsNeedReset() {
     const centralTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
     const currentHour = centralTime.getHours();
 
-
     const isEarlyMorning = currentHour >= 0 && currentHour < 6;
     console.log(`Current hour in Central Time: ${currentHour}, isEarlyMorning: ${isEarlyMorning}`);
 
@@ -482,7 +494,6 @@ function checkIfHabitsNeedReset() {
 
     habitItems.forEach((habitItem) => {
         try {
-
             const progressDisplay = habitItem.querySelector('.habit-progress');
             if (!progressDisplay) return;
 
@@ -496,7 +507,6 @@ function checkIfHabitsNeedReset() {
                     console.log(`Found habit with non-zero value in early morning: ${progressText}`);
                     needsReset = true;
                 }
-
 
                 // We no longer reset habits based on completion percentage during the day
                 // This was causing habits to reset at around 7 PM when many habits were completed
@@ -516,6 +526,7 @@ function checkIfHabitsNeedReset() {
     });
 
     return needsReset;
+    */
 }
 
 /**
