@@ -23,11 +23,35 @@ html body .habit-item .habit-checkbox {
     box-shadow: none !important;
 }
 
+/* Mobile-specific styling for better visibility */
+@media screen and (max-width: 768px) {
+    .habit-checkbox,
+    html body .habit-item .habit-checkbox {
+        border: 3px solid rgba(255, 255, 255, 0.8) !important;
+        background-color: rgba(40, 40, 40, 0.9) !important;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
 
 .habit-checkbox:hover,
 html body .habit-item .habit-checkbox:hover {
     border-color: rgba(255, 255, 255, 0.7) !important;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Mobile hover/touch states for better visibility */
+@media screen and (max-width: 768px) {
+    .habit-checkbox:hover,
+    .habit-checkbox:active,
+    .habit-checkbox:focus,
+    html body .habit-item .habit-checkbox:hover,
+    html body .habit-item .habit-checkbox:active,
+    html body .habit-item .habit-checkbox:focus {
+        border-color: rgba(255, 255, 255, 1) !important;
+        background-color: rgba(60, 60, 60, 0.9) !important;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3) !important;
+    }
 }
 
 
@@ -36,6 +60,16 @@ html body .habit-item .habit-checkbox:checked {
     background-color: rgba(255, 255, 255, 0.1) !important;
     border-color: rgba(255, 255, 255, 0.8) !important;
     box-shadow: none !important;
+}
+
+/* Mobile checked state for better visibility */
+@media screen and (max-width: 768px) {
+    .habit-checkbox:checked,
+    html body .habit-item .habit-checkbox:checked {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 1) !important;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.2) !important;
+    }
 }
 
 
@@ -51,6 +85,16 @@ html body .habit-item .habit-checkbox:checked::after {
     font-weight: bold !important;
     line-height: 1 !important;
     text-shadow: none !important;
+}
+
+/* Mobile checkmark for better visibility */
+@media screen and (max-width: 768px) {
+    .habit-checkbox:checked::after,
+    html body .habit-item .habit-checkbox:checked::after {
+        color: rgba(255, 255, 255, 1) !important;
+        font-size: 20px !important;
+        text-shadow: 0 0 3px rgba(255, 255, 255, 0.5) !important;
+    }
 }
 
 
@@ -87,6 +131,15 @@ html body .habit-control-container {
     box-shadow: none !important;
 }
 
+/* Mobile completed habit styling for better visibility */
+@media screen and (max-width: 768px) {
+    .habit-item[data-completed="true"] .habit-control-container::before {
+        border: 3px solid rgba(255, 255, 255, 1) !important;
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.2) !important;
+    }
+}
+
 
 .habit-item[data-completed="true"] .habit-control-container::after {
     content: '✓' !important;
@@ -100,4 +153,13 @@ html body .habit-control-container {
     pointer-events: none !important;
     z-index: 20 !important;
     text-shadow: none !important;
+}
+
+/* Mobile completed habit checkmark for better visibility */
+@media screen and (max-width: 768px) {
+    .habit-item[data-completed="true"] .habit-control-container::after {
+        color: rgba(255, 255, 255, 1) !important;
+        font-size: 18px !important;
+        text-shadow: 0 0 3px rgba(255, 255, 255, 0.5) !important;
+    }
 }
