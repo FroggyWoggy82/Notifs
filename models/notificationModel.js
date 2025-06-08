@@ -15,12 +15,38 @@ const VAPID_KEYS = {
     subject: process.env.VAPID_SUBJECT || 'mailto:kevinguyen022@gmail.com'
 };
 
-// Set VAPID details for web-push
-webpush.setVapidDetails(
-    VAPID_KEYS.subject,
-    VAPID_KEYS.publicKey,
-    VAPID_KEYS.privateKey
-);
+// Set VAPID details for web-push with error handling
+try {
+    webpush.setVapidDetails(
+        VAPID_KEYS.subject,
+        VAPID_KEYS.publicKey,
+        VAPID_KEYS.privateKey
+    );
+    console.log('VAPID keys configured successfully');
+} catch (error) {
+    console.error('Error configuring VAPID keys:', error.message);
+    console.error('Push notifications will be disabled until valid VAPID keys are provided');
+
+    // Generate new VAPID keys if the current ones are invalid
+    console.log('Generating new VAPID keys...');
+    const vapidKeys = webpush.generateVAPIDKeys();
+    console.log('New VAPID keys generated:');
+    console.log('Public Key:', vapidKeys.publicKey);
+    console.log('Private Key:', vapidKeys.privateKey);
+    console.log('Please update your environment variables with these new keys');
+
+    // Use the generated keys for this session
+    VAPID_KEYS.publicKey = vapidKeys.publicKey;
+    VAPID_KEYS.privateKey = vapidKeys.privateKey;
+
+    // Set VAPID details with the new keys
+    webpush.setVapidDetails(
+        VAPID_KEYS.subject,
+        VAPID_KEYS.publicKey,
+        VAPID_KEYS.privateKey
+    );
+    console.log('Temporary VAPID keys configured for this session');
+}
 
 // File paths for persistent storage
 const SUBSCRIPTIONS_FILE = path.join(__dirname, '..', 'data', 'subscriptions.json');
