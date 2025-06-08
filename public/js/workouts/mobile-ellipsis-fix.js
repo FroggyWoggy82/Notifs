@@ -264,22 +264,47 @@
         // Get menu dimensions after a brief delay to ensure rendering
         setTimeout(() => {
             const rect = menu.getBoundingClientRect();
+            log(`Menu position before fix: left=${rect.left}, right=${rect.right}, top=${rect.top}, bottom=${rect.bottom}`);
 
-            // Adjust position if menu goes off screen
-            if (rect.right > viewportWidth) {
-                menu.style.right = '10px';
-                menu.style.left = 'auto';
-            }
+            // Reset positioning to start fresh
+            menu.style.left = 'auto';
+            menu.style.right = 'auto';
+            menu.style.top = 'auto';
+            menu.style.bottom = 'auto';
 
-            if (rect.bottom > viewportHeight) {
-                menu.style.top = 'auto';
-                menu.style.bottom = '100%';
-            }
-
-            // Ensure menu is not too wide for mobile
+            // Ensure menu is not too wide for mobile first
             if (rect.width > viewportWidth - 20) {
                 menu.style.maxWidth = `${viewportWidth - 20}px`;
                 menu.style.width = '95vw';
+            }
+
+            // Position menu to the right edge with some padding
+            menu.style.right = '10px';
+            menu.style.top = '100%';
+
+            // Get updated rect after positioning changes
+            const newRect = menu.getBoundingClientRect();
+            log(`Menu position after fix: left=${newRect.left}, right=${newRect.right}, top=${newRect.top}, bottom=${newRect.bottom}`);
+
+            // If menu goes off screen to the left, adjust
+            if (newRect.left < 0) {
+                menu.style.right = 'auto';
+                menu.style.left = '10px';
+                log('Adjusted menu to left edge due to overflow');
+            }
+
+            // If menu goes off screen to the right, adjust
+            if (newRect.right > viewportWidth) {
+                menu.style.right = '10px';
+                menu.style.left = 'auto';
+                log('Adjusted menu to right edge due to overflow');
+            }
+
+            // If menu goes off screen vertically, position above the button
+            if (newRect.bottom > viewportHeight) {
+                menu.style.top = 'auto';
+                menu.style.bottom = '100%';
+                log('Positioned menu above button due to vertical overflow');
             }
 
             log('Mobile menu positioning complete');

@@ -1,0 +1,165 @@
+/**
+ * Mobile Exercise Options Menu Fix
+ * Fixes positioning and visibility issues with the three-dot menu on mobile devices
+ */
+
+/* Mobile-specific fixes for exercise options menu */
+@media screen and (max-width: 768px) {
+    /* Ensure the exercise item header has proper positioning context */
+    .exercise-item-header {
+        position: relative !important;
+        overflow: visible !important;
+    }
+
+    /* Fix the three-dot button positioning and size for mobile */
+    .btn-exercise-options {
+        position: relative !important;
+        z-index: 20 !important;
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        font-size: 1.6rem !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 6px !important;
+        touch-action: manipulation !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+    }
+
+    /* Exercise options menu mobile positioning */
+    .exercise-options-menu {
+        position: absolute !important;
+        z-index: 1000 !important;
+        min-width: 280px !important;
+        max-width: 95vw !important;
+        width: auto !important;
+        background-color: #1a1a1a !important;
+        border: 2px solid #444 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+        padding: 12px !important;
+        
+        /* Default positioning - will be overridden by JavaScript */
+        top: 100% !important;
+        right: 0 !important;
+        left: auto !important;
+        
+        /* Ensure menu is always visible when shown */
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        transform: translateY(-10px) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    /* When menu is shown */
+    .exercise-options-menu.show {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+    }
+
+    /* Ensure menu buttons are properly sized for mobile */
+    .exercise-options-menu-row.buttons-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        justify-content: center !important;
+        margin-top: 8px !important;
+    }
+
+    .exercise-options-menu-row.buttons-row button {
+        min-height: 36px !important;
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+        border-radius: 6px !important;
+        background-color: #ffffff !important;
+        color: #121212 !important;
+        border: none !important;
+        cursor: pointer !important;
+        touch-action: manipulation !important;
+        flex: 1 1 auto !important;
+        min-width: 80px !important;
+        max-width: 120px !important;
+    }
+
+    /* Ensure proper spacing for menu labels */
+    .exercise-options-menu-label {
+        margin-bottom: 8px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Fix unit row layout for mobile */
+    .exercise-options-menu-row.unit-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .exercise-options-menu-row.unit-row > div {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    /* Ensure select and input elements are properly sized */
+    .exercise-unit-select,
+    .weight-increment-input {
+        min-height: 32px !important;
+        font-size: 0.9rem !important;
+        padding: 4px 8px !important;
+        border-radius: 4px !important;
+        background-color: #333 !important;
+        color: #fff !important;
+        border: 1px solid #555 !important;
+    }
+
+    /* Close button styling for mobile */
+    .exercise-options-menu .close-button {
+        position: absolute !important;
+        top: 8px !important;
+        right: 8px !important;
+        width: 24px !important;
+        height: 24px !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: none !important;
+        border-radius: 50% !important;
+        color: #fff !important;
+        font-size: 14px !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}
+
+/* Extra small mobile screens */
+@media screen and (max-width: 480px) {
+    .exercise-options-menu {
+        min-width: 260px !important;
+        max-width: 90vw !important;
+        padding: 10px !important;
+    }
+
+    .exercise-options-menu-row.buttons-row button {
+        min-height: 32px !important;
+        padding: 6px 10px !important;
+        font-size: 0.8rem !important;
+        min-width: 70px !important;
+        max-width: 100px !important;
+    }
+}
+
+/* Prevent menu from being hidden by other elements */
+.exercise-options-menu.show {
+    z-index: 9999 !important;
+}
+
+/* Ensure the menu doesn't interfere with scrolling */
+body.menu-open {
+    overflow: hidden !important;
+}
