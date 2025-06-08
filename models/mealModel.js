@@ -102,8 +102,8 @@ async function createMeal(mealData, userId = 1) {
 
         // Insert the meal
         const mealInsertResult = await client.query(
-            'INSERT INTO meals (name, date, time, photo_url, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-            [name.trim(), date, time, photo_url || null, userId]
+            'INSERT INTO meals (name, date, time, photo_url, user_id, bloating_rating) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+            [name.trim(), date, time, photo_url || null, userId, mealData.bloating_rating || null]
         );
 
         const newMealId = mealInsertResult.rows[0].id;
@@ -300,6 +300,10 @@ async function createMealsTables() {
                 time TIME NOT NULL,
                 photo_url VARCHAR(500),
                 user_id INTEGER NOT NULL,
+                bloating_rating INTEGER CHECK (bloating_rating >= 1 AND bloating_rating <= 10),
+                bloating_rating_timestamp TIMESTAMP,
+                bloating_notification_sent BOOLEAN DEFAULT FALSE,
+                bloating_notification_id VARCHAR(50),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -312,6 +316,25 @@ async function createMealsTables() {
         } catch (error) {
             // Column might already exist, ignore error
             console.log('Photo URL column already exists or could not be added:', error.message);
+        }
+
+        // Add bloating rating columns if they don't exist (for existing tables)
+        try {
+            await client.query(`
+                ALTER TABLE meals ADD COLUMN IF NOT EXISTS bloating_rating INTEGER CHECK (bloating_rating >= 1 AND bloating_rating <= 10)
+            `);
+            await client.query(`
+                ALTER TABLE meals ADD COLUMN IF NOT EXISTS bloating_rating_timestamp TIMESTAMP
+            `);
+            await client.query(`
+                ALTER TABLE meals ADD COLUMN IF NOT EXISTS bloating_notification_sent BOOLEAN DEFAULT FALSE
+            `);
+            await client.query(`
+                ALTER TABLE meals ADD COLUMN IF NOT EXISTS bloating_notification_id VARCHAR(50)
+            `);
+        } catch (error) {
+            // Columns might already exist, ignore error
+            console.log('Bloating rating columns already exist or could not be added:', error.message);
         }
 
         // Create meal_ingredients table
@@ -341,6 +364,78 @@ async function createMealsTables() {
     }
 }
 
+/**
+ * Update bloating rating for a meal
+ * @param {number} mealId - The meal ID
+ * @param {number} bloatingRating - The bloating rating (1-10)
+ * @param {number} userId - The user ID
+ * @returns {Promise<Object>} - Promise resolving to the updated meal
+ */
+async function updateBloatingRating(mealId, bloatingRating, userId = 1) {
+    const client = await db.getClient();
+
+    try {
+        // Validate bloating rating
+        if (bloatingRating < 1 || bloatingRating > 10) {
+            throw new Error('Bloating rating must be between 1 and 10');
+        }
+
+        // Update the meal with bloating rating and timestamp
+        const result = await client.query(
+            `UPDATE meals
+             SET bloating_rating = $1, bloating_rating_timestamp = CURRENT_TIMESTAMP
+             WHERE id = $2 AND user_id = $3
+             RETURNING *`,
+            [bloatingRating, mealId, userId]
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('Meal not found or access denied');
+        }
+
+        console.log(`Updated bloating rating for meal ${mealId}: ${bloatingRating}/10`);
+        return result.rows[0];
+    } catch (error) {
+        console.error('Error updating bloating rating:', error);
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
+/**
+ * Update bloating notification status for a meal
+ * @param {number} mealId - The meal ID
+ * @param {string} notificationId - The notification ID
+ * @param {boolean} sent - Whether the notification was sent
+ * @returns {Promise<Object>} - Promise resolving to the updated meal
+ */
+async function updateBloatingNotificationStatus(mealId, notificationId, sent = true) {
+    const client = await db.getClient();
+
+    try {
+        const result = await client.query(
+            `UPDATE meals
+             SET bloating_notification_sent = $1, bloating_notification_id = $2
+             WHERE id = $3
+             RETURNING *`,
+            [sent, notificationId, mealId]
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('Meal not found');
+        }
+
+        console.log(`Updated bloating notification status for meal ${mealId}: sent=${sent}`);
+        return result.rows[0];
+    } catch (error) {
+        console.error('Error updating bloating notification status:', error);
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
     getAllMeals,
     getMealById,
@@ -348,5 +443,7 @@ module.exports = {
     updateMeal,
     deleteMeal,
     getMealsByDateRange,
-    createMealsTables
+    createMealsTables,
+    updateBloatingRating,
+    updateBloatingNotificationStatus
 };

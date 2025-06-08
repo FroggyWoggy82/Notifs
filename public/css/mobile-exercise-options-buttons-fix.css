@@ -1,0 +1,218 @@
+/**
+ * Mobile Exercise Options Buttons Fix
+ * Ensures Replace Exercise, Replace Globally, and Delete Exercise buttons are visible on mobile
+ */
+
+/* Mobile-specific fixes for exercise options menu buttons */
+@media screen and (max-width: 768px) {
+    
+    /* Ensure the button group is visible and properly laid out */
+    .exercise-options-menu .button-group-right {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        width: 100% !important;
+        margin-top: 8px !important;
+        position: static !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 10 !important;
+    }
+
+    /* Force all exercise option buttons to be visible */
+    .exercise-options-menu .btn-edit-exercise-name,
+    .exercise-options-menu .btn-replace-exercise,
+    .exercise-options-menu .btn-replace-exercise-global,
+    .exercise-options-menu .btn-delete-exercise {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: static !important;
+        z-index: 15 !important;
+        
+        /* Mobile-friendly sizing */
+        min-width: 36px !important;
+        min-height: 36px !important;
+        width: auto !important;
+        height: 36px !important;
+        
+        /* Styling */
+        background-color: #ffffff !important;
+        color: #121212 !important;
+        border: 1px solid #ddd !important;
+        border-radius: 6px !important;
+        
+        /* Layout */
+        margin: 2px !important;
+        padding: 6px 8px !important;
+        font-size: 0.8rem !important;
+        
+        /* Touch optimization */
+        cursor: pointer !important;
+        touch-action: manipulation !important;
+        
+        /* Flexbox alignment */
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        
+        /* Transitions */
+        transition: all 0.2s ease !important;
+    }
+
+    /* Specific styling for each button type */
+    .exercise-options-menu .btn-edit-exercise-name {
+        background-color: #4CAF50 !important;
+        color: white !important;
+    }
+
+    .exercise-options-menu .btn-replace-exercise {
+        background-color: #2196F3 !important;
+        color: white !important;
+    }
+
+    .exercise-options-menu .btn-replace-exercise-global {
+        background-color: #FF9800 !important;
+        color: white !important;
+    }
+
+    .exercise-options-menu .btn-delete-exercise {
+        background-color: #f44336 !important;
+        color: white !important;
+        font-weight: bold !important;
+    }
+
+    /* Hover effects for mobile (touch devices) */
+    .exercise-options-menu .btn-edit-exercise-name:active {
+        background-color: #45a049 !important;
+        transform: scale(0.95) !important;
+    }
+
+    .exercise-options-menu .btn-replace-exercise:active {
+        background-color: #1976D2 !important;
+        transform: scale(0.95) !important;
+    }
+
+    .exercise-options-menu .btn-replace-exercise-global:active {
+        background-color: #F57C00 !important;
+        transform: scale(0.95) !important;
+    }
+
+    .exercise-options-menu .btn-delete-exercise:active {
+        background-color: #d32f2f !important;
+        transform: scale(0.95) !important;
+    }
+
+    /* Ensure the buttons row accommodates all buttons */
+    .exercise-options-menu .exercise-options-menu-row.buttons-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+        align-items: stretch !important;
+    }
+
+    /* First row: main action buttons */
+    .exercise-options-menu .exercise-options-menu-row.buttons-row > button:not(.btn-edit-exercise-name):not(.btn-replace-exercise):not(.btn-replace-exercise-global):not(.btn-delete-exercise) {
+        order: 1 !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* Second row: exercise management buttons */
+    .exercise-options-menu .button-group-right {
+        order: 2 !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        width: 100% !important;
+    }
+
+    /* Ensure proper spacing in the menu */
+    .exercise-options-menu {
+        padding: 12px !important;
+        min-width: 280px !important;
+        max-width: 95vw !important;
+    }
+
+    /* Override any conflicting styles */
+    .exercise-options-menu .button-group-right * {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    /* Force visibility for all button variations */
+    .exercise-options-menu button[class*="btn-"],
+    .exercise-options-menu button[data-workout-index] {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    /* Specific overrides for commonly hidden elements */
+    .exercise-options-menu .btn-replace-exercise[style*="display: none"],
+    .exercise-options-menu .btn-replace-exercise-global[style*="display: none"],
+    .exercise-options-menu .btn-delete-exercise[style*="display: none"],
+    .exercise-options-menu .btn-edit-exercise-name[style*="display: none"] {
+        display: inline-flex !important;
+    }
+
+    /* Text labels for better mobile UX */
+    .exercise-options-menu .btn-edit-exercise-name::after {
+        content: " Edit";
+        font-size: 0.7rem;
+        margin-left: 2px;
+    }
+
+    .exercise-options-menu .btn-replace-exercise::after {
+        content: " Replace";
+        font-size: 0.7rem;
+        margin-left: 2px;
+    }
+
+    .exercise-options-menu .btn-replace-exercise-global::after {
+        content: " Global";
+        font-size: 0.7rem;
+        margin-left: 2px;
+    }
+
+    .exercise-options-menu .btn-delete-exercise::after {
+        content: " Delete";
+        font-size: 0.7rem;
+        margin-left: 2px;
+    }
+}
+
+/* Extra small screens */
+@media screen and (max-width: 480px) {
+    .exercise-options-menu .btn-edit-exercise-name,
+    .exercise-options-menu .btn-replace-exercise,
+    .exercise-options-menu .btn-replace-exercise-global,
+    .exercise-options-menu .btn-delete-exercise {
+        min-width: 32px !important;
+        min-height: 32px !important;
+        height: 32px !important;
+        padding: 4px 6px !important;
+        font-size: 0.75rem !important;
+    }
+
+    .exercise-options-menu {
+        min-width: 260px !important;
+        padding: 10px !important;
+    }
+}
+
+/* High specificity override for any conflicting styles */
+.exercise-options-menu.show .button-group-right .btn-edit-exercise-name,
+.exercise-options-menu.show .button-group-right .btn-replace-exercise,
+.exercise-options-menu.show .button-group-right .btn-replace-exercise-global,
+.exercise-options-menu.show .button-group-right .btn-delete-exercise {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    z-index: 20 !important;
+}

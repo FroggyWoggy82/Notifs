@@ -112,6 +112,7 @@
 
     <!-- Comprehensive edit modal compact styling -->
     <link rel="stylesheet" href="../css/comprehensive-edit-modal-compact.css"> <!-- Compact styling for comprehensive edit modal -->
+    <link rel="stylesheet" href="../css/bloating-rating.css"> <!-- Bloating rating component styling -->
 
     <!-- CRITICAL: Force header buttons visible - must load immediately after CSS -->
     <script src="../js/food/force-header-buttons-visible.js"></script> <!-- Forces header buttons to be visible -->
@@ -415,6 +416,40 @@
                     </button>
                     <div id="micronutrients-details" class="micronutrients-details" style="display: none;">
                         <!-- Micronutrients will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloating Rating (Optional) -->
+            <div class="bloating-rating-container">
+                <h3>Bloating Rating (Optional)</h3>
+                <p class="bloating-description">Rate current bloating level (you'll be prompted again in 30 minutes)</p>
+                <div class="bloating-rating-section">
+                    <div class="rating-scale">
+                        <label class="rating-option">
+                            <input type="radio" name="bloating-rating" value="" checked>
+                            <span class="rating-label">Skip</span>
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="bloating-rating" value="1">
+                            <span class="rating-label">1 - None</span>
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="bloating-rating" value="3">
+                            <span class="rating-label">3 - Mild</span>
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="bloating-rating" value="6">
+                            <span class="rating-label">6 - Moderate</span>
+                        </label>
+                        <label class="rating-option">
+                            <input type="radio" name="bloating-rating" value="10">
+                            <span class="rating-label">10 - Severe</span>
+                        </label>
+                    </div>
+                    <div class="custom-rating">
+                        <label for="custom-bloating-rating">Custom (1-10):</label>
+                        <input type="number" id="custom-bloating-rating" min="1" max="10" placeholder="1-10">
                     </div>
                 </div>
             </div>
@@ -1273,6 +1308,9 @@
 
     <!-- Meal submission functionality -->
     <script src="../js/food/meal-submission.js"></script> <!-- Meal submission functionality -->
+
+    <!-- Bloating notifications system -->
+    <script src="../js/food/bloating-notifications.js"></script> <!-- Bloating rating notifications -->
 
     <!-- Micronutrients toggle fix -->
     <script>

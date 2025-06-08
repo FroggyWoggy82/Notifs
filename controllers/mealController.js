@@ -5,6 +5,7 @@
 
 const MealModel = require('../models/mealModel');
 const CalorieTarget = require('../models/calorieTargetModel');
+const NotificationModel = require('../models/notificationModel');
 
 /**
  * Get all meals
@@ -93,6 +94,35 @@ async function createMeal(req, res) {
         }
 
         const meal = await MealModel.createMeal(mealData, userId);
+
+        // Schedule bloating notification for 30 minutes after meal submission
+        try {
+            const notificationTime = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+            const ingredientNames = mealData.ingredients ?
+                mealData.ingredients.map(ing => ing.name).join(', ') :
+                mealData.name;
+
+            const notification = NotificationModel.scheduleNotification({
+                title: 'Bloating Check-in',
+                body: `How are you feeling after eating ${ingredientNames}? Rate your bloating level.`,
+                scheduledTime: notificationTime.toISOString(),
+                data: {
+                    type: 'bloating_rating',
+                    mealId: meal.id,
+                    mealName: mealData.name,
+                    ingredients: ingredientNames
+                }
+            });
+
+            // Update meal with notification ID
+            await MealModel.updateBloatingNotificationStatus(meal.id, notification.id, false);
+
+            console.log(`Scheduled bloating notification for meal ${meal.id} at ${notificationTime}`);
+        } catch (notificationError) {
+            console.error('Error scheduling bloating notification:', notificationError);
+            // Don't fail the meal creation if notification scheduling fails
+        }
+
         res.status(201).json({
             success: true,
             message: 'Meal created successfully',
@@ -260,11 +290,57 @@ async function getCalendarData(req, res) {
     }
 }
 
+/**
+ * Update bloating rating for a meal
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function updateBloatingRating(req, res) {
+    try {
+        const { id } = req.params;
+        const { bloating_rating } = req.body;
+        const userId = req.body.user_id || 1;
+
+        // Validate bloating rating
+        if (!bloating_rating || bloating_rating < 1 || bloating_rating > 10) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bloating rating must be between 1 and 10'
+            });
+        }
+
+        const meal = await MealModel.updateBloatingRating(id, bloating_rating, userId);
+
+        res.json({
+            success: true,
+            message: 'Bloating rating updated successfully',
+            meal
+        });
+    } catch (error) {
+        console.error('Error in updateBloatingRating controller:', error);
+
+        if (error.message.includes('not found') || error.message.includes('access denied')) {
+            return res.status(404).json({
+                success: false,
+                message: 'Meal not found or access denied',
+                error: error.message
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            message: 'Server error updating bloating rating',
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     getAllMeals,
     getMealById,
     createMeal,
     updateMeal,
     deleteMeal,
-    getCalendarData
+    getCalendarData,
+    updateBloatingRating
 };

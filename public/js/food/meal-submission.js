@@ -40,6 +40,8 @@
             totalCarbs: document.getElementById('total-carbs'),
             totalFat: document.getElementById('total-fat'),
             toggleMicronutrients: document.getElementById('toggle-micronutrients'),
+            bloatingRatingInputs: document.querySelectorAll('input[name="bloating-rating"]'),
+            customBloatingRating: document.getElementById('custom-bloating-rating'),
             micronutrientsDetails: document.getElementById('micronutrients-details'),
             mealPhoto: document.getElementById('meal-photo'),
             photoPreview: document.getElementById('photo-preview'),
@@ -94,6 +96,9 @@
         // Form validation
         elements.mealDate.addEventListener('change', validateForm);
         elements.recipeSelector.addEventListener('change', validateForm);
+
+        // Bloating rating handlers
+        setupBloatingRatingHandlers();
     }
 
     async function loadRecipes() {
@@ -1201,6 +1206,52 @@
         showStatus(`Ingredient "${name}" updated successfully!`, 'success');
     };
 
+    function setupBloatingRatingHandlers() {
+        // Handle radio button changes
+        elements.bloatingRatingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value !== '') {
+                    // Clear custom rating when radio button is selected
+                    elements.customBloatingRating.value = '';
+                }
+            });
+        });
+
+        // Handle custom rating input
+        elements.customBloatingRating.addEventListener('input', function() {
+            if (this.value !== '') {
+                // Clear radio button selection when custom rating is entered
+                elements.bloatingRatingInputs.forEach(input => {
+                    if (input.value !== '') {
+                        input.checked = false;
+                    }
+                });
+                // Check the "Skip" option to maintain form state
+                const skipOption = document.querySelector('input[name="bloating-rating"][value=""]');
+                if (skipOption) {
+                    skipOption.checked = true;
+                }
+            }
+        });
+    }
+
+    function getBloatingRating() {
+        // Check if custom rating is provided
+        const customRating = elements.customBloatingRating.value;
+        if (customRating && customRating >= 1 && customRating <= 10) {
+            return parseInt(customRating);
+        }
+
+        // Check radio button selection
+        const selectedRadio = document.querySelector('input[name="bloating-rating"]:checked');
+        if (selectedRadio && selectedRadio.value !== '') {
+            return parseInt(selectedRadio.value);
+        }
+
+        // No rating provided
+        return null;
+    }
+
     function validateForm() {
         const isValid = elements.mealDate.value && elements.recipeSelector.value;
         elements.submitBtn.disabled = !isValid;
@@ -1230,6 +1281,12 @@
                 time: currentTime,
                 ingredients: []
             };
+
+            // Add bloating rating if provided
+            const bloatingRating = getBloatingRating();
+            if (bloatingRating !== null) {
+                mealData.bloating_rating = bloatingRating;
+            }
 
             // Collect ingredient data with actual amounts
             currentIngredients.forEach((ingredient, index) => {
@@ -1286,6 +1343,24 @@
 
             if (result.success) {
                 showStatus('Meal submitted successfully!', 'success');
+
+                // Schedule bloating notification for 30 minutes from now
+                if (window.BloatingNotifications && result.meal) {
+                    const notificationTime = Date.now() + (30 * 60 * 1000); // 30 minutes
+                    const ingredientNames = mealData.ingredients ?
+                        mealData.ingredients.map(ing => ing.name).join(', ') :
+                        mealData.name;
+
+                    window.BloatingNotifications.scheduleNotification(
+                        result.meal.id,
+                        mealData.name,
+                        ingredientNames,
+                        notificationTime
+                    );
+
+                    console.log('[Meal Submission] Scheduled bloating notification for 30 minutes');
+                }
+
                 resetForm();
                 console.log('[Meal Submission] Meal submitted successfully:', result.meal);
 

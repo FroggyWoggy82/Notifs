@@ -350,4 +350,46 @@ router.put('/:id', MealController.updateMeal);
  */
 router.delete('/:id', MealController.deleteMeal);
 
+/**
+ * @swagger
+ * /api/meals/{id}/bloating-rating:
+ *   patch:
+ *     summary: Update bloating rating for a meal
+ *     tags: [Meals]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The meal ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bloating_rating
+ *             properties:
+ *               bloating_rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 10
+ *                 description: The bloating rating (1 = no bloating, 10 = severe bloating)
+ *               user_id:
+ *                 type: integer
+ *                 description: The user ID (optional, defaults to 1)
+ *     responses:
+ *       200:
+ *         description: Bloating rating updated successfully
+ *       400:
+ *         description: Invalid bloating rating
+ *       404:
+ *         description: Meal not found
+ *       500:
+ *         description: Server error
+ */
+router.patch('/:id/bloating-rating', MealController.updateBloatingRating);
+
 module.exports = router;
