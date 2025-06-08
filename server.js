@@ -215,6 +215,11 @@ app.get('/ping', (req, res) => {
   res.status(200).send('pong');
 });
 
+// Ultra-fast health check for Railway (immediate response)
+app.get('/ready', (req, res) => {
+  res.status(200).json({ status: 'ready' });
+});
+
 // API Routes
 app.use('/api/goals', goalRoutes);
 app.use('/api/days-since', daysSinceRouter);
@@ -469,8 +474,15 @@ webpush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
-// Initialize notification model
-NotificationModel.initialize();
+// Initialize notification model (non-blocking)
+setImmediate(() => {
+  try {
+    NotificationModel.initialize();
+    console.log('Notification model initialized');
+  } catch (error) {
+    console.error('Error initializing notification model:', error);
+  }
+});
 
 // Setup daily notification check
 NotificationModel.setupDailyCheck(cron.schedule);
@@ -719,14 +731,18 @@ const startServer = async (dbConnected) => {
     const server = app.listen(PORT, async () => {
       console.log(`Server running on port ${PORT}${!dbConnected ? ' (database connection failed)' : ''}`);
 
-      // Schedule all task reminders on server start (silently) if database is connected
+      // Schedule all task reminders on server start (non-blocking) if database is connected
       if (dbConnected) {
-        try {
-          // Silently schedule task reminders without logging each one
-          await TaskReminderService.scheduleAllTaskReminders();
-        } catch (err) {
-          console.error('Failed to schedule task reminders:', err);
-        }
+        // Run task reminder scheduling in background to avoid blocking server startup
+        setImmediate(async () => {
+          try {
+            console.log('Scheduling task reminders in background...');
+            await TaskReminderService.scheduleAllTaskReminders();
+            console.log('Task reminders scheduled successfully');
+          } catch (err) {
+            console.error('Failed to schedule task reminders:', err);
+          }
+        });
       }
     });
 
