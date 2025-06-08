@@ -25,21 +25,20 @@ async function scheduleTaskReminder(task) {
     );
 
     if (existingNotification) {
-        console.log(`[TaskReminder] Notification already exists for task ${task.id}, skipping`);
-        return;
+        return 'skipped'; // Return status instead of logging
     }
 
     const reminderTime = new Date(task.reminder_time);
     const dueDate = task.due_date ? new Date(task.due_date) : null;
 
-    console.log(`[TaskReminder] Scheduling reminder for task ${task.id} (${task.title})`);
-    console.log(`[TaskReminder] - Reminder time: ${reminderTime.toLocaleString()}`);
-    console.log(`[TaskReminder] - Due date: ${dueDate ? dueDate.toLocaleDateString() : 'None'}`);
-    console.log(`[TaskReminder] - Reminder type: ${task.reminder_type || 'unknown'}`);
-    console.log(`[TaskReminder] - Task complete: ${task.is_complete}`);
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`[TaskReminder] Scheduling reminder for task ${task.id} (${task.title})`);
+        console.log(`[TaskReminder] - Reminder time: ${reminderTime.toLocaleString()}`);
+        console.log(`[TaskReminder] - Due date: ${dueDate ? dueDate.toLocaleDateString() : 'None'}`);
+    }
 
     if (!dueDate) {
-        console.log(`Task ${task.id} (${task.title}) has no due date, using generic reminder`);
         // Schedule a generic reminder
         const notificationData = {
             title: `Reminder: ${task.title}`,
@@ -53,7 +52,7 @@ async function scheduleTaskReminder(task) {
         };
 
         NotificationModel.scheduleNotification(notificationData);
-        return;
+        return 'scheduled';
     }
 
     // Format the due date for display
@@ -94,8 +93,8 @@ async function scheduleTaskReminder(task) {
         }
     };
 
-    // Removed scheduling log
     NotificationModel.scheduleNotification(notificationData);
+    return 'scheduled';
 }
 
 /**
@@ -164,6 +163,8 @@ async function scheduleAllTaskReminders() {
         );
 
         console.log(`Processing ${result.rows.length} tasks with reminders`);
+        let newReminders = 0;
+        let skippedReminders = 0;
 
         // Process each task
         for (const task of result.rows) {
@@ -172,10 +173,23 @@ async function scheduleAllTaskReminders() {
             if (reminderTime <= now) {
                 // Past reminder - send immediately as overdue notification
                 await sendOverdueReminder(task);
+                newReminders++;
             } else {
                 // Future reminder - schedule normally
-                await scheduleTaskReminder(task);
+                const status = await scheduleTaskReminder(task);
+                if (status === 'scheduled') {
+                    newReminders++;
+                } else if (status === 'skipped') {
+                    skippedReminders++;
+                }
             }
+        }
+
+        // Summary logging
+        if (newReminders > 0 || skippedReminders > 0) {
+            console.log(`✓ Task reminders: ${newReminders} scheduled, ${skippedReminders} already exist`);
+        } else {
+            console.log('✓ No task reminders to schedule');
         }
     } catch (error) {
         console.error('Error scheduling task reminders:', error);

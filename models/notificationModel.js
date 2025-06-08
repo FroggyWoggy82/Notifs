@@ -163,9 +163,13 @@ async function initialize() {
     cleanupOldNotifications();
 
     // Schedule all notifications on startup
-    scheduledNotifications.forEach(notification => {
-        scheduleNotificationJob(notification);
-    });
+    if (scheduledNotifications.length > 0) {
+        console.log(`Scheduling ${scheduledNotifications.length} existing notifications...`);
+        scheduledNotifications.forEach(notification => {
+            scheduleNotificationJob(notification);
+        });
+        console.log(`✓ ${scheduledNotifications.length} notifications scheduled`);
+    }
 
     // Validate subscriptions on startup (async)
     setTimeout(async () => {
@@ -598,7 +602,10 @@ async function sendToAllSubscriptions(notification) {
  */
 function scheduleNotificationJob(notification) {
     const scheduledTime = new Date(notification.scheduledTime);
-    console.log(`Scheduling notification: ${notification.title} for ${scheduledTime.toLocaleString()}`);
+    // Reduced logging - only log individual notifications in development
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`Scheduling notification: ${notification.title} for ${scheduledTime.toLocaleString()}`);
+    }
 
     // Check if the scheduled time is in the past
     const now = new Date();
