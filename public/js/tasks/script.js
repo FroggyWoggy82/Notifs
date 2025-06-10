@@ -2933,23 +2933,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const countMatch = currentText.match(/Level\s+(\d+)/);
         const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
 
-        const newCount = currentCount + 1;
-
-        completionsButton.textContent = `Level ${newCount}`;
-        completionsButton.title = `${newCount} total completions`;
-
-        completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-        let newLevelClass = 'level-1';
-        if (newCount >= 10) {
-            newLevelClass = 'level-10';
-        } else if (newCount >= 5) {
-            newLevelClass = 'level-5';
-        } else if (newCount >= 3) {
-            newLevelClass = 'level-3';
-        }
-        completionsButton.classList.add(newLevelClass);
-
-        console.log(`Updated completions count to ${newCount} (immediate UI update)`);
+        // Don't update the level immediately to prevent flashing
+        // The level will be updated correctly when the API response comes back
+        console.log(`Preserving current level during increment to prevent flashing`);
 
         try {
 
@@ -3194,23 +3180,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        const newCount = isChecked ? currentCount + 1 : Math.max(0, currentCount - 1);
-
-        completionsButton.textContent = `Level ${newCount}`;
-        completionsButton.title = `${newCount} total completions`;
-
-        completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-        let newLevelClass = 'level-1';
-        if (newCount >= 10) {
-            newLevelClass = 'level-10';
-        } else if (newCount >= 5) {
-            newLevelClass = 'level-5';
-        } else if (newCount >= 3) {
-            newLevelClass = 'level-3';
-        }
-        completionsButton.classList.add(newLevelClass);
-
-        console.log(`Updated completions count to ${newCount} (immediate UI update)`);
+        // Don't update the level immediately to prevent flashing
+        // The level will be updated correctly when the API response comes back
+        console.log(`Preserving current level during checkbox click to prevent flashing`);
 
         if (!isChecked) {
             console.log(`Checkbox unchecked for habit ${habitId}, removing completion.`);

@@ -178,21 +178,39 @@ router.post('/:id/complete', async (req, res) => {
             });
         }
 
-        // Record the completion
-        const insertResult = await db.query(
-            'INSERT INTO habit_completions (habit_id, completion_date, created_at) VALUES ($1, $2, NOW()) RETURNING *',
-            [id, today]
-        );
+        // Use a transaction to ensure both operations succeed or fail together
+        const client = await db.getClient();
+        let insertResult, updateResult, totalCompletions;
 
-        console.log('Inserted habit completion:', insertResult.rows[0]);
+        try {
+            await client.query('BEGIN');
 
-        // Increment the total completions counter
-        const updateResult = await db.query(
-            'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1 RETURNING total_completions',
-            [id]
-        );
+            // Record the completion
+            insertResult = await client.query(
+                'INSERT INTO habit_completions (habit_id, completion_date, created_at) VALUES ($1, $2, NOW()) RETURNING *',
+                [id, today]
+            );
 
-        const totalCompletions = updateResult.rows[0].total_completions;
+            console.log('Inserted habit completion:', insertResult.rows[0]);
+
+            // Increment the total completions counter
+            updateResult = await client.query(
+                'UPDATE habits SET total_completions = total_completions + 1 WHERE id = $1 RETURNING total_completions',
+                [id]
+            );
+
+            totalCompletions = updateResult.rows[0].total_completions;
+
+            await client.query('COMMIT');
+            console.log(`Successfully completed habit ${id}: completion record created and counter incremented to ${totalCompletions}`);
+
+        } catch (error) {
+            await client.query('ROLLBACK');
+            console.error(`Transaction failed for habit ${id}:`, error);
+            throw error;
+        } finally {
+            client.release();
+        }
 
         res.json({
             message: 'Completion recorded',
@@ -234,16 +252,34 @@ router.post('/:id/uncomplete', async (req, res) => {
 
         const completionId = completionsResult.rows[0].id;
 
-        // Remove the completion
-        await db.query('DELETE FROM habit_completions WHERE id = $1', [completionId]);
+        // Use a transaction to ensure both operations succeed or fail together
+        const client = await db.getClient();
+        let updateResult, totalCompletions;
 
-        // Decrement the total completions counter
-        const updateResult = await db.query(
-            'UPDATE habits SET total_completions = GREATEST(0, total_completions - 1) WHERE id = $1 RETURNING total_completions',
-            [id]
-        );
+        try {
+            await client.query('BEGIN');
 
-        const totalCompletions = updateResult.rows[0].total_completions;
+            // Remove the completion
+            await client.query('DELETE FROM habit_completions WHERE id = $1', [completionId]);
+
+            // Decrement the total completions counter
+            updateResult = await client.query(
+                'UPDATE habits SET total_completions = GREATEST(0, total_completions - 1) WHERE id = $1 RETURNING total_completions',
+                [id]
+            );
+
+            totalCompletions = updateResult.rows[0].total_completions;
+
+            await client.query('COMMIT');
+            console.log(`Successfully uncompleted habit ${id}: completion record deleted and counter decremented to ${totalCompletions}`);
+
+        } catch (error) {
+            await client.query('ROLLBACK');
+            console.error(`Transaction failed for habit ${id} uncomplete:`, error);
+            throw error;
+        } finally {
+            client.release();
+        }
 
         // Get the updated completions count for today
         const updatedCompletionsResult = await db.query(

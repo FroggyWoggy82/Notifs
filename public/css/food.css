@@ -389,6 +389,497 @@
     padding: 0;
 }
 
+/* Goals & Targets Button */
+.goals-targets-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto;
+}
+
+.goals-targets-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.goals-targets-btn i {
+    font-size: 1.1rem;
+}
+
+/* Goals & Targets Modal */
+.goals-targets-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.goals-targets-modal-content {
+    background-color: rgba(30, 30, 30, 0.95);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 24px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+/* Modal Header */
+.goals-targets-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.goals-targets-modal-header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.goals-targets-modal-close {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.goals-targets-modal-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* User Selector in Modal */
+.goals-targets-user-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding: 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.goals-targets-user-selector label {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.goals-targets-user-selector select {
+    background-color: rgba(40, 40, 40, 0.8);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+/* 3-Column Grid Layout */
+.goals-targets-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Grid Headers */
+.grid-header {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 1rem;
+    padding: 8px 12px;
+    background-color: rgba(76, 175, 80, 0.2);
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+/* Section Headers */
+.grid-section-header {
+    font-weight: 600;
+    color: #4CAF50;
+    font-size: 0.95rem;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+    margin-bottom: 4px;
+}
+
+.grid-section-header:nth-child(3n+2),
+.grid-section-header:nth-child(3n+3) {
+    border-bottom: none;
+}
+
+/* Grid Labels */
+.grid-label {
+    color: #e0e0e0;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 8px 4px;
+    display: flex;
+    align-items: center;
+}
+
+/* Grid Current Values */
+.grid-current {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Grid Inputs */
+.grid-input {
+    display: flex;
+    align-items: center;
+}
+
+.grid-input input {
+    width: 100%;
+    background-color: rgba(40, 40, 40, 0.8);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grid-input input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.grid-input input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Modal Action Buttons */
+.goals-targets-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-save-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+}
+
+.modal-save-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(76, 175, 80, 0.4);
+}
+
+.modal-micronutrient-btn {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-micronutrient-btn:hover {
+    background: linear-gradient(135deg, #1976D2, #2196F3);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(33, 150, 243, 0.4);
+}
+
+/* Micronutrient goals section in modal */
+.micronutrient-goals-content {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.micronutrient-loading {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+}
+
+.micronutrient-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.micronutrient-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.micronutrient-form-group label {
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.micronutrient-unit {
+    color: #888;
+    font-weight: normal;
+}
+
+.micronutrient-form-group input {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+}
+
+.micronutrient-form-group input:focus {
+    outline: none;
+    border-color: #2196F3;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.micronutrient-section-title {
+    font-size: 14px;
+    color: #4CAF50;
+    margin: 20px 0 10px 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.micronutrient-section-title:first-child {
+    margin-top: 0;
+}
+
+.toggle-section-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 10px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.toggle-section-btn:hover {
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Modal Status Messages */
+.goals-targets-modal-status {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.modal-status {
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 0;
+    min-height: 20px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.modal-status.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.modal-status.error {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.modal-status.info {
+    background-color: rgba(33, 150, 243, 0.2);
+    color: #2196F3;
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+/* Responsive Design for Goals & Targets Modal */
+@media (max-width: 768px) {
+    .goals-targets-modal-content {
+        width: 95%;
+        padding: 16px;
+        max-height: 95vh;
+    }
+
+    .goals-targets-modal-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .goals-targets-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .grid-header {
+        display: none; /* Hide headers on mobile for cleaner look */
+    }
+
+    .grid-section-header {
+        grid-column: 1;
+        font-size: 1rem;
+        margin-top: 16px;
+        margin-bottom: 8px;
+        padding: 8px 0;
+        text-align: center;
+        background-color: rgba(76, 175, 80, 0.1);
+        border-radius: 4px;
+    }
+
+    .grid-section-header:first-of-type {
+        margin-top: 0;
+    }
+
+    /* Mobile: Stack label, current value, and input vertically */
+    .grid-label,
+    .grid-current,
+    .grid-input {
+        grid-column: 1;
+        margin-bottom: 4px;
+    }
+
+    .grid-label {
+        font-weight: 600;
+        color: #ffffff;
+        padding: 4px 0;
+    }
+
+    .grid-current {
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+
+    .grid-input {
+        margin-bottom: 16px;
+    }
+
+    .goals-targets-modal-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .modal-save-btn,
+    .modal-micronutrient-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .goals-targets-modal-status {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .modal-status {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .goals-targets-modal-content {
+        width: 98%;
+        padding: 12px;
+    }
+
+    .goals-targets-modal-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .goals-targets-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+
+    .goals-targets-grid {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .grid-input input {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    .modal-save-btn,
+    .modal-micronutrient-btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+}
+
 
 /* Legacy goal card styling - keeping for compatibility */
 .goal-card {

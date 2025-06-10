@@ -48,6 +48,7 @@ const photoUploadRoutes = require('./routes/photo-upload'); // NEW: Simplified p
 const mobileUploadRoutes = require('./routes/mobile-upload'); // NEW: Mobile-specific photo upload route
 const basicUploadRoutes = require('./routes/basic-upload'); // NEW: Ultra-basic photo upload route
 const simplePhotoUploadRoutes = require('./routes/simple-photo-upload'); // NEW: Single photo upload route
+const unifiedPhotoUploadRoutes = require('./routes/unified-photo-upload'); // NEW: Unified photo upload route
 const habitRoutes = require('./routes/habitRoutesSimple'); // Using extremely simplified route handler
 const recipeRoutes = require('./routes/recipeRoutes'); // New MVC pattern
 const recipeIngredientRoutes = require('./routes/recipeIngredientRoutes'); // NEW: Recipe ingredient routes
@@ -228,6 +229,7 @@ app.use('/api/photos', photoUploadRoutes); // NEW: Photo upload route
 app.use('/api/mobile', mobileUploadRoutes); // NEW: Mobile-specific upload route
 app.use('/api/basic', basicUploadRoutes); // NEW: Ultra-basic upload route
 app.use('/api/simple-photos', simplePhotoUploadRoutes); // NEW: Single photo upload route
+app.use('/api/unified-photos', unifiedPhotoUploadRoutes); // NEW: Unified photo upload route
 app.use('/api/habits', habitRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/recipe-ingredients', recipeIngredientRoutes); // NEW: Recipe ingredient routes

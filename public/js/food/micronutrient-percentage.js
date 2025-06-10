@@ -682,7 +682,8 @@
         let progressClass = '';
 
         if (percentage !== null && percentage !== undefined && !isNaN(percentage)) {
-            // Cap at 100% for display purposes
+            // Cap at 100% for display purposes to prevent overflow
+            // The progress bar should never exceed the cell width
             progressWidth = Math.min(percentage, 100) + '%';
 
             if (percentage < 10) {

@@ -2582,23 +2582,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const countMatch = currentText.match(/Level\s+(\d+)/);
         const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
 
-        const newCount = currentCount + 1;
-
-        completionsButton.textContent = `Level ${newCount}`;
-        completionsButton.title = `${newCount} total completions`;
-
-        completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-        let newLevelClass = 'level-1';
-        if (newCount >= 10) {
-            newLevelClass = 'level-10';
-        } else if (newCount >= 5) {
-            newLevelClass = 'level-5';
-        } else if (newCount >= 3) {
-            newLevelClass = 'level-3';
-        }
-        completionsButton.classList.add(newLevelClass);
-
-        console.log(`Updated completions count to ${newCount} (immediate UI update)`);
+        // Don't update the level immediately to prevent flashing
+        // The level will be updated correctly when the API response comes back
+        console.log(`Preserving current level ${currentCount} during increment API call to prevent flashing`);
 
         try {
 
@@ -2811,8 +2797,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const currentText = completionsButton.textContent || '';
-        const countMatch = currentText.match(/(\d+)\s+completions/);
-        const currentCount = countMatch ? parseInt(countMatch[1], 10) : 0;
+        // Match both "Level X" and "X completions" patterns
+        const levelMatch = currentText.match(/Level (\d+)/);
+        const completionsMatch = currentText.match(/(\d+)\s+completions/);
+        const currentCount = levelMatch ? parseInt(levelMatch[1], 10) :
+                           (completionsMatch ? parseInt(completionsMatch[1], 10) : 0);
 
 
         const progressText = habitElement.querySelector('.habit-progress')?.textContent || '';
@@ -2855,23 +2844,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        const newCount = isChecked ? currentCount + 1 : Math.max(0, currentCount - 1);
+        // Don't update the level immediately to prevent flashing
+        // The level will be updated correctly when the API response comes back
+        console.log(`Preserving current level ${currentCount} during API call to prevent flashing`);
 
-        completionsButton.textContent = `Level ${newCount}`;
-        completionsButton.title = `${newCount} total completions`;
-
-        completionsButton.classList.remove('level-1', 'level-3', 'level-5', 'level-10');
-        let newLevelClass = 'level-1';
-        if (newCount >= 10) {
-            newLevelClass = 'level-10';
-        } else if (newCount >= 5) {
-            newLevelClass = 'level-5';
-        } else if (newCount >= 3) {
-            newLevelClass = 'level-3';
-        }
-        completionsButton.classList.add(newLevelClass);
-
-        console.log(`Updated completions count to ${newCount} (immediate UI update)`);
+        // CSS classes will be updated when the API response comes back
 
         if (!isChecked) {
             console.log(`Checkbox unchecked for habit ${habitId}, removing completion.`);
@@ -3140,12 +3117,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     newLevel = calculateLevel(newTotalCompletions);
 
-                    levelEl.textContent = `${newTotalCompletions} completions`;
-                    levelEl.title = `${newTotalCompletions} total completions`;
-
-                    updateLevelClass(levelEl, newLevel);
-
-                    console.log(`Updated level to ${newLevel} (${newTotalCompletions} total completions) (immediate UI update)`);
+                    // Don't update the level immediately to prevent flashing
+                    // The level will be updated correctly when the API response comes back
+                    console.log(`Preserving current level during API call to prevent flashing (would be Level ${newLevel})`);
                 }
 
                 try {

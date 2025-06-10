@@ -1,0 +1,203 @@
+/**
+ * Micronutrient Overflow Fix
+ * Nuclear option to prevent ANY overflow in micronutrient sections
+ * This file specifically targets the overflow issue shown in the user's screenshot
+ */
+
+/* Target ALL micronutrient-related containers */
+.micronutrient-percentage-container,
+.micronutrient-content,
+.micronutrient-category,
+[class*="micronutrient"] {
+    overflow-x: hidden !important;
+}
+
+/* Force table layout for ALL tables in micronutrient sections */
+.micronutrient-percentage-container table,
+.micronutrient-content table,
+.micronutrient-category table,
+[class*="micronutrient"] table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    overflow: hidden !important;
+}
+
+/* Constrain ALL table cells in micronutrient sections */
+.micronutrient-percentage-container td,
+.micronutrient-percentage-container th,
+.micronutrient-content td,
+.micronutrient-content th,
+.micronutrient-category td,
+.micronutrient-category th,
+[class*="micronutrient"] td,
+[class*="micronutrient"] th {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+}
+
+/* Optimized column widths for compact progress bars and visible text */
+.micronutrient-percentage-container table th:nth-child(1),
+.micronutrient-percentage-container table td:nth-child(1) {
+    width: 32% !important;
+    max-width: 32% !important;
+}
+
+.micronutrient-percentage-container table th:nth-child(2),
+.micronutrient-percentage-container table td:nth-child(2) {
+    width: 20% !important;
+    max-width: 20% !important;
+}
+
+.micronutrient-percentage-container table th:nth-child(3),
+.micronutrient-percentage-container table td:nth-child(3) {
+    width: 20% !important;
+    max-width: 20% !important;
+}
+
+.micronutrient-percentage-container table th:nth-child(4),
+.micronutrient-percentage-container table td:nth-child(4) {
+    width: 28% !important;
+    max-width: 28% !important;
+}
+
+/* Target ANY element with green background colors (progress indicators) */
+*[style*="background-color: rgb(0, 255, 0)"],
+*[style*="background-color: #00ff00"],
+*[style*="background-color: green"],
+*[style*="background: rgb(0, 255, 0)"],
+*[style*="background: #00ff00"],
+*[style*="background: green"],
+*[style*="background-color: #0f0"],
+*[style*="background: #0f0"] {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* Specifically target elements in micronutrient sections with green backgrounds */
+.micronutrient-percentage-container *[style*="green"],
+.micronutrient-content *[style*="green"],
+.micronutrient-category *[style*="green"],
+[class*="micronutrient"] *[style*="green"] {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    width: auto !important;
+}
+
+/* Force containment for progress-like elements */
+.micronutrient-percentage-container .progress,
+.micronutrient-percentage-container .bar,
+.micronutrient-percentage-container [class*="progress"],
+.micronutrient-percentage-container [class*="bar"] {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* Emergency containment for ANY wide elements in micronutrient sections */
+.micronutrient-percentage-container * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Specific fix for the percentage column that contains progress bars */
+.micronutrient-table td:nth-child(4) * {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* Improve progress bar visibility and text readability */
+.micronutrient-percentage-container .micronutrient-progress {
+    max-width: 50px !important;
+    min-width: 40px !important;
+    width: 50px !important;
+    height: 6px !important;
+    margin-top: 2px !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+}
+
+.micronutrient-percentage-container .micronutrient-percentage {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    margin-bottom: 2px !important;
+    display: inline-block !important;
+    text-align: left !important;
+    width: auto !important;
+    margin-right: 8px !important;
+    min-width: 35px !important;
+}
+
+/* Ensure percentage column has enough space and proper layout */
+.micronutrient-percentage-container table td:nth-child(4) {
+    padding: 4px 6px !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    display: table-cell !important;
+}
+
+/* Create a flex layout for percentage text and progress bar */
+.micronutrient-percentage-container table td:nth-child(4) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    padding: 4px 6px !important;
+}
+
+/* Make progress bars shorter and more compact */
+.micronutrient-percentage-container .micronutrient-progress-bar {
+    height: 6px !important;
+    border-radius: 3px !important;
+    max-width: 100% !important;
+}
+
+/* Responsive design for different screen sizes */
+@media (max-width: 768px) {
+    .micronutrient-percentage-container table th:nth-child(1),
+    .micronutrient-percentage-container table td:nth-child(1) {
+        width: 28% !important;
+        max-width: 28% !important;
+    }
+
+    .micronutrient-percentage-container table th:nth-child(4),
+    .micronutrient-percentage-container table td:nth-child(4) {
+        width: 32% !important;
+        max-width: 32% !important;
+    }
+
+    .micronutrient-percentage-container .micronutrient-percentage {
+        font-size: 10px !important;
+        min-width: 30px !important;
+    }
+
+    .micronutrient-percentage-container .micronutrient-progress {
+        max-width: 40px !important;
+        width: 40px !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .micronutrient-percentage-container .micronutrient-progress {
+        max-width: 60px !important;
+        width: 60px !important;
+    }
+
+    .micronutrient-percentage-container .micronutrient-percentage {
+        min-width: 40px !important;
+    }
+}
+
+/* Additional safety net for any remaining overflow */
+.micronutrient-percentage-container,
+.micronutrient-content {
+    contain: layout style !important;
+    overflow: hidden !important;
+}

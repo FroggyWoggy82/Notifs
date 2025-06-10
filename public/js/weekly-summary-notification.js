@@ -87,34 +87,74 @@
         notification.style.background = '#121212';
 
         notification.innerHTML = `
-            ${iconHtml}
-            <div class="notification-content">
-                <div style="font-weight: bold; margin-bottom: 4px;">Weekly Summary (${weekStart} - ${weekEnd})</div>
-                <div style="font-size: 14px; opacity: 0.9;">
-                    ${summary.completedTasks}/${summary.totalTasks} tasks completed (${completionRate}%)
+            <div class="weekly-summary-card">
+                <div class="weekly-summary-header">
+                    <div class="weekly-summary-icon">${iconHtml}</div>
+                    <div class="weekly-summary-title">
+                        <h3>Weekly Summary</h3>
+                        <span class="weekly-summary-date">${weekStart} - ${weekEnd}</span>
+                    </div>
+                    <button class="weekly-summary-close" aria-label="Close notification">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
-                <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">
-                    Click to view detailed breakdown
+                <div class="weekly-summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">${summary.completedTasks}</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <div class="stat-number">${summary.totalTasks}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <div class="stat-number">${completionRate}%</div>
+                        <div class="stat-label">Rate</div>
+                    </div>
+                </div>
+                <div class="weekly-summary-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${completionRate}%"></div>
+                    </div>
+                </div>
+                <div class="weekly-summary-action">
+                    <span class="action-text">Click to view detailed breakdown</span>
+                    <svg class="action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
                 </div>
             </div>
-            <span class="notification-close" style="align-self: flex-start;">×</span>
         `;
         
         container.appendChild(notification);
-        
-        // Trigger reflow to ensure transition works
+
+        // Trigger reflow and add entrance animation
         notification.offsetHeight;
-        notification.classList.add('show');
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100px) scale(0.9)';
+
+        // Animate in
+        setTimeout(() => {
+            notification.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0) scale(1)';
+            notification.classList.add('show');
+        }, 100);
         
         // Set up click handler to open weekly task list
         notification.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('notification-close')) {
+            if (!e.target.closest('.weekly-summary-close')) {
                 openWeeklyTaskList();
             }
         });
-        
+
         // Set up close button
-        const closeBtn = notification.querySelector('.notification-close');
+        const closeBtn = notification.querySelector('.weekly-summary-close');
         closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             closeNotification(notification);
@@ -394,19 +434,269 @@
     function addWeeklySummaryStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            /* Notification styles */
+            /* Modern Weekly Summary Notification */
             .notification.weekly-summary {
-                background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%) !important;
-                border-radius: 8px !important;
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
-                transition: all 0.3s ease !important;
+                background: linear-gradient(145deg, #1e1e1e 0%, #2a2a2a 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+                backdrop-filter: blur(10px) !important;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+                min-width: 380px !important;
+                max-width: 420px !important;
             }
+
             .notification.weekly-summary:hover {
-                transform: translateY(-2px) !important;
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
+                transform: translateY(-4px) scale(1.02) !important;
+                box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7), 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+                border-color: rgba(76, 175, 80, 0.3) !important;
             }
-            .notification.weekly-summary .notification-content {
-                line-height: 1.4;
+
+            .weekly-summary-card {
+                padding: 20px;
+                position: relative;
+            }
+
+            .weekly-summary-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                margin-bottom: 16px;
+            }
+
+            .weekly-summary-icon {
+                font-size: 24px;
+                margin-right: 12px;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            }
+
+            .weekly-summary-title h3 {
+                color: #ffffff;
+                font-size: 18px;
+                font-weight: 700;
+                margin: 0 0 4px 0;
+                letter-spacing: -0.5px;
+            }
+
+            .weekly-summary-date {
+                color: #a0a0a0;
+                font-size: 13px;
+                font-weight: 500;
+                opacity: 0.8;
+            }
+
+            .weekly-summary-close {
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                border-radius: 8px;
+                color: #a0a0a0;
+                cursor: pointer;
+                padding: 8px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+            }
+
+            .weekly-summary-close:hover {
+                background: rgba(255, 255, 255, 0.2);
+                color: #ffffff;
+                transform: scale(1.1);
+            }
+
+            .weekly-summary-stats {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 16px;
+                padding: 16px;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .stat-item {
+                text-align: center;
+                flex: 1;
+            }
+
+            .stat-number {
+                color: #4CAF50;
+                font-size: 24px;
+                font-weight: 800;
+                margin-bottom: 4px;
+                text-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+            }
+
+            .stat-label {
+                color: #b0b0b0;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .stat-divider {
+                width: 1px;
+                height: 40px;
+                background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent);
+                margin: 0 8px;
+            }
+
+            .weekly-summary-progress {
+                margin-bottom: 16px;
+            }
+
+            .progress-bar {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                height: 8px;
+                overflow: hidden;
+                position: relative;
+            }
+
+            .progress-fill {
+                background: linear-gradient(90deg, #4CAF50, #66BB6A);
+                height: 100%;
+                border-radius: 8px;
+                transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+                position: relative;
+            }
+
+            .progress-fill::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                animation: shimmer 2s infinite;
+            }
+
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+
+            .weekly-summary-action {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: rgba(76, 175, 80, 0.1);
+                border: 1px solid rgba(76, 175, 80, 0.2);
+                border-radius: 10px;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+
+            .weekly-summary-action:hover {
+                background: rgba(76, 175, 80, 0.15);
+                border-color: rgba(76, 175, 80, 0.3);
+                transform: translateX(2px);
+            }
+
+            .action-text {
+                color: #4CAF50;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            .action-arrow {
+                color: #4CAF50;
+                transition: transform 0.2s ease;
+            }
+
+            .weekly-summary-action:hover .action-arrow {
+                transform: translateX(2px);
+            }
+
+            /* Mobile responsiveness for notification */
+            @media (max-width: 768px) {
+                .notification.weekly-summary {
+                    min-width: 320px !important;
+                    max-width: 360px !important;
+                    margin: 0 10px !important;
+                }
+
+                .weekly-summary-card {
+                    padding: 16px;
+                }
+
+                .weekly-summary-header {
+                    margin-bottom: 12px;
+                }
+
+                .weekly-summary-title h3 {
+                    font-size: 16px;
+                }
+
+                .weekly-summary-stats {
+                    padding: 12px;
+                    margin-bottom: 12px;
+                }
+
+                .stat-number {
+                    font-size: 20px;
+                }
+
+                .stat-label {
+                    font-size: 10px;
+                }
+
+                .weekly-summary-action {
+                    padding: 10px 12px;
+                }
+
+                .action-text {
+                    font-size: 12px;
+                }
+            }
+
+            /* Dark mode enhancements */
+            @media (prefers-color-scheme: dark) {
+                .notification.weekly-summary {
+                    background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+                    border-color: rgba(255, 255, 255, 0.15) !important;
+                }
+
+                .weekly-summary-stats {
+                    background: rgba(0, 0, 0, 0.3);
+                    border-color: rgba(255, 255, 255, 0.08);
+                }
+            }
+
+            /* Accessibility improvements */
+            .weekly-summary-close:focus {
+                outline: 2px solid #4CAF50;
+                outline-offset: 2px;
+            }
+
+            .weekly-summary-action:focus {
+                outline: 2px solid #4CAF50;
+                outline-offset: 2px;
+            }
+
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .notification.weekly-summary,
+                .weekly-summary-close,
+                .weekly-summary-action,
+                .action-arrow,
+                .progress-fill {
+                    transition: none !important;
+                    animation: none !important;
+                }
+
+                .progress-fill::after {
+                    animation: none !important;
+                }
             }
 
             /* Modal styles */

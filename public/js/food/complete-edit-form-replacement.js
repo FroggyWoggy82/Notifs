@@ -296,18 +296,37 @@
                 label: 'Grocery Store:',
                 value: ingredient.grocery_store || '',
                 type: 'text'
-            }
-        ]);
-    }
-
-    function createGeneralSection(ingredient) {
-        return createSection('General', [
+            },
+            // Essential nutrition fields (always visible)
             {
                 id: 'edit-ingredient-calories',
                 label: 'Energy (kcal):',
                 value: ingredient.calories || '',
                 required: true
             },
+            {
+                id: 'edit-ingredient-protein',
+                label: 'Protein (g):',
+                value: ingredient.protein || '',
+                required: true
+            },
+            {
+                id: 'edit-ingredient-fats',
+                label: 'Fat (g):',
+                value: ingredient.fats || '',
+                required: true
+            },
+            {
+                id: 'edit-ingredient-carbs',
+                label: 'Carbs (g):',
+                value: ingredient.carbohydrates || '',
+                required: true
+            }
+        ]);
+    }
+
+    function createGeneralSection(ingredient) {
+        return createSection('General', [
             {
                 id: 'edit-ingredient-alcohol',
                 label: 'Alcohol (g):',
@@ -328,12 +347,6 @@
 
     function createCarbohydratesSection(ingredient) {
         return createSection('Carbohydrates', [
-            {
-                id: 'edit-ingredient-carbs',
-                label: 'Carbs (g):',
-                value: ingredient.carbohydrates || '',
-                required: true
-            },
             {
                 id: 'edit-ingredient-fiber',
                 label: 'Fiber (g):',
@@ -370,12 +383,6 @@
                            (ingredient.omega_6 !== undefined ? ingredient.omega_6 : '');
 
         return createSection('Lipids', [
-            {
-                id: 'edit-ingredient-fats',
-                label: 'Fat (g):',
-                value: ingredient.fats || '',
-                required: true
-            },
             {
                 id: 'edit-ingredient-monounsaturated',
                 label: 'Monounsaturated (g):',
@@ -415,13 +422,7 @@
     }
 
     function createProteinSection(ingredient) {
-        return createSection('Protein', [
-            {
-                id: 'edit-ingredient-protein',
-                label: 'Protein (g):',
-                value: ingredient.protein || '',
-                required: true
-            },
+        return createSection('Amino Acids', [
             {
                 id: 'edit-ingredient-cystine',
                 label: 'Cystine (g):',

@@ -240,10 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', function(event) {
 
         if (event.target.type === 'checkbox' && event.target.closest('.habit-item')) {
-
-            setTimeout(updateHabitLevelDisplays, 100);
-            setTimeout(updateHabitLevelDisplays, 500);
-            setTimeout(updateHabitLevelDisplays, 1000);
+            // Only update after a reasonable delay to prevent flashing
+            setTimeout(updateHabitLevelDisplays, 1500);
         }
     });
 
@@ -252,8 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.originalHandleHabitCheckboxClick = handleHabitCheckboxClick;
 
         window.handleHabitCheckboxClick = async function(habitId, isChecked) {
+            // Store the current level before making the API call
+            const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+            const levelElement = habitElement ? habitElement.querySelector('.habit-level') : null;
+            const currentLevelText = levelElement ? levelElement.textContent : '';
 
-            setTimeout(updateHabitLevelDisplays, 50);
+            console.log(`[Habit Level Fix] Preserving current level: ${currentLevelText} for habit ${habitId}`);
+
+            // Prevent level updates during API call
+            if (levelElement) {
+                levelElement.setAttribute('data-preserving-level', 'true');
+            }
 
             if (!isChecked) {
                 console.log(`Enhanced checkbox unchecked for habit ${habitId}, removing completion.`);
@@ -517,30 +524,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('Habit level fix script loaded successfully');
 
-    setTimeout(updateHabitLevelDisplays, 100);
-    setTimeout(updateHabitLevelDisplays, 500);
-    setTimeout(updateHabitLevelDisplays, 1000);
+    // Single delayed update to prevent flashing
     setTimeout(updateHabitLevelDisplays, 2000);
 });
 
-setTimeout(function() {
-    const habitLevels = document.querySelectorAll('.habit-level');
-    habitLevels.forEach(levelEl => {
-        const titleText = levelEl.title || '0 total completions';
-        const totalCompletionsMatch = titleText.match(/(\d+) total completions/);
-        if (totalCompletionsMatch) {
-            const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
-            levelEl.textContent = `Level ${totalCompletions}`;
-            console.log(`Updated habit level display to show total completions: ${totalCompletions}`);
-        } else {
-
-            const levelText = levelEl.textContent || '';
-            const levelMatch = levelText.match(/Level (\d+)/);
-            if (levelMatch) {
-                const level = parseInt(levelMatch[1], 10);
-                levelEl.textContent = `Level ${level}`;
-                console.log(`Updated habit level display from Level format: ${level}`);
-            }
-        }
-    });
-}, 500);
+// Removed multiple setTimeout calls that were causing flashing
+// The habit-level-flash-prevention.js script now handles level updates properly

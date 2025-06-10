@@ -5963,22 +5963,274 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCalorieTargetBtn.addEventListener('click', function() {
             saveIndividualTarget('calorie');
         });
-        
+
     }
 
     if (saveProteinTargetBtn) {
         saveProteinTargetBtn.addEventListener('click', function() {
             saveIndividualTarget('protein');
         });
-        
+
     }
 
     if (saveFatTargetBtn) {
         saveFatTargetBtn.addEventListener('click', function() {
             saveIndividualTarget('fat');
         });
-        
+
     }
+
+    // ===== Goals & Targets Modal Functionality =====
+
+    // Modal elements
+    const goalsTargetsModal = document.getElementById('goals-targets-modal');
+    const openGoalsTargetsModalBtn = document.getElementById('open-goals-targets-modal');
+    const closeGoalsTargetsModalBtn = document.querySelector('.goals-targets-modal-close');
+    const modalUserSelector = document.getElementById('modal-user-selector');
+
+    // Modal input elements
+    const modalTargetWeight = document.getElementById('modal-targetWeight');
+    const modalWeeklyGainGoal = document.getElementById('modal-weeklyGainGoal');
+    const modalCalorieTarget = document.getElementById('modal-calorie-target');
+    const modalProteinTarget = document.getElementById('modal-protein-target');
+    const modalFatTarget = document.getElementById('modal-fat-target');
+
+    // Modal display elements
+    const modalCurrentTargetWeight = document.getElementById('modal-current-target-weight');
+    const modalCurrentWeeklyGoal = document.getElementById('modal-current-weekly-goal');
+    const modalCurrentCalorieTarget = document.getElementById('modal-current-calorie-target');
+    const modalCurrentProteinTarget = document.getElementById('modal-current-protein-target');
+    const modalCurrentFatTarget = document.getElementById('modal-current-fat-target');
+
+    // Modal action buttons
+    const modalSaveWeightGoalsBtn = document.getElementById('modal-save-weight-goals-btn');
+    const modalSaveAllTargetsBtn = document.getElementById('modal-save-all-targets-btn');
+    const modalEditMicronutrientGoalsBtn = document.getElementById('modal-edit-micronutrient-goals-btn');
+
+    // Modal status elements
+    const modalWeightGoalStatus = document.getElementById('modal-weight-goal-status');
+    const modalCalorieTargetStatus = document.getElementById('modal-calorie-target-status');
+
+    // Function to open the Goals & Targets modal
+    function openGoalsTargetsModal() {
+        if (goalsTargetsModal) {
+            // Sync modal user selector with main user selector
+            if (modalUserSelector && userSelector) {
+                modalUserSelector.value = userSelector.value;
+            }
+
+            // Load current values into modal
+            loadModalCurrentValues();
+
+            // Show modal
+            goalsTargetsModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+    }
+
+    // Function to close the Goals & Targets modal
+    function closeGoalsTargetsModal() {
+        if (goalsTargetsModal) {
+            goalsTargetsModal.style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling
+
+            // Clear modal inputs
+            if (modalTargetWeight) modalTargetWeight.value = '';
+            if (modalWeeklyGainGoal) modalWeeklyGainGoal.value = '';
+            if (modalCalorieTarget) modalCalorieTarget.value = '';
+            if (modalProteinTarget) modalProteinTarget.value = '';
+            if (modalFatTarget) modalFatTarget.value = '';
+
+            // Clear status messages
+            if (modalWeightGoalStatus) {
+                modalWeightGoalStatus.textContent = '';
+                modalWeightGoalStatus.className = 'modal-status';
+            }
+            if (modalCalorieTargetStatus) {
+                modalCalorieTargetStatus.textContent = '';
+                modalCalorieTargetStatus.className = 'modal-status';
+            }
+        }
+    }
+
+    // Function to load current values into modal display
+    function loadModalCurrentValues() {
+        // Load weight goals
+        if (modalCurrentTargetWeight && targetWeightInput) {
+            const currentWeight = targetWeightInput.value || 'Not set';
+            modalCurrentTargetWeight.textContent = currentWeight !== 'Not set' ? `${currentWeight} lbs` : 'Not set';
+        }
+
+        if (modalCurrentWeeklyGoal && weeklyGainGoalInput) {
+            const currentGoal = weeklyGainGoalInput.value || 'Not set';
+            modalCurrentWeeklyGoal.textContent = currentGoal !== 'Not set' ? `${currentGoal} lbs/week` : 'Not set';
+        }
+
+        // Load nutrition targets from display elements
+        if (modalCurrentCalorieTarget && currentCalorieTarget) {
+            modalCurrentCalorieTarget.textContent = currentCalorieTarget.textContent;
+        }
+
+        if (modalCurrentProteinTarget && currentProteinTarget) {
+            modalCurrentProteinTarget.textContent = currentProteinTarget.textContent;
+        }
+
+        if (modalCurrentFatTarget && currentFatTarget) {
+            modalCurrentFatTarget.textContent = currentFatTarget.textContent;
+        }
+    }
+
+    // Function to sync modal inputs with hidden inputs for compatibility
+    function syncModalInputsToHidden() {
+        if (modalTargetWeight && targetWeightInput) {
+            targetWeightInput.value = modalTargetWeight.value;
+        }
+        if (modalWeeklyGainGoal && weeklyGainGoalInput) {
+            weeklyGainGoalInput.value = modalWeeklyGainGoal.value;
+        }
+        if (modalCalorieTarget && calorieTargetInput) {
+            calorieTargetInput.value = modalCalorieTarget.value;
+        }
+        if (modalProteinTarget && proteinTargetInput) {
+            proteinTargetInput.value = modalProteinTarget.value;
+        }
+        if (modalFatTarget && fatTargetInput) {
+            fatTargetInput.value = modalFatTarget.value;
+        }
+    }
+
+    // Function to sync user selector
+    function syncModalUserSelector() {
+        if (modalUserSelector && userSelector) {
+            userSelector.value = modalUserSelector.value;
+            currentUserId = modalUserSelector.value;
+
+            // Update hidden calorie user selector for compatibility
+            if (calorieUserSelector) {
+                calorieUserSelector.value = modalUserSelector.value;
+            }
+
+            // Reload current values when user changes
+            loadWeightGoal();
+            loadCalorieTarget(modalUserSelector.value);
+            loadModalCurrentValues();
+        }
+    }
+
+    // Function to show modal status
+    function showModalStatus(element, message, type) {
+        if (element) {
+            element.textContent = message;
+            element.className = `modal-status ${type}`;
+
+            // Auto-hide success messages after 3 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    element.textContent = '';
+                    element.className = 'modal-status';
+                }, 3000);
+            }
+        }
+    }
+
+    // Modal event listeners
+    if (openGoalsTargetsModalBtn) {
+        openGoalsTargetsModalBtn.addEventListener('click', openGoalsTargetsModal);
+    }
+
+    if (closeGoalsTargetsModalBtn) {
+        closeGoalsTargetsModalBtn.addEventListener('click', closeGoalsTargetsModal);
+    }
+
+    // Close modal when clicking outside
+    if (goalsTargetsModal) {
+        goalsTargetsModal.addEventListener('click', function(e) {
+            if (e.target === goalsTargetsModal) {
+                closeGoalsTargetsModal();
+            }
+        });
+    }
+
+    // Modal user selector change
+    if (modalUserSelector) {
+        modalUserSelector.addEventListener('change', syncModalUserSelector);
+    }
+
+    // Modal save weight goals button
+    if (modalSaveWeightGoalsBtn) {
+        modalSaveWeightGoalsBtn.addEventListener('click', function() {
+            // Sync modal inputs to hidden inputs
+            syncModalInputsToHidden();
+
+            // Call existing save function
+            saveAllWeightGoals().then(() => {
+                // Update modal display after successful save
+                loadModalCurrentValues();
+                showModalStatus(modalWeightGoalStatus, 'Weight goals saved successfully!', 'success');
+            }).catch((error) => {
+                showModalStatus(modalWeightGoalStatus, `Error: ${error.message}`, 'error');
+            });
+        });
+    }
+
+    // Modal save all targets button
+    if (modalSaveAllTargetsBtn) {
+        modalSaveAllTargetsBtn.addEventListener('click', function() {
+            // Sync modal inputs to hidden inputs
+            syncModalInputsToHidden();
+
+            // Call existing save function
+            saveAllTargets().then(() => {
+                // Update modal display after successful save
+                loadModalCurrentValues();
+                showModalStatus(modalCalorieTargetStatus, 'All targets saved successfully!', 'success');
+            }).catch((error) => {
+                showModalStatus(modalCalorieTargetStatus, `Error: ${error.message}`, 'error');
+            });
+        });
+    }
+
+    // Toggle micronutrient goals section
+    const toggleMicronutrientGoalsBtn = document.getElementById('toggle-micronutrient-goals');
+    const micronutrientGoalsContent = document.getElementById('micronutrient-goals-content');
+    const modalSaveMicronutrientGoalsBtn = document.getElementById('modal-save-micronutrient-goals-btn');
+
+    if (toggleMicronutrientGoalsBtn && micronutrientGoalsContent) {
+        toggleMicronutrientGoalsBtn.addEventListener('click', function() {
+            const isVisible = micronutrientGoalsContent.style.display !== 'none';
+
+            if (isVisible) {
+                // Hide section
+                micronutrientGoalsContent.style.display = 'none';
+                toggleMicronutrientGoalsBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                if (modalSaveMicronutrientGoalsBtn) {
+                    modalSaveMicronutrientGoalsBtn.style.display = 'none';
+                }
+            } else {
+                // Show section and load micronutrient goals
+                micronutrientGoalsContent.style.display = 'block';
+                toggleMicronutrientGoalsBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                if (modalSaveMicronutrientGoalsBtn) {
+                    modalSaveMicronutrientGoalsBtn.style.display = 'inline-flex';
+                }
+                loadMicronutrientGoalsInModal();
+            }
+        });
+    }
+
+    // Save micronutrient goals button
+    if (modalSaveMicronutrientGoalsBtn) {
+        modalSaveMicronutrientGoalsBtn.addEventListener('click', function() {
+            saveMicronutrientGoalsFromModal();
+        });
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && goalsTargetsModal && goalsTargetsModal.style.display === 'flex') {
+            closeGoalsTargetsModal();
+        }
+    });
 
     if (calorieUserSelector) {
         calorieUserSelector.addEventListener('change', function() {
@@ -6955,3 +7207,239 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteRecipe = deleteRecipe;
     window.showAddIngredientModal = window.showAddIngredientModal;
 });
+
+// Micronutrient goals data structure - Complete list from Cronometer
+const micronutrients = {
+    general: {
+        title: 'General',
+        nutrients: {
+            energy: { label: 'Energy', unit: 'kcal', placeholder: '2000' },
+            alcohol: { label: 'Alcohol', unit: 'g', placeholder: '0' },
+            caffeine: { label: 'Caffeine', unit: 'mg', placeholder: '400' },
+            water: { label: 'Water', unit: 'g', placeholder: '2000' }
+        }
+    },
+    carbohydrates: {
+        title: 'Carbohydrates',
+        nutrients: {
+            carbs: { label: 'Carbs', unit: 'g', placeholder: '300' },
+            fiber: { label: 'Fiber', unit: 'g', placeholder: '25' },
+            starch: { label: 'Starch', unit: 'g', placeholder: '0' },
+            sugars: { label: 'Sugars', unit: 'g', placeholder: '50' },
+            added_sugars: { label: 'Added Sugars', unit: 'g', placeholder: '25' },
+            net_carbs: { label: 'Net Carbs', unit: 'g', placeholder: '275' }
+        }
+    },
+    lipids: {
+        title: 'Lipids',
+        nutrients: {
+            fat: { label: 'Fat', unit: 'g', placeholder: '65' },
+            monounsaturated: { label: 'Monounsaturated', unit: 'g', placeholder: '0' },
+            polyunsaturated: { label: 'Polyunsaturated', unit: 'g', placeholder: '0' },
+            omega3: { label: 'Omega-3', unit: 'g', placeholder: '1.6' },
+            omega6: { label: 'Omega-6', unit: 'g', placeholder: '17' },
+            saturated: { label: 'Saturated', unit: 'g', placeholder: '20' },
+            trans_fat: { label: 'Trans-Fats', unit: 'g', placeholder: '0' },
+            cholesterol: { label: 'Cholesterol', unit: 'mg', placeholder: '300' }
+        }
+    },
+    protein: {
+        title: 'Protein',
+        nutrients: {
+            protein: { label: 'Protein', unit: 'g', placeholder: '50' },
+            cystine: { label: 'Cystine', unit: 'g', placeholder: '0' },
+            histidine: { label: 'Histidine', unit: 'g', placeholder: '0' },
+            isoleucine: { label: 'Isoleucine', unit: 'g', placeholder: '0' },
+            leucine: { label: 'Leucine', unit: 'g', placeholder: '0' },
+            lysine: { label: 'Lysine', unit: 'g', placeholder: '0' },
+            methionine: { label: 'Methionine', unit: 'g', placeholder: '0' },
+            phenylalanine: { label: 'Phenylalanine', unit: 'g', placeholder: '0' },
+            threonine: { label: 'Threonine', unit: 'g', placeholder: '0' },
+            tryptophan: { label: 'Tryptophan', unit: 'g', placeholder: '0' },
+            tyrosine: { label: 'Tyrosine', unit: 'g', placeholder: '0' },
+            valine: { label: 'Valine', unit: 'g', placeholder: '0' }
+        }
+    },
+    vitamins: {
+        title: 'Vitamins',
+        nutrients: {
+            thiamine: { label: 'B1 (Thiamine)', unit: 'mg', placeholder: '1.2' },
+            riboflavin: { label: 'B2 (Riboflavin)', unit: 'mg', placeholder: '1.3' },
+            niacin: { label: 'B3 (Niacin)', unit: 'mg', placeholder: '16' },
+            pantothenic_acid: { label: 'B5 (Pantothenic Acid)', unit: 'mg', placeholder: '5' },
+            vitamin_b6: { label: 'B6 (Pyridoxine)', unit: 'mg', placeholder: '1.3' },
+            vitamin_b12: { label: 'B12 (Cobalamin)', unit: 'µg', placeholder: '2.4' },
+            folate: { label: 'Folate', unit: 'µg', placeholder: '400' },
+            vitamin_a: { label: 'Vitamin A', unit: 'µg', placeholder: '900' },
+            vitamin_c: { label: 'Vitamin C', unit: 'mg', placeholder: '90' },
+            vitamin_d: { label: 'Vitamin D', unit: 'IU', placeholder: '600' },
+            vitamin_e: { label: 'Vitamin E', unit: 'mg', placeholder: '15' },
+            vitamin_k: { label: 'Vitamin K', unit: 'µg', placeholder: '120' }
+        }
+    },
+    minerals: {
+        title: 'Minerals',
+        nutrients: {
+            calcium: { label: 'Calcium', unit: 'mg', placeholder: '1000' },
+            copper: { label: 'Copper', unit: 'mg', placeholder: '0.9' },
+            iron: { label: 'Iron', unit: 'mg', placeholder: '8' },
+            magnesium: { label: 'Magnesium', unit: 'mg', placeholder: '400' },
+            manganese: { label: 'Manganese', unit: 'mg', placeholder: '2.3' },
+            phosphorus: { label: 'Phosphorus', unit: 'mg', placeholder: '700' },
+            potassium: { label: 'Potassium', unit: 'mg', placeholder: '3500' },
+            selenium: { label: 'Selenium', unit: 'µg', placeholder: '55' },
+            sodium: { label: 'Sodium', unit: 'mg', placeholder: '2300' },
+            zinc: { label: 'Zinc', unit: 'mg', placeholder: '11' }
+        }
+    }
+};
+
+// Load micronutrient goals in modal
+async function loadMicronutrientGoalsInModal() {
+    const loadingDiv = document.getElementById('micronutrient-loading');
+    const formContainer = document.getElementById('micronutrient-goals-form-container');
+
+    if (!loadingDiv || !formContainer) return;
+
+    try {
+        loadingDiv.style.display = 'block';
+        formContainer.style.display = 'none';
+
+        // Get current user ID
+        const userSelector = document.getElementById('user-selector');
+        const userId = userSelector ? parseInt(userSelector.value) || 1 : 1;
+
+        // Generate form HTML
+        let formHTML = '<form id="micronutrient-goals-form">';
+
+        for (const [sectionKey, section] of Object.entries(micronutrients)) {
+            formHTML += `
+                <div class="micronutrient-section-title">${section.title}</div>
+                <div class="micronutrient-form-grid">
+            `;
+
+            for (const [nutrientKey, nutrient] of Object.entries(section.nutrients)) {
+                formHTML += `
+                    <div class="micronutrient-form-group">
+                        <label for="modal-${nutrientKey}">
+                            ${nutrient.label}
+                            <span class="micronutrient-unit">(${nutrient.unit})</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="modal-${nutrientKey}"
+                            name="${nutrientKey}"
+                            placeholder="${nutrient.placeholder}"
+                            step="0.1"
+                            min="0"
+                        >
+                    </div>
+                `;
+            }
+
+            formHTML += '</div>';
+        }
+
+        formHTML += '</form>';
+        formContainer.innerHTML = formHTML;
+
+        // Load current goals
+        const response = await fetch(`/api/micronutrient-goals/${userId}`);
+        if (response.ok) {
+            const data = await response.json();
+
+            // Populate form with current values
+            for (const [sectionKey, section] of Object.entries(micronutrients)) {
+                for (const nutrientKey of Object.keys(section.nutrients)) {
+                    const input = document.getElementById(`modal-${nutrientKey}`);
+                    if (input && data[nutrientKey] !== null && data[nutrientKey] !== undefined) {
+                        input.value = data[nutrientKey];
+                    }
+                }
+            }
+        }
+
+        loadingDiv.style.display = 'none';
+        formContainer.style.display = 'block';
+
+    } catch (error) {
+        console.error('Error loading micronutrient goals:', error);
+        loadingDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error loading micronutrient goals';
+    }
+}
+
+// Save micronutrient goals from modal
+async function saveMicronutrientGoalsFromModal() {
+    const formContainer = document.getElementById('micronutrient-goals-form-container');
+    const saveBtn = document.getElementById('modal-save-micronutrient-goals-btn');
+
+    if (!formContainer || !saveBtn) return;
+
+    try {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        // Get current user ID
+        const userSelector = document.getElementById('user-selector');
+        const userId = userSelector ? parseInt(userSelector.value) || 1 : 1;
+
+        // Collect form data
+        const formData = { user_id: userId };
+
+        for (const [sectionKey, section] of Object.entries(micronutrients)) {
+            for (const nutrientKey of Object.keys(section.nutrients)) {
+                const input = document.getElementById(`modal-${nutrientKey}`);
+                if (input && input.value.trim() !== '') {
+                    formData[nutrientKey] = parseFloat(input.value);
+                }
+            }
+        }
+
+        const response = await fetch('/api/micronutrient-goals', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+        saveBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-pills"></i> Save Micronutrient Goals';
+            saveBtn.style.background = '';
+        }, 2000);
+
+        // Update micronutrient targets if function exists
+        if (typeof updateMicronutrientTargets === 'function') {
+            const calorieInput = document.getElementById('modal-calorie-target-input');
+            const proteinInput = document.getElementById('modal-protein-target-input');
+            const fatInput = document.getElementById('modal-fat-target-input');
+
+            const calorieTarget = calorieInput ? parseFloat(calorieInput.value) || null : null;
+            const proteinTarget = proteinInput ? parseFloat(proteinInput.value) || null : null;
+            const fatTarget = fatInput ? parseFloat(fatInput.value) || null : null;
+
+            updateMicronutrientTargets(calorieTarget, proteinTarget, fatTarget);
+        }
+
+    } catch (error) {
+        console.error('Error saving micronutrient goals:', error);
+        saveBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+        saveBtn.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+
+        setTimeout(() => {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-pills"></i> Save Micronutrient Goals';
+            saveBtn.style.background = '';
+        }, 3000);
+    }
+}

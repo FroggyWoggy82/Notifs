@@ -10,6 +10,34 @@
     border-bottom: 2px solid #00ff00;
 }
 
+/* UNIVERSAL OVERFLOW FIX - Constrain ALL green progress elements */
+.micronutrient-percentage-container table,
+.micronutrient-percentage-container .micronutrient-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+/* Force all table cells to respect their column widths */
+.micronutrient-percentage-container td,
+.micronutrient-percentage-container th {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+}
+
+/* Constrain ANY element with green background that could be a progress indicator */
+.micronutrient-percentage-container [style*="background-color: rgb(0, 255, 0)"],
+.micronutrient-percentage-container [style*="background-color: #00ff00"],
+.micronutrient-percentage-container [style*="background-color: green"],
+.micronutrient-percentage-container [style*="background: rgb(0, 255, 0)"],
+.micronutrient-percentage-container [style*="background: #00ff00"],
+.micronutrient-percentage-container [style*="background: green"] {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
 .micronutrient-percentage-container h3 {
     color: #fff;
     margin-top: 0;
@@ -55,32 +83,67 @@
     border-collapse: collapse;
     color: #fff;
     font-size: 12px;
+    table-layout: auto;
 }
 
 .micronutrient-table th {
     padding: 4px 6px;
-    text-align: left;
+    text-align: left !important;
     border-bottom: 1px solid #333;
     background-color: #222;
     font-size: 11px;
     font-weight: 600;
 }
 
-.micronutrient-table th:last-child {
-    text-align: right;
+/* Column width distribution */
+.micronutrient-table th:nth-child(1) { width: auto; }
+.micronutrient-table th:nth-child(2) { width: 90px; }
+.micronutrient-table th:nth-child(3) { width: 90px; }
+.micronutrient-table th:nth-child(4) { width: 100px; }
+
+/* Align Amount, Target, and % columns to the right */
+.micronutrient-table th:nth-child(2),
+.micronutrient-table th:nth-child(3),
+.micronutrient-table th:nth-child(4) {
+    text-align: right !important;
 }
 
 .micronutrient-table td {
     padding: 3px 6px;
-    text-align: left;
+    text-align: left !important;
     border-bottom: 1px solid #333;
     line-height: 1.2;
+    overflow: hidden;
+    position: relative;
 }
 
+/* Align Amount, Target, and % columns to the right */
 .micronutrient-table td:nth-child(2),
 .micronutrient-table td:nth-child(3),
 .micronutrient-table td:nth-child(4) {
-    text-align: right;
+    text-align: right !important;
+}
+
+/* Specific styling for percentage column to contain progress bars */
+.micronutrient-table td:nth-child(4) {
+    width: 100px !important;
+    min-width: 100px;
+    max-width: 100px;
+    overflow: hidden;
+    position: relative;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Also apply width constraints to Amount and Target columns */
+.micronutrient-table td:nth-child(2),
+.micronutrient-table td:nth-child(3) {
+    width: 90px !important;
+    min-width: 90px;
+    max-width: 90px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .micronutrient-progress {
@@ -90,12 +153,18 @@
     border-radius: 3px;
     overflow: hidden;
     margin-top: 2px;
+    box-sizing: border-box;
+    position: relative;
+    max-width: 85px; /* Constrain the container itself */
 }
 
 .micronutrient-progress-bar {
     height: 100%;
     background-color: #00ff00;
     border-radius: 3px;
+    max-width: 100% !important; /* Use 100% of the constrained container */
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .micronutrient-progress-bar.low {
@@ -111,6 +180,9 @@
     font-size: 11px;
     display: block;
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .micronutrient-percentage.low {
@@ -127,6 +199,57 @@
 
 .micronutrient-percentage.na {
     color: #999;
+}
+
+/* AGGRESSIVE OVERFLOW PREVENTION - Target the specific table structure from user's screenshot */
+/* Force table layout and column constraints for micronutrient tables */
+table.micronutrient-table,
+.micronutrient-percentage-container table {
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+}
+
+/* Specific column width enforcement for 4-column micronutrient tables */
+table.micronutrient-table th:nth-child(1),
+table.micronutrient-table td:nth-child(1) {
+    width: 40% !important; /* Nutrient name */
+}
+
+table.micronutrient-table th:nth-child(2),
+table.micronutrient-table td:nth-child(2) {
+    width: 20% !important; /* Amount */
+}
+
+table.micronutrient-table th:nth-child(3),
+table.micronutrient-table td:nth-child(3) {
+    width: 20% !important; /* Target */
+}
+
+table.micronutrient-table th:nth-child(4),
+table.micronutrient-table td:nth-child(4) {
+    width: 20% !important; /* Percentage column */
+}
+
+/* Prevent ANY content from overflowing in micronutrient tables */
+table.micronutrient-table td,
+table.micronutrient-table th,
+.micronutrient-percentage-container td,
+.micronutrient-percentage-container th {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    max-width: none !important; /* Reset any conflicting max-width */
+}
+
+/* Target ANY green-colored elements that might be progress indicators */
+.micronutrient-percentage-container *[style*="green"],
+.micronutrient-percentage-container *[style*="rgb(0, 255, 0)"],
+.micronutrient-percentage-container *[style*="#00ff00"],
+.micronutrient-percentage-container *[style*="#0f0"] {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 
 @media print {

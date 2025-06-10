@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="../css/detailed-nutrition-view.css"> <!-- Detailed nutrition view styling -->
     <link rel="stylesheet" href="../css/micronutrient-display.css"> <!-- Micronutrient display styling -->
     <link rel="stylesheet" href="../css/micronutrient-percentage.css"> <!-- Micronutrient percentage display styling -->
+    <link rel="stylesheet" href="../css/micronutrient-overflow-fix.css"> <!-- CRITICAL: Fix for micronutrient progress bar overflow -->
     <link rel="stylesheet" href="../css/micronutrient-goals-modal.css"> <!-- Micronutrient goals modal styling -->
     <!-- <link rel="stylesheet" href="../css/custom-goal-weights.css"> Custom goal weights styling - disabled -->
     <link rel="stylesheet" href="../css/section-separator.css"> <!-- Section separator styling -->
@@ -191,92 +192,127 @@
 
     <h1 class="food-page-title">Food & Recipes</h1>
 
-    <!-- ===== Unified Goals & Targets Dashboard ===== -->
-    <section id="unified-goals-section" class="compact-goals-section">
+    <!-- ===== Goals & Targets Button ===== -->
+    <section id="goals-targets-button-section" class="compact-goals-section">
         <div class="section-header-compact">
-            <h2>Goals & Targets Dashboard</h2>
+            <button type="button" id="open-goals-targets-modal" class="goals-targets-btn">
+                <i class="fas fa-bullseye"></i> Goals & Targets
+            </button>
+        </div>
+    </section>
 
-            <!-- Unified user selector for both sections -->
-            <div class="user-selector-container">
-                <label for="user-selector">Select User:</label>
-                <select id="user-selector">
+    <!-- ===== Goals & Targets Modal ===== -->
+    <div id="goals-targets-modal" class="goals-targets-modal" style="display: none;">
+        <div class="goals-targets-modal-content">
+            <!-- Modal Header -->
+            <div class="goals-targets-modal-header">
+                <h2>Goals & Targets Management</h2>
+                <button type="button" class="goals-targets-modal-close">&times;</button>
+            </div>
+
+            <!-- User Selector -->
+            <div class="goals-targets-user-selector">
+                <label for="modal-user-selector">Select User:</label>
+                <select id="modal-user-selector">
                     <option value="1" selected>My Data</option>
                     <option value="2">Mom's Data</option>
                 </select>
             </div>
-        </div>
 
-        <!-- Single unified box with form elements in 2x2 grid layout -->
-        <div class="unified-goals-box">
-            <h3 class="unified-title">Weight Goal & Daily Targets</h3>
+            <!-- 3-Column Layout Grid -->
+            <div class="goals-targets-grid">
+                <!-- Header Row -->
+                <div class="grid-header">Goal/Target</div>
+                <div class="grid-header">Current Value</div>
+                <div class="grid-header">Set Target</div>
 
-            <div class="form-grid-2x2">
-                <!-- Top Left: Target Weight -->
-                <div class="form-group">
-                    <label for="targetWeight">Target Weight (lbs)</label>
-                    <input type="number" id="targetWeight" step="0.1" placeholder="e.g., 175.5">
+                <!-- Weight Goals Section -->
+                <div class="grid-section-header">Weight Goals</div>
+                <div class="grid-section-header"></div>
+                <div class="grid-section-header"></div>
+
+                <!-- Target Weight -->
+                <div class="grid-label">Target Weight (lbs)</div>
+                <div class="grid-current">
+                    <span id="modal-current-target-weight">Not set</span>
+                </div>
+                <div class="grid-input">
+                    <input type="number" id="modal-targetWeight" step="0.1" placeholder="e.g., 175.5">
                 </div>
 
-                <!-- Top Right: Weekly Goal -->
-                <div class="form-group">
-                    <label for="weeklyGainGoal">Weekly Goal (lbs)</label>
-                    <input type="number" id="weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
+                <!-- Weekly Goal -->
+                <div class="grid-label">Weekly Goal (lbs)</div>
+                <div class="grid-current">
+                    <span id="modal-current-weekly-goal">Not set</span>
+                </div>
+                <div class="grid-input">
+                    <input type="number" id="modal-weeklyGainGoal" step="0.1" placeholder="e.g., 0.5 or -1">
                 </div>
 
-                <!-- Bottom Left: Target Calories -->
-                <div class="form-group">
-                    <label for="calorie-target">Target Calories</label>
-                    <input type="number" id="calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
+                <!-- Nutrition Targets Section -->
+                <div class="grid-section-header">Nutrition Targets</div>
+                <div class="grid-section-header"></div>
+                <div class="grid-section-header"></div>
+
+                <!-- Calories -->
+                <div class="grid-label">Daily Calories</div>
+                <div class="grid-current">
+                    <span id="modal-current-calorie-target">2200 calories</span>
+                </div>
+                <div class="grid-input">
+                    <input type="number" id="modal-calorie-target" min="500" max="10000" step="50" placeholder="e.g., 2000">
                 </div>
 
-                <!-- Bottom Right: Current Calorie Target -->
-                <div class="form-group">
-                    <label class="current-label">Current Calorie Target</label>
-                    <div class="current-display">
-                        <span id="current-calorie-target">2200 calories</span>
-                    </div>
+                <!-- Protein -->
+                <div class="grid-label">Protein (g)</div>
+                <div class="grid-current">
+                    <span id="modal-current-protein-target">83 g</span>
+                </div>
+                <div class="grid-input">
+                    <input type="number" id="modal-protein-target" min="20" max="500" step="1" placeholder="e.g., 150">
+                </div>
+
+                <!-- Fat -->
+                <div class="grid-label">Fat (g)</div>
+                <div class="grid-current">
+                    <span id="modal-current-fat-target">73 g</span>
+                </div>
+                <div class="grid-input">
+                    <input type="number" id="modal-fat-target" min="20" max="300" step="1" placeholder="e.g., 70">
                 </div>
             </div>
 
-            <!-- Additional targets row -->
-            <div class="additional-targets">
-                <div class="form-group">
-                    <label for="protein-target">Target Protein (g)</label>
-                    <input type="number" id="protein-target" min="20" max="500" step="1" placeholder="e.g., 150">
-                </div>
-                <div class="form-group">
-                    <label class="current-label">Current Protein Target</label>
-                    <div class="current-display">
-                        <span id="current-protein-target">83 g</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="fat-target">Target Fat (g)</label>
-                    <input type="number" id="fat-target" min="20" max="300" step="1" placeholder="e.g., 70">
-                </div>
-                <div class="form-group">
-                    <label class="current-label">Current Fat Target</label>
-                    <div class="current-display">
-                        <span id="current-fat-target">73 g</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action buttons -->
-            <div class="action-section">
-                <div class="button-group">
-                    <button type="button" id="save-all-weight-goals-btn" class="save-goal-btn">Save Weight Goals</button>
-                    <button id="save-all-targets-btn" class="save-btn">Save All Targets</button>
-                    <button type="button" id="edit-micronutrient-goals-btn" class="edit-micronutrient-btn">
-                        <i class="fas fa-pills"></i> Edit Micronutrient Goals
+            <!-- Micronutrient Goals Section -->
+            <div class="goals-targets-section">
+                <h3 class="goals-targets-section-title">
+                    <i class="fas fa-pills"></i> Micronutrient Goals
+                    <button type="button" id="toggle-micronutrient-goals" class="toggle-section-btn">
+                        <i class="fas fa-chevron-down"></i>
                     </button>
+                </h3>
+                <div id="micronutrient-goals-content" class="micronutrient-goals-content" style="display: none;">
+                    <div class="micronutrient-loading" id="micronutrient-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading micronutrient goals...
+                    </div>
+                    <div id="micronutrient-goals-form-container" style="display: none;">
+                        <!-- Micronutrient form will be populated here -->
+                    </div>
                 </div>
             </div>
 
-            <!-- Status messages -->
-            <div class="status-section">
-                <div id="weight-goal-status" class="status"></div>
-                <div id="calorie-target-status" class="status"></div>
+            <!-- Action Buttons -->
+            <div class="goals-targets-modal-actions">
+                <button type="button" id="modal-save-weight-goals-btn" class="modal-save-btn">Save Weight Goals</button>
+                <button type="button" id="modal-save-all-targets-btn" class="modal-save-btn">Save All Targets</button>
+                <button type="button" id="modal-save-micronutrient-goals-btn" class="modal-micronutrient-btn" style="display: none;">
+                    <i class="fas fa-pills"></i> Save Micronutrient Goals
+                </button>
+            </div>
+
+            <!-- Status Messages -->
+            <div class="goals-targets-modal-status">
+                <div id="modal-weight-goal-status" class="modal-status"></div>
+                <div id="modal-calorie-target-status" class="modal-status"></div>
             </div>
 
             <!-- Hidden elements for compatibility -->
@@ -284,7 +320,25 @@
                 <option value="1" selected>My Data</option>
                 <option value="2">Mom's Data</option>
             </select>
+            <select id="user-selector" style="display: none;">
+                <option value="1" selected>My Data</option>
+                <option value="2">Mom's Data</option>
+            </select>
+            <!-- Hidden inputs for compatibility with existing JS -->
+            <input type="hidden" id="targetWeight">
+            <input type="hidden" id="weeklyGainGoal">
+            <input type="hidden" id="calorie-target">
+            <input type="hidden" id="protein-target">
+            <input type="hidden" id="fat-target">
+            <div style="display: none;">
+                <span id="current-calorie-target">2200 calories</span>
+                <span id="current-protein-target">83 g</span>
+                <span id="current-fat-target">73 g</span>
+                <div id="weight-goal-status" class="status"></div>
+                <div id="calorie-target-status" class="status"></div>
+            </div>
         </div>
+    </div>
 
         <div class="chart-container" style="position: relative; height: 450px; width: 100%; margin-top: 20px; margin-bottom: 20px; background-color: rgba(20, 20, 20, 0.8); border-radius: 4px; padding: 10px; display: block; visibility: visible;">
             <div class="chart-controls" style="display: none;">
@@ -2130,6 +2184,169 @@
             }
         }
 
+        // Notification system
+        function showNotification(message, type = 'info') {
+            // Remove any existing notification
+            const existingNotification = document.getElementById('food-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.id = 'food-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10001;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                transition: all 0.3s ease;
+                transform: translateX(100%);
+            `;
+
+            // Set background color based on type
+            switch (type) {
+                case 'success':
+                    notification.style.backgroundColor = 'rgba(34, 197, 94, 0.9)';
+                    break;
+                case 'error':
+                    notification.style.backgroundColor = 'rgba(239, 68, 68, 0.9)';
+                    break;
+                case 'warning':
+                    notification.style.backgroundColor = 'rgba(245, 158, 11, 0.9)';
+                    break;
+                default:
+                    notification.style.backgroundColor = 'rgba(59, 130, 246, 0.9)';
+            }
+
+            notification.textContent = message;
+
+            // Add to page
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        // Function to update main display after comprehensive edit
+        function updateMainDisplayAfterEdit(index, formData) {
+            const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+            if (!ingredientElement) return;
+
+            // Update name if provided
+            if (formData.name) {
+                const nameElement = ingredientElement.querySelector('.ingredient-name');
+                if (nameElement) {
+                    nameElement.textContent = formData.name;
+                }
+            }
+
+            // Update amount input if provided
+            if (formData.amount) {
+                const amountInput = ingredientElement.querySelector(`#ingredient-amount-${index}`);
+                if (amountInput) {
+                    amountInput.value = formData.amount;
+                }
+            }
+
+            // Calculate and update nutrition values based on the new amount
+            if (formData.amount && formData.calories && formData.protein && formData.fats && formData.carbohydrates) {
+                // These are per-100g values, so calculate actual values based on amount
+                const ratio = formData.amount / 100;
+                const calories = Math.round(formData.calories * ratio);
+                const protein = Math.round(formData.protein * ratio * 10) / 10;
+                const fat = Math.round(formData.fats * ratio * 10) / 10;
+                const carbs = Math.round(formData.carbohydrates * ratio * 10) / 10;
+
+                // Update nutrition display
+                const calValue = ingredientElement.querySelector('.cal-value');
+                const proteinValue = ingredientElement.querySelector('.protein-value');
+                const fatValue = ingredientElement.querySelector('.fat-value');
+                const carbsValue = ingredientElement.querySelector('.carbs-value');
+
+                if (calValue) calValue.textContent = calories;
+                if (proteinValue) proteinValue.textContent = protein;
+                if (fatValue) fatValue.textContent = fat;
+                if (carbsValue) carbsValue.textContent = carbs;
+            }
+
+            // Trigger nutrition recalculation if the function exists
+            if (typeof window.calculateNutrition === 'function') {
+                window.calculateNutrition();
+            }
+        }
+
+        // Function to update ingredient preview when amount changes
+        window.updateIngredientPreview = function(index) {
+            const newAmount = parseFloat(document.getElementById('edit-popup-ingredient-amount').value) || 0;
+
+            // Get the ingredient element
+            const ingredientElement = document.querySelector(`[data-index="${index}"]`);
+            if (!ingredientElement) return;
+
+            // Get current nutrition values to calculate per-gram ratios
+            const currentAmountInput = ingredientElement.querySelector(`#ingredient-amount-${index}`);
+            const currentAmount = parseFloat(currentAmountInput?.value) || 0;
+
+            if (currentAmount <= 0) return;
+
+            const currentCalories = parseFloat(ingredientElement.querySelector('.cal-value')?.textContent) || 0;
+            const currentProtein = parseFloat(ingredientElement.querySelector('.protein-value')?.textContent) || 0;
+            const currentFat = parseFloat(ingredientElement.querySelector('.fat-value')?.textContent) || 0;
+            const currentCarbs = parseFloat(ingredientElement.querySelector('.carbs-value')?.textContent) || 0;
+
+            // Calculate per-gram values
+            const caloriesPerGram = currentCalories / currentAmount;
+            const proteinPerGram = currentProtein / currentAmount;
+            const fatPerGram = currentFat / currentAmount;
+            const carbsPerGram = currentCarbs / currentAmount;
+
+            // Calculate new nutrition values
+            const newCalories = Math.round(caloriesPerGram * newAmount);
+            const newProtein = Math.round(proteinPerGram * newAmount * 10) / 10;
+            const newFat = Math.round(fatPerGram * newAmount * 10) / 10;
+            const newCarbs = Math.round(carbsPerGram * newAmount * 10) / 10;
+
+            // Update the display in the main ingredient list
+            const calValue = ingredientElement.querySelector('.cal-value');
+            const proteinValue = ingredientElement.querySelector('.protein-value');
+            const fatValue = ingredientElement.querySelector('.fat-value');
+            const carbsValue = ingredientElement.querySelector('.carbs-value');
+
+            if (calValue) calValue.textContent = newCalories;
+            if (proteinValue) proteinValue.textContent = newProtein;
+            if (fatValue) fatValue.textContent = newFat;
+            if (carbsValue) carbsValue.textContent = newCarbs;
+
+            // Update the amount input in the main list
+            if (currentAmountInput) {
+                currentAmountInput.value = newAmount;
+            }
+
+            // Trigger nutrition recalculation if the function exists
+            if (typeof window.calculateNutrition === 'function') {
+                window.calculateNutrition();
+            }
+        };
+
         // Function to create comprehensive edit form content using the proper comprehensive form
         function createComprehensiveEditForm(ingredient, recipeId, index) {
             console.log('[Comprehensive Edit Modal] Creating comprehensive form...');
@@ -2486,6 +2703,10 @@
                         }
 
                         console.log('[Comprehensive Edit Modal] Manual ingredient updated locally:', window.currentIngredients[index]);
+                    }
+
+                    // Also update the main display directly
+                    updateMainDisplayAfterEdit(index, formData);
                     } else {
                         throw new Error('Manual ingredient not found in meal submission');
                     }
@@ -2521,15 +2742,18 @@
                             window.calculateNutrition();
                         }
                     }
+
+                    // Also update the main display directly
+                    updateMainDisplayAfterEdit(index, formData);
                 }
 
                 // Show success message and close modal
-                alert('Ingredient updated successfully!');
+                showNotification('Ingredient updated successfully!', 'success');
                 window.closeComprehensiveEditModal();
 
             } catch (error) {
                 console.error('[Comprehensive Edit Modal] Error updating ingredient:', error);
-                alert(`Error updating ingredient: ${error.message}`);
+                showNotification(`Error updating ingredient: ${error.message}`, 'error');
             }
         }
 
@@ -2544,7 +2768,7 @@
             // Get the ingredient element
             const ingredientElement = document.querySelector(`[data-index="${index}"]`);
             if (!ingredientElement) {
-                alert('Ingredient not found.');
+                showNotification('Ingredient not found.', 'error');
                 return;
             }
 
@@ -2666,7 +2890,7 @@
                                     background-color: rgba(40, 40, 40, 0.8);
                                     color: #ffffff;
                                     box-sizing: border-box;
-                                ">
+                                " oninput="updateIngredientPreview(${index})">
                             </div>
                             <div style="flex: 1;">
                                 <label style="display: block; margin-bottom: 5px; color: #ffffff;">Package Amount (g)</label>
@@ -3845,7 +4069,7 @@
             }
 
             const parsedCount = Object.keys(parsedData).length;
-            alert(`Comprehensive nutrition data parsed successfully! ${parsedCount} nutrition values were populated.`);
+            showNotification(`Comprehensive nutrition data parsed successfully! ${parsedCount} nutrition values were populated.`, 'success');
         };
 
         window.saveEditedIngredient = function(index) {
@@ -3860,12 +4084,12 @@
 
             // Validate inputs
             if (!name) {
-                alert('Please enter an ingredient name.');
+                showNotification('Please enter an ingredient name.', 'warning');
                 return;
             }
 
             if (amount <= 0) {
-                alert('Please enter a valid amount greater than 0.');
+                showNotification('Please enter a valid amount greater than 0.', 'warning');
                 return;
             }
 
@@ -4094,7 +4318,8 @@
             // Close popup
             window.closeEditIngredientPopup();
 
-            // Success - no console logs or alert messages needed
+            // Show success notification
+            showNotification(`Ingredient "${name}" updated successfully!`, 'success');
         };
 
         // Helper function to save comprehensive nutrition data to database
@@ -4112,7 +4337,7 @@
 
             if (!recipeId) {
                 console.error('[Meal Edit] No recipe ID found, cannot save to database');
-                alert(`Ingredient "${name}" updated in the interface, but could not save to database (no recipe ID).`);
+                showNotification(`Ingredient "${name}" updated in the interface, but could not save to database (no recipe ID).`, 'warning');
                 return;
             }
 
@@ -4156,7 +4381,7 @@
             })
             .catch(error => {
                 console.error('[Meal Edit] Database update failed:', error);
-                alert(`Ingredient "${name}" updated in the interface, but there was an error saving comprehensive nutrition data to the database.`);
+                showNotification(`Ingredient "${name}" updated in the interface, but there was an error saving comprehensive nutrition data to the database.`, 'error');
             });
         }
 

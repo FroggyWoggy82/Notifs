@@ -208,7 +208,7 @@
                         <input type="text" class="ingredient-search-input" placeholder="Search for ingredient..." value="${ingredient.name}">
                         <div class="ingredient-search-dropdown" style="display: none;"></div>
                     </div>
-                    <button type="button" class="ingredient-dropdown-btn" data-index="${index}" title="Replace ingredient">
+                    <button type="button" class="ingredient-dropdown-btn" data-index="${index}" title="Replace ingredient" tabindex="-1">
                         <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
@@ -223,6 +223,7 @@
                     min="0"
                     step="0.1"
                     data-index="${index}"
+                    tabindex="${100 + index}"
                 >
             </div>
             <div class="nutrition-preview">
@@ -232,8 +233,8 @@
                 <div class="carbs">Carbs: <span class="carbs-value">${ingredient.carbohydrates || 0}</span>g</div>
             </div>
             <div class="ingredient-actions">
-                <button type="button" class="edit-ingredient-btn" data-index="${index}">Edit</button>
-                <button type="button" class="remove-ingredient-btn" data-index="${index}">Remove</button>
+                <button type="button" class="edit-ingredient-btn" data-index="${index}" tabindex="-1">Edit</button>
+                <button type="button" class="remove-ingredient-btn" data-index="${index}" tabindex="-1">Remove</button>
             </div>
         `;
 
