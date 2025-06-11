@@ -1,0 +1,367 @@
+/**
+ * Food Button Consistency Fix
+ * Changes all green and blue colored buttons to match the consistent white button with black text design
+ * Ensures text fits properly inside buttons
+ */
+
+/* ===== GOALS & TARGETS BUTTON ===== */
+.goals-targets-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 10px 20px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 0 auto !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.goals-targets-btn:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+.goals-targets-btn i {
+    font-size: 1rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* ===== MODAL SAVE BUTTONS ===== */
+.modal-save-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 8px 16px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.modal-save-btn:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===== MODAL MICRONUTRIENT BUTTON ===== */
+.modal-micronutrient-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 8px 16px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.modal-micronutrient-btn:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3) !important;
+}
+
+.modal-micronutrient-btn i {
+    font-size: 0.9rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* ===== GREEN BUTTONS FROM FOOD-DARK-THEME ===== */
+#add-ingredient-btn,
+#save-recipe-btn,
+.scan-nutrition-btn,
+.paste-nutrition-btn,
+.scan-template-btn,
+.view-recipe-btn,
+.edit-recipe-btn,
+.delete-recipe-btn,
+.raw-ocr-toggle,
+.reset-scale-btn {
+    background-color: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.2) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+#add-ingredient-btn:hover,
+#save-recipe-btn:hover,
+.scan-nutrition-btn:hover,
+.paste-nutrition-btn:hover,
+.scan-template-btn:hover,
+.view-recipe-btn:hover,
+.edit-recipe-btn:hover,
+.delete-recipe-btn:hover,
+.raw-ocr-toggle:hover,
+.reset-scale-btn:hover {
+    background-color: #f0f0f0 !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===== SUBMIT MEAL BUTTON ===== */
+.submit-meal-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 10px 20px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.submit-meal-btn:hover:not(:disabled) {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+.submit-meal-btn:disabled {
+    background: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(18, 18, 18, 0.5) !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.submit-meal-btn i {
+    font-size: 0.9rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* ===== RESET MEAL BUTTON ===== */
+.reset-meal-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 10px 20px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.reset-meal-btn:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(255, 255, 255, 0.3) !important;
+}
+
+.reset-meal-btn i {
+    font-size: 0.9rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* ===== GROCERY LIST BUTTONS ===== */
+#generate-list-btn,
+#save-as-task-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 8px 16px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#generate-list-btn:hover:not(:disabled),
+#save-as-task-btn:hover:not(:disabled) {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3) !important;
+}
+
+#generate-list-btn:disabled,
+#save-as-task-btn:disabled {
+    background: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(18, 18, 18, 0.5) !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ===== CALENDAR NAVIGATION BUTTONS ===== */
+.calendar-nav-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 6px 10px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 36px !important;
+    height: 36px !important;
+}
+
+.calendar-nav-btn:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3) !important;
+}
+
+.calendar-nav-btn i {
+    font-size: 0.8rem !important;
+}
+
+/* ===== TOGGLE MICRONUTRIENTS BUTTON ===== */
+.toggle-micronutrients {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 8px 16px !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.toggle-micronutrients:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3) !important;
+}
+
+.toggle-micronutrients i {
+    font-size: 0.8rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* ===== EDIT GOAL WEIGHTS BUTTON ===== */
+#edit-goal-weights-btn {
+    background: #ffffff !important;
+    color: #121212 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.2) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#edit-goal-weights-btn:hover {
+    background: #f0f0f0 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+    .goals-targets-btn {
+        padding: 8px 16px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .modal-save-btn,
+    .modal-micronutrient-btn {
+        padding: 6px 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    #add-ingredient-btn,
+    #save-recipe-btn,
+    .scan-nutrition-btn,
+    .paste-nutrition-btn,
+    .scan-template-btn,
+    .view-recipe-btn,
+    .edit-recipe-btn,
+    .delete-recipe-btn {
+        padding: 4px 8px !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .goals-targets-btn {
+        padding: 6px 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .submit-meal-btn,
+    .reset-meal-btn {
+        padding: 8px 16px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    #generate-list-btn,
+    #save-as-task-btn {
+        padding: 6px 12px !important;
+        font-size: 0.8rem !important;
+    }
+}

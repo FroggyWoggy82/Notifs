@@ -1604,6 +1604,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Update the button text based on the mode and exercise name
+        updateModalButtonText(mode, exerciseToReplaceIndex, isGlobalReplace);
+
         console.log('[openExerciseModal] Target list:', exerciseModal.dataset.targetList);
 
         exerciseModal.style.display = 'block';
@@ -1671,6 +1674,27 @@ document.addEventListener('DOMContentLoaded', function() {
         exerciseModal.style.display = 'none';
     }
 
+    function updateModalButtonText(mode, exerciseToReplaceIndex, isGlobalReplace) {
+        if (!addSelectedExercisesBtn) return;
+
+        if (mode === 'replace' && exerciseToReplaceIndex >= 0 && currentWorkout && currentWorkout.exercises) {
+            const exerciseToReplace = currentWorkout.exercises[exerciseToReplaceIndex];
+            if (exerciseToReplace && exerciseToReplace.name) {
+                const exerciseName = exerciseToReplace.name;
+                if (isGlobalReplace) {
+                    addSelectedExercisesBtn.textContent = `Replace globally exercise ${exerciseName}`;
+                } else {
+                    addSelectedExercisesBtn.textContent = `Replace exercise ${exerciseName}`;
+                }
+            } else {
+                // Fallback if exercise name is not available
+                addSelectedExercisesBtn.textContent = isGlobalReplace ? 'Replace Exercise Globally' : 'Replace Exercise';
+            }
+        } else {
+            // Default text for add mode
+            addSelectedExercisesBtn.textContent = 'Add Selected';
+        }
+    }
 
     function saveWorkoutState() {
         try {
