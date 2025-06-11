@@ -1209,16 +1209,17 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         });
 
-        // Create the task with subtasks
+        // Create the main task first (without subtasks)
         const taskData = {
             title: taskTitle,
             description: taskDescription,
             due_date: new Date().toISOString().split('T')[0], // Today's date
-            completed: false,
-            subtasks: subtasks
+            completed: false
         };
 
-        // Send the task to the server
+        console.log('[GROCERY SAVE] Creating main task:', taskData);
+
+        // Send the main task to the server
         fetch('/api/tasks', {
             method: 'POST',
             headers: {
@@ -1232,12 +1233,49 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return response.json();
         })
-        .then(data => {
+        .then(async (mainTask) => {
+            console.log('[GROCERY SAVE] Main task created successfully:', mainTask);
+
+            // Now create each subtask individually
+            if (subtasks && subtasks.length > 0) {
+                console.log(`[GROCERY SAVE] Creating ${subtasks.length} subtasks for task ${mainTask.id}`);
+
+                for (let i = 0; i < subtasks.length; i++) {
+                    const subtask = subtasks[i];
+                    try {
+                        console.log(`[GROCERY SAVE] Creating subtask ${i + 1}/${subtasks.length}:`, subtask);
+
+                        const subtaskResponse = await fetch(`/api/tasks/${mainTask.id}/subtasks`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                title: subtask.title,
+                                description: subtask.description || '',
+                                is_complete: subtask.completed || false
+                            })
+                        });
+
+                        if (!subtaskResponse.ok) {
+                            throw new Error(`Failed to create subtask: ${subtaskResponse.status} ${subtaskResponse.statusText}`);
+                        }
+
+                        const newSubtask = await subtaskResponse.json();
+                        console.log(`[GROCERY SAVE] Created subtask ${i + 1}/${subtasks.length}:`, newSubtask);
+                    } catch (error) {
+                        console.error(`[GROCERY SAVE] Failed to create subtask "${subtask.title}":`, error);
+                        // Continue with other subtasks even if one fails
+                    }
+                }
+
+                console.log('[GROCERY SAVE] All subtasks creation completed');
+            }
+
             showStatus('Grocery list saved as task successfully!', 'success');
-            
         })
         .catch(error => {
-            console.error('Error saving grocery list as task:', error);
+            console.error('[GROCERY SAVE] Error saving grocery list as task:', error);
             showStatus('Failed to save grocery list as task. Please try again.', 'error');
         });
     }

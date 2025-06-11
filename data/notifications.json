@@ -658,18 +658,5 @@
       "taskId": 184,
       "type": "task_reminder"
     }
-  },
-  {
-    "id": "47de91b359f645d74ed54409",
-    "title": "Bloating Check-in",
-    "body": "How are you feeling after eating Salmon, Atlantic, Farmed, Raw, White, Rice Steamed, Seaweed Salad, Corn, Yellow, Canned, Drained, Avocado, California, Shirakiku, Imitation Crab Sticks, French's, Crispy Fried Onions, Kewpie, Mayonnaise, Nippon Shokken, Eel Sauce? Rate your bloating level.",
-    "scheduledTime": "2025-06-10T18:48:03.383Z",
-    "createdAt": 1749579483384,
-    "data": {
-      "type": "bloating_rating",
-      "mealId": 13,
-      "mealName": "Poke Bowl",
-      "ingredients": "Salmon, Atlantic, Farmed, Raw, White, Rice Steamed, Seaweed Salad, Corn, Yellow, Canned, Drained, Avocado, California, Shirakiku, Imitation Crab Sticks, French's, Crispy Fried Onions, Kewpie, Mayonnaise, Nippon Shokken, Eel Sauce"
-    }
   }
 ]

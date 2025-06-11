@@ -207,10 +207,14 @@ function addSaveAsTaskButton() {
     const groceryListControls = document.querySelector('.grocery-list-controls');
     if (!groceryListControls) return;
 
-    // Check if the button already exists
-    if (document.getElementById('save-as-task-btn')) return;
+    // Check if the button already exists - if it does, just return it without adding event listener
+    const existingButton = document.getElementById('save-as-task-btn');
+    if (existingButton) {
+        console.log('Save as Task button already exists, skipping event listener addition to avoid conflicts');
+        return existingButton;
+    }
 
-    // Create the button
+    // Create the button only if it doesn't exist
     const saveAsTaskBtn = document.createElement('button');
     saveAsTaskBtn.id = 'save-as-task-btn';
     saveAsTaskBtn.className = 'secondary-btn';
@@ -220,7 +224,7 @@ function addSaveAsTaskButton() {
     // Add the button to the controls
     groceryListControls.appendChild(saveAsTaskBtn);
 
-    // Add event listener
+    // Add event listener only for dynamically created buttons
     saveAsTaskBtn.addEventListener('click', () => {
         if (window.groceryList && window.groceryList.length > 0) {
             createGroceryListTask(window.groceryList);
@@ -261,5 +265,5 @@ function initGroceryListTaskIntegration() {
     }
 }
 
-// Initialize when the DOM is loaded
-document.addEventListener('DOMContentLoaded', initGroceryListTaskIntegration);
+// Initialize when the DOM is loaded - DISABLED to prevent conflicts with grocery-list-inline.js
+// document.addEventListener('DOMContentLoaded', initGroceryListTaskIntegration);

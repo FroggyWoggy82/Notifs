@@ -258,6 +258,51 @@ router.get('/:id/subtasks', TaskController.getSubtasks);
 
 /**
  * @swagger
+ * /api/tasks/{id}/subtasks:
+ *   post:
+ *     summary: Create a subtask for a parent task
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Parent Task ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Subtask title
+ *               description:
+ *                 type: string
+ *                 description: Subtask description
+ *               is_complete:
+ *                 type: boolean
+ *                 description: Whether the subtask is complete
+ *               grocery_data:
+ *                 type: object
+ *                 description: Optional grocery data for the subtask
+ *     responses:
+ *       201:
+ *         description: Subtask created successfully
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Parent task not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/:id/subtasks', TaskController.createSubtask);
+
+/**
+ * @swagger
  * /api/tasks/weekly-complete-list:
  *   get:
  *     summary: Get a complete weekly list of all tasks organized by day and notification
