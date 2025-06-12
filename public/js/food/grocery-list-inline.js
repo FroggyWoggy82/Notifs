@@ -1175,11 +1175,22 @@ document.addEventListener('DOMContentLoaded', function() {
         saveAsTaskBtn.disabled = !groceryList;
     }
 
+    // Flag to prevent multiple simultaneous saves
+    let isSavingTask = false;
+
     function saveGroceryListAsTask() {
         if (!groceryList || groceryList.length === 0) {
             showStatus('No grocery list to save as task.', 'error');
             return;
         }
+
+        // Prevent multiple simultaneous saves
+        if (isSavingTask) {
+            console.log('[GROCERY SAVE] Already saving task, ignoring duplicate request');
+            return;
+        }
+
+        isSavingTask = true;
 
         // Create a main task for the grocery list
         const totalCalories = calculateTotalCalories();
@@ -1277,13 +1288,27 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('[GROCERY SAVE] Error saving grocery list as task:', error);
             showStatus('Failed to save grocery list as task. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset the flag when done (success or error)
+            isSavingTask = false;
         });
     }
 
     function addEventListeners() {
+        // Prevent duplicate event listeners
+        if (generateListBtn.hasAttribute('data-listener-attached')) {
+            console.log('[GROCERY LIST] Event listeners already attached, skipping...');
+            return;
+        }
+
         // Main buttons
         generateListBtn.addEventListener('click', generateGroceryList);
         saveAsTaskBtn.addEventListener('click', saveGroceryListAsTask);
+
+        // Mark as having listeners attached
+        generateListBtn.setAttribute('data-listener-attached', 'true');
+        saveAsTaskBtn.setAttribute('data-listener-attached', 'true');
 
         // Listen for changes to the daily calorie target
         if (currentCalorieTarget) {
