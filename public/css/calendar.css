@@ -560,3 +560,283 @@ button[type="submit"]:hover {
 #closeSelectedDateView:hover {
      background-color: #3e5062;
 }
+
+/* ===== MOBILE RESPONSIVE DESIGN ===== */
+
+/* Tablet and small desktop screens */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px;
+    }
+
+    .container h1 {
+        font-size: 1.4em;
+        margin-bottom: 15px;
+    }
+
+    .calendar-controls {
+        flex-direction: column;
+        gap: 10px;
+        padding: 8px;
+        margin-bottom: 15px;
+    }
+
+    .calendar-controls h2 {
+        font-size: 1.1em;
+    }
+
+    .calendar-controls button {
+        padding: 6px 12px;
+        font-size: 0.85em;
+    }
+
+    .calendar-filter {
+        margin-bottom: 10px;
+        padding: 6px 8px;
+    }
+
+    .calendar-filter label {
+        font-size: 0.9em;
+    }
+
+    .calendar-filter select {
+        font-size: 0.85em;
+        padding: 5px 8px;
+    }
+
+    .calendar-grid {
+        gap: 3px;
+        padding: 10px;
+        grid-auto-rows: minmax(100px, auto);
+    }
+
+    .calendar-header {
+        font-size: 0.8em;
+        padding: 6px 0;
+    }
+
+    .calendar-day {
+        height: 100px;
+        padding: 6px;
+        font-size: 0.8em;
+    }
+
+    .day-number {
+        font-size: 0.9em;
+        margin-bottom: 4px;
+    }
+
+    .calendar-tasks,
+    .calendar-habits {
+        max-height: 70px;
+    }
+
+    .calendar-task-item,
+    .calendar-habit-item {
+        padding: 2px 4px;
+        font-size: 0.75em;
+        margin-bottom: 3px;
+    }
+
+    .task-count-indicator,
+    .habit-count-indicator {
+        font-size: 0.65em;
+        padding: 1px 3px;
+    }
+}
+
+/* Mobile phones - landscape and larger portrait */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 5px;
+    }
+
+    .container h1 {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+
+    .calendar-controls {
+        flex-direction: column;
+        gap: 8px;
+        padding: 6px;
+        margin-bottom: 10px;
+    }
+
+    .calendar-controls h2 {
+        font-size: 1em;
+    }
+
+    .calendar-controls button {
+        padding: 5px 10px;
+        font-size: 0.8em;
+    }
+
+    .calendar-filter {
+        margin-bottom: 8px;
+        padding: 5px 6px;
+    }
+
+    .calendar-filter label {
+        font-size: 0.85em;
+        margin-right: 8px;
+    }
+
+    .calendar-filter select {
+        font-size: 0.8em;
+        padding: 4px 6px;
+    }
+
+    .calendar-grid {
+        gap: 2px;
+        padding: 5px;
+        grid-auto-rows: minmax(85px, auto);
+    }
+
+    .calendar-header {
+        font-size: 0.75em;
+        padding: 4px 0;
+    }
+
+    .calendar-day {
+        height: 85px;
+        padding: 4px;
+        font-size: 0.75em;
+        min-height: 44px; /* Ensure touch target size */
+    }
+
+    .day-number {
+        font-size: 0.85em;
+        margin-bottom: 3px;
+    }
+
+    .calendar-tasks,
+    .calendar-habits {
+        max-height: 55px;
+    }
+
+    .calendar-task-item,
+    .calendar-habit-item {
+        padding: 2px 3px;
+        font-size: 0.7em;
+        margin-bottom: 2px;
+        border-radius: 2px;
+    }
+
+    .task-count-indicator,
+    .habit-count-indicator {
+        font-size: 0.6em;
+        padding: 1px 2px;
+    }
+
+    /* Optimize modal for mobile */
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 15px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-group-half {
+        flex: none;
+    }
+}
+
+/* Small mobile phones - portrait */
+@media (max-width: 360px) {
+    .container {
+        padding: 0 3px;
+    }
+
+    .container h1 {
+        font-size: 1.1em;
+        margin-bottom: 8px;
+    }
+
+    .calendar-controls {
+        gap: 6px;
+        padding: 4px;
+        margin-bottom: 8px;
+    }
+
+    .calendar-controls h2 {
+        font-size: 0.95em;
+    }
+
+    .calendar-controls button {
+        padding: 4px 8px;
+        font-size: 0.75em;
+    }
+
+    .calendar-filter {
+        margin-bottom: 6px;
+        padding: 4px 5px;
+    }
+
+    .calendar-filter label {
+        font-size: 0.8em;
+        margin-right: 6px;
+    }
+
+    .calendar-filter select {
+        font-size: 0.75em;
+        padding: 3px 5px;
+    }
+
+    .calendar-grid {
+        gap: 1px;
+        padding: 3px;
+        grid-auto-rows: minmax(75px, auto);
+    }
+
+    .calendar-header {
+        font-size: 0.7em;
+        padding: 3px 0;
+    }
+
+    .calendar-day {
+        height: 75px;
+        padding: 3px;
+        font-size: 0.7em;
+        min-height: 44px; /* Maintain touch target size */
+    }
+
+    .day-number {
+        font-size: 0.8em;
+        margin-bottom: 2px;
+    }
+
+    .calendar-tasks,
+    .calendar-habits {
+        max-height: 45px;
+    }
+
+    .calendar-task-item,
+    .calendar-habit-item {
+        padding: 1px 2px;
+        font-size: 0.65em;
+        margin-bottom: 1px;
+        border-radius: 1px;
+    }
+
+    .task-count-indicator,
+    .habit-count-indicator {
+        font-size: 0.55em;
+        padding: 0px 2px;
+    }
+
+    /* Further optimize modal for very small screens */
+    .modal-content {
+        width: 98%;
+        margin: 2% auto;
+        padding: 10px;
+    }
+
+    .close-button {
+        font-size: 24px;
+    }
+}

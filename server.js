@@ -75,6 +75,7 @@ const mealRoutes = require('./routes/mealRoutes'); // NEW: Meal routes
 const habitResetRoutes = require('./routes/habitResetRoutes'); // New route for habit reset
 const socialMediaRejectionRoutes = require('./routes/socialMediaRejectionRoutes'); // NEW: Social Media Rejection habit routes
 const micronutrientGoalsRoutes = require('./routes/micronutrientGoalsRoutes'); // NEW: Micronutrient goals routes
+const warmupWeightsRoutes = require('./routes/warmup-weights'); // NEW: Warmup weights routes
 
 // Import Swagger documentation
 const { swaggerDocs } = require('./docs/swagger');
@@ -178,6 +179,15 @@ app.use('/uploads/progress_photos', (req, res, next) => {
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve photos from Railway volume in production
+if (isProduction) {
+    const volumePhotosPath = '/data/uploads/progress_photos';
+    app.use('/uploads/progress_photos', express.static(volumePhotosPath));
+    console.log(`[SERVER] Serving photos from Railway volume: ${volumePhotosPath}`);
+} else {
+    console.log(`[SERVER] Serving photos from local public directory`);
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   try {
@@ -254,6 +264,7 @@ app.use('/api/habit-reset', habitResetRoutes); // NEW: Habit reset route
 app.use('/api/meals', mealRoutes); // NEW: Meal routes
 app.use('/api', socialMediaRejectionRoutes); // NEW: Social Media Rejection habit routes
 app.use('/api/micronutrient-goals', micronutrientGoalsRoutes); // NEW: Micronutrient goals routes
+app.use('/api/warmup-weights', warmupWeightsRoutes); // NEW: Warmup weights routes
 console.log('Registering Google Cloud Vision OCR routes...');
 app.use('/api/vision-ocr', visionOcrRoutes); // Google Cloud Vision OCR implementation
 console.log('Google Cloud Vision OCR routes registered successfully!');

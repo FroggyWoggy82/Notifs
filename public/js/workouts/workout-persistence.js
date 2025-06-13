@@ -160,14 +160,13 @@ function setupMutationObserver() {
 
 function saveWorkoutData() {
     try {
-
-        const currentWorkoutJson = localStorage.getItem('workout_tracker_current_workout');
-        if (!currentWorkoutJson) {
-            console.error('No current workout found in localStorage');
+        // Use the current workout from memory, not localStorage
+        if (!window.currentWorkout) {
+            console.error('No current workout found in memory');
             return false;
         }
 
-        const currentWorkout = JSON.parse(currentWorkoutJson);
+        const currentWorkout = window.currentWorkout;
 
         const exerciseItems = document.querySelectorAll('.exercise-item');
         if (!exerciseItems.length) {
@@ -273,6 +272,13 @@ function restoreWorkoutData() {
             setTimeout(() => {
                 window.restoreGoalTextState();
             }, 300);
+        }
+
+        // Refresh warmup displays after restoration
+        if (typeof window.refreshAllWarmupDisplays === 'function') {
+            setTimeout(() => {
+                window.refreshAllWarmupDisplays();
+            }, 500);
         }
 
         const workoutData = JSON.parse(workoutDataJson);

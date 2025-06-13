@@ -7,7 +7,11 @@ const sharp = require('sharp');
 const db = require('../utils/db');
 
 // --- Configuration ---
-const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+// Use Railway persistent volume for storage (matches server.js pattern)
+const isProduction = process.env.NODE_ENV === 'production';
+const progressPhotosDir = isProduction
+    ? '/data/uploads/progress_photos'
+    : path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
 const MAX_FILE_SIZE_MB = 100;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 

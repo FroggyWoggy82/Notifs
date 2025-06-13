@@ -275,9 +275,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const weightPlaceholder = (currentUnit === 'bodyweight') ? 'BW' : (currentUnit === 'assisted') ? '' : 'Wt';
             const repsPlaceholder = 'Reps';
 
+            // Check if this set is marked as a warmup set
+            const isWarmupSet = exerciseData.warmup_sets && exerciseData.warmup_sets.includes(i);
+
+            let setNumberDisplay;
+            if (isWarmupSet) {
+                // For warmup sets, count how many warmup sets come before this one
+                const warmupSetsBefore = exerciseData.warmup_sets.filter(setIndex => setIndex < i).length;
+                setNumberDisplay = `W${warmupSetsBefore + 1}`;
+            } else {
+                // For working sets, count how many non-warmup sets come before this one
+                let workingSetsBefore = 0;
+                for (let j = 0; j < i; j++) {
+                    if (!exerciseData.warmup_sets || !exerciseData.warmup_sets.includes(j)) {
+                        workingSetsBefore++;
+                    }
+                }
+                setNumberDisplay = workingSetsBefore + 1;
+            }
+
+            const setNumberClass = isWarmupSet ? 'set-number warmup-set' : 'set-number';
+
             setRowsHtml += `
                 <div class="set-row" data-set-index="${i}">
-                    <span class="set-number">${i + 1}</span>
+                    <span class="${setNumberClass}" data-exercise-id="${exerciseData.exercise_id}" data-set-index="${i}" onclick="window.handleSetNumberClick(event)">${setNumberDisplay}</span>
                     <span class="previous-log">${previousLogTextHtml}</span>
                     <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
                     <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
@@ -545,6 +566,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
 
                         restoreInputValues();
+                    }
+
+                    // Refresh warmup displays after rendering
+                    if (typeof window.refreshAllWarmupDisplays === 'function') {
+                        setTimeout(() => {
+                            window.refreshAllWarmupDisplays();
+                        }, 200);
                     }
                 }, 300);
             }
@@ -2382,6 +2410,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         await applyExerciseUnitPreferences(currentWorkout.exercises);
 
+        // Initialize warmup_sets for all exercises and load warmup weights
+        currentWorkout.exercises.forEach(exercise => {
+            if (!exercise.warmup_sets) {
+                exercise.warmup_sets = [];
+            }
+        });
+
+        // Load warmup weights for all exercises
+        await loadWarmupWeightsForWorkout();
+
         console.log("Current workout initialized from template:", currentWorkout); // Log the object
 
         const workoutName = currentWorkout.name; // Use the name from the object
@@ -4065,6 +4103,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
 
                         restoreInputValues();
+                    }
+
+                    // Refresh warmup displays after restoration
+                    if (typeof window.refreshAllWarmupDisplays === 'function') {
+                        setTimeout(() => {
+                            window.refreshAllWarmupDisplays();
+                        }, 200);
                     }
                 }, 300);
 
@@ -7013,9 +7058,30 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
     }
 
 
+    // Check if this set is marked as a warmup set
+    const isWarmupSet = exerciseData.warmup_sets && exerciseData.warmup_sets.includes(setIndex);
+
+    let setNumberDisplay;
+    if (isWarmupSet) {
+        // For warmup sets, count how many warmup sets come before this one
+        const warmupSetsBefore = exerciseData.warmup_sets.filter(index => index < setIndex).length;
+        setNumberDisplay = `W${warmupSetsBefore + 1}`;
+    } else {
+        // For working sets, count how many non-warmup sets come before this one
+        let workingSetsBefore = 0;
+        for (let j = 0; j < setIndex; j++) {
+            if (!exerciseData.warmup_sets || !exerciseData.warmup_sets.includes(j)) {
+                workingSetsBefore++;
+            }
+        }
+        setNumberDisplay = workingSetsBefore + 1;
+    }
+
+    const setNumberClass = isWarmupSet ? 'set-number warmup-set' : 'set-number';
+
     return `
         <div class="set-row" data-set-index="${setIndex}">
-            <span class="set-number">${setIndex + 1}</span>
+            <span class="${setNumberClass}" data-exercise-id="${exerciseData.exercise_id}" data-set-index="${setIndex}" onclick="window.handleSetNumberClick(event)">${setNumberDisplay}</span>
             <span class="previous-log">${previousLogTextHtml}</span>
             <input type="${weightInputType}" class="weight-input" placeholder="${weightPlaceholder}" value="${weightValue}" ${isDisabled ? 'disabled' : ''} step="any" inputmode="decimal">
             <input type="text" class="reps-input" placeholder="${repsPlaceholder}" value="${repsValue}" ${isDisabled ? 'disabled' : ''} inputmode="numeric" pattern="[0-9]*">
@@ -7024,6 +7090,48 @@ function generateSingleSetRowHtml(setIndex, exerciseData, isTemplate = false) {
         </div>
     `;
 }
+
+// Global function to handle set number clicks for warmup marking
+window.handleSetNumberClick = function(event) {
+    console.log('[WARMUP] Set number clicked');
+
+    const setNumberElement = event.target;
+    const exerciseId = parseInt(setNumberElement.dataset.exerciseId);
+    const setIndex = parseInt(setNumberElement.dataset.setIndex);
+
+    // Find the exercise this set belongs to
+    const exerciseItem = setNumberElement.closest('.exercise-item');
+    if (!exerciseItem) {
+        console.error('[WARMUP] Could not find exercise item');
+        return;
+    }
+
+    const exerciseIndex = Array.from(document.querySelectorAll('.exercise-item')).indexOf(exerciseItem);
+
+    // Handle both array format (old) and object format (new)
+    const exercises = Array.isArray(currentWorkout) ? currentWorkout : (currentWorkout?.exercises || []);
+
+    if (exerciseIndex === -1 || !exercises[exerciseIndex]) {
+        console.error('[WARMUP] Could not find exercise in currentWorkout');
+        return;
+    }
+
+    const exercise = exercises[exerciseIndex];
+    const exerciseName = exercise.name;
+    const actualExerciseId = exerciseId || exercise.exercise_id; // Fallback to exercise.exercise_id if dataset is missing
+
+    // Check if this set is currently marked as warmup
+    const isCurrentlyWarmup = exercise.warmup_sets && exercise.warmup_sets.includes(setIndex);
+
+    console.log(`[WARMUP] Set ${setIndex + 1} clicked for exercise: ${exerciseName} (ID: ${actualExerciseId}), currently warmup: ${isCurrentlyWarmup}`);
+
+    // Show warmup modal if it exists
+    if (window.warmupModal) {
+        window.warmupModal.show(actualExerciseId, setIndex, exerciseName, isCurrentlyWarmup);
+    } else {
+        console.error('[WARMUP] Warmup modal not initialized');
+    }
+};
 
 function toggleExerciseHistory() {
     const historySection = document.getElementById('exercise-history-section');
@@ -7036,4 +7144,48 @@ function toggleExerciseHistory() {
         historySection.style.display = 'none';
         toggleButton.textContent = 'Show Exercise History';
     }
+}
+
+// Function to load warmup weights for all exercises in the current workout
+async function loadWarmupWeightsForWorkout() {
+    // Handle both array format (old) and object format (new)
+    const exercises = Array.isArray(currentWorkout) ? currentWorkout : (currentWorkout?.exercises || []);
+
+    if (!exercises || exercises.length === 0) {
+        console.log('[WARMUP] No exercises in current workout to load warmup weights for');
+        return;
+    }
+
+    console.log('[WARMUP] Loading warmup weights for workout exercises');
+
+    for (let i = 0; i < exercises.length; i++) {
+        const exercise = exercises[i];
+
+        try {
+            if (window.warmupModal) {
+                const warmupData = await window.warmupModal.loadWarmupWeight(exercise.exercise_id);
+
+                if (warmupData) {
+                    console.log(`[WARMUP] Found warmup weight for ${exercise.name}: ${warmupData.warmup_weight} ${warmupData.weight_unit}`);
+
+                    // Mark first set as warmup and populate with warmup weight
+                    if (!exercise.warmup_sets) {
+                        exercise.warmup_sets = [];
+                    }
+                    exercise.warmup_sets.push(0); // Mark first set (index 0) as warmup
+
+                    // Set the warmup weight in the first set
+                    if (exercise.sets_completed && exercise.sets_completed[0]) {
+                        exercise.sets_completed[0].weight = warmupData.warmup_weight.toString();
+                    }
+                } else {
+                    console.log(`[WARMUP] No warmup weight found for ${exercise.name}`);
+                }
+            }
+        } catch (error) {
+            console.error(`[WARMUP] Error loading warmup weight for ${exercise.name}:`, error);
+        }
+    }
+
+    console.log('[WARMUP] Finished loading warmup weights');
 }

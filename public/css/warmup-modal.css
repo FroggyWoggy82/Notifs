@@ -1,0 +1,210 @@
+/**
+ * Warmup Modal Styles
+ * Styles for the warmup set marking modal
+ */
+
+.warmup-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.warmup-modal-content {
+    background-color: #2a2a2a;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    color: #f5f5f5;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.warmup-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.warmup-modal-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #03dac6;
+    margin: 0;
+}
+
+.warmup-modal-close {
+    background: none;
+    border: none;
+    color: #bbb;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.warmup-modal-close:hover {
+    background-color: #444;
+    color: #fff;
+}
+
+.warmup-modal-body {
+    margin-bottom: 20px;
+}
+
+.warmup-modal-info {
+    margin-bottom: 15px;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.warmup-modal-exercise-name {
+    font-weight: bold;
+    color: #03dac6;
+}
+
+.warmup-modal-set-info {
+    font-weight: bold;
+    color: #fff;
+}
+
+.warmup-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.warmup-modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.warmup-modal-btn-primary {
+    background-color: #03dac6;
+    color: #000;
+}
+
+.warmup-modal-btn-primary:hover {
+    background-color: #02b8a8;
+    transform: translateY(-1px);
+}
+
+.warmup-modal-btn-danger {
+    background-color: #cf6679;
+    color: #fff;
+}
+
+.warmup-modal-btn-danger:hover {
+    background-color: #b85566;
+    transform: translateY(-1px);
+}
+
+.warmup-modal-btn-secondary {
+    background-color: #444;
+    color: #f5f5f5;
+    border: 1px solid #666;
+}
+
+.warmup-modal-btn-secondary:hover {
+    background-color: #555;
+    border-color: #777;
+    transform: translateY(-1px);
+}
+
+/* Mobile optimizations */
+@media screen and (max-width: 599px) {
+    .warmup-modal-content {
+        margin: 20% auto;
+        width: 95%;
+        padding: 15px;
+    }
+    
+    .warmup-modal-title {
+        font-size: 1.1rem;
+    }
+    
+    .warmup-modal-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .warmup-modal-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+    }
+}
+
+/* Set number clickable styles */
+.set-number {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 3px;
+    padding: 2px 4px;
+    user-select: none;
+}
+
+.set-number:hover {
+    background-color: rgba(3, 218, 198, 0.2);
+    color: #03dac6;
+    transform: scale(1.1);
+}
+
+.set-number.warmup-set {
+    background-color: #03dac6;
+    color: #000;
+    font-weight: bold;
+}
+
+.set-number.warmup-set:hover {
+    background-color: #02b8a8;
+    transform: scale(1.05);
+}
+
+/* Animation for modal */
+.warmup-modal.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+.warmup-modal.show .warmup-modal-content {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

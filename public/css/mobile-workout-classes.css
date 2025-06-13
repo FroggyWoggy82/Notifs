@@ -96,6 +96,8 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        color: #FFFFFF !important; /* White text for better mobile visibility */
+        text-shadow: 0 0 3px rgba(255, 255, 255, 0.3) !important; /* Subtle glow */
     }
 
     /* Set complete toggle styles */

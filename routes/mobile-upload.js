@@ -7,8 +7,11 @@ const sharp = require('sharp');
 const db = require('../utils/db');
 
 // --- Configuration ---
-// Use local directory for storage (fallback)
-const progressPhotosDir = path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
+// Use Railway persistent volume for storage (matches server.js pattern)
+const isProduction = process.env.NODE_ENV === 'production';
+const progressPhotosDir = isProduction
+    ? '/data/uploads/progress_photos'
+    : path.join(__dirname, '..', 'public', 'uploads', 'progress_photos');
 
 // Reference to the public directory path (for file paths in the database)
 const publicPhotosPath = '/uploads/progress_photos';
