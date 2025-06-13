@@ -1,0 +1,307 @@
+/**
+ * Task Search Functionality Styles
+ * Provides styling for the task search feature with dark theme integration
+ */
+
+/* Search Container */
+.task-search-container {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Search Input */
+.search-input {
+    width: 100%;
+    padding: 12px 16px;
+    padding-right: 45px; /* Space for clear button */
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(40, 40, 40, 0.95);
+    color: #ffffff;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+.search-input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(50, 50, 50, 0.95);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.search-input:not(:placeholder-shown) {
+    border-color: rgba(76, 175, 80, 0.6);
+    background: rgba(45, 45, 45, 0.95);
+}
+
+/* Clear Search Button */
+.clear-search-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    z-index: 2;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-search-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.clear-search-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* Search Results Container */
+.search-results-container {
+    margin-bottom: 1rem;
+}
+
+.search-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-results-title {
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.search-results-count {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+/* Search Results List */
+.search-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Search Result Item Enhancements */
+.search-result-item {
+    position: relative;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.search-result-item.pending {
+    border-left-color: rgba(255, 193, 7, 0.8);
+}
+
+.search-result-item.complete {
+    border-left-color: rgba(76, 175, 80, 0.8);
+    opacity: 0.7;
+}
+
+.search-result-item.overdue {
+    border-left-color: rgba(244, 67, 54, 0.8);
+}
+
+/* Status Indicators */
+.search-status-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.search-status-indicator.pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.search-status-indicator.complete {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.search-status-indicator.overdue {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+}
+
+/* Date Display in Search Results */
+.search-date-info {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 4px;
+    display: flex;
+    gap: 1rem;
+}
+
+.search-date-info .due-date,
+.search-date-info .assigned-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.search-date-info i {
+    font-size: 0.7rem;
+}
+
+/* No Results Message */
+.no-search-results {
+    text-align: center;
+    padding: 2rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+.no-search-results i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Search Highlight */
+.search-highlight {
+    background: rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+    padding: 1px 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .search-input {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 14px 16px;
+        padding-right: 50px;
+    }
+    
+    .clear-search-btn {
+        right: 14px;
+        padding: 6px;
+        font-size: 16px;
+    }
+    
+    .search-results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .search-results-count {
+        align-self: flex-end;
+    }
+    
+    .search-date-info {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-input {
+        padding: 12px 14px;
+        padding-right: 45px;
+        font-size: 16px;
+    }
+    
+    .clear-search-btn {
+        right: 12px;
+        font-size: 14px;
+    }
+    
+    .search-status-indicator {
+        position: static;
+        margin-top: 0.5rem;
+        display: inline-block;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .search-input {
+        border-color: #ffffff;
+        background: #000000;
+    }
+    
+    .search-input:focus {
+        border-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+    }
+    
+    .search-highlight {
+        background: #ffff00;
+        color: #000000;
+    }
+}
+
+/* Animation for Search Results */
+.search-results-container {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading State */
+.search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-loading i {
+    margin-right: 0.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

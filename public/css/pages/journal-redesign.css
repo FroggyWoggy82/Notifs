@@ -326,6 +326,22 @@ body::before {
     opacity: 0.8;
 }
 
+/* Make welcome message stretch full width with higher specificity */
+.chat-messages .welcome-message .message.ai-message {
+    max-width: 100% !important;
+    width: 100% !important;
+    align-self: stretch !important;
+}
+
+.chat-messages .welcome-message .message-content {
+    text-align: center;
+    background: var(--flow-bg-secondary);
+    border: 1px solid var(--flow-border-soft);
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+}
+
 /* Chat input area */
 .chat-input-area {
     border-top: 1px solid var(--flow-border-soft);
@@ -410,6 +426,32 @@ body::before {
     font-weight: 400;
     overflow-y: auto;
     outline: none;
+}
+
+/* Custom scrollbar styling for journal textarea to match page scrollbar */
+#journal-content::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+#journal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 2px !important;
+}
+
+#journal-content::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 2px !important;
+    border: none !important;
+}
+
+#journal-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Firefox scrollbar styling for journal textarea */
+#journal-content {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05) !important;
 }
 
 .send-button {

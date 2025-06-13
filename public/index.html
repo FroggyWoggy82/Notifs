@@ -46,6 +46,12 @@
     <!-- Mobile habit checkbox optimization - Improves visibility and touch interaction -->
     <link rel="stylesheet" href="css/mobile-habit-checkbox-optimization.css">
 
+    <!-- Task search functionality - Provides search capabilities for tasks -->
+    <link rel="stylesheet" href="css/task-search.css">
+
+    <!-- Task list header alignment fix - Properly aligns heading, search, and filter -->
+    <link rel="stylesheet" href="css/task-list-header-alignment-fix.css">
+
     <!-- Text cutoff fix - Emergency fix for text being cut off at bottom -->
     <link rel="stylesheet" href="css/text-cutoff-fix.css">
 
@@ -380,6 +386,9 @@
     <script src="js/modal-system.js"></script>
     <script src="js/tasks/script.js"></script>
 
+    <!-- Task search functionality - must load after main tasks script -->
+    <script src="js/task-search.js"></script>
+
     <!-- Checkbox responsiveness fix - must load early to intercept clicks -->
     <script src="js/tasks/checkbox-responsiveness-fix.js"></script>
 
@@ -504,21 +513,52 @@
         <div class="card">
             <div class="card__header">
                 <h2 class="card__title">Task List</h2>
-                <div class="task-filter-container">
-                    <select id="taskFilter" class="form-control form-control--glass">
-                        <option value="unassigned_today" selected>Unassigned, Today & Overdue</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                        <option value="all">All Tasks</option>
-                    </select>
+
+                <!-- Controls Container -->
+                <div class="task-list-controls">
+                    <!-- Search Bar -->
+                    <div class="task-search-container">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="taskSearch" class="form-control form-control--glass search-input"
+                                   placeholder="Search tasks..." autocomplete="off">
+                            <button id="clearSearch" class="clear-search-btn" title="Clear search" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter Dropdown -->
+                    <div class="task-filter-container">
+                        <select id="taskFilter" class="form-control form-control--glass">
+                            <option value="unassigned_today" selected>Unassigned, Today & Overdue</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="all">All Tasks</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="card__body" style="padding-top: 0;">
-                <div id="taskList">
-                    <p>Loading tasks...</p>
+                <!-- Search Results Container (hidden by default) -->
+                <div id="searchResults" class="search-results-container" style="display: none;">
+                    <div class="search-results-header">
+                        <h3 class="search-results-title">Search Results</h3>
+                        <span id="searchResultsCount" class="search-results-count"></span>
+                    </div>
+                    <div id="searchResultsList" class="search-results-list">
+                        <!-- Search results will be populated here -->
+                    </div>
+                    <div id="searchResultsStatus" class="status"></div>
                 </div>
-                <div id="taskListStatus" class="status"></div>
+
+                <!-- Normal Task List (shown by default) -->
+                <div id="normalTaskView" class="normal-task-view">
+                    <div id="taskList">
+                        <p>Loading tasks...</p>
+                    </div>
+                    <div id="taskListStatus" class="status"></div>
+                </div>
             </div>
         </div>
     </section>

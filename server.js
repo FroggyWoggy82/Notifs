@@ -188,6 +188,130 @@ if (isProduction) {
     console.log(`[SERVER] Serving photos from local public directory`);
 }
 
+// Clean up orphaned photo records and sync missing photos from production (development only)
+if (!isProduction) {
+    setImmediate(async () => {
+        try {
+            console.log('[PHOTO SYNC] Checking for missing photos and syncing from production...');
+            const db = require('./utils/db');
+            const https = require('https');
+            const http = require('http');
+
+            // Get all photo records
+            const result = await db.query('SELECT photo_id, file_path FROM progress_photos ORDER BY photo_id');
+            const photos = result.rows;
+
+            const orphanedPhotos = [];
+            const missingPhotos = [];
+
+            // Production server URL - try to detect from environment or use common Railway patterns
+            const PRODUCTION_URL = process.env.PRODUCTION_URL ||
+                                  process.env.RAILWAY_STATIC_URL ||
+                                  'https://notifs-production.up.railway.app';
+
+            for (const photo of photos) {
+                // Convert database path to file system path
+                const filePath = path.join(__dirname, 'public', photo.file_path);
+
+                if (!fs.existsSync(filePath)) {
+                    console.log(`[PHOTO SYNC] Missing photo found: ID ${photo.photo_id}, Path: ${photo.file_path}`);
+                    missingPhotos.push(photo);
+                }
+            }
+
+            // Try to download missing photos from production
+            for (const photo of missingPhotos) {
+                try {
+                    const productionUrl = `${PRODUCTION_URL}${photo.file_path}`;
+                    const localPath = path.join(__dirname, 'public', photo.file_path);
+
+                    console.log(`[PHOTO SYNC] Attempting to download: ${productionUrl}`);
+
+                    // Ensure directory exists
+                    const dir = path.dirname(localPath);
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir, { recursive: true });
+                    }
+
+                    // Download file
+                    const success = await downloadFile(productionUrl, localPath);
+
+                    if (success) {
+                        console.log(`[PHOTO SYNC] Successfully downloaded: ${photo.file_path}`);
+                    } else {
+                        console.log(`[PHOTO SYNC] Failed to download: ${photo.file_path}, marking as orphaned`);
+                        orphanedPhotos.push(photo.photo_id);
+                    }
+                } catch (error) {
+                    console.error(`[PHOTO SYNC] Error downloading ${photo.file_path}:`, error.message);
+                    orphanedPhotos.push(photo.photo_id);
+                }
+            }
+
+            // Remove orphaned records that couldn't be downloaded
+            if (orphanedPhotos.length > 0) {
+                console.log(`[PHOTO SYNC] Removing ${orphanedPhotos.length} orphaned photo records...`);
+
+                for (const photoId of orphanedPhotos) {
+                    await db.query('DELETE FROM progress_photos WHERE photo_id = $1', [photoId]);
+                    console.log(`[PHOTO SYNC] Removed orphaned photo record: ID ${photoId}`);
+                }
+
+                console.log(`[PHOTO SYNC] Successfully removed ${orphanedPhotos.length} orphaned photo records`);
+            }
+
+            const syncedCount = missingPhotos.length - orphanedPhotos.length;
+            if (syncedCount > 0) {
+                console.log(`[PHOTO SYNC] Successfully synced ${syncedCount} photos from production`);
+            } else if (missingPhotos.length === 0) {
+                console.log('[PHOTO SYNC] All photos are already present locally');
+            }
+        } catch (error) {
+            console.error('[PHOTO SYNC] Error during photo sync:', error);
+        }
+    });
+}
+
+// Helper function to download files
+async function downloadFile(url, localPath) {
+    return new Promise((resolve) => {
+        const protocol = url.startsWith('https:') ? https : http;
+
+        const request = protocol.get(url, (response) => {
+            // Check if response is successful and is an image
+            if (response.statusCode === 200 && response.headers['content-type']?.startsWith('image/')) {
+                const fileStream = fs.createWriteStream(localPath);
+                response.pipe(fileStream);
+
+                fileStream.on('finish', () => {
+                    fileStream.close();
+                    resolve(true);
+                });
+
+                fileStream.on('error', (error) => {
+                    console.error(`[PHOTO SYNC] File write error:`, error.message);
+                    fs.unlink(localPath, () => {}); // Delete partial file
+                    resolve(false);
+                });
+            } else {
+                console.log(`[PHOTO SYNC] Invalid response: ${response.statusCode}, Content-Type: ${response.headers['content-type']}`);
+                resolve(false);
+            }
+        });
+
+        request.on('error', (error) => {
+            console.error(`[PHOTO SYNC] Request error:`, error.message);
+            resolve(false);
+        });
+
+        request.setTimeout(10000, () => {
+            request.destroy();
+            console.log(`[PHOTO SYNC] Request timeout for: ${url}`);
+            resolve(false);
+        });
+    });
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   try {

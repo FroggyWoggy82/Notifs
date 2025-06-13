@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const OpenAI = require('openai');
 const aiPersonality = require('../config/aiPersonality');
+const UserPatternAnalysisService = require('./userPatternAnalysisService');
 
 // Constants
 const DATA_DIR = path.join(__dirname, '..', 'data');
@@ -299,8 +300,19 @@ async function generateConversationalResponse(userMessage, conversation = [], pe
     // Build memory context
     const memoryContext = `${themes}${specificContext}`;
 
+    // Get user pattern analysis for adaptive personalities
+    let userPatternAnalysis = '';
+    if (personalityType === 'ADAPTIVE') {
+        try {
+            userPatternAnalysis = await UserPatternAnalysisService.analyzeUserPatterns(recentConversation, 30);
+        } catch (error) {
+            console.error('Error analyzing user patterns:', error);
+            userPatternAnalysis = '';
+        }
+    }
+
     // Get personality configuration and build system prompt
-    const systemPrompt = aiPersonality.buildSystemPrompt(personalityType, memoryContext, conversationContext);
+    const systemPrompt = aiPersonality.buildSystemPrompt(personalityType, memoryContext, conversationContext, userPatternAnalysis);
     const aiParams = aiPersonality.getAIParameters(personalityType);
 
     // Prepare messages for the API call

@@ -372,18 +372,6 @@
     }
   },
   {
-    "id": "5997f42e467307ec04e29784",
-    "title": "Reminder: Karans Bday",
-    "body": "Due in 5 days (6/13/2025)",
-    "scheduledTime": "2025-06-12T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413228,
-    "data": {
-      "taskId": 137,
-      "type": "task_reminder"
-    }
-  },
-  {
     "id": "06319859bbd3f5b0d5a4e712",
     "title": "Reminder: Brandon Sanchez's Bday",
     "body": "Due in 11 days (6/19/2025)",
@@ -588,18 +576,6 @@
     }
   },
   {
-    "id": "550001e4a923597f97f23cc4",
-    "title": "Reminder: Oscar's Bday",
-    "body": "Due in 5 days (6/13/2025)",
-    "scheduledTime": "2025-06-12T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413240,
-    "data": {
-      "taskId": 136,
-      "type": "task_reminder"
-    }
-  },
-  {
     "id": "fd538833c7b809e7e2a6459a",
     "title": "Reminder: Shelly's Bday",
     "body": "Due in 150 days (11/4/2025)",
@@ -728,6 +704,42 @@
     "createdAt": 1749783338944,
     "data": {
       "taskId": 136,
+      "type": "overdue_reminder"
+    }
+  },
+  {
+    "id": "7e5483235b4b6308e54cc94b",
+    "title": "⚠️ Overdue Reminder: Father's Day",
+    "body": "Reminder was 7 hours overdue - Due 6/14/2025",
+    "scheduledTime": "2025-06-13T21:25:29.125Z",
+    "repeat": "none",
+    "createdAt": 1749849929127,
+    "data": {
+      "taskId": 138,
+      "type": "overdue_reminder"
+    }
+  },
+  {
+    "id": "fecc05ce919d9ab3eebabc32",
+    "title": "⚠️ Overdue Reminder: Father's Day",
+    "body": "Reminder was 7 hours overdue - Due 6/14/2025",
+    "scheduledTime": "2025-06-13T21:31:52.696Z",
+    "repeat": "none",
+    "createdAt": 1749850312698,
+    "data": {
+      "taskId": 138,
+      "type": "overdue_reminder"
+    }
+  },
+  {
+    "id": "d4c2569535ce9f13695ab932",
+    "title": "⚠️ Overdue Reminder: Father's Day",
+    "body": "Reminder was 7 hours overdue - Due 6/14/2025",
+    "scheduledTime": "2025-06-13T21:33:28.517Z",
+    "repeat": "none",
+    "createdAt": 1749850408518,
+    "data": {
+      "taskId": 138,
       "type": "overdue_reminder"
     }
   }

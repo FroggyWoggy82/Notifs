@@ -328,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             allTasks = await response.json(); // Store all tasks globally
+            window.allTasks = allTasks; // Make available to search function
 
             if (forceReload) {
                 taskListDiv.innerHTML = '';
@@ -4666,5 +4667,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Make createTaskElement globally available for search functionality
+    window.createTaskElement = createTaskElement;
 
 }); // End DOMContentLoaded

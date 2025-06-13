@@ -337,6 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             allTasks = await response.json(); // Store all tasks globally
+            window.allTasks = allTasks; // Make available to search function
             console.log("Tasks loaded:", allTasks);
 
             if (forceReload) {

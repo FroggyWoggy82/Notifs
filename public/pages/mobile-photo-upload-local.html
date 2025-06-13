@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Photo Upload - LOCAL DEV</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            color: #333;
+        }
+
+        .file-input-container {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-button {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        #fileInfo {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .file-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-name {
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .file-size {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .upload-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .upload-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .upload-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            color: #4CAF50;
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+            color: #f44336;
+        }
+
+        .status.info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid rgba(33, 150, 243, 0.5);
+            color: #2196F3;
+        }
+
+        .server-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .server-url {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📷 Progress Photo</h1>
+            <div class="subtitle">LOCAL DEVELOPMENT</div>
+        </div>
+
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="photoDate">📅 Date</label>
+                <input type="date" id="photoDate" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label>📸 Choose Photo</label>
+                <div class="file-input-container">
+                    <label for="photoFile" class="file-input-button">
+                        📷 Choose Photo
+                    </label>
+                    <input type="file" id="photoFile" name="photos" accept="image/*" required>
+                </div>
+                <div id="fileInfo">
+                    <div class="file-details">
+                        <span class="file-name" id="fileName"></span>
+                        <span class="file-size" id="fileSize"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="upload-button" id="uploadButton">
+                🚀 Upload Photo
+            </button>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div class="server-info">
+            <div>🔧 Development Mode</div>
+            <div class="server-url" id="serverUrl">Detecting server...</div>
+        </div>
+    </div>
+
+    <script>
+        // Set default date to today
+        document.getElementById('photoDate').value = new Date().toISOString().split('T')[0];
+
+        // Display server URL
+        document.getElementById('serverUrl').textContent = window.location.origin;
+
+        // Handle file selection
+        document.getElementById('photoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const button = document.querySelector('.file-input-button');
+
+            if (file) {
+                fileName.textContent = file.name;
+                fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                fileInfo.style.display = 'block';
+                button.textContent = '✅ Photo Selected';
+                button.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+            } else {
+                fileInfo.style.display = 'none';
+                button.textContent = '📷 Choose Photo';
+                button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const status = document.getElementById('status');
+            const uploadButton = document.getElementById('uploadButton');
+            
+            // Show uploading status
+            status.className = 'status info';
+            status.style.display = 'block';
+            status.textContent = 'Uploading photo to LOCAL server...';
+            uploadButton.disabled = true;
+            uploadButton.textContent = 'Uploading...';
+            
+            try {
+                // Upload to LOCAL development server
+                const response = await fetch('/api/basic/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.textContent = '✅ Photo uploaded successfully to LOCAL server!';
+                    
+                    // Reset form
+                    this.reset();
+                    document.getElementById('photoDate').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('fileInfo').style.display = 'none';
+                    document.querySelector('.file-input-button').textContent = '📷 Choose Photo';
+                    document.querySelector('.file-input-button').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    
+                    // Hide status after 3 seconds
+                    setTimeout(() => {
+                        status.style.display = 'none';
+                    }, 3000);
+                } else {
+                    throw new Error(result.error || result.message || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                status.className = 'status error';
+                status.textContent = `❌ Upload failed: ${error.message}`;
+            } finally {
+                uploadButton.disabled = false;
+                uploadButton.textContent = '🚀 Upload Photo';
+            }
+        });
+    </script>
+</body>
+</html>

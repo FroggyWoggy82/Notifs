@@ -90,6 +90,24 @@ class JournalModel {
     }
 
     /**
+     * Get journal entries since a specific date
+     * @param {Date} cutoffDate - The cutoff date to get entries since
+     * @returns {Promise<Array>} Array of journal entry objects
+     */
+    static async getEntriesSince(cutoffDate) {
+        try {
+            const result = await db.query(
+                'SELECT id, date, content, analysis, created_at, updated_at FROM journal_entries WHERE date >= $1 ORDER BY date DESC',
+                [cutoffDate.toISOString().split('T')[0]]
+            );
+            return result.rows;
+        } catch (error) {
+            console.error('Error getting journal entries since date:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Create or update a journal entry
      * @param {string} date - The entry date (YYYY-MM-DD)
      * @param {string} content - The entry content
