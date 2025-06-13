@@ -706,5 +706,29 @@
       "taskId": 136,
       "type": "overdue_reminder"
     }
+  },
+  {
+    "id": "d39ce522e6a30fe5ba52d63a",
+    "title": "⚠️ Overdue Reminder: Karans Bday",
+    "body": "Reminder was 12 hours overdue - Due 6/13/2025",
+    "scheduledTime": "2025-06-13T02:55:38.941Z",
+    "repeat": "none",
+    "createdAt": 1749783338943,
+    "data": {
+      "taskId": 137,
+      "type": "overdue_reminder"
+    }
+  },
+  {
+    "id": "af8a58d705ead1f0741629c9",
+    "title": "⚠️ Overdue Reminder: Oscar's Bday",
+    "body": "Reminder was 12 hours overdue - Due 6/13/2025",
+    "scheduledTime": "2025-06-13T02:55:38.944Z",
+    "repeat": "none",
+    "createdAt": 1749783338944,
+    "data": {
+      "taskId": 136,
+      "type": "overdue_reminder"
+    }
   }
 ]

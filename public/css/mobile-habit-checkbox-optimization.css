@@ -1,0 +1,260 @@
+/**
+ * Mobile Habit Checkbox Optimization
+ * Improves visibility, contrast, and touch interaction for habit checkboxes on mobile devices
+ */
+
+/* Base mobile optimization for all screen sizes */
+@media screen and (max-width: 768px) {
+    /* Habit checkbox base styling for mobile */
+    .habit-checkbox,
+    html body .habit-item .habit-checkbox {
+        /* Touch-friendly size (minimum 44px) */
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
+        
+        /* Enhanced visibility */
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        background-color: rgba(40, 40, 40, 0.95) !important;
+        border: 3px solid rgba(255, 255, 255, 0.8) !important;
+        border-radius: 50% !important;
+        
+        /* Improved contrast and glow */
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.15), 
+                    inset 0 0 8px rgba(255, 255, 255, 0.05) !important;
+        
+        /* Positioning and interaction */
+        cursor: pointer !important;
+        position: relative !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        outline: none !important;
+        
+        /* Smooth transitions */
+        transition: all 0.2s ease !important;
+        
+        /* Ensure proper z-index */
+        z-index: 10 !important;
+    }
+    
+    /* Mobile hover/touch states for better feedback */
+    .habit-checkbox:hover,
+    .habit-checkbox:active,
+    .habit-checkbox:focus,
+    html body .habit-item .habit-checkbox:hover,
+    html body .habit-item .habit-checkbox:active,
+    html body .habit-item .habit-checkbox:focus {
+        border-color: rgba(255, 255, 255, 1) !important;
+        background-color: rgba(60, 60, 60, 0.95) !important;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.25), 
+                    inset 0 0 12px rgba(255, 255, 255, 0.1) !important;
+        transform: scale(1.05) !important;
+    }
+    
+    /* Mobile checked state with high contrast */
+    .habit-checkbox:checked,
+    html body .habit-item .habit-checkbox:checked {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        border-color: rgba(255, 255, 255, 1) !important;
+        box-shadow: 0 0 16px rgba(255, 255, 255, 0.3), 
+                    inset 0 0 12px rgba(255, 255, 255, 0.15) !important;
+    }
+    
+    /* Mobile checkmark with enhanced visibility */
+    .habit-checkbox:checked::after,
+    html body .habit-item .habit-checkbox:checked::after {
+        content: '✓' !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        color: rgba(255, 255, 255, 1) !important;
+        font-size: 24px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.6), 
+                     0 0 12px rgba(255, 255, 255, 0.3) !important;
+        pointer-events: none !important;
+        z-index: 15 !important;
+    }
+    
+    /* Habit control container adjustments for mobile */
+    .habit-control-container,
+    html body .habit-control-container {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        border-radius: 50% !important;
+        background-color: transparent !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-right: 15px !important;
+        position: relative !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Mobile completed habit styling with enhanced visibility */
+    .habit-item[data-completed="true"] .habit-control-container::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 50% !important;
+        border: 3px solid rgba(255, 255, 255, 1) !important;
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        box-shadow: 0 0 16px rgba(255, 255, 255, 0.3), 
+                    inset 0 0 12px rgba(255, 255, 255, 0.15) !important;
+        z-index: 10 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Mobile completed habit checkmark with enhanced visibility */
+    .habit-item[data-completed="true"] .habit-control-container::after {
+        content: '✓' !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        color: rgba(255, 255, 255, 1) !important;
+        font-weight: 900 !important;
+        font-size: 24px !important;
+        pointer-events: none !important;
+        z-index: 20 !important;
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.6), 
+                     0 0 12px rgba(255, 255, 255, 0.3) !important;
+        line-height: 1 !important;
+    }
+}
+
+/* Extra optimization for smaller mobile screens */
+@media screen and (max-width: 480px) {
+    .habit-checkbox,
+    html body .habit-item .habit-checkbox {
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px !important;
+        min-height: 46px !important;
+        max-width: 46px !important;
+        max-height: 46px !important;
+        border-width: 2.5px !important;
+    }
+    
+    .habit-checkbox:checked::after,
+    html body .habit-item .habit-checkbox:checked::after {
+        font-size: 22px !important;
+    }
+    
+    .habit-control-container,
+    html body .habit-control-container {
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px !important;
+        min-height: 46px !important;
+        margin-right: 12px !important;
+    }
+    
+    .habit-item[data-completed="true"] .habit-control-container::before {
+        width: 46px !important;
+        height: 46px !important;
+        border-width: 2.5px !important;
+    }
+    
+    .habit-item[data-completed="true"] .habit-control-container::after {
+        font-size: 22px !important;
+    }
+}
+
+/* Ultra-compact for very small screens */
+@media screen and (max-width: 360px) {
+    .habit-checkbox,
+    html body .habit-item .habit-checkbox {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        max-width: 44px !important;
+        max-height: 44px !important;
+        border-width: 2px !important;
+    }
+    
+    .habit-checkbox:checked::after,
+    html body .habit-item .habit-checkbox:checked::after {
+        font-size: 20px !important;
+    }
+    
+    .habit-control-container,
+    html body .habit-control-container {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        margin-right: 10px !important;
+    }
+    
+    .habit-item[data-completed="true"] .habit-control-container::before {
+        width: 44px !important;
+        height: 44px !important;
+        border-width: 2px !important;
+    }
+    
+    .habit-item[data-completed="true"] .habit-control-container::after {
+        font-size: 20px !important;
+    }
+}
+
+/* Ensure proper spacing and layout on mobile */
+@media screen and (max-width: 768px) {
+    .habit-item {
+        padding: 12px 15px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .habit-top-row {
+        align-items: center !important;
+        gap: 0 !important;
+    }
+    
+    .habit-content {
+        padding-left: 0 !important;
+    }
+    
+    /* Ensure habit items have proper touch spacing */
+    .habit-item + .habit-item {
+        margin-top: 8px !important;
+    }
+}
+
+/* Accessibility improvements */
+@media screen and (max-width: 768px) {
+    .habit-checkbox:focus,
+    html body .habit-item .habit-checkbox:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.8) !important;
+        outline-offset: 2px !important;
+    }
+    
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        .habit-checkbox,
+        html body .habit-item .habit-checkbox {
+            border-color: rgba(255, 255, 255, 1) !important;
+            background-color: rgba(0, 0, 0, 1) !important;
+        }
+        
+        .habit-checkbox:checked,
+        html body .habit-item .habit-checkbox:checked {
+            background-color: rgba(255, 255, 255, 0.4) !important;
+        }
+    }
+}
