@@ -117,21 +117,104 @@ body {
 
 /* Adjust for mobile screens */
 @media (max-width: 600px) {
+    body {
+        padding: 2px 2px 60px 2px !important;
+    }
+
+    .container {
+        height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 !important;
+    }
+
     .calendar-controls-container {
         flex-direction: column !important;
-        gap: 5px !important;
+        gap: 2px !important;
+        margin-bottom: 5px !important;
     }
 
     .calendar-filter {
         max-width: 100% !important;
+        padding: 2px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .calendar-grid {
+        flex: 1 !important;
+        gap: 1px !important;
+        padding: 1px !important;
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
+        grid-template-rows: auto repeat(6, 1fr) !important;
+        height: calc(100vh - 110px) !important;
     }
 
     .calendar-day {
-        height: 110px !important;
+        height: auto !important;
+        padding: 2px !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .calendar-tasks,
     .calendar-habits {
-        max-height: 75px !important;
+        max-height: none !important;
+        flex: 1 !important;
+        overflow: hidden !important;
+    }
+}
+
+/* Extra mobile optimization for very small screens */
+@media (max-width: 480px) {
+    .container h1 {
+        font-size: 1.1em !important;
+        margin-bottom: 3px !important;
+        padding-top: 1px !important;
+    }
+
+    .calendar-controls {
+        padding: 2px !important;
+    }
+
+    .calendar-grid {
+        height: calc(100vh - 100px) !important;
+        gap: 0px !important;
+        padding: 0px !important;
+    }
+
+    .calendar-header {
+        padding: 1px 0 !important;
+        font-size: 0.7em !important;
+    }
+
+    .calendar-day {
+        padding: 1px !important;
+        border-width: 0.5px !important;
+    }
+}
+
+/* Ultra-compact for very small screens */
+@media (max-width: 360px) {
+    .container h1 {
+        font-size: 1em !important;
+        margin-bottom: 2px !important;
+    }
+
+    .calendar-controls h2 {
+        font-size: 0.9em !important;
+    }
+
+    .calendar-grid {
+        height: calc(100vh - 90px) !important;
+    }
+
+    .calendar-header {
+        font-size: 0.65em !important;
+    }
+
+    .day-number {
+        font-size: 0.8em !important;
+        margin-bottom: 1px !important;
     }
 }

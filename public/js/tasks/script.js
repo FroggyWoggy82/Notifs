@@ -694,6 +694,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add click event to the task item
         div.addEventListener('click', (event) => {
+            // Check if the click is on a checkbox or checkbox container first
+            const isCheckbox = event.target.type === 'checkbox';
+            const isCheckboxContainer = event.target.closest('.task-checkbox-container');
+
+            // If it's a checkbox or checkbox container, don't open the modal
+            if (isCheckbox || isCheckboxContainer) {
+                console.log('[Task Click] Checkbox clicked, preventing modal from opening');
+                return false;
+            }
+
             // Check if the click is on an expand button, expand button container, or inside a button
             const isExpandButton = event.target.closest('[data-expand-button="true"]');
             const isExpandButtonContainer = event.target.closest('.expand-button-container');

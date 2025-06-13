@@ -648,19 +648,23 @@ button[type="submit"]:hover {
 /* Mobile phones - landscape and larger portrait */
 @media (max-width: 480px) {
     .container {
-        padding: 0 5px;
+        padding: 0 2px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
     .container h1 {
         font-size: 1.2em;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
+        padding-top: 2px;
     }
 
     .calendar-controls {
         flex-direction: column;
-        gap: 8px;
-        padding: 6px;
-        margin-bottom: 10px;
+        gap: 4px;
+        padding: 4px;
+        margin-bottom: 5px;
     }
 
     .calendar-controls h2 {
@@ -673,8 +677,8 @@ button[type="submit"]:hover {
     }
 
     .calendar-filter {
-        margin-bottom: 8px;
-        padding: 5px 6px;
+        margin-bottom: 5px;
+        padding: 3px 4px;
     }
 
     .calendar-filter label {
@@ -688,21 +692,27 @@ button[type="submit"]:hover {
     }
 
     .calendar-grid {
-        gap: 2px;
-        padding: 5px;
-        grid-auto-rows: minmax(85px, auto);
+        gap: 1px;
+        padding: 2px;
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: auto repeat(6, 1fr);
+        height: calc(100vh - 120px);
     }
 
     .calendar-header {
         font-size: 0.75em;
-        padding: 4px 0;
+        padding: 2px 0;
     }
 
     .calendar-day {
-        height: 85px;
-        padding: 4px;
+        padding: 3px;
         font-size: 0.75em;
         min-height: 44px; /* Ensure touch target size */
+        height: auto;
+        display: flex;
+        flex-direction: column;
     }
 
     .day-number {
@@ -749,18 +759,22 @@ button[type="submit"]:hover {
 /* Small mobile phones - portrait */
 @media (max-width: 360px) {
     .container {
-        padding: 0 3px;
+        padding: 0 1px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
     .container h1 {
         font-size: 1.1em;
-        margin-bottom: 8px;
+        margin-bottom: 3px;
+        padding-top: 1px;
     }
 
     .calendar-controls {
-        gap: 6px;
-        padding: 4px;
-        margin-bottom: 8px;
+        gap: 3px;
+        padding: 2px;
+        margin-bottom: 3px;
     }
 
     .calendar-controls h2 {
@@ -773,8 +787,8 @@ button[type="submit"]:hover {
     }
 
     .calendar-filter {
-        margin-bottom: 6px;
-        padding: 4px 5px;
+        margin-bottom: 3px;
+        padding: 2px 3px;
     }
 
     .calendar-filter label {
@@ -788,21 +802,27 @@ button[type="submit"]:hover {
     }
 
     .calendar-grid {
-        gap: 1px;
-        padding: 3px;
-        grid-auto-rows: minmax(75px, auto);
+        gap: 0px;
+        padding: 1px;
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: auto repeat(6, 1fr);
+        height: calc(100vh - 100px);
     }
 
     .calendar-header {
         font-size: 0.7em;
-        padding: 3px 0;
+        padding: 1px 0;
     }
 
     .calendar-day {
-        height: 75px;
-        padding: 3px;
+        padding: 2px;
         font-size: 0.7em;
         min-height: 44px; /* Maintain touch target size */
+        height: auto;
+        display: flex;
+        flex-direction: column;
     }
 
     .day-number {

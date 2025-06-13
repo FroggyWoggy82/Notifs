@@ -1,0 +1,224 @@
+/**
+ * Mobile Calendar Optimization
+ * Removes gaps and maximizes screen real estate for mobile calendar view
+ */
+
+/* Mobile-specific calendar optimizations */
+@media (max-width: 768px) {
+    /* Ensure full viewport usage */
+    html, body {
+        height: 100vh;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        padding-bottom: 60px !important; /* Account for bottom nav */
+    }
+
+    /* Container optimization */
+    .container {
+        height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 2px !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Compact header */
+    .container h1 {
+        font-size: 1.2em !important;
+        margin: 5px 0 !important;
+        padding: 0 !important;
+        text-align: center !important;
+    }
+
+    /* Compact controls */
+    .calendar-controls-container {
+        margin-bottom: 5px !important;
+    }
+
+    .calendar-controls {
+        padding: 3px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .calendar-filter {
+        padding: 3px !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Optimized calendar grid */
+    .calendar-grid {
+        flex: 1 !important;
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
+        grid-template-rows: auto repeat(6, 1fr) !important;
+        gap: 1px !important;
+        padding: 1px !important;
+        height: calc(100vh - 120px) !important;
+        border-radius: 0 !important;
+        border: none !important;
+        background-color: transparent !important;
+    }
+
+    /* Compact headers */
+    .calendar-header {
+        padding: 2px 0 !important;
+        font-size: 0.75em !important;
+        background-color: rgba(30, 30, 30, 0.8) !important;
+        margin: 0 !important;
+    }
+
+    /* Optimized calendar days */
+    .calendar-day {
+        height: auto !important;
+        padding: 2px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border-width: 0.5px !important;
+        margin: 0 !important;
+        min-height: 44px !important; /* Touch target */
+    }
+
+    /* Day number optimization */
+    .day-number {
+        font-size: 0.8em !important;
+        margin-bottom: 2px !important;
+        text-align: center !important;
+    }
+
+    /* Task and habit containers */
+    .calendar-tasks,
+    .calendar-habits {
+        flex: 1 !important;
+        overflow: hidden !important;
+        max-height: none !important;
+    }
+
+    /* Task and habit items */
+    .calendar-task-item,
+    .calendar-habit-item {
+        padding: 1px 2px !important;
+        margin-bottom: 1px !important;
+        font-size: 0.65em !important;
+        border-radius: 1px !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Remove any status elements that take up space */
+    #calendarStatus {
+        display: none !important;
+    }
+}
+
+/* Extra small mobile phones */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 1px !important;
+    }
+
+    .container h1 {
+        font-size: 1.1em !important;
+        margin: 3px 0 !important;
+    }
+
+    .calendar-grid {
+        gap: 0px !important;
+        padding: 0px !important;
+        height: calc(100vh - 110px) !important;
+    }
+
+    .calendar-header {
+        padding: 1px 0 !important;
+        font-size: 0.7em !important;
+    }
+
+    .calendar-day {
+        padding: 1px !important;
+        border-width: 0.25px !important;
+    }
+
+    .day-number {
+        font-size: 0.75em !important;
+        margin-bottom: 1px !important;
+    }
+
+    .calendar-task-item,
+    .calendar-habit-item {
+        font-size: 0.6em !important;
+        padding: 0px 1px !important;
+        margin-bottom: 0.5px !important;
+    }
+}
+
+/* Ultra-compact for very small screens */
+@media (max-width: 360px) {
+    .container h1 {
+        font-size: 1em !important;
+        margin: 2px 0 !important;
+    }
+
+    .calendar-controls h2 {
+        font-size: 0.9em !important;
+    }
+
+    .calendar-grid {
+        height: calc(100vh - 100px) !important;
+    }
+
+    .calendar-header {
+        font-size: 0.65em !important;
+        padding: 0.5px 0 !important;
+    }
+
+    .day-number {
+        font-size: 0.7em !important;
+    }
+
+    .calendar-task-item,
+    .calendar-habit-item {
+        font-size: 0.55em !important;
+    }
+}
+
+/* Landscape orientation optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+    .container h1 {
+        font-size: 1em !important;
+        margin: 2px 0 !important;
+    }
+
+    .calendar-controls-container {
+        margin-bottom: 2px !important;
+    }
+
+    .calendar-grid {
+        height: calc(100vh - 80px) !important;
+    }
+
+    .calendar-day {
+        padding: 1px !important;
+    }
+
+    .day-number {
+        font-size: 0.7em !important;
+        margin-bottom: 1px !important;
+    }
+}
+
+/* Ensure no horizontal scrolling */
+@media (max-width: 768px) {
+    * {
+        box-sizing: border-box !important;
+    }
+
+    .calendar-grid,
+    .calendar-day,
+    .calendar-header {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+}

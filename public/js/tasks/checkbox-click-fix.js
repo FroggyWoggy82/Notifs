@@ -10,7 +10,7 @@
 console.log('[Checkbox Click Fix] Initializing...');
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Use event delegation instead of modifying each task item
+    // Use event delegation with capture phase to ensure we catch the event first
     document.addEventListener('click', function(event) {
         // Check if the click is on a checkbox or inside a checkbox container
         const isCheckbox = event.target.type === 'checkbox';
@@ -18,8 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // If it's a checkbox or checkbox container, prevent the event from bubbling up
         if (isCheckbox || isCheckboxContainer) {
-            // Stop propagation to prevent the task item click handler from firing
+            // Stop both propagation and default behavior
             event.stopPropagation();
+            event.stopImmediatePropagation();
             console.log('[Checkbox Click Fix] Checkbox clicked, preventing modal from opening');
 
             // If it's a checkbox, handle immediate task movement based on checked state
