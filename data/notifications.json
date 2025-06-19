@@ -24,18 +24,6 @@
     }
   },
   {
-    "id": "7990c1aab1fde28ccf84e041",
-    "title": "Reminder: Father's Day",
-    "body": "Due in 6 days (6/14/2025)",
-    "scheduledTime": "2025-06-13T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413196,
-    "data": {
-      "taskId": 138,
-      "type": "task_reminder"
-    }
-  },
-  {
     "id": "035b67d962f8f10f827ac783",
     "title": "Reminder: Pacey's Bday",
     "body": "Due in 48 days (7/26/2025)",
@@ -260,18 +248,6 @@
     "createdAt": 1749409413220,
     "data": {
       "taskId": 155,
-      "type": "task_reminder"
-    }
-  },
-  {
-    "id": "87824b7c2c5ab35f65cdf9da",
-    "title": "Reminder: Emiry's Bday",
-    "body": "Due in 8 days (6/16/2025)",
-    "scheduledTime": "2025-06-15T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413221,
-    "data": {
-      "taskId": 139,
       "type": "task_reminder"
     }
   },
@@ -633,114 +609,6 @@
     "data": {
       "taskId": 184,
       "type": "task_reminder"
-    }
-  },
-  {
-    "id": "770dc7f68d455041c65e945b",
-    "title": "⚠️ Overdue Reminder: Karans Bday",
-    "body": "Reminder was 8 hours overdue - Due 6/13/2025",
-    "scheduledTime": "2025-06-12T22:11:05.055Z",
-    "repeat": "none",
-    "createdAt": 1749766265056,
-    "data": {
-      "taskId": 137,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "46df6da5187ddd181102daf1",
-    "title": "⚠️ Overdue Reminder: Oscar's Bday",
-    "body": "Reminder was 8 hours overdue - Due 6/13/2025",
-    "scheduledTime": "2025-06-12T22:11:05.057Z",
-    "repeat": "none",
-    "createdAt": 1749766265058,
-    "data": {
-      "taskId": 136,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "08a65426ece610e048b078ff",
-    "title": "⚠️ Overdue Reminder: Karans Bday",
-    "body": "Reminder was 10 hours overdue - Due 6/13/2025",
-    "scheduledTime": "2025-06-13T00:47:38.742Z",
-    "repeat": "none",
-    "createdAt": 1749775658743,
-    "data": {
-      "taskId": 137,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "e7550d813924d18cb4e31f2b",
-    "title": "⚠️ Overdue Reminder: Oscar's Bday",
-    "body": "Reminder was 10 hours overdue - Due 6/13/2025",
-    "scheduledTime": "2025-06-13T00:47:38.743Z",
-    "repeat": "none",
-    "createdAt": 1749775658744,
-    "data": {
-      "taskId": 136,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "d39ce522e6a30fe5ba52d63a",
-    "title": "⚠️ Overdue Reminder: Karans Bday",
-    "body": "Reminder was 12 hours overdue - Due 6/13/2025",
-    "scheduledTime": "2025-06-13T02:55:38.941Z",
-    "repeat": "none",
-    "createdAt": 1749783338943,
-    "data": {
-      "taskId": 137,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "af8a58d705ead1f0741629c9",
-    "title": "⚠️ Overdue Reminder: Oscar's Bday",
-    "body": "Reminder was 12 hours overdue - Due 6/13/2025",
-    "scheduledTime": "2025-06-13T02:55:38.944Z",
-    "repeat": "none",
-    "createdAt": 1749783338944,
-    "data": {
-      "taskId": 136,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "7e5483235b4b6308e54cc94b",
-    "title": "⚠️ Overdue Reminder: Father's Day",
-    "body": "Reminder was 7 hours overdue - Due 6/14/2025",
-    "scheduledTime": "2025-06-13T21:25:29.125Z",
-    "repeat": "none",
-    "createdAt": 1749849929127,
-    "data": {
-      "taskId": 138,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "fecc05ce919d9ab3eebabc32",
-    "title": "⚠️ Overdue Reminder: Father's Day",
-    "body": "Reminder was 7 hours overdue - Due 6/14/2025",
-    "scheduledTime": "2025-06-13T21:31:52.696Z",
-    "repeat": "none",
-    "createdAt": 1749850312698,
-    "data": {
-      "taskId": 138,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "d4c2569535ce9f13695ab932",
-    "title": "⚠️ Overdue Reminder: Father's Day",
-    "body": "Reminder was 7 hours overdue - Due 6/14/2025",
-    "scheduledTime": "2025-06-13T21:33:28.517Z",
-    "repeat": "none",
-    "createdAt": 1749850408518,
-    "data": {
-      "taskId": 138,
-      "type": "overdue_reminder"
     }
   }
 ]

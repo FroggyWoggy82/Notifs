@@ -25,24 +25,21 @@ function calculateNextOccurrence(task) {
 
     const interval = task.recurrence_interval || 1;
 
-    // Create next date using the same approach to avoid timezone issues
-    let nextDate;
-    const year = dueDate.getFullYear();
-    const month = dueDate.getMonth();
-    const day = dueDate.getDate();
+    // Create next date using Date methods to avoid timezone issues and off-by-one errors
+    let nextDate = new Date(dueDate);
 
     switch (task.recurrence_type) {
         case 'daily':
-            nextDate = new Date(year, month, day + interval);
+            nextDate.setDate(nextDate.getDate() + interval);
             break;
         case 'weekly':
-            nextDate = new Date(year, month, day + (interval * 7));
+            nextDate.setDate(nextDate.getDate() + (interval * 7));
             break;
         case 'monthly':
-            nextDate = new Date(year, month + interval, day);
+            nextDate.setMonth(nextDate.getMonth() + interval);
             break;
         case 'yearly':
-            nextDate = new Date(year + interval, month, day);
+            nextDate.setFullYear(nextDate.getFullYear() + interval);
             break;
         default:
             return null;

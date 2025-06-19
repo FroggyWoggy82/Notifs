@@ -23,11 +23,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 indicator.removeAttribute('style');
             }
 
-            // Ensure all next date indicators have the "Next:" prefix
-            const textSpan = indicator.querySelector('span') || indicator;
-            if (textSpan && textSpan.textContent && !textSpan.textContent.includes('Next:')) {
-                textSpan.textContent = `Next: ${textSpan.textContent}`;
-            }
+            // DISABLED: This was causing duplicate "Next:" prefixes
+            // The main task creation script already handles the "Next:" prefix correctly
+            // const textSpan = indicator.querySelector('span') || indicator;
+            // if (textSpan && textSpan.textContent && !textSpan.textContent.includes('Next:')) {
+            //     textSpan.textContent = `Next: ${textSpan.textContent}`;
+            // }
         });
 
         // Find all overdue indicators

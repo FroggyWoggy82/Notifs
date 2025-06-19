@@ -36,10 +36,11 @@ async function debugNextOccurrence() {
         
         const dueDate = new Date(task.due_date);
         const interval = task.recurrence_interval || 1;
-        
+
         let nextDueDate = new Date(dueDate);
-        
-        // Calculate the next occurrence based on recurrence type
+
+        // Calculate the next occurrence based on recurrence type using Date methods
+        // to avoid timezone issues and off-by-one errors
         switch (task.recurrence_type) {
             case 'daily':
                 nextDueDate.setDate(nextDueDate.getDate() + interval);

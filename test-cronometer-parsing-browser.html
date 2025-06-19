@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cronometer Parsing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-field label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-field input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .updated {
+            background-color: #e8f5e8 !important;
+            border-color: #4CAF50 !important;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Cronometer Data Parsing Test</h1>
+        
+        <div class="status info" id="status">
+            Ready to test Cronometer data parsing. Paste your Cronometer data below.
+        </div>
+        
+        <h3>Cronometer Data Input:</h3>
+        <textarea id="cronometer-data" placeholder="Paste your Cronometer nutrition data here..."></textarea>
+        
+        <button onclick="testWithSampleData()">Test with Sample Data</button>
+        <button onclick="clearAll()">Clear All</button>
+        
+        <h3>Parsed Nutrition Fields:</h3>
+        <div class="form-grid">
+            <div class="form-field">
+                <label>Energy (kcal)</label>
+                <input type="number" id="edit-ingredient-energy" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Protein (g)</label>
+                <input type="number" id="edit-ingredient-protein" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Fat (g)</label>
+                <input type="number" id="edit-ingredient-fats" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Carbs (g)</label>
+                <input type="number" id="edit-ingredient-carbs" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Fiber (g)</label>
+                <input type="number" id="edit-ingredient-fiber" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Calcium (mg)</label>
+                <input type="number" id="edit-ingredient-calcium" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Iron (mg)</label>
+                <input type="number" id="edit-ingredient-iron" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Vitamin A (μg)</label>
+                <input type="number" id="edit-ingredient-vitamin-a" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Vitamin C (mg)</label>
+                <input type="number" id="edit-ingredient-vitamin-c" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Vitamin D (μg)</label>
+                <input type="number" id="edit-ingredient-vitamin-d" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Vitamin B12 (μg)</label>
+                <input type="number" id="edit-ingredient-vitamin-b12" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Folate (μg)</label>
+                <input type="number" id="edit-ingredient-folate" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Potassium (mg)</label>
+                <input type="number" id="edit-ingredient-potassium" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Sodium (mg)</label>
+                <input type="number" id="edit-ingredient-sodium" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Magnesium (mg)</label>
+                <input type="number" id="edit-ingredient-magnesium" step="0.1">
+            </div>
+            <div class="form-field">
+                <label>Zinc (mg)</label>
+                <input type="number" id="edit-ingredient-zinc" step="0.1">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cronometer data parser (same logic as the main script)
+        function parseCronometerData(text) {
+            console.log('[Test] Parsing data length:', text.length);
+            console.log('[Test] First 200 chars:', text.substring(0, 200));
+            
+            if (!text || text.trim().length === 0) {
+                console.log('[Test] No data to parse');
+                return;
+            }
+
+            const lines = text.split('\n');
+            const data = {};
+            let foundCount = 0;
+
+            console.log('[Test] Processing', lines.length, 'lines');
+
+            // Parse each line for nutrition data - handle multiple formats
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                console.log('[Test] Processing line', i + ':', line);
+
+                let nutrient = null;
+                let value = null;
+
+                // Method 1: Tab-separated format (Energy	152.8	kcal)
+                let parts = line.split('\t');
+                if (parts.length >= 2) {
+                    nutrient = parts[0].trim();
+                    value = parts[1].trim();
+                    console.log('[Test] Tab format - nutrient:', nutrient, 'value:', value);
+                }
+
+                // Method 2: Space-separated format (Energy 152.8 kcal)
+                if (!nutrient) {
+                    const spaceMatch = line.match(/^(.+?)\s+([0-9.-]+)\s*(.*)$/);
+                    if (spaceMatch) {
+                        nutrient = spaceMatch[1].trim();
+                        value = spaceMatch[2].trim();
+                        console.log('[Test] Space format - nutrient:', nutrient, 'value:', value);
+                    }
+                }
+
+                // Method 3: Multi-line format (nutrient on one line, value on next line)
+                if (!nutrient && i < lines.length - 1) {
+                    const currentLine = line;
+                    const nextLine = lines[i + 1] ? lines[i + 1].trim() : '';
+
+                    // Check if current line looks like a nutrient name and next line is a number
+                    const isNutrientName = /^[A-Za-z\s\.\(\)]+$/.test(currentLine) && currentLine.length > 2;
+                    const isNumericValue = /^[0-9.-]+$/.test(nextLine);
+
+                    if (isNutrientName && isNumericValue) {
+                        nutrient = currentLine;
+                        value = nextLine;
+                        i++; // Skip the next line since we consumed it
+                        console.log('[Test] Multi-line format - nutrient:', nutrient, 'value:', value);
+                    }
+                }
+
+                if (nutrient && value) {
+                    
+                    console.log('[Test] Found nutrient:', nutrient, 'value:', value);
+                    
+                    // Skip empty values or dashes
+                    if (!value || value === '-') {
+                        console.log('[Test] Skipping empty/dash value for:', nutrient);
+                        continue;
+                    }
+                    
+                    // Extract numeric value
+                    const numericMatch = value.match(/([0-9]+\.?[0-9]*)/);
+                    const numericValue = numericMatch ? parseFloat(numericMatch[1]) : 0;
+                    
+                    // Map nutrients to field IDs
+                    const fieldMapping = {
+                        'Energy': 'edit-ingredient-energy',
+                        'Protein': 'edit-ingredient-protein', 
+                        'Fat': 'edit-ingredient-fats',
+                        'Carbs': 'edit-ingredient-carbs',
+                        'Fiber': 'edit-ingredient-fiber',
+                        'Calcium': 'edit-ingredient-calcium',
+                        'Iron': 'edit-ingredient-iron',
+                        'Vit.A': 'edit-ingredient-vitamin-a',
+                        'Vitamin A': 'edit-ingredient-vitamin-a',
+                        'Vit.C': 'edit-ingredient-vitamin-c',
+                        'Vitamin C': 'edit-ingredient-vitamin-c',
+                        'Vit.D': 'edit-ingredient-vitamin-d',
+                        'Vitamin D': 'edit-ingredient-vitamin-d',
+                        'B12 (Cobalamin)': 'edit-ingredient-vitamin-b12',
+                        'Folate': 'edit-ingredient-folate',
+                        'Potassium': 'edit-ingredient-potassium',
+                        'Sodium': 'edit-ingredient-sodium',
+                        'Magnesium': 'edit-ingredient-magnesium',
+                        'Zinc': 'edit-ingredient-zinc'
+                    };
+
+                    const fieldId = fieldMapping[nutrient];
+                    if (fieldId) {
+                        data[fieldId] = numericValue;
+                        foundCount++;
+                        console.log('[Test] ✓ Mapped', nutrient, 'to', fieldId, '=', numericValue);
+                    } else {
+                        console.log('[Test] ✗ No mapping for:', nutrient);
+                    }
+                }
+            }
+            
+            console.log('[Test] Found', foundCount, 'mappable nutrients');
+
+            // Update form fields
+            let updatedCount = 0;
+            for (const [fieldId, value] of Object.entries(data)) {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = value;
+                    field.classList.add('updated');
+                    updatedCount++;
+                    console.log('[Test] Updated', fieldId, '=', value);
+                } else {
+                    console.log('[Test] Field not found:', fieldId);
+                }
+            }
+
+            console.log('[Test] Updated', updatedCount, 'fields');
+            
+            const statusEl = document.getElementById('status');
+            if (updatedCount > 0) {
+                statusEl.textContent = `✅ Success! Parsed and updated ${updatedCount} nutrition fields.`;
+                statusEl.className = 'status success';
+            } else {
+                statusEl.textContent = `❌ No fields were updated. Check the data format.`;
+                statusEl.className = 'status error';
+            }
+        }
+
+        // Sample data for testing
+        function testWithSampleData() {
+            const sampleData = `Energy	152.8	kcal
+Protein	4.7	g
+Fat	0.6	g
+Carbs	30.6	g
+Fiber	2.4	g
+Calcium	0.0	mg
+Iron	0.4	mg
+Vitamin A	0.0	μg
+Vitamin C	0.0	mg
+Sodium	117.6	mg`;
+
+            document.getElementById('cronometer-data').value = sampleData;
+            parseCronometerData(sampleData);
+        }
+
+        function clearAll() {
+            document.getElementById('cronometer-data').value = '';
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('updated');
+            });
+            document.getElementById('status').textContent = 'Ready to test Cronometer data parsing.';
+            document.getElementById('status').className = 'status info';
+        }
+
+        // Attach event listener to textarea
+        document.getElementById('cronometer-data').addEventListener('input', function() {
+            const text = this.value.trim();
+            if (text) {
+                parseCronometerData(text);
+            }
+        });
+
+        console.log('🧪 Cronometer parsing test page loaded');
+    </script>
+</body>
+</html>

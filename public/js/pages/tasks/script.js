@@ -65,24 +65,21 @@ function calculateNextOccurrence(task) {
 
     const interval = task.recurrence_interval || 1;
 
-    // Create next date using the same approach to avoid timezone issues
-    let nextDate;
-    const year = dueDate.getFullYear();
-    const month = dueDate.getMonth();
-    const day = dueDate.getDate();
+    // Create next date using Date methods to avoid timezone issues and off-by-one errors
+    let nextDate = new Date(dueDate);
 
     switch (task.recurrence_type) {
         case 'daily':
-            nextDate = new Date(year, month, day + interval);
+            nextDate.setDate(nextDate.getDate() + interval);
             break;
         case 'weekly':
-            nextDate = new Date(year, month, day + (interval * 7));
+            nextDate.setDate(nextDate.getDate() + (interval * 7));
             break;
         case 'monthly':
-            nextDate = new Date(year, month + interval, day);
+            nextDate.setMonth(nextDate.getMonth() + interval);
             break;
         case 'yearly':
-            nextDate = new Date(year + interval, month, day);
+            nextDate.setFullYear(nextDate.getFullYear() + interval);
             break;
         default:
             return null;
@@ -825,25 +822,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const metadataDiv = document.createElement('div');
         metadataDiv.className = 'task-metadata';
 
-        if (task.recurrence_type && task.recurrence_type !== 'none' && nextOccurrenceDate) {
-            const nextOccurrenceIndicator = document.createElement('div');
-            nextOccurrenceIndicator.className = 'next-occurrence-indicator';
-
-            const nextOccurrenceText = document.createElement('span');
-            nextOccurrenceText.textContent = nextOccurrenceDate.toLocaleDateString();
-            nextOccurrenceIndicator.appendChild(nextOccurrenceText);
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Reset time to start of day
-            const isNextOverdue = nextOccurrenceDate < today;
-
-            if (isNextOverdue) {
-                nextOccurrenceIndicator.classList.add('overdue');
-                console.log(`Task ${task.id} (${task.title}) next occurrence is overdue: ${nextOccurrenceDate.toISOString()}`);
-            }
-
-            metadataDiv.appendChild(nextOccurrenceIndicator);
-        }
+        // DISABLED: Old next occurrence indicator logic
+        // This was creating duplicate "Next:" badges with calculated dates
+        // The new logic in the due date section now handles next occurrence dates from the database
+        // if (task.recurrence_type && task.recurrence_type !== 'none' && nextOccurrenceDate) {
+        //     const nextOccurrenceIndicator = document.createElement('div');
+        //     nextOccurrenceIndicator.className = 'next-occurrence-indicator';
+        //     ...
+        // }
 
         if (task.due_date) {
             try {
@@ -1027,6 +1013,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 dueDateText.textContent = `Due: ${formattedDate}`;
                             }
                         }
+                    } else if (task.recurrence_type && task.recurrence_type !== 'none' && task.next_occurrence_date) {
+                        // Handle recurring tasks with stored next occurrence date (regardless of completion status)
+                        let nextDate;
+                        if (typeof task.next_occurrence_date === 'string' && task.next_occurrence_date.includes('-') && !task.next_occurrence_date.includes('T')) {
+                            // If it's a date string (YYYY-MM-DD), parse as local date
+                            const [year, month, day] = task.next_occurrence_date.split('-').map(Number);
+                            nextDate = new Date(year, month - 1, day);
+                        } else {
+                            // If it's a full datetime or Date object, parse normally
+                            nextDate = new Date(task.next_occurrence_date);
+                        }
+                        const formattedNextDate = nextDate.toLocaleDateString();
+                        dueDateText.textContent = `Next: ${formattedNextDate}`;
+                        console.log(`Using database next occurrence date for recurring task ${task.id}: ${formattedNextDate}`);
                     } else {
 
                         if (dueDateMidnight.getTime() === todayMidnight.getTime()) {

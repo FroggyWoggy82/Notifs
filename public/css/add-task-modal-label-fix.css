@@ -1,0 +1,152 @@
+/**
+ * Task Modal Label Fix
+ * ULTIMATE OVERRIDE to fix reminder text visibility in both Add Task and Edit Task modals
+ * This file has the highest specificity to ensure labels are visible
+ */
+
+/* ULTIMATE SPECIFICITY OVERRIDE - MAXIMUM PRIORITY FOR BOTH ADD TASK AND EDIT TASK MODALS */
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-checkboxes .form-check-label,
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options .form-check-label,
+html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-check-label,
+html body div#addTaskModal.modal .modal-dialog .modal-content .modal-body .reminder-checkboxes .form-check-label,
+html body div#addTaskModal.modal .modal-dialog .modal-content .modal-body .reminder-options .form-check-label,
+html body div#addTaskModal.modal .modal-dialog .modal-content .modal-body .form-check-label,
+html body #addTaskModal.modal-content .modal-body .reminder-checkboxes .form-check-label,
+html body #addTaskModal.modal-content .modal-body .reminder-options .form-check-label,
+html body #addTaskModal.modal-content .modal-body .form-check-label,
+html body #addTaskModal .reminder-checkboxes .form-check-label,
+html body #addTaskModal .reminder-options .form-check-label,
+html body #addTaskModal .form-check-label,
+#addTaskModal .reminder-checkboxes .form-check-label,
+#addTaskModal .reminder-options .form-check-label,
+#addTaskModal .form-check-label,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-checkboxes .form-check-label,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .reminder-options .form-check-label,
+html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-check-label,
+html body div#editTaskModal.modal .modal-dialog .modal-content .modal-body .reminder-checkboxes .form-check-label,
+html body div#editTaskModal.modal .modal-dialog .modal-content .modal-body .reminder-options .form-check-label,
+html body div#editTaskModal.modal .modal-dialog .modal-content .modal-body .form-check-label,
+html body #editTaskModal.modal-content .modal-body .reminder-checkboxes .form-check-label,
+html body #editTaskModal.modal-content .modal-body .reminder-options .form-check-label,
+html body #editTaskModal.modal-content .modal-body .form-check-label,
+html body #editTaskModal .reminder-checkboxes .form-check-label,
+html body #editTaskModal .reminder-options .form-check-label,
+html body #editTaskModal .form-check-label,
+#editTaskModal .reminder-checkboxes .form-check-label,
+#editTaskModal .reminder-options .form-check-label,
+#editTaskModal .form-check-label {
+    /* FORCE VISIBILITY */
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    /* ENHANCED CONTRAST STYLING */
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 4px !important;
+    
+    /* POSITIONING AND SPACING */
+    position: relative !important;
+    z-index: 15 !important;
+    margin: 0 !important;
+    margin-left: 6px !important;
+    padding: 4px 8px !important;
+    
+    /* TYPOGRAPHY */
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    
+    /* ENSURE PROPER DIMENSIONS */
+    min-width: auto !important;
+    min-height: auto !important;
+    width: auto !important;
+    height: auto !important;
+    
+    /* OVERRIDE ANY POSITIONING ISSUES */
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+}
+
+/* FORCE CONTAINER LAYOUT FOR BOTH ADD TASK AND EDIT TASK MODALS */
+html body #addTaskModal .reminder-checkboxes,
+html body #addTaskModal .reminder-options,
+html body #editTaskModal .reminder-checkboxes,
+html body #editTaskModal .reminder-options {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin: 8px 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+html body #addTaskModal .form-check,
+html body #editTaskModal .form-check {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    gap: 6px !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+html body #addTaskModal .form-check-input,
+html body #editTaskModal .form-check-input {
+    margin: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* MOBILE RESPONSIVE ADJUSTMENTS */
+@media (max-width: 768px) {
+    html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-check-label,
+    html body #addTaskModal .form-check-label,
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-check-label,
+    html body #editTaskModal .form-check-label {
+        font-size: 0.75rem !important;
+        padding: 3px 6px !important;
+        margin-left: 4px !important;
+    }
+
+    html body #addTaskModal .reminder-checkboxes,
+    html body #addTaskModal .reminder-options,
+    html body #editTaskModal .reminder-checkboxes,
+    html body #editTaskModal .reminder-options {
+        gap: 6px !important;
+    }
+
+    html body #addTaskModal .form-check,
+    html body #editTaskModal .form-check {
+        padding: 3px !important;
+        gap: 4px !important;
+    }
+
+    html body #addTaskModal .form-check-input,
+    html body #editTaskModal .form-check-input {
+        width: 14px !important;
+        height: 14px !important;
+    }
+}
+
+/* EXTRA SMALL SCREENS */
+@media (max-width: 480px) {
+    html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-check-label,
+    html body #addTaskModal .form-check-label,
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-body .form-check-label,
+    html body #editTaskModal .form-check-label {
+        font-size: 0.7rem !important;
+        padding: 2px 4px !important;
+        margin-left: 3px !important;
+        border-radius: 3px !important;
+    }
+}

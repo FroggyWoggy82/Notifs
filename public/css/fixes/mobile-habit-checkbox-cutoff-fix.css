@@ -1,0 +1,168 @@
+/**
+ * Mobile Habit Checkbox Cutoff Fix
+ * Specifically addresses the issue where habit checkboxes are cut off by the left edge of the screen on mobile devices
+ * Ensures proper touch targets and positioning for mobile interaction
+ */
+
+/* Critical fix for mobile habit checkbox positioning */
+@media screen and (max-width: 768px) {
+    /* Ensure habit items have adequate left padding to prevent cutoff */
+    .habit-item {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+    
+    /* Ensure habit top row layout prevents cutoff */
+    .habit-top-row {
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Habit control container positioning */
+    .habit-control-container {
+        margin-left: 0 !important;
+        margin-right: 16px !important;
+        flex-shrink: 0 !important;
+        position: relative !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+    
+    /* Habit checkbox touch-friendly sizing */
+    .habit-checkbox {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+    }
+    
+    /* Habit increment buttons touch-friendly sizing */
+    .habit-increment-btn {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Ensure habit content doesn't push checkboxes off screen */
+    .habit-content {
+        flex: 1 !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* Container and section level fixes */
+    .container {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .habit-list-section {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    #habitList {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* Extra small screens - maintain adequate spacing */
+@media screen and (max-width: 480px) {
+    .habit-item {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+    
+    .container {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+    
+    .habit-control-container {
+        margin-right: 12px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        width: 44px !important;
+        height: 44px !important;
+    }
+    
+    .habit-checkbox {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+    
+    .habit-increment-btn {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Override any conflicting styles that might cause cutoff */
+html body .habit-item {
+    padding-left: 20px !important;
+    margin-left: 0 !important;
+}
+
+html body .habit-control-container {
+    margin-left: 0 !important;
+}
+
+html body .habit-top-row {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* Ensure proper viewport handling */
+@media screen and (max-width: 768px) {
+    body {
+        overflow-x: hidden !important;
+    }
+    
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+}

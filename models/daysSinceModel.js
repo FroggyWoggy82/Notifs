@@ -31,12 +31,10 @@ async function createEvent(eventName, startDate) {
 
     // Check if this is a datetime-local string (no timezone info)
     if (startDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
-        // This is a datetime-local string, treat it as if it's already in the desired display timezone
-        // We want the database to store a UTC time that, when converted to Central Time, shows the original local time
-        // So we need to store it as UTC time that's 5 hours behind the local time
-        const localDate = new Date(startDate + ':00');
-        // Subtract 5 hours to get the UTC time that will display correctly in Central Time
-        parsedDate = new Date(localDate.getTime() - (5 * 60 * 60 * 1000));
+        // This is a datetime-local string from the user's browser
+        // Treat it as the user's local time and store it directly
+        // The browser's datetime-local input represents the user's local time
+        parsedDate = new Date(startDate + ':00');
     } else {
         // This already has timezone info or is in a different format
         parsedDate = new Date(startDate);
@@ -93,12 +91,10 @@ async function updateEvent(id, eventName, startDate) {
 
     // Check if this is a datetime-local string (no timezone info)
     if (startDate.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
-        // This is a datetime-local string, treat it as if it's already in the desired display timezone
-        // We want the database to store a UTC time that, when converted to Central Time, shows the original local time
-        // So we need to store it as UTC time that's 5 hours behind the local time
-        const localDate = new Date(startDate + ':00');
-        // Subtract 5 hours to get the UTC time that will display correctly in Central Time
-        parsedDate = new Date(localDate.getTime() - (5 * 60 * 60 * 1000));
+        // This is a datetime-local string from the user's browser
+        // Treat it as the user's local time and store it directly
+        // The browser's datetime-local input represents the user's local time
+        parsedDate = new Date(startDate + ':00');
     } else {
         // This already has timezone info or is in a different format
         parsedDate = new Date(startDate);

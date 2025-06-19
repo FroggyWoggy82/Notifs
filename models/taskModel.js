@@ -451,25 +451,22 @@ class Task {
             parsedBaseDate = new Date(year, month - 1, day); // month is 0-indexed
         }
 
-        // Create next date using the same approach to avoid timezone issues
-        let nextDueDate;
-        const year = parsedBaseDate.getFullYear();
-        const month = parsedBaseDate.getMonth();
-        const day = parsedBaseDate.getDate();
+        // Create next date using Date methods to avoid timezone issues and off-by-one errors
+        let nextDueDate = new Date(parsedBaseDate);
 
         // Calculate the next occurrence based on recurrence type
         switch (task.recurrence_type) {
             case 'daily':
-                nextDueDate = new Date(year, month, day + interval);
+                nextDueDate.setDate(nextDueDate.getDate() + interval);
                 break;
             case 'weekly':
-                nextDueDate = new Date(year, month, day + (interval * 7));
+                nextDueDate.setDate(nextDueDate.getDate() + (interval * 7));
                 break;
             case 'monthly':
-                nextDueDate = new Date(year, month + interval, day);
+                nextDueDate.setMonth(nextDueDate.getMonth() + interval);
                 break;
             case 'yearly':
-                nextDueDate = new Date(year + interval, month, day);
+                nextDueDate.setFullYear(nextDueDate.getFullYear() + interval);
                 break;
             default:
                 throw new Error('Invalid recurrence type');

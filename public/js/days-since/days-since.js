@@ -25,8 +25,8 @@ function formatDate(dateString) {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/Chicago' // Explicitly use Central Time
+        minute: '2-digit'
+        // Use the browser's local timezone automatically
     });
 }
 
@@ -150,8 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Simply send the datetime-local value as-is
-            // The backend will handle timezone conversion properly
+            // Convert the datetime-local value to UTC for storage
+            const localDate = new Date(startDate);
+            const utcDate = localDate.toISOString();
+
             const response = await fetch('/api/days-since', {
                 method: 'POST',
                 headers: {
@@ -159,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     eventName,
-                    startDate: startDate
+                    startDate: utcDate
                 })
             });
 
@@ -182,16 +184,14 @@ window.editEvent = function(id, currentName, currentDate) {
     const eventElement = document.querySelector(`.days-since-event[data-id="${id}"]`);
     if (!eventElement) return;
 
-    // Use current time as default for editing (common use case is resetting to now)
+    // Always default to current time for editing (common use case is resetting to now)
     const now = new Date();
-
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
     const hours = now.getHours().toString().padStart(2, '0');
     const minutes = now.getMinutes().toString().padStart(2, '0');
-
-    const formattedCurrentTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    const formattedCurrentDate = `${year}-${month}-${day}T${hours}:${minutes}`;
 
     const editForm = document.createElement('form');
     editForm.classList.add('edit-form-inline'); // Add a class for potential styling
@@ -203,7 +203,7 @@ window.editEvent = function(id, currentName, currentDate) {
         </div>
         <div class="form-group">
             <label for="editEventDate_${id}">Start Date:</label>
-            <input type="datetime-local" id="editEventDate_${id}" value="${formattedCurrentTime}" required>
+            <input type="datetime-local" id="editEventDate_${id}" value="${formattedCurrentDate}" required>
         </div>
         <div class="edit-form-actions">
             <button type="submit" class="save-btn">Save</button>
@@ -227,12 +227,14 @@ window.editEvent = function(id, currentName, currentDate) {
         }
 
         try {
-            // Simply send the datetime-local value as-is
-            // The backend will handle timezone conversion properly
+            // Convert the datetime-local value to UTC for storage
+            const localDate = new Date(updatedDate);
+            const utcDate = localDate.toISOString();
+
             const response = await fetch(`/api/days-since/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ eventName: updatedName, startDate: updatedDate })
+                body: JSON.stringify({ eventName: updatedName, startDate: utcDate })
             });
 
             if (!response.ok) {
