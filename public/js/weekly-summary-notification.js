@@ -29,10 +29,10 @@
         weeklyNotificationShown = true;
     }
 
-    // Get weekly task summary data
+    // Get weekly task summary data for the previous week (recap mode)
     async function getWeeklySummary() {
         try {
-            const response = await fetch('/api/tasks/weekly-complete-list');
+            const response = await fetch('/api/tasks/weekly-complete-list?mode=recap');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -91,7 +91,7 @@
                 <div class="weekly-summary-header">
                     <div class="weekly-summary-icon">${iconHtml}</div>
                     <div class="weekly-summary-title">
-                        <h3>Weekly Summary</h3>
+                        <h3>Weekly Recap</h3>
                         <span class="weekly-summary-date">${weekStart} - ${weekEnd}</span>
                     </div>
                     <button class="weekly-summary-close" aria-label="Close notification">
@@ -109,12 +109,12 @@
                     <div class="stat-divider"></div>
                     <div class="stat-item">
                         <div class="stat-number">${summary.totalTasks}</div>
-                        <div class="stat-label">Total</div>
+                        <div class="stat-label">Available</div>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
                         <div class="stat-number">${completionRate}%</div>
-                        <div class="stat-label">Rate</div>
+                        <div class="stat-label">Success Rate</div>
                     </div>
                 </div>
                 <div class="weekly-summary-progress">
@@ -232,9 +232,19 @@
         // Create header
         const header = document.createElement('div');
         header.className = 'weekly-task-modal-header';
+        // Format the week dates for display
+        const weekStartFormatted = new Date(data.weekStart).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+        const weekEndFormatted = new Date(data.weekEnd).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+
         header.innerHTML = `
-            <h2>Weekly Task List - Complete Overview</h2>
-            <p>All tasks organized by day and notification</p>
+            <h2>Weekly Recap - Completed Tasks</h2>
+            <p>Tasks you completed during the previous week (${weekStartFormatted} - ${weekEndFormatted})</p>
             <button class="weekly-task-modal-close" onclick="closeWeeklyTaskModal()">&times;</button>
         `;
 
@@ -243,24 +253,20 @@
         stats.className = 'weekly-task-stats';
         stats.innerHTML = `
             <div class="stat-card">
-                <div class="stat-number">${data.summary.totalTasks}</div>
-                <div class="stat-label">Total Tasks</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-number">${data.summary.completedTasks}</div>
-                <div class="stat-label">Completed</div>
+                <div class="stat-label">Tasks Completed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">${data.summary.pendingTasks}</div>
-                <div class="stat-label">Pending</div>
+                <div class="stat-number">${data.summary.totalTasks}</div>
+                <div class="stat-label">Total Available</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">${data.summary.completionRate}%</div>
-                <div class="stat-label">Completion Rate</div>
+                <div class="stat-label">Success Rate</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">${data.summary.tasksWithNotifications}</div>
-                <div class="stat-label">With Notifications</div>
+                <div class="stat-label">Had Reminders</div>
             </div>
         `;
 
@@ -268,8 +274,8 @@
         const tabs = document.createElement('div');
         tabs.className = 'weekly-task-tabs';
         tabs.innerHTML = `
-            <button class="tab-button active" onclick="showWeeklyTab('daily')">Daily View</button>
-            <button class="tab-button" onclick="showWeeklyTab('notifications')">Notifications</button>
+            <button class="tab-button active" onclick="showWeeklyTab('daily')">Completed by Day</button>
+            <button class="tab-button" onclick="showWeeklyTab('notifications')">Reminder History</button>
         `;
 
         // Create content area
@@ -314,16 +320,16 @@
             const tasks = data.dailyBreakdown[day] || [];
             html += `
                 <div class="day-section">
-                    <h3>${dayNames[index]} (${tasks.length} tasks)</h3>
+                    <h3>${dayNames[index]} (${tasks.length} completed)</h3>
                     ${tasks.length === 0 ?
-                        '<p class="no-tasks">No tasks for this day</p>' :
+                        '<p class="no-tasks">No tasks completed on this day</p>' :
                         tasks.map(task => `
-                            <div class="task-item">
-                                <div class="task-title">${task.title}</div>
+                            <div class="task-item completed-task">
+                                <div class="task-title">✅ ${task.title}</div>
                                 <div class="task-meta">
                                     ${task.description ? `<span class="task-description">${task.description}</span>` : ''}
-                                    <span class="task-type">Type: ${task.task_type}</span>
-                                    ${task.reminderFormatted ? `<span class="task-reminder">Reminder: ${task.reminderFormatted}</span>` : ''}
+                                    <span class="task-type">Completed: ${new Date(task.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                                    ${task.reminderFormatted ? `<span class="task-reminder">Had reminder: ${task.reminderFormatted}</span>` : ''}
                                 </div>
                             </div>
                         `).join('')
@@ -341,17 +347,18 @@
         let html = '<div id="notifications-view" class="tab-content">';
 
         if (data.notificationBreakdown.length === 0) {
-            html += '<p class="no-notifications">No notifications scheduled for this week</p>';
+            html += '<p class="no-notifications">No completed tasks had reminders this week</p>';
         } else {
             data.notificationBreakdown.forEach(notification => {
                 html += `
                     <div class="notification-section">
-                        <h3>${notification.dateFormatted} at ${notification.time}</h3>
+                        <h3>Reminder was sent: ${notification.dateFormatted} at ${notification.time}</h3>
                         ${notification.tasks.map(task => `
-                            <div class="task-item">
-                                <div class="task-title">${task.title}</div>
+                            <div class="task-item completed-task">
+                                <div class="task-title">✅ ${task.title}</div>
                                 <div class="task-meta">
-                                    <span class="task-due">Due: ${task.taskDateFormatted}</span>
+                                    <span class="task-due">Was due: ${task.taskDateFormatted}</span>
+                                    <span class="task-completed">Completed: ${new Date(task.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                                     ${task.description ? `<span class="task-description">${task.description}</span>` : ''}
                                 </div>
                             </div>
@@ -919,6 +926,16 @@
             .weekly-task-modal-content .task-due {
                 background: #4CAF50 !important;
                 color: #ffffff !important;
+            }
+
+            .weekly-task-modal-content .task-completed {
+                background: #2196F3 !important;
+                color: #ffffff !important;
+            }
+
+            .weekly-task-modal-content .task-item.completed-task {
+                border-left-color: #4CAF50;
+                background: rgba(76, 175, 80, 0.1);
             }
 
             .no-tasks, .no-notifications {

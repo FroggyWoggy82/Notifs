@@ -348,30 +348,6 @@
     }
   },
   {
-    "id": "06319859bbd3f5b0d5a4e712",
-    "title": "Reminder: Brandon Sanchez's Bday",
-    "body": "Due in 11 days (6/19/2025)",
-    "scheduledTime": "2025-06-19T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413229,
-    "data": {
-      "taskId": 141,
-      "type": "task_reminder"
-    }
-  },
-  {
-    "id": "1a5e61402333530029afc275",
-    "title": "Reminder: Hannah Wee's Bday",
-    "body": "Due in 11 days (6/19/2025)",
-    "scheduledTime": "2025-06-19T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413229,
-    "data": {
-      "taskId": 140,
-      "type": "task_reminder"
-    }
-  },
-  {
     "id": "6261f72267f23ac2bfdb726f",
     "title": "Reminder: Grace Ebbinghouse's Bday",
     "body": "Due in 31 days (7/9/2025)",

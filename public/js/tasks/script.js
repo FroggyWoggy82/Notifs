@@ -1164,11 +1164,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         let nextDateText;
 
                         if (task.next_occurrence_date) {
+                            // Handle next occurrence date with timezone-safe parsing
+                            if (typeof task.next_occurrence_date === 'string' && task.next_occurrence_date.includes('-') && !task.next_occurrence_date.includes('T')) {
+                                // If it's a date string (YYYY-MM-DD), parse as local date to avoid timezone issues
+                                const [year, month, day] = task.next_occurrence_date.split('-').map(Number);
+                                nextDate = new Date(year, month - 1, day);
+                            } else {
+                                // If it's a full datetime or Date object, parse normally
+                                nextDate = new Date(task.next_occurrence_date);
+                            }
 
-                            nextDate = new Date(task.next_occurrence_date);
-                            // Fix for timezone issues - ensure correct date display
-                            if (task.recurrence_type === 'yearly' && task.title && task.title.includes('Robert')) {
-                                // Special fix for Robert's birthday to ensure correct date display
+                            // Use consistent date formatting for all yearly recurring tasks
+                            if (task.recurrence_type === 'yearly') {
+                                // For yearly tasks, always use manual date formatting to avoid timezone issues
                                 const dateStr = task.next_occurrence_date.split('T')[0]; // Get YYYY-MM-DD part
                                 const [year, month, day] = dateStr.split('-');
                                 nextDateText = `${parseInt(month)}/${parseInt(day)}/${year}`;
@@ -1209,9 +1217,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 nextDate = new Date(task.next_occurrence_date);
                             }
                             let formattedNextDate;
-                            // Fix for timezone issues - ensure correct date display
-                            if (task.recurrence_type === 'yearly' && task.title && task.title.includes('Robert')) {
-                                // Special fix for Robert's birthday to ensure correct date display
+                            // Use consistent date formatting for all yearly recurring tasks
+                            if (task.recurrence_type === 'yearly') {
+                                // For yearly tasks, always use manual date formatting to avoid timezone issues
                                 const dateStr = task.next_occurrence_date.split('T')[0]; // Get YYYY-MM-DD part
                                 const [year, month, day] = dateStr.split('-');
                                 formattedNextDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
@@ -1260,9 +1268,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             nextDate = new Date(task.next_occurrence_date);
                         }
                         let formattedNextDate;
-                        // Fix for timezone issues - ensure correct date display
-                        if (task.recurrence_type === 'yearly' && task.title && task.title.includes('Robert')) {
-                            // Special fix for Robert's birthday to ensure correct date display
+                        // Use consistent date formatting for all yearly recurring tasks
+                        if (task.recurrence_type === 'yearly') {
+                            // For yearly tasks, always use manual date formatting to avoid timezone issues
                             const dateStr = task.next_occurrence_date.split('T')[0]; // Get YYYY-MM-DD part
                             const [year, month, day] = dateStr.split('-');
                             formattedNextDate = `${parseInt(month)}/${parseInt(day)}/${year}`;

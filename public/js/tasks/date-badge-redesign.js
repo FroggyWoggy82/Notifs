@@ -26,12 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (!textSpan.textContent.includes('Next:')) {
                         let dateText = textSpan.textContent;
-
-                        // Apply Robert fix if this is Robert's task and shows wrong date
-                        if (isRobertTask && dateText === '6/4/2026') {
-                            dateText = '6/5/2026';
-                        }
-
                         textSpan.textContent = `Next: ${dateText}`;
                     }
                 }
@@ -94,12 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         if (!textSpan.textContent.includes('Next:')) {
                             let dateText = textSpan.textContent;
-
-                            // Apply Robert fix if this is Robert's task and shows wrong date
-                            if (isRobertTask && dateText === '6/4/2026') {
-                                dateText = '6/5/2026';
-                            }
-
                             textSpan.textContent = `Next: ${dateText}`;
                         }
                     }

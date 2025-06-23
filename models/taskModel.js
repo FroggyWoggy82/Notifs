@@ -532,41 +532,108 @@ class Task {
      * Get a complete weekly list of all tasks organized by day and notification
      * @param {Date} weekStart - Start of the week (Sunday)
      * @param {Date} weekEnd - End of the week (Saturday)
+     * @param {string} mode - Optional mode: 'recap' for completed tasks only, default shows all tasks
      * @returns {Promise<Object>} Complete weekly breakdown
      */
-    static async getWeeklyCompleteList(weekStart, weekEnd) {
+    static async getWeeklyCompleteList(weekStart, weekEnd, mode = null) {
         try {
-            // Get all tasks that fall within the week or have notifications within the week
-            const query = `
-                SELECT
-                    t.*,
-                    CASE
-                        WHEN t.parent_task_id IS NOT NULL THEN 'subtask'
-                        WHEN t.has_subtasks = true THEN 'parent'
-                        ELSE 'standalone'
-                    END as task_type
-                FROM tasks t
-                WHERE
-                    -- Tasks with assigned dates in the week
-                    (t.assigned_date >= $1::date AND t.assigned_date <= $2::date)
-                    OR
-                    -- Tasks with due dates in the week
-                    (t.due_date >= $1::date AND t.due_date <= $2::date)
-                    OR
-                    -- Tasks with reminder times in the week
-                    (t.reminder_time >= $1::timestamp AND t.reminder_time <= $2::timestamp)
-                    OR
-                    -- Recurring tasks that might have occurrences in the week
-                    (t.recurrence_type IS NOT NULL AND t.recurrence_type != 'none' AND t.due_date IS NOT NULL)
-                ORDER BY
-                    COALESCE(t.assigned_date, t.due_date, t.created_at::date) ASC,
-                    t.reminder_time ASC NULLS LAST,
-                    t.is_complete ASC,
-                    t.created_at DESC
-            `;
+            // For recap mode, we need to get ALL tasks from the week for accurate statistics
+            // but filter the display to show only completed tasks
+            let allTasksQuery, completedTasksQuery;
+            let allTasks, completedTasks;
 
-            const result = await db.query(query, [weekStart, weekEnd]);
-            const allTasks = result.rows;
+            if (mode === 'recap' || mode === 'summary') {
+                // Query 1: Get ALL tasks that were available during the week (for accurate statistics)
+                allTasksQuery = `
+                    SELECT
+                        t.*,
+                        CASE
+                            WHEN t.parent_task_id IS NOT NULL THEN 'subtask'
+                            WHEN t.has_subtasks = true THEN 'parent'
+                            ELSE 'standalone'
+                        END as task_type
+                    FROM tasks t
+                    WHERE
+                        -- Tasks with assigned dates in the week
+                        (t.assigned_date >= $1::date AND t.assigned_date <= $2::date)
+                        OR
+                        -- Tasks with due dates in the week
+                        (t.due_date >= $1::date AND t.due_date <= $2::date)
+                        OR
+                        -- Tasks with reminder times in the week
+                        (t.reminder_time >= $1::timestamp AND t.reminder_time <= $2::timestamp)
+                        OR
+                        -- Recurring tasks that might have occurrences in the week
+                        (t.recurrence_type IS NOT NULL AND t.recurrence_type != 'none' AND t.due_date IS NOT NULL)
+                    ORDER BY
+                        COALESCE(t.assigned_date, t.due_date, t.created_at::date) ASC,
+                        t.reminder_time ASC NULLS LAST,
+                        t.is_complete ASC,
+                        t.created_at DESC
+                `;
+
+                // Query 2: Get only completed tasks that were completed during the week (for display)
+                completedTasksQuery = `
+                    SELECT
+                        t.*,
+                        CASE
+                            WHEN t.parent_task_id IS NOT NULL THEN 'subtask'
+                            WHEN t.has_subtasks = true THEN 'parent'
+                            ELSE 'standalone'
+                        END as task_type
+                    FROM tasks t
+                    WHERE
+                        t.is_complete = true
+                        AND t.updated_at >= $1::timestamp
+                        AND t.updated_at <= $2::timestamp
+                    ORDER BY
+                        COALESCE(t.assigned_date, t.due_date, t.created_at::date) ASC,
+                        t.reminder_time ASC NULLS LAST,
+                        t.created_at DESC
+                `;
+
+                // Execute both queries
+                const [allTasksResult, completedTasksResult] = await Promise.all([
+                    db.query(allTasksQuery, [weekStart, weekEnd]),
+                    db.query(completedTasksQuery, [weekStart, weekEnd])
+                ]);
+
+                allTasks = allTasksResult.rows;
+                completedTasks = completedTasksResult.rows;
+            } else {
+                // Regular mode: get all tasks for the week
+                const query = `
+                    SELECT
+                        t.*,
+                        CASE
+                            WHEN t.parent_task_id IS NOT NULL THEN 'subtask'
+                            WHEN t.has_subtasks = true THEN 'parent'
+                            ELSE 'standalone'
+                        END as task_type
+                    FROM tasks t
+                    WHERE
+                        -- Tasks with assigned dates in the week
+                        (t.assigned_date >= $1::date AND t.assigned_date <= $2::date)
+                        OR
+                        -- Tasks with due dates in the week
+                        (t.due_date >= $1::date AND t.due_date <= $2::date)
+                        OR
+                        -- Tasks with reminder times in the week
+                        (t.reminder_time >= $1::timestamp AND t.reminder_time <= $2::timestamp)
+                        OR
+                        -- Recurring tasks that might have occurrences in the week
+                        (t.recurrence_type IS NOT NULL AND t.recurrence_type != 'none' AND t.due_date IS NOT NULL)
+                    ORDER BY
+                        COALESCE(t.assigned_date, t.due_date, t.created_at::date) ASC,
+                        t.reminder_time ASC NULLS LAST,
+                        t.is_complete ASC,
+                        t.created_at DESC
+                `;
+
+                const result = await db.query(query, [weekStart, weekEnd]);
+                allTasks = result.rows;
+                completedTasks = allTasks; // For regular mode, use all tasks for display
+            }
 
             // Initialize daily breakdown
             const dailyBreakdown = {
@@ -587,16 +654,16 @@ class Task {
 
             // Initialize summary counters
             let totalTasks = 0;
-            let completedTasks = 0;
+            let completedTasksCount = 0;
             let pendingTasks = 0;
             let tasksWithNotifications = 0;
 
-            // Process each task
+            // Calculate statistics from ALL tasks (for accurate success rate)
             for (const task of allTasks) {
                 totalTasks++;
 
                 if (task.is_complete) {
-                    completedTasks++;
+                    completedTasksCount++;
                 } else {
                     pendingTasks++;
                 }
@@ -604,7 +671,13 @@ class Task {
                 if (task.reminder_time) {
                     tasksWithNotifications++;
                 }
+            }
 
+            // Use the appropriate task set for display (completed tasks in recap mode, all tasks otherwise)
+            const tasksForDisplay = (mode === 'recap' || mode === 'summary') ? completedTasks : allTasks;
+
+            // Process tasks for display (daily breakdown and notifications)
+            for (const task of tasksForDisplay) {
                 // Add task to daily breakdown based on assigned_date or due_date
                 const taskDate = task.assigned_date || task.due_date;
                 if (taskDate) {
@@ -703,10 +776,10 @@ class Task {
                 notificationBreakdown: sortedNotifications,
                 summary: {
                     totalTasks,
-                    completedTasks,
+                    completedTasks: completedTasksCount,
                     pendingTasks,
                     tasksWithNotifications,
-                    completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+                    completionRate: totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0
                 }
             };
 

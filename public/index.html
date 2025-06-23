@@ -50,7 +50,7 @@
     <link rel="stylesheet" href="css/task-search.css">
 
     <!-- Task list header alignment fix - Properly aligns heading, search, and filter -->
-    <link rel="stylesheet" href="css/task-list-header-alignment-fix.css">
+    <link rel="stylesheet" href="css/task-list-header-alignment-fix.css?v=2">
 
     <!-- Text cutoff fix - Emergency fix for text being cut off at bottom -->
     <link rel="stylesheet" href="css/text-cutoff-fix.css">
@@ -61,11 +61,32 @@
     <!-- Ultra compact modal override - Final override for maximum compactness -->
     <link rel="stylesheet" href="css/ultra-compact-modal-override.css?v=3">
 
+    <!-- Search and dropdown final fix - Ultimate override for X button and dropdown arrow positioning -->
+    <link rel="stylesheet" href="css/search-dropdown-final-fix.css?v=8">
+
     <!-- Dynamic theme color for status bar - updated for dark theme -->
     <meta name="theme-color" content="#121212">
+
+    <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TaskPWA">
+
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon-192x192.png">
+
+    <!-- Standard Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png">
+
+    <!-- iOS Splash Screens -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Prevent iOS Safari from auto-zooming -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <!-- Direct button fix -->
     <style>
@@ -381,6 +402,7 @@
 
     <!-- Critical scripts that must load immediately -->
     <script src="js/immediate-notification-fix.js"></script>
+    <script src="js/ios-notification-fix.js"></script>
     <script src="js/notification-system.js"></script>
     <script src="js/weekly-summary-notification.js"></script>
     <script src="js/modal-system.js"></script>
@@ -442,7 +464,7 @@
     <!-- <script src="js/tasks/checkbox-click-fix.js" defer></script> --> <!-- DISABLED: Conflicts with unified checkbox handler -->
     <script src="js/food/form-field-fix.js" defer></script>
     <!-- <script src="js/tasks/subtask-display-fix.js" defer></script> -->
-    <script src="js/tasks/subtask-debug.js" defer></script>
+    <!-- <script src="js/tasks/subtask-debug.js" defer></script> --> <!-- DISABLED: Removed debug popup flash -->
     <!-- <script src="js/tasks/subtask-dropdown-fix.js" defer></script> -->
     <script src="js/tasks/grocery-list-display-only.js" defer></script>
     <script src="js/tasks/compact-modal-layout.js" defer></script>

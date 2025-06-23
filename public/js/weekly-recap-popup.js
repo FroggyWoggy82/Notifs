@@ -53,7 +53,7 @@
         return hoursSinceLastShown < NOTIFICATION_DURATION_HOURS;
     }
 
-    // Fetch completed tasks for this week
+    // Fetch completed tasks for the previous week (for weekly recap)
     async function fetchCompletedTasksThisWeek() {
         try {
             const response = await fetch('/api/tasks/completed/week');
@@ -151,7 +151,7 @@
             <div class="weekly-recap-content-inline">
                 <div class="weekly-recap-icon-inline">🎉</div>
                 <div class="weekly-recap-text">
-                    <strong>Weekly Recap:</strong> You completed ${taskCount} ${taskWord} this week!
+                    <strong>Weekly Recap:</strong> You completed ${taskCount} ${taskWord} last week!
                     <span class="click-to-view">Click to view details</span>
                 </div>
                 <div class="weekly-recap-close" onclick="hideWeeklyRecapNotification()">×</div>
@@ -205,7 +205,7 @@
         header.innerHTML = `
             <div class="weekly-recap-icon">🎉</div>
             <h2>Weekly Recap</h2>
-            <p>Great job! You completed ${tasks.length} task${tasks.length === 1 ? '' : 's'} this week!</p>
+            <p>Great job! You completed ${tasks.length} task${tasks.length === 1 ? '' : 's'} last week!</p>
         `;
 
         // Tasks list

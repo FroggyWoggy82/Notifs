@@ -23,7 +23,7 @@ class TaskController {
     }
 
     /**
-     * Get completed tasks for the current week
+     * Get completed tasks for the previous week (for weekly recap)
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object
      */
@@ -31,15 +31,21 @@ class TaskController {
         try {
             console.log("Received GET /api/tasks/completed/week request");
 
-            // Get start and end of current week (Sunday to Saturday)
+            // Get start and end of PREVIOUS week (Sunday to Saturday)
             const now = new Date();
-            const startOfWeek = new Date(now);
-            startOfWeek.setDate(now.getDate() - now.getDay()); // Go to Sunday
+            const currentWeekStart = new Date(now);
+            currentWeekStart.setDate(now.getDate() - now.getDay()); // Go to current Sunday
+
+            // Go back 7 days to get previous week's Sunday
+            const startOfWeek = new Date(currentWeekStart);
+            startOfWeek.setDate(currentWeekStart.getDate() - 7);
             startOfWeek.setHours(0, 0, 0, 0);
 
             const endOfWeek = new Date(startOfWeek);
             endOfWeek.setDate(startOfWeek.getDate() + 6); // Go to Saturday
             endOfWeek.setHours(23, 59, 59, 999);
+
+            console.log(`Getting completed tasks from previous week: ${startOfWeek.toISOString()} to ${endOfWeek.toISOString()}`);
 
             const query = `
                 SELECT * FROM tasks
@@ -54,13 +60,15 @@ class TaskController {
             res.json({
                 success: true,
                 count: result.rows.length,
-                tasks: result.rows
+                tasks: result.rows,
+                weekStart: startOfWeek.toISOString().split('T')[0],
+                weekEnd: endOfWeek.toISOString().split('T')[0]
             });
         } catch (err) {
-            console.error('Error fetching completed tasks this week:', err);
+            console.error('Error fetching completed tasks from previous week:', err);
             res.status(500).json({
                 success: false,
-                error: 'Failed to fetch completed tasks this week'
+                error: 'Failed to fetch completed tasks from previous week'
             });
         }
     }
@@ -674,18 +682,26 @@ class TaskController {
      */
     static async getWeeklyCompleteList(req, res) {
         try {
-            const { startDate } = req.query;
-            console.log(`Received GET /api/tasks/weekly-complete-list with startDate: ${startDate}`);
+            const { startDate, mode } = req.query;
+            console.log(`Received GET /api/tasks/weekly-complete-list with startDate: ${startDate}, mode: ${mode}`);
 
             // Calculate week start and end dates
             let weekStart;
             if (startDate) {
                 weekStart = new Date(startDate);
             } else {
-                // Default to current week's Sunday
                 const now = new Date();
-                weekStart = new Date(now);
-                weekStart.setDate(now.getDate() - now.getDay()); // Go to Sunday
+                const currentWeekStart = new Date(now);
+                currentWeekStart.setDate(now.getDate() - now.getDay()); // Go to current Sunday
+
+                // For weekly summary/recap mode, default to previous week
+                if (mode === 'recap' || mode === 'summary') {
+                    weekStart = new Date(currentWeekStart);
+                    weekStart.setDate(currentWeekStart.getDate() - 7); // Go back 7 days to previous week
+                } else {
+                    // Default to current week for other modes
+                    weekStart = currentWeekStart;
+                }
             }
             weekStart.setHours(0, 0, 0, 0);
 
@@ -693,10 +709,10 @@ class TaskController {
             weekEnd.setDate(weekStart.getDate() + 6); // Go to Saturday
             weekEnd.setHours(23, 59, 59, 999);
 
-            console.log(`Getting weekly task list from ${weekStart.toISOString()} to ${weekEnd.toISOString()}`);
+            console.log(`Getting weekly task list from ${weekStart.toISOString()} to ${weekEnd.toISOString()} (mode: ${mode})`);
 
             // Get the complete weekly data from the model
-            const weeklyData = await Task.getWeeklyCompleteList(weekStart, weekEnd);
+            const weeklyData = await Task.getWeeklyCompleteList(weekStart, weekEnd, mode);
 
             res.json({
                 success: true,
