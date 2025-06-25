@@ -517,61 +517,96 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tasks.sort((a, b) => {
-
-            const isOverdue = (task) => {
-                if (!task.due_date) return false;
-                try {
-                    const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
-                        task.due_date.split('T')[0] : task.due_date;
-                    const [year, month, day] = datePart.split('-').map(Number);
-                    const dueDate = new Date(year, month - 1, day);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return dueDate < today;
-                } catch (e) {
-                    return false;
-                }
-            };
-
-            const isDueToday = (task) => {
-                if (!task.due_date) return false;
-                try {
-                    const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
-                        task.due_date.split('T')[0] : task.due_date;
-                    const [year, month, day] = datePart.split('-').map(Number);
-                    const dueDate = new Date(year, month - 1, day);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return dueDate.getFullYear() === today.getFullYear() &&
-                           dueDate.getMonth() === today.getMonth() &&
-                           dueDate.getDate() === today.getDate();
-                } catch (e) {
-                    return false;
-                }
-            };
-
-            const isUnassigned = (task) => {
-                return !task.assigned_date && !task.due_date;
-            };
-
-            const aOverdue = isOverdue(a);
-            const bOverdue = isOverdue(b);
-            const aDueToday = isDueToday(a);
-            const bDueToday = isDueToday(b);
-            const aUnassigned = isUnassigned(a);
-            const bUnassigned = isUnassigned(b);
-
-            if (aOverdue && !bOverdue) return -1;
-            if (!aOverdue && bOverdue) return 1;
-            if (aDueToday && !bDueToday) return -1;
-            if (!aDueToday && bDueToday) return 1;
-            if (aUnassigned && !bUnassigned) return -1;
-            if (!aUnassigned && bUnassigned) return 1;
-
-            if (a.due_date && b.due_date) {
-                return new Date(a.due_date) - new Date(b.due_date);
+            // First, sort by completion status (incomplete tasks first)
+            if (a.is_complete !== b.is_complete) {
+                return a.is_complete ? 1 : -1;
             }
 
+            // For incomplete tasks, check overdue status first
+            if (!a.is_complete && !b.is_complete) {
+                const isOverdue = (task) => {
+                    if (!task.due_date) return false;
+                    try {
+                        const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+                            task.due_date.split('T')[0] : task.due_date;
+                        const [year, month, day] = datePart.split('-').map(Number);
+                        const dueDate = new Date(year, month - 1, day);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return dueDate < today;
+                    } catch (e) {
+                        return false;
+                    }
+                };
+
+                const aOverdue = isOverdue(a);
+                const bOverdue = isOverdue(b);
+
+                // OVERDUE TASKS ALWAYS COME FIRST - highest priority
+                if (aOverdue && !bOverdue) return -1;
+                if (!aOverdue && bOverdue) return 1;
+
+                // If both are overdue, sort by due date (oldest overdue first)
+                if (aOverdue && bOverdue) {
+                    if (a.due_date && b.due_date) {
+                        return new Date(a.due_date) - new Date(b.due_date);
+                    }
+                    return b.id - a.id;
+                }
+
+                // For non-overdue tasks, use priority order if available
+                const aPriority = a.priority_order;
+                const bPriority = b.priority_order;
+
+                // Tasks with priority_order come before tasks without priority_order
+                if (aPriority && !bPriority) return -1;
+                if (!aPriority && bPriority) return 1;
+
+                // If both have priority_order, sort by priority_order (lower number = higher priority)
+                if (aPriority && bPriority) {
+                    return aPriority - bPriority;
+                }
+
+                // If neither has priority_order, fall back to the original sorting logic
+                const isDueToday = (task) => {
+                    if (!task.due_date) return false;
+                    try {
+                        const datePart = typeof task.due_date === 'string' && task.due_date.includes('T') ?
+                            task.due_date.split('T')[0] : task.due_date;
+                        const [year, month, day] = datePart.split('-').map(Number);
+                        const dueDate = new Date(year, month - 1, day);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return dueDate.getFullYear() === today.getFullYear() &&
+                               dueDate.getMonth() === today.getMonth() &&
+                               dueDate.getDate() === today.getDate();
+                    } catch (e) {
+                        return false;
+                    }
+                };
+
+                const isUnassigned = (task) => {
+                    return !task.assigned_date && !task.due_date;
+                };
+
+                const aDueToday = isDueToday(a);
+                const bDueToday = isDueToday(b);
+                const aUnassigned = isUnassigned(a);
+                const bUnassigned = isUnassigned(b);
+
+                if (aDueToday && !bDueToday) return -1;
+                if (!aDueToday && bDueToday) return 1;
+                if (aUnassigned && !bUnassigned) return -1;
+                if (!aUnassigned && bUnassigned) return 1;
+
+                if (a.due_date && b.due_date) {
+                    return new Date(a.due_date) - new Date(b.due_date);
+                }
+
+                return b.id - a.id;
+            }
+
+            // For completed tasks, sort by completion date or ID
             return b.id - a.id;
         });
 
@@ -1378,6 +1413,20 @@ document.addEventListener('DOMContentLoaded', () => {
             openEditTaskModal(task); // Pass the task data
         });
         actionsDiv.appendChild(editBtn);
+
+        // Add rank button for task prioritization (only for non-overdue tasks)
+        if (!isOverdue) {
+            const rankBtn = document.createElement('button');
+            rankBtn.className = 'icon-btn rank-btn';
+            rankBtn.innerHTML = '<i class="rank-icon"><i class="fas fa-sort"></i></i>'; // Font Awesome sort icon
+            rankBtn.title = 'Rank task priority';
+            rankBtn.addEventListener('click', (event) => {
+                console.log("Rank button clicked for task:", task);
+                event.stopPropagation(); // Prevent event bubbling
+                openTaskRankingModal(task); // Open the ranking modal
+            });
+            actionsDiv.appendChild(rankBtn);
+        }
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'icon-btn delete-btn';

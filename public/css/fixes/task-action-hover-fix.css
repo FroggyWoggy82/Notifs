@@ -55,9 +55,16 @@ html body .task-actions .delete-btn:hover {
     transform: scale(1.1) !important;
 }
 
+/* Rank button styling */
+html body .task-actions .rank-btn:hover {
+    background-color: rgba(33, 150, 243, 0.2) !important;
+    transform: scale(1.1) !important;
+}
+
 
 html body .task-actions .pencil-icon,
-html body .task-actions .x-icon {
+html body .task-actions .x-icon,
+html body .task-actions .rank-icon {
     opacity: 0.9 !important;
     font-size: 16px !important;
 }

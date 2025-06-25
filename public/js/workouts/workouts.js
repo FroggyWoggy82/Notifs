@@ -658,6 +658,12 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             exerciseData.lastLog = await fetchLastLog();
+
+            // Populate notes from last log if available and no current notes exist
+            if (exerciseData.lastLog && exerciseData.lastLog.notes && !exerciseData.notes) {
+                exerciseData.notes = exerciseData.lastLog.notes;
+                console.log(`Loaded previous notes for ${exerciseData.name}: ${exerciseData.notes.substring(0, 50)}${exerciseData.notes.length > 50 ? '...' : ''}`);
+            }
         }
 
 
@@ -6905,71 +6911,119 @@ function calculateGoal(exerciseData) {
     // If target reps are specified, use them to determine progression
     // If not specified, fall back to traditional rep range logic
 
-    // Apply progressive overload to each set
-    for (let i = 0; i < goalSets.length; i++) {
-        const currentSet = goalSets[i];
-        const prevReps = currentSet.reps;
-        const prevWeight = currentSet.weight;
+    if (targetReps) {
+        // NEW ALGORITHM: Only increase weight if ALL sets reached target reps
+        const allSetsReachedTarget = validSets.every(set => set.reps >= targetReps);
+        console.log(`[calculateGoal] Target reps: ${targetReps}, All sets reached target: ${allSetsReachedTarget}`);
+        console.log(`[calculateGoal] Set performance: ${validSets.map(s => `${s.reps}/${targetReps}`).join(', ')}`);
 
-        console.log(`[calculateGoal] Set ${i+1}: Previous ${prevWeight} x ${prevReps}`);
+        if (allSetsReachedTarget) {
+            // ALL sets reached target reps - increase weight for all sets and reset reps
+            console.log(`[calculateGoal] ALL sets reached target reps (${targetReps}), increasing weight for all sets`);
+            for (let i = 0; i < goalSets.length; i++) {
+                const currentSet = goalSets[i];
+                const prevWeight = currentSet.weight;
+                const prevReps = currentSet.reps;
 
-        if (targetReps) {
-            // Use target reps logic: only increase weight when target reps are reached
-            if (prevReps >= targetReps) {
-                // Previous reps met or exceeded target - increase weight and reset to lower reps
                 currentSet.weight = prevWeight + weightIncrement;
                 currentSet.reps = Math.max(1, targetReps - 2); // Start 2 reps below target with new weight
-                console.log(`[calculateGoal] Set ${i+1}: Reached target reps (${prevReps} >= ${targetReps}), increased weight to ${currentSet.weight}, reset reps to ${currentSet.reps}`);
-            } else {
-                // Previous reps below target - keep weight same and increase reps toward target
-                currentSet.weight = prevWeight;
-                currentSet.reps = prevReps + 1;
-                console.log(`[calculateGoal] Set ${i+1}: Below target reps (${prevReps} < ${targetReps}), kept weight at ${currentSet.weight}, increased reps to ${currentSet.reps}`);
+
+                // Safety checks
+                if (currentSet.weight < prevWeight) {
+                    currentSet.weight = prevWeight;
+                    console.log(`[calculateGoal] Set ${i+1}: Safety check - restored weight to ${currentSet.weight}`);
+                }
+                if (currentSet.weight === prevWeight && currentSet.reps < prevReps) {
+                    currentSet.reps = prevReps + 1;
+                    console.log(`[calculateGoal] Set ${i+1}: Safety check - increased reps to ${currentSet.reps}`);
+                }
+
+                console.log(`[calculateGoal] Set ${i+1}: Increased weight to ${currentSet.weight}, reset reps to ${currentSet.reps}`);
             }
         } else {
-            // Fallback to traditional rep range logic when no target reps specified
-            const targetRepRange = {
-                strength: { min: 3, max: 5 },
-                hypertrophy: { min: 6, max: 12 },
-                endurance: { min: 15, max: 20 }
-            };
+            // NOT all sets reached target - keep weight same and work on increasing reps
+            console.log(`[calculateGoal] Not all sets reached target reps, keeping weight same and increasing reps`);
+            for (let i = 0; i < goalSets.length; i++) {
+                const currentSet = goalSets[i];
+                const prevReps = currentSet.reps;
+                const prevWeight = currentSet.weight;
 
+                currentSet.weight = prevWeight; // Keep weight the same
+                if (prevReps < targetReps) {
+                    currentSet.reps = prevReps + 1; // Increase reps toward target
+                } else {
+                    currentSet.reps = targetReps; // Maintain target reps if already reached
+                }
+
+                // Safety checks
+                if (currentSet.weight < prevWeight) {
+                    currentSet.weight = prevWeight;
+                    console.log(`[calculateGoal] Set ${i+1}: Safety check - restored weight to ${currentSet.weight}`);
+                }
+                if (currentSet.weight === prevWeight && currentSet.reps < prevReps) {
+                    currentSet.reps = prevReps + 1;
+                    console.log(`[calculateGoal] Set ${i+1}: Safety check - increased reps to ${currentSet.reps}`);
+                }
+
+                console.log(`[calculateGoal] Set ${i+1}: Kept weight at ${currentSet.weight}, set reps to ${currentSet.reps}`);
+            }
+        }
+    } else {
+        // Fallback to traditional rep range logic when no target reps specified
+        const targetRepRange = {
+            strength: { min: 3, max: 5 },
+            hypertrophy: { min: 6, max: 12 },
+            endurance: { min: 15, max: 20 }
+        };
+
+        // Determine if ALL sets are ready for weight increase
+        let shouldIncreaseWeight = false;
+        const allSetsData = validSets.map(set => {
             let targetRange;
-            if (prevReps <= 5) {
+            if (set.reps <= 5) {
                 targetRange = targetRepRange.strength;
-            } else if (prevReps <= 12) {
+            } else if (set.reps <= 12) {
                 targetRange = targetRepRange.hypertrophy;
             } else {
                 targetRange = targetRepRange.endurance;
             }
+            return { ...set, targetRange, reachedMax: set.reps >= targetRange.max };
+        });
 
-            if (prevReps >= targetRange.max) {
-                // At or above max range - increase weight, reduce reps
+        // Check if ALL sets reached their maximum target range
+        shouldIncreaseWeight = allSetsData.every(setData => setData.reachedMax);
+        console.log(`[calculateGoal] Traditional range logic - All sets reached max: ${shouldIncreaseWeight}`);
+
+        for (let i = 0; i < goalSets.length; i++) {
+            const currentSet = goalSets[i];
+            const prevReps = currentSet.reps;
+            const prevWeight = currentSet.weight;
+            const setData = allSetsData[i];
+
+            console.log(`[calculateGoal] Set ${i+1}: Previous ${prevWeight} x ${prevReps}`);
+
+            if (shouldIncreaseWeight) {
+                // ALL sets reached max - increase weight for all sets
                 currentSet.weight = prevWeight + weightIncrement;
-                currentSet.reps = Math.max(targetRange.min, prevReps - 2);
-                console.log(`[calculateGoal] Set ${i+1}: At max range (${prevReps} >= ${targetRange.max}), increased weight to ${currentSet.weight}, reduced reps to ${currentSet.reps}`);
+                currentSet.reps = Math.max(setData.targetRange.min, prevReps - 2);
+                console.log(`[calculateGoal] Set ${i+1}: All sets ready - increased weight to ${currentSet.weight}, reduced reps to ${currentSet.reps}`);
             } else {
-                // Below max range - keep weight, increase reps
+                // Not all sets ready - keep weight, increase reps
                 currentSet.weight = prevWeight;
                 currentSet.reps = prevReps + 1;
-                console.log(`[calculateGoal] Set ${i+1}: Below max range, kept weight at ${currentSet.weight}, increased reps to ${currentSet.reps}`);
+                console.log(`[calculateGoal] Set ${i+1}: Not all sets ready - kept weight at ${currentSet.weight}, increased reps to ${currentSet.reps}`);
+            }
+
+            // Safety checks
+            if (currentSet.weight < prevWeight) {
+                currentSet.weight = prevWeight;
+                console.log(`[calculateGoal] Set ${i+1}: Safety check - restored weight to ${currentSet.weight}`);
+            }
+            if (currentSet.weight === prevWeight && currentSet.reps < prevReps) {
+                currentSet.reps = prevReps + 1;
+                console.log(`[calculateGoal] Set ${i+1}: Safety check - increased reps to ${currentSet.reps}`);
             }
         }
-
-        // Safety checks to ensure goals are never worse than previous performance
-        if (currentSet.weight < prevWeight) {
-            currentSet.weight = prevWeight;
-            console.log(`[calculateGoal] Set ${i+1}: Safety check - restored weight to ${currentSet.weight}`);
-        }
-        if (currentSet.weight === prevWeight && currentSet.reps < prevReps) {
-            currentSet.reps = prevReps + 1;
-            console.log(`[calculateGoal] Set ${i+1}: Safety check - increased reps to ${currentSet.reps}`);
-        }
-        if (currentSet.reps < 1) {
-            currentSet.reps = 1;
-        }
-
-        console.log(`[calculateGoal] Set ${i+1}: Final goal ${currentSet.weight} x ${currentSet.reps}`);
     }
 
     console.log(`[calculateGoal] Final goal sets:`, goalSets.map(s => `${s.weight}x${s.reps}`).join(', '));

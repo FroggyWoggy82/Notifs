@@ -439,6 +439,7 @@ router.get('/exercises/:id/lastlog', async (req, res) => {
                 el.reps_completed,
                 el.weight_used,
                 el.weight_unit,
+                el.notes,
                 wl.date_performed
             FROM exercise_logs el
             JOIN workout_logs wl ON el.workout_log_id = wl.log_id

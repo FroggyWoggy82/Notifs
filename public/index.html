@@ -49,6 +49,9 @@
     <!-- Task search functionality - Provides search capabilities for tasks -->
     <link rel="stylesheet" href="css/task-search.css">
 
+    <!-- Task priority ranking modal styles -->
+    <link rel="stylesheet" href="css/task-priority-ranking.css">
+
     <!-- Task list header alignment fix - Properly aligns heading, search, and filter -->
     <link rel="stylesheet" href="css/task-list-header-alignment-fix.css?v=2">
 
@@ -60,6 +63,9 @@
 
     <!-- Ultra compact modal override - Final override for maximum compactness -->
     <link rel="stylesheet" href="css/ultra-compact-modal-override.css?v=3">
+
+    <!-- Reminder text visibility fix - FINAL override to ensure reminder text is visible -->
+    <link rel="stylesheet" href="css/reminder-text-final-fix.css?v=2">
 
     <!-- Search and dropdown final fix - Ultimate override for X button and dropdown arrow positioning -->
     <link rel="stylesheet" href="css/search-dropdown-final-fix.css?v=8">
@@ -410,6 +416,9 @@
 
     <!-- Task search functionality - must load after main tasks script -->
     <script src="js/task-search.js"></script>
+
+    <!-- Task priority ranking functionality -->
+    <script src="js/task-priority-ranking.js"></script>
 
     <!-- Checkbox responsiveness fix - must load early to intercept clicks -->
     <script src="js/tasks/checkbox-responsiveness-fix.js"></script>
@@ -925,6 +934,73 @@
         </div>
     </div>
     <!-- ===== End Edit Habit Modal ===== -->
+
+    <!-- ===== Task Priority Ranking Modal ===== -->
+    <div id="taskRankingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button"><i class="fas fa-times"></i></span>
+            <div class="modal-header">
+                <h2>Rank Task Priority</h2>
+                <p class="ranking-instructions">Choose which task has higher priority</p>
+                <div class="comparison-progress">
+                    <span id="comparisonCounter">Comparison 1 of 5</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <!-- Binary Comparison Interface -->
+                <div id="binaryComparisonContainer" class="binary-comparison-container">
+                    <div class="comparison-columns">
+                        <!-- Selected Task (Left Column) -->
+                        <div class="comparison-column selected-column">
+                            <div class="column-header">
+                                <h3><i class="fas fa-star"></i> Task Being Ranked</h3>
+                            </div>
+                            <div id="selectedTaskCard" class="task-comparison-card selected-task-card">
+                                <!-- Selected task content will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- VS Divider -->
+                        <div class="vs-divider">
+                            <span class="vs-text">VS</span>
+                        </div>
+
+                        <!-- Comparison Task (Right Column) -->
+                        <div class="comparison-column comparison-column">
+                            <div class="column-header">
+                                <h3>Compare Against</h3>
+                            </div>
+                            <div id="comparisonTaskCard" class="task-comparison-card comparison-task-card">
+                                <!-- Comparison task content will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="comparisonLoading" class="comparison-loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading tasks for comparison...</p>
+                </div>
+
+                <!-- Results Summary (shown after comparisons) -->
+                <div id="comparisonResults" class="comparison-results" style="display: none;">
+                    <h3>Priority Ranking Complete</h3>
+                    <p>Your task has been ranked based on your comparisons.</p>
+                    <p id="autoSaveMessage" style="color: #4ade80; font-style: italic; margin: 15px 0;">
+                        <i class="fas fa-spinner fa-spin"></i> Automatically saving priority order...
+                    </p>
+                    <div class="ranking-controls">
+                        <button type="button" onclick="closeTaskRankingModal()" class="btn btn--primary">
+                            <i class="fas fa-check"></i> Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="rankingStatus" class="status"></div>
+        </div>
+    </div>
+    <!-- ===== End Task Priority Ranking Modal ===== -->
 
     <!-- All JavaScript files are now loaded above with optimized async/defer loading -->
 </body>

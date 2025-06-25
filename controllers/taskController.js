@@ -731,6 +731,138 @@ class TaskController {
         }
     }
 
+    /**
+     * Update task priority order
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async updateTaskPriority(req, res) {
+        try {
+            const { id } = req.params;
+            const { priorityOrder } = req.body;
+
+            console.log(`Received PUT /api/tasks/${id}/priority:`, { priorityOrder });
+
+            // Validate ID format
+            if (!/^[1-9]\d*$/.test(id)) {
+                return res.status(400).json({ error: 'Invalid task ID format' });
+            }
+
+            // Validate priority order
+            if (priorityOrder === undefined || priorityOrder === null) {
+                return res.status(400).json({ error: 'Priority order is required' });
+            }
+
+            if (!Number.isInteger(priorityOrder) || priorityOrder < 0) {
+                return res.status(400).json({ error: 'Priority order must be a non-negative integer' });
+            }
+
+            const updatedTask = await Task.updateTaskPriority(id, priorityOrder);
+
+            if (!updatedTask) {
+                return res.status(404).json({ error: 'Task not found' });
+            }
+
+            console.log(`Updated task ${id} priority to ${priorityOrder}`);
+            res.json(updatedTask);
+
+        } catch (error) {
+            console.error('Error updating task priority:', error);
+            res.status(500).json({ error: 'Failed to update task priority' });
+        }
+    }
+
+    /**
+     * Batch update task priorities
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async batchUpdateTaskPriorities(req, res) {
+        try {
+            const { priorityUpdates } = req.body;
+
+            console.log('Received POST /api/tasks/batch-priority:', { priorityUpdates });
+
+            // Validate input
+            if (!Array.isArray(priorityUpdates) || priorityUpdates.length === 0) {
+                return res.status(400).json({ error: 'Priority updates array is required' });
+            }
+
+            // Validate each update
+            for (const update of priorityUpdates) {
+                if (!update.id || !Number.isInteger(update.id) || update.id <= 0) {
+                    return res.status(400).json({ error: 'Each update must have a valid task ID' });
+                }
+
+                if (update.priorityOrder === undefined || update.priorityOrder === null) {
+                    return res.status(400).json({ error: 'Each update must have a priority order' });
+                }
+
+                if (!Number.isInteger(update.priorityOrder) || update.priorityOrder < 0) {
+                    return res.status(400).json({ error: 'Priority order must be a non-negative integer' });
+                }
+            }
+
+            const updatedTasks = await Task.batchUpdateTaskPriorities(priorityUpdates);
+
+            console.log(`Batch updated ${updatedTasks.length} task priorities`);
+            res.json({
+                success: true,
+                updatedTasks,
+                count: updatedTasks.length
+            });
+
+        } catch (error) {
+            console.error('Error batch updating task priorities:', error);
+            res.status(500).json({ error: 'Failed to batch update task priorities' });
+        }
+    }
+
+    /**
+     * Get tasks for priority comparison
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    static async getTasksForPriorityComparison(req, res) {
+        try {
+            const { id } = req.params;
+            const { limit = 5, filter = 'all' } = req.query;
+
+            console.log(`Received GET /api/tasks/${id}/priority-comparison with limit: ${limit}, filter: ${filter}`);
+
+            // Validate ID format
+            if (!/^[1-9]\d*$/.test(id)) {
+                return res.status(400).json({ error: 'Invalid task ID format' });
+            }
+
+            // Validate limit
+            const limitNum = parseInt(limit);
+            if (isNaN(limitNum) || limitNum < 2 || limitNum > 10) {
+                return res.status(400).json({ error: 'Limit must be between 2 and 10' });
+            }
+
+            // Validate filter
+            const validFilters = ['unassigned_today', 'today', 'week', 'month', 'all'];
+            if (!validFilters.includes(filter)) {
+                return res.status(400).json({ error: 'Invalid filter value' });
+            }
+
+            const tasks = await Task.getTasksForPriorityComparison(id, limitNum, filter);
+
+            console.log(`Retrieved ${tasks.length} tasks for priority comparison with filter: ${filter}`);
+            res.json(tasks);
+
+        } catch (error) {
+            console.error('Error getting tasks for priority comparison:', error);
+
+            if (error.message === 'Selected task not found') {
+                return res.status(404).json({ error: 'Task not found' });
+            }
+
+            res.status(500).json({ error: 'Failed to get tasks for priority comparison' });
+        }
+    }
+
 
 }
 

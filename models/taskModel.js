@@ -10,9 +10,16 @@ class Task {
      * @returns {Promise<Array>} Array of task objects
      */
     static async getAllTasks() {
-        const result = await db.query(
-            'SELECT * FROM tasks WHERE is_subtask = FALSE OR is_subtask IS NULL ORDER BY is_complete ASC, assigned_date ASC, created_at DESC'
-        );
+        const result = await db.query(`
+            SELECT * FROM tasks
+            WHERE is_subtask = FALSE OR is_subtask IS NULL
+            ORDER BY
+                is_complete ASC,
+                CASE WHEN priority_order IS NULL THEN 1 ELSE 0 END,
+                priority_order ASC,
+                assigned_date ASC,
+                created_at DESC
+        `);
         return result.rows;
     }
 
@@ -787,6 +794,208 @@ class Task {
             console.error('Error in getWeeklyCompleteList:', error);
             throw error;
         }
+    }
+
+    /**
+     * Update task priority order
+     * @param {number} id - The task ID
+     * @param {number} priorityOrder - The new priority order (lower numbers = higher priority)
+     * @returns {Promise<Object>} The updated task
+     */
+    static async updateTaskPriority(id, priorityOrder) {
+        const result = await db.query(
+            'UPDATE tasks SET priority_order = $1 WHERE id = $2 RETURNING *',
+            [priorityOrder, id]
+        );
+        return result.rows[0];
+    }
+
+    /**
+     * Batch update task priorities
+     * @param {Array} priorityUpdates - Array of {id, priorityOrder} objects
+     * @returns {Promise<Array>} Array of updated tasks
+     */
+    static async batchUpdateTaskPriorities(priorityUpdates) {
+        if (!priorityUpdates || priorityUpdates.length === 0) {
+            return [];
+        }
+
+        // Use individual UPDATE queries for simplicity and reliability
+        const updatedTasks = [];
+
+        for (const update of priorityUpdates) {
+            const taskId = parseInt(update.id);
+            const priorityOrder = parseInt(update.priorityOrder);
+
+            console.log(`Updating task ${taskId} with priority_order ${priorityOrder}`);
+
+            const result = await db.query(
+                'UPDATE tasks SET priority_order = $1 WHERE id = $2 RETURNING *',
+                [priorityOrder, taskId]
+            );
+
+            if (result.rows.length > 0) {
+                updatedTasks.push(result.rows[0]);
+                console.log(`Successfully updated task ${taskId} priority_order to ${result.rows[0].priority_order}`);
+            }
+        }
+
+        return updatedTasks;
+    }
+
+    /**
+     * Get tasks sorted by priority order
+     * @param {boolean} includeCompleted - Whether to include completed tasks
+     * @returns {Promise<Array>} Array of tasks sorted by priority
+     */
+    static async getTasksByPriority(includeCompleted = false) {
+        let whereClause = 'WHERE (is_subtask = FALSE OR is_subtask IS NULL)';
+        if (!includeCompleted) {
+            whereClause += ' AND is_complete = FALSE';
+        }
+
+        const result = await db.query(`
+            SELECT * FROM tasks
+            ${whereClause}
+            ORDER BY
+                CASE WHEN priority_order IS NULL THEN 1 ELSE 0 END,
+                priority_order ASC,
+                is_complete ASC,
+                assigned_date ASC,
+                created_at DESC
+        `);
+        return result.rows;
+    }
+
+    /**
+     * Get tasks for priority comparison (limited set for ranking)
+     * @param {number} selectedTaskId - The task being ranked
+     * @param {number} limit - Maximum number of tasks to return (default 5)
+     * @param {string} filter - Filter type to apply (unassigned_today, today, week, month, all)
+     * @returns {Promise<Array>} Array of tasks for comparison
+     */
+    static async getTasksForPriorityComparison(selectedTaskId, limit = 5, filter = 'all') {
+        // Get the selected task first
+        const selectedTaskResult = await db.query(
+            'SELECT * FROM tasks WHERE id = $1',
+            [selectedTaskId]
+        );
+
+        if (selectedTaskResult.rowCount === 0) {
+            throw new Error('Selected task not found');
+        }
+
+        const selectedTask = selectedTaskResult.rows[0];
+
+        // Calculate date ranges for filtering
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+        const weekEnd = new Date(today);
+        weekEnd.setDate(today.getDate() + 6); // End of week (6 days from today)
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1); // Start of month
+        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0); // End of month
+
+        // Determine if the selected task is overdue
+        const selectedTaskDueDate = selectedTask.due_date ? new Date(selectedTask.due_date) : null;
+        const isSelectedTaskOverdue = selectedTaskDueDate && selectedTaskDueDate < today;
+
+        // OVERDUE TASKS SHOULD NEVER BE RANKED - they automatically have highest priority
+        if (isSelectedTaskOverdue) {
+            console.log(`Task ${selectedTaskId} is overdue and should not be ranked. Overdue tasks automatically have highest priority.`);
+            return []; // Return empty array - no comparison needed
+        }
+
+        // Build filter conditions based on the filter type
+        let filterConditions = '';
+        let queryParams = [selectedTaskId];
+        let paramIndex = 2;
+
+        switch (filter) {
+            case 'unassigned_today':
+                // Tasks that are unassigned or due today (EXCLUDING overdue tasks)
+                // This matches the frontend logic: (isUnassigned || isDueToday) && !isDueTomorrow && !isOverdue
+                filterConditions = `
+                    AND (
+                        due_date IS NULL -- Unassigned tasks
+                        OR (due_date::date = $${paramIndex}::date) -- Due today
+                    )
+                    AND (due_date IS NULL OR due_date::date != $${paramIndex + 1}::date) -- Exclude due tomorrow (NULL-safe)
+                    AND (due_date IS NULL OR due_date::date >= $${paramIndex}::date) -- Exclude overdue tasks
+                `;
+                queryParams.push(today.toISOString().split('T')[0], tomorrow.toISOString().split('T')[0]);
+                paramIndex += 2;
+                break;
+
+            case 'today':
+                // Tasks due today only (EXCLUDING overdue tasks) - matches frontend: isTaskDueToday(task)
+                filterConditions = `
+                    AND due_date IS NOT NULL
+                    AND due_date::date = $${paramIndex}::date
+                `;
+                queryParams.push(today.toISOString().split('T')[0]);
+                paramIndex += 1;
+                break;
+
+            case 'week':
+                // Tasks due this week (EXCLUDING overdue tasks) - matches frontend logic
+                filterConditions = `
+                    AND due_date IS NOT NULL
+                    AND due_date::date >= $${paramIndex}::date
+                    AND due_date::date <= $${paramIndex + 1}::date
+                `;
+                queryParams.push(today.toISOString().split('T')[0], weekEnd.toISOString().split('T')[0]);
+                paramIndex += 2;
+                break;
+
+            case 'month':
+                // Tasks due this month (EXCLUDING overdue tasks) - matches frontend logic using year and month comparison
+                filterConditions = `
+                    AND due_date IS NOT NULL
+                    AND EXTRACT(YEAR FROM due_date::date) = $${paramIndex}
+                    AND EXTRACT(MONTH FROM due_date::date) = $${paramIndex + 1}
+                    AND due_date::date >= $${paramIndex + 2}::date -- Exclude overdue tasks
+                `;
+                queryParams.push(monthStart.getFullYear(), monthStart.getMonth() + 1, today.toISOString().split('T')[0]);
+                paramIndex += 3;
+                break;
+
+            case 'all':
+            default:
+                // For 'all' filter, exclude overdue tasks (they have automatic highest priority)
+                filterConditions = `
+                    AND (due_date IS NULL OR due_date::date >= $${paramIndex}::date)
+                `;
+                queryParams.push(today.toISOString().split('T')[0]);
+                paramIndex += 1;
+                break;
+        }
+
+        // Add limit parameter
+        queryParams.push(limit - 1);
+
+        // Get other incomplete tasks for comparison, excluding the selected task
+        const otherTasksResult = await db.query(`
+            SELECT * FROM tasks
+            WHERE id != $1
+            AND (is_subtask = FALSE OR is_subtask IS NULL)
+            AND is_complete = FALSE
+            ${filterConditions}
+            ORDER BY
+                CASE WHEN priority_order IS NULL THEN 1 ELSE 0 END,
+                priority_order ASC,
+                assigned_date ASC,
+                created_at DESC
+            LIMIT $${paramIndex}
+        `, queryParams);
+
+        console.log(`Priority comparison filter: ${filter}, excluding overdue tasks, found ${otherTasksResult.rows.length} comparison tasks`);
+
+        // Return selected task first, then other tasks
+        return [selectedTask, ...otherTasksResult.rows];
     }
 
 }

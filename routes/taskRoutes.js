@@ -376,6 +376,65 @@ router.get('/weekly-complete-list', TaskController.getWeeklyCompleteList);
 
 /**
  * @swagger
+ * /api/tasks/batch-priority:
+ *   post:
+ *     summary: Batch update task priorities
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               updates:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     priority_order:
+ *                       type: integer
+ *     responses:
+ *       200:
+ *         description: Priorities updated successfully
+ *       400:
+ *         description: Invalid input
+ *       500:
+ *         description: Server error
+ */
+router.post('/batch-priority', TaskController.batchUpdateTaskPriorities);
+
+/**
+ * @swagger
+ * /api/tasks/{id}/priority-comparison:
+ *   get:
+ *     summary: Get tasks for priority comparison
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Task ID to compare against
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *         description: Number of tasks to return for comparison
+ *     responses:
+ *       200:
+ *         description: List of tasks for priority comparison
+ *       404:
+ *         description: Task not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:id/priority-comparison', TaskController.getTasksForPriorityComparison);
+
+/**
+ * @swagger
  * /api/tasks/{id}:
  *   get:
  *     summary: Get a task by ID

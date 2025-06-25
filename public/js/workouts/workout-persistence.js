@@ -208,11 +208,15 @@ function saveWorkoutData() {
 
             const setRows = item.querySelectorAll('.set-row');
 
+            // Capture notes from the textarea
+            const notesTextarea = item.querySelector('.exercise-notes-textarea');
+            const exerciseNotes = notesTextarea ? notesTextarea.value.trim() : '';
+
             const exerciseInfo = {
                 exercise_id: exerciseData.exercise_id,
                 name: exerciseData.name,
                 sets: [],
-                notes: '',
+                notes: exerciseNotes,
                 weight_unit: exerciseData.weight_unit || 'lbs', // Save the weight unit
                 set_count: setRows.length // Save the current number of sets
             };
@@ -477,9 +481,9 @@ function updateCurrentWorkoutFromUI(currentWorkout) {
         const workoutIndex = parseInt(item.dataset.workoutIndex, 10);
         if (isNaN(workoutIndex) || !exercises[workoutIndex]) return;
 
+        // Update weight unit
         const unitSelect = item.querySelector('.exercise-unit-select');
         if (unitSelect) {
-
             exercises[workoutIndex].weight_unit = unitSelect.value;
 
             if (exercises[workoutIndex].sets_completed && Array.isArray(exercises[workoutIndex].sets_completed)) {
@@ -487,6 +491,12 @@ function updateCurrentWorkoutFromUI(currentWorkout) {
                     if (set) set.unit = unitSelect.value;
                 });
             }
+        }
+
+        // Update notes
+        const notesTextarea = item.querySelector('.exercise-notes-textarea');
+        if (notesTextarea) {
+            exercises[workoutIndex].notes = notesTextarea.value.trim();
         }
     });
 }
