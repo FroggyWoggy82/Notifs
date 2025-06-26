@@ -43,10 +43,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (habitId && checkbox && habitStates.has(habitId)) {
                 const savedState = habitStates.get(habitId);
                 
-                // Only restore if the saved state is recent (within the last hour)
-                const isRecent = (Date.now() - savedState.timestamp) < (60 * 60 * 1000);
+                // Only restore if the saved state is from the same calendar day
+                const savedDate = new Date(savedState.timestamp);
+                const currentDate = new Date();
+
+                // Get Central Time dates for comparison
+                const savedCentralDate = new Date(savedDate.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+                const currentCentralDate = new Date(currentDate.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+
+                // Check if both dates are on the same calendar day
+                const isSameDay = (
+                    savedCentralDate.getFullYear() === currentCentralDate.getFullYear() &&
+                    savedCentralDate.getMonth() === currentCentralDate.getMonth() &&
+                    savedCentralDate.getDate() === currentCentralDate.getDate()
+                );
                 
-                if (isRecent && checkbox.checked !== savedState.checked) {
+                if (isSameDay && checkbox.checked !== savedState.checked) {
                     console.log(`[Habit Checkbox Persistence] Restoring habit ${habitId}: ${checkbox.checked} -> ${savedState.checked}`);
                     checkbox.checked = savedState.checked;
                     checkbox.setAttribute('data-completed', savedState.dataCompleted || 'false');
