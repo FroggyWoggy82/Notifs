@@ -53,12 +53,12 @@
 
         habits.forEach(habit => {
 
-            const habitElement = document.createElement('div');
-            habitElement.classList.add('habit-item');
-            habitElement.dataset.habitId = habit.id;
-            habitElement.style.width = '100%';
-            habitElement.style.boxSizing = 'border-box';
-            habitElement.style.margin = '0';
+            const habitEl = document.createElement('div');
+            habitEl.classList.add('habit-item');
+            habitEl.dataset.habitId = habit.id;
+            habitEl.style.width = '100%';
+            habitEl.style.boxSizing = 'border-box';
+            habitEl.style.margin = '0';
 
             let completionsToday = habit.completions_today || 0;
             const completionsTarget = habit.completions_per_day || 1;
@@ -76,14 +76,14 @@
 
                 isComplete = currentCount >= totalCount;
 
-                habitElement.dataset.counter = 'true';
+                habitEl.dataset.counter = 'true';
 
                 completionsToday = currentCount;
                 completionsTarget = totalCount;
             }
 
             if (isComplete) {
-                habitElement.dataset.completed = 'true';
+                habitEl.dataset.completed = 'true';
             }
 
             let controlHtml = '';
@@ -144,7 +144,7 @@
                 levelClass = 'level-intermediate';
             }
 
-            habitElement.innerHTML = `
+            habitEl.innerHTML = `
                 ${controlHtml}
                 <div class="habit-content">
                     <span class="habit-title">${habit.title}</span>
@@ -167,14 +167,14 @@
             if (isComplete) {
                 if (hasCounter) {
 
-                    habitElement.classList.add('counter-complete');
+                    habitEl.classList.add('counter-complete');
                 } else {
 
-                    habitElement.classList.add('complete');
+                    habitEl.classList.add('complete');
                 }
             }
 
-            const checkbox = habitElement.querySelector('.habit-checkbox');
+            const checkbox = habitEl.querySelector('.habit-checkbox');
             if (checkbox) {
                 checkbox.addEventListener('change', function() {
                     const isChecked = this.checked;
@@ -186,7 +186,7 @@
                 });
             }
 
-            const incrementBtn = habitElement.querySelector('.habit-increment-btn:not(.completed)');
+            const incrementBtn = habitEl.querySelector('.habit-increment-btn:not(.completed)');
             if (incrementBtn) {
                 incrementBtn.addEventListener('click', function() {
                     console.log(`Increment button clicked for habit ${habit.id}`);
@@ -203,8 +203,8 @@
                 });
             }
 
-            const editBtn = habitElement.querySelector('.edit-habit-icon-btn');
-            const deleteBtn = habitElement.querySelector('.delete-habit-icon-btn');
+            const editBtn = habitEl.querySelector('.edit-habit-icon-btn');
+            const deleteBtn = habitEl.querySelector('.delete-habit-icon-btn');
 
             if (editBtn) {
                 editBtn.addEventListener('click', function() {
@@ -228,7 +228,7 @@
                 });
             }
 
-            habitListDiv.appendChild(habitElement);
+            habitListDiv.appendChild(habitEl);
         });
     }
 })();

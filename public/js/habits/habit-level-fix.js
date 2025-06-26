@@ -53,10 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         habitLevels.forEach(levelEl => {
 
-            const habitElement = levelEl.closest('.habit-item');
-            if (!habitElement) return;
+            const habitEl = levelEl.closest('.habit-item');
+            if (!habitEl) return;
 
-            const titleEl = habitElement.querySelector('.habit-title');
+            const titleEl = habitEl.querySelector('.habit-title');
             if (titleEl && titleEl.textContent.includes('10g Creatine')) {
 
                 levelEl.textContent = 'Level 61';
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (totalCompletionsMatch) {
                 const totalCompletions = parseInt(totalCompletionsMatch[1], 10);
 
-                const habitId = habitElement.getAttribute('data-habit-id');
+                const habitId = habitEl.getAttribute('data-habit-id');
 
                 const correctLevel = calculateCorrectLevel(totalCompletions);
 
@@ -164,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setTimeout(updateHabitLevelDisplays, 1000);
-    setInterval(updateHabitLevelDisplays, 2000);
+    // Reduced frequency to prevent interference with habit state
+    setInterval(updateHabitLevelDisplays, 10000); // Changed from 2 seconds to 10 seconds
 
     const originalDisplayHabits = window.displayHabits;
     if (originalDisplayHabits) {
@@ -447,6 +448,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Enhanced handleHabitCheckboxClick function for better level updates');
     }
 
+    // DISABLED: Periodic habit refresh was causing habits to randomly uncheck
+    // This was the main cause of habits losing their checked state during the day
+    /*
     setInterval(() => {
 
         if (document.visibilityState === 'visible' &&
@@ -455,6 +459,9 @@ document.addEventListener('DOMContentLoaded', () => {
             loadHabits();
         }
     }, 60000); // Refresh every minute
+    */
+
+    console.log('Periodic habit refresh disabled to prevent random unchecking');
 
     async function resetCounterHabits() {
         try {

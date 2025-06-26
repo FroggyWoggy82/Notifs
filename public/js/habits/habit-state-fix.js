@@ -139,21 +139,29 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // 4. Set up periodic verification (every 30 seconds)
+        // 4. DISABLED: Periodic verification was causing habits to randomly uncheck
+        // This was interfering with user interactions and causing state conflicts
+        /*
         setInterval(() => {
             if (document.visibilityState === 'visible') {
                 console.log('[Habit State Fix] Performing periodic state verification...');
                 verifyAllHabitStates();
             }
         }, 30000);
+        */
+        console.log('[Habit State Fix] Periodic verification disabled to prevent random unchecking');
         
-        // 5. Verify states when page becomes visible
+        // 5. DISABLED: Visibility change verification was causing habits to randomly uncheck
+        // This was triggering unnecessary state checks when switching tabs
+        /*
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 console.log('[Habit State Fix] Page became visible, verifying states...');
                 setTimeout(verifyAllHabitStates, 1000);
             }
         });
+        */
+        console.log('[Habit State Fix] Visibility change verification disabled');
         
         // 6. Add a manual refresh function for debugging
         window.refreshHabitStates = function() {

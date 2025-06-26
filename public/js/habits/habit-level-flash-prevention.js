@@ -63,8 +63,8 @@ function setupDirectFlashPrevention() {
     // Add click event listener to preserve levels before checkbox clicks
     document.addEventListener('click', function(event) {
         if (event.target.type === 'checkbox' && event.target.closest('.habit-item')) {
-            const habitElement = event.target.closest('.habit-item');
-            const levelElement = habitElement.querySelector('.habit-level');
+            const habitEl = event.target.closest('.habit-item');
+            const levelElement = habitEl.querySelector('.habit-level');
 
             if (levelElement) {
                 const currentLevelText = levelElement.textContent;

@@ -27,37 +27,37 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`[Habit Level Direct Override] Handling habit checkbox click for habit ${habitId}, isChecked=${isChecked}`);
             
             // Get the habit element
-            const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
-            if (!habitElement) {
+            const habitEl = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+            if (!habitEl) {
                 console.error(`[Habit Level Direct Override] Habit element with ID ${habitId} not found`);
                 return originalHandleHabitCheckboxClick(habitId, isChecked);
             }
             
             // Get the level element
-            const levelElement = habitElement.querySelector('.habit-level');
+            const levelElement = habitEl.querySelector('.habit-level');
             if (!levelElement) {
                 console.error(`[Habit Level Direct Override] Level element for habit ${habitId} not found`);
                 return originalHandleHabitCheckboxClick(habitId, isChecked);
             }
-            
+
             // If we're checking the habit (completing it)
             if (isChecked) {
                 // Store the current level information
                 const currentText = levelElement.textContent || '';
                 const currentLevelMatch = currentText.match(/Level (\d+)/);
-                
+
                 if (currentLevelMatch) {
                     const currentLevel = parseInt(currentLevelMatch[1], 10);
                     console.log(`[Habit Level Direct Override] Current level for habit ${habitId} is ${currentLevel}`);
-                    
+
                     // Skip the original function and implement our own version
                     try {
                         // Mark the habit as completed in the UI
-                        habitElement.dataset.completed = 'true';
-                        habitElement.classList.add('complete');
-                        
+                        habitEl.dataset.completed = 'true';
+                        habitEl.classList.add('complete');
+
                         // Update the progress display if needed
-                        const progressEl = habitElement.querySelector('.habit-progress');
+                        const progressEl = habitEl.querySelector('.habit-progress');
                         if (progressEl) {
                             const progressMatch = progressEl.textContent.match(/(\d+)\/(\d+)/);
                             if (progressMatch) {

@@ -1,0 +1,259 @@
+/**
+ * Mobile Calendar Layout Fix
+ * Fixes the mobile calendar layout issues:
+ * - Prev/Next buttons positioned on left/right of month/year
+ * - Month/year fully visible
+ * - Smaller show dropdown without extra outline
+ * - Day boxes take more vertical space
+ */
+
+@media (max-width: 768px) {
+    /* Fix calendar controls layout */
+    .calendar-controls-container {
+        margin-bottom: 8px !important;
+        padding: 0 5px !important;
+    }
+
+    .calendar-controls {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+        background-color: rgba(30, 30, 30, 0.9) !important;
+        border-radius: 6px !important;
+        border: none !important;
+        position: relative !important;
+    }
+
+    /* Position prev button on the left */
+    #prevMonthBtn {
+        order: 1 !important;
+        background-color: transparent !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        padding: 6px 10px !important;
+        font-size: 0.85em !important;
+        border-radius: 4px !important;
+        min-width: 60px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Center the month/year */
+    #currentMonthYear {
+        order: 2 !important;
+        margin: 0 !important;
+        font-size: 1.1em !important;
+        font-weight: 600 !important;
+        color: white !important;
+        text-align: center !important;
+        flex: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        padding: 0 8px !important;
+    }
+
+    /* Position next button on the right */
+    #nextMonthBtn {
+        order: 3 !important;
+        background-color: transparent !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        padding: 6px 10px !important;
+        font-size: 0.85em !important;
+        border-radius: 4px !important;
+        min-width: 60px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Button hover effects */
+    #prevMonthBtn:hover,
+    #nextMonthBtn:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    /* Fix calendar filter dropdown */
+    .calendar-filter {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-bottom: 8px !important;
+        padding: 6px 8px !important;
+        background-color: rgba(30, 30, 30, 0.7) !important;
+        border-radius: 4px !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .calendar-filter label {
+        margin-right: 8px !important;
+        font-weight: 500 !important;
+        color: white !important;
+        font-size: 0.9em !important;
+    }
+
+    .calendar-filter select {
+        padding: 4px 8px !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 4px !important;
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        color: white !important;
+        font-size: 0.85em !important;
+        cursor: pointer !important;
+        outline: none !important;
+        box-shadow: none !important;
+        min-width: 120px !important;
+        max-width: 140px !important;
+    }
+
+    .calendar-filter select:focus {
+        outline: none !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        box-shadow: none !important;
+    }
+
+    /* Remove any extra outlines or borders */
+    .calendar-filter,
+    .calendar-filter select,
+    .calendar-controls {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    /* Maximize calendar grid height */
+    .calendar-grid {
+        flex: 1 !important;
+        display: grid !important;
+        grid-template-columns: repeat(7, 1fr) !important;
+        grid-template-rows: auto repeat(6, 1fr) !important;
+        gap: 1px !important;
+        padding: 2px !important;
+        height: calc(100vh - 140px) !important;
+        border-radius: 0 !important;
+        border: none !important;
+        background-color: #1a1a1a !important;
+        margin: 0 !important;
+    }
+
+    /* Ensure day boxes take maximum vertical space */
+    .calendar-day {
+        height: auto !important;
+        min-height: calc((100vh - 140px - 20px) / 6) !important;
+        padding: 3px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+        margin: 0 !important;
+        background-color: rgba(30, 30, 30, 0.9) !important;
+        overflow: hidden !important;
+    }
+
+    /* Optimize day number display */
+    .day-number {
+        font-size: 0.85em !important;
+        margin-bottom: 2px !important;
+        text-align: center !important;
+        font-weight: 600 !important;
+        color: white !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Optimize task and habit containers */
+    .calendar-tasks,
+    .calendar-habits {
+        flex: 1 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1px !important;
+    }
+
+    /* Compact task and habit items */
+    .calendar-task-item,
+    .calendar-habit-item {
+        padding: 1px 3px !important;
+        margin: 0 !important;
+        font-size: 0.65em !important;
+        border-radius: 2px !important;
+        line-height: 1.2 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Calendar headers */
+    .calendar-header {
+        padding: 4px 0 !important;
+        font-size: 0.75em !important;
+        background-color: rgba(20, 20, 20, 0.9) !important;
+        color: white !important;
+        text-align: center !important;
+        font-weight: 600 !important;
+        border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+/* Extra optimizations for smaller screens */
+@media (max-width: 480px) {
+    .calendar-grid {
+        height: calc(100vh - 130px) !important;
+    }
+
+    .calendar-day {
+        min-height: calc((100vh - 130px - 20px) / 6) !important;
+        padding: 2px !important;
+    }
+
+    #currentMonthYear {
+        font-size: 1em !important;
+    }
+
+    #prevMonthBtn,
+    #nextMonthBtn {
+        padding: 5px 8px !important;
+        font-size: 0.8em !important;
+        min-width: 50px !important;
+    }
+
+    .calendar-filter select {
+        font-size: 0.8em !important;
+        padding: 3px 6px !important;
+        min-width: 110px !important;
+    }
+}
+
+/* Ultra-compact for very small screens */
+@media (max-width: 360px) {
+    .calendar-grid {
+        height: calc(100vh - 120px) !important;
+    }
+
+    .calendar-day {
+        min-height: calc((100vh - 120px - 20px) / 6) !important;
+        padding: 1px !important;
+    }
+
+    #currentMonthYear {
+        font-size: 0.95em !important;
+    }
+
+    #prevMonthBtn,
+    #nextMonthBtn {
+        padding: 4px 6px !important;
+        font-size: 0.75em !important;
+        min-width: 45px !important;
+    }
+
+    .calendar-filter {
+        padding: 4px 6px !important;
+    }
+
+    .calendar-filter select {
+        font-size: 0.75em !important;
+        min-width: 100px !important;
+    }
+}

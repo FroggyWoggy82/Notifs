@@ -27,14 +27,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`[Habit Level Direct Fix] Handling habit checkbox click for habit ${habitId}, isChecked=${isChecked}`);
             
             // Get the habit element
-            const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
-            if (!habitElement) {
+            const habitEl = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+            if (!habitEl) {
                 console.error(`[Habit Level Direct Fix] Habit element with ID ${habitId} not found`);
                 return originalHandleHabitCheckboxClick(habitId, isChecked);
             }
             
             // Get the level element
-            const levelElement = habitElement.querySelector('.habit-level');
+            const levelElement = habitEl.querySelector('.habit-level');
             if (!levelElement) {
                 console.error(`[Habit Level Direct Fix] Level element for habit ${habitId} not found`);
                 return originalHandleHabitCheckboxClick(habitId, isChecked);

@@ -448,15 +448,17 @@
     <script src="js/habits/habit-level-fix.js" defer></script>
     <script src="js/habits/habit-level-flash-prevention.js" defer></script>
     <script src="js/habits/habit-level-instant-fix.js"></script>
-    <script src="js/habits/habit-completion-fix.js" defer></script>
+    <!-- TEMPORARILY DISABLED: These scripts have variable conflicts -->
+    <!-- <script src="js/habits/habit-completion-fix.js" defer></script> -->
     <script src="js/habits/habit-icons-fix.js" defer></script>
-    <script src="js/habits/high-completion-habit-fix.js" defer></script>
+    <!-- <script src="js/habits/high-completion-habit-fix.js" defer></script> -->
     <script src="js/habits/habit-reset.js" defer></script>
     <script src="js/habits/habit-modal-fix.js" defer></script>
-    <script src="js/habits/habit-redesign.js" defer></script>
+    <!-- <script src="js/habits/habit-redesign.js" defer></script> -->
     <script src="js/habits/social-media-rejection-fix.js" defer></script>
     <script src="js/habits/habit-ratio-badge.js" defer></script>
-    <script src="js/habits/habit-state-fix.js" defer></script>
+    <!-- <script src="js/habits/habit-state-fix.js" defer></script> -->
+    <script src="js/habits/habit-checkbox-persistence-fix.js" defer></script>
     <script src="js/ratio-badge.js" defer></script>
     <script src="js/calendar/calendar-refresh-fix.js" defer></script>
     <script src="js/tasks/subtask-form-handler.js" defer></script>
@@ -530,7 +532,7 @@
     <div class="sidebar-overlay"></div>
 
     <div class="container">
-        <h1 class="gradient-text">My Tasks</h1>
+        <h1 class="gradient-text" style="font-size: 1.5rem; margin: 10px 0;">My Tasks</h1>
         <div id="permissionStatus" class="notifications-status glass" style="display: none;">
             <i class="fas fa-bell"></i> Checking notification permission...
         </div>
@@ -543,7 +545,6 @@
     <section class="task-list-section">
         <div class="card">
             <div class="card__header">
-                <h2 class="card__title">Task List</h2>
 
                 <!-- Controls Container -->
                 <div class="task-list-controls">

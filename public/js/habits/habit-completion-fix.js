@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const habitElements = document.querySelectorAll('.habit-item');
 
-        habitElements.forEach(habitElement => {
-            const habitId = habitElement.dataset.habitId;
+        habitElements.forEach(habitEl => {
+            const habitId = habitEl.dataset.habitId;
             if (!habitId) return;
 
-            const progressEl = habitElement.querySelector('.habit-progress');
+            const progressEl = habitEl.querySelector('.habit-progress');
             if (!progressEl) return;
 
             const progressText = progressEl.textContent || '';
@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (completionsToday > 0) {
                     console.log(`Marking habit ${habitId} as completed (${completionsToday} completions today)`);
 
-                    habitElement.dataset.completed = 'true';
-                    habitElement.classList.add('complete');
+                    habitEl.dataset.completed = 'true';
+                    habitEl.classList.add('complete');
 
-                    const checkbox = habitElement.querySelector('.habit-checkbox');
+                    const checkbox = habitEl.querySelector('.habit-checkbox');
                     if (checkbox) {
                         checkbox.checked = true;
                     }
@@ -96,11 +96,11 @@ setTimeout(function() {
     if (typeof loadHabits === 'function') {
         const habitElements = document.querySelectorAll('.habit-item');
 
-        habitElements.forEach(habitElement => {
-            const habitId = habitElement.dataset.habitId;
+        habitElements.forEach(habitEl => {
+            const habitId = habitEl.dataset.habitId;
             if (!habitId) return;
 
-            const progressEl = habitElement.querySelector('.habit-progress');
+            const progressEl = habitEl.querySelector('.habit-progress');
             if (!progressEl) return;
 
             const progressText = progressEl.textContent || '';
@@ -112,10 +112,10 @@ setTimeout(function() {
                 if (completionsToday > 0) {
                     console.log(`Marking habit ${habitId} as completed (${completionsToday} completions today)`);
 
-                    habitElement.dataset.completed = 'true';
-                    habitElement.classList.add('complete');
+                    habitEl.dataset.completed = 'true';
+                    habitEl.classList.add('complete');
 
-                    const checkbox = habitElement.querySelector('.habit-checkbox');
+                    const checkbox = habitEl.querySelector('.habit-checkbox');
                     if (checkbox) {
                         checkbox.checked = true;
                     }
