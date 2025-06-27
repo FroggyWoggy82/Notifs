@@ -3,23 +3,75 @@
  * Makes the add task modal extremely compact for mobile devices to eliminate scrolling
  */
 
-/* Mobile-specific optimizations for add task modal */
+/* Mobile-specific optimizations for add task modal - Desktop-like behavior */
 @media (max-width: 768px) {
-    /* Modal takes full screen height and width */
+    /* Modal overlay should remain semi-transparent like desktop */
+    #addTaskModal,
+    #editTaskModal {
+        background-color: rgba(0, 0, 0, 0.7) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 20px !important;
+    }
+
+    /* Modal content should be sized appropriately for mobile visibility */
     #addTaskModal .modal-content,
     #editTaskModal .modal-content {
-        width: 100% !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        margin: 0 !important;
-        padding: 4px 8px !important; /* Reduced top/bottom padding from 8px to 4px */
-        border-radius: 0 !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
+        width: 95% !important;
+        max-width: 600px !important;
+        height: auto !important;
+        max-height: 90vh !important;
+        margin: 0 auto !important;
+        padding: 20px !important;
+        border-radius: 12px !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
         transform: none !important;
         overflow-y: auto !important;
         box-sizing: border-box !important;
+        background-color: #121212 !important;
+        border: 1px solid #333 !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    /* Improve form element visibility on mobile */
+    #addTaskModal input,
+    #addTaskModal textarea,
+    #addTaskModal select,
+    #editTaskModal input,
+    #editTaskModal textarea,
+    #editTaskModal select {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        padding: 12px !important;
+        min-height: 44px !important; /* iOS touch target minimum */
+        border-radius: 6px !important;
+    }
+
+    /* Modal header styling for better visibility */
+    #addTaskModal .modal-header h2,
+    #editTaskModal .modal-header h2 {
+        font-size: 1.4rem !important;
+        margin-bottom: 15px !important;
+    }
+
+    /* Form labels with better spacing */
+    #addTaskModal .form-label,
+    #editTaskModal .form-label {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        margin-bottom: 6px !important;
+        color: #ffffff !important;
+    }
+
+    /* Button styling for mobile */
+    #addTaskModal button,
+    #editTaskModal button {
+        min-height: 44px !important;
+        font-size: 16px !important;
+        padding: 12px 20px !important;
+        border-radius: 8px !important;
     }
 
     /* Compact modal header */

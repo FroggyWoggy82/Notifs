@@ -197,22 +197,40 @@ html body div#editTaskModal.modal.show .modal-dialog .modal-content .modal-heade
     height: auto !important;
 }
 
-/* ULTIMATE MOBILE COMPACTNESS */
+/* ULTIMATE MOBILE COMPACTNESS - Desktop-like behavior */
 @media (max-width: 768px) {
+    /* Modal overlay styling */
+    html body div#addTaskModal.modal.show,
+    html body div#editTaskModal.modal.show,
+    html body #addTaskModal,
+    html body #editTaskModal {
+        background-color: rgba(0, 0, 0, 0.7) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 20px !important;
+    }
+
     html body div#addTaskModal.modal.show .modal-dialog .modal-content,
-    html body div#editTaskModal.modal.show .modal-dialog .modal-content {
-        padding: 1px 4px !important;
-        margin: 0 !important;
-        width: 100% !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        border-radius: 0 !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
+    html body div#editTaskModal.modal.show .modal-dialog .modal-content,
+    html body #addTaskModal .modal-content,
+    html body #editTaskModal .modal-content {
+        padding: 20px !important;
+        margin: 0 auto !important;
+        width: 95% !important;
+        max-width: 600px !important;
+        height: auto !important;
+        max-height: 90vh !important;
+        border-radius: 12px !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
         transform: none !important;
         overflow-y: auto !important;
         box-sizing: border-box !important;
+        background-color: #121212 !important;
+        border: 1px solid #333 !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
     }
     
     html body div#addTaskModal.modal.show .modal-dialog .modal-content .modal-header h2,

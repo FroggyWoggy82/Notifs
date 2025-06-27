@@ -586,5 +586,29 @@
       "taskId": 184,
       "type": "task_reminder"
     }
+  },
+  {
+    "id": "954b500e95f3b57a56855512",
+    "title": "⚠️ Overdue Reminder: Connor Pham's Bday",
+    "body": "Reminder was 12 hours overdue - Due 6/26/2025",
+    "scheduledTime": "2025-06-27T02:44:48.058Z",
+    "repeat": "none",
+    "createdAt": 1750992288060,
+    "data": {
+      "taskId": 142,
+      "type": "overdue_reminder"
+    }
+  },
+  {
+    "id": "46e99fd55d0e589bd3577562",
+    "title": "⚠️ Overdue Reminder: Alvin Matthew's Bday",
+    "body": "Reminder was 12 hours overdue - Due 6/26/2025",
+    "scheduledTime": "2025-06-27T02:44:48.061Z",
+    "repeat": "none",
+    "createdAt": 1750992288062,
+    "data": {
+      "taskId": 143,
+      "type": "overdue_reminder"
+    }
   }
 ]
