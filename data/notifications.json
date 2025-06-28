@@ -1,29 +1,5 @@
 [
   {
-    "id": "2ec58ad10537058ebe5f0dfa",
-    "title": "Reminder: Alvin Matthew's Bday",
-    "body": "Due in 18 days (6/26/2025)",
-    "scheduledTime": "2025-06-26T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413191,
-    "data": {
-      "taskId": 143,
-      "type": "task_reminder"
-    }
-  },
-  {
-    "id": "4c1fbeaf9095637c9112bef5",
-    "title": "Reminder: Connor Pham's Bday",
-    "body": "Due in 18 days (6/26/2025)",
-    "scheduledTime": "2025-06-26T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413195,
-    "data": {
-      "taskId": 142,
-      "type": "task_reminder"
-    }
-  },
-  {
     "id": "035b67d962f8f10f827ac783",
     "title": "Reminder: Pacey's Bday",
     "body": "Due in 48 days (7/26/2025)",
@@ -585,30 +561,6 @@
     "data": {
       "taskId": 184,
       "type": "task_reminder"
-    }
-  },
-  {
-    "id": "954b500e95f3b57a56855512",
-    "title": "⚠️ Overdue Reminder: Connor Pham's Bday",
-    "body": "Reminder was 12 hours overdue - Due 6/26/2025",
-    "scheduledTime": "2025-06-27T02:44:48.058Z",
-    "repeat": "none",
-    "createdAt": 1750992288060,
-    "data": {
-      "taskId": 142,
-      "type": "overdue_reminder"
-    }
-  },
-  {
-    "id": "46e99fd55d0e589bd3577562",
-    "title": "⚠️ Overdue Reminder: Alvin Matthew's Bday",
-    "body": "Reminder was 12 hours overdue - Due 6/26/2025",
-    "scheduledTime": "2025-06-27T02:44:48.061Z",
-    "repeat": "none",
-    "createdAt": 1750992288062,
-    "data": {
-      "taskId": 143,
-      "type": "overdue_reminder"
     }
   }
 ]
