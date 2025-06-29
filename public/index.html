@@ -7,6 +7,9 @@
     <meta name="description" content="A simple PWA To-Do list with background notifications">
     <link rel="manifest" href="manifest.json">
 
+    <!-- Nuclear Modal Killer CSS - Force hide all modals -->
+    <link rel="stylesheet" href="css/modal-killer.css">
+
     <!-- Optimized CSS Bundle - Single file replaces 60+ individual CSS files -->
     <link rel="stylesheet" href="css/bundle.css">
 
@@ -410,6 +413,8 @@
     </script>
 
     <!-- Critical scripts that must load immediately -->
+    <script src="js/tasks/immediate-modal-killer.js"></script>
+    <script src="js/mobile-emergency-close.js"></script>
     <script src="js/immediate-notification-fix.js"></script>
     <script src="js/ios-notification-fix.js"></script>
     <script src="js/notification-system.js"></script>

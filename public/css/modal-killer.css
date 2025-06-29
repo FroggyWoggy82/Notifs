@@ -1,0 +1,135 @@
+/* Nuclear Modal Killer CSS - Force hide all modals */
+
+/* Hide all modals with maximum specificity */
+#editTaskModal,
+#addTaskModal,
+#addHabitModal,
+#editHabitModal,
+.modal,
+[id*="modal"],
+[id*="Modal"],
+[class*="modal"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+    position: fixed !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Force hide modal backdrops */
+.modal-backdrop,
+.backdrop,
+[class*="backdrop"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+}
+
+/* Ensure body can scroll */
+body {
+    overflow: auto !important;
+    position: static !important;
+    height: auto !important;
+}
+
+/* Hide any modal overlays */
+.modal-overlay,
+.overlay,
+[class*="overlay"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Nuclear option - hide anything that might be a modal */
+div[style*="position: fixed"],
+div[style*="z-index: 1000"],
+div[style*="z-index: 9999"] {
+    display: none !important;
+}
+
+/* Emergency close button styling */
+.emergency-close-btn {
+    position: fixed !important;
+    top: 10px !important;
+    right: 10px !important;
+    background: #ff0000 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    z-index: 99999 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important;
+}
+
+.emergency-close-btn:hover {
+    background: #cc0000 !important;
+    transform: scale(1.1) !important;
+}
+
+/* Mobile emergency close button - always visible */
+.mobile-emergency-close {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    background: #ff4444 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    z-index: 999999 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 0.8 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.mobile-emergency-close:active {
+    background: #ff0000 !important;
+    transform: scale(0.95) !important;
+    opacity: 1 !important;
+}
+
+/* Mobile specific fixes */
+@media (max-width: 768px) {
+    .modal,
+    [id*="Modal"] {
+        transform: translateX(-100vw) !important;
+        left: -100vw !important;
+        right: auto !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    .emergency-close-btn {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 24px !important;
+        top: 20px !important;
+        right: 20px !important;
+    }
+}
