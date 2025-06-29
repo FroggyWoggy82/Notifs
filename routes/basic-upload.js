@@ -19,10 +19,21 @@ const publicPhotosPath = '/uploads/progress_photos';
 // Since we're using the public directory directly, just ensure it exists
 const publicPhotosDir = progressPhotosDir; // Same as progressPhotosDir now
 
-// Ensure the upload directory exists
+// Ensure the upload directory exists and is writable
 if (!fs.existsSync(progressPhotosDir)) {
     fs.mkdirSync(progressPhotosDir, { recursive: true });
     console.log(`[BASIC UPLOAD] Created directory: ${progressPhotosDir}`);
+}
+
+// Test directory write permissions
+try {
+    const testFile = path.join(progressPhotosDir, 'test-write-permissions.tmp');
+    fs.writeFileSync(testFile, 'test');
+    fs.unlinkSync(testFile);
+    console.log(`[BASIC UPLOAD] Directory write permissions verified: ${progressPhotosDir}`);
+} catch (permError) {
+    console.error(`[BASIC UPLOAD] Directory write permission error: ${permError.message}`);
+    console.error(`[BASIC UPLOAD] Directory: ${progressPhotosDir}`);
 }
 
 // Ensure the parent uploads directory exists
@@ -103,15 +114,33 @@ router.post('/basic', uploadMiddleware, async (req, res) => {
         console.log(`[BASIC UPLOAD] Processing: ${req.file.path} -> ${processedPath}`);
 
         // Process image with Sharp to fix rotation and ensure single output
-        await sharp(req.file.path)
-            .rotate() // Apply EXIF rotation and remove EXIF data to prevent rotation issues
-            .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 85, progressive: true })
-            .toFile(processedPath);
+        console.log(`[BASIC UPLOAD] Starting Sharp processing...`);
+        console.log(`[BASIC UPLOAD] Input file exists: ${fs.existsSync(req.file.path)}`);
+        console.log(`[BASIC UPLOAD] Input file size: ${req.file.size} bytes`);
 
-        // Verify the processed file exists
+        try {
+            await sharp(req.file.path)
+                .rotate() // Apply EXIF rotation and remove EXIF data to prevent rotation issues
+                .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+                .jpeg({ quality: 85, progressive: true })
+                .toFile(processedPath);
+
+            console.log(`[BASIC UPLOAD] Sharp processing completed`);
+        } catch (sharpError) {
+            console.error(`[BASIC UPLOAD] Sharp processing failed:`, sharpError);
+            throw new Error(`Image processing failed: ${sharpError.message}`);
+        }
+
+        // Verify the processed file exists and has content
         if (!fs.existsSync(processedPath)) {
-            throw new Error('Processed file was not created');
+            throw new Error('Processed file was not created by Sharp');
+        }
+
+        const processedStats = fs.statSync(processedPath);
+        console.log(`[BASIC UPLOAD] Processed file size: ${processedStats.size} bytes`);
+
+        if (processedStats.size === 0) {
+            throw new Error('Processed file is empty');
         }
 
         console.log(`[BASIC UPLOAD] Image processed successfully`);
@@ -132,6 +161,13 @@ router.post('/basic', uploadMiddleware, async (req, res) => {
         await client.query('COMMIT');
 
         const photoId = result.rows[0].photo_id;
+
+        // Final verification that the file still exists after database commit
+        if (!fs.existsSync(processedPath)) {
+            console.error(`[BASIC UPLOAD] CRITICAL: File disappeared after database commit: ${processedPath}`);
+            throw new Error('File disappeared after database commit');
+        }
+
         console.log(`[BASIC UPLOAD] ✅ Successfully uploaded photo ID: ${photoId}`);
 
         // Clean up the original uploaded file
@@ -241,15 +277,33 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
         console.log(`[BASIC UPLOAD] Processing: ${req.file.path} -> ${processedPath}`);
 
         // Process image with Sharp to fix rotation and ensure single output
-        await sharp(req.file.path)
-            .rotate() // Apply EXIF rotation and remove EXIF data to prevent rotation issues
-            .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: 85, progressive: true })
-            .toFile(processedPath);
+        console.log(`[BASIC UPLOAD] Starting Sharp processing for mobile...`);
+        console.log(`[BASIC UPLOAD] Input file exists: ${fs.existsSync(req.file.path)}`);
+        console.log(`[BASIC UPLOAD] Input file size: ${req.file.size} bytes`);
 
-        // Verify the processed file exists
+        try {
+            await sharp(req.file.path)
+                .rotate() // Apply EXIF rotation and remove EXIF data to prevent rotation issues
+                .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+                .jpeg({ quality: 85, progressive: true })
+                .toFile(processedPath);
+
+            console.log(`[BASIC UPLOAD] Sharp processing completed for mobile`);
+        } catch (sharpError) {
+            console.error(`[BASIC UPLOAD] Sharp processing failed for mobile:`, sharpError);
+            throw new Error(`Mobile image processing failed: ${sharpError.message}`);
+        }
+
+        // Verify the processed file exists and has content
         if (!fs.existsSync(processedPath)) {
-            throw new Error('Processed file was not created');
+            throw new Error('Mobile processed file was not created by Sharp');
+        }
+
+        const processedStats = fs.statSync(processedPath);
+        console.log(`[BASIC UPLOAD] Mobile processed file size: ${processedStats.size} bytes`);
+
+        if (processedStats.size === 0) {
+            throw new Error('Mobile processed file is empty');
         }
 
         console.log(`[BASIC UPLOAD] Image processed successfully`);
@@ -270,7 +324,14 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
         await client.query('COMMIT');
 
         const photoId = result.rows[0].photo_id;
-        console.log(`[BASIC UPLOAD] ✅ Successfully uploaded photo ID: ${photoId}`);
+
+        // Final verification that the file still exists after database commit
+        if (!fs.existsSync(processedPath)) {
+            console.error(`[BASIC UPLOAD] CRITICAL: Mobile file disappeared after database commit: ${processedPath}`);
+            throw new Error('Mobile file disappeared after database commit');
+        }
+
+        console.log(`[BASIC UPLOAD] ✅ Successfully uploaded mobile photo ID: ${photoId}`);
 
         // Clean up the original uploaded file
         try {
