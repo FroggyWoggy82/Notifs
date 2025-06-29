@@ -308,7 +308,9 @@
   z-index: var(--z-index-fixed);
   transition: all var(--transition-base);
   border: none;
-  font-size: var(--font-size-xl);
+  font-size: 20px; /* Fixed size instead of variable to prevent cutoff */
+  line-height: 1; /* Ensure proper line height */
+  font-family: Arial, sans-serif; /* Ensure consistent font */
 }
 
 .fab:hover {

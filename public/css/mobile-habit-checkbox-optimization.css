@@ -5,7 +5,7 @@
 
 /* Base mobile optimization for all screen sizes */
 @media screen and (max-width: 768px) {
-    /* Habit checkbox base styling for mobile */
+    /* Habit checkbox base styling for mobile - FORCE VISIBILITY */
     .habit-checkbox,
     html body .habit-item .habit-checkbox {
         /* Touch-friendly size (minimum 44px) */
@@ -15,17 +15,23 @@
         min-height: 48px !important;
         max-width: 48px !important;
         max-height: 48px !important;
-        
-        /* Enhanced visibility */
+
+        /* FORCE VISIBILITY - Enhanced visibility */
         appearance: none !important;
         -webkit-appearance: none !important;
         background-color: rgba(40, 40, 40, 0.95) !important;
-        border: 3px solid rgba(255, 255, 255, 0.8) !important;
+        border: 3px solid rgba(255, 255, 255, 0.9) !important;
         border-radius: 50% !important;
-        
-        /* Improved contrast and glow */
-        box-shadow: 0 0 12px rgba(255, 255, 255, 0.15), 
-                    inset 0 0 8px rgba(255, 255, 255, 0.05) !important;
+
+        /* FORCE VISIBILITY - Improved contrast and glow */
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.25),
+                    inset 0 0 10px rgba(255, 255, 255, 0.1) !important;
+
+        /* FORCE VISIBILITY - Ensure they are always visible */
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+        z-index: 10 !important;
         
         /* Positioning and interaction */
         cursor: pointer !important;

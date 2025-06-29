@@ -1064,7 +1064,7 @@ input:checked + .toggle-slider:before {
 
 .fab {
     position: fixed;
-    bottom: 80px; 
+    bottom: 80px;
     right: 20px;
     width: 56px;
     height: 56px;
@@ -1072,15 +1072,17 @@ input:checked + .toggle-slider:before {
     color: #00E676;
     border-radius: 50%;
     border: 2px solid rgba(0, 230, 118, 0.5);
-    font-size: 24px;
+    font-size: 20px; /* Reduced from 24px to prevent cutoff */
+    line-height: 1; /* Ensure proper line height */
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
     cursor: pointer;
-    z-index: 1000; 
+    z-index: 1000;
     transition: all 0.2s ease;
+    font-family: Arial, sans-serif; /* Ensure consistent font */
 }
 .fab:hover {
     background-color: rgba(0, 0, 0, 0.8);

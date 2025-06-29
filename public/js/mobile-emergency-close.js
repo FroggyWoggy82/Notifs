@@ -119,24 +119,10 @@
         }, 2000);
     }
 
-    // Create mobile emergency close button
+    // Emergency close button disabled - no longer needed
     function createMobileEmergencyButton() {
-        if (!isMobile()) {
-            console.log('[Mobile Emergency Close] Not on mobile, skipping button creation');
-            return;
-        }
-
-        // Remove existing button if any
-        const existingBtn = document.getElementById('mobileEmergencyClose');
-        if (existingBtn) {
-            existingBtn.remove();
-        }
-
-        const emergencyBtn = document.createElement('button');
-        emergencyBtn.id = 'mobileEmergencyClose';
-        emergencyBtn.innerHTML = '✕';
-        emergencyBtn.className = 'mobile-emergency-close';
-        emergencyBtn.title = 'Emergency Close All Modals';
+        console.log('[Mobile Emergency Close] Emergency button creation disabled - modals working normally');
+        return;
         
         // Add click handler
         emergencyBtn.addEventListener('click', function(e) {
