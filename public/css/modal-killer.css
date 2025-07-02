@@ -55,16 +55,21 @@ body {
 }
 
 /* Nuclear option - hide anything that might be a modal */
+/* DISABLED: This was preventing legitimate modals from showing */
+/*
 div[style*="position: fixed"],
 div[style*="z-index: 1000"],
 div[style*="z-index: 9999"] {
     display: none !important;
 }
+*/
 
 /* Emergency close buttons removed - no longer needed */
 
 /* Mobile specific fixes */
 @media (max-width: 768px) {
+    /* DISABLED: This was preventing legitimate modals from showing on mobile */
+    /*
     .modal,
     [id*="Modal"] {
         transform: translateX(-100vw) !important;
@@ -74,6 +79,7 @@ div[style*="z-index: 9999"] {
         height: 0 !important;
         overflow: hidden !important;
     }
+    */
     
     .emergency-close-btn {
         width: 50px !important;

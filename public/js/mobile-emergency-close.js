@@ -35,6 +35,12 @@
         modalSelectors.forEach(selector => {
             const modals = document.querySelectorAll(selector);
             modals.forEach(modal => {
+                // Skip modals that are intentionally opened by mobile FAB
+                if (modal && modal.getAttribute('data-mobile-fab-opened') === 'true' && window.mobileFabModalOpen) {
+                    console.log('[Mobile Emergency Close] Skipping mobile FAB modal:', modal.id || modal.className);
+                    return;
+                }
+
                 if (modal) {
                     // Nuclear destruction
                     modal.style.setProperty('display', 'none', 'important');
@@ -45,14 +51,14 @@
                     modal.style.setProperty('position', 'fixed', 'important');
                     modal.style.setProperty('top', '-9999px', 'important');
                     modal.style.setProperty('left', '-9999px', 'important');
-                    
+
                     // Remove all classes
                     modal.className = '';
-                    
+
                     // Clear content if it's a form
                     const forms = modal.querySelectorAll('form');
                     forms.forEach(form => form.reset());
-                    
+
                     closedCount++;
                     console.log('[Mobile Emergency Close] Closed modal:', modal.id || modal.className);
                 }

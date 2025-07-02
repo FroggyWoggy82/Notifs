@@ -92,21 +92,31 @@ function initializeMobileFab(addTaskFab, addTaskModal) {
             // Close the modal - use setProperty with important to override CSS !important rules
             addTaskModal.style.setProperty('display', 'none', 'important');
             addTaskModal.classList.remove('modal-visible');
+            addTaskModal.removeAttribute('data-mobile-fab-opened');
+            window.mobileFabModalOpen = false;
             document.body.style.overflow = '';
         } else {
             console.log('[Mobile FAB Fix] Modal is closed, opening it...');
             // Open the modal - use setProperty with important to override CSS rules
             addTaskModal.style.setProperty('display', 'flex', 'important');
-            addTaskModal.style.position = 'fixed';
-            addTaskModal.style.top = '0';
-            addTaskModal.style.left = '0';
-            addTaskModal.style.width = '100%';
-            addTaskModal.style.height = '100%';
-            addTaskModal.style.zIndex = '10000';
-            addTaskModal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-            addTaskModal.style.alignItems = 'center';
-            addTaskModal.style.justifyContent = 'center';
+            addTaskModal.style.setProperty('position', 'fixed', 'important');
+            addTaskModal.style.setProperty('top', '0', 'important');
+            addTaskModal.style.setProperty('left', '0', 'important');
+            addTaskModal.style.setProperty('width', '100%', 'important');
+            addTaskModal.style.setProperty('height', '100%', 'important');
+            addTaskModal.style.setProperty('z-index', '10000', 'important');
+            addTaskModal.style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
+            addTaskModal.style.setProperty('align-items', 'center', 'important');
+            addTaskModal.style.setProperty('justify-content', 'center', 'important');
+            addTaskModal.style.setProperty('transform', 'none', 'important');
+            addTaskModal.style.setProperty('visibility', 'visible', 'important');
+            addTaskModal.style.setProperty('opacity', '1', 'important');
+            addTaskModal.style.setProperty('overflow', 'auto', 'important');
             addTaskModal.classList.add('modal-visible');
+
+            // Mark modal as intentionally opened by mobile FAB
+            addTaskModal.setAttribute('data-mobile-fab-opened', 'true');
+            window.mobileFabModalOpen = true;
 
             // Prevent background scrolling
             document.body.style.overflow = 'hidden';
@@ -182,7 +192,7 @@ function initializeMobileFab(addTaskFab, addTaskModal) {
 // Additional safety check for mobile devices
 if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
     console.log('[Mobile FAB Fix] Mobile device detected, applying additional fixes...');
-    
+
     // Ensure FAB is always clickable on mobile
     document.addEventListener('touchstart', function(e) {
         const fab = document.getElementById('addTaskFab');
@@ -191,4 +201,51 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
             fab.click();
         }
     }, { passive: false });
+}
+
+// Protection against other scripts closing the modal
+function protectMobileFabModal() {
+    const addTaskModal = document.getElementById('addTaskModal');
+    if (!addTaskModal) return;
+
+    // Create a MutationObserver to watch for style changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                // If modal was opened by mobile FAB and something tries to close it
+                if (window.mobileFabModalOpen && addTaskModal.getAttribute('data-mobile-fab-opened') === 'true') {
+                    const computedStyle = window.getComputedStyle(addTaskModal);
+                    if (computedStyle.display === 'none' || addTaskModal.style.display === 'none') {
+                        console.log('[Mobile FAB Fix] PROTECTION: Modal was force-closed, reopening...');
+                        // Reopen the modal with all necessary styles
+                        addTaskModal.style.setProperty('display', 'flex', 'important');
+                        addTaskModal.style.setProperty('position', 'fixed', 'important');
+                        addTaskModal.style.setProperty('top', '0', 'important');
+                        addTaskModal.style.setProperty('left', '0', 'important');
+                        addTaskModal.style.setProperty('width', '100%', 'important');
+                        addTaskModal.style.setProperty('height', '100%', 'important');
+                        addTaskModal.style.setProperty('z-index', '10000', 'important');
+                        addTaskModal.style.setProperty('transform', 'none', 'important');
+                        addTaskModal.style.setProperty('visibility', 'visible', 'important');
+                        addTaskModal.style.setProperty('opacity', '1', 'important');
+                    }
+                }
+            }
+        });
+    });
+
+    // Start observing
+    observer.observe(addTaskModal, {
+        attributes: true,
+        attributeFilter: ['style', 'class']
+    });
+
+    console.log('[Mobile FAB Fix] Protection mechanism activated');
+}
+
+// Initialize protection when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', protectMobileFabModal);
+} else {
+    protectMobileFabModal();
 }
