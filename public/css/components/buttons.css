@@ -299,12 +299,12 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  background-color: #ffffff; /* White background instead of green */
+  color: #121212; /* Dark color for icon instead of white */
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 15px rgba(0, 230, 118, 0.5);
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.3); /* White shadow instead of green */
   z-index: var(--z-index-fixed);
   transition: all var(--transition-base);
   border: none;
@@ -314,9 +314,9 @@
 }
 
 .fab:hover {
-  background-color: var(--color-primary-light);
+  background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white on hover */
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 0 20px rgba(0, 230, 118, 0.7);
+  box-shadow: 0 6px 12px rgba(255, 255, 255, 0.4); /* Enhanced white shadow on hover */
 }
 
 .fab:active {
