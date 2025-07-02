@@ -4969,8 +4969,8 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         submitButton.disabled = true;
 
-        const uploadEndpoint = '/api/basic/upload';
-        console.log(`[Photo Upload Client] Using basic upload endpoint: ${uploadEndpoint}`);
+        const uploadEndpoint = '/api/photos/upload';
+        console.log(`[Photo Upload Client] Using photos upload endpoint: ${uploadEndpoint}`);
 
         console.log(`[Photo Upload Client] Running on ${isMobile ? 'MOBILE' : 'DESKTOP'} device`);
         console.log(`[Photo Upload Client] About to initiate fetch to ${uploadEndpoint}`);

@@ -72,7 +72,12 @@ const uploadMiddleware = upload.single('photos');
 
 // --- Routes ---
 router.post('/basic', uploadMiddleware, async (req, res) => {
+    const userAgent = req.headers['user-agent'] || '';
+    const isMobile = /mobile|android|iphone|ipad|ipod/i.test(userAgent);
+
     console.log(`[BASIC UPLOAD] === UPLOAD REQUEST STARTED ===`);
+    console.log(`[BASIC UPLOAD] Device type: ${isMobile ? 'MOBILE' : 'DESKTOP'}`);
+    console.log(`[BASIC UPLOAD] User agent: ${userAgent}`);
     console.log(`[BASIC UPLOAD] File received: ${req.file ? req.file.originalname : 'none'}`);
     console.log(`[BASIC UPLOAD] Request body:`, req.body);
 
@@ -145,20 +150,49 @@ router.post('/basic', uploadMiddleware, async (req, res) => {
 
         console.log(`[BASIC UPLOAD] Image processed successfully`);
 
-        // Insert into database with transaction
-        await client.query('BEGIN');
-
+        // Insert into database with transaction and retry logic
         const photoDate = new Date(date);
         const filePath = `/uploads/progress_photos/${processedFilename}`;
 
         console.log(`[BASIC UPLOAD] Inserting into database: ${filePath}`);
 
-        const result = await client.query(
-            'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id',
-            [photoDate, filePath]
-        );
+        let result;
+        let transactionAttempts = 0;
+        const maxTransactionAttempts = 3;
 
-        await client.query('COMMIT');
+        while (transactionAttempts < maxTransactionAttempts) {
+            try {
+                transactionAttempts++;
+                console.log(`[BASIC UPLOAD] Transaction attempt ${transactionAttempts}/${maxTransactionAttempts}`);
+
+                await client.query('BEGIN');
+
+                result = await client.query(
+                    'INSERT INTO progress_photos (date_taken, file_path) VALUES ($1, $2) RETURNING photo_id',
+                    [photoDate, filePath]
+                );
+
+                await client.query('COMMIT');
+                console.log(`[BASIC UPLOAD] Transaction committed successfully on attempt ${transactionAttempts}`);
+                break; // Success, exit the retry loop
+
+            } catch (transactionError) {
+                console.error(`[BASIC UPLOAD] Transaction attempt ${transactionAttempts} failed:`, transactionError.message);
+
+                try {
+                    await client.query('ROLLBACK');
+                } catch (rollbackError) {
+                    console.error(`[BASIC UPLOAD] Rollback failed:`, rollbackError.message);
+                }
+
+                if (transactionAttempts >= maxTransactionAttempts) {
+                    throw new Error(`Transaction failed after ${maxTransactionAttempts} attempts: ${transactionError.message}`);
+                }
+
+                // Wait before retrying
+                await new Promise(resolve => setTimeout(resolve, 1000 * transactionAttempts));
+            }
+        }
 
         const photoId = result.rows[0].photo_id;
 
@@ -168,7 +202,18 @@ router.post('/basic', uploadMiddleware, async (req, res) => {
             throw new Error('File disappeared after database commit');
         }
 
-        console.log(`[BASIC UPLOAD] ✅ Successfully uploaded photo ID: ${photoId}`);
+        // Verify the database record was actually created
+        const verifyResult = await client.query(
+            'SELECT photo_id FROM progress_photos WHERE photo_id = $1',
+            [photoId]
+        );
+
+        if (verifyResult.rows.length === 0) {
+            console.error(`[BASIC UPLOAD] CRITICAL: Database record not found after commit: ${photoId}`);
+            throw new Error('Database record not found after commit');
+        }
+
+        console.log(`[BASIC UPLOAD] ✅ Successfully uploaded photo ID: ${photoId} - File and database record verified`);
 
         // Clean up the original uploaded file
         try {
@@ -193,12 +238,17 @@ router.post('/basic', uploadMiddleware, async (req, res) => {
     } catch (error) {
         console.error(`[BASIC UPLOAD] Error:`, error);
 
-        // Rollback database transaction
-        try {
-            await client.query('ROLLBACK');
-        } catch (rollbackError) {
-            console.error(`[BASIC UPLOAD] Rollback error:`, rollbackError);
-        }
+        // Log detailed error information for debugging
+        console.error(`[BASIC UPLOAD] Full error details:`, {
+            message: error.message,
+            stack: error.stack,
+            file: req.file ? req.file.originalname : 'none',
+            date: req.body.date || req.body['photo-date'] || req.body.photoDate,
+            processedPath: processedPath,
+            userAgent: req.headers['user-agent'] || ''
+        });
+
+        // Transaction rollback is now handled in the retry loop above
 
         // Clean up files on error
         try {
