@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     const deletePhotoBtn = document.getElementById('delete-photo-btn');
+    const forceReloadPhotosBtn = document.getElementById('force-reload-photos-btn');
     const photoReel = document.querySelector('.photo-reel'); // Reel container
     const paginationDotsContainer = document.querySelector('.pagination-dots'); // Added
     const currentPhotoDateDisplay = document.getElementById('current-photo-date-display'); // NEW: Date display element
@@ -5175,6 +5176,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         window.isLoadingPhotos = true;
 
+        // Clear the PhotoLoader cache to prevent stale images
+        console.log('[Photo Load] Clearing PhotoLoader cache to prevent stale images...');
+        PhotoLoader.clearCache();
+
         console.log('[Photo Load] Setting loading state...'); // Log before UI update
         photoReel.innerHTML = '<p>Loading photos...</p>'; // Show loading in reel
         paginationDotsContainer.innerHTML = ''; // Clear dots
@@ -5259,9 +5264,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (PhotoLoader.imageCache[photo.photo_id]) {
                     img.src = PhotoLoader.imageCache[photo.photo_id];
-                    console.log(`[Photo Load] Using cached image for ID: ${photo.photo_id}`);
+                    console.log(`[Photo Load] Using cached image for ID: ${photo.photo_id}, src: ${img.src.substring(0, 50)}...`);
                 } else {
-
+                    console.log(`[Photo Load] No cache for ID: ${photo.photo_id}, loading from: ${photo.file_path}`);
                     img.src = PhotoLoader.placeholderImage;
                     img.style.opacity = '0'; // Hide placeholder
 
@@ -5270,10 +5275,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         img,
                         photo.photo_id,
                         () => {
-                            console.log(`[Photo Load] Successfully loaded image (ID: ${photo.photo_id})`);
+                            console.log(`[Photo Load] Successfully loaded image (ID: ${photo.photo_id}), final src: ${img.src.substring(0, 50)}...`);
                             img.style.opacity = '1'; // Show image once loaded
                         },
-                        (error) => console.error(`[Photo Load] Failed to load image: ${error}`)
+                        (error) => {
+                            console.error(`[Photo Load] Failed to load image (ID: ${photo.photo_id}): ${error}`);
+                            console.error(`[Photo Load] Failed image final src: ${img.src.substring(0, 50)}...`);
+                        }
                     );
                 }
 
@@ -6416,6 +6424,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (photoModalCloseBtn) {
             photoModalCloseBtn.addEventListener('click', closePhotoUploadModal);
+        }
+
+        // Add force reload button event listener
+        const forceReloadBtn = document.getElementById('force-reload-photos-btn');
+        if (forceReloadBtn) {
+            forceReloadBtn.addEventListener('click', () => {
+                console.log('[Force Reload] Button clicked, forcing photo reload...');
+                PhotoLoader.forceReloadAllImages();
+            });
         }
         // Removed duplicate event listener - already attached at line 4669 as photoFormEl
         if (photoUploadInput) {

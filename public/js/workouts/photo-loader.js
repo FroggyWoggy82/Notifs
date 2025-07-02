@@ -455,5 +455,101 @@ const PhotoLoader = {
             delete this.imageCache[keyToRemove];
             console.log(`[PhotoLoader] Removed ${keyToRemove} from cache (LRU eviction)`);
         }
+    },
+
+    /**
+     * Clear the entire image cache
+     * This is useful when photos are refreshed to prevent stale cache issues
+     */
+    clearCache: function() {
+        console.log(`[PhotoLoader] Clearing entire image cache (${Object.keys(this.imageCache).length} entries)`);
+        this.imageCache = {};
+        this.cacheOrder = [];
+        this.loadingStatus = {};
+        console.log(`[PhotoLoader] Cache cleared successfully`);
+    },
+
+    /**
+     * Clear cache for specific photo IDs
+     * @param {Array} photoIds - Array of photo IDs to clear from cache
+     */
+    clearCacheForPhotos: function(photoIds) {
+        if (!Array.isArray(photoIds)) {
+            photoIds = [photoIds];
+        }
+
+        photoIds.forEach(photoId => {
+            const cacheKey = String(photoId);
+            const styleKey = cacheKey + '_style';
+
+            if (this.imageCache[cacheKey]) {
+                delete this.imageCache[cacheKey];
+                console.log(`[PhotoLoader] Cleared cache for photo ID: ${cacheKey}`);
+            }
+
+            if (this.imageCache[styleKey]) {
+                delete this.imageCache[styleKey];
+                console.log(`[PhotoLoader] Cleared style cache for photo ID: ${cacheKey}`);
+            }
+
+            // Remove from cache order
+            const index = this.cacheOrder.indexOf(cacheKey);
+            if (index !== -1) {
+                this.cacheOrder.splice(index, 1);
+            }
+
+            // Clear loading status
+            if (this.loadingStatus[cacheKey]) {
+                delete this.loadingStatus[cacheKey];
+            }
+        });
+    },
+
+    /**
+     * Force reload all images in the carousel without using cache
+     * This is useful when images appear corrupted or as grey squares
+     */
+    forceReloadAllImages: function() {
+        console.log('[PhotoLoader] Force reloading all images without cache...');
+
+        // Clear all cache first
+        this.clearCache();
+
+        // Find all images in the photo reel
+        const photoReel = document.querySelector('.photo-reel');
+        if (!photoReel) {
+            console.warn('[PhotoLoader] Photo reel not found for force reload');
+            return;
+        }
+
+        const images = photoReel.querySelectorAll('img');
+        console.log(`[PhotoLoader] Found ${images.length} images to force reload`);
+
+        images.forEach((img, index) => {
+            const photoId = img.dataset.photoId;
+            const originalSrc = img.dataset.src;
+
+            if (photoId && originalSrc) {
+                console.log(`[PhotoLoader] Force reloading image ${index + 1}/${images.length} (ID: ${photoId})`);
+
+                // Reset the image
+                img.style.opacity = '0';
+                img.src = this.placeholderImage;
+
+                // Force reload with fresh cache busting
+                this.loadImage(
+                    originalSrc,
+                    img,
+                    photoId,
+                    () => {
+                        console.log(`[PhotoLoader] Force reload successful for ID: ${photoId}`);
+                        img.style.opacity = '1';
+                    },
+                    (error) => {
+                        console.error(`[PhotoLoader] Force reload failed for ID: ${photoId}:`, error);
+                    }
+                );
+            }
+        });
     }
 };
