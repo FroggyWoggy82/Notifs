@@ -4882,9 +4882,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Flag to prevent multiple simultaneous uploads
+    let uploadInProgress = false;
+
     async function handlePhotoUpload(event) {
         event.preventDefault();
         console.log('[Photo Upload Client] handlePhotoUpload triggered.');
+
+        // Prevent multiple simultaneous uploads
+        if (uploadInProgress) {
+            console.log('[Photo Upload Client] Upload already in progress, ignoring duplicate submission.');
+            return;
+        }
+
+        uploadInProgress = true;
+        console.log('[Photo Upload Client] Upload started, setting uploadInProgress flag.');
 
         const form = event.target;
 
@@ -5057,7 +5069,8 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(uploadTimeout);
 
             submitButton.disabled = false;
-            console.log('[Photo Upload Client] handlePhotoUpload finished (finally block).');
+            uploadInProgress = false; // Reset the upload flag
+            console.log('[Photo Upload Client] handlePhotoUpload finished (finally block), uploadInProgress reset.');
 
             fetchAndDisplayPhotos();
 
@@ -6404,9 +6417,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (photoModalCloseBtn) {
             photoModalCloseBtn.addEventListener('click', closePhotoUploadModal);
         }
-        if (photoForm) {
-             photoForm.addEventListener('submit', handlePhotoUpload);
-        }
+        // Removed duplicate event listener - already attached at line 4669 as photoFormEl
         if (photoUploadInput) {
              photoUploadInput.addEventListener('change', () => displayFileSize(photoUploadInput));
         }

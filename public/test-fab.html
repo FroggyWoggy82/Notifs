@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAB Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fixes/mobile-fab-fix.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .test-content {
+            padding: 20px;
+            margin-bottom: 100px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+        
+        .close-button {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-content">
+        <h1>FAB Test Page</h1>
+        <p>This page tests the mobile FAB functionality.</p>
+        <p>The FAB should be visible in the bottom right corner.</p>
+        <p>Click it to open the modal.</p>
+        
+        <div style="height: 200vh;">
+            <p>Scroll down to test FAB positioning...</p>
+        </div>
+    </div>
+    
+    <!-- Test Modal -->
+    <div id="testModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Test Modal</h2>
+            <p>This modal opened successfully!</p>
+            <p>The FAB is working correctly.</p>
+        </div>
+    </div>
+    
+    <!-- Test FAB -->
+    <button id="testFab" class="fab" style="display: flex; pointer-events: auto; position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; background-color: rgba(0, 0, 0, 0.8); color: #00E676; border-radius: 50%; border: 2px solid rgba(0, 230, 118, 0.6); font-size: 18px; line-height: 1; text-align: center; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(0, 230, 118, 0.4); cursor: pointer; z-index: 9999; transition: all 0.2s ease; font-family: 'Font Awesome 6 Free', Arial, sans-serif; font-weight: 900;">
+        <i class="fas fa-plus" style="font-size: 18px; line-height: 1; display: block;"></i>
+    </button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fab = document.getElementById('testFab');
+            const modal = document.getElementById('testModal');
+            const closeBtn = modal.querySelector('.close-button');
+            
+            fab.addEventListener('click', function() {
+                console.log('FAB clicked!');
+                modal.style.display = 'flex';
+            });
+            
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            console.log('FAB test page loaded');
+        });
+    </script>
+</body>
+</html>

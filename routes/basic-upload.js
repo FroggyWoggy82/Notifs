@@ -230,7 +230,11 @@ router.post('/basic', uploadMiddleware, async (req, res) => {
     }
 });
 
-// Add an alias route for mobile compatibility - same logic as /basic
+// REMOVED: Duplicate /upload route that was causing mobile uploads to process twice
+// Mobile uploads should use /api/photos/upload instead of /api/basic/upload
+// This prevents the duplicate upload issue where both /basic and /upload routes
+// in the same file were processing the same request
+/*
 router.post('/upload', uploadMiddleware, async (req, res) => {
     console.log(`[BASIC UPLOAD] Mobile /upload route - redirecting to basic logic`);
 
@@ -392,5 +396,6 @@ router.post('/upload', uploadMiddleware, async (req, res) => {
         client.release();
     }
 });
+*/
 
 module.exports = router;
