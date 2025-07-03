@@ -5264,6 +5264,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (PhotoLoader.imageCache[photo.photo_id]) {
                     img.src = PhotoLoader.imageCache[photo.photo_id];
+                    img.style.opacity = '1'; // Ensure cached images are visible
                     console.log(`[Photo Load] Using cached image for ID: ${photo.photo_id}, src: ${img.src.substring(0, 50)}...`);
                 } else {
                     console.log(`[Photo Load] No cache for ID: ${photo.photo_id}, loading from: ${photo.file_path}`);
@@ -5352,18 +5353,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const allImages = photoReel.querySelectorAll('img');
-        allImages.forEach(img => {
+        allImages.forEach((img, index) => {
 
             img.alt = '';
 
             img.setAttribute('aria-hidden', 'true');
 
-            if (img.complete && img.naturalWidth > 0) {
-
+            // Fix for mobile carousel: Check if image is cached and should be visible
+            const photo = progressPhotosData[index];
+            if (photo && PhotoLoader.imageCache[photo.photo_id]) {
+                // Image is cached, ensure it's using the cached source and is visible
+                if (img.src !== PhotoLoader.imageCache[photo.photo_id]) {
+                    img.src = PhotoLoader.imageCache[photo.photo_id];
+                }
+                img.style.opacity = '1';
+                console.log(`[Photo Display] Fixed cached image visibility for index ${index} (ID: ${photo.photo_id})`);
+            } else if (img.complete && img.naturalWidth > 0) {
+                // Image is loaded and ready
                 img.style.opacity = '1';
             } else {
-
-                img.style.opacity = '0';
+                // Image is not loaded yet, but don't hide it if it has a valid source that's not the placeholder
+                if (img.src === PhotoLoader.placeholderImage || img.src === '') {
+                    img.style.opacity = '0';
+                } else {
+                    // Keep it visible if it has a real image source
+                    img.style.opacity = '1';
+                }
             }
         });
 
@@ -5412,6 +5427,26 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.warn(`[Photo Display] Could not find image element for index ${currentPhotoIndex}`);
         }
+
+        // Additional fix for mobile carousel: Load adjacent images to prevent blank images when scrolling
+        const adjacentIndices = [];
+        if (currentPhotoIndex > 0) adjacentIndices.push(currentPhotoIndex - 1);
+        if (currentPhotoIndex < numPhotos - 1) adjacentIndices.push(currentPhotoIndex + 1);
+
+        adjacentIndices.forEach(index => {
+            const img = imageElements[index];
+            const photo = progressPhotosData[index];
+            if (img && photo && !PhotoLoader.imageCache[photo.photo_id] && img.style.opacity === '0') {
+                console.log(`[Photo Display] Preloading adjacent image ${index} (ID: ${photo.photo_id})`);
+                PhotoLoader.loadImage(
+                    photo.file_path,
+                    img,
+                    photo.photo_id,
+                    () => console.log(`[Photo Display] Successfully preloaded adjacent image ${index} (ID: ${photo.photo_id})`),
+                    (error) => console.error(`[Photo Display] Failed to preload adjacent image ${index}: ${error}`)
+                );
+            }
+        });
 
 
         const offset = currentPhotoIndex * -100; // Calculate percentage offset

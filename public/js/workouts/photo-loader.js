@@ -42,9 +42,9 @@ const PhotoLoader = {
         if (this.imageCache[safePhotoId]) {
             console.log(`[PhotoLoader] Using cached image for ID: ${safePhotoId}`);
 
-            // Set placeholder while loading from cache
-            imgElement.style.opacity = '0';
+            // For cached images, set source immediately and keep visible (no opacity flicker)
             imgElement.src = this.imageCache[safePhotoId];
+            imgElement.style.opacity = '1';
 
             // Apply any cached styles
             if (this.imageCache[safePhotoId + '_style']) {
@@ -54,11 +54,8 @@ const PhotoLoader = {
                 });
             }
 
-            // Fade in the image
-            setTimeout(() => {
-                imgElement.style.opacity = '1';
-                if (onSuccess) onSuccess();
-            }, 50);
+            // Call success callback immediately for cached images
+            if (onSuccess) onSuccess();
             return;
         }
 
