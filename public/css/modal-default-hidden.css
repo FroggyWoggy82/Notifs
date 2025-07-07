@@ -1,0 +1,119 @@
+/**
+ * Modal Default Hidden
+ * Ensures all modals are hidden by default and only show when explicitly opened
+ * This overrides any CSS that might auto-show modals
+ */
+
+/* CRITICAL: Force all modals to be hidden by default with maximum specificity */
+html body #editTaskModal,
+html body #addTaskModal,
+html body #addHabitModal,
+html body #editHabitModal,
+html body .modal {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Only show modals when they have the explicit user-opened class */
+html body #editTaskModal.user-opened,
+html body #addTaskModal.user-opened,
+html body #addHabitModal.user-opened,
+html body #editHabitModal.user-opened,
+html body .modal.user-opened {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    position: fixed !important;
+    z-index: 10000 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Override any problematic CSS selectors that auto-show modals */
+html body #editTaskModal[style*="display: flex"]:not(.user-opened),
+html body #addTaskModal[style*="display: flex"]:not(.user-opened),
+html body #addHabitModal[style*="display: flex"]:not(.user-opened),
+html body #editHabitModal[style*="display: flex"]:not(.user-opened),
+html body #editTaskModal.visible:not(.user-opened),
+html body #addTaskModal.visible:not(.user-opened),
+html body #addHabitModal.visible:not(.user-opened),
+html body #editHabitModal.visible:not(.user-opened),
+html body #editTaskModal.modal-visible:not(.user-opened),
+html body #addTaskModal.modal-visible:not(.user-opened),
+html body #addHabitModal.modal-visible:not(.user-opened),
+html body #editHabitModal.modal-visible:not(.user-opened) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Ensure close buttons are visible and clickable when modal is open */
+html body .modal.user-opened .close-button,
+html body .modal.user-opened .close-button i,
+html body .modal.user-opened .fas.fa-times {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    position: absolute !important;
+    top: 10px !important;
+    right: 15px !important;
+    z-index: 10001 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    color: #fff !important;
+    font-size: 16px !important;
+}
+
+html body .modal.user-opened .close-button:hover,
+html body .modal.user-opened .close-button i:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ensure modal content is properly positioned when open */
+html body .modal.user-opened .modal-content {
+    position: relative !important;
+    background-color: #121212 !important;
+    color: #ffffff !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    width: 90% !important;
+    max-width: 500px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #333 !important;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+    html body .modal.user-opened .modal-content {
+        width: 95% !important;
+        max-width: none !important;
+        margin: 10px !important;
+    }
+    
+    html body .modal.user-opened .close-button,
+    html body .modal.user-opened .close-button i {
+        top: 5px !important;
+        right: 10px !important;
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 18px !important;
+    }
+}
