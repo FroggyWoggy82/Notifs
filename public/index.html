@@ -40,6 +40,12 @@
     <!-- Mobile layout spacing fix - removes container borders and fixes spacing -->
     <link rel="stylesheet" href="css/fixes/mobile-layout-spacing-fix.css">
 
+    <!-- Mobile centering override - high priority fix for mobile layout centering -->
+    <link rel="stylesheet" href="css/mobile-centering-override.css">
+
+    <!-- Mobile centering final fix - ULTIMATE override for mobile task list centering -->
+    <link rel="stylesheet" href="css/mobile-centering-final-fix.css">
+
     <!-- Mobile grocery badges optimization for better mobile fit -->
     <link rel="stylesheet" href="css/mobile-grocery-badges.css">
 
@@ -422,16 +428,19 @@
     </script>
 
     <!-- Critical scripts that must load immediately -->
-    <script src="js/tasks/immediate-modal-killer.js"></script>
+    <!-- <script src="js/tasks/immediate-modal-killer.js"></script> --> <!-- DISABLED: Prevents edit modal from opening -->
     <script src="js/mobile-emergency-close.js"></script>
     <script src="js/immediate-notification-fix.js"></script>
     <script src="js/ios-notification-fix.js"></script>
     <script src="js/notification-system.js"></script>
     <script src="js/weekly-summary-notification.js"></script>
     <script src="js/modal-system.js"></script>
-    <script src="js/tasks/modal-stuck-fix.js"></script>
-    <script src="js/tasks/emergency-modal-close.js"></script>
+    <!-- <script src="js/tasks/modal-stuck-fix.js"></script> --> <!-- DISABLED: Interferes with unified FAB fix -->
+    <!-- <script src="js/tasks/emergency-modal-close.js"></script> --> <!-- DISABLED: Interferes with unified FAB fix -->
     <script src="js/tasks/script.js"></script>
+
+    <!-- Task click modal fix - ensures task clicks open edit modal -->
+    <script src="js/tasks/task-click-modal-fix.js"></script>
 
     <!-- Task search functionality - must load after main tasks script -->
     <script src="js/task-search.js"></script>
@@ -440,7 +449,7 @@
     <script src="js/task-priority-ranking.js"></script>
 
     <!-- Checkbox responsiveness fix - must load early to intercept clicks -->
-    <script src="js/tasks/checkbox-responsiveness-fix.js"></script>
+    <!-- <script src="js/tasks/checkbox-responsiveness-fix.js"></script> --> <!-- DISABLED: Conflicts with unified subtask handler -->
 
     <!-- Non-critical scripts loaded asynchronously for better performance -->
     <script src="js/form-improvements.js" defer></script>
@@ -452,15 +461,18 @@
     <script src="js/notification-permission-check.js" defer></script>
     <script src="js/dashboard-stats.js" defer></script>
     <script src="js/tasks/recurring-task-helper.js" defer></script>
-    <script src="js/tasks/edit-modal-fix.js" defer></script>
+    <!-- <script src="js/tasks/edit-modal-fix.js" defer></script> --> <!-- DISABLED: Prevents edit modal from opening -->
     <script src="js/tasks/add-task-modal-fix.js" defer></script>
-    <script src="js/fixes/add-task-modal-mobile-fix.js" defer></script>
-    <script src="js/fixes/mobile-fab-modal-fix.js" defer></script>
-    <script src="js/fixes/edit-task-modal-simple-fix.js" defer></script>
+    <!-- <script src="js/fixes/add-task-modal-mobile-fix.js" defer></script> --> <!-- DISABLED: Conflicts with unified FAB fix -->
+    <!-- <script src="js/fixes/mobile-fab-modal-fix.js" defer></script> --> <!-- DISABLED: Conflicts with unified FAB fix -->
+    <script src="js/fixes/unified-fab-fix.js" defer></script>
+    <!-- <script src="js/fixes/edit-task-modal-simple-fix.js" defer></script> --> <!-- DISABLED: Prevents edit modal from opening -->
     <script src="js/fixes/add-task-modal-close-fix.js" defer></script>
     <script src="js/tasks/task-action-hover-fix.js" defer></script>
-    <script src="js/tasks/subtasks-support.js" defer></script>
+    <!-- <script src="js/tasks/subtasks-support.js" defer></script> --> <!-- DISABLED: Conflicts with unified subtask handler -->
     <script src="js/tasks/expand-button-fix.js" defer></script>
+    <!-- Expand button visibility fix - ensures buttons are always visible -->
+    <script src="js/tasks/expand-button-visibility-fix.js" defer></script>
     <script src="js/tasks/task-icons-fix.js" defer></script>
     <script src="js/tasks/checkbox-redesign.js" defer></script>
     <script src="js/tasks/recurrence-indicator-redesign.js" defer></script>
@@ -485,9 +497,13 @@
     <script src="js/ratio-badge.js" defer></script>
     <script src="js/calendar/calendar-refresh-fix.js" defer></script>
     <script src="js/tasks/subtask-form-handler.js" defer></script>
-    <script src="js/tasks/subtasks-fix-v4.js" defer></script>
-    <script src="js/tasks/subtask-checkbox-fix.js" defer></script>
+    <!-- <script src="js/tasks/subtasks-fix-v4.js" defer></script> --> <!-- DISABLED: Conflicts with unified subtask handler -->
+    <!-- <script src="js/tasks/subtask-checkbox-fix.js" defer></script> --> <!-- DISABLED: Conflicts with unified subtask handler -->
     <script src="js/tasks/subtask-button-fix.js" defer></script>
+    <!-- Minimal subtask loader - provides essential loadSubtasks function -->
+    <script src="js/tasks/subtask-loader-minimal.js" defer></script>
+    <!-- Unified subtask checkbox handler - loads last to override other handlers -->
+    <script src="js/tasks/subtask-checkbox-unified.js" defer></script>
     <script src="js/tasks/grocery-task-display.js" defer></script>
     <!-- <script src="js/tasks/grocery-subtasks-unified.js" defer></script> -->
     <script src="js/tasks/overdue-recurrence-adjuster.js" defer></script>

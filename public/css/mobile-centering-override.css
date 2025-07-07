@@ -1,0 +1,202 @@
+/**
+ * Mobile Centering Override
+ * High-priority CSS to fix mobile layout centering issues
+ * This file should be loaded last to override all other layout styles
+ */
+
+/* Mobile viewport centering fix */
+@media (max-width: 768px) {
+    /* Ensure no horizontal overflow */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Reset body padding for mobile */
+    body {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-bottom: 60px !important; /* Keep space for bottom nav */
+    }
+    
+    /* CRITICAL: Override expanded-task-layout.css completely on mobile */
+    /* Force container to be properly centered and reset all expanded layout styles */
+    html body .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 8px !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        /* Override expanded layout negative margins that push content right */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Reset all section containers and override expanded layout */
+    html body .task-list-section,
+    html body .completed-tasks-section,
+    html body .habit-list-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* Override expanded layout negative margins */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Reset all task list containers and override expanded layout */
+    html body #taskList,
+    html body #completedTaskList,
+    html body #habitList {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* Override expanded layout negative margins and viewport calculations */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Reset all task items and override expanded layout */
+    html body .task-item,
+    html body .habit-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 4px 0 !important;
+        padding: 8px 12px !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        /* Override expanded layout negative margins and width calculations */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* Special handling for tasks with subtasks - maintain expand button positioning */
+    html body .task-item.has-subtasks {
+        padding-left: 45px !important; /* Space for expand button */
+        padding-right: 12px !important;
+    }
+
+    /* Ensure expand button container stays at left edge */
+    html body .task-item.has-subtasks .expand-button-container {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 35px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 10 !important;
+    }
+
+    /* Ensure expand button is properly sized */
+    html body .task-item.has-subtasks .expand-subtasks-btn {
+        width: 25px !important;
+        height: 25px !important;
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Adjust checkbox positioning for tasks with subtasks */
+    html body .task-item.has-subtasks .task-checkbox-container {
+        margin-left: 8px !important;
+        margin-right: 8px !important;
+    }
+    
+    /* Reset card elements */
+    html body .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    html body .card__body {
+        padding: 8px !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Reset main title */
+    html body h1.gradient-text {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 10px 0 !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+    }
+    
+    /* Ensure task content doesn't overflow */
+    .task-content,
+    .task-title,
+    .task-description {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Fix task title container */
+    .task-title-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Ensure buttons and controls stay within bounds */
+    .task-actions,
+    .habit-control-container,
+    .task-checkbox-container {
+        box-sizing: border-box !important;
+        flex-shrink: 0 !important;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    html body .container {
+        padding: 0 6px !important;
+    }
+    
+    html body .task-item,
+    html body .habit-item {
+        padding: 6px 10px !important;
+    }
+    
+    html body .card__body {
+        padding: 6px !important;
+    }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+    html body .container {
+        padding: 0 10px !important;
+    }
+}

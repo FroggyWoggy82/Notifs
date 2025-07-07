@@ -1,0 +1,130 @@
+/**
+ * Mobile Centering Final Fix
+ * ULTIMATE override to fix mobile task list centering
+ * This file should be loaded LAST to override all other layout styles
+ * Specifically targets the issue where task list appears pushed to the right
+ */
+
+/* Mobile viewport centering fix - FINAL OVERRIDE */
+@media (max-width: 768px) {
+    /* CRITICAL: Force all containers to be properly centered */
+    html body .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 0 8px !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        /* CRITICAL: Override ALL negative margins from expanded layout */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Override expanded layout for all task sections */
+    html body .task-list-section,
+    html body .completed-tasks-section,
+    html body .habit-list-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* CRITICAL: Override ALL negative margins and viewport calculations */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Override expanded layout for all task lists */
+    html body #taskList,
+    html body #completedTaskList,
+    html body #habitList {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* CRITICAL: Override ALL negative margins and viewport calculations */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Override expanded layout for all task items */
+    html body .task-item,
+    html body .habit-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 4px 0 !important;
+        padding: 8px 12px !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        /* CRITICAL: Override ALL negative margins and width calculations */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Override expanded layout for cards */
+    html body .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 16px 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* CRITICAL: Override ALL negative margins */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* CRITICAL: Ensure no horizontal overflow anywhere */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* CRITICAL: Reset body padding for mobile */
+    body {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-bottom: 60px !important; /* Keep space for bottom nav */
+    }
+}
+
+/* Extra small mobile devices - even more aggressive centering */
+@media (max-width: 480px) {
+    html body .container {
+        padding: 0 6px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    html body .task-item,
+    html body .habit-item {
+        padding: 6px 10px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    html body .card__body {
+        padding: 6px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}

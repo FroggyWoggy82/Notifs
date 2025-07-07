@@ -25,34 +25,69 @@
     margin: 0 !important;
 }
 
-/* Reduce left padding for the main container */
+/* MOBILE CENTERING FIX - Override all expanded layout styles */
 @media (max-width: 768px) {
-    .container {
-        padding-left: 4px !important;
-        padding-right: 4px !important;
-    }
-    
-    /* Reduce left padding for task sections */
-    .task-list-section,
-    .completed-tasks-section {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        padding-left: 4px !important;
-        padding-right: 4px !important;
-    }
-    
-    /* Reduce left padding for task items */
-    .task-item {
-        padding-left: 8px !important;
-        padding-right: 8px !important;
-    }
-    
-    /* Fix habit item padding to prevent circle cutoff */
-    .habit-item {
+    /* Reset container to normal centered layout */
+    html body .container {
+        max-width: 100% !important;
+        width: 100% !important;
         padding-left: 8px !important;
         padding-right: 8px !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Reset task sections to normal layout */
+    html body .task-list-section,
+    html body .completed-tasks-section,
+    html body .habit-list-section {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Reset task lists to normal width */
+    html body #taskList,
+    html body #completedTaskList,
+    html body #habitList {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Reset task items to normal centered layout */
+    html body .task-item,
+    html body .habit-item {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Reset card bodies */
+    html body .card__body {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Reset main title */
+    html body h1.gradient-text {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
     }
     
     /* Ensure habit control container has proper spacing */
@@ -79,19 +114,24 @@
     }
 }
 
-/* Extra small screens - even more compact */
+/* Extra small screens - maintain centered layout */
 @media (max-width: 480px) {
-    .container {
-        padding-left: 2px !important;
-        padding-right: 2px !important;
-    }
-    
-    .task-item,
-    .habit-item {
+    html body .container {
         padding-left: 6px !important;
         padding-right: 6px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
-    
+
+    html body .task-item,
+    html body .habit-item {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+
     .habit-control-container,
     .task-checkbox-container {
         margin-right: 6px !important;
