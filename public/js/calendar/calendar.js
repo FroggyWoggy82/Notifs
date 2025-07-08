@@ -521,12 +521,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
+                // Handle assigned_date
                 if (task.assigned_date) {
                     try {
-
                         const assignedDateKey = task.assigned_date.split('T')[0];
                         dates.push(assignedDateKey);
-
 
                         if (!tasksByDate[assignedDateKey]) {
                             tasksByDate[assignedDateKey] = [];
@@ -534,13 +533,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         const taskAlreadyAdded = tasksByDate[assignedDateKey].some(t => t.id === task.id);
                         if (!taskAlreadyAdded) {
-                            console.log(`Adding task ${task.id} (${task.title}) to date ${assignedDateKey}`);
+                            console.log(`Adding task ${task.id} (${task.title}) to assigned date ${assignedDateKey}`);
                             tasksByDate[assignedDateKey].push(task);
                         }
                     } catch (e) {
                         console.warn(`Invalid assigned_date format for task ${task.id}: ${task.assigned_date}`);
                     }
-                } else if (!task.due_date && !task.is_complete) {
+                }
+
+                // Handle due_date (separately from assigned_date - a task can appear on both dates)
+                if (task.due_date) {
+                    try {
+                        const dueDateKey = task.due_date.split('T')[0];
+
+                        // Only add if it's different from assigned_date to avoid duplicates
+                        const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
+                        if (dueDateKey !== assignedDateKey) {
+                            dates.push(dueDateKey);
+
+                            if (!tasksByDate[dueDateKey]) {
+                                tasksByDate[dueDateKey] = [];
+                            }
+
+                            const taskAlreadyAdded = tasksByDate[dueDateKey].some(t => t.id === task.id);
+                            if (!taskAlreadyAdded) {
+                                console.log(`Adding task ${task.id} (${task.title}) to due date ${dueDateKey}`);
+                                tasksByDate[dueDateKey].push(task);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn(`Invalid due_date format for task ${task.id}: ${task.due_date}`);
+                    }
+                }
+
+                // Handle tasks without any dates
+                if (!task.assigned_date && !task.due_date && !task.is_complete) {
                     // Add tasks without due dates to today's date
                     // We'll use the current date (today) regardless of when the calendar was loaded
                     const currentTodayKey = formatDateKey(new Date());
@@ -875,6 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const directlyAssignedTasks = tasks.filter(task => {
             const assignedDateKey = task.assigned_date ? task.assigned_date.split('T')[0] : null;
+            const dueDateKey = task.due_date ? task.due_date.split('T')[0] : null;
 
             // Include tasks without due dates on today's date
             const currentTodayKey = formatDateKey(new Date());
@@ -882,7 +910,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return true;
             }
 
-            return assignedDateKey === dateKey;
+            // Check both assigned_date and due_date
+            return assignedDateKey === dateKey || dueDateKey === dateKey;
         });
 
         const recurringTasks = tasks.filter(task => {

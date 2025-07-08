@@ -252,8 +252,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.handleHabitCheckboxClick = async function(habitId, isChecked) {
             // Store the current level before making the API call
-            const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
-            const levelElement = habitElement ? habitElement.querySelector('.habit-level') : null;
+            const habitElementLevelFix = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+            const levelElement = habitElementLevelFix ? habitElementLevelFix.querySelector('.habit-level') : null;
             const currentLevelText = levelElement ? levelElement.textContent : '';
 
             console.log(`[Habit Level Fix] Preserving current level: ${currentLevelText} for habit ${habitId}`);
@@ -301,8 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
             habitListStatusDiv.textContent = 'Updating habit...';
             habitListStatusDiv.className = 'status';
 
-            const habitElement = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
-            const habitTitleEl = habitElement?.querySelector('.habit-title');
+            const habitElementMain = document.querySelector(`.habit-item[data-habit-id="${habitId}"]`);
+            const habitTitleEl = habitElementMain?.querySelector('.habit-title');
             const habitTitle = habitTitleEl?.textContent || '';
             const counterMatch = habitTitle.match(/\((\d+)\/(\d+)\)/);
 
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error(`HTTP error recording completion! status: ${completionResponse.status}`);
                     }
 
-                    const progressEl = habitElement.querySelector('.habit-progress');
+                    const progressEl = habitElementMain.querySelector('.habit-progress');
                     if (progressEl) {
                         progressEl.textContent = `Progress: ${newCount}/${totalCount}`;
                         progressEl.title = `Current progress: ${newCount}/${totalCount}`;
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (responseData && responseData.level !== undefined && responseData.total_completions !== undefined) {
                         console.log(`Updating level to ${responseData.level} (${responseData.total_completions} completions)`);
 
-                        const levelEl = habitElement.querySelector('.habit-level');
+                        const levelEl = habitElementMain.querySelector('.habit-level');
                         console.log('Level element found:', levelEl);
 
                         if (levelEl) {
@@ -416,9 +416,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (newCount >= totalCount) {
 
-                        habitElement.classList.add('counter-complete');
+                        habitElementMain.classList.add('counter-complete');
 
-                        const incrementBtn = habitElement.querySelector('.habit-increment-btn');
+                        const incrementBtn = habitElementMain.querySelector('.habit-increment-btn');
                         if (incrementBtn) {
                             incrementBtn.textContent = '✓'; // Checkmark
                             incrementBtn.classList.add('completed');

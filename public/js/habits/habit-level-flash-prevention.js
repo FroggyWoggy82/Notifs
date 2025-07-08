@@ -23,9 +23,9 @@ function setupDirectFlashPrevention() {
 
                     // If the level changed to "Level 1" and it's not supposed to be Level 1
                     if (newText === 'Level 1') {
-                        const habitElement = target.closest('.habit-item');
-                        if (habitElement) {
-                            const habitId = habitElement.dataset.habitId;
+                        const habitElementFlash = target.closest('.habit-item');
+                        if (habitElementFlash) {
+                            const habitId = habitElementFlash.dataset.habitId;
                             const preservedLevel = target.getAttribute('data-preserved-level');
 
                             // Check if this habit should have a higher level

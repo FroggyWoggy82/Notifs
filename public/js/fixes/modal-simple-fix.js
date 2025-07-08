@@ -143,6 +143,89 @@
         });
     }
     
+    // Setup form submission handlers
+    function setupFormHandlers() {
+        // Handle edit task form submission
+        const editForm = document.getElementById('editTaskForm');
+        if (editForm) {
+            // Remove existing event listeners by cloning the form
+            const newForm = editForm.cloneNode(true);
+            editForm.parentNode.replaceChild(newForm, editForm);
+
+            // Add our clean form submission handler
+            newForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('[Modal Simple Fix] Edit form submitted');
+
+                const taskId = document.getElementById('editTaskId').value;
+                const saveBtn = document.getElementById('saveTaskBtn');
+
+                if (!taskId) {
+                    console.error('[Modal Simple Fix] No task ID found');
+                    return;
+                }
+
+                // Update button state
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'Saving...';
+                }
+
+                try {
+                    const taskData = {
+                        title: document.getElementById('editTaskTitle').value.trim(),
+                        description: document.getElementById('editTaskDescription').value.trim() || null,
+                        due_date: document.getElementById('editTaskDueDate').value || null
+                    };
+
+                    console.log('[Modal Simple Fix] Updating task with data:', taskData);
+
+                    const response = await fetch(`/api/tasks/${taskId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(taskData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('[Modal Simple Fix] Task updated successfully:', result);
+
+                    // Close modal and reload page
+                    closeModal('editTaskModal');
+                    window.location.reload();
+
+                } catch (error) {
+                    console.error('[Modal Simple Fix] Error updating task:', error);
+
+                    // Reset button state
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save Changes';
+                    }
+                }
+            });
+
+            // Setup save button click handler
+            const saveBtn = document.getElementById('saveTaskBtn');
+            if (saveBtn) {
+                // Remove existing listeners
+                const newSaveBtn = saveBtn.cloneNode(true);
+                saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+
+                newSaveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('[Modal Simple Fix] Save button clicked');
+                    newForm.dispatchEvent(new Event('submit'));
+                });
+            }
+        }
+    }
+
     // Override existing modal functions to use our safe methods
     function overrideModalFunctions() {
         // Override showEditTaskModal if it exists
@@ -150,20 +233,20 @@
             const originalShow = window.showEditTaskModal || window.openEditTaskModal;
             window.showEditTaskModal = window.openEditTaskModal = function(task) {
                 console.log('[Modal Simple Fix] Intercepted edit modal open');
-                
+
                 if (task) {
                     // Fill form fields
                     const titleInput = document.getElementById('editTaskTitle');
                     const descInput = document.getElementById('editTaskDescription');
                     const dueDateInput = document.getElementById('editTaskDueDate');
                     const idInput = document.getElementById('editTaskId');
-                    
+
                     if (titleInput) titleInput.value = task.title || '';
                     if (descInput) descInput.value = task.description || '';
                     if (dueDateInput) dueDateInput.value = task.due_date ? task.due_date.split('T')[0] : '';
                     if (idInput) idInput.value = task.id || '';
                 }
-                
+
                 openModal('editTaskModal');
             };
         }
@@ -196,21 +279,24 @@
     // Initialize
     function initialize() {
         console.log('[Modal Simple Fix] Setting up modal management...');
-        
+
         // Force close all modals immediately
         forceCloseAllModals();
-        
+
         // Setup close button handlers
         setupCloseButtons();
-        
+
+        // Setup form handlers
+        setupFormHandlers();
+
         // Override modal functions
         setTimeout(overrideModalFunctions, 100);
-        
+
         // Add global functions
         window.openModal = openModal;
         window.closeModal = closeModal;
         window.forceCloseAllModals = forceCloseAllModals;
-        
+
         console.log('[Modal Simple Fix] Modal management ready');
     }
     
@@ -226,6 +312,7 @@
         console.log('[Modal Simple Fix] Running delayed initialization...');
         forceCloseAllModals();
         setupCloseButtons();
+        setupFormHandlers();
         overrideModalFunctions();
     }, 1000);
     
