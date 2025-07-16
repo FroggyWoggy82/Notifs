@@ -197,7 +197,11 @@
 #addTaskModal .close-button,
 #editTaskModal .close-button,
 #addHabitModal .close-button,
-#editHabitModal .close-button {
+#editHabitModal .close-button,
+#addTaskModal .emergency-close-btn,
+#editTaskModal .emergency-close-btn,
+#addHabitModal .emergency-close-btn,
+#editHabitModal .emergency-close-btn {
     position: absolute !important;
     top: 15px !important;
     right: 15px !important;
@@ -213,6 +217,20 @@
     justify-content: center !important;
     transition: background-color 0.2s, color 0.2s !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Hover effects for close buttons */
+#addTaskModal .close-button:hover,
+#editTaskModal .close-button:hover,
+#addHabitModal .close-button:hover,
+#editHabitModal .close-button:hover,
+#addTaskModal .emergency-close-btn:hover,
+#editTaskModal .emergency-close-btn:hover,
+#addHabitModal .emergency-close-btn:hover,
+#editHabitModal .emergency-close-btn:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 #addTaskModal .close-button:hover,

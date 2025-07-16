@@ -19,8 +19,9 @@
         const dueDateIndicator = task.querySelector('.due-date-indicator');
         if (!dueDateIndicator) return false;
 
-        // Check if the due date indicator contains "Overdue"
-        return dueDateIndicator.textContent.includes('Overdue');
+        // Check if the due date indicator contains "Overdue" but NOT "Due Today"
+        const text = dueDateIndicator.textContent;
+        return text.includes('Overdue') && !text.includes('Due Today');
     }
 
     // Function to apply overdue styling to a task

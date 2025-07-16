@@ -56,7 +56,9 @@ html body #editHabitModal.modal-visible:not(.user-opened) {
     pointer-events: none !important;
 }
 
+/* DISABLED: This was creating duplicate circular close buttons */
 /* Ensure close buttons are visible and clickable when modal is open */
+/*
 html body .modal.user-opened .close-button,
 html body .modal.user-opened .close-button i,
 html body .modal.user-opened .fas.fa-times {
@@ -79,6 +81,7 @@ html body .modal.user-opened .fas.fa-times {
     color: #fff !important;
     font-size: 16px !important;
 }
+*/
 
 html body .modal.user-opened .close-button:hover,
 html body .modal.user-opened .close-button i:hover {

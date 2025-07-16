@@ -228,18 +228,6 @@
     }
   },
   {
-    "id": "927366be399169fd3bf3cfc4",
-    "title": "Reminder: Om's Bday",
-    "body": "Due in 32 days (7/10/2025)",
-    "scheduledTime": "2025-07-10T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413222,
-    "data": {
-      "taskId": 145,
-      "type": "task_reminder"
-    }
-  },
-  {
     "id": "eb23a3884202dc174ee94049",
     "title": "Reminder: Anthony Nguyen's Bday",
     "body": "Due in 48 days (7/26/2025)",
@@ -320,18 +308,6 @@
     "createdAt": 1749409413227,
     "data": {
       "taskId": 153,
-      "type": "task_reminder"
-    }
-  },
-  {
-    "id": "6261f72267f23ac2bfdb726f",
-    "title": "Reminder: Grace Ebbinghouse's Bday",
-    "body": "Due in 31 days (7/9/2025)",
-    "scheduledTime": "2025-07-09T14:00:00.000Z",
-    "repeat": "none",
-    "createdAt": 1749409413230,
-    "data": {
-      "taskId": 144,
       "type": "task_reminder"
     }
   },

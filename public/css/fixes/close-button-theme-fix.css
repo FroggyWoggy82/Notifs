@@ -1,0 +1,226 @@
+/**
+ * Close Button Theme Fix
+ * Ensures all close buttons (including emergency close buttons) follow the site's dark theme
+ * Overrides any red emergency close button styling to match the consistent design
+ */
+
+/* Override emergency close button red styling with dark theme */
+.emergency-close-btn,
+#addTaskModal .emergency-close-btn,
+#editTaskModal .emergency-close-btn,
+#addHabitModal .emergency-close-btn,
+#editHabitModal .emergency-close-btn {
+    background: #333333 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 16px !important;
+    font-weight: normal !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s !important;
+    z-index: 99999 !important;
+}
+
+/* Hover effects for emergency close buttons */
+.emergency-close-btn:hover,
+#addTaskModal .emergency-close-btn:hover,
+#editTaskModal .emergency-close-btn:hover,
+#addHabitModal .emergency-close-btn:hover,
+#editHabitModal .emergency-close-btn:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ensure all close buttons follow the same styling pattern */
+.close-button,
+.modal .close-button,
+.modal .close,
+[class*="close-btn"],
+[class*="close-button"] {
+    background-color: #333333 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s !important;
+}
+
+.close-button:hover,
+.modal .close-button:hover,
+.modal .close:hover,
+[class*="close-btn"]:hover,
+[class*="close-button"]:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Specific positioning for modal close buttons */
+#addTaskModal .close-button,
+#editTaskModal .close-button,
+#addHabitModal .close-button,
+#editHabitModal .close-button,
+#addTaskModal .emergency-close-btn,
+#editTaskModal .emergency-close-btn,
+#addHabitModal .emergency-close-btn,
+#editHabitModal .emergency-close-btn {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    z-index: 10001 !important;
+}
+
+/* Fix for habit modal close button created by habit-modal-fix.js */
+/* Use only the most specific selector to avoid duplicate styling */
+#editHabitModal .modal-close-x {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    width: 30px !important;
+    height: 30px !important;
+    background-color: #333333 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    z-index: 10001 !important;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s !important;
+}
+
+/* NUCLEAR OPTION: Hide ANY other circular elements in the modal area */
+#editHabitModal *:not(.modal-close-x) {
+    /* Hide any element that might be creating a circular appearance */
+}
+
+#editHabitModal *:not(.modal-close-x)[style*="border-radius: 50%"],
+#editHabitModal *:not(.modal-close-x)[style*="border-radius:50%"],
+#editHabitModal *:not(.modal-close-x)[style*="border-radius: 15px"],
+#editHabitModal *:not(.modal-close-x)[style*="border-radius: 20px"],
+#editHabitModal *:not(.modal-close-x)[style*="border-radius: 25px"],
+#editHabitModal *:not(.modal-close-x)[style*="border-radius: 30px"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    z-index: -9999 !important;
+}
+
+/* Hide any elements positioned in the top-right area that aren't our close button */
+#editHabitModal .modal-header *:not(.modal-close-x):not(h2):not(.modal-title) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* EXTREME NUCLEAR OPTION: Hide ALL pseudo-elements in the modal header except our close button */
+#editHabitModal .modal-header *:not(.modal-close-x)::before,
+#editHabitModal .modal-header *:not(.modal-close-x)::after {
+    content: none !important;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Hide any elements that might contain "inc" text */
+#editHabitModal *[class*="inc"],
+#editHabitModal *[id*="inc"],
+#editHabitModal *[data-*="inc"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+}
+
+/* Hide any buttons or spans in the modal header that aren't our close button */
+#editHabitModal .modal-header button:not(.modal-close-x),
+#editHabitModal .modal-header span:not(.modal-close-x),
+#editHabitModal .modal-header div:not(.modal-close-x) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Allow only our specific close button and the title */
+#editHabitModal .modal-header > *:not(.modal-close-x):not(h2) {
+    display: none !important;
+}
+
+#editHabitModal .modal-close-x:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .emergency-close-btn,
+    #addTaskModal .emergency-close-btn,
+    #editTaskModal .emergency-close-btn,
+    #addHabitModal .emergency-close-btn,
+    #editHabitModal .emergency-close-btn {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 18px !important;
+        top: 10px !important;
+        right: 10px !important;
+    }
+    
+    #addTaskModal .close-button,
+    #editTaskModal .close-button,
+    #addHabitModal .close-button,
+    #editHabitModal .close-button {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 18px !important;
+        top: 10px !important;
+        right: 10px !important;
+    }
+}
+
+/* Ensure the X symbol is properly centered */
+.emergency-close-btn::before,
+.close-button i,
+.close-button .fas {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Override any conflicting styles from other CSS files */
+html body .emergency-close-btn,
+html body #addTaskModal .emergency-close-btn,
+html body #editTaskModal .emergency-close-btn,
+html body #addHabitModal .emergency-close-btn,
+html body #editHabitModal .emergency-close-btn {
+    background: #333333 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+html body .emergency-close-btn:hover,
+html body #addTaskModal .emergency-close-btn:hover,
+html body #editTaskModal .emergency-close-btn:hover,
+html body #addHabitModal .emergency-close-btn:hover,
+html body #editHabitModal .emergency-close-btn:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}

@@ -1,0 +1,211 @@
+/* NUCLEAR OPTION: DESTROY ALL UNWANTED ELEMENTS */
+
+/* Hide ANY element that contains "inc" text ANYWHERE */
+*:not(.modal-close-x):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) {
+    /* Check if element contains "inc" and hide it */
+}
+
+*[class*="inc"]:not(.modal-close-x),
+*[id*="inc"]:not(.modal-close-x),
+*[data-*="inc"]:not(.modal-close-x),
+*[title*="inc"]:not(.modal-close-x),
+*[alt*="inc"]:not(.modal-close-x) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -99999px !important;
+    left: -99999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    z-index: -99999 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+    overflow: hidden !important;
+}
+
+/* Target browser extension elements */
+*[class*="extension"]:not(.modal-close-x),
+*[class*="chrome"]:not(.modal-close-x),
+*[class*="firefox"]:not(.modal-close-x),
+*[class*="safari"]:not(.modal-close-x),
+*[class*="edge"]:not(.modal-close-x),
+*[id*="extension"]:not(.modal-close-x),
+*[id*="chrome"]:not(.modal-close-x),
+*[id*="firefox"]:not(.modal-close-x),
+*[id*="safari"]:not(.modal-close-x),
+*[id*="edge"]:not(.modal-close-x) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -99999px !important;
+    left: -99999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    z-index: -99999 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+    overflow: hidden !important;
+}
+
+/* NUCLEAR: Hide any circular element in modal header that's not our close button */
+#editHabitModal .modal-header *:not(.modal-close-x):not(h2) {
+    border-radius: 0 !important;
+}
+
+#editHabitModal .modal-header *:not(.modal-close-x):not(h2)[style*="border-radius"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -99999px !important;
+    left: -99999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    z-index: -99999 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+    overflow: hidden !important;
+}
+
+/* NUCLEAR: Hide any element positioned in top-right of modal */
+#editHabitModal .modal-header *:not(.modal-close-x):not(h2) {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+}
+
+/* NUCLEAR: Force hide any element with "inc" text content */
+#editHabitModal *:not(.modal-close-x):not(h2):not(input):not(select):not(textarea):not(button[class*="update"]):not(button[class*="cancel"]):not(button[class*="delete"]) {
+    /* This will be handled by JavaScript */
+}
+
+/* Ensure our modal close button is ALWAYS visible and on top */
+#editHabitModal .modal-close-x {
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    width: 30px !important;
+    height: 30px !important;
+    background-color: #333333 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    z-index: 999999999 !important;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: scale(1) !important;
+    overflow: visible !important;
+}
+
+/* NUCLEAR: Override any external styles that might be affecting our modal */
+#editHabitModal .modal-close-x:hover {
+    background-color: #444444 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* GLOBAL NUCLEAR OPTION: Hide ANY element that might be from browser extensions */
+/* This targets common browser extension patterns */
+div[style*="position: absolute"][style*="top"][style*="right"]:not(.modal-close-x),
+div[style*="position: fixed"][style*="top"][style*="right"]:not(.modal-close-x),
+span[style*="position: absolute"][style*="top"][style*="right"]:not(.modal-close-x),
+span[style*="position: fixed"][style*="top"][style*="right"]:not(.modal-close-x) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -99999px !important;
+    left: -99999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    z-index: -99999 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+    overflow: hidden !important;
+}
+
+/* ULTIMATE NUCLEAR OPTION: Hide ANY element in top-right of modal that's not our close button */
+#editHabitModal *:not(.modal-close-x):not(h2):not(input):not(select):not(textarea):not(button[class*="update"]):not(button[class*="cancel"]):not(button[class*="delete"]) {
+    /* If it's positioned in the top-right corner area, DESTROY IT */
+}
+
+/* Target ANY element positioned in top-right of modal */
+#editHabitModal .modal-content *:not(.modal-close-x):not(h2):not(input):not(select):not(textarea):not(button) {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+}
+
+/* NUCLEAR: Hide any element that appears in the top 50px and right 50px of modal */
+#editHabitModal .modal-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50px;
+    height: 50px;
+    background: transparent;
+    z-index: 999998;
+    pointer-events: none;
+}
+
+/* Hide ANY circular element anywhere in the modal except our close button */
+#editHabitModal *:not(.modal-close-x) {
+    border-radius: 0 !important;
+}
+
+/* Force hide any element with circular styling that's not our close button */
+#editHabitModal *:not(.modal-close-x)[style*="border-radius"],
+#editHabitModal *:not(.modal-close-x)[class*="circle"],
+#editHabitModal *:not(.modal-close-x)[class*="round"],
+#editHabitModal *:not(.modal-close-x)[class*="btn"]:not(button[class*="update"]):not(button[class*="cancel"]):not(button[class*="delete"]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -99999px !important;
+    left: -99999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    z-index: -99999 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+    overflow: hidden !important;
+}
+
+/* Target any small circular elements that might be extension buttons */
+*:not(.modal-close-x)[style*="border-radius: 50%"],
+*:not(.modal-close-x)[style*="border-radius:50%"],
+*:not(.modal-close-x)[style*="border-radius: 100%"],
+*:not(.modal-close-x)[style*="border-radius:100%"] {
+    /* Only hide if they're positioned absolutely/fixed and small */
+}
+
+*:not(.modal-close-x)[style*="border-radius: 50%"][style*="position: absolute"],
+*:not(.modal-close-x)[style*="border-radius: 50%"][style*="position: fixed"],
+*:not(.modal-close-x)[style*="border-radius:50%"][style*="position: absolute"],
+*:not(.modal-close-x)[style*="border-radius:50%"][style*="position: fixed"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    top: -99999px !important;
+    left: -99999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    z-index: -99999 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+    overflow: hidden !important;
+}

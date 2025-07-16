@@ -3938,10 +3938,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function handleEditHabitRecurrenceChange() {
-        if (editHabitRecurrenceTypeInput.value === 'daily') {
-            editHabitCompletionsGroup.style.display = 'block';
+        if (editHabitRecurrenceTypeInput && editHabitRecurrenceTypeInput.value === 'daily') {
+            if (editHabitCompletionsGroup) {
+                editHabitCompletionsGroup.style.display = 'block';
+            }
         } else {
-            editHabitCompletionsGroup.style.display = 'none';
+            if (editHabitCompletionsGroup) {
+                editHabitCompletionsGroup.style.display = 'none';
+            }
         }
     }
     editHabitRecurrenceTypeInput.addEventListener('change', handleEditHabitRecurrenceChange);

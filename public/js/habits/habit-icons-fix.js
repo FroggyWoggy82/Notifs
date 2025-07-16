@@ -74,10 +74,41 @@
         newEditBtn.title = 'Edit habit';
 
         newEditBtn.addEventListener('click', (event) => {
-
             event.stopPropagation();
 
-            editBtn.click();
+            // Get the habit data from the habit item
+            const habitId = habitItem.getAttribute('data-habit-id');
+            if (habitId) {
+                console.log('[Habit Icons Fix] Edit button clicked for habit ID:', habitId);
+
+                // Try to call openEditHabitModal directly if available
+                if (typeof window.openEditHabitModal === 'function') {
+                    // Fetch habit data and call the modal function
+                    fetch(`/api/habits/${habitId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(habit => {
+                            console.log('[Habit Icons Fix] Habit data fetched:', habit);
+                            window.openEditHabitModal(habit);
+                        })
+                        .catch(error => {
+                            console.error('[Habit Icons Fix] Error fetching habit:', error);
+                            // Fallback to clicking the old button if fetch fails
+                            editBtn.click();
+                        });
+                } else {
+                    // Fallback to clicking the old button if openEditHabitModal is not available
+                    console.log('[Habit Icons Fix] openEditHabitModal not available, falling back to old button');
+                    editBtn.click();
+                }
+            } else {
+                console.warn('[Habit Icons Fix] No habit ID found, falling back to old button');
+                editBtn.click();
+            }
         });
 
         const newDeleteBtn = document.createElement('button');

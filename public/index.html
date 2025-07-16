@@ -94,6 +94,12 @@
     <!-- Emergency habit checkbox fix - Ultra-specific CSS to ensure checkboxes are never cut off -->
     <link rel="stylesheet" href="css/emergency-habit-checkbox-fix.css">
 
+    <!-- Close button theme fix - Ensures all close buttons follow dark theme styling -->
+    <link rel="stylesheet" href="css/fixes/close-button-theme-fix.css">
+
+    <!-- Simple targeted fix to hide browser extension elements -->
+    <link rel="stylesheet" href="css/nuclear-modal-fix.css">
+
     <!-- Dynamic theme color for status bar - updated for dark theme -->
     <meta name="theme-color" content="#121212">
 
@@ -431,8 +437,8 @@
     </script>
 
     <!-- Critical scripts that must load immediately -->
-    <!-- Modal Simple Fix - Clean solution for modal management -->
-    <script src="js/fixes/modal-simple-fix.js"></script>
+    <!-- Modal Simple Fix - DISABLED: Conflicts with habit edit modal -->
+    <!-- <script src="js/fixes/modal-simple-fix.js"></script> -->
     <!-- <script src="js/tasks/immediate-modal-killer.js"></script> --> <!-- DISABLED: Prevents edit modal from opening -->
     <script src="js/mobile-emergency-close.js"></script>
     <script src="js/immediate-notification-fix.js"></script>
@@ -493,7 +499,10 @@
     <script src="js/habits/habit-icons-fix.js" defer></script>
     <!-- <script src="js/habits/high-completion-habit-fix.js" defer></script> -->
     <script src="js/habits/habit-reset.js" defer></script>
-    <script src="js/habits/habit-modal-fix.js" defer></script>
+    <!-- <script src="js/habits/habit-modal-fix.js?v=8&t=1737027000" defer></script> --> <!-- DISABLED: Has JavaScript errors -->
+    <script src="js/habits/habit-modal-simple-fix.js" defer></script>
+    <!-- <script src="js/fixes/habit-edit-modal-fix.js" defer></script> --> <!-- DISABLED: Conflicts with habit-modal-fix.js -->
+
     <script src="js/habits/habit-redesign.js" defer></script>
     <script src="js/habits/social-media-rejection-fix.js" defer></script>
     <script src="js/habits/habit-ratio-badge.js" defer></script>
@@ -526,7 +535,7 @@
     <script src="js/tasks/completed-tasks-simple-toggle.js" defer></script>
     <script src="js/fix-robert-overdue-date.js" defer></script>
     <script src="js/nuclear-robert-fix.js"></script>
-    <script src="js/fixes/overdue-styling-fix.js" defer></script>
+
     <script src="js/fixes/fab-definitive-fix.js" defer></script>
 
     <button class="menu-button">
